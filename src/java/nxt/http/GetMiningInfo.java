@@ -36,6 +36,7 @@ public final class GetMiningInfo extends APIServlet.APIRequestHandler {
 		byte[] newGenSig = md.digest();
 		
 		response.put("generationSignature", Convert.toHexString(newGenSig));
+		response.put("baseTarget", Long.toString(lastBlock.getBaseTarget()));
 		
 		return response;
 	}
