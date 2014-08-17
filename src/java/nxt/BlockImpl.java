@@ -421,7 +421,7 @@ final class BlockImpl implements Block {
         } else if(this.height < 4) {
         	baseTarget = Constants.INITIAL_BASE_TARGET;
         	cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(Constants.INITIAL_BASE_TARGET)));
-        } else {
+        } else if(this.height < Constants.BURST_DIFF_ADJUST_CHANGE_BLOCK){
         	Block itBlock = previousBlock;
         	BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
         	do {
@@ -451,6 +451,52 @@ final class BlockImpl implements Block {
             if (newBaseTarget > twofoldCurBaseTarget) {
                 newBaseTarget = twofoldCurBaseTarget;
             }
+            baseTarget = newBaseTarget;
+            cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
+        }
+        else {
+        	Block itBlock = previousBlock;
+        	BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
+        	int blockCounter = 1;
+        	do {
+        		itBlock = Nxt.getBlockchain().getBlock(itBlock.getPreviousBlockId());
+        		blockCounter++;
+        		avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter))
+        							.add(BigInteger.valueOf(itBlock.getBaseTarget())))
+        							.divide(BigInteger.valueOf(blockCounter + 1));
+        	} while(blockCounter < 24);
+        	long difTime = this.timestamp - itBlock.getTimestamp();
+        	long targetTimespan = 24 * 4 * 60;
+        	
+        	if(difTime < targetTimespan /2) {
+        		difTime = targetTimespan /2;
+        	}
+        	
+        	if(difTime > targetTimespan * 2) {
+        		difTime = targetTimespan * 2;
+        	}
+        	
+        	long curBaseTarget = previousBlock.getBaseTarget();
+            long newBaseTarget = avgBaseTarget
+                    .multiply(BigInteger.valueOf(difTime))
+                    .divide(BigInteger.valueOf(targetTimespan)).longValue();
+            
+            if (newBaseTarget < 0 || newBaseTarget > Constants.MAX_BASE_TARGET) {
+                newBaseTarget = Constants.MAX_BASE_TARGET;
+            }
+            
+            if (newBaseTarget == 0) {
+                newBaseTarget = 1;
+            }
+            
+            if(newBaseTarget < curBaseTarget * 8 / 10) {
+            	newBaseTarget = curBaseTarget * 8 / 10;
+            }
+            
+            if(newBaseTarget > curBaseTarget * 12 / 10) {
+            	newBaseTarget = curBaseTarget * 12 / 10;
+            }
+            
             baseTarget = newBaseTarget;
             cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
         }
