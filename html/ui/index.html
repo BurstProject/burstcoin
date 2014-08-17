@@ -23,12 +23,7 @@
                 <img src="img/nxt_logo_small.png" style="opacity:0.95" />
             </a>
             <nav class="navbar navbar-static-top" role="navigation">
-                <a href="#" class="navbar-btn sidebar-toggle" data-toggle="offcanvas" role="button">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </a>
+                
                 <div class="navbar-right">
                     <ul class="nav navbar-nav">
                     	<li class="dropdown"><a href="#" style="font-weight:bold;" data-toggle="modal" data-target="#send_money_modal">Send BURST</a></li>
@@ -80,10 +75,10 @@
                         </div>
                     </form>             
                     <ul class="sidebar-menu">
-                        <li class="active" id="dashboard_link"><a href="#" data-page="dashboard"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
-                        <li><a href="#" data-page="transactions"><i class="fa fa-briefcase"></i> <span>Transactions</span></a></li>
+                        <li class="active" id="dashboard_link"><a href="#" data-page="dashboard"><i class="fa fa-bars"></i> <span>Dashboard</span></a></li>
+                        <li><a href="#" data-page="transactions"><i class="fa fa-exchange"></i> <span>Transactions</span></a></li>
                         <li class="treeview" id="sidebar_asset_exchange">
-                        	<a href="#" data-page="asset_exchange"><i class="fa fa-signal"></i><span>Asset Exchange</span><i class="fa pull-right fa-angle-right" style="padding-top:3px"></i></a>
+                        	<a href="#" data-page="asset_exchange"><i class="fa fa-code"></i><span>Asset Exchange</span><i class="fa pull-right fa-angle-right" style="padding-top:3px"></i></a>
                             <ul class="treeview-menu" style="display: none;">
                                  <li><a href="#" data-page="asset_exchange"><i class="fa fa-angle-double-right"></i> Asset Exchange</a></li>
                             	<li><a href="#" data-page="my_assets"><i class="fa fa-angle-double-right"></i> My Assets</a></li>
@@ -95,7 +90,7 @@
                         <li><a href="#" data-page="messages"><i class="fa fa-envelope"></i> <span>Messages</span></a></li>
                         <li><a href="#" data-page="aliases"><i class="fa fa-bookmark"></i> <span>Aliases</span></a></li>
                         <li class="testnet_only"><a href="#" data-page="polls"><i class="fa fa-thumbs-up"></i><span>Polls</span></a></li>
-                        <li><a href="#" data-page="blocks"><i class="fa fa-bars"></i> <span>Blocks</span></a></li>
+                        <li><a href="#" data-page="blocks"><i class="fa fa-chain-broken"></i> <span>Blocks</span></a></li>
                         <li><a href="#" data-page="peers"><i class="fa fa-cloud"></i> <span>Peers</span></a></li>
                 	</ul>
             	</section>
@@ -114,7 +109,7 @@
 	                                    <h3><span id="account_balance" class="loading_dots"><span>.</span><span>.</span><span>.</span></span></h3>
 	                                    <p>Account Balance <span class="label" id="account_leasing" style="display:none;background-color:#1990B1"></span></p>
 	                                </div>
-	                                <div class="icon"><i class="fa fa-briefcase"></i></div>
+	                                <div class="icon"><i class="fa fa-circle-o"></i></div>
 	                                <a href="#" class="small-box-footer" data-toggle="modal" data-target="#account_details_modal">More info <i class="fa fa-arrow-circle-right"></i></a>
 	                            </div>
 	                        </div>
@@ -124,7 +119,7 @@
 	                                    <h3><span id="account_forged_balance" class="loading_dots"><span>.</span><span>.</span><span>.</span></span></h3>
 	                                    <p>Mined Balance</p>
 	                                </div>
-	                                <div class="icon"><i class="ion ion-hammer"></i></div>
+	                                <div class="icon"><i class="fa fa-bolt"></i></div>
 	                                <a href="#" id="goto_forged_blocks" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
 	                            </div>
 	                        </div>
@@ -134,7 +129,7 @@
 	                                    <h3><span id="account_nr_assets" class="loading_dots"><span>.</span><span>.</span><span>.</span></span></h3>
 	                                    <p>Assets Owned</p>
 	                                </div>
-	                                <div class="icon"><i class="ion ion-pie-graph"></i></div>
+	                                <div class="icon"><i class="fa fa-code-fork"></i></div>
 	                                <a href="#" class="small-box-footer goto-page" data-page="my_assets">More info <i class="fa fa-arrow-circle-right"></i></a>
 	                            </div>
 	                        </div>
@@ -144,7 +139,7 @@
 	                                    <h3><span id="nrs_version" class="loading_dots"><span>.</span><span>.</span><span>.</span></span></h3>
 	                                    <p><span id="nrs_version_info">NRS Version</span> <span class="label label-danger" id="nrs_update" style="display:none;"></span></p>
 	                                </div>
-	                                <div class="icon"><i class="fa fa-code"></i></div>
+	                                <div class="icon"><i class="fa fa-cogs"></i></div>
 	                                <a href="#" class="small-box-footer" data-toggle="modal" data-target="#nrs_modal">More info <i class="fa fa-arrow-circle-right"></i></a>
 	                            </div>
 	                        </div>
@@ -1223,7 +1218,7 @@
 			            <div class="lockscreen-item">
 			                <div class="lockscreen-credentials">   
 			                    <div class="input-group">
-			                        <input type="password" class="form-control" id="login_password" name="login_password" placeholder="Your Secret Phrase" autofocus />
+			                        <input type="password" class="form-control" style="background-color:#3C4247;border:none;"id="login_password" name="login_password" placeholder="Your Secret Phrase" autofocus />
 			                        <div class="input-group-btn">
 			                            <button class="btn btn-flat" onclick="NRS.login($('#login_password').val())"><i class="fa fa-arrow-right text-muted"></i></button>
 			                        </div>
@@ -1236,7 +1231,7 @@
 			            </div>
 			            
 			            <div id="registration_link">
-			            	<a href="#" style="color: #555555;" onclick="NRS.registerAccount();">Don't have an account? Click here to create one!</a>
+			            	<a href="#" style="color: #fff; font-weight:bold;" onclick="NRS.registerAccount();">Don't have an account? Click here to create one!</a>
 			            </div> 
 		            </div>
 		            

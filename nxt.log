@@ -1,0 +1,60 @@
+2014-08-17 00:24:09 INFO: nxt.enableStackTraces = "true"
+2014-08-17 00:24:09 INFO: nxt.enableLogTraceback = "false"
+2014-08-17 00:24:09 INFO: logging enabled
+2014-08-17 00:24:09 INFO: nxt.dbCacheKB = "0"
+2014-08-17 00:24:09 INFO: nxt.isTestnet = "false"
+2014-08-17 00:24:09 INFO: nxt.dbUrl = "jdbc:h2:burst_db/burst;DB_CLOSE_ON_EXIT=FALSE"
+2014-08-17 00:24:09 INFO: nxt.maxDbConnections = "10"
+2014-08-17 00:24:09 INFO: nxt.dbLoginTimeout = "70"
+2014-08-17 00:24:09 INFO: nxt.dbDefaultLockTimeout = "10"
+2014-08-17 00:24:09 INFO: Initializing an empty database
+2014-08-17 00:24:09 INFO: nxt.forceValidate = "false"
+2014-08-17 00:24:09 INFO: nxt.myPlatform = "PC"
+2014-08-17 00:24:09 INFO: nxt.myAddress not defined
+2014-08-17 00:24:09 INFO: nxt.peerServerPort = "8123"
+2014-08-17 00:24:09 INFO: nxt.shareMyAddress = "true"
+2014-08-17 00:24:09 INFO: nxt.myHallmark not defined
+2014-08-17 00:24:09 INFO: nxt.wellKnownPeers = "162.243.75.149; 178.62.17.193"
+2014-08-17 00:24:09 INFO: nxt.knownBlacklistedPeers not defined
+2014-08-17 00:24:09 INFO: nxt.maxNumberOfConnectedPublicPeers = "20"
+2014-08-17 00:24:09 INFO: nxt.connectTimeout = "4000"
+2014-08-17 00:24:09 INFO: nxt.readTimeout = "8000"
+2014-08-17 00:24:09 INFO: nxt.enableHallmarkProtection = "false"
+2014-08-17 00:24:09 INFO: nxt.pushThreshold = "0"
+2014-08-17 00:24:09 INFO: nxt.pullThreshold = "0"
+2014-08-17 00:24:09 INFO: nxt.blacklistingPeriod = "600000"
+2014-08-17 00:24:09 INFO: nxt.communicationLoggingMask = "0"
+2014-08-17 00:24:09 INFO: nxt.sendToPeersLimit = "10"
+2014-08-17 00:24:09 INFO: nxt.usePeersDb = "true"
+2014-08-17 00:24:09 INFO: nxt.savePeers = "true"
+2014-08-17 00:24:09 INFO: nxt.peerServerHost = "0.0.0.0"
+2014-08-17 00:24:09 INFO: nxt.peerServerIdleTimeout = "30000"
+2014-08-17 00:24:09 INFO: nxt.enablePeerServerDoSFilter = "true"
+2014-08-17 00:24:09 INFO: nxt.peerServerDoSFilter.maxRequestsPerSec = "30"
+2014-08-17 00:24:09 INFO: nxt.peerServerDoSFilter.delayMs = "1000"
+2014-08-17 00:24:09 INFO: nxt.peerServerDoSFilter.maxRequestMs = "300000"
+2014-08-17 00:24:09 INFO: nxt.allowedBotHosts = "127.0.0.1; localhost; [0:0:0:0:0:0:0:1];"
+2014-08-17 00:24:09 INFO: nxt.enableAPIServer = "true"
+2014-08-17 00:24:09 INFO: nxt.apiServerPort = "8125"
+2014-08-17 00:24:09 INFO: nxt.apiServerHost = "127.0.0.1"
+2014-08-17 00:24:09 INFO: nxt.apiSSL = "false"
+2014-08-17 00:24:09 INFO: nxt.apiServerIdleTimeout = "30000"
+2014-08-17 00:24:09 INFO: nxt.apiResourceBase = "html/ui"
+2014-08-17 00:24:09 INFO: nxt.javadocResourceBase = "html/doc"
+2014-08-17 00:24:09 INFO: nxt.apiServerCORS = "false"
+2014-08-17 00:24:09 INFO: nxt.allowedUserHosts = "127.0.0.1; localhost; [0:0:0:0:0:0:0:1];"
+2014-08-17 00:24:09 INFO: nxt.enableUIServer = "false"
+2014-08-17 00:24:09 INFO: User interface server not enabled
+2014-08-17 00:24:09 INFO: nxt.debugTraceQuote = """
+2014-08-17 00:24:09 INFO: nxt.debugTraceSeparator = "	"
+2014-08-17 00:24:09 INFO: nxt.debugLogUnconfirmed = "false"
+2014-08-17 00:24:09 INFO: nxt.debugTraceAccounts not defined
+2014-08-17 00:24:09 INFO: nxt.debugTraceLog = "nxt-trace.csv"
+2014-08-17 00:24:09 INFO: Genesis block not in database, starting from scratch
+2014-08-17 00:24:09 INFO: Scanning blockchain...
+2014-08-17 00:24:09 INFO: processed block 0
+2014-08-17 00:24:09 INFO: ...done
+2014-08-17 00:24:09 INFO: Started peer networking server at 0.0.0.0:8123
+2014-08-17 00:24:09 INFO: Started API server at 127.0.0.1:8125
+2014-08-17 00:24:09 INFO: Burst server 1.0.1 started successfully.
+2014-08-17 00:24:12 INFO: nxt.apiServerEnforcePOST = "true"
