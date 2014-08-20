@@ -44,7 +44,9 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 			return response;
 		}
 		
-		response.put("result", "deadline: " + generator.getDeadline());
+		//response.put("result", "deadline: " + generator.getDeadline());
+		response.put("result", "success");
+		response.put("deadline", generator.getDeadline());
 		
 		return response;
 	}
