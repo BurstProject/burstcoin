@@ -3,6 +3,7 @@ package nxt.http;
 import nxt.Account;
 import nxt.Alias;
 import nxt.Asset;
+import nxt.Constants;
 import nxt.Generator;
 import nxt.Nxt;
 import nxt.Order;
@@ -12,10 +13,12 @@ import nxt.Vote;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
 import nxt.util.Convert;
+
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+
 import java.util.List;
 
 public final class GetState extends APIServlet.APIRequestHandler {
@@ -34,14 +37,14 @@ public final class GetState extends APIServlet.APIRequestHandler {
         response.put("lastBlock", Nxt.getBlockchain().getLastBlock().getStringId());
         response.put("cumulativeDifficulty", Nxt.getBlockchain().getLastBlock().getCumulativeDifficulty().toString());
 
-        long totalEffectiveBalance = 0;
+        long totalEffectiveBalance = 0; // using total balance instead of effective
         for (Account account : Account.getAllAccounts()) {
-            long effectiveBalanceNXT = account.getEffectiveBalanceNXT();
+            long effectiveBalanceNXT = account.getBalanceNQT();
             if (effectiveBalanceNXT > 0) {
                 totalEffectiveBalance += effectiveBalanceNXT;
             }
         }
-        response.put("totalEffectiveBalanceNXT", totalEffectiveBalance);
+        response.put("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_NXT);
 
         response.put("numberOfBlocks", Nxt.getBlockchain().getHeight() + 1);
         response.put("numberOfTransactions", Nxt.getBlockchain().getTransactionCount());
