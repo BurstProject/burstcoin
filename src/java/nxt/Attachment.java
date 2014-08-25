@@ -1300,5 +1300,33 @@ public interface Attachment {
         }
 
     }
+    
+    public final static class BurstMiningRewardRecipientAssignment implements Attachment, Serializable {
+    	
+    	static final long serialVersionUID = 0;
+    	
+    	public BurstMiningRewardRecipientAssignment() {}
+    	
+    	@Override
+    	public int getSize() {
+    		return 0;
+    	}
+    	
+    	@Override
+    	public byte[] getBytes() {
+    		return new byte[] {};
+    	}
+    	
+    	@Override
+        public JSONObject getJSONObject() {
+    		JSONObject attachment = new JSONObject();
+    		return attachment;
+    	}
+    	
+    	@Override
+        public TransactionType getTransactionType() {
+    		return TransactionType.BurstMining.REWARD_RECIPIENT_ASSIGNMENT;
+    	}
+    }
 
 }

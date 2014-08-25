@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 
 import javax.servlet.http.HttpServletRequest;
 
+import nxt.Account;
 import nxt.Block;
 import nxt.Generator;
 import nxt.Nxt;
@@ -18,13 +19,15 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 	static final SubmitNonce instance = new SubmitNonce();
 	
 	private SubmitNonce() {
-		super("secretPhrase", "nonce");
+		super("secretPhrase", "nonce", "accountId");
 	}
 	
 	@Override
 	JSONStreamAware processRequest(HttpServletRequest req) {
 		String secret = req.getParameter("secretPhrase");
 		Long nonce = Convert.parseUnsignedLong(req.getParameter("nonce"));
+		
+		String accountId = req.getParameter("accountId");
 		
 		JSONObject response = new JSONObject();
 		
@@ -38,7 +41,20 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 			return response;
 		}
 		
-		Generator generator = Generator.addNonce(secret, nonce);
+		Generator generator;
+		if(accountId == null) {
+			generator = Generator.addNonce(secret, nonce);
+		}
+		else {
+			Account genAccount = Account.getAccount(Convert.parseUnsignedLong(accountId));
+			if(genAccount == null ||
+			   genAccount.getPublicKey() == null) {
+				response.put("result", "Passthrough mining requires public key in blockchain");
+			}
+			byte[] publicKey = genAccount.getPublicKey();
+			generator = Generator.addNonce(secret, nonce, publicKey);
+		}
+		
 		if(generator == null) {
 			response.put("result", "failed to create generator");
 			return response;

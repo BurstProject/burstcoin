@@ -54,6 +54,19 @@ public final class Account {
         }
 
     }
+    
+    public static class RewardRecipientAssignment {
+    	
+    	public final Long prevRecipientId;
+    	public final Long recipientId;
+    	public final Long fromHeight;
+    	
+    	private RewardRecipientAssignment(Long prevRecipientId, Long recipientId, Long fromHeight) {
+    		this.prevRecipientId = prevRecipientId;
+    		this.recipientId = recipientId;
+    		this.fromHeight = fromHeight;
+    	}
+    }
 
     static class DoubleSpendingException extends RuntimeException {
 
@@ -198,6 +211,8 @@ public final class Account {
     private long unconfirmedBalanceNQT;
     private long forgedBalanceNQT;
     private final List<GuaranteedBalance> guaranteedBalances = new ArrayList<>();
+    
+    private volatile RewardRecipientAssignment rewardRecipient = null;
 
     private volatile int currentLeasingHeightFrom;
     private volatile int currentLeasingHeightTo;
@@ -339,6 +354,47 @@ public final class Account {
 
     public Map<Long, Long> getUnconfirmedAssetBalancesQNT() {
         return Collections.unmodifiableMap(unconfirmedAssetBalances);
+    }
+    
+    public Long getPrevRewardRecipient() {
+    	RewardRecipientAssignment assignment = rewardRecipient;
+    	if(assignment == null) {
+    		return id;
+    	}
+    	else {
+    		return assignment.prevRecipientId;
+    	}
+    }
+    
+    public Long getRewardRecipient() {
+    	RewardRecipientAssignment assignment = rewardRecipient;
+    	if(assignment == null) {
+    		return id;
+    	}
+    	else {
+    		return assignment.recipientId;
+    	}
+    }
+    
+    public Long getRewardRecipientFrom() {
+    	RewardRecipientAssignment assignment = rewardRecipient;
+    	if(assignment == null) {
+    		return 0L;
+    	}
+    	else {
+    		return assignment.fromHeight;
+    	}
+    }
+    
+    public void assignRewardRecipient(Long recipient) {
+    	RewardRecipientAssignment oldAssignment = rewardRecipient;
+    	Long prevRecip = id;
+    	if(oldAssignment != null) {
+    		prevRecip = oldAssignment.recipientId;
+    	}
+    	rewardRecipient = new RewardRecipientAssignment(prevRecip,
+    													recipient,
+    													Nxt.getBlockchain().getLastBlock().getHeight() + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME);
     }
 
     public Long getCurrentLesseeId() {

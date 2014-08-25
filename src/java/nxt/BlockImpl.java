@@ -312,8 +312,23 @@ final class BlockImpl implements Block {
         byte[] data = getBytes();
         byte[] data2 = new byte[data.length - 64];
         System.arraycopy(data, 0, data2, 0, data2.length);
+        
+        byte[] publicKey;
+        Account genAccount = Account.getAccount(generatorPublicKey);
+        if(height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK ||
+           genAccount == null) {
+        	publicKey = generatorPublicKey;
+        }
+        else {
+        	if(height >= genAccount.getRewardRecipientFrom()) {
+        		publicKey = Account.getAccount(genAccount.getRewardRecipient()).getPublicKey();
+        	}
+        	else {
+        		publicKey = Account.getAccount(genAccount.getPrevRewardRecipient()).getPublicKey();
+        	}
+        }
 
-        return Crypto.verify(blockSignature, data2, generatorPublicKey, version >= 3);
+        return Crypto.verify(blockSignature, data2, publicKey, version >= 3);
 
     }
 
@@ -373,15 +388,41 @@ final class BlockImpl implements Block {
     void apply() {
         Account generatorAccount = Account.addOrGetAccount(getGeneratorId());
         generatorAccount.apply(generatorPublicKey, this.height);
-        generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(totalFeeNQT + getBlockReward());
-        generatorAccount.addToForgedBalanceNQT(totalFeeNQT + getBlockReward());
+        if(height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
+        	generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(totalFeeNQT + getBlockReward());
+        	generatorAccount.addToForgedBalanceNQT(totalFeeNQT + getBlockReward());
+        }
+        else {
+        	Account rewardAccount;
+        	if(height >= generatorAccount.getRewardRecipientFrom()) {
+        		rewardAccount = Account.getAccount(generatorAccount.getRewardRecipient());
+        	}
+        	else {
+        		rewardAccount = Account.getAccount(generatorAccount.getPrevRewardRecipient());
+        	}
+        	rewardAccount.addToBalanceAndUnconfirmedBalanceNQT(totalFeeNQT + getBlockReward());
+        	rewardAccount.addToForgedBalanceNQT(totalFeeNQT + getBlockReward());
+        }
     }
 
     void undo() {
         Account generatorAccount = Account.getAccount(getGeneratorId());
         generatorAccount.undo(getHeight());
-        generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(-totalFeeNQT + (getBlockReward() * -1));
-        generatorAccount.addToForgedBalanceNQT(-totalFeeNQT + (getBlockReward() * -1));
+        if(height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
+        	generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(-totalFeeNQT + (getBlockReward() * -1));
+            generatorAccount.addToForgedBalanceNQT(-totalFeeNQT + (getBlockReward() * -1));
+        }
+        else {
+        	Account rewardAccount;
+        	if(height >= generatorAccount.getRewardRecipientFrom()) {
+        		rewardAccount = Account.getAccount(generatorAccount.getRewardRecipient());
+        	}
+        	else {
+        		rewardAccount = Account.getAccount(generatorAccount.getPrevRewardRecipient());
+        	}
+        	rewardAccount.addToBalanceAndUnconfirmedBalanceNQT(-totalFeeNQT + (getBlockReward() * -1));
+        	rewardAccount.addToForgedBalanceNQT(-totalFeeNQT + (getBlockReward() * -1));
+        }
     }
     
     @Override

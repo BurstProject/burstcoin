@@ -29,7 +29,7 @@ public final class Generator {
 
     private static final Listeners<Generator,Event> listeners = new Listeners<>();
 
-    private static final ConcurrentMap<String, Generator> generators = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Long, Generator> generators = new ConcurrentHashMap<>();
     private static final Collection<Generator> allGenerators = Collections.unmodifiableCollection(generators.values());
 
     private static final Runnable generateBlockThread = new Runnable() {
@@ -43,9 +43,9 @@ public final class Generator {
                 }
                 try {
                     long currentBlock = Nxt.getBlockchain().getLastBlock().getHeight();
-                    Iterator<Entry<String, Generator>> it = generators.entrySet().iterator();
+                    Iterator<Entry<Long, Generator>> it = generators.entrySet().iterator();
                     while(it.hasNext()) {
-                    	Entry<String, Generator> generator = it.next();
+                    	Entry<Long, Generator> generator = it.next();
                     	if(currentBlock < generator.getValue().getBlock()) {
                     		generator.getValue().forge();
                     	}
@@ -101,9 +101,9 @@ public final class Generator {
 		Long id = Convert.fullHashToId(publicKeyHash);
 		
 		Generator generator = new Generator(secretPhrase, nonce, publicKey, id);
-		Generator curGen = generators.get(secretPhrase);
+		Generator curGen = generators.get(id);
 		if(curGen == null || generator.getBlock() > curGen.getBlock() || generator.getDeadline().compareTo(curGen.getDeadline()) < 0) {
-			generators.put(secretPhrase, generator);
+			generators.put(id, generator);
 			listeners.notify(generator, Event.START_FORGING);
 			Logger.logDebugMessage("Account " + Convert.toUnsignedLong(id) + " started mining, deadline "
 			        + generator.getDeadline() + " seconds");
@@ -120,7 +120,7 @@ public final class Generator {
     }
 
     public static Generator getGenerator(String secretPhrase) {
-    	return generators.get(secretPhrase);
+    	return null;
     }
 
     public static Collection<Generator> getAllGenerators() {
@@ -198,7 +198,7 @@ public final class Generator {
 
         int elapsedTime = Convert.getEpochTime() - lastBlock.getTimestamp();
         if (BigInteger.valueOf(elapsedTime).compareTo(deadline) > 0) {
-            BlockchainProcessorImpl.getInstance().generateBlock(secretPhrase, nonce);
+            BlockchainProcessorImpl.getInstance().generateBlock(secretPhrase, publicKey, nonce);
         }
 
     }
