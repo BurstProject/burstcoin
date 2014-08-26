@@ -315,12 +315,12 @@ final class BlockImpl implements Block {
         
         byte[] publicKey;
         Account genAccount = Account.getAccount(generatorPublicKey);
-        if(height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK ||
+        if(getHeight() < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK ||
            genAccount == null) {
         	publicKey = generatorPublicKey;
         }
         else {
-        	if(height >= genAccount.getRewardRecipientFrom()) {
+        	if(getHeight() >= genAccount.getRewardRecipientFrom()) {
         		publicKey = Account.getAccount(genAccount.getRewardRecipient()).getPublicKey();
         	}
         	else {

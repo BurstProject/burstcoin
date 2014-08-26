@@ -1768,8 +1768,8 @@ public abstract class TransactionType {
     			if(recip == null || recip.getPublicKey() == null) {
     				throw new NxtException.ValidationException("Reward recipient must have public key saved in blockchain: " + transaction.getJSONObject());
     			}
-    			if(transaction.getAmountNQT() != 0) {
-    				throw new NxtException.ValidationException("Reward recipient assisnment transaction must have 0 send amount: " + transaction.getJSONObject());
+    			if(transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_NXT) {
+    				throw new NxtException.ValidationException("Reward recipient assisnment transaction must have 0 send amount and 1 fee: " + transaction.getJSONObject());
     			}
     			if(transaction.getHeight() < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
     				throw new NxtException.ValidationException("Reward recipient assignment not allowed before block " + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK);

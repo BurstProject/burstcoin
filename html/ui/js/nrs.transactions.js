@@ -541,6 +541,12 @@ var NRS = (function(NRS, $, undefined) {
 					transactionType = "Balance Leasing";
 					break;
 			}
+		} else if (transaction.type == 20) {
+			switch (transaction.subtype) {
+				case 0:
+					transactionType = "Reward Recipient Assignment";
+					break;
+			}
 		}
 
 		var receiving = transaction.recipient == NRS.account;

@@ -32,8 +32,8 @@ public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestH
 		JSONArray accounts = new JSONArray();
 		for(Account account : Account.getAllAccounts()) {
 			long recip;
-			if(account.getRewardRecipientFrom() > height) {
-				recip = account.getPrevRewardRecipient();
+			if(account.getRewardRecipientFrom() > height + 1) {
+				recip = 0L; // this api is intended for pools, so drop changing users a few blocks early to avoid overpaying
 			}
 			else {
 				recip = account.getRewardRecipient();

@@ -24,7 +24,7 @@ public final class GetRewardRecipient extends APIServlet.APIRequestHandler {
 		
 		Account account = ParameterParser.getAccount(req);
 		long height = Nxt.getBlockchain().getLastBlock().getHeight();
-		if(account.getRewardRecipientFrom() > height) {
+		if(account.getRewardRecipientFrom() > height + 1) {
 			response.put("rewardRecipient", Convert.toUnsignedLong(account.getPrevRewardRecipient()));
 		}
 		else {
