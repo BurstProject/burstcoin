@@ -605,7 +605,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
     }
 
-    void generateBlock(String secretPhrase, Long nonce) {
+    void generateBlock(String secretPhrase, byte[] publicKey, Long nonce) {
 
         Set<TransactionImpl> sortedTransactions = new TreeSet<>();
 
@@ -661,7 +661,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
         }
 
-        final byte[] publicKey = Crypto.getPublicKey(secretPhrase);
+        //final byte[] publicKey = Crypto.getPublicKey(secretPhrase);
 
         MessageDigest digest = Crypto.sha256();
         for (Transaction transaction : newTransactions.values()) {

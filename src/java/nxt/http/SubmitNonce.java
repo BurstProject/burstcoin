@@ -4,9 +4,11 @@ import java.nio.ByteBuffer;
 
 import javax.servlet.http.HttpServletRequest;
 
+import nxt.Account;
 import nxt.Block;
 import nxt.Generator;
 import nxt.Nxt;
+import nxt.crypto.Crypto;
 import nxt.util.Convert;
 import fr.cryptohash.Shabal256;
 
@@ -18,13 +20,15 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 	static final SubmitNonce instance = new SubmitNonce();
 	
 	private SubmitNonce() {
-		super("secretPhrase", "nonce");
+		super("secretPhrase", "nonce", "accountId");
 	}
 	
 	@Override
 	JSONStreamAware processRequest(HttpServletRequest req) {
 		String secret = req.getParameter("secretPhrase");
 		Long nonce = Convert.parseUnsignedLong(req.getParameter("nonce"));
+		
+		String accountId = req.getParameter("accountId");
 		
 		JSONObject response = new JSONObject();
 		
@@ -38,7 +42,50 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 			return response;
 		}
 		
-		Generator generator = Generator.addNonce(secret, nonce);
+		byte[] secretPublicKey = Crypto.getPublicKey(secret);
+		Account secretAccount = Account.getAccount(secretPublicKey);
+		if(secretAccount != null) {
+			Account genAccount;
+			if(accountId != null) {
+				genAccount = Account.getAccount(Convert.parseAccountId(accountId));
+			}
+			else {
+				genAccount = secretAccount;
+			}
+			
+			if(genAccount != null) {
+				Long rewardId;
+				if(genAccount.getRewardRecipientFrom() > Nxt.getBlockchain().getLastBlock().getHeight() + 1) {
+					rewardId = genAccount.getPrevRewardRecipient();
+				}
+				else {
+					rewardId = genAccount.getRewardRecipient();
+				}
+				if(rewardId != secretAccount.getId()) {
+					response.put("result", "Passphrase does not match reward recipient");
+					return response;
+				}
+			}
+			else {
+				response.put("result", "Passphrase is for a different account");
+				return response;
+			}
+		}
+		
+		Generator generator;
+		if(accountId == null || secretAccount == null) {
+			generator = Generator.addNonce(secret, nonce);
+		}
+		else {
+			Account genAccount = Account.getAccount(Convert.parseUnsignedLong(accountId));
+			if(genAccount == null ||
+			   genAccount.getPublicKey() == null) {
+				response.put("result", "Passthrough mining requires public key in blockchain");
+			}
+			byte[] publicKey = genAccount.getPublicKey();
+			generator = Generator.addNonce(secret, nonce, publicKey);
+		}
+		
 		if(generator == null) {
 			response.put("result", "failed to create generator");
 			return response;

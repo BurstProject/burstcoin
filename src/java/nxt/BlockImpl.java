@@ -308,13 +308,43 @@ final class BlockImpl implements Block {
         blockSignature = Crypto.sign(data2, secretPhrase);
     }
 
-    boolean verifyBlockSignature() {
-        byte[] data = getBytes();
-        byte[] data2 = new byte[data.length - 64];
-        System.arraycopy(data, 0, data2, 0, data2.length);
+    boolean verifyBlockSignature() throws BlockchainProcessor.BlockOutOfOrderException {
+    	
+    	try {
+    		
+    		BlockImpl previousBlock = (BlockImpl)Nxt.getBlockchain().getBlock(this.previousBlockId);
+    		if (previousBlock == null) {
+                throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing");
+            }
+    		
+    		byte[] data = getBytes();
+            byte[] data2 = new byte[data.length - 64];
+            System.arraycopy(data, 0, data2, 0, data2.length);
+            
+            byte[] publicKey;
+            Account genAccount = Account.getAccount(generatorPublicKey);
+            if(previousBlock.getHeight() + 1 < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK ||
+               genAccount == null) {
+            	publicKey = generatorPublicKey;
+            }
+            else {
+            	if(previousBlock.getHeight() + 1 >= genAccount.getRewardRecipientFrom()) {
+            		publicKey = Account.getAccount(genAccount.getRewardRecipient()).getPublicKey();
+            	}
+            	else {
+            		publicKey = Account.getAccount(genAccount.getPrevRewardRecipient()).getPublicKey();
+            	}
+            }
 
-        return Crypto.verify(blockSignature, data2, generatorPublicKey, version >= 3);
+            return Crypto.verify(blockSignature, data2, publicKey, version >= 3);
+    		
+    	} catch (RuntimeException e) {
 
+    		Logger.logMessage("Error verifying block signature", e);
+    		return false;
+
+    	}
+        
     }
 
     boolean verifyGenerationSignature() throws BlockchainProcessor.BlockOutOfOrderException {
@@ -323,7 +353,7 @@ final class BlockImpl implements Block {
 
             BlockImpl previousBlock = (BlockImpl)Nxt.getBlockchain().getBlock(this.previousBlockId);
             if (previousBlock == null) {
-                throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing");
+                throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify generation signature because previous block is missing");
             }
 
             //Account account = Account.getAccount(getGeneratorId());
@@ -373,15 +403,41 @@ final class BlockImpl implements Block {
     void apply() {
         Account generatorAccount = Account.addOrGetAccount(getGeneratorId());
         generatorAccount.apply(generatorPublicKey, this.height);
-        generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(totalFeeNQT + getBlockReward());
-        generatorAccount.addToForgedBalanceNQT(totalFeeNQT + getBlockReward());
+        if(height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
+        	generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(totalFeeNQT + getBlockReward());
+        	generatorAccount.addToForgedBalanceNQT(totalFeeNQT + getBlockReward());
+        }
+        else {
+        	Account rewardAccount;
+        	if(height >= generatorAccount.getRewardRecipientFrom()) {
+        		rewardAccount = Account.getAccount(generatorAccount.getRewardRecipient());
+        	}
+        	else {
+        		rewardAccount = Account.getAccount(generatorAccount.getPrevRewardRecipient());
+        	}
+        	rewardAccount.addToBalanceAndUnconfirmedBalanceNQT(totalFeeNQT + getBlockReward());
+        	rewardAccount.addToForgedBalanceNQT(totalFeeNQT + getBlockReward());
+        }
     }
 
     void undo() {
         Account generatorAccount = Account.getAccount(getGeneratorId());
         generatorAccount.undo(getHeight());
-        generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(-totalFeeNQT + (getBlockReward() * -1));
-        generatorAccount.addToForgedBalanceNQT(-totalFeeNQT + (getBlockReward() * -1));
+        if(height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
+        	generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(-totalFeeNQT + (getBlockReward() * -1));
+            generatorAccount.addToForgedBalanceNQT(-totalFeeNQT + (getBlockReward() * -1));
+        }
+        else {
+        	Account rewardAccount;
+        	if(height >= generatorAccount.getRewardRecipientFrom()) {
+        		rewardAccount = Account.getAccount(generatorAccount.getRewardRecipient());
+        	}
+        	else {
+        		rewardAccount = Account.getAccount(generatorAccount.getPrevRewardRecipient());
+        	}
+        	rewardAccount.addToBalanceAndUnconfirmedBalanceNQT(-totalFeeNQT + (getBlockReward() * -1));
+        	rewardAccount.addToForgedBalanceNQT(-totalFeeNQT + (getBlockReward() * -1));
+        }
     }
     
     @Override

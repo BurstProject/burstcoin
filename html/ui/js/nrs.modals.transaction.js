@@ -367,6 +367,22 @@ var NRS = (function(NRS, $, undefined) {
 					incorrect = true;
 					break;
 			}
+		} else if (transaction.type == 20) {
+			switch (transaction.subtype) {
+				case 0:
+					var data = {
+						"Type": "Reward Recipient Assignment"
+					};
+
+					$("#transaction_info_table tbody").append(NRS.createInfoTable(data));
+					$("#transaction_info_table").show();
+
+					break;
+
+				default:
+					incorrect = true;
+					break;
+			}
 		}
 
 		if (incorrect) {

@@ -121,6 +121,9 @@ public final class APIServlet extends HttpServlet {
         map.put("submitNonce", SubmitNonce.instance);
         //map.put("getForging", GetForging.instance);
         map.put("transferAsset", TransferAsset.instance);
+        map.put("getRewardRecipient", GetRewardRecipient.instance);
+        map.put("setRewardRecipient", SetRewardRecipient.instance);
+        map.put("getAccountsWithRewardRecipient", GetAccountsWithRewardRecipient.instance);
 
         apiRequestHandlers = Collections.unmodifiableMap(map);
     }

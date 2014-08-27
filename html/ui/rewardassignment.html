@@ -1,0 +1,31 @@
+<html>
+<body>
+Get reward recipient:<br />
+<form method="post" action="/burst">
+<input type="hidden" name="requestType" value="getRewardRecipient">
+Account:<br />
+<input type="text" name="account"><br />
+<input type="submit" value="submit" /><br />
+</form>
+<br />
+Get accounts with recipient:<br />
+<form method="post" action="/burst">
+<input type="hidden" name="requestType" value="getAccountsWithRewardRecipient">
+Account:<br />
+<input type="text" name="account"><br />
+<input type="submit" value="submit" /><br />
+</form>
+<br />
+Set reward recipient:<br />
+<form method="post" action="/burst">
+<input type="hidden" name="requestType" value="setRewardRecipient">
+Passphrase:<br />
+<input type="password" name="secretPhrase"><br />
+Recipient:<br />
+<input type="text" name="recipient"><br />
+<input type="hidden" name="deadline" value="1440">
+<input type="hidden" name="feeNQT" value="100000000">
+<input type="submit" value="submit" /><br />
+</form>
+</body>
+</html>

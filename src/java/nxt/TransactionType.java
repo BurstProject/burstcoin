@@ -19,6 +19,8 @@ public abstract class TransactionType {
     private static final byte TYPE_COLORED_COINS = 2;
     private static final byte TYPE_DIGITAL_GOODS = 3;
     private static final byte TYPE_ACCOUNT_CONTROL = 4;
+    
+    private static final byte TYPE_BURST_MINING = 20; // jump some for easier nxt updating
 
     private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;
 
@@ -46,6 +48,8 @@ public abstract class TransactionType {
     private static final byte SUBTYPE_DIGITAL_GOODS_REFUND = 7;
 
     private static final byte SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING = 0;
+    
+    private static final byte SUBTYPE_BURST_MINING_REWARD_RECIPIENT_ASSIGNMENT = 0;
 
     public static TransactionType findTransactionType(byte type, byte subtype) {
         switch (type) {
@@ -118,6 +122,13 @@ public abstract class TransactionType {
                     default:
                         return null;
                 }
+            case TYPE_BURST_MINING:
+            	switch (subtype) {
+            		case SUBTYPE_BURST_MINING_REWARD_RECIPIENT_ASSIGNMENT:
+            			return BurstMining.REWARD_RECIPIENT_ASSIGNMENT;
+            		default:
+            			return null;
+            	}
             default:
                 return null;
         }
@@ -1701,6 +1712,71 @@ public abstract class TransactionType {
 
         };
 
+    }
+    
+    public static abstract class BurstMining extends TransactionType {
+    	
+    	private BurstMining() {}
+    	
+    	@Override
+    	public final byte getType() {
+    		return TransactionType.TYPE_BURST_MINING;
+    	}
+    	
+    	@Override
+    	final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+    		return true;
+    	}
+    	
+    	@Override
+    	final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {}
+    	
+    	public static final TransactionType REWARD_RECIPIENT_ASSIGNMENT = new BurstMining() {
+    		
+    		@Override
+    		public final byte getSubtype() {
+    			return TransactionType.SUBTYPE_BURST_MINING_REWARD_RECIPIENT_ASSIGNMENT;
+    		}
+    		
+    		@Override
+    		void loadAttachment(TransactionImpl transaction, ByteBuffer buffer) throws NxtException.ValidationException {
+    			transaction.setAttachment(new Attachment.BurstMiningRewardRecipientAssignment());
+    		}
+    		
+    		@Override
+    		void loadAttachment(TransactionImpl transaction, JSONObject attachmentData) throws NxtException.ValidationException {
+    			transaction.setAttachment(new Attachment.BurstMiningRewardRecipientAssignment());
+    		}
+    		
+    		@Override
+    		void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+    			senderAccount.assignRewardRecipient(recipientAccount.getId());
+    		}
+    		
+    		@Override
+    		void undoAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) throws UndoNotSupportedException {
+    			throw new UndoNotSupportedException("Reversal of reward recipient assignment not supported");
+    		}
+    		
+    		@Override
+    		void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+    			long height = Nxt.getBlockchain().getLastBlock().getHeight() + 1;
+    			Account sender = Account.getAccount(transaction.getSenderId());
+    			if(sender.getRewardRecipientFrom() >= height) {
+    				throw new NxtException.ValidationException("Cannot reassign reward recipient before previous goes into effect: " + transaction.getJSONObject());
+    			}
+    			Account recip = Account.getAccount(transaction.getRecipientId());
+    			if(recip == null || recip.getPublicKey() == null) {
+    				throw new NxtException.ValidationException("Reward recipient must have public key saved in blockchain: " + transaction.getJSONObject());
+    			}
+    			if(transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_NXT) {
+    				throw new NxtException.ValidationException("Reward recipient assisnment transaction must have 0 send amount and 1 fee: " + transaction.getJSONObject());
+    			}
+    			if(height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
+    				throw new NxtException.ValidationException("Reward recipient assignment not allowed before block " + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK);
+    			}
+    		}
+    	};
     }
 
     public static final class UndoNotSupportedException extends NxtException {
