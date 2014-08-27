@@ -1760,8 +1760,9 @@ public abstract class TransactionType {
     		
     		@Override
     		void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+    			long height = Nxt.getBlockchain().getLastBlock().getHeight() + 1;
     			Account sender = Account.getAccount(transaction.getSenderId());
-    			if(sender.getRewardRecipientFrom() >= transaction.getHeight()) {
+    			if(sender.getRewardRecipientFrom() >= height) {
     				throw new NxtException.ValidationException("Cannot reassign reward recipient before previous goes into effect: " + transaction.getJSONObject());
     			}
     			Account recip = Account.getAccount(transaction.getRecipientId());
@@ -1771,7 +1772,7 @@ public abstract class TransactionType {
     			if(transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_NXT) {
     				throw new NxtException.ValidationException("Reward recipient assisnment transaction must have 0 send amount and 1 fee: " + transaction.getJSONObject());
     			}
-    			if(transaction.getHeight() < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
+    			if(height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
     				throw new NxtException.ValidationException("Reward recipient assignment not allowed before block " + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK);
     			}
     		}

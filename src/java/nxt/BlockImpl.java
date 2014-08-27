@@ -308,28 +308,43 @@ final class BlockImpl implements Block {
         blockSignature = Crypto.sign(data2, secretPhrase);
     }
 
-    boolean verifyBlockSignature() {
-        byte[] data = getBytes();
-        byte[] data2 = new byte[data.length - 64];
-        System.arraycopy(data, 0, data2, 0, data2.length);
+    boolean verifyBlockSignature() throws BlockchainProcessor.BlockOutOfOrderException {
+    	
+    	try {
+    		
+    		BlockImpl previousBlock = (BlockImpl)Nxt.getBlockchain().getBlock(this.previousBlockId);
+    		if (previousBlock == null) {
+                throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing");
+            }
+    		
+    		byte[] data = getBytes();
+            byte[] data2 = new byte[data.length - 64];
+            System.arraycopy(data, 0, data2, 0, data2.length);
+            
+            byte[] publicKey;
+            Account genAccount = Account.getAccount(generatorPublicKey);
+            if(previousBlock.getHeight() + 1 < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK ||
+               genAccount == null) {
+            	publicKey = generatorPublicKey;
+            }
+            else {
+            	if(previousBlock.getHeight() + 1 >= genAccount.getRewardRecipientFrom()) {
+            		publicKey = Account.getAccount(genAccount.getRewardRecipient()).getPublicKey();
+            	}
+            	else {
+            		publicKey = Account.getAccount(genAccount.getPrevRewardRecipient()).getPublicKey();
+            	}
+            }
+
+            return Crypto.verify(blockSignature, data2, publicKey, version >= 3);
+    		
+    	} catch (RuntimeException e) {
+
+    		Logger.logMessage("Error verifying block signature", e);
+    		return false;
+
+    	}
         
-        byte[] publicKey;
-        Account genAccount = Account.getAccount(generatorPublicKey);
-        if(getHeight() < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK ||
-           genAccount == null) {
-        	publicKey = generatorPublicKey;
-        }
-        else {
-        	if(getHeight() >= genAccount.getRewardRecipientFrom()) {
-        		publicKey = Account.getAccount(genAccount.getRewardRecipient()).getPublicKey();
-        	}
-        	else {
-        		publicKey = Account.getAccount(genAccount.getPrevRewardRecipient()).getPublicKey();
-        	}
-        }
-
-        return Crypto.verify(blockSignature, data2, publicKey, version >= 3);
-
     }
 
     boolean verifyGenerationSignature() throws BlockchainProcessor.BlockOutOfOrderException {
@@ -338,7 +353,7 @@ final class BlockImpl implements Block {
 
             BlockImpl previousBlock = (BlockImpl)Nxt.getBlockchain().getBlock(this.previousBlockId);
             if (previousBlock == null) {
-                throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing");
+                throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify generation signature because previous block is missing");
             }
 
             //Account account = Account.getAccount(getGeneratorId());
