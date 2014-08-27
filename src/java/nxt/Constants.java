@@ -8,7 +8,7 @@ public final class Constants {
 
     public static int BURST_DIFF_ADJUST_CHANGE_BLOCK = 2700;
     
-    public static long BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK = 6300;
+    public static long BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK = 6500;
     public static long BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME = 4;
 	
 	public static final int BLOCK_HEADER_LENGTH = 232;
