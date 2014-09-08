@@ -17,7 +17,7 @@ public final class GetTransactionBytes extends APIServlet.APIRequestHandler {
     static final GetTransactionBytes instance = new GetTransactionBytes();
 
     private GetTransactionBytes() {
-        super("transaction");
+        super(new APITag[] {APITag.TRANSACTIONS}, "transaction");
     }
 
     @Override

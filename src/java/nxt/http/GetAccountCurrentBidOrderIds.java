@@ -13,7 +13,7 @@ public final class GetAccountCurrentBidOrderIds extends APIServlet.APIRequestHan
     static final GetAccountCurrentBidOrderIds instance = new GetAccountCurrentBidOrderIds();
 
     private GetAccountCurrentBidOrderIds() {
-        super("account", "asset");
+        super(new APITag[] {APITag.ACCOUNTS, APITag.AE}, "account", "asset");
     }
 
     @Override

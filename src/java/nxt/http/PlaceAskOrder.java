@@ -15,7 +15,7 @@ public final class PlaceAskOrder extends CreateTransaction {
     static final PlaceAskOrder instance = new PlaceAskOrder();
 
     private PlaceAskOrder() {
-        super("asset", "quantityQNT", "priceNQT");
+        super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, "asset", "quantityQNT", "priceNQT");
     }
 
     @Override

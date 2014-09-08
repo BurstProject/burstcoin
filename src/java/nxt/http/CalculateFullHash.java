@@ -16,7 +16,7 @@ public final class CalculateFullHash extends APIServlet.APIRequestHandler {
     static final CalculateFullHash instance = new CalculateFullHash();
 
     private CalculateFullHash() {
-        super("unsignedTransactionBytes", "signatureHash");
+        super(new APITag[] {APITag.TRANSACTIONS}, "unsignedTransactionBytes", "signatureHash");
     }
 
     @Override

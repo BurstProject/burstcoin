@@ -16,7 +16,7 @@ public final class SetRewardRecipient extends CreateTransaction {
 	static final SetRewardRecipient instance = new SetRewardRecipient();
 	
 	private SetRewardRecipient() {
-		super("recipient");
+		super(new APITag[] {APITag.ACCOUNTS, APITag.MINING, APITag.CREATE_TRANSACTION}, "recipient");
 	}
 	
 	@Override

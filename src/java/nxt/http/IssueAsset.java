@@ -20,7 +20,7 @@ public final class IssueAsset extends CreateTransaction {
     static final IssueAsset instance = new IssueAsset();
 
     private IssueAsset() {
-        super("name", "description", "quantityQNT", "decimals");
+        super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, "name", "description", "quantityQNT", "decimals");
     }
 
     @Override

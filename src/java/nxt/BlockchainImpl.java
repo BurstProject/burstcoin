@@ -156,6 +156,18 @@ final class BlockchainImpl implements Blockchain {
     }
 
     @Override
+    public BlockImpl getBlockAtHeight(int height) {
+        BlockImpl block = lastBlock.get();
+        if (height > block.getHeight()) {
+            throw new IllegalArgumentException("Invalid height " + height + ", current blockchain is at " + block.getHeight());
+        }
+        if (height == block.getHeight()) {
+            return block;
+        }
+        return BlockDb.findBlockAtHeight(height);
+    }
+
+    @Override
     public List<BlockImpl> getBlocksFromHeight(int height) {
         if (height < 0 || lastBlock.get().getHeight() - height > 1440) {
             throw new IllegalArgumentException("Can't go back more than 1440 blocks");
@@ -219,18 +231,24 @@ final class BlockchainImpl implements Blockchain {
     }
 
     @Override
-    public DbIterator<TransactionImpl> getTransactions(Account account, byte type, byte subtype, int timestamp) {
-        return getTransactions(account, type, subtype, timestamp, Boolean.TRUE);
+    public DbIterator<TransactionImpl> getTransactions(Account account, byte type, byte subtype, int blockTimestamp) {
+        return getTransactions(account, 0, type, subtype, blockTimestamp, 0, -1);
     }
 
     @Override
-    public DbIterator<TransactionImpl> getTransactions(Account account, byte type, byte subtype, int timestamp, Boolean orderAscending) {
+    public DbIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
+                                                       int blockTimestamp, int from, int to) {
+        int height = numberOfConfirmations > 0 ? getHeight() - numberOfConfirmations : Integer.MAX_VALUE;
+        if (height < 0) {
+            throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations
+                    + " exceeds current blockchain height " + getHeight());
+        }
         Connection con = null;
         try {
             StringBuilder buf = new StringBuilder();
-            buf.append("SELECT * FROM transaction WHERE (recipient_id = ? OR sender_id = ?) ");
-            if (timestamp > 0) {
-                buf.append("AND timestamp >= ? ");
+            buf.append("SELECT * FROM transaction WHERE recipient_id = ? AND sender_id <> ? ");
+            if (blockTimestamp > 0) {
+                buf.append("AND block_timestamp >= ? ");
             }
             if (type >= 0) {
                 buf.append("AND type = ? ");
@@ -238,10 +256,28 @@ final class BlockchainImpl implements Blockchain {
                     buf.append("AND subtype = ? ");
                 }
             }
-            if (Boolean.TRUE.equals(orderAscending)) {
-                buf.append("ORDER BY timestamp ASC");
-            } else if (Boolean.FALSE.equals(orderAscending)) {
-                buf.append("ORDER BY timestamp DESC");
+            if (height < Integer.MAX_VALUE) {
+                buf.append("AND height <= ? ");
+            }
+            buf.append("UNION ALL SELECT * FROM transaction WHERE sender_id = ? ");
+            if (blockTimestamp > 0) {
+                buf.append("AND block_timestamp >= ? ");
+            }
+            if (type >= 0) {
+                buf.append("AND type = ? ");
+                if (subtype >= 0) {
+                    buf.append("AND subtype = ? ");
+                }
+            }
+            if (height < Integer.MAX_VALUE) {
+                buf.append("AND height <= ? ");
+            }
+            buf.append("ORDER BY block_timestamp DESC, id DESC");
+            if (to >= from && to < Integer.MAX_VALUE) {
+                buf.append(" LIMIT " + (to - from + 1));
+            }
+            if (from > 0) {
+                buf.append(" OFFSET " + from);
             }
             con = Db.getConnection();
             PreparedStatement pstmt;
@@ -249,14 +285,30 @@ final class BlockchainImpl implements Blockchain {
             pstmt = con.prepareStatement(buf.toString());
             pstmt.setLong(++i, account.getId());
             pstmt.setLong(++i, account.getId());
-            if (timestamp > 0) {
-                pstmt.setInt(++i, timestamp);
+            if (blockTimestamp > 0) {
+                pstmt.setInt(++i, blockTimestamp);
             }
             if (type >= 0) {
                 pstmt.setByte(++i, type);
                 if (subtype >= 0) {
                     pstmt.setByte(++i, subtype);
                 }
+            }
+            if (height < Integer.MAX_VALUE) {
+                pstmt.setInt(++i, height);
+            }
+            pstmt.setLong(++i, account.getId());
+            if (blockTimestamp > 0) {
+                pstmt.setInt(++i, blockTimestamp);
+            }
+            if (type >= 0) {
+                pstmt.setByte(++i, type);
+                if (subtype >= 0) {
+                    pstmt.setByte(++i, subtype);
+                }
+            }
+            if (height < Integer.MAX_VALUE) {
+                pstmt.setInt(++i, height);
             }
             return getTransactions(con, pstmt);
         } catch (SQLException e) {

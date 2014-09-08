@@ -21,14 +21,13 @@ public interface TransactionProcessor extends Observable<List<Transaction>,Trans
 
     void broadcast(Transaction transaction) throws NxtException.ValidationException;
 
-    void processPeerTransactions(JSONObject request);
+    void processPeerTransactions(JSONObject request) throws NxtException.ValidationException;
 
     Transaction parseTransaction(byte[] bytes) throws NxtException.ValidationException;
 
-    Transaction newTransaction(short deadline, byte[] senderPublicKey, Long recipientId,
-                               long amountNQT, long feeNQT, String referencedTransactionIdFullHash) throws NxtException.ValidationException;
+    Transaction parseTransaction(JSONObject json) throws NxtException.ValidationException;
 
-    Transaction newTransaction(short deadline, byte[] senderPublicKey, Long recipientId,
-                               long amountNQT, long feeNQT, String referencedTransactionFullHash, Attachment attachment) throws NxtException.ValidationException;
+    Transaction.Builder newTransactionBuilder(byte[] senderPublicKey, long amountNQT, long feeNQT, short deadline, Attachment attachment)
+            throws NxtException.ValidationException;
 
 }

@@ -10,7 +10,7 @@ public final class GetAsset extends APIServlet.APIRequestHandler {
     static final GetAsset instance = new GetAsset();
 
     private GetAsset() {
-        super("asset");
+        super(new APITag[] {APITag.AE}, "asset");
     }
 
     @Override

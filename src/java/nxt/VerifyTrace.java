@@ -16,7 +16,7 @@ public final class VerifyTrace {
 
     private static final List<String> balanceHeaders = Arrays.asList("balance", "unconfirmed balance");
     private static final List<String> deltaHeaders = Arrays.asList("transaction amount", "transaction fee",
-            "generation fee", "trade cost");
+            "generation fee", "trade cost", "purchase cost", "discount", "refund");
     private static final List<String> assetQuantityHeaders = Arrays.asList("asset balance", "unconfirmed asset balance");
     private static final List<String> deltaAssetQuantityHeaders = Arrays.asList("asset quantity", "trade quantity");
 

@@ -16,7 +16,7 @@ public final class GetUnconfirmedTransactionIds extends APIServlet.APIRequestHan
     static final GetUnconfirmedTransactionIds instance = new GetUnconfirmedTransactionIds();
 
     private GetUnconfirmedTransactionIds() {
-        super("account");
+        super(new APITag[] {APITag.TRANSACTIONS, APITag.ACCOUNTS}, "account");
     }
 
     @Override

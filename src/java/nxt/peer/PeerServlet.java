@@ -4,16 +4,17 @@ import nxt.util.CountingInputStream;
 import nxt.util.CountingOutputStream;
 import nxt.util.JSON;
 import nxt.util.Logger;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.servlets.gzip.CompressedResponseWrapper;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -33,6 +34,7 @@ public final class PeerServlet extends HttpServlet {
 
     static {
         Map<String,PeerRequestHandler> map = new HashMap<>();
+        map.put("addPeers", AddPeers.instance);
         map.put("getCumulativeDifficulty", GetCumulativeDifficulty.instance);
         map.put("getInfo", GetInfo.instance);
         map.put("getMilestoneBlockIds", GetMilestoneBlockIds.instance);
@@ -59,6 +61,14 @@ public final class PeerServlet extends HttpServlet {
         UNSUPPORTED_PROTOCOL = JSON.prepare(response);
     }
 
+    private boolean isGzipEnabled;
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        isGzipEnabled = Boolean.parseBoolean(config.getInitParameter("isGzipEnabled"));
+    }
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
@@ -66,22 +76,17 @@ public final class PeerServlet extends HttpServlet {
         JSONStreamAware response;
 
         try {
-            String remoteAddr = req.getRemoteAddr();
-            if (remoteAddr.indexOf(':') >= 0)
-                remoteAddr = "["+remoteAddr+"]";
-            peer = Peers.addPeer(remoteAddr, null);
+            peer = Peers.addPeer(req.getRemoteAddr(), null);
             if (peer == null) {
-                //Logger.logDebugMessage("Rejected request from "+remoteAddr);
                 return;
             }
             if (peer.isBlacklisted()) {
-                //Logger.logDebugMessage("Rejected request from blacklisted peer "+remoteAddr);
                 return;
             }
 
             JSONObject request;
             CountingInputStream cis = new CountingInputStream(req.getInputStream());
-            try (Reader reader = new BufferedReader(new InputStreamReader(cis, "UTF-8"))) {
+            try (Reader reader = new InputStreamReader(cis, "UTF-8")) {
                 request = (JSONObject) JSONValue.parse(reader);
             }
             if (request == null) {
@@ -90,6 +95,9 @@ public final class PeerServlet extends HttpServlet {
 
             if (peer.getState() == Peer.State.DISCONNECTED) {
                 peer.setState(Peer.State.CONNECTED);
+                if (peer.getAnnouncedAddress() != null) {
+                    Peers.updateAddress(peer);
+                }
             }
             peer.updateDownloadedVolume(cis.getCount());
             if (! peer.analyzeHallmark(peer.getPeerAddress(), (String)request.get("hallmark"))) {
@@ -117,13 +125,28 @@ public final class PeerServlet extends HttpServlet {
         }
 
         resp.setContentType("text/plain; charset=UTF-8");
-        CountingOutputStream cos = new CountingOutputStream(resp.getOutputStream());
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(cos, "UTF-8"))) {
-            response.writeJSONString(writer);
-        }
-
-        if (peer != null) {
-            peer.updateUploadedVolume(cos.getCount());
+        try {
+            long byteCount;
+            if (isGzipEnabled) {
+                try (Writer writer = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
+                    response.writeJSONString(writer);
+                }
+                byteCount = ((Response) ((CompressedResponseWrapper) resp).getResponse()).getContentCount();
+            } else {
+                CountingOutputStream cos = new CountingOutputStream(resp.getOutputStream());
+                try (Writer writer = new OutputStreamWriter(cos, "UTF-8")) {
+                    response.writeJSONString(writer);
+                }
+                byteCount = cos.getCount();
+            }
+            if (peer != null) {
+                peer.updateUploadedVolume(byteCount);
+            }
+        } catch (Exception e) {
+            if (peer != null) {
+                peer.blacklist(e);
+            }
+            throw e;
         }
     }
 

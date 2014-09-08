@@ -11,6 +11,10 @@ public final class GetAllAssets extends APIServlet.APIRequestHandler {
 
     static final GetAllAssets instance = new GetAllAssets();
 
+    private GetAllAssets() {
+        super(new APITag[] {APITag.AE});
+    }
+
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) {
 

@@ -13,7 +13,7 @@ public final class GetBidOrder extends APIServlet.APIRequestHandler {
     static final GetBidOrder instance = new GetBidOrder();
 
     private GetBidOrder() {
-        super("order");
+        super(new APITag[] {APITag.AE}, "order");
     }
 
     @Override

@@ -2,7 +2,27 @@ package nxt;
 
 import org.json.simple.JSONObject;
 
+import java.util.List;
+
 public interface Transaction extends Comparable<Transaction> {
+
+    public static interface Builder {
+
+        Builder recipientId(Long recipientId);
+
+        Builder referencedTransactionFullHash(String referencedTransactionFullHash);
+
+        Builder message(Appendix.Message message);
+
+        Builder encryptedMessage(Appendix.EncryptedMessage encryptedMessage);
+
+        Builder encryptToSelfMessage(Appendix.EncryptToSelfMessage encryptToSelfMessage);
+
+        Builder publicKeyAnnouncement(Appendix.PublicKeyAnnouncement publicKeyAnnouncement);
+
+        Transaction build() throws NxtException.NotValidException;
+
+    }
 
     Long getId();
 
@@ -44,9 +64,9 @@ public interface Transaction extends Comparable<Transaction> {
 
     void sign(String secretPhrase);
 
-    boolean verify();
+    boolean verifySignature();
 
-    void validateAttachment() throws NxtException.ValidationException;
+    void validate() throws NxtException.ValidationException;
 
     byte[] getBytes();
 
@@ -54,10 +74,24 @@ public interface Transaction extends Comparable<Transaction> {
 
     JSONObject getJSONObject();
 
+    byte getVersion();
+
+    Appendix.Message getMessage();
+
+    Appendix.EncryptedMessage getEncryptedMessage();
+
+    Appendix.EncryptToSelfMessage getEncryptToSelfMessage();
+
+    List<? extends Appendix> getAppendages();
+
     /*
     Collection<TransactionType> getPhasingTransactionTypes();
 
     Collection<TransactionType> getPhasedTransactionTypes();
     */
+
+    int getECBlockHeight();
+
+    Long getECBlockId();
 
 }

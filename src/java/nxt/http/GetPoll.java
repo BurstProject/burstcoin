@@ -15,7 +15,7 @@ public final class GetPoll extends APIServlet.APIRequestHandler {
     static final GetPoll instance = new GetPoll();
 
     private GetPoll() {
-        super("poll");
+        super(new APITag[] {APITag.VS}, "poll");
     }
 
     @Override

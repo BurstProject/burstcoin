@@ -15,7 +15,9 @@ import org.json.simple.JSONStreamAware;
 public final class GetMiningInfo extends APIServlet.APIRequestHandler {
 	static final GetMiningInfo instance = new GetMiningInfo();
 	
-	private GetMiningInfo() {}
+	private GetMiningInfo() {
+		super(new APITag[] {APITag.MINING, APITag.INFO});
+	}
 	
 	@Override
 	JSONStreamAware processRequest(HttpServletRequest req) {

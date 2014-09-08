@@ -27,7 +27,7 @@ public final class CreatePoll extends CreateTransaction {
     static final CreatePoll instance = new CreatePoll();
 
     private CreatePoll() {
-        super("name", "description", "minNumberOfOptions", "maxNumberOfOptions", "optionsAreBinary",
+        super(new APITag[] {APITag.VS, APITag.CREATE_TRANSACTION}, "name", "description", "minNumberOfOptions", "maxNumberOfOptions", "optionsAreBinary",
                 "option1", "option2", "option3"); // hardcoded to 3 options for testing
     }
 

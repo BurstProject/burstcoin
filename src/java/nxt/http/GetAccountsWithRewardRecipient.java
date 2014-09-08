@@ -18,7 +18,7 @@ public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestH
 	static final GetAccountsWithRewardRecipient instance = new GetAccountsWithRewardRecipient();
 	
 	private GetAccountsWithRewardRecipient() {
-		super("recipient");
+		super(new APITag[] {APITag.ACCOUNTS, APITag.MINING, APITag.INFO}, "recipient");
 	}
 	
 	@Override

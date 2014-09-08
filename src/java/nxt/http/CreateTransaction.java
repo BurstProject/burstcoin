@@ -1,14 +1,14 @@
 package nxt.http;
 
 import nxt.Account;
+import nxt.Appendix;
 import nxt.Attachment;
 import nxt.Constants;
-import nxt.Genesis;
 import nxt.Nxt;
 import nxt.NxtException;
 import nxt.Transaction;
-import nxt.TransactionType;
 import nxt.crypto.Crypto;
+import nxt.crypto.EncryptedData;
 import nxt.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
 import static nxt.http.JSONResponses.FEATURE_NOT_AVAILABLE;
+import static nxt.http.JSONResponses.INCORRECT_ARBITRARY_MESSAGE;
 import static nxt.http.JSONResponses.INCORRECT_DEADLINE;
 import static nxt.http.JSONResponses.INCORRECT_FEE;
 import static nxt.http.JSONResponses.INCORRECT_REFERENCED_TRANSACTION;
@@ -27,7 +28,11 @@ import static nxt.http.JSONResponses.NOT_ENOUGH_FUNDS;
 abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
     private static final String[] commonParameters = new String[] {"secretPhrase", "publicKey", "feeNQT",
-            "deadline", "referencedTransactionFullHash", "broadcast"};
+            "deadline", "referencedTransactionFullHash", "broadcast",
+            "message", "messageIsText",
+            "messageToEncrypt", "messageToEncryptIsText", "encryptedMessageData", "encryptedMessageNonce",
+            "messageToEncryptToSelf", "messageToEncryptToSelfIsText", "encryptToSelfMessageData", "encryptToSelfMessageNonce",
+            "recipientPublicKey"};
 
     private static String[] addCommonParameters(String[] parameters) {
         String[] result = Arrays.copyOf(parameters, parameters.length + commonParameters.length);
@@ -35,13 +40,18 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         return result;
     }
 
-    CreateTransaction(String... parameters) {
-        super(addCommonParameters(parameters));
+    CreateTransaction(APITag[] apiTags, String... parameters) {
+        super(apiTags, addCommonParameters(parameters));
     }
 
     final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment)
         throws NxtException {
-        return createTransaction(req, senderAccount, Genesis.CREATOR_ID, 0, attachment);
+        return createTransaction(req, senderAccount, null, 0, attachment);
+    }
+
+    final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Long recipientId, long amountNQT)
+            throws NxtException {
+        return createTransaction(req, senderAccount, recipientId, amountNQT, Attachment.ORDINARY_PAYMENT);
     }
 
     final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Long recipientId,
@@ -53,6 +63,33 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         String secretPhrase = Convert.emptyToNull(req.getParameter("secretPhrase"));
         String publicKeyValue = Convert.emptyToNull(req.getParameter("publicKey"));
         boolean broadcast = !"false".equalsIgnoreCase(req.getParameter("broadcast"));
+        Appendix.EncryptedMessage encryptedMessage = null;
+        if (attachment.getTransactionType().hasRecipient()) {
+            EncryptedData encryptedData = ParameterParser.getEncryptedMessage(req, Account.getAccount(recipientId));
+            if (encryptedData != null) {
+                encryptedMessage = new Appendix.EncryptedMessage(encryptedData, !"false".equalsIgnoreCase(req.getParameter("messageToEncryptIsText")));
+            }
+        }
+        Appendix.EncryptToSelfMessage encryptToSelfMessage = null;
+        EncryptedData encryptedToSelfData = ParameterParser.getEncryptToSelfMessage(req);
+        if (encryptedToSelfData != null) {
+            encryptToSelfMessage = new Appendix.EncryptToSelfMessage(encryptedToSelfData, !"false".equalsIgnoreCase(req.getParameter("messageToEncryptToSelfIsText")));
+        }
+        Appendix.Message message = null;
+        String messageValue = Convert.emptyToNull(req.getParameter("message"));
+        if (messageValue != null) {
+            boolean messageIsText = !"false".equalsIgnoreCase(req.getParameter("messageIsText"));
+            try {
+                message = messageIsText ? new Appendix.Message(messageValue) : new Appendix.Message(Convert.parseHexString(messageValue));
+            } catch (RuntimeException e) {
+                throw new ParameterException(INCORRECT_ARBITRARY_MESSAGE);
+            }
+        }
+        Appendix.PublicKeyAnnouncement publicKeyAnnouncement = null;
+        String recipientPublicKey = Convert.emptyToNull(req.getParameter("recipientPublicKey"));
+        if (recipientPublicKey != null) {
+            publicKeyAnnouncement = new Appendix.PublicKeyAnnouncement(Convert.parseHexString(recipientPublicKey));
+        }
 
         if (secretPhrase == null && publicKeyValue == null) {
             return MISSING_SECRET_PHRASE;
@@ -93,12 +130,25 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         byte[] publicKey = secretPhrase != null ? Crypto.getPublicKey(secretPhrase) : Convert.parseHexString(publicKeyValue);
 
         try {
-            Transaction transaction = attachment == null ?
-                    Nxt.getTransactionProcessor().newTransaction(deadline, publicKey, recipientId,
-                            amountNQT, feeNQT, referencedTransactionFullHash)
-                    :
-                    Nxt.getTransactionProcessor().newTransaction(deadline, publicKey, recipientId,
-                            amountNQT, feeNQT, referencedTransactionFullHash, attachment);
+            Transaction.Builder builder = Nxt.getTransactionProcessor().newTransactionBuilder(publicKey, amountNQT, feeNQT,
+                    deadline, attachment).referencedTransactionFullHash(referencedTransactionFullHash);
+            if (attachment.getTransactionType().hasRecipient()) {
+                builder.recipientId(recipientId);
+            }
+            if (encryptedMessage != null) {
+                builder.encryptedMessage(encryptedMessage);
+            }
+            if (message != null) {
+                builder.message(message);
+            }
+            if (publicKeyAnnouncement != null) {
+                builder.publicKeyAnnouncement(publicKeyAnnouncement);
+            }
+            if (encryptToSelfMessage != null) {
+                builder.encryptToSelfMessage(encryptToSelfMessage);
+            }
+            Transaction transaction = builder.build();
+            transaction.validate();
 
             if (secretPhrase != null) {
                 transaction.sign(secretPhrase);
@@ -116,8 +166,9 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
                 response.put("broadcasted", false);
             }
             response.put("unsignedTransactionBytes", Convert.toHexString(transaction.getUnsignedBytes()));
+            response.put("transactionJSON", JSONData.unconfirmedTransaction(transaction));
 
-        } catch (TransactionType.NotYetEnabledException e) {
+        } catch (NxtException.NotYetEnabledException e) {
             return FEATURE_NOT_AVAILABLE;
         } catch (NxtException.ValidationException e) {
             response.put("error", e.getMessage());

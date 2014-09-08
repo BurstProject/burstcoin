@@ -11,7 +11,7 @@ public final class SendMoney extends CreateTransaction {
     static final SendMoney instance = new SendMoney();
 
     private SendMoney() {
-        super("recipient", "amountNQT");
+        super(new APITag[] {APITag.ACCOUNTS, APITag.CREATE_TRANSACTION}, "recipient", "amountNQT");
     }
 
     @Override
@@ -19,7 +19,7 @@ public final class SendMoney extends CreateTransaction {
         Long recipient = ParameterParser.getRecipientId(req);
         long amountNQT = ParameterParser.getAmountNQT(req);
         Account account = ParameterParser.getSenderAccount(req);
-        return createTransaction(req, account, recipient, amountNQT, null);
+        return createTransaction(req, account, recipient, amountNQT);
     }
 
 }

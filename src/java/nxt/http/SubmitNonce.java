@@ -20,7 +20,7 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 	static final SubmitNonce instance = new SubmitNonce();
 	
 	private SubmitNonce() {
-		super("secretPhrase", "nonce", "accountId");
+		super(new APITag[] {APITag.MINING}, "secretPhrase", "nonce", "accountId");
 	}
 	
 	@Override

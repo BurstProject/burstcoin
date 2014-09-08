@@ -30,55 +30,14 @@ public final class Logger {
     /** Exception listeners */
     private static final Listeners<Exception, Event> exceptionListeners = new Listeners<>();
 
-    /**
-     * Initialize the JDK log manager using the Java logging configuration files
-     * nxt/conf/logging-default.properties and nxt/conf/logging.properties.  The
-     * values specified in logging.properties will override the values specified in
-     * logging-default.properties.  The system-wide Java logging configuration file
-     * jre/lib/logging.properties will be used if no Nxt configuration file is found.
-     *
-     * We will provide our own LogManager extension to delay log handler shutdown
-     * until we no longer need logging services.
-     */
-    static {
-        System.setProperty("java.util.logging.manager", "nxt.util.NxtLogManager");
-        try {
-            boolean foundProperties = false;
-            Properties loggingProperties = new Properties();
-            try (InputStream is = ClassLoader.getSystemResourceAsStream("logging-default.properties")) {
-                if (is != null) {
-                    loggingProperties.load(is);
-                    foundProperties = true;
-                }
-            }
-            try (InputStream is = ClassLoader.getSystemResourceAsStream("logging.properties")) {
-                if (is != null) {
-                    loggingProperties.load(is);
-                    foundProperties = true;
-                }
-            }
-            if (foundProperties) {
-                ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-                loggingProperties.store(outStream, "logging properties");
-                ByteArrayInputStream inStream = new ByteArrayInputStream(outStream.toByteArray());
-                java.util.logging.LogManager.getLogManager().readConfiguration(inStream);
-                inStream.close();
-                outStream.close();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Error loading logging properties", e);
-        }
-        BriefLogFormatter.init();
-    }
-
     /** Our logger instance */
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(nxt.Nxt.class);
+    private static final org.slf4j.Logger log;
 
     /** Enable stack traces */
-    private static final boolean enableStackTraces = Nxt.getBooleanProperty("nxt.enableStackTraces");
+    private static final boolean enableStackTraces;
 
     /** Enable log traceback */
-    private static final boolean enableLogTraceback = Nxt.getBooleanProperty("nxt.enableLogTraceback");
+    private static final boolean enableLogTraceback;
 
     /**
      * No constructor
@@ -86,10 +45,64 @@ public final class Logger {
     private Logger() {}
 
     /**
+     * Logger initialization
+     *
+     * The existing Java logging configuration will be used if the Java logger has already
+     * been initialized.  Otherwise, we will configure our own log manager and log handlers.
+     * The nxt/conf/logging-default.properties and nxt/conf/logging.properties configuration
+     * files will be used.  Entries in logging.properties will override entries in
+     * logging-default.properties.
+     */
+    static {
+        String oldManager = System.getProperty("java.util.logging.manager");
+        System.setProperty("java.util.logging.manager", "nxt.util.NxtLogManager");
+        if (!(LogManager.getLogManager() instanceof NxtLogManager)) {
+            System.setProperty("java.util.logging.manager",
+                               (oldManager!=null ? oldManager : "java.util.logging.LogManager"));
+        } else {
+            try {
+                boolean foundProperties = false;
+                Properties loggingProperties = new Properties();
+                try (InputStream is = ClassLoader.getSystemResourceAsStream("logging-default.properties")) {
+                    if (is != null) {
+                        loggingProperties.load(is);
+                        foundProperties = true;
+                    }
+                }
+                try (InputStream is = ClassLoader.getSystemResourceAsStream("logging.properties")) {
+                    if (is != null) {
+                        loggingProperties.load(is);
+                        foundProperties = true;
+                    }
+                }
+                if (foundProperties) {
+                    ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+                    loggingProperties.store(outStream, "logging properties");
+                    ByteArrayInputStream inStream = new ByteArrayInputStream(outStream.toByteArray());
+                    java.util.logging.LogManager.getLogManager().readConfiguration(inStream);
+                    inStream.close();
+                    outStream.close();
+                }
+                BriefLogFormatter.init();
+            } catch (IOException e) {
+                throw new RuntimeException("Error loading logging properties", e);
+            }
+        }
+        log = org.slf4j.LoggerFactory.getLogger(nxt.Nxt.class);
+        enableStackTraces = Nxt.getBooleanProperty("nxt.enableStackTraces");
+        enableLogTraceback = Nxt.getBooleanProperty("nxt.enableLogTraceback");
+        logInfoMessage("logging enabled");
+    }
+
+    public static void init() {}
+
+    /**
      * Logger shutdown
      */
     public static void shutdown() {
-        ((NxtLogManager)LogManager.getLogManager()).nxtShutdown();
+        if (LogManager.getLogManager() instanceof NxtLogManager) {
+            ((NxtLogManager) LogManager.getLogManager()).nxtShutdown();
+        }
     }
 
     /**

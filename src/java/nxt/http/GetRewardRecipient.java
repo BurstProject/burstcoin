@@ -16,7 +16,9 @@ public final class GetRewardRecipient extends APIServlet.APIRequestHandler {
 	
 	static final GetRewardRecipient instance = new GetRewardRecipient();
 	
-	private GetRewardRecipient() {}
+	private GetRewardRecipient() {
+		super(new APITag[] {APITag.ACCOUNTS, APITag.MINING, APITag.INFO});
+	}
 	
 	@Override
     JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {

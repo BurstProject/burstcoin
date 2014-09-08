@@ -1,6 +1,7 @@
 package nxt;
 
 import nxt.crypto.Crypto;
+import nxt.crypto.EncryptedData;
 import nxt.util.Convert;
 import nxt.util.Listener;
 import nxt.util.Listeners;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 public final class Account {
 
@@ -138,7 +140,7 @@ public final class Account {
     private static final int maxTrackedBalanceConfirmations = 2881;
     private static final ConcurrentMap<Long, Account> accounts = new ConcurrentHashMap<>();
     private static final Collection<Account> allAccounts = Collections.unmodifiableCollection(accounts.values());
-    private static final ConcurrentMap<Long, Account> leasingAccounts = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Long, Account> leasingAccounts = new ConcurrentSkipListMap<>();
 
     private static final Listeners<Account,Event> listeners = new Listeners<>();
 
@@ -175,11 +177,19 @@ public final class Account {
     }
 
     public static Account getAccount(Long id) {
-        return accounts.get(id);
+        return id == null ? null : accounts.get(id);
     }
 
     public static Account getAccount(byte[] publicKey) {
-        return accounts.get(getId(publicKey));
+        Account account = accounts.get(getId(publicKey));
+        if (account == null) {
+            return null;
+        }
+        if (account.getPublicKey() == null || Arrays.equals(account.getPublicKey(), publicKey)) {
+            return account;
+        }
+        throw new RuntimeException("DUPLICATE KEY for account " + Convert.toUnsignedLong(account.getId())
+                + " existing key " + Convert.toHexString(account.getPublicKey()) + " new key " + Convert.toHexString(publicKey));
     }
 
     public static Long getId(byte[] publicKey) {
@@ -220,7 +230,7 @@ public final class Account {
     private volatile int nextLeasingHeightFrom;
     private volatile int nextLeasingHeightTo;
     private volatile Long nextLesseeId;
-    private Set<Long> lessorIds = Collections.newSetFromMap(new ConcurrentHashMap<Long,Boolean>());
+    private final Set<Long> lessorIds = Collections.newSetFromMap(new ConcurrentHashMap<Long,Boolean>());
 
     private final Map<Long, Long> assetBalances = new HashMap<>();
     private final Map<Long, Long> unconfirmedAssetBalances = new HashMap<>();
@@ -261,6 +271,20 @@ public final class Account {
         return publicKey;
     }
 
+    public EncryptedData encryptTo(byte[] data, String senderSecretPhrase) {
+        if (getPublicKey() == null) {
+            throw new IllegalArgumentException("Recipient account doesn't have a public key set");
+        }
+        return EncryptedData.encrypt(data, Crypto.getPrivateKey(senderSecretPhrase), publicKey);
+    }
+
+    public byte[] decryptFrom(EncryptedData encryptedData, String recipientSecretPhrase) {
+        if (getPublicKey() == null) {
+            throw new IllegalArgumentException("Sender account doesn't have a public key set");
+        }
+        return encryptedData.decrypt(Crypto.getPrivateKey(recipientSecretPhrase), publicKey);
+    }
+
     public synchronized long getBalanceNQT() {
         return balanceNQT;
     }
@@ -275,10 +299,16 @@ public final class Account {
 
     public long getEffectiveBalanceNXT() {
 
+        /*
+        if (Constants.isTestnet && Constants.isOffline) {
+            return Constants.MAX_BALANCE_NXT;
+        }
+        */
+
         Block lastBlock = Nxt.getBlockchain().getLastBlock();
 
         if (lastBlock.getHeight() >= Constants.TRANSPARENT_FORGING_BLOCK_6
-                && (publicKey == null || keyHeight == -1 || lastBlock.getHeight() - keyHeight <= 1440)) {
+                && (getPublicKey() == null || lastBlock.getHeight() - keyHeight <= 1440)) {
             return 0; // cfb: Accounts with the public key revealed less than 1440 blocks ago are not allowed to generate blocks
         }
 
@@ -293,7 +323,7 @@ public final class Account {
             }
             long receivedInlastBlock = 0;
             for (Transaction transaction : lastBlock.getTransactions()) {
-                if (transaction.getRecipientId().equals(id)) {
+                if (id.equals(transaction.getRecipientId())) {
                     receivedInlastBlock += transaction.getAmountNQT();
                 }
             }
@@ -488,7 +518,7 @@ public final class Account {
 
     synchronized void apply(byte[] key, int height) {
         if (! setOrVerify(key, this.height)) {
-            throw new IllegalStateException("Generator public key mismatch");
+            throw new IllegalStateException("Public key mismatch");
         }
         if (this.publicKey == null) {
             throw new IllegalStateException("Public key has not been set for account " + Convert.toUnsignedLong(id)
@@ -517,50 +547,66 @@ public final class Account {
     }
 
     void addToAssetBalanceQNT(Long assetId, long quantityQNT) {
+        Long assetBalance;
         synchronized (this) {
-            Long assetBalance = assetBalances.get(assetId);
+            assetBalance = assetBalances.get(assetId);
             assetBalance = assetBalance == null ? quantityQNT : Convert.safeAdd(assetBalance, quantityQNT);
-            if (assetBalance < 0) {
+            if (assetBalance > 0) {
+                assetBalances.put(assetId, assetBalance);
+            } else if (assetBalance == 0) {
+                assetBalances.remove(assetId);
+            } else {
                 throw new DoubleSpendingException("Negative asset balance for account " + Convert.toUnsignedLong(id));
             }
-            assetBalances.put(assetId, assetBalance);
         }
         listeners.notify(this, Event.ASSET_BALANCE);
-        assetListeners.notify(new AccountAsset(id, assetId, assetBalances.get(assetId)), Event.ASSET_BALANCE);
+        assetListeners.notify(new AccountAsset(id, assetId, assetBalance), Event.ASSET_BALANCE);
     }
 
     void addToUnconfirmedAssetBalanceQNT(Long assetId, long quantityQNT) {
+        Long unconfirmedAssetBalance;
         synchronized (this) {
-            Long unconfirmedAssetBalance = unconfirmedAssetBalances.get(assetId);
+            unconfirmedAssetBalance = unconfirmedAssetBalances.get(assetId);
             unconfirmedAssetBalance = unconfirmedAssetBalance == null ? quantityQNT : Convert.safeAdd(unconfirmedAssetBalance, quantityQNT);
-            if (unconfirmedAssetBalance < 0) {
+            if (unconfirmedAssetBalance > 0) {
+                unconfirmedAssetBalances.put(assetId, unconfirmedAssetBalance);
+            } else if (unconfirmedAssetBalance == 0) {
+                unconfirmedAssetBalances.remove(assetId);
+            } else {
                 throw new DoubleSpendingException("Negative unconfirmed asset balance for account " + Convert.toUnsignedLong(id));
             }
-            unconfirmedAssetBalances.put(assetId, unconfirmedAssetBalance);
         }
         listeners.notify(this, Event.UNCONFIRMED_ASSET_BALANCE);
-        assetListeners.notify(new AccountAsset(id, assetId, unconfirmedAssetBalances.get(assetId)), Event.UNCONFIRMED_ASSET_BALANCE);
+        assetListeners.notify(new AccountAsset(id, assetId, unconfirmedAssetBalance), Event.UNCONFIRMED_ASSET_BALANCE);
     }
 
     void addToAssetAndUnconfirmedAssetBalanceQNT(Long assetId, long quantityQNT) {
+        Long assetBalance;
+        Long unconfirmedAssetBalance;
         synchronized (this) {
-            Long assetBalance = assetBalances.get(assetId);
+            assetBalance = assetBalances.get(assetId);
             assetBalance = assetBalance == null ? quantityQNT : Convert.safeAdd(assetBalance, quantityQNT);
-            if (assetBalance < 0) {
+            if (assetBalance > 0) {
+                assetBalances.put(assetId, assetBalance);
+            } else if (assetBalance == 0) {
+                assetBalances.remove(assetId);
+            } else {
                 throw new DoubleSpendingException("Negative unconfirmed asset balance for account " + Convert.toUnsignedLong(id));
             }
-            assetBalances.put(assetId, assetBalance);
-            Long unconfirmedAssetBalance = unconfirmedAssetBalances.get(assetId);
+            unconfirmedAssetBalance = unconfirmedAssetBalances.get(assetId);
             unconfirmedAssetBalance = unconfirmedAssetBalance == null ? quantityQNT : Convert.safeAdd(unconfirmedAssetBalance, quantityQNT);
-            if (unconfirmedAssetBalance < 0) {
+            if (unconfirmedAssetBalance > 0) {
+                unconfirmedAssetBalances.put(assetId, unconfirmedAssetBalance);
+            } else if (unconfirmedAssetBalance == 0) {
+                unconfirmedAssetBalances.remove(assetId);
+            } else {
                 throw new DoubleSpendingException("Negative unconfirmed asset balance for account " + Convert.toUnsignedLong(id));
             }
-            unconfirmedAssetBalances.put(assetId, unconfirmedAssetBalance);
         }
         listeners.notify(this, Event.ASSET_BALANCE);
         listeners.notify(this, Event.UNCONFIRMED_ASSET_BALANCE);
-        assetListeners.notify(new AccountAsset(id, assetId, assetBalances.get(assetId)), Event.ASSET_BALANCE);
-        assetListeners.notify(new AccountAsset(id, assetId, unconfirmedAssetBalances.get(assetId)), Event.UNCONFIRMED_ASSET_BALANCE);
+        assetListeners.notify(new AccountAsset(id, assetId, assetBalance), Event.ASSET_BALANCE);
+        assetListeners.notify(new AccountAsset(id, assetId, unconfirmedAssetBalance), Event.UNCONFIRMED_ASSET_BALANCE);
     }
 
     void addToBalanceNQT(long amountNQT) {

@@ -1,6 +1,7 @@
 package nxt.user;
 
 import nxt.Account;
+import nxt.Attachment;
 import nxt.Constants;
 import nxt.Nxt;
 import nxt.NxtException;
@@ -123,8 +124,9 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
 
         } else {
 
-            final Transaction transaction = Nxt.getTransactionProcessor().newTransaction(deadline, user.getPublicKey(),
-                    recipient, amountNQT, feeNQT, null);
+            final Transaction transaction = Nxt.getTransactionProcessor().newTransactionBuilder(user.getPublicKey(),
+                    amountNQT, feeNQT, deadline, Attachment.ORDINARY_PAYMENT).recipientId(recipient).build();
+            transaction.validate();
             transaction.sign(user.getSecretPhrase());
 
             Nxt.getTransactionProcessor().broadcast(transaction);
