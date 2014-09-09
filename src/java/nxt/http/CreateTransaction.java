@@ -57,7 +57,8 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
     final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Long recipientId,
                                             long amountNQT, Attachment attachment)
             throws NxtException {
-        String deadlineValue = req.getParameter("deadline");
+    	int blockchainHeight = Nxt.getBlockchain().getHeight();
+    	String deadlineValue = req.getParameter("deadline");
         String referencedTransactionFullHash = Convert.emptyToNull(req.getParameter("referencedTransactionFullHash"));
         String referencedTransactionId = Convert.emptyToNull(req.getParameter("referencedTransaction"));
         String secretPhrase = Convert.emptyToNull(req.getParameter("secretPhrase"));
@@ -78,16 +79,24 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         Appendix.Message message = null;
         String messageValue = Convert.emptyToNull(req.getParameter("message"));
         if (messageValue != null) {
-            boolean messageIsText = !"false".equalsIgnoreCase(req.getParameter("messageIsText"));
+            boolean messageIsText = blockchainHeight >= Constants.DIGITAL_GOODS_STORE_BLOCK
+            		&& !"false".equalsIgnoreCase(req.getParameter("messageIsText"));
             try {
                 message = messageIsText ? new Appendix.Message(messageValue) : new Appendix.Message(Convert.parseHexString(messageValue));
             } catch (RuntimeException e) {
                 throw new ParameterException(INCORRECT_ARBITRARY_MESSAGE);
             }
+        } else if (attachment instanceof Attachment.ColoredCoinsAssetTransfer && blockchainHeight >= Constants.DIGITAL_GOODS_STORE_BLOCK) {
+        	String commentValue = Convert.emptyToNull(req.getParameter("comment"));
+        	if (commentValue != null) {
+        		message = new Appendix.Message(commentValue);
+        	}
+        } else if (attachment == Attachment.ARBITRARY_MESSAGE && blockchainHeight < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+        	message = new Appendix.Message(new byte[0]);
         }
         Appendix.PublicKeyAnnouncement publicKeyAnnouncement = null;
         String recipientPublicKey = Convert.emptyToNull(req.getParameter("recipientPublicKey"));
-        if (recipientPublicKey != null) {
+        if (recipientPublicKey != null && blockchainHeight >= Constants.DIGITAL_GOODS_STORE_BLOCK) {
             publicKeyAnnouncement = new Appendix.PublicKeyAnnouncement(Convert.parseHexString(recipientPublicKey));
         }
 

@@ -640,9 +640,6 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
 
         BlockImpl previousBlock = blockchain.getLastBlock();
-        if (previousBlock.getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
-            return true;
-        }
 
         SortedMap<Long, TransactionImpl> newTransactions = new TreeMap<>();
         Map<TransactionType, Set<String>> duplicates = new HashMap<>();
