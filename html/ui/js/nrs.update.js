@@ -1,5 +1,5 @@
 var NRS = (function(NRS, $, undefined) {
-	NRS.normalVersion = {versionNr:"1.0.3"};
+	NRS.normalVersion = {versionNr:"1.1.0"};
 	NRS.betaVersion = {};
 	NRS.isOutdated = false;
 
