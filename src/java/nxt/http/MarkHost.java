@@ -21,7 +21,7 @@ public final class MarkHost extends APIServlet.APIRequestHandler {
     static final MarkHost instance = new MarkHost();
 
     private MarkHost() {
-        super("secretPhrase", "host", "weight", "date");
+        super(new APITag[] {APITag.TOKENS}, "secretPhrase", "host", "weight", "date");
     }
 
     @Override

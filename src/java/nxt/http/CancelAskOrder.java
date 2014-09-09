@@ -15,7 +15,7 @@ public final class CancelAskOrder extends CreateTransaction {
     static final CancelAskOrder instance = new CancelAskOrder();
 
     private CancelAskOrder() {
-        super("order");
+        super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, "order");
     }
 
     @Override

@@ -17,7 +17,7 @@ public final class LeaseBalance extends CreateTransaction {
     static final LeaseBalance instance = new LeaseBalance();
 
     private LeaseBalance() {
-        super("period", "recipient");
+        super(new APITag[] {APITag.FORGING}, "period", "recipient");
     }
 
     @Override

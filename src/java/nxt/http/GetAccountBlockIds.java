@@ -16,7 +16,7 @@ public final class GetAccountBlockIds extends APIServlet.APIRequestHandler {
     static final GetAccountBlockIds instance = new GetAccountBlockIds();
 
     private GetAccountBlockIds() {
-        super("account", "timestamp");
+        super(new APITag[] {APITag.ACCOUNTS}, "account", "timestamp");
     }
 
     @Override

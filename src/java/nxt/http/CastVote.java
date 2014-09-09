@@ -18,7 +18,7 @@ public final class CastVote extends CreateTransaction {
     static final CastVote instance = new CastVote();
 
     private CastVote() {
-        super("poll", "vote1", "vote2", "vote3"); // hardcoded to 3 votes for testing
+        super(new APITag[] {APITag.VS, APITag.CREATE_TRANSACTION}, "poll", "vote1", "vote2", "vote3"); // hardcoded to 3 votes for testing
     }
 
     @Override

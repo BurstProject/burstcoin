@@ -14,7 +14,7 @@ public final class StopForging extends APIServlet.APIRequestHandler {
     static final StopForging instance = new StopForging();
 
     private StopForging() {
-        super("secretPhrase");
+        super(new APITag[] {APITag.FORGING}, "secretPhrase");
     }
 
     @Override

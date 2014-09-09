@@ -12,6 +12,10 @@ public final class GetAllOpenOrders extends APIServlet.APIRequestHandler {
 
     static final GetAllOpenOrders instance = new GetAllOpenOrders();
 
+    private GetAllOpenOrders() {
+        super(new APITag[] {APITag.AE});
+    }
+
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) {
 

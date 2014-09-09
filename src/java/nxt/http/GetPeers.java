@@ -12,13 +12,16 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
 
     static final GetPeers instance = new GetPeers();
 
-    private GetPeers() {}
+    private GetPeers() {
+        super(new APITag[] {APITag.INFO}, "active");
+    }
 
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) {
 
+        boolean active = "true".equalsIgnoreCase(req.getParameter("active"));
         JSONArray peers = new JSONArray();
-        for (Peer peer : Peers.getAllPeers()) {
+        for (Peer peer : active ? Peers.getActivePeers() : Peers.getAllPeers()) {
             peers.add(peer.getPeerAddress());
         }
 

@@ -10,8 +10,10 @@ import java.util.Arrays;
 public final class JSONResponses {
 
     public static final JSONStreamAware INCORRECT_ALIAS = incorrect("alias");
+    public static final JSONStreamAware INCORRECT_ALIAS_OWNER = incorrect("alias","(invalid alias owner)");
     public static final JSONStreamAware INCORRECT_ALIAS_LENGTH = incorrect("alias", "(length must be in [1.." + Constants.MAX_ALIAS_LENGTH + "] range)");
     public static final JSONStreamAware INCORRECT_ALIAS_NAME = incorrect("alias", "(must contain only digits and latin letters)");
+    public static final JSONStreamAware INCORRECT_ALIAS_NOTFORSALE = incorrect("alias", "(alias is not for sale at the moment)");
     public static final JSONStreamAware INCORRECT_URI_LENGTH = incorrect("uri", "(length must be not longer than " + Constants.MAX_ALIAS_URI_LENGTH + " characters)");
     public static final JSONStreamAware MISSING_SECRET_PHRASE = missing("secretPhrase");
     public static final JSONStreamAware INCORRECT_PUBLIC_KEY = incorrect("publicKey");
@@ -21,7 +23,7 @@ public final class JSONResponses {
     public static final JSONStreamAware MISSING_DEADLINE = missing("deadline");
     public static final JSONStreamAware INCORRECT_DEADLINE = incorrect("deadline");
     public static final JSONStreamAware INCORRECT_FEE = incorrect("fee");
-    public static final JSONStreamAware MISSING_TRANSACTION_BYTES = missing("transactionBytes");
+    public static final JSONStreamAware MISSING_TRANSACTION_BYTES_OR_JSON = missing("transactionBytes", "transactionJSON");
     public static final JSONStreamAware INCORRECT_TRANSACTION_BYTES = incorrect("transactionBytes");
     public static final JSONStreamAware MISSING_ORDER = missing("order");
     public static final JSONStreamAware INCORRECT_ORDER = incorrect("order");
@@ -52,7 +54,6 @@ public final class JSONResponses {
     public static final JSONStreamAware MISSING_TRANSACTION = missing("transaction");
     public static final JSONStreamAware UNKNOWN_TRANSACTION = unknown("transaction");
     public static final JSONStreamAware INCORRECT_TRANSACTION = incorrect("transaction");
-    public static final JSONStreamAware INCORRECT_ASSET_ISSUANCE_FEE = incorrect("fee", "(must be not less than 1'000 NXT)");
     public static final JSONStreamAware INCORRECT_ASSET_DESCRIPTION = incorrect("description", "(length must not exceed " + Constants.MAX_ASSET_DESCRIPTION_LENGTH + " characters)");
     public static final JSONStreamAware INCORRECT_ASSET_NAME = incorrect("name", "(must contain only digits and latin letters)");
     public static final JSONStreamAware INCORRECT_ASSET_NAME_LENGTH = incorrect("name", "(length must be in [" + Constants.MIN_ASSET_NAME_LENGTH + ".." + Constants.MAX_ASSET_NAME_LENGTH + "] range)");
@@ -60,7 +61,7 @@ public final class JSONResponses {
     public static final JSONStreamAware MISSING_NAME = missing("name");
     public static final JSONStreamAware MISSING_QUANTITY = missing("quantityQNT");
     public static final JSONStreamAware INCORRECT_QUANTITY = incorrect("quantity");
-    public static final JSONStreamAware INCORRECT_ASSET_QUANTITY = incorrect("quantity", "(must be in [1..1'000'000'000] range)");
+    public static final JSONStreamAware INCORRECT_ASSET_QUANTITY = incorrect("quantity", "(must be in [1.." + Constants.MAX_ASSET_QUANTITY_QNT + "] range)");
     public static final JSONStreamAware INCORRECT_DECIMALS = incorrect("decimals");
     public static final JSONStreamAware MISSING_HOST = missing("host");
     public static final JSONStreamAware MISSING_DATE = missing("date");
@@ -74,7 +75,7 @@ public final class JSONResponses {
     public static final JSONStreamAware MISSING_MESSAGE = missing("message");
     public static final JSONStreamAware MISSING_RECIPIENT = missing("recipient");
     public static final JSONStreamAware INCORRECT_RECIPIENT = incorrect("recipient");
-    public static final JSONStreamAware INCORRECT_ARBITRARY_MESSAGE = incorrect("message", "(length must be not longer than " + Constants.MAX_ARBITRARY_MESSAGE_LENGTH + " bytes)");
+    public static final JSONStreamAware INCORRECT_ARBITRARY_MESSAGE = incorrect("message");
     public static final JSONStreamAware MISSING_AMOUNT = missing("amountNQT");
     public static final JSONStreamAware INCORRECT_AMOUNT = incorrect("amount");
     public static final JSONStreamAware MISSING_DESCRIPTION = missing("description");
@@ -98,7 +99,30 @@ public final class JSONResponses {
     public static final JSONStreamAware INCORRECT_UNSIGNED_BYTES = incorrect("unsignedTransactionBytes");
     public static final JSONStreamAware MISSING_UNSIGNED_BYTES = missing("unsignedTransactionBytes");
     public static final JSONStreamAware MISSING_SIGNATURE_HASH = missing("signatureHash");
+    public static final JSONStreamAware INCORRECT_DGS_LISTING_NAME = incorrect("name", "(length must be not longer than " + Constants.MAX_DGS_LISTING_NAME_LENGTH + " characters)");
+    public static final JSONStreamAware INCORRECT_DGS_LISTING_DESCRIPTION = incorrect("description", "(length must be not longer than " + Constants.MAX_DGS_LISTING_DESCRIPTION_LENGTH + " characters)");
+    public static final JSONStreamAware INCORRECT_DGS_LISTING_TAGS = incorrect("tags", "(length must be not longer than " + Constants.MAX_DGS_LISTING_TAGS_LENGTH + " characters)");
+    public static final JSONStreamAware MISSING_GOODS = missing("goods");
+    public static final JSONStreamAware INCORRECT_GOODS = incorrect("goods");
+    public static final JSONStreamAware UNKNOWN_GOODS = unknown("goods");
+    public static final JSONStreamAware INCORRECT_DELTA_QUANTITY = incorrect("deltaQuantity");
+    public static final JSONStreamAware MISSING_DELTA_QUANTITY = missing("deltaQuantity");
+    public static final JSONStreamAware MISSING_DELIVERY_DEADLINE_TIMESTAMP = missing("deliveryDeadlineTimestamp");
+    public static final JSONStreamAware INCORRECT_DELIVERY_DEADLINE_TIMESTAMP = incorrect("deliveryDeadlineTimestamp");
+    public static final JSONStreamAware INCORRECT_PURCHASE_QUANTITY = incorrect("quantity", "(quantity exceeds available goods quantity)");
+    public static final JSONStreamAware INCORRECT_PURCHASE_PRICE = incorrect("priceNQT", "(purchase price doesn't match goods price)");
+    public static final JSONStreamAware INCORRECT_PURCHASE = incorrect("purchase");
+    public static final JSONStreamAware MISSING_PURCHASE = missing("purchase");
+    public static final JSONStreamAware INCORRECT_DGS_GOODS = incorrect("goodsToEncrypt");
+    public static final JSONStreamAware INCORRECT_DGS_DISCOUNT = incorrect("discountNQT");
+    public static final JSONStreamAware INCORRECT_DGS_REFUND = incorrect("refundNQT");
+    public static final JSONStreamAware MISSING_SELLER = missing("seller");
+    public static final JSONStreamAware INCORRECT_ENCRYPTED_MESSAGE = incorrect("encryptedMessageData");
+    public static final JSONStreamAware INCORRECT_DGS_ENCRYPTED_GOODS = incorrect("goodsData");
     public static final JSONStreamAware MISSING_SECRET_PHRASE_OR_PUBLIC_KEY = missing("secretPhrase", "publicKey");
+    public static final JSONStreamAware INCORRECT_HEIGHT = incorrect("height");
+    public static final JSONStreamAware MISSING_HEIGHT = missing("height");
+    public static final JSONStreamAware INCORRECT_PLAIN_MESSAGE = incorrect("messageToEncrypt");
 
     public static final JSONStreamAware NOT_ENOUGH_FUNDS;
     static {
@@ -154,6 +178,46 @@ public final class JSONResponses {
         response.put("errorCode", 9);
         response.put("errorDescription", "Feature not available");
         FEATURE_NOT_AVAILABLE = JSON.prepare(response);
+    }
+
+    public static final JSONStreamAware DECRYPTION_FAILED;
+    static {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 8);
+        response.put("errorDescription", "Decryption failed");
+        DECRYPTION_FAILED = JSON.prepare(response);
+    }
+
+    public static final JSONStreamAware ALREADY_DELIVERED;
+    static {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 8);
+        response.put("errorDescription", "Purchase already delivered");
+        ALREADY_DELIVERED = JSON.prepare(response);
+    }
+
+    public static final JSONStreamAware DUPLICATE_REFUND;
+    static {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 8);
+        response.put("errorDescription", "Refund already sent");
+        DUPLICATE_REFUND = JSON.prepare(response);
+    }
+
+    public static final JSONStreamAware GOODS_NOT_DELIVERED;
+    static {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 8);
+        response.put("errorDescription", "Goods have not been delivered yet");
+        GOODS_NOT_DELIVERED = JSON.prepare(response);
+    }
+
+    public static final JSONStreamAware NO_MESSAGE;
+    static {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 8);
+        response.put("errorDescription", "No attached message found");
+        NO_MESSAGE = JSON.prepare(response);
     }
 
     private static JSONStreamAware missing(String... paramNames) {

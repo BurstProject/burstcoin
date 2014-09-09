@@ -104,6 +104,7 @@ public final class Users {
             connector.setPort(port);
             connector.setHost(host);
             connector.setIdleTimeout(Nxt.getIntProperty("nxt.uiServerIdleTimeout"));
+            connector.setReuseAddress(true);
             userServer.addConnector(connector);
 
 
@@ -151,11 +152,11 @@ public final class Users {
                         userServer.start();
                         Logger.logMessage("Started user interface server at " + host + ":" + port);
                     } catch (Exception e) {
-                        Logger.logDebugMessage("Failed to start user interface server", e);
+                        Logger.logErrorMessage("Failed to start user interface server", e);
                         throw new RuntimeException(e.toString(), e);
                     }
                 }
-            });
+            }, true);
 
         } else {
             userServer = null;

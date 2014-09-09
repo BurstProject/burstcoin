@@ -14,28 +14,15 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
     static final GetTrades instance = new GetTrades();
 
     private GetTrades() {
-        super("asset", "firstIndex", "lastIndex");
+        super(new APITag[] {APITag.AE}, "asset", "firstIndex", "lastIndex");
     }
 
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
 
         Long assetId = ParameterParser.getAsset(req).getId();
-
-        int firstIndex, lastIndex;
-        try {
-            firstIndex = Integer.parseInt(req.getParameter("firstIndex"));
-            if (firstIndex < 0) {
-                firstIndex = 0;
-            }
-        } catch (NumberFormatException e) {
-            firstIndex = 0;
-        }
-        try {
-            lastIndex = Integer.parseInt(req.getParameter("lastIndex"));
-        } catch (NumberFormatException e) {
-            lastIndex = Integer.MAX_VALUE;
-        }
+        int firstIndex = ParameterParser.getFirstIndex(req);
+        int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONObject response = new JSONObject();
 

@@ -22,7 +22,7 @@ public final class SetAlias extends CreateTransaction {
     static final SetAlias instance = new SetAlias();
 
     private SetAlias() {
-        super("aliasName", "aliasURI");
+        super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, "aliasName", "aliasURI");
     }
 
     @Override
@@ -54,7 +54,7 @@ public final class SetAlias extends CreateTransaction {
         Account account = ParameterParser.getSenderAccount(req);
 
         Alias alias = Alias.getAlias(normalizedAlias);
-        if (alias != null && !alias.getAccount().getId().equals(account.getId())) {
+        if (alias != null && !alias.getAccountId().equals(account.getId())) {
             JSONObject response = new JSONObject();
             response.put("errorCode", 8);
             response.put("errorDescription", "\"" + aliasName + "\" is already used");

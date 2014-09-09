@@ -12,45 +12,60 @@ import java.util.concurrent.TimeUnit;
 public final class ThreadPool {
 
     private static ScheduledExecutorService scheduledThreadPool;
-    private static Map<Runnable,Integer> backgroundJobs = new HashMap<>();
-    private static List<Runnable> runBeforeStartJobs = new ArrayList<>();
+    private static Map<Runnable,Long> backgroundJobs = new HashMap<>();
+    private static List<Runnable> beforeStartJobs = new ArrayList<>();
+    private static List<Runnable> lastBeforeStartJobs = new ArrayList<>();
 
-    public static synchronized void runBeforeStart(Runnable runnable) {
+    public static synchronized void runBeforeStart(Runnable runnable, boolean runLast) {
         if (scheduledThreadPool != null) {
             throw new IllegalStateException("Executor service already started");
         }
-        runBeforeStartJobs.add(runnable);
+        if (runLast) {
+            lastBeforeStartJobs.add(runnable);
+        } else {
+            beforeStartJobs.add(runnable);
+        }
     }
 
     public static synchronized void scheduleThread(Runnable runnable, int delay) {
+        scheduleThread(runnable, delay, TimeUnit.SECONDS);
+    }
+
+    public static synchronized void scheduleThread(Runnable runnable, int delay, TimeUnit timeUnit) {
         if (scheduledThreadPool != null) {
             throw new IllegalStateException("Executor service already started, no new jobs accepted");
         }
-        backgroundJobs.put(runnable, delay);
+        backgroundJobs.put(runnable, timeUnit.toMillis(delay));
     }
 
     public static synchronized void start() {
         if (scheduledThreadPool != null) {
             throw new IllegalStateException("Executor service already started");
         }
-        Logger.logDebugMessage("Running " + runBeforeStartJobs.size() + " final tasks...");
-        for (Runnable runnable : runBeforeStartJobs) {
-            runnable.run(); // run them all sequentially within the current thread
-        }
-        runBeforeStartJobs = null;
+
+        Logger.logDebugMessage("Running " + beforeStartJobs.size() + " tasks...");
+        runAll(beforeStartJobs);
+        beforeStartJobs = null;
+
+        Logger.logDebugMessage("Running " + lastBeforeStartJobs.size() + " final tasks...");
+        runAll(lastBeforeStartJobs);
+        lastBeforeStartJobs = null;
+
         Logger.logDebugMessage("Starting " + backgroundJobs.size() + " background jobs");
         scheduledThreadPool = Executors.newScheduledThreadPool(backgroundJobs.size());
-        for (Map.Entry<Runnable,Integer> entry : backgroundJobs.entrySet()) {
-            scheduledThreadPool.scheduleWithFixedDelay(entry.getKey(), 0, entry.getValue(), TimeUnit.SECONDS);
+        for (Map.Entry<Runnable,Long> entry : backgroundJobs.entrySet()) {
+            scheduledThreadPool.scheduleWithFixedDelay(entry.getKey(), 0, entry.getValue(), TimeUnit.MILLISECONDS);
         }
         backgroundJobs = null;
     }
 
     public static synchronized void shutdown() {
-        Logger.logDebugMessage("Stopping background jobs...");
-        shutdownExecutor(scheduledThreadPool);
-        scheduledThreadPool = null;
-        Logger.logDebugMessage("...Done");
+        if (scheduledThreadPool != null) {
+            Logger.logDebugMessage("Stopping background jobs...");
+            shutdownExecutor(scheduledThreadPool);
+            scheduledThreadPool = null;
+            Logger.logDebugMessage("...Done");
+        }
     }
 
     public static void shutdownExecutor(ExecutorService executor) {
@@ -63,6 +78,37 @@ public final class ThreadPool {
         if (! executor.isTerminated()) {
             Logger.logMessage("some threads didn't terminate, forcing shutdown");
             executor.shutdownNow();
+        }
+    }
+
+    private static void runAll(List<Runnable> jobs) {
+        List<Thread> threads = new ArrayList<>();
+        final StringBuffer errors = new StringBuffer();
+        for (final Runnable runnable : jobs) {
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        runnable.run();
+                    } catch (Throwable t) {
+                        errors.append(t.getMessage()).append('\n');
+                        throw t;
+                    }
+                }
+            };
+            thread.setDaemon(true);
+            thread.start();
+            threads.add(thread);
+        }
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        if (errors.length() > 0) {
+            throw new RuntimeException("Errors running startup tasks:\n" + errors.toString());
         }
     }
 

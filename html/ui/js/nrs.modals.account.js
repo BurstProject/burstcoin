@@ -111,7 +111,7 @@ var NRS = (function(NRS, $, undefined) {
 				var transactions = {};
 				var nr_transactions = 0;
 
-				var transactionIds = response.transactionIds.reverse().slice(0, 100);
+				var transactionIds = response.transactionIds.slice(0, 100);
 
 				for (var i = 0; i < transactionIds.length; i++) {
 					NRS.sendRequest("getTransaction", {

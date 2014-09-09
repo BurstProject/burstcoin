@@ -8,30 +8,35 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static nxt.http.JSONResponses.MISSING_SECRET_PHRASE;
+import static nxt.http.JSONResponses.MISSING_SECRET_PHRASE_OR_PUBLIC_KEY;
 
 public final class GetAccountId extends APIServlet.APIRequestHandler {
 
     static final GetAccountId instance = new GetAccountId();
 
     private GetAccountId() {
-        super("secretPhrase");
+        super(new APITag[] {APITag.ACCOUNTS}, "secretPhrase", "publicKey");
     }
 
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) {
 
-        String secretPhrase = req.getParameter("secretPhrase");
-        if (secretPhrase == null) {
-            return MISSING_SECRET_PHRASE;
+        Long accountId;
+        String secretPhrase = Convert.emptyToNull(req.getParameter("secretPhrase"));
+        String publicKeyString = Convert.emptyToNull(req.getParameter("publicKey"));
+        if (secretPhrase != null) {
+            byte[] publicKey = Crypto.getPublicKey(secretPhrase);
+            accountId = Account.getId(publicKey);
+            publicKeyString = Convert.toHexString(publicKey);
+        } else if (publicKeyString != null) {
+            accountId = Account.getId(Convert.parseHexString(publicKeyString));
+        } else {
+            return MISSING_SECRET_PHRASE_OR_PUBLIC_KEY;
         }
 
-        byte[] publicKey = Crypto.getPublicKey(secretPhrase);
-
         JSONObject response = new JSONObject();
-        Long accountId = Account.getId(publicKey);
-        response.put("accountId", Convert.toUnsignedLong(accountId));
-        response.put("accountRS", Convert.rsAccount(accountId));
+        JSONData.putAccount(response, "account", accountId);
+        response.put("publicKey", publicKeyString);
 
         return response;
     }

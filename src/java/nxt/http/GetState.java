@@ -25,13 +25,16 @@ public final class GetState extends APIServlet.APIRequestHandler {
 
     static final GetState instance = new GetState();
 
-    private GetState() {}
+    private GetState() {
+        super(new APITag[] {APITag.INFO});
+    }
 
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) {
 
         JSONObject response = new JSONObject();
 
+        response.put("application", Nxt.APPLICATION);
         response.put("version", Nxt.VERSION);
         response.put("time", Convert.getEpochTime());
         response.put("lastBlock", Nxt.getBlockchain().getLastBlock().getStringId());

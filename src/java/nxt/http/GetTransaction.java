@@ -16,7 +16,7 @@ public final class GetTransaction extends APIServlet.APIRequestHandler {
     static final GetTransaction instance = new GetTransaction();
 
     private GetTransaction() {
-        super("transaction", "fullHash");
+        super(new APITag[] {APITag.TRANSACTIONS}, "transaction", "fullHash");
     }
 
     @Override

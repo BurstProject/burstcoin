@@ -16,7 +16,7 @@ public final class GenerateToken extends APIServlet.APIRequestHandler {
     static final GenerateToken instance = new GenerateToken();
 
     private GenerateToken() {
-        super("website", "secretPhrase");
+        super(new APITag[] {APITag.TOKENS}, "website", "secretPhrase");
     }
 
     @Override

@@ -14,7 +14,7 @@ public final class GetAssetsByIssuer extends APIServlet.APIRequestHandler {
     static final GetAssetsByIssuer instance = new GetAssetsByIssuer();
 
     private GetAssetsByIssuer() {
-        super("account", "account", "account");
+        super(new APITag[] {APITag.AE, APITag.ACCOUNTS}, "account", "account", "account");
     }
 
     @Override

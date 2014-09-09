@@ -15,7 +15,7 @@ public final class GetBidOrderIds extends APIServlet.APIRequestHandler {
     static final GetBidOrderIds instance = new GetBidOrderIds();
 
     private GetBidOrderIds() {
-        super("asset", "limit");
+        super(new APITag[] {APITag.AE}, "asset", "limit");
     }
 
     @Override

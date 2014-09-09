@@ -16,7 +16,8 @@ import java.util.Properties;
 
 public final class Nxt {
 
-    public static final String VERSION = "1.0.3";
+    public static final String VERSION = "1.1.0";
+    public static final String APPLICATION = "NRS";
 
     private static final Properties defaultProperties = new Properties();
     static {
@@ -137,6 +138,7 @@ public final class Nxt {
     }
 
     public static void shutdown() {
+        Logger.logMessage("Shutting down...");
         API.shutdown();
         Users.shutdown();
         Peers.shutdown();
@@ -150,25 +152,28 @@ public final class Nxt {
     private static class Init {
 
         static {
+            try {
+                long startTime = System.currentTimeMillis();
+                Logger.init();
+                Db.init();
+                BlockchainProcessorImpl.getInstance();
+                TransactionProcessorImpl.getInstance();
+                Peers.init();
+                Generator.init();
+                API.init();
+                Users.init();
+                DebugTrace.init();
+                ThreadPool.start();
 
-            long startTime = System.currentTimeMillis();
-
-            Logger.logMessage("logging enabled");
-            Db.init();
-            BlockchainProcessorImpl.getInstance();
-            TransactionProcessorImpl.getInstance();
-            Peers.init();
-            Generator.init();
-            API.init();
-            Users.init();
-            DebugTrace.init();
-            ThreadPool.start();
-
-            long currentTime = System.currentTimeMillis();
-            Logger.logDebugMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
-            Logger.logMessage("Burst server " + VERSION + " started successfully.");
-            if (Constants.isTestnet) {
-                Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
+                long currentTime = System.currentTimeMillis();
+                Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
+                Logger.logMessage("Burst server " + VERSION + " started successfully.");
+                if (Constants.isTestnet) {
+                    Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
+                }
+            } catch (Exception e) {
+                Logger.logErrorMessage(e.getMessage(), e);
+                System.exit(1);
             }
         }
 

@@ -18,13 +18,12 @@ final class TransactionDb {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE id = ?")) {
             pstmt.setLong(1, transactionId);
-            ResultSet rs = pstmt.executeQuery();
-            Transaction transaction = null;
-            if (rs.next()) {
-                transaction = loadTransaction(con, rs);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return loadTransaction(con, rs);
+                }
+                return null;
             }
-            rs.close();
-            return transaction;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         } catch (NxtException.ValidationException e) {
@@ -36,13 +35,12 @@ final class TransactionDb {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE full_hash = ?")) {
             pstmt.setBytes(1, Convert.parseHexString(fullHash));
-            ResultSet rs = pstmt.executeQuery();
-            Transaction transaction = null;
-            if (rs.next()) {
-                transaction = loadTransaction(con, rs);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return loadTransaction(con, rs);
+                }
+                return null;
             }
-            rs.close();
-            return transaction;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         } catch (NxtException.ValidationException e) {
@@ -54,8 +52,9 @@ final class TransactionDb {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT 1 FROM transaction WHERE id = ?")) {
             pstmt.setLong(1, transactionId);
-            ResultSet rs = pstmt.executeQuery();
-            return rs.next();
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }
@@ -65,8 +64,9 @@ final class TransactionDb {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT 1 FROM transaction WHERE full_hash = ?")) {
             pstmt.setBytes(1, Convert.parseHexString(fullHash));
-            ResultSet rs = pstmt.executeQuery();
-            return rs.next();
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }
@@ -80,10 +80,11 @@ final class TransactionDb {
             int timestamp = rs.getInt("timestamp");
             short deadline = rs.getShort("deadline");
             byte[] senderPublicKey = rs.getBytes("sender_public_key");
-            Long recipientId = rs.getLong("recipient_id");
             long amountNQT = rs.getLong("amount");
             long feeNQT = rs.getLong("fee");
             byte[] referencedTransactionFullHash = rs.getBytes("referenced_transaction_full_hash");
+            int ecBlockHeight = rs.getInt("ec_block_height");
+            Long ecBlockId = rs.getLong("ec_block_id");
             byte[] signature = rs.getBytes("signature");
             Long blockId = rs.getLong("block_id");
             int height = rs.getInt("height");
@@ -92,16 +93,51 @@ final class TransactionDb {
             byte[] attachmentBytes = rs.getBytes("attachment_bytes");
             int blockTimestamp = rs.getInt("block_timestamp");
             byte[] fullHash = rs.getBytes("full_hash");
+            byte version = rs.getByte("version");
+
+            ByteBuffer buffer = null;
+            if (attachmentBytes != null) {
+                buffer = ByteBuffer.wrap(attachmentBytes);
+                buffer.order(ByteOrder.LITTLE_ENDIAN);
+            }
 
             TransactionType transactionType = TransactionType.findTransactionType(type, subtype);
-            TransactionImpl transaction = new TransactionImpl(transactionType, timestamp, deadline, senderPublicKey, recipientId, amountNQT, feeNQT,
-                        referencedTransactionFullHash, signature, blockId, height, id, senderId, blockTimestamp, fullHash);
-            if (attachmentBytes != null) {
-                ByteBuffer buffer = ByteBuffer.wrap(attachmentBytes);
-                buffer.order(ByteOrder.LITTLE_ENDIAN);
-                transactionType.loadAttachment(transaction, buffer); // this does not do validate
+            TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl(version, senderPublicKey,
+                    amountNQT, feeNQT, timestamp, deadline,
+                    transactionType.parseAttachment(buffer, version))
+                    .referencedTransactionFullHash(referencedTransactionFullHash)
+                    .signature(signature)
+                    .blockId(blockId)
+                    .height(height)
+                    .id(id)
+                    .senderId(senderId)
+                    .blockTimestamp(blockTimestamp)
+                    .fullHash(fullHash);
+            if (transactionType.hasRecipient()) {
+                long recipientId = rs.getLong("recipient_id");
+                if (! rs.wasNull()) {
+                    builder.recipientId(recipientId);
+                }
             }
-            return transaction;
+            if (rs.getBoolean("has_message")) {
+                builder.message(new Appendix.Message(buffer, version));
+            }
+            if (rs.getBoolean("has_encrypted_message")) {
+                builder.encryptedMessage(new Appendix.EncryptedMessage(buffer, version));
+            }
+            if (rs.getBoolean("has_public_key_announcement")) {
+                builder.publicKeyAnnouncement(new Appendix.PublicKeyAnnouncement(buffer, version));
+            }
+            if (rs.getBoolean("has_encrypttoself_message")) {
+                builder.encryptToSelfMessage(new Appendix.EncryptToSelfMessage(buffer, version));
+            }
+            if (ecBlockHeight != 0) {
+                builder.ecBlockHeight(ecBlockHeight);
+                builder.ecBlockId(ecBlockId);
+            }
+
+            return builder.build();
+
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }
@@ -111,11 +147,11 @@ final class TransactionDb {
         List<TransactionImpl> list = new ArrayList<>();
         try (PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE block_id = ? ORDER BY id")) {
             pstmt.setLong(1, blockId);
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                list.add(loadTransaction(con, rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(loadTransaction(con, rs));
+                }
             }
-            rs.close();
             return list;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
@@ -127,17 +163,22 @@ final class TransactionDb {
 
     static void saveTransactions(Connection con, List<TransactionImpl> transactions) {
         try {
-            for (Transaction transaction : transactions) {
+            for (TransactionImpl transaction : transactions) {
                 try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO transaction (id, deadline, sender_public_key, "
                         + "recipient_id, amount, fee, referenced_transaction_full_hash, height, "
                         + "block_id, signature, timestamp, type, subtype, sender_id, attachment_bytes, "
-                        + "block_timestamp, full_hash) "
-                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                        + "block_timestamp, full_hash, version, has_message, has_encrypted_message, has_public_key_announcement, "
+                        + "has_encrypttoself_message, ec_block_height, ec_block_id) "
+                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
                     int i = 0;
                     pstmt.setLong(++i, transaction.getId());
                     pstmt.setShort(++i, transaction.getDeadline());
                     pstmt.setBytes(++i, transaction.getSenderPublicKey());
-                    pstmt.setLong(++i, transaction.getRecipientId());
+                    if (transaction.getType().hasRecipient() && transaction.getRecipientId() != null) {
+                        pstmt.setLong(++i, transaction.getRecipientId());
+                    } else {
+                        pstmt.setNull(++i, Types.BIGINT);
+                    }
                     pstmt.setLong(++i, transaction.getAmountNQT());
                     pstmt.setLong(++i, transaction.getFeeNQT());
                     if (transaction.getReferencedTransactionFullHash() != null) {
@@ -152,13 +193,33 @@ final class TransactionDb {
                     pstmt.setByte(++i, transaction.getType().getType());
                     pstmt.setByte(++i, transaction.getType().getSubtype());
                     pstmt.setLong(++i, transaction.getSenderId());
-                    if (transaction.getAttachment() != null) {
-                        pstmt.setBytes(++i, transaction.getAttachment().getBytes());
-                    } else {
+                    int bytesLength = 0;
+                    for (Appendix appendage : transaction.getAppendages()) {
+                        bytesLength += appendage.getSize();
+                    }
+                    if (bytesLength == 0) {
                         pstmt.setNull(++i, Types.VARBINARY);
+                    } else {
+                        ByteBuffer buffer = ByteBuffer.allocate(bytesLength);
+                        buffer.order(ByteOrder.LITTLE_ENDIAN);
+                        for (Appendix appendage : transaction.getAppendages()) {
+                            appendage.putBytes(buffer);
+                        }
+                        pstmt.setBytes(++i, buffer.array());
                     }
                     pstmt.setInt(++i, transaction.getBlockTimestamp());
                     pstmt.setBytes(++i, Convert.parseHexString(transaction.getFullHash()));
+                    pstmt.setByte(++i, transaction.getVersion());
+                    pstmt.setBoolean(++i, transaction.getMessage() != null);
+                    pstmt.setBoolean(++i, transaction.getEncryptedMessage() != null);
+                    pstmt.setBoolean(++i, transaction.getPublicKeyAnnouncement() != null);
+                    pstmt.setBoolean(++i, transaction.getEncryptToSelfMessage() != null);
+                    pstmt.setInt(++i, transaction.getECBlockHeight());
+                    if (transaction.getECBlockId() != null) {
+                        pstmt.setLong(++i, transaction.getECBlockId());
+                    } else {
+                        pstmt.setNull(++i, Types.BIGINT);
+                    }
                     pstmt.executeUpdate();
                 }
             }

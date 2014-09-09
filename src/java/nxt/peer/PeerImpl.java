@@ -3,7 +3,7 @@ package nxt.peer;
 import nxt.Account;
 import nxt.BlockchainProcessor;
 import nxt.Constants;
-import nxt.TransactionType;
+import nxt.NxtException;
 import nxt.util.Convert;
 import nxt.util.CountingInputStream;
 import nxt.util.CountingOutputStream;
@@ -33,6 +33,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 final class PeerImpl implements Peer {
 
@@ -49,6 +50,7 @@ final class PeerImpl implements Peer {
     private volatile State state;
     private volatile long downloadedVolume;
     private volatile long uploadedVolume;
+    private volatile int lastUpdated;
 
     PeerImpl(String peerAddress, String announcedAddress) {
         this.peerAddress = peerAddress;
@@ -198,12 +200,12 @@ final class PeerImpl implements Peer {
 
     @Override
     public void blacklist(Exception cause) {
-        if (cause instanceof TransactionType.NotYetEnabledException || cause instanceof BlockchainProcessor.BlockOutOfOrderException) {
+        if (cause instanceof NxtException.NotCurrentlyValidException || cause instanceof BlockchainProcessor.BlockOutOfOrderException) {
             // don't blacklist peers just because a feature is not yet enabled
             // prevents erroneous blacklisting during loading of blockchain from scratch
             return;
         }
-        if (! isBlacklisted()) {
+        if (! isBlacklisted() && ! (cause instanceof IOException)) {
             Logger.logDebugMessage("Blacklisting " + peerAddress + " because of: " + cause.toString());
         }
         blacklist();
@@ -242,6 +244,15 @@ final class PeerImpl implements Peer {
     }
 
     @Override
+    public int getLastUpdated() {
+        return lastUpdated;
+    }
+
+    void setLastUpdated(int lastUpdated) {
+        this.lastUpdated = lastUpdated;
+    }
+
+    @Override
     public JSONObject send(final JSONStreamAware request) {
 
         JSONObject response;
@@ -253,19 +264,20 @@ final class PeerImpl implements Peer {
         try {
 
             String address = announcedAddress != null ? announcedAddress : peerAddress;
+            URL url = new URL("http://" + address + (port <= 0 ? ":" + (Constants.isTestnet ? Peers.TESTNET_PEER_PORT : Peers.DEFAULT_PEER_PORT) : "") + "/burst");
 
             if (Peers.communicationLoggingMask != 0) {
                 StringWriter stringWriter = new StringWriter();
                 request.writeJSONString(stringWriter);
-                log = "\"" + address + "\": " + stringWriter.toString();
+                log = "\"" + url.toString() + "\": " + stringWriter.toString();
             }
 
-            URL url = new URL("http://" + address + (port <= 0 ? ":" + (Constants.isTestnet ? Peers.TESTNET_PEER_PORT : Peers.DEFAULT_PEER_PORT) : "") + "/burst");
             connection = (HttpURLConnection)url.openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
             connection.setConnectTimeout(Peers.connectTimeout);
             connection.setReadTimeout(Peers.readTimeout);
+            connection.setRequestProperty("Accept-Encoding", "gzip");
 
             CountingOutputStream cos = new CountingOutputStream(connection.getOutputStream());
             try (Writer writer = new BufferedWriter(new OutputStreamWriter(cos, "UTF-8"))) {
@@ -274,33 +286,33 @@ final class PeerImpl implements Peer {
             updateUploadedVolume(cos.getCount());
 
             if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-
+                CountingInputStream cis = new CountingInputStream(connection.getInputStream());
+                InputStream responseStream = cis;
+                if ("gzip".equals(connection.getHeaderField("Content-Encoding"))) {
+                    responseStream = new GZIPInputStream(cis);
+                }
                 if ((Peers.communicationLoggingMask & Peers.LOGGING_MASK_200_RESPONSES) != 0) {
-                    // inefficient
                     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    byte[] buffer = new byte[65536];
+                    byte[] buffer = new byte[1024];
                     int numberOfBytes;
-                    try (InputStream inputStream = connection.getInputStream()) {
-                        while ((numberOfBytes = inputStream.read(buffer)) > 0) {
+                    try (InputStream inputStream = responseStream) {
+                        while ((numberOfBytes = inputStream.read(buffer, 0, buffer.length)) > 0) {
                             byteArrayOutputStream.write(buffer, 0, numberOfBytes);
                         }
                     }
                     String responseValue = byteArrayOutputStream.toString("UTF-8");
+                    if (responseValue.length() > 0 && responseStream instanceof GZIPInputStream) {
+                        log += String.format("[length: %d, compression ratio: %.2f]", cis.getCount(), (double)cis.getCount() / (double)responseValue.length());
+                    }
                     log += " >>> " + responseValue;
                     showLog = true;
-                    updateDownloadedVolume(responseValue.getBytes("UTF-8").length);
                     response = (JSONObject) JSONValue.parse(responseValue);
-
                 } else {
-
-                    CountingInputStream cis = new CountingInputStream(connection.getInputStream());
-                    try (Reader reader = new BufferedReader(new InputStreamReader(cis, "UTF-8"))) {
+                    try (Reader reader = new BufferedReader(new InputStreamReader(responseStream, "UTF-8"))) {
                         response = (JSONObject)JSONValue.parse(reader);
                     }
-                    updateDownloadedVolume(cis.getCount());
-
                 }
-
+                updateDownloadedVolume(cis.getCount());
             } else {
 
                 if ((Peers.communicationLoggingMask & Peers.LOGGING_MASK_NON200_RESPONSES) != 0) {
@@ -359,15 +371,24 @@ final class PeerImpl implements Peer {
             version = (String)response.get("version");
             platform = (String)response.get("platform");
             shareAddress = Boolean.TRUE.equals(response.get("shareAddress"));
+            String newAnnouncedAddress = Convert.emptyToNull((String)response.get("announcedAddress"));
+            if (newAnnouncedAddress != null && ! newAnnouncedAddress.equals(announcedAddress)) {
+                // force verification of changed announced address
+                setState(Peer.State.NON_CONNECTED);
+                setAnnouncedAddress(newAnnouncedAddress);
+                return;
+            }
             if (announcedAddress == null) {
                 setAnnouncedAddress(peerAddress);
                 Logger.logDebugMessage("Connected to peer without announced address, setting to " + peerAddress);
             }
             if (analyzeHallmark(announcedAddress, (String)response.get("hallmark"))) {
                 setState(State.CONNECTED);
+                Peers.updateAddress(this);
             } else {
                 blacklist();
             }
+            lastUpdated = Convert.getEpochTime();
         } else {
             setState(State.NON_CONNECTED);
         }
@@ -393,8 +414,8 @@ final class PeerImpl implements Peer {
             String host = uri.getHost();
 
             Hallmark hallmark = Hallmark.parseHallmark(hallmarkString);
-            if (! hallmark.isValid()
-                    || ! (hallmark.getHost().equals(host) || InetAddress.getByName(host).equals(InetAddress.getByName(hallmark.getHost())))) {
+            if (!hallmark.isValid()
+                    || !(hallmark.getHost().equals(host) || InetAddress.getByName(host).equals(InetAddress.getByName(hallmark.getHost())))) {
                 //Logger.logDebugMessage("Invalid hallmark for " + host + ", hallmark host is " + hallmark.getHost());
                 return false;
             }
@@ -425,7 +446,8 @@ final class PeerImpl implements Peer {
 
             return true;
 
-        } catch (URISyntaxException | UnknownHostException | RuntimeException e) {
+        } catch (UnknownHostException ignore) {
+        } catch (URISyntaxException | RuntimeException e) {
             Logger.logDebugMessage("Failed to analyze hallmark for peer " + address + ", " + e.toString());
         }
         return false;
