@@ -13,7 +13,7 @@ var NRS = (function(NRS, $, undefined) {
 			"subtype": 0
 		}, function(response) {
 			if (response.transactionIds && response.transactionIds.length) {
-				var transactionIds = response.transactionIds.reverse().slice(0, 100);
+				var transactionIds = response.transactionIds.slice(0, 100);
 				var nrTransactions = transactionIds.length;
 
 				NRS.messages = {};

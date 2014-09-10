@@ -14,7 +14,7 @@ var NRS = (function(NRS, $, undefined) {
 			"timestamp": 0
 		}, function(response) {
 			if (response.transactionIds && response.transactionIds.length) {
-				var transactionIds = response.transactionIds.reverse().slice(0, 10);
+				var transactionIds = response.transactionIds.slice(0, 10);
 				var nrTransactions = 0;
 				var transactions = [];
 
@@ -87,7 +87,7 @@ var NRS = (function(NRS, $, undefined) {
 			"timestamp": NRS.lastTransactionsTimestamp
 		}, function(response) {
 			if (response.transactionIds && response.transactionIds.length) {
-				var transactionIds = response.transactionIds.reverse().slice(0, 10);
+				var transactionIds = response.transactionIds.slice(0, 10);
 
 				if (transactionIds.toString() == NRS.lastTransactions) {
 					NRS.getUnconfirmedTransactions(function(unconfirmedTransactions) {
@@ -380,7 +380,7 @@ var NRS = (function(NRS, $, undefined) {
 				var transactions = {};
 				var nr_transactions = 0;
 
-				var transactionIds = response.transactionIds.reverse().slice(0, 100);
+				var transactionIds = response.transactionIds.slice(0, 100);
 
 				for (var i = 0; i < transactionIds.length; i++) {
 					NRS.sendRequest("getTransaction+", {
