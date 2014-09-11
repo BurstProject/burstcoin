@@ -1,14 +1,26 @@
+/**
+ * @depends {nrs.js}
+ */
 var NRS = (function(NRS, $, undefined) {
 	NRS.automaticallyCheckRecipient = function() {
-		$("#send_money_recipient, #transfer_asset_recipient, #send_message_recipient, #add_contact_account_id, #update_contact_account_id, #lease_balance_recipient").blur(function() {
+		var $recipientFields = $("#send_money_recipient, #transfer_asset_recipient, #send_message_recipient, #add_contact_account_id, #update_contact_account_id, #lease_balance_recipient, #transfer_alias_recipient, #sell_alias_recipient");
+
+		$recipientFields.on("blur", function() {
+			$(this).trigger("checkRecipient");
+		});
+
+		$recipientFields.on("checkRecipient", function() {
 			var value = $(this).val();
 			var modal = $(this).closest(".modal");
 
-			if (value) {
+			if (value && value != "BURST-____-____-____-_____") {
 				NRS.checkRecipient(value, modal);
 			} else {
 				modal.find(".account_info").hide();
 			}
+		});
+
+		$recipientFields.on("oldRecipientPaste", function() {
 		});
 	}
 
@@ -22,13 +34,23 @@ var NRS = (function(NRS, $, undefined) {
 		}
 
 		if (account) {
-			$(this).find("input[name=recipient], input[name=account_id]").val(account).trigger("blur");
+			var $inputField = $(this).find("input[name=recipient], input[name=account_id]").not("[type=hidden]");
+
+			if (!/BURST\-/i.test(account)) {
+				$inputField.addClass("noMask");
+			}
+
+			$inputField.val(account).trigger("checkRecipient");
 		}
 	});
 
 	$("#send_money_amount").on("input", function(e) {
 		var amount = parseInt($(this).val(), 10);
-		$("#send_money_fee").val(isNaN(amount) ? "1" : (amount < 500 ? 1 : Math.round(amount / 1000)));
+		var fee = isNaN(amount) ? 1 : (amount < 500 ? 1 : Math.round(amount / 1000));
+
+		$("#send_money_fee").val(fee);
+
+		$(this).closest(".modal").find(".advanced_fee").html(NRS.formatAmount(NRS.convertToNQT(fee)) + " BURST");
 	});
 
 	//todo later: http://twitter.github.io/typeahead.js/
@@ -51,16 +73,16 @@ var NRS = (function(NRS, $, undefined) {
 	$("span.recipient_selector").on("click", "ul li a", function(e) {
 		e.preventDefault();
 		$(this).closest("form").find("input[name=converted_account_id]").val("");
-		$(this).closest("form").find("input[name=recipient],input[name=account_id]").val($(this).data("contact")).trigger("blur");
+		$(this).closest("form").find("input[name=recipient],input[name=account_id]").not("[type=hidden]").trigger("unmask").val($(this).data("contact")).trigger("blur");
 	});
 
 	NRS.forms.sendMoneyComplete = function(response, data) {
 		if (!(data["_extra"] && data["_extra"].convertedAccount) && !(data.recipient in NRS.contacts)) {
-			$.growl("BURST has been sent! <a href='#' data-account='" + NRS.getAccountFormatted(data, "recipient") + "' data-toggle='modal' data-target='#add_contact_modal' style='text-decoration:underline'>Add recipient to contacts?</a>", {
+			$.growl($.t("success_send_money") + " <a href='#' data-account='" + NRS.getAccountFormatted(data, "recipient") + "' data-toggle='modal' data-target='#add_contact_modal' style='text-decoration:underline'>" + $.t("add_recipient_to_contacts_q") + "</a>", {
 				"type": "success"
 			});
 		} else {
-			$.growl("BUSRT has been sent!", {
+			$.growl($.t("success_send_money"), {
 				"type": "success"
 			});
 		}
@@ -84,7 +106,9 @@ var NRS = (function(NRS, $, undefined) {
 			if (response.publicKey) {
 				callback({
 					"type": "info",
-					"message": "The recipient account has a public key and a balance of " + NRS.formatAmount(response.unconfirmedBalanceNQT, false, true) + "BURST.",
+					"message": $.t("recipient_info", {
+						"nxt": NRS.formatAmount(response.unconfirmedBalanceNQT, false, true)
+					}),
 					"account": response
 				});
 			} else {
@@ -92,27 +116,31 @@ var NRS = (function(NRS, $, undefined) {
 					if (response.errorCode == 4) {
 						callback({
 							"type": "danger",
-							"message": "The recipient account is malformed, please adjust." + (!/^(BURST\-)/i.test(accountId) ? " If you want to type an alias, prepend it with the @ character." : ""),
+							"message": $.t("recipient_malformed") + (!/^(BURST\-)/i.test(accountId) ? " " + $.t("recipient_alias_suggestion") : ""),
 							"account": null
 						});
 					} else if (response.errorCode == 5) {
 						callback({
 							"type": "warning",
-							"message": "The recipient account is an unknown account, meaning it has never had an incoming or outgoing transaction. Please double check your recipient address before submitting.",
-							"account": null
+							"message": $.t("recipient_unknown_pka"),
+							"account": null,
+							"noPublicKey": true
 						});
 					} else {
 						callback({
 							"type": "danger",
-							"message": "There is a problem with the recipient account: " + response.errorDescription,
+							"message": $.t("recipient_problem") + " " + String(response.errorDescription).escapeHTML(),
 							"account": null
 						});
 					}
 				} else {
 					callback({
 						"type": "warning",
-						"message": "The recipient account does not have a public key, meaning it has never had an outgoing transaction. The account has a balance of " + NRS.formatAmount(response.unconfirmedBalanceNQT, false, true) + " BURST. Please double check your recipient address before submitting.",
-						"account": response
+						"message": $.t("recipient_no_public_key_pka", {
+							"nxt": NRS.formatAmount(response.unconfirmedBalanceNQT, false, true)
+						}),
+						"account": response,
+						"noPublicKey": true
 					});
 				}
 			}
@@ -128,8 +156,11 @@ var NRS = (function(NRS, $, undefined) {
 
 		var callout = modal.find(".account_info").first();
 		var accountInputField = modal.find("input[name=converted_account_id]");
+		var merchantInfoField = modal.find("input[name=merchant_info]");
+		var recipientPublicKeyField = modal.find("input[name=recipientPublicKey]");
 
 		accountInputField.val("");
+		merchantInfoField.val("");
 
 		account = $.trim(account);
 
@@ -139,27 +170,32 @@ var NRS = (function(NRS, $, undefined) {
 
 			if (address.set(account)) {
 				NRS.getAccountError(account, function(response) {
-					if (response.account) {
-						var message = "The recipient address translates to account <strong>" + String(response.account.account).escapeHTML() + "</strong>, " + response.message.replace("The recipient account", "which").escapeHTML();
-					} else {
-						var message = response.message.escapeHTML();
+					modal.find("input[name=recipientPublicKey]").val("");
+					modal.find(".recipient_public_key").hide();
+					if (response.account && response.account.description) {
+						checkForMerchant(response.account.description, modal);
 					}
+
+					var message = response.message.escapeHTML();
 
 					callout.removeClass(classes).addClass("callout-" + response.type).html(message).show();
 				});
 			} else {
 				if (address.guess.length == 1) {
-
-					callout.removeClass(classes).addClass("callout-danger").html("The recipient address is malformed, did you mean <span class='malformed_address' data-address='" + String(address.guess[0]).escapeHTML() + "' onclick='NRS.correctAddressMistake(this);'>" + address.format_guess(address.guess[0], account) + "</span> ?").show();
+					callout.removeClass(classes).addClass("callout-danger").html($.t("recipient_malformed_suggestion", {
+						"recipient": "<span class='malformed_address' data-address='" + String(address.guess[0]).escapeHTML() + "' onclick='NRS.correctAddressMistake(this);'>" + address.format_guess(address.guess[0], account) + "</span>"
+					})).show();
 				} else if (address.guess.length > 1) {
-					var html = "The recipient address is malformed, did you mean:<ul>";
-					for (var i = 0; i < adr.guess.length; i++) {
-						html += "<li><span clas='malformed_address' data-address='" + String(address.guess[i]).escapeHTML() + "' onclick='NRS.correctAddressMistake(this);'>" + adddress.format_guess(address.guess[i], account) + "</span></li>";
+					var html = $.t("recipient_malformed_suggestion", {
+						"count": address.guess.length
+					}) + "<ul>";
+					for (var i = 0; i < address.guess.length; i++) {
+						html += "<li><span clas='malformed_address' data-address='" + String(address.guess[i]).escapeHTML() + "' onclick='NRS.correctAddressMistake(this);'>" + address.format_guess(address.guess[i], account) + "</span></li>";
 					}
 
 					callout.removeClass(classes).addClass("callout-danger").html(html).show();
 				} else {
-					callout.removeClass(classes).addClass("callout-danger").html("The recipient address is malformed, please adjust.").show();
+					callout.removeClass(classes).addClass("callout-danger").html($.t("recipient_malformed")).show();
 				}
 			}
 		} else if (!(/^\d+$/.test(account))) {
@@ -169,21 +205,25 @@ var NRS = (function(NRS, $, undefined) {
 				}], function(error, contact) {
 					if (!error && contact.length) {
 						contact = contact[0];
-						NRS.getAccountError((NRS.settings["reed_solomon"] ? contact.accountRS : contact.account), function(response) {
-							callout.removeClass(classes).addClass("callout-" + response.type).html("The contact links to account <strong>" + NRS.getAccountFormatted(contact, "account") + "</strong>. " + response.message.escapeHTML()).show();
+						NRS.getAccountError(contact.accountRS, function(response) {
+							modal.find("input[name=recipientPublicKey]").val("");
+							modal.find(".recipient_public_key").hide();
+							if (response.account && response.account.description) {
+								checkForMerchant(response.account.description, modal);
+							}
+
+							callout.removeClass(classes).addClass("callout-" + response.type).html($.t("contact_account_link", {
+								"account_id": NRS.getAccountFormatted(contact, "account")
+							}) + " " + response.message.escapeHTML()).show();
 
 							if (response.type == "info" || response.type == "warning") {
-								if (NRS.settings["reed_solomon"]) {
-									accountInputField.val(contact.accountRS);
-								} else {
-									accountInputField.val(contact.account);
-								}
+								accountInputField.val(contact.accountRS);
 							}
 						});
 					} else if (/^[a-z0-9]+$/i.test(account)) {
 						NRS.checkRecipientAlias(account, modal);
 					} else {
-						callout.removeClass(classes).addClass("callout-danger").html("The recipient account is malformed, please adjust.").show();
+						callout.removeClass(classes).addClass("callout-danger").html($.t("recipient_malformed")).show();
 					}
 				});
 			} else if (/^[a-z0-9@]+$/i.test(account)) {
@@ -192,7 +232,7 @@ var NRS = (function(NRS, $, undefined) {
 					NRS.checkRecipientAlias(account, modal);
 				}
 			} else {
-				callout.removeClass(classes).addClass("callout-danger").html("The recipient account is malformed, please adjust.").show();
+				callout.removeClass(classes).addClass("callout-danger").html($.t("recipient_malformed")).show();
 			}
 		} else {
 			NRS.getAccountError(account, function(response) {
@@ -212,14 +252,14 @@ var NRS = (function(NRS, $, undefined) {
 			"aliasName": account
 		}, function(response) {
 			if (response.errorCode) {
-				callout.removeClass(classes).addClass("callout-danger").html(response.errorDescription ? "Error: " + response.errorDescription.escapeHTML() : "The alias does not exist.").show();
+				callout.removeClass(classes).addClass("callout-danger").html($.t("error_invalid_account_id")).show();
 			} else {
 				if (response.aliasURI) {
 					var alias = String(response.aliasURI);
 					var timestamp = response.timestamp;
 
-					var regex_1 = /acct:(\d+)@burst/;
-					var regex_2 = /nacc:(\d+)/;
+					var regex_1 = /acct:(.*)@burst/;
+					var regex_2 = /nacc:(.*)/;
 
 					var match = alias.match(regex_1);
 
@@ -228,20 +268,59 @@ var NRS = (function(NRS, $, undefined) {
 					}
 
 					if (match && match[1]) {
+						match[1] = String(match[1]).toUpperCase();
+
+						if (/^\d+$/.test(match[1])) {
+							var address = new NxtAddress();
+
+							if (address.set(match[1])) {
+								match[1] = address.toString();
+							} else {
+								accountInputField.val("");
+								callout.html("Invalid account alias.");
+							}
+						}
+
 						NRS.getAccountError(match[1], function(response) {
+							modal.find("input[name=recipientPublicKey]").val("");
+							modal.find(".recipient_public_key").hide();
+							if (response.account && response.account.description) {
+								checkForMerchant(response.account.description, modal);
+							}
+
 							accountInputField.val(match[1].escapeHTML());
-							callout.html("The alias links to account <strong>" + match[1].escapeHTML() + "</strong>, " + response.message.replace("The recipient account", "which") + " The alias was last adjusted on " + NRS.formatTimestamp(timestamp) + ".").removeClass(classes).addClass("callout-" + response.type).show();
+							callout.html($.t("alias_account_link", {
+								"account_id": String(match[1]).escapeHTML()
+							}) + ". " + $.t("recipient_unknown_pka") + " " + $.t("alias_last_adjusted", {
+								"timestamp": NRS.formatTimestamp(timestamp)
+							})).removeClass(classes).addClass("callout-" + response.type).show();
 						});
 					} else {
-						callout.removeClass(classes).addClass("callout-danger").html("The alias does not link to an account. " + (!alias ? "The URI is empty." : "The URI is '" + alias.escapeHTML() + "'")).show();
+						callout.removeClass(classes).addClass("callout-danger").html($.t("alias_account_no_link") + (!alias ? $.t("error_uri_empty") : $.t("uri_is", {
+							"uri": String(alias).escapeHTML()
+						}))).show();
 					}
 				} else if (response.aliasName) {
-					callout.removeClass(classes).addClass("callout-danger").html("The alias links to an empty URI.").show();
+					callout.removeClass(classes).addClass("callout-danger").html($.t("error_alias_empty_uri")).show();
 				} else {
-					callout.removeClass(classes).addClass("callout-danger").html(response.errorDescription ? "Error: " + response.errorDescription.escapeHTML() : "The alias does not exist.").show();
+					callout.removeClass(classes).addClass("callout-danger").html(response.errorDescription ? $.t("error") + ": " + String(response.errorDescription).escapeHTML() : $.t("error_alias")).show();
 				}
 			}
 		});
+	}
+
+	function checkForMerchant(accountInfo, modal) {
+		var requestType = modal.find("input[name=request_type]").val();
+
+		if (requestType == "sendMoney" || requestType == "transferAsset") {
+			if (accountInfo.match(/merchant/i)) {
+				modal.find("input[name=merchant_info]").val(accountInfo);
+				var checkbox = modal.find("input[name=add_message]");
+				if (!checkbox.is(":checked")) {
+					checkbox.prop("checked", true).trigger("change");
+				}
+			}
+		}
 	}
 
 	return NRS;

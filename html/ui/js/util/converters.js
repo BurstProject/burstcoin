@@ -3,9 +3,9 @@ var converters = function() {
 	var nibbleToChar = [];
 	var i;
 	for (i = 0; i <= 9; ++i) {
-		var char = i.toString();
-		charToNibble[char] = i;
-		nibbleToChar.push(char)
+		var character = i.toString();
+		charToNibble[character] = i;
+		nibbleToChar.push(character);
 	}
 
 	for (i = 10; i <= 15; ++i) {
@@ -20,8 +20,12 @@ var converters = function() {
 	return {
 		byteArrayToHexString: function(bytes) {
 			var str = '';
-			for (var i = 0; i < bytes.length; ++i)
+			for (var i = 0; i < bytes.length; ++i) {
+				if (bytes[i] < 0) {
+					bytes[i] += 256;
+				}
 				str += nibbleToChar[bytes[i] >> 4] + nibbleToChar[bytes[i] & 0x0F];
+			}
 
 			return str;
 		},
@@ -66,7 +70,7 @@ var converters = function() {
 		},
 		byteArrayToSignedShort: function(bytes, opt_startIndex) {
 			var index = this.checkBytesToIntInput(bytes, 2, opt_startIndex);
-			value = bytes[index];
+			var value = bytes[index];
 			value += bytes[index + 1] << 8;
 			return value;
 		},
@@ -93,6 +97,64 @@ var converters = function() {
 
 			return value;
 		},
+		// create a wordArray that is Big-Endian
+		byteArrayToWordArray: function(byteArray) {
+			var i = 0,
+				offset = 0,
+				word = 0,
+				len = byteArray.length;
+			var words = new Uint32Array(((len / 4) | 0) + (len % 4 == 0 ? 0 : 1));
+
+			while (i < (len - (len % 4))) {
+				words[offset++] = (byteArray[i++] << 24) | (byteArray[i++] << 16) | (byteArray[i++] << 8) | (byteArray[i++]);
+			}
+			if (len % 4 != 0) {
+				word = byteArray[i++] << 24;
+				if (len % 4 > 1) {
+					word = word | byteArray[i++] << 16;
+				}
+				if (len % 4 > 2) {
+					word = word | byteArray[i++] << 8;
+				}
+				words[offset] = word;
+			}
+			var wordArray = new Object();
+			wordArray.sigBytes = len;
+			wordArray.words = words;
+
+			return wordArray;
+		},
+		// assumes wordArray is Big-Endian
+		wordArrayToByteArray: function(wordArray) {
+			var len = wordArray.words.length;
+			if (len == 0) {
+				return new Array(0);
+			}
+			var byteArray = new Array(wordArray.sigBytes);
+			var offset = 0,
+				word, i;
+			for (i = 0; i < len - 1; i++) {
+				word = wordArray.words[i];
+				byteArray[offset++] = word >> 24;
+				byteArray[offset++] = (word >> 16) & 0xff;
+				byteArray[offset++] = (word >> 8) & 0xff;
+				byteArray[offset++] = word & 0xff;
+			}
+			word = wordArray.words[len - 1];
+			byteArray[offset++] = word >> 24;
+			if (wordArray.sigBytes % 4 == 0) {
+				byteArray[offset++] = (word >> 16) & 0xff;
+				byteArray[offset++] = (word >> 8) & 0xff;
+				byteArray[offset++] = word & 0xff;
+			}
+			if (wordArray.sigBytes % 4 > 1) {
+				byteArray[offset++] = (word >> 16) & 0xff;
+			}
+			if (wordArray.sigBytes % 4 > 2) {
+				byteArray[offset++] = (word >> 8) & 0xff;
+			}
+			return byteArray;
+		},
 		byteArrayToString: function(bytes, opt_startIndex, length) {
 			if (length == 0) {
 				return "";
@@ -107,7 +169,7 @@ var converters = function() {
 			return decodeURIComponent(escape(String.fromCharCode.apply(null, bytes)));
 		},
 		byteArrayToShortArray: function(byteArray) {
-			shortArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+			var shortArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 			var i;
 			for (i = 0; i < 16; i++) {
 				shortArray[i] = byteArray[i * 2] | byteArray[i * 2 + 1] << 8;
@@ -115,7 +177,7 @@ var converters = function() {
 			return shortArray;
 		},
 		shortArrayToByteArray: function(shortArray) {
-			byteArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+			var byteArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 			var i;
 			for (i = 0; i < 16; i++) {
 				byteArray[2 * i] = shortArray[i] & 0xff;

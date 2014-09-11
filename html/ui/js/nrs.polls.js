@@ -1,11 +1,12 @@
+/**
+ * @depends {nrs.js}
+ */
 var NRS = (function(NRS, $, undefined) {
 	NRS.pages.polls = function() {
-		NRS.pageLoading();
-
 		NRS.sendRequest("getPollIds+", function(response) {
 			if (response.pollIds && response.pollIds.length) {
 				var polls = {};
-				var nr_polls = 0;
+				var nrPolls = 0;
 
 				for (var i = 0; i < response.pollIds.length; i++) {
 					NRS.sendRequest("getTransaction+", {
@@ -20,9 +21,9 @@ var NRS = (function(NRS, $, undefined) {
 							polls[input.transaction] = poll;
 						}
 
-						nr_polls++;
+						nrPolls++;
 
-						if (nr_polls == response.pollIds.length) {
+						if (nrPolls == response.pollIds.length) {
 							var rows = "";
 
 							if (NRS.unconfirmedTransactions.length) {
@@ -41,7 +42,7 @@ var NRS = (function(NRS, $, undefined) {
 								}
 							}
 
-							for (var i = 0; i < nr_polls; i++) {
+							for (var i = 0; i < nrPolls; i++) {
 								var poll = polls[response.pollIds[i]];
 
 								if (!poll) {
@@ -57,31 +58,18 @@ var NRS = (function(NRS, $, undefined) {
 								rows += "<tr><td>" + String(poll.attachment.name).escapeHTML() + "</td><td>" + pollDescription.escapeHTML() + "</td><td>" + (poll.sender != NRS.genesis ? "<a href='#' data-user='" + NRS.getAccountFormatted(poll, "sender") + "' class='user_info'>" + NRS.getAccountTitle(poll, "sender") + "</a>" : "Genesis") + "</td><td>" + NRS.formatTimestamp(poll.timestamp) + "</td><td><a href='#'>Vote (todo)</td></tr>";
 							}
 
-							$("#polls_table tbody").empty().append(rows);
-							NRS.dataLoadFinished($("#polls_table"));
-
-							NRS.pageLoaded();
-
-							polls = {};
+							NRS.dataLoaded(rows);
 						}
 					});
-
-					if (NRS.currentPage != "polls") {
-						polls = {};
-						return;
-					}
 				}
 			} else {
-				$("#polls_table tbody").empty();
-				NRS.dataLoadFinished($("#polls_table"));
-
-				NRS.pageLoaded();
+				NRS.dataLoaded();
 			}
 		});
 	}
 
 	NRS.incoming.polls = function() {
-		NRS.pages.polls();
+		NRS.loadPage("polls");
 	}
 
 	$("#create_poll_answers").on("click", "button.btn.remove_answer", function(e) {
@@ -146,9 +134,7 @@ var NRS = (function(NRS, $, undefined) {
 
 			var now = parseInt(((new Date().getTime()) - date) / 1000, 10);
 
-			var account = (NRS.settings["reed_solomon"] ? NRS.accountRS : NRS.account);
-
-			var rowToAdd = "<tr class='tentative'><td>" + String(data.name).escapeHTML() + " - <strong>Pending</strong></td><td>" + String(data.description).escapeHTML() + "</td><td><a href='#' data-user='" + NRS.getAccountFormatted(account) + "' class='user_info'>" + NRS.getAccountTitle(account) + "</a></td><td>" + NRS.formatTimestamp(now) + "</td><td>/</td></tr>";
+			var rowToAdd = "<tr class='tentative'><td>" + String(data.name).escapeHTML() + " - <strong>" + $.t("pending") + "</strong></td><td>" + String(data.description).escapeHTML() + "</td><td><a href='#' data-user='" + NRS.getAccountFormatted(NRS.accountRS) + "' class='user_info'>" + NRS.getAccountTitle(NRS.accountRS) + "</a></td><td>" + NRS.formatTimestamp(now) + "</td><td>/</td></tr>";
 
 			$table.prepend(rowToAdd);
 

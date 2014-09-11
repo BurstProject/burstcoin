@@ -941,7 +941,7 @@ a.list-group-item:hover {
 	background-color:#DAE3F2 !important;
 }
 
-.chat .to.tentative p:last-child:before {
+.chat .to.tentative p:last-child::before {
 	border-left: 1.5em solid #c0c0c0 !important;
 }
 

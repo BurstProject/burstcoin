@@ -8,7 +8,6 @@ growl - MIT - https://github.com/mouse0270/bootstrap-growl
 ionicons.css - MIT - http://ionicons.com
 jquery.rss.js - MIT - https://github.com/sdepold/jquery-rss
 webdb.js - MIT - http://github.com/haas85/webdb
-bootstrap-colorpicker.js - Apache2 - http://mjolnic.github.io/bootstrap-colorpicker
 passphrasegenerator.js - custom - based on https://github.com/michenriksen/diceware (UNLICENSE) and https://github.com/ggozad/mnemonic.js (MIT)
 seedrandom.js - MIT - https://github.com/davidbau/seedrandom
 ZeroClipboard.js/.swf - MIT - http://zeroclipboard.org/
@@ -24,3 +23,8 @@ ajaxretry.js - MIT - https://github.com/dcherman/jQuery.ajaxRetry
 ajaxmultiqueue.js - MIT - https://github.com/GeReV/jQuery.ajaxMultiQueue
 autolink.js - MIT - https://github.com/bryanwoods/autolink-js
 addclear.js - https://github.com/skorecky/Add-Clear
+cryptojs - BSD - https://code.google.com/p/crypto-js/
+pako.js - MIT - https://github.com/nodeca/pako
+maskedinput.js - MIT - https://github.com/digitalBush/jquery.maskedinput
+i18next.js - MIT - https://github.com/jamuhl/i18next
+qrcode.js - MIT - https://github.com/jeromeetienne/jquery-qrcode/

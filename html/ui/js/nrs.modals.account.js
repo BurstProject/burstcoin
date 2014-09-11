@@ -1,9 +1,13 @@
+/**
+ * @depends {nrs.js}
+ * @depends {nrs.modals.js}
+ */
 var NRS = (function(NRS, $, undefined) {
 	NRS.userInfoModal = {
 		"user": 0
 	};
 
-	$("#blocks_table, #polls_table, #contacts_table, #transactions_table, #dashboard_transactions_table, #asset_account, #asset_exchange_ask_orders_table, #asset_exchange_bid_orders_table, #account_details_modal, #transaction_info_modal, #alias_info_table").on("click", "a[data-user]", function(e) {
+	$("#blocks_table, #polls_table, #contacts_table, #transactions_table, #dashboard_transactions_table, #asset_account, #asset_exchange_ask_orders_table, #asset_exchange_bid_orders_table, #alias_info_table, .dgs_page_contents, .modal-content, #register_alias_modal").on("click", "a[data-user]", function(e) {
 		e.preventDefault();
 
 		var account = $(this).data("user");
@@ -25,13 +29,15 @@ var NRS = (function(NRS, $, undefined) {
 
 		$("#user_info_modal_account").html(NRS.getAccountFormatted(NRS.userInfoModal.user));
 
-		$("#user_info_modal_actions button").data("account", NRS.userInfoModal.user);
-
 		if (NRS.userInfoModal.user in NRS.contacts) {
+			var accountButton = NRS.contacts[NRS.userInfoModal.user].name.escapeHTML();
 			$("#user_info_modal_add_as_contact").hide();
 		} else {
+			var accountButton = NRS.userInfoModal.user;
 			$("#user_info_modal_add_as_contact").show();
 		}
+
+		$("#user_info_modal_actions button").data("account", accountButton);
 
 		if (NRS.fetchingModalData) {
 			NRS.sendRequest("getAccount", {
@@ -103,149 +109,130 @@ var NRS = (function(NRS, $, undefined) {
 
 	/*some duplicate methods here...*/
 	NRS.userInfoModal.transactions = function(type) {
-		NRS.sendRequest("getAccountTransactionIds", {
+		NRS.sendRequest("getAccountTransactions", {
 			"account": NRS.userInfoModal.user,
-			"timestamp": 0
+			"firstIndex": 0,
+			"lastIndex": 100
 		}, function(response) {
-			if (response.transactionIds && response.transactionIds.length) {
-				var transactions = {};
-				var nr_transactions = 0;
+			if (response.transactions && response.transactions.length) {
+				var rows = "";
 
-				var transactionIds = response.transactionIds.slice(0, 100);
+				for (var i = 0; i < response.transactions.length; i++) {
+					var transaction = response.transactions[i];
 
-				for (var i = 0; i < transactionIds.length; i++) {
-					NRS.sendRequest("getTransaction", {
-						"transaction": transactionIds[i]
-					}, function(transaction, input) {
-						/*
-    					if (NRS.currentPage != "transactions") {
-    						transactions = {};
-    						return;
-    					}*/
+					var transactionType = "Unknown";
 
-						transactions[input.transaction] = transaction;
-						nr_transactions++;
-
-						if (nr_transactions == transactionIds.length) {
-							var rows = "";
-
-							for (var i = 0; i < nr_transactions; i++) {
-								var transaction = transactions[transactionIds[i]];
-
-								var transactionType = "Unknown";
-
-								if (transaction.type == 0) {
-									transactionType = "Ordinary payment";
-								} else if (transaction.type == 1) {
-									switch (transaction.subtype) {
-										case 0:
-											transactionType = "Arbitrary message";
-											break;
-										case 1:
-											transactionType = "Alias assignment";
-											break;
-										case 2:
-											transactionType = "Poll creation";
-											break;
-										case 3:
-											transactionType = "Vote casting";
-											break;
-										case 4:
-											transactionType = "Hub Announcement";
-											break;
-										case 5:
-											transactionType = "Account Info";
-											break;
+					if (transaction.type == 0) {
+						transactionType = $.t("ordinary_payment");
+					} else if (transaction.type == 1) {
+						switch (transaction.subtype) {
+							case 0:
+								transactionType = $.t("arbitrary_message");
+								break;
+							case 1:
+								transactionType = $.t("alias_assignment");
+								break;
+							case 2:
+								transactionType = $.t("poll_creation");
+								break;
+							case 3:
+								transactionType = $.t("vote_casting");
+								break;
+							case 4:
+								transactionType = $.t("hub_announcement");
+								break;
+							case 5:
+								transactionType = $.t("account_info");
+								break;
+							case 6:
+								if (transaction.attachment.priceNQT == "0") {
+									if (transaction.sender == transaction.recipient) {
+										transactionType = $.t("alias_sale_cancellation");
+									} else {
+										transactionType = $.t("alias_transfer");
 									}
-								} else if (transaction.type == 2) {
-									switch (transaction.subtype) {
-										case 0:
-											transactionType = "Asset issuance";
-											break;
-										case 1:
-											transactionType = "Asset transfer";
-											break;
-										case 2:
-											transactionType = "Ask order placement";
-											break;
-										case 3:
-											transactionType = "Bid order placement";
-											break;
-										case 4:
-											transactionType = "Ask order cancellation";
-											break;
-										case 5:
-											transactionType = "Bid order cancellation";
-											break;
-									}
-								} else if (transaction.type == 3) {
-									switch (transaction.subtype) {
-										case 0:
-											transactionType = "Digital Goods Listing";
-											break;
-										case 1:
-											transactionType = "Digital Goods Delisting";
-											break;
-										case 2:
-											transactionType = "Digtal Goods Price Change";
-											break;
-										case 3:
-											transactionType = "Digital Goods Quantity Change";
-											break;
-										case 4:
-											transactionType = "Digital Goods Purchase";
-											break;
-										case 5:
-											transactionType = "Digital Goods Delivery";
-											break;
-										case 6:
-											transactionType = "Digital Goods Feedback";
-											break;
-										case 7:
-											transactionType = "Digital Goods Refund";
-											break;
-									}
-								} else if (transaction.type == 4) {
-									switch (transaction.subtype) {
-										case 0:
-											transactionType = "Balance Leasing";
-											break;
-									}
-								} else if (transaction.type == 20) {
-									switch (transaction.subtype) {
-										case 0:
-											transactionType = "Reward Recipient Assignment";
-											break;
-									}
-								}
-
-								if (/^BURST\-/i.test(NRS.userInfoModal.user)) {
-									var receiving = (transaction.recipientRS == NRS.userInfoModal.user);
 								} else {
-									var receiving = (transaction.recipient == NRS.userInfoModal.user);
+									transactionType = $.t("alias_sale");
 								}
-
-								if (transaction.amountNQT) {
-									transaction.amount = new BigInteger(transaction.amountNQT);
-									transaction.fee = new BigInteger(transaction.feeNQT);
-								}
-
-								var account = (receiving ? "sender" : "recipient");
-
-								rows += "<tr><td>" + NRS.formatTimestamp(transaction.timestamp) + "</td><td>" + transactionType + "</td><td style='width:5px;padding-right:0;'>" + (transaction.type == 0 ? (receiving ? "<i class='fa fa-plus-circle' style='color:#65C62E'></i>" : "<i class='fa fa-minus-circle' style='color:#E04434'></i>") : "") + "</td><td " + (transaction.type == 0 && receiving ? " style='color:#006400;'" : (!receiving && transaction.amount > 0 ? " style='color:red'" : "")) + ">" + NRS.formatAmount(transaction.amount) + "</td><td " + (!receiving ? " style='color:red'" : "") + ">" + NRS.formatAmount(transaction.fee) + "</td><td>" + NRS.getAccountTitle(transaction, account) + "</td></tr>";
-							}
-
-							$("#user_info_modal_transactions_table tbody").empty().append(rows);
-							NRS.dataLoadFinished($("#user_info_modal_transactions_table"));
+								break;
+							case 7:
+								transactionType = $.t("alias_buy");
+								break;
 						}
-					});
+					} else if (transaction.type == 2) {
+						switch (transaction.subtype) {
+							case 0:
+								transactionType = $.t("asset_issuance");
+								break;
+							case 1:
+								transactionType = $.t("asset_transfer");
+								break;
+							case 2:
+								transactionType = $.t("ask_order_placement");
+								break;
+							case 3:
+								transactionType = $.t("bid_order_placement");
+								break;
+							case 4:
+								transactionType = $.t("ask_order_cancellation");
+								break;
+							case 5:
+								transactionType = $.t("bid_order_cancellation");
+								break;
+						}
+					} else if (transaction.type == 3) {
+						switch (transaction.subtype) {
+							case 0:
+								transactionType = $.t("market_listing");
+								break;
+							case 1:
+								transactionType = $.t("market_removal");
+								break;
+							case 2:
+								transactionType = $.t("market_price_change");
+								break;
+							case 3:
+								transactionType = $.t("market_quantity_change");
+								break;
+							case 4:
+								transactionType = $.t("market_purchase");
+								break;
+							case 5:
+								transactionType = $.t("market_delivery");
+								break;
+							case 6:
+								transactionType = $.t("market_feedback");
+								break;
+							case 7:
+								transactionType = $.t("market_refund");
+								break;
+						}
+					} else if (transaction.type == 4) {
+						switch (transaction.subtype) {
+							case 0:
+								transactionType = $.t("balance_leasing");
+								break;
+						}
+					}
 
-					/*
-    				if (NRS.currentPage != "transactions") {
-    					transactions = {};
-    					return;
-    				}*/
+					if (/^BURST\-/i.test(NRS.userInfoModal.user)) {
+						var receiving = (transaction.recipientRS == NRS.userInfoModal.user);
+					} else {
+						var receiving = (transaction.recipient == NRS.userInfoModal.user);
+					}
+
+					if (transaction.amountNQT) {
+						transaction.amount = new BigInteger(transaction.amountNQT);
+						transaction.fee = new BigInteger(transaction.feeNQT);
+					}
+
+					var account = (receiving ? "sender" : "recipient");
+
+					rows += "<tr><td>" + NRS.formatTimestamp(transaction.timestamp) + "</td><td>" + transactionType + "</td><td style='width:5px;padding-right:0;'>" + (transaction.type == 0 ? (receiving ? "<i class='fa fa-plus-circle' style='color:#65C62E'></i>" : "<i class='fa fa-minus-circle' style='color:#E04434'></i>") : "") + "</td><td " + (transaction.type == 0 && receiving ? " style='color:#006400;'" : (!receiving && transaction.amount > 0 ? " style='color:red'" : "")) + ">" + NRS.formatAmount(transaction.amount) + "</td><td " + (!receiving ? " style='color:red'" : "") + ">" + NRS.formatAmount(transaction.fee) + "</td><td>" + NRS.getAccountTitle(transaction, account) + "</td></tr>";
 				}
+
+				$("#user_info_modal_transactions_table tbody").empty().append(rows);
+				NRS.dataLoadFinished($("#user_info_modal_transactions_table"));
 			} else {
 				$("#user_info_modal_transactions_table tbody").empty();
 				NRS.dataLoadFinished($("#user_info_modal_transactions_table"));
@@ -258,6 +245,8 @@ var NRS = (function(NRS, $, undefined) {
 			"account": NRS.userInfoModal.user,
 			"timestamp": 0
 		}, function(response) {
+			var rows = "";
+
 			if (response.aliases && response.aliases.length) {
 				var aliases = response.aliases;
 
@@ -270,8 +259,6 @@ var NRS = (function(NRS, $, undefined) {
 						return 0;
 					}
 				});
-
-				var rows = "";
 
 				var alias_account_count = 0,
 					alias_uri_count = 0,
@@ -290,13 +277,33 @@ var NRS = (function(NRS, $, undefined) {
 						alias_account_count++;
 					}
 				}
-
-				$("#user_info_modal_aliases_table tbody").empty().append(rows);
-				NRS.dataLoadFinished($("#user_info_modal_aliases_table"));
-			} else {
-				$("#user_info_modal_aliases_table tbody").empty();
-				NRS.dataLoadFinished($("#user_info_modal_aliases_table"));
 			}
+
+			$("#user_info_modal_aliases_table tbody").empty().append(rows);
+			NRS.dataLoadFinished($("#user_info_modal_aliases_table"));
+		});
+	}
+
+	NRS.userInfoModal.marketplace = function() {
+		NRS.sendRequest("getDGSGoods", {
+			"seller": NRS.userInfoModal.user,
+			"firstIndex": 0,
+			"lastIndex": 100
+		}, function(response) {
+			var rows = "";
+
+			if (response.goods && response.goods.length) {
+				for (var i = 0; i < response.goods.length; i++) {
+					var good = response.goods[i];
+					if (good.name.length > 150) {
+						good.name = good.name.substring(0, 150) + "...";
+					}
+					rows += "<tr><td><a href='#' data-goto-goods='" + String(good.goods).escapeHTML() + "' data-seller='" + String(NRS.userInfoModal.user).escapeHTML() + "'>" + String(good.name).escapeHTML() + "</a></td><td>" + NRS.formatAmount(good.priceNQT) + " BURST</td><td>" + NRS.format(good.quantity) + "</td></tr>";
+				}
+			}
+
+			$("#user_info_modal_marketplace_table tbody").empty().append(rows);
+			NRS.dataLoadFinished($("#user_info_modal_marketplace_table"));
 		});
 	}
 

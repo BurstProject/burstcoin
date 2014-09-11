@@ -1,19 +1,21 @@
+/**
+ * @depends {nrs.js}
+ * @depends {nrs.modals.js}
+ */
 var NRS = (function(NRS, $, undefined) {
-	NRS.forms.errorMessages.startForging = {
-		"5": "You cannot forge. Either your balance is 0 or your account is too new (you must wait a day or so)."
-	};
+	//todo: use a startForgingError function instaed!
 
 	NRS.forms.startForgingComplete = function(response, data) {
 		if ("deadline" in response) {
 			$("#forging_indicator").addClass("forging");
-			$("#forging_indicator span").html("Forging");
+			$("#forging_indicator span").html($.t("forging")).attr("data-i18n", "forging");
 			NRS.isForging = true;
-			$.growl("Forging started successfully.", {
+			$.growl($.t("success_start_forging"), {
 				type: "success"
 			});
 		} else {
 			NRS.isForging = false;
-			$.growl("Couldn't start forging, unknown error.", {
+			$.growl($.t("error_start_forging"), {
 				type: 'danger'
 			});
 		}
@@ -26,16 +28,16 @@ var NRS = (function(NRS, $, undefined) {
 		}
 
 		$("#forging_indicator").removeClass("forging");
-		$("#forging_indicator span").html("Not forging");
+		$("#forging_indicator span").html($.t("not_forging")).attr("data-i18n", "not_forging");
 
 		NRS.isForging = false;
 
 		if (response.foundAndStopped) {
-			$.growl("Forging stopped successfully.", {
+			$.growl($.t("success_stop_forging"), {
 				type: 'success'
 			});
 		} else {
-			$.growl("You weren't forging to begin with.", {
+			$.growl($.t("error_stop_forging"), {
 				type: 'danger'
 			});
 		}
@@ -45,24 +47,24 @@ var NRS = (function(NRS, $, undefined) {
 		e.preventDefault();
 
 		if (NRS.downloadingBlockchain) {
-			$.growl("The blockchain is busy downloading, you cannot forge during this time. Please try again when the blockchain is fully synced.", {
+			$.growl($.t("error_forging_blockchain_downloading"), {
 				"type": "danger"
 			});
 		} else if (NRS.state.isScanning) {
-			$.growl("The blockchain is currently being rescanned, you cannot forge during this time. Please try again in a minute.", {
+			$.growl($.t("error_forging_blockchain_rescanning"), {
 				"type": "danger"
 			});
 		} else if (!NRS.accountInfo.publicKey) {
-			$.growl("You cannot forge because your account has no public key. Please make an outgoing transaction first.", {
+			$.growl($.t("error_forging_no_public_key"), {
 				"type": "danger"
 			});
 		} else if (NRS.accountInfo.effectiveBalanceNXT == 0) {
 			if (NRS.lastBlockHeight >= NRS.accountInfo.currentLeasingHeightFrom && NRS.lastBlockHeight <= NRS.accountInfo.currentLeasingHeightTo) {
-				$.growl("Your effective balance is leased out, you cannot forge at the moment.", {
+				$.growl($.t("error_forging_lease"), {
 					"type": "danger"
 				});
 			} else {
-				$.growl("Your effective balance is zero, you cannot forge.", {
+				$.growl($.t("error_forging_effective_balance"), {
 					"type": "danger"
 				});
 			}

@@ -51,7 +51,7 @@ function NxtAddress() {
 			}
 
 			if (sum == 0) {
-				pos = 31 - i;
+				var pos = 31 - i;
 				if (pos > 12 && pos < 27) return [];
 
 				errloc[errloc.length] = pos;
@@ -126,7 +126,7 @@ function NxtAddress() {
 		for (r = 0; r < errors; r++) {
 			var t = 0;
 			var pos = errloc[r];
-			root = 31 - pos;
+			var root = 31 - pos;
 
 			for (i = 0; i < 4; i++) // evaluate Omega at alpha^(-i)
 			{
@@ -199,7 +199,7 @@ function NxtAddress() {
 			for (var j = 0, t = 0; j < 31; j++) {
 				if (j > 12 && j < 27) continue;
 
-				pos = j;
+				var pos = j;
 				if (j > 26) pos -= 14;
 
 				t ^= gmult(codeword[pos], gexp[(i * j) % 31]);
