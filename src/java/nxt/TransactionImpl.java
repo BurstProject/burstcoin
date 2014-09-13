@@ -614,9 +614,9 @@ final class TransactionImpl implements Transaction {
         for (Appendix appendage : appendages) {
             attachmentJSON.putAll(appendage.getJSONObject());
         }
-        if (! attachmentJSON.isEmpty()) {
+        //if (! attachmentJSON.isEmpty()) {
             json.put("attachment", attachmentJSON);
-        }
+        //}
         json.put("version", version);
         return json;
     }
@@ -635,6 +635,9 @@ final class TransactionImpl implements Transaction {
             Long versionValue = (Long) transactionData.get("version");
             byte version = versionValue == null ? 0 : versionValue.byteValue();
             JSONObject attachmentData = (JSONObject) transactionData.get("attachment");
+            if(attachmentData == null) {
+            	attachmentData = new JSONObject();
+            }
 
             TransactionType transactionType = TransactionType.findTransactionType(type, subtype);
             if (transactionType == null) {
