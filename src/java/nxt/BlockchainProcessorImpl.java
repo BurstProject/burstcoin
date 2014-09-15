@@ -656,7 +656,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             for (TransactionImpl transaction : sortedTransactions) {
 
-                int transactionLength = transaction.getSize();
+            	if(newTransactions.size() >= Constants.MAX_NUMBER_OF_TRANSACTIONS) {
+            		break;
+            	}
+            	
+            	int transactionLength = transaction.getSize();
                 if (newTransactions.get(transaction.getId()) != null || payloadLength + transactionLength > Constants.MAX_PAYLOAD_LENGTH) {
                     continue;
                 }
