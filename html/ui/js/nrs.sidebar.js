@@ -1,3 +1,6 @@
+/**
+ * @depends {nrs.js}
+ */
 var NRS = (function(NRS, $, undefined) {
 	$(".sidebar_context").on("contextmenu", "a", function(e) {
 		e.preventDefault();

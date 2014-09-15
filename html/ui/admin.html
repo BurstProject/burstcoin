@@ -10,7 +10,7 @@
     </style>
     <script type="text/javascript">
         function submitForm(form) {
-            var url = '/burst';
+            var url = '/nxt';
             var params = '';
             for (i = 0; i < form.elements.length; i++) {
                 if (! form.elements[i].name) {
@@ -55,7 +55,7 @@
         }
         function getBalance(account) {
             var request = new XMLHttpRequest();
-            request.open("GET", '/burst?requestType=getBalance&account=' + account, false);
+            request.open("GET", '/nxt?requestType=getBalance&account=' + account, false);
             request.send();
             return parseInt(JSON.parse(request.responseText).balanceNQT);
         }
@@ -85,9 +85,9 @@
     </script>
 </head>
 <body>
-<h3>Burst admin tools</h3>
+<h3>Nxt admin tools</h3>
 <b>Generate Hallmark:</b><br/>
-<form action="/burst" method="POST" onsubmit="return submitForm(this);">
+<form action="/nxt" method="POST" onsubmit="return submitForm(this);">
     <input type="hidden" name="requestType" value="markHost"/>
     <table>
         <tr>
@@ -114,7 +114,7 @@
 </form>
 <hr>
 <b>Verify Hallmark:</b><br/>
-<form action="/burst" method="POST" onsubmit="return submitForm(this);">
+<form action="/nxt" method="POST" onsubmit="return submitForm(this);">
     <input type="hidden" name="requestType" value="decodeHallmark"/>
     <table>
         <tr>
@@ -129,7 +129,7 @@
 </form>
 <hr>
 <b>Generate Token:</b><br/>
-<form action="/burst" method="POST" onsubmit="return submitForm(this);">
+<form action="/nxt" method="POST" onsubmit="return submitForm(this);">
     <input type="hidden" name="requestType" value="generateToken"/>
     <table>
         <tr>
@@ -148,7 +148,7 @@
 </form>
 <hr>
 <b>Verify Token:</b><br/>
-<form action="/burst" method="POST" onsubmit="return submitForm(this);">
+<form action="/nxt" method="POST" onsubmit="return submitForm(this);">
     <input type="hidden" name="requestType" value="decodeToken"/>
     <table>
         <tr>
@@ -167,7 +167,7 @@
 </form>
 <hr>
 <b>Get Peers:</b><br/>
-<form action="/burst" method="POST" onsubmit="return submitForm(this);">
+<form action="/nxt" method="POST" onsubmit="return submitForm(this);">
     <input type="hidden" name="requestType" value="getPeers"/>
     <table>
         <tr>
@@ -178,7 +178,7 @@
 </form>
 <hr>
 <b>Get Peer Info:</b><br/>
-<form action="/burst" method="POST" onsubmit="return submitForm(this);">
+<form action="/nxt" method="POST" onsubmit="return submitForm(this);">
     <input type="hidden" name="requestType" value="getPeer"/>
     <table>
         <tr>
@@ -193,7 +193,7 @@
 </form>
 <hr>
 <b>Get State:</b><br/>
-<form action="/burst" method="POST" onsubmit="return submitForm(this);">
+<form action="/nxt" method="POST" onsubmit="return submitForm(this);">
     <input type="hidden" name="requestType" value="getState"/>
     <table>
         <tr>
@@ -204,7 +204,7 @@
 </form>
 <hr>
 <b>Get Account:</b><br/>
-<form action="/burst" method="POST" onsubmit="return submitForm(this);">
+<form action="/nxt" method="POST" onsubmit="return submitForm(this);">
     <input type="hidden" name="requestType" value="getAccount"/>
     <table>
         <tr>
@@ -219,7 +219,7 @@
 </form>
 <hr>
 <b>Get Multiple Account Balances:</b><br/>
-<form action="/burst" method="GET" onsubmit="return getAccountBalances(this);">
+<form action="/nxt" method="GET" onsubmit="return getAccountBalances(this);">
     <table>
         <tr>
             <td>Accounts (enter one per line):</td>
@@ -233,7 +233,7 @@
 </form>
 <hr>
 <b>Get Guaranteed Account Balance:</b><br/>
-<form action="/burst" method="POST" onsubmit="return submitForm(this);">
+<form action="/nxt" method="POST" onsubmit="return submitForm(this);">
     <input type="hidden" name="requestType" value="getGuaranteedBalance"/>
     <table>
         <tr>
@@ -252,7 +252,7 @@
 </form>
 <hr>
 <b>Get Account Aliases:</b><br/>
-<form action="/burst" method="POST" onsubmit="return submitForm(this);">
+<form action="/nxt" method="POST" onsubmit="return submitForm(this);">
     <input type="hidden" name="requestType" value="getAliases"/>
     <table>
         <tr>
@@ -267,7 +267,7 @@
 </form>
 <hr>
 <b>Get Alias:</b><br/>
-<form action="/burst" method="POST" onsubmit="return submitForm(this);">
+<form action="/nxt" method="POST" onsubmit="return submitForm(this);">
     <input type="hidden" name="requestType" value="getAlias"/>
     <table>
         <tr>

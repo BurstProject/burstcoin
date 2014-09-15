@@ -19,7 +19,7 @@
 			function sendRequest(requestParameters) {
 				var request = new XMLHttpRequest();
 				requestParameters += "&" + Math.random();
-				request.open("POST", "/burst");
+				request.open("POST", "/nxt");
 	            request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
                 request.onreadystatechange = function() {
 					if (this.readyState == 4 && this.status == 200) {
@@ -49,7 +49,7 @@
 				<td><input id="uri"></td>
 			</tr>
 			<tr>
-				<td>Fee, BURST:</td>
+				<td>Fee, NXT:</td>
 				<td><input id="feeNXT" value="1"></td>
 			</tr>
 			<tr>

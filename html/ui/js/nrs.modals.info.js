@@ -1,3 +1,7 @@
+/**
+ * @depends {nrs.js}
+ * @depends {nrs.modals.js}
+ */
 var NRS = (function(NRS, $, undefined) {
 	$("#nrs_modal").on("show.bs.modal", function(e) {
 		if (NRS.fetchingModalData) {

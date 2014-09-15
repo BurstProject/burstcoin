@@ -1,3 +1,7 @@
+/**
+ * @depends {jquery-2.1.0.js}
+ */
+
 /* https://github.com/sdepold/jquery-rss MIT */
 
 (function($) {

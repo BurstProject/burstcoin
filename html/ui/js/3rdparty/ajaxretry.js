@@ -1,3 +1,7 @@
+/**
+ * @depends {jquery-2.1.0.js}
+ */
+
 /*! jQuery.ajaxRetry v0.1.3 | (c) 2013 Daniel Herman | opensource.org/licenses/MIT | https://github.com/dcherman/jQuery.ajaxRetry */
 (function($) {
 	"use strict";

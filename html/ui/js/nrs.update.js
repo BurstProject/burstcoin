@@ -1,14 +1,122 @@
+/**
+ * @depends {nrs.js}
+ */
 var NRS = (function(NRS, $, undefined) {
-	NRS.normalVersion = {versionNr:"1.1.1"};
+	NRS.normalVersion = {};
 	NRS.betaVersion = {};
 	NRS.isOutdated = false;
 
 	NRS.checkAliasVersions = function() {
+		if (NRS.downloadingBlockchain) {
+			$("#nrs_update_explanation span").hide();
+			$("#nrs_update_explanation_blockchain_sync").show();
+			return;
+		}
+		if (NRS.isTestNet) {
+			$("#nrs_update_explanation span").hide();
+			$("#nrs_update_explanation_testnet").show();
+			return;
+		}
 
+		//Get latest version nr+hash of normal version
+		NRS.sendRequest("getAlias", {
+			"aliasName": "nrsversion"
+		}, function(response) {
+			if (response.aliasURI && (response = response.aliasURI.split(" "))) {
+				NRS.normalVersion.versionNr = response[0];
+				NRS.normalVersion.hash = response[1];
+
+				if (NRS.betaVersion.versionNr) {
+					NRS.checkForNewVersion();
+				}
+			}
+		});
+
+		//Get latest version nr+hash of beta version
+		NRS.sendRequest("getAlias", {
+			"aliasName": "nrsbetaversion"
+		}, function(response) {
+			if (response.aliasURI && (response = response.aliasURI.split(" "))) {
+				NRS.betaVersion.versionNr = response[0];
+				NRS.betaVersion.hash = response[1];
+
+				if (NRS.normalVersion.versionNr) {
+					NRS.checkForNewVersion();
+				}
+			}
+		});
+
+		if (NRS.inApp) {
+			if (NRS.appPlatform && NRS.appVersion) {
+				NRS.sendRequest("getAlias", {
+					"aliasName": "nrswallet" + NRS.appPlatform
+				}, function(response) {
+					var versionInfo = $.parseJSON(response.aliasURI);
+
+					if (versionInfo && versionInfo.version != NRS.appVersion) {
+						var newerVersionAvailable = NRS.versionCompare(NRS.appVersion, versionInfo.version);
+
+						if (newerVersionAvailable == -1) {
+							parent.postMessage({
+								"type": "appUpdate",
+								"version": versionInfo.version,
+								"nrs": versionInfo.nrs,
+								"hash": versionInfo.hash,
+								"url": versionInfo.url
+							}, "*");
+						}
+					}
+				});
+			} else {
+				//user uses an old version which does not supply the platform / version
+				var noticeDate = new Date(2014, 8, 20);
+
+				if (new Date() > noticeDate) {
+					var isMac = navigator.platform.match(/Mac/i);
+
+					var downloadUrl = "https://bitbucket.org/wesleyh/nxt-wallet-" + (isMac ? "mac" : "win") + "/downloads";
+
+					$("#secondary_dashboard_message").removeClass("alert-success").addClass("alert-danger").html($.t("old_nxt_wallet_update", {
+						"link": downloadUrl
+					})).show();
+				}
+			}
+		}
 	}
 
 	NRS.checkForNewVersion = function() {
+		var installVersusNormal, installVersusBeta, normalVersusBeta;
 
+		if (NRS.normalVersion && NRS.normalVersion.versionNr) {
+			installVersusNormal = NRS.versionCompare(NRS.state.version, NRS.normalVersion.versionNr);
+		}
+		if (NRS.betaVersion && NRS.betaVersion.versionNr) {
+			installVersusBeta = NRS.versionCompare(NRS.state.version, NRS.betaVersion.versionNr);
+		}
+
+		$("#nrs_update_explanation > span").hide();
+
+		$("#nrs_update_explanation_wait").attr("style", "display: none !important");
+
+		$(".nrs_new_version_nr").html(NRS.normalVersion.versionNr).show();
+		$(".nrs_beta_version_nr").html(NRS.betaVersion.versionNr).show();
+
+		if (installVersusNormal == -1 && installVersusBeta == -1) {
+			NRS.isOutdated = true;
+			$("#nrs_update").html("Outdated!").show();
+			$("#nrs_update_explanation_new_choice").show();
+		} else if (installVersusBeta == -1) {
+			NRS.isOutdated = false;
+			$("#nrs_update").html("New Beta").show();
+			$("#nrs_update_explanation_new_beta").show();
+		} else if (installVersusNormal == -1) {
+			NRS.isOutdated = true;
+			$("#nrs_update").html("Outdated!").show();
+			$("#nrs_update_explanation_new_release").show();
+		} else {
+			NRS.isOutdated = false;
+			$("#nrs_update_explanation_up_to_date").show();
+		}
 	}
 
 	NRS.versionCompare = function(v1, v2) {
@@ -124,9 +232,9 @@ var NRS = (function(NRS, $, undefined) {
 				$("#nrs_update_drop_zone").hide();
 
 				if (e.data.sha256 == NRS.downloadedVersion.hash) {
-					$("#nrs_update_result").html("The downloaded version has been verified, the hash is correct. You may proceed with the installation.").attr("class", " ");
+					$("#nrs_update_result").html($.t("success_hash_verification")).attr("class", " ");
 				} else {
-					$("#nrs_update_result").html("The downloaded version hash does not compare to the specified hash in the blockchain. DO NOT PROCEED.").attr("class", "incorrect");
+					$("#nrs_update_result").html($.t("error_hash_verification")).attr("class", "incorrect");
 				}
 
 				$("#nrs_update_hash_version").html(NRS.downloadedVersion.versionNr);
@@ -147,6 +255,51 @@ var NRS = (function(NRS, $, undefined) {
 	}
 
 	NRS.downloadClientUpdate = function(version) {
+		if (version == "release") {
+			NRS.downloadedVersion = NRS.normalVersion;
+		} else {
+			NRS.downloadedVersion = NRS.betaVersion;
+		}
+
+		if (NRS.inApp) {
+			parent.postMessage({
+				"type": "update",
+				"update": {
+					"type": version,
+					"version": NRS.downloadedVersion.versionNr,
+					"hash": NRS.downloadedVersion.hash
+				}
+			}, "*");
+			$("#nrs_modal").modal("hide");
+		} else {
+			$("#nrs_update_iframe").attr("src", "https://bitbucket.org/JeanLucPicard/nxt/downloads/nxt-client-" + NRS.downloadedVersion.versionNr + ".zip");
+			$("#nrs_update_explanation").hide();
+			$("#nrs_update_drop_zone").show();
+
+			$("body").on("dragover.nrs", function(e) {
+				e.preventDefault();
+				e.stopPropagation();
+
+				if (e.originalEvent && e.originalEvent.dataTransfer) {
+					e.originalEvent.dataTransfer.dropEffect = "copy";
+				}
+			});
+
+			$("body").on("drop.nrs", function(e) {
+				NRS.verifyClientUpdate(e);
+			});
+
+			$("#nrs_update_drop_zone").on("click", function(e) {
+				e.preventDefault();
+
+				$("#nrs_update_file_select").trigger("click");
+
+			});
+
+			$("#nrs_update_file_select").on("change", function(e) {
+				NRS.verifyClientUpdate(e);
+			});
+		}
 
 		return false;
 	}

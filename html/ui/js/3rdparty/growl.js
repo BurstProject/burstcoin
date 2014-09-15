@@ -1,13 +1,18 @@
+/**
+ * @depends {jquery-2.1.0.js}
+ */
+
 /*! Bootstrap Growl - v1.0.4 - 2014-01-29
-* https://github.com/mouse0270/bootstrap-growl
-* Copyright (c) 2014 Remable Designs; Licensed MIT */
-;(function($, window, document, undefined) {
+ * https://github.com/mouse0270/bootstrap-growl
+ * Copyright (c) 2014 Remable Designs; Licensed MIT */
+;
+(function($, window, document, undefined) {
 	"use strict";
 	var bootstrap_growl_remove = [];
 
 
 
-/* http://ifightcrime.github.io/bootstrap-growl/  */
+	/* http://ifightcrime.github.io/bootstrap-growl/  */
 
 	$.growl = function(content, options) {
 		var message = null,
@@ -17,9 +22,9 @@
 
 		if (Object.prototype.toString.call(content) == "[object Object]") {
 			message = content.message;
-			title = " "+content.title+" ";
+			title = " " + content.title + " ";
 			icon = content.icon;
-		}else{
+		} else {
 			message = content;
 		}
 
@@ -29,13 +34,13 @@
 		// Set the template icon to be either a span or an image depending on icon_type
 		if (options.template.icon_type === 'class') {
 			options.template.icon = '<span class="">';
-		}else{
+		} else {
 			options.template.icon = '<img src="" />';
 		}
 
 		/* ===== BUILD GROWL CONTAINER ===== */
 		growlClass = "bootstrap-growl-" + options.position.from + "-" + options.position.align;
-		$growl = $(options.template.container); 
+		$growl = $(options.template.container);
 		$growl.addClass(growlClass);
 
 		if (options.type) {
@@ -52,10 +57,10 @@
 			if (options.template.icon) {
 				if (options.template.icon_type == "class") {
 					$growl.append($(options.template.icon).addClass(icon));
-				}else{
-					$growl.append($(options.template.icon).attr('src',icon));
+				} else {
+					$growl.append($(options.template.icon).attr('src', icon));
 				}
-			}else{
+			} else {
 				$growl.append(icon);
 			}
 		}
@@ -63,7 +68,7 @@
 		if (title) {
 			if (options.template.title) {
 				$growl.append($(options.template.title).html(title));
-			}else{
+			} else {
 				$growl.append(title);
 			}
 			$growl.append(options.template.title_divider);
@@ -71,14 +76,14 @@
 
 		if (options.template.message) {
 			$growl.append($(options.template.message).html(message));
-		}else{
+		} else {
 			$growl.append(message);
 		}
 
 		/* ===== DETERMINE GROWL POSITION ===== */
 		offsetAmount = options.offset;
 
-		$("."+growlClass).each(function() {
+		$("." + growlClass).each(function() {
 			return offsetAmount = Math.max(offsetAmount, parseInt($(this).css(options.position.from)) + $(this).outerHeight() + options.spacing);
 		});
 
@@ -128,7 +133,7 @@
 							$growl.fadeOut(options.fade_out, function(event) {
 								return $growl.alert("close");
 							});
-							
+
 						}, options.delay);
 					});
 				}
@@ -141,21 +146,21 @@
 			}
 		});
 
-		$growl.bind('close.bs.alert', function (event) {
+		$growl.bind('close.bs.alert', function(event) {
 			if (options.onGrowlClose) {
 				options.onGrowlClose(event);
 			}
 		});
 
-		$growl.bind('closed.bs.alert', function (event) {       
+		$growl.bind('closed.bs.alert', function(event) {
 			if (options.onGrowlClosed) {
 				options.onGrowlClosed(event);
 			}
 
 			var pos = $(this).css(options.position.from);
-			$(this).nextAll('.'+growlClass).each(function() {
-				$(this).css(options.position.from , pos);
-				pos = (parseInt(pos)+(options.spacing)) + $(this).outerHeight();
+			$(this).nextAll('.' + growlClass).each(function() {
+				$(this).css(options.position.from, pos);
+				pos = (parseInt(pos) + (options.spacing)) + $(this).outerHeight();
 			});
 		});
 
@@ -194,4 +199,3 @@
 	};
 
 })(jQuery, window, document);
-

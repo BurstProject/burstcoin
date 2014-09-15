@@ -24,7 +24,7 @@
 			if (!_hasLocalStorage) {
 				throw "Local storage not supported";
 			} else {
-				if (window.indexedDB) {
+				if (window.indexedDB && !navigator.userAgent.match(/Version\/8\.0 Safari/i)) {
 					manager = new WebDB.indexedDB(this.name, this.schema, this.version, callback);
 				} else if (window.openDatabase) {
 					manager = new WebDB.webSQL(this.name, this.schema, this.version, this.size, callback);
@@ -130,6 +130,7 @@
 			if (version == null) {
 				version = 1;
 			}
+
 			if (!window.indexedDB && (callback != null)) {
 				callback.call(callback, "IndexedDB not supported", null);
 			}

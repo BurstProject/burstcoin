@@ -37,11 +37,12 @@ Number.prototype.pad = function(size) {
 	return s;
 }
 
+/*
 Array.prototype.diff = function(a) {
 	return this.filter(function(i) {
 		return a.indexOf(i) < 0;
 	});
-};
+};*/
 
 if (typeof Object.keys !== "function") {
 	(function() {
