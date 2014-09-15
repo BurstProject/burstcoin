@@ -213,6 +213,12 @@ var NRS = (function(NRS, $, undefined) {
 								transactionType = $.t("balance_leasing");
 								break;
 						}
+					} else if (transaction.type == 20) {
+						switch (transaction.subtype) {
+							case 0:
+								transactionType = "Reward Recipient Assignment";
+								break;
+						}
 					}
 
 					if (/^BURST\-/i.test(NRS.userInfoModal.user)) {

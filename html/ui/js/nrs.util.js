@@ -856,6 +856,9 @@ var NRS = (function(NRS, $, undefined) {
 
 	NRS.getClipboardText = function(type) {
 		switch (type) {
+			case "account_id":
+				return NRS.account;
+				break;
 			case "account_rs":
 				return NRS.accountRS;
 				break;

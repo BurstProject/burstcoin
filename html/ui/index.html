@@ -218,6 +218,7 @@
 	                        		<span id="account_id" class="dropdown-toggle" data-toggle="dropdown" data-type="account_id" style="font-weight:bold"></span>
 									<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
 										<li role="presentation" class="copy_link"><a role="menuitem" tabindex="-1" href="#" data-type="account_rs" data-i18n="copy_account_id">Copy Account ID</a></li>
+										<li role="presentation" class="copy_link"><a role="menuitem" tabindex="-1" href="#" data-type="account_id">Copy Numeric Account	ID</a></li>
 										<li role="presentation" class="remote_only copy_link"><a role="menuitem" tabindex="-1" href="#" data-type="message_link" data-i18n="copy_send_message_link">Copy "Send Message" Link</a></li>
 										<li role="presentation" class="remote_only copy_link"><a role="menuitem" tabindex="-1" href="#" data-type="send_link" data-i18n="copy_send_nxt_link">Copy "Send BURST" Link</a></li>
 									</ul>
@@ -410,6 +411,7 @@
 					           		<li><a href="#" data-type="3:6" data-i18n="marketplace_feedback">Marketplace Feedback</a></li>
 					           		<li><a href="#" data-type="3:7" data-i18n="marketplace_refund">Marketplace Refund</a></li>
 					           		<li><a href="#" data-type="4:0" data-i18n="balance_leasing">Balance Leasing</a></li>
+									<li><a href="#" data-type="20:0" data-i18n="reward_assignment">Reward Recipient Assignment</a></li>
 					           		<li><a href="#" data-type="unconfirmed" data-i18n="unconfirmed_transactions">Unconfirmed Transactions</a></li>
 					          	</ul>
 							</div>
@@ -3989,45 +3991,6 @@
 						</ul>
 							
 						<div id="nrs_modal_update" class="nrs_modal_content" style="display:none">
-							<div id="nrs_update_explanation" class="nrs_message">
-								<span id="nrs_update_explanation_blockchain_sync" data-i18n="update_blockchain_downloading">The blockchain is still downloading, check again after it's up to date.</span>
-                                <span id="nrs_update_explanation_wait" data-i18n="checking_for_updates">Checking for updates...</span>
-								<span id="nrs_update_explanation_testnet" data-i18n="update_testnet">NRS cannot be updated whilst connected to the testnet.</span>
-								<span id="nrs_update_explanation_up_to_date" data-i18n="update_up_to_date">You have the latest release already. There is no need to update.</span>
-								<span id="nrs_update_explanation_new_release">
-									<span data-i18n="update_available">A new NRS release is available. It is recommended that you update.</span>
-									<br /><br />
-									<button type="button" class="btn btn-success ignore" onclick="NRS.downloadClientUpdate('release')"><span data-i18n="download_nrs">Download NRS</span> <span class="nrs_new_version_nr"></span></button></span>
-								<span id="nrs_update_explanation_new_beta">
-									<span data-i18n="update_beta_available">A new experimental release is available. It is not recommended that you install this unless you know what you're doing.</span>
-									<br /><br />
-									<button type="button" class="btn btn-success btn-xs ignore" onclick="NRS.downloadClientUpdate('beta')"><span data-i18n="download_nrs">Download NRS</span> <span class="nrs_beta_version_nr"></span></button></span>
-								<span id="nrs_update_explanation_new_choice">
-									<span data-i18n="update_multiple_available">
-									Both a general and experimental release are available. It is not recommended that you install the experimental release unless you know what you're doing.
-									</span>
-									<br /><br />
-									<button type="button" class="btn btn-success ignore" onclick="NRS.downloadClientUpdate('release')"><span data-i18n="download_nrs">Download NRS</span> <span class="nrs_new_version_nr"></span> - <span data-i18n="general_release">General Release</span></button>
-									<button type="button" class="btn btn-default ignore" onclick="NRS.downloadClientUpdate('beta')"><span data-i18n="download_nrs">Download NRS</span> <span class="nrs_beta_version_nr"></span> - <span data-i18n="experimental_release">Experimental Release</span></button>
-								</span>
-							</div>
-							    
-							<div id="nrs_update_drop_zone" data-i18n="drop_update">Drop client update (zip file) here when downloaded or click to select.</div>
-							<div id="nrs_update_result"></div>
-							<div id="nrs_update_hashes" style="display:none;padding-top:10px;">
-								<table style="width:100%">
-								    <tr><td style="background-color:#efefef;font-weight:bold;"><span data-i18n="version">Version</span>:</td><td><span id="nrs_update_hash_version"></span></td></tr>
-								    <tr><td style="background-color:#efefef;font-weight:bold;"><span data-i18n="downloaded_hash">Downloaded hash</span>:</td><td><span id="nrs_update_hash_download"></span></td></tr>
-								    <tr><td style="background-color:#efefef;font-weight:bold;"><span data-i18n="official_hash">Official hash</span>:</td><td><span id="nrs_update_hash_official"></span></td></tr>
-								</table>
-							</div>
-							
-							<div id="nrs_update_hash_progress">&nbsp;</div>
-							    
-							<div style="display:none">
-								<iframe id="nrs_update_iframe"></iframe>
-								<input type="file" id="nrs_update_file_select" name="files[]" />
-							</div>
 						</div>
 						
 						<div id="nrs_modal_state" class="nrs_modal_content" style="display:none">     	
