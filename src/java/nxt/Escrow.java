@@ -53,6 +53,8 @@ public class Escrow {
 	private static final ConcurrentMap<Long, Escrow> escrowTransactions = new ConcurrentHashMap<>();
 	private static final Collection<Escrow> allEscrowTransactions = Collections.unmodifiableCollection(escrowTransactions.values());
 	
+	private static Long lastUnpoppableBlock = 0L;
+	
 	public static Collection<Escrow> getAllEscrowTransactions() {
 		return allEscrowTransactions;
 	}
@@ -97,20 +99,28 @@ public class Escrow {
 		escrowTransactions.remove(id);
 	}
 	
-	public static void updateOnBlock(int timestamp) {
+	public static void updateOnBlock(Long blockId, int timestamp) {
 		Iterator<Entry<Long, Escrow>> it = escrowTransactions.entrySet().iterator();
 		while(it.hasNext()) {
 			Entry<Long, Escrow> escrow = it.next();
 			if(escrow.getValue().isComplete() ||
 			   escrow.getValue().getDeadline() < timestamp) {
 				escrow.getValue().doPayout();
+				if(escrow.getValue().getDeadline() < timestamp) {
+					lastUnpoppableBlock = blockId;
+				}
 				it.remove();
 			}
 		}
 	}
 	
+	public static Long getUnpoppableBlockId() {
+		return lastUnpoppableBlock;
+	}
+	
 	public static void clear() {
 		escrowTransactions.clear();
+		lastUnpoppableBlock = 0L;
 	}
 	
 	private final Long senderId;
