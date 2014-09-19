@@ -13,15 +13,15 @@ import nxt.util.Convert;
 
 public class Escrow {
 	
-	public static enum Vote {
+	public static enum Decision {
 		UNDECIDED,
 		RELEASE,
 		REFUND,
 		SPLIT;
 	}
 	
-	public static String voteToString(Vote vote) {
-		switch(vote) {
+	public static String decisionToString(Decision decision) {
+		switch(decision) {
 		case UNDECIDED:
 			return "undecided";
 		case RELEASE:
@@ -35,16 +35,46 @@ public class Escrow {
 		return null;
 	}
 	
-	public static Vote stringToVote(String vote) {
-		switch(vote) {
+	public static Decision stringToDecision(String decision) {
+		switch(decision) {
 		case "undecided":
-			return Vote.UNDECIDED;
+			return Decision.UNDECIDED;
 		case "release":
-			return Vote.RELEASE;
+			return Decision.RELEASE;
 		case "refund":
-			return Vote.REFUND;
+			return Decision.REFUND;
 		case "split":
-			return Vote.SPLIT;
+			return Decision.SPLIT;
+		}
+		
+		return null;
+	}
+	
+	public static Byte decisionToByte(Decision decision) {
+		switch(decision) {
+		case UNDECIDED:
+			return 0;
+		case RELEASE:
+			return 1;
+		case REFUND:
+			return 2;
+		case SPLIT:
+			return 3;
+		}
+		
+		return null;
+	}
+	
+	public static Decision byteToDecision(Byte decision) {
+		switch(decision) {
+		case 0:
+			return Decision.UNDECIDED;
+		case 1:
+			return Decision.RELEASE;
+		case 2:
+			return Decision.REFUND;
+		case 3:
+			return Decision.SPLIT;
 		}
 		
 		return null;
@@ -90,7 +120,7 @@ public class Escrow {
 												 requiredSigners,
 												 signers,
 												 deadline,
-												 stringToVote(deadlineAction));
+												 stringToDecision(deadlineAction));
 		
 		escrowTransactions.put(id, newEscrowTransaction);
 	}
@@ -128,9 +158,9 @@ public class Escrow {
 	private final Long id;
 	private final Long amountNQT;
 	private final int requiredSigners;
-	private final ConcurrentMap<Long, Vote> votes = new ConcurrentHashMap<>();
+	private final ConcurrentMap<Long, Decision> decisions = new ConcurrentHashMap<>();
 	private final int deadline;
-	private final Vote deadlineAction;
+	private final Decision deadlineAction;
 	private volatile boolean release = false;
 	private volatile boolean refund = false;
 	private volatile boolean complete = false;
@@ -142,14 +172,14 @@ public class Escrow {
 				   int requiredSigners,
 				   List<Long> signers,
 				   int deadline,
-				   Vote deadlineAction) {
+				   Decision deadlineAction) {
 		this.senderId = sender.getId();
 		this.recipientId = recipient.getId();
 		this.id = id;
 		this.amountNQT = amountNQT;
 		this.requiredSigners = requiredSigners;
 		for(Long signer : signers) {
-			votes.put(signer, Vote.UNDECIDED);
+			decisions.put(signer, Decision.UNDECIDED);
 		}
 		this.deadline = deadline;
 		this.deadlineAction = deadlineAction;
@@ -172,7 +202,7 @@ public class Escrow {
 	}
 	
 	public Collection<Long> getSigners() {
-		return Collections.unmodifiableCollection(votes.keySet());
+		return Collections.unmodifiableCollection(decisions.keySet());
 	}
 	
 	public int getDeadline() {
@@ -180,131 +210,91 @@ public class Escrow {
 	}
 	
 	public boolean isIdSigner(Long id) {
-		return votes.containsKey(id);
+		return decisions.containsKey(id);
 	}
 	
-	public Vote getIdVote(Long id) {
-		return votes.get(id);
+	public Decision getIdVote(Long id) {
+		return decisions.get(id);
 	}
 	
-	public int getVotesUndecided() {
-		int undecided = 0;
-		for(Vote vote : votes.values()) {
-			if(vote == Vote.UNDECIDED) {
-				undecided++;
+	public int getDecisionCount(Decision decision) {
+		int count = 0;
+		for(Decision d : decisions.values()) {
+			if(d == decision) {
+				count++;
 			}
 		}
-		return undecided;
+		return count;
 	}
 	
-	public int getVotesRelease() {
-		int release = 0;
-		for(Vote vote : votes.values()) {
-			if(vote == Vote.RELEASE) {
-				release++;
+	public synchronized void sign(Long id, Decision decision) {
+		if(id.equals(senderId)) {
+			if(decision == Decision.RELEASE) {
+				release = true;
+				complete = true;
 			}
+			return;
 		}
-		return release;
-	}
-	
-	public int getVotesRefund() {
-		int refund = 0;
-		for(Vote vote : votes.values()) {
-			if(vote == Vote.REFUND) {
-				refund++;
+		
+		if(id.equals(recipientId)) {
+			if(decision == Decision.REFUND) {
+				refund = true;
+				complete = true;
 			}
+			return;
 		}
-		return refund;
-	}
-	
-	public int getVotesSplit() {
-		int split = 0;
-		for(Vote vote : votes.values()) {
-			if(vote == Vote.SPLIT) {
-				split++;
-			}
-		}
-		return split;
-	}
-	
-	public synchronized void vote(Long id, Vote vote) {
+		
 		if(complete) {
 			return;
 		}
 		
-		if(!votes.containsKey(id)) {
+		if(!decisions.containsKey(id)) {
 			return;
 		}
 		
-		votes.put(id, vote);
+		decisions.put(id, decision);
 		
-		checkFinished();
-	}
-	
-	public synchronized void setRelease() {
-		release = true;
-		complete = true;
-	}
-	
-	public synchronized void setRefund() {
-		refund = true;
-		complete = true;
+		checkComplete();
 	}
 	
 	public synchronized boolean isComplete() {
 		return complete;
 	}
 	
-	private void checkFinished() {
+	private void checkComplete() {
 		if(complete || release || refund) {
 			complete = true;
 			return;
 		}
-		int votesRelease = 0;
-		int votesRefund = 0;
-		int votesSplit = 0;
-		for(Vote vote : votes.values()) {
-			switch(vote) {
-			case RELEASE:
-				votesRelease++;
-				break;
-			case REFUND:
-				votesRefund++;
-				break;
-			case SPLIT:
-				votesSplit++;
-				break;
-			default:
-				break;
-			}
-		}
-		if(votesRelease >= requiredSigners ||
-		   votesRefund >= requiredSigners ||
-		   votesSplit >= requiredSigners) {
+		
+		if(getDecisionCount(Decision.RELEASE) >= requiredSigners ||
+		   getDecisionCount(Decision.REFUND) >= requiredSigners ||
+		   getDecisionCount(Decision.SPLIT) >= requiredSigners) {
 			complete = true;
 			return;
 		}
+		
 		complete = false;
 		return;
 	}
 	
-	private synchronized Vote doPayout() {
-		Vote result = deadlineAction; // default to deadline up if no other result
+	private synchronized Decision doPayout() {
+		Decision result = deadlineAction; // default to deadline up if no other result
 		
 		if(release) {
-			result = Vote.RELEASE;
+			result = Decision.RELEASE;
 		}
 		else if(refund) {
-			result = Vote.REFUND;
+			result = Decision.REFUND;
 		}
-		else if(getVotesRelease() >= requiredSigners) {
-			result = Vote.RELEASE;
+		else if(getDecisionCount(Decision.RELEASE) >= requiredSigners) {
+			result = Decision.RELEASE;
 		}
-		else if(getVotesRefund() >= requiredSigners) {
-			result = Vote.REFUND;
+		else if(getDecisionCount(Decision.REFUND) >= requiredSigners) {
+			result = Decision.REFUND;
 		}
-		else if(getVotesSplit() >= requiredSigners) {
-			result = Vote.SPLIT;
+		else if(getDecisionCount(Decision.SPLIT) >= requiredSigners) {
+			result = Decision.SPLIT;
 		}
 		
 		switch(result) {

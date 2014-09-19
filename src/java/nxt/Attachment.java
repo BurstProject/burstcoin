@@ -6,8 +6,6 @@ import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import com.sun.org.apache.bcel.internal.util.ByteSequence;
-
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Collections;
@@ -1561,13 +1559,13 @@ public interface Attachment extends Appendix {
     	private final byte requiredSigners;
     	private final SortedSet<Long> signers = new TreeSet<>();
     	private final int deadline;
-    	private final byte deadlineAction;
+    	private final Escrow.Decision deadlineAction;
     	
     	AdvancedTransactionsEscrowCreation(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
     		super(buffer, transactionVersion);
     		this.amountNQT = buffer.getLong();
     		this.deadline = buffer.getInt();
-    		this.deadlineAction = buffer.get();
+    		this.deadlineAction = Escrow.byteToDecision(buffer.get());
     		this.requiredSigners = buffer.get();
     		byte totalSigners = buffer.get();
     		if(totalSigners > 10 || totalSigners <= 0) {
@@ -1584,7 +1582,7 @@ public interface Attachment extends Appendix {
     		super(attachmentData);
     		this.amountNQT = Convert.parseUnsignedLong((String)attachmentData.get("amountNQT"));
     		this.deadline = (Integer)attachmentData.get("deadline");
-    		this.deadlineAction = ((Integer)attachmentData.get("deadlineAction")).byteValue();
+    		this.deadlineAction = Escrow.stringToDecision((String)attachmentData.get("deadlineAction"));
     		this.requiredSigners = ((Integer)attachmentData.get("requiredSigners")).byteValue();
     		int totalSigners = ((JSONArray)attachmentData.get("signers")).size();
     		if(totalSigners > 10 || totalSigners <= 0) {
@@ -1596,7 +1594,7 @@ public interface Attachment extends Appendix {
     		}
     	}
     	
-    	public AdvancedTransactionsEscrowCreation(Long amountNQT, int deadline, byte deadlineAction,
+    	public AdvancedTransactionsEscrowCreation(Long amountNQT, int deadline, Escrow.Decision deadlineAction,
     											  int requiredSigners, Collection<Long> signers) throws NxtException {
     		this.amountNQT = amountNQT;
     		this.deadline = deadline;
@@ -1627,7 +1625,7 @@ public interface Attachment extends Appendix {
     	void putMyBytes(ByteBuffer buffer) {
     		buffer.putLong(this.amountNQT);
     		buffer.putInt(this.deadline);
-    		buffer.put(this.deadlineAction);
+    		buffer.put(Escrow.decisionToByte(this.deadlineAction));
     		buffer.put(this.requiredSigners);
     		byte totalSigners = (byte) this.signers.size();
     		buffer.put(totalSigners);
@@ -1640,7 +1638,7 @@ public interface Attachment extends Appendix {
     	void putMyJSON(JSONObject attachment) {
     		attachment.put("amountNQT", Convert.toUnsignedLong(this.amountNQT));
     		attachment.put("deadline", this.deadline);
-    		attachment.put("deadlineAction", (int)this.deadlineAction);
+    		attachment.put("deadlineAction", Escrow.decisionToString(this.deadlineAction));
     		attachment.put("requiredSigners", (int)this.requiredSigners);
     		JSONArray ids = new JSONArray();
     		ids.addAll(this.signers);
@@ -1656,134 +1654,42 @@ public interface Attachment extends Appendix {
     	
     	public int getDeadline() { return deadline; }
     	
-    	public byte getDeadlineAction() { return deadlineAction; }
+    	public Escrow.Decision getDeadlineAction() { return deadlineAction; }
     	
     	public int getRequiredSigners() { return (int)requiredSigners; }
     	
     	public Collection<Long> getSigners() { return Collections.unmodifiableCollection(signers); }
     }
     
-    public final static class AdvancedTransactionsEscrowRelease extends AbstractAttachment {
-    	
-    	private final Long id;
-    	
-    	AdvancedTransactionsEscrowRelease(ByteBuffer buffer, byte transactionVersion) {
-    		super(buffer, transactionVersion);
-    		this.id = buffer.getLong();
-    	}
-    	
-    	AdvancedTransactionsEscrowRelease(JSONObject attachmentData) {
-    		super(attachmentData);
-    		this.id = Convert.parseUnsignedLong((String)attachmentData.get("id"));
-    	}
-    	
-    	AdvancedTransactionsEscrowRelease(Long id) {
-    		this.id = id;
-    	}
-    	
-    	@Override
-    	String getAppendixName() {
-    		return "EscrowRelease";
-    	}
-    	
-    	@Override
-    	int getMySize() {
-    		return 8;
-    	}
-    	
-    	@Override
-    	void putMyBytes(ByteBuffer buffer) {
-    		buffer.putLong(this.id);
-    	}
-    	
-    	@Override
-    	void putMyJSON(JSONObject attachment) {
-    		attachment.put("id", Convert.toUnsignedLong(this.id));
-    	}
-    	
-    	@Override
-    	public TransactionType getTransactionType() {
-    		return TransactionType.AdvancedTransactions.ESCROW_RELEASE;
-    	}
-    	
-    	public Long getId() { return this.id; }
-    }
-    
-    public final static class AdvancedTransactionsEscrowRefund extends AbstractAttachment {
-    	
-    	private final Long id;
-    	
-    	AdvancedTransactionsEscrowRefund(ByteBuffer buffer, byte transactionVersion) {
-    		super(buffer, transactionVersion);
-    		this.id = buffer.getLong();
-    	}
-    	
-    	AdvancedTransactionsEscrowRefund(JSONObject attachmentData) {
-    		super(attachmentData);
-    		this.id = Convert.parseUnsignedLong((String)attachmentData.get("id"));
-    	}
-    	
-    	AdvancedTransactionsEscrowRefund(Long id) {
-    		this.id = id;
-    	}
-    	
-    	@Override
-    	String getAppendixName() {
-    		return "EscrowRefund";
-    	}
-    	
-    	@Override
-    	int getMySize() {
-    		return 8;
-    	}
-    	
-    	@Override
-    	void putMyBytes(ByteBuffer buffer) {
-    		buffer.putLong(this.id);
-    	}
-    	
-    	@Override
-    	void putMyJSON(JSONObject attachment) {
-    		attachment.put("id", Convert.toUnsignedLong(this.id));
-    	}
-    	
-    	@Override
-    	public TransactionType getTransactionType() {
-    		return TransactionType.AdvancedTransactions.ESCROW_REFUND;
-    	}
-    	
-    	public Long getId() { return this.id; }
-    }
-    
-    public final static class AdvancedTransactionsEscrowVote extends AbstractAttachment {
+    public final static class AdvancedTransactionsEscrowSign extends AbstractAttachment {
     	
     	private final Long escrowId;
     	private final Long accountId;
-    	private final byte vote;
+    	private final Escrow.Decision decision;
     	
-    	AdvancedTransactionsEscrowVote(ByteBuffer buffer, byte transactionVersion) {
+    	AdvancedTransactionsEscrowSign(ByteBuffer buffer, byte transactionVersion) {
     		super(buffer, transactionVersion);
     		this.escrowId = buffer.getLong();
     		this.accountId = buffer.getLong();
-    		this.vote = buffer.get();
+    		this.decision = Escrow.byteToDecision(buffer.get());
     	}
     	
-    	AdvancedTransactionsEscrowVote(JSONObject attachmentData) {
+    	AdvancedTransactionsEscrowSign(JSONObject attachmentData) {
     		super(attachmentData);
     		this.escrowId = Convert.parseUnsignedLong((String)attachmentData.get("escrowId"));
     		this.accountId = Convert.parseUnsignedLong((String)attachmentData.get("accountId"));
-    		this.vote = (byte)attachmentData.get("vote");
+    		this.decision = Escrow.stringToDecision((String)attachmentData.get("decision"));
     	}
     	
-    	AdvancedTransactionsEscrowVote(Long escrowId, Long accountId, byte vote) {
+    	AdvancedTransactionsEscrowSign(Long escrowId, Long accountId, Escrow.Decision decision) {
     		this.escrowId = escrowId;
     		this.accountId = accountId;
-    		this.vote = vote;
+    		this.decision = decision;
     	}
     	
     	@Override
     	String getAppendixName() {
-    		return "EscrowVote";
+    		return "EscrowSign";
     	}
     	
     	@Override
@@ -1795,25 +1701,25 @@ public interface Attachment extends Appendix {
     	void putMyBytes(ByteBuffer buffer) {
     		buffer.putLong(this.escrowId);
     		buffer.putLong(this.accountId);
-    		buffer.put(this.vote);
+    		buffer.put(Escrow.decisionToByte(this.decision));
     	}
     	
     	@Override
     	void putMyJSON(JSONObject attachment) {
     		attachment.put("escrowId", Convert.toUnsignedLong(this.escrowId));
     		attachment.put("accountId", Convert.toUnsignedLong(this.accountId));
-    		attachment.put("vote", (int)this.vote);
+    		attachment.put("vote", Escrow.decisionToString(this.decision));
     	}
     	
     	@Override
     	public TransactionType getTransactionType() {
-    		return TransactionType.AdvancedTransactions.ESCROW_VOTE;
+    		return TransactionType.AdvancedTransactions.ESCROW_SIGN;
     	}
     	
     	public Long getEscrowId() { return this.escrowId; }
     	
     	public Long getAccountId() { return this.accountId; }
     	
-    	public byte getVote() { return this.vote; }
+    	public Escrow.Decision getDecision() { return this.decision; }
     }
 }
