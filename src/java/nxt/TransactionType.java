@@ -1,10 +1,12 @@
 package nxt;
 
 import nxt.util.Convert;
+
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +21,7 @@ public abstract class TransactionType {
     private static final byte TYPE_ACCOUNT_CONTROL = 4;
     
     private static final byte TYPE_BURST_MINING = 20; // jump some for easier nxt updating
+    private static final byte TYPE_ADVANCED_PAYMENT = 21;
 
     private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;
 
@@ -50,6 +53,9 @@ public abstract class TransactionType {
     private static final byte SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING = 0;
     
     private static final byte SUBTYPE_BURST_MINING_REWARD_RECIPIENT_ASSIGNMENT = 0;
+    
+    private static final byte SUBTYPE_ADVANCED_PAYMENT_ESCROW_CREATION = 0;
+    private static final byte SUBTYPE_ADVANCED_PAYMENT_ESCROW_SIGN = 1;
 
     public static TransactionType findTransactionType(byte type, byte subtype) {
         switch (type) {
@@ -130,6 +136,15 @@ public abstract class TransactionType {
             	switch (subtype) {
             		case SUBTYPE_BURST_MINING_REWARD_RECIPIENT_ASSIGNMENT:
             			return BurstMining.REWARD_RECIPIENT_ASSIGNMENT;
+            		default:
+            			return null;
+            	}
+            case TYPE_ADVANCED_PAYMENT:
+            	switch (subtype) {
+	            	case SUBTYPE_ADVANCED_PAYMENT_ESCROW_CREATION:
+	            		return AdvancedPayment.ESCROW_CREATION;
+	            	case SUBTYPE_ADVANCED_PAYMENT_ESCROW_SIGN:
+	            		return AdvancedPayment.ESCROW_SIGN;
             		default:
             			return null;
             	}
@@ -1885,6 +1900,156 @@ public static abstract class BurstMining extends TransactionType {
             }
     	};
     }
+
+	public static abstract class AdvancedPayment extends TransactionType {
+		
+		private AdvancedPayment() {}
+		
+		@Override
+		public final byte getType() {
+			return TransactionType.TYPE_ADVANCED_PAYMENT;
+		}
+		
+		public final static TransactionType ESCROW_CREATION = new AdvancedPayment() {
+			
+			@Override
+			public final byte getSubtype() {
+				return TransactionType.SUBTYPE_ADVANCED_PAYMENT_ESCROW_CREATION;
+			}
+			
+			@Override
+			Attachment.AdvancedPaymentEscrowCreation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+				return new Attachment.AdvancedPaymentEscrowCreation(buffer, transactionVersion);
+			}
+			
+			@Override
+			Attachment.AdvancedPaymentEscrowCreation parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+				return new Attachment.AdvancedPaymentEscrowCreation(attachmentData);
+			}
+			
+			@Override
+			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
+				Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
+				if(senderAccount.getBalanceNQT() < totalAmountNQT) {
+					return false;
+				}
+				senderAccount.addToBalanceAndUnconfirmedBalanceNQT(-totalAmountNQT);
+				return true;
+			}
+			
+			@Override
+			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
+				Collection<Long> signers = attachment.getSigners();
+				for(Long signer : signers) {
+					Account.getAccount(signer).addToBalanceAndUnconfirmedBalanceNQT(Constants.ONE_NXT);
+				}
+				Escrow.addEscrowTransaction(senderAccount,
+											recipientAccount,
+											transaction.getId(),
+											attachment.getAmountNQT(),
+											attachment.getRequiredSigners(),
+											attachment.getSigners(),
+											attachment.getDeadline(), // add to transaction deadline
+											attachment.getDeadlineAction());
+			}
+			
+			@Override
+			final void undoAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
+				Collection<Long> signers = attachment.getSigners();
+				for(Long signer : signers) {
+					Account.getAccount(signer).addToBalanceAndUnconfirmedBalanceNQT(-Constants.ONE_NXT);
+				}
+				Escrow.removeEscrowTransaction(transaction.getId());
+			}
+			
+			@Override
+			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
+				Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
+				senderAccount.addToBalanceAndUnconfirmedBalanceNQT(totalAmountNQT);
+			}
+			
+			@Override
+			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
+				String uniqueString = Convert.toUnsignedLong(transaction.getSenderId()) + // change this. add separators.
+									  Convert.toUnsignedLong(transaction.getRecipientId()) +
+									  Convert.toUnsignedLong(attachment.getAmountNQT()) +
+									  String.valueOf(transaction.getTimestamp());
+				return isDuplicate(AdvancedPayment.ESCROW_CREATION, uniqueString, duplicates);
+			}
+			
+			@Override
+			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+				// todo
+			}
+			
+			@Override
+			final public boolean hasRecipient() {
+				return true;
+			}
+		};
+		
+		public final static TransactionType ESCROW_SIGN = new AdvancedPayment() {
+			
+			@Override
+			public final byte getSubtype() {
+				return TransactionType.SUBTYPE_ADVANCED_PAYMENT_ESCROW_SIGN;
+			}
+			
+			@Override
+			Attachment.AdvancedPaymentEscrowSign parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+				return new Attachment.AdvancedPaymentEscrowSign(buffer, transactionVersion);
+			}
+			
+			@Override
+			Attachment.AdvancedPaymentEscrowSign parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+				return new Attachment.AdvancedPaymentEscrowSign(attachmentData);
+			}
+			
+			@Override
+			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+				return true;
+			}
+			
+			@Override
+			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+				Attachment.AdvancedPaymentEscrowSign attachment = (Attachment.AdvancedPaymentEscrowSign) transaction.getAttachment();
+				Escrow escrow = Escrow.getEscrowTransaction(attachment.getEscrowId());
+				escrow.sign(senderAccount.getId(), attachment.getDecision());
+			}
+			
+			@Override
+			final void undoAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) throws UndoNotSupportedException {
+				throw new UndoNotSupportedException("Cannot undo escrow signature");
+			}
+			
+			@Override
+			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+			}
+			
+			@Override
+			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+				Attachment.AdvancedPaymentEscrowSign attachment = (Attachment.AdvancedPaymentEscrowSign) transaction.getAttachment();
+				String uniqueString = Convert.toUnsignedLong(attachment.getEscrowId()) + // need separator
+									  Convert.toUnsignedLong(transaction.getSenderId());
+				return isDuplicate(AdvancedPayment.ESCROW_SIGN, uniqueString, duplicates);
+			}
+			
+			@Override
+			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+				// todo
+			}
+			
+			@Override
+			final public boolean hasRecipient() {
+				return false;
+			}
+		};
+	}
 
     public static final class UndoNotSupportedException extends NxtException {
 

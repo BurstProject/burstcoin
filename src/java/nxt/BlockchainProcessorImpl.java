@@ -317,6 +317,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             try {
                 Long lastBlockId = blockchain.getLastBlock().getId();
                 while (! lastBlockId.equals(commonBlock.getId()) && ! lastBlockId.equals(Genesis.GENESIS_BLOCK_ID)) {
+                	if(Escrow.getUnpoppableBlockId() == lastBlockId) {
+                		throw new TransactionType.UndoNotSupportedException("Cannot undo block that escrow deadline reached in");
+                	}
                     lastBlockId = popLastBlock();
                 }
             } catch (TransactionType.UndoNotSupportedException e) {
@@ -789,6 +792,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             Account.clear();
             Alias.clear();
             Asset.clear();
+            Escrow.clear();
             Order.clear();
             Poll.clear();
             Trade.clear();

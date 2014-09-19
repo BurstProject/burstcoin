@@ -110,9 +110,9 @@ public class Escrow {
 											Long id,
 											Long amountNQT,
 											int requiredSigners,
-											List<Long> signers,
+											Collection<Long> signers,
 											int deadline,
-											String deadlineAction) {
+											Decision deadlineAction) {
 		Escrow newEscrowTransaction = new Escrow(sender,
 												 recipient,
 												 id,
@@ -120,7 +120,7 @@ public class Escrow {
 												 requiredSigners,
 												 signers,
 												 deadline,
-												 stringToDecision(deadlineAction));
+												 deadlineAction);
 		
 		escrowTransactions.put(id, newEscrowTransaction);
 	}
@@ -170,7 +170,7 @@ public class Escrow {
 				   Long id,
 				   Long amountNQT,
 				   int requiredSigners,
-				   List<Long> signers,
+				   Collection<Long> signers,
 				   int deadline,
 				   Decision deadlineAction) {
 		this.senderId = sender.getId();
@@ -213,7 +213,7 @@ public class Escrow {
 		return decisions.containsKey(id);
 	}
 	
-	public Decision getIdVote(Long id) {
+	public Decision getIdDecision(Long id) {
 		return decisions.get(id);
 	}
 	

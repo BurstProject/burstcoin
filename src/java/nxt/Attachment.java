@@ -1553,7 +1553,7 @@ public interface Attachment extends Appendix {
         }
     }
     
-    public final static class AdvancedTransactionsEscrowCreation extends AbstractAttachment {
+    public final static class AdvancedPaymentEscrowCreation extends AbstractAttachment {
     	
     	private final Long amountNQT;
     	private final byte requiredSigners;
@@ -1561,7 +1561,7 @@ public interface Attachment extends Appendix {
     	private final int deadline;
     	private final Escrow.Decision deadlineAction;
     	
-    	AdvancedTransactionsEscrowCreation(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+    	AdvancedPaymentEscrowCreation(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
     		super(buffer, transactionVersion);
     		this.amountNQT = buffer.getLong();
     		this.deadline = buffer.getInt();
@@ -1578,7 +1578,7 @@ public interface Attachment extends Appendix {
     		}
     	}
     	
-    	AdvancedTransactionsEscrowCreation(JSONObject attachmentData) throws NxtException {
+    	AdvancedPaymentEscrowCreation(JSONObject attachmentData) throws NxtException.NotValidException {
     		super(attachmentData);
     		this.amountNQT = Convert.parseUnsignedLong((String)attachmentData.get("amountNQT"));
     		this.deadline = (Integer)attachmentData.get("deadline");
@@ -1594,8 +1594,8 @@ public interface Attachment extends Appendix {
     		}
     	}
     	
-    	public AdvancedTransactionsEscrowCreation(Long amountNQT, int deadline, Escrow.Decision deadlineAction,
-    											  int requiredSigners, Collection<Long> signers) throws NxtException {
+    	public AdvancedPaymentEscrowCreation(Long amountNQT, int deadline, Escrow.Decision deadlineAction,
+    											  int requiredSigners, Collection<Long> signers) throws NxtException.NotValidException {
     		this.amountNQT = amountNQT;
     		this.deadline = deadline;
     		this.deadlineAction = deadlineAction;
@@ -1647,7 +1647,7 @@ public interface Attachment extends Appendix {
     	
     	@Override
     	public TransactionType getTransactionType() {
-    		return TransactionType.AdvancedTransactions.ESCROW_CREATION;
+    		return TransactionType.AdvancedPayment.ESCROW_CREATION;
     	}
     	
     	public Long getAmountNQT() { return amountNQT; }
@@ -1659,31 +1659,29 @@ public interface Attachment extends Appendix {
     	public int getRequiredSigners() { return (int)requiredSigners; }
     	
     	public Collection<Long> getSigners() { return Collections.unmodifiableCollection(signers); }
+    	
+    	public int getTotalSigners() { return signers.size(); }
     }
     
-    public final static class AdvancedTransactionsEscrowSign extends AbstractAttachment {
+    public final static class AdvancedPaymentEscrowSign extends AbstractAttachment {
     	
     	private final Long escrowId;
-    	private final Long accountId;
     	private final Escrow.Decision decision;
     	
-    	AdvancedTransactionsEscrowSign(ByteBuffer buffer, byte transactionVersion) {
+    	AdvancedPaymentEscrowSign(ByteBuffer buffer, byte transactionVersion) {
     		super(buffer, transactionVersion);
     		this.escrowId = buffer.getLong();
-    		this.accountId = buffer.getLong();
     		this.decision = Escrow.byteToDecision(buffer.get());
     	}
     	
-    	AdvancedTransactionsEscrowSign(JSONObject attachmentData) {
+    	AdvancedPaymentEscrowSign(JSONObject attachmentData) {
     		super(attachmentData);
     		this.escrowId = Convert.parseUnsignedLong((String)attachmentData.get("escrowId"));
-    		this.accountId = Convert.parseUnsignedLong((String)attachmentData.get("accountId"));
     		this.decision = Escrow.stringToDecision((String)attachmentData.get("decision"));
     	}
     	
-    	AdvancedTransactionsEscrowSign(Long escrowId, Long accountId, Escrow.Decision decision) {
+    	AdvancedPaymentEscrowSign(Long escrowId, Escrow.Decision decision) {
     		this.escrowId = escrowId;
-    		this.accountId = accountId;
     		this.decision = decision;
     	}
     	
@@ -1694,31 +1692,27 @@ public interface Attachment extends Appendix {
     	
     	@Override
     	int getMySize() {
-    		return 8 + 8 + 1;
+    		return 8 + 1;
     	}
     	
     	@Override
     	void putMyBytes(ByteBuffer buffer) {
     		buffer.putLong(this.escrowId);
-    		buffer.putLong(this.accountId);
     		buffer.put(Escrow.decisionToByte(this.decision));
     	}
     	
     	@Override
     	void putMyJSON(JSONObject attachment) {
     		attachment.put("escrowId", Convert.toUnsignedLong(this.escrowId));
-    		attachment.put("accountId", Convert.toUnsignedLong(this.accountId));
     		attachment.put("vote", Escrow.decisionToString(this.decision));
     	}
     	
     	@Override
     	public TransactionType getTransactionType() {
-    		return TransactionType.AdvancedTransactions.ESCROW_SIGN;
+    		return TransactionType.AdvancedPayment.ESCROW_SIGN;
     	}
     	
     	public Long getEscrowId() { return this.escrowId; }
-    	
-    	public Long getAccountId() { return this.accountId; }
     	
     	public Escrow.Decision getDecision() { return this.decision; }
     }
