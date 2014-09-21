@@ -11,6 +11,8 @@ public final class Constants {
 	public static long BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK = 6500;
     public static long BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME = 4;
     
+    public static long BURST_ESCROW_START_BLOCK = 18000;
+    
 	public static final int BLOCK_HEADER_LENGTH = 232;
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
     public static final int MAX_PAYLOAD_LENGTH = MAX_NUMBER_OF_TRANSACTIONS * 176;

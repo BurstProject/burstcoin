@@ -584,6 +584,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
                 blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
                 transactionProcessor.apply(block);
+                if(block.getHeight() >= Constants.BURST_ESCROW_START_BLOCK) {
+                	Escrow.updateOnBlock(block.getId(), block.getTimestamp());
+                }
                 blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
                 blockListeners.notify(block, Event.BLOCK_PUSHED);
                 transactionProcessor.updateUnconfirmedTransactions(block);

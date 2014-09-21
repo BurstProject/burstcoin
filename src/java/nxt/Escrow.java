@@ -158,7 +158,7 @@ public class Escrow {
 	private final Long id;
 	private final Long amountNQT;
 	private final int requiredSigners;
-	private final ConcurrentMap<Long, Decision> decisions = new ConcurrentHashMap<>();
+	private final ConcurrentMap<Long, Decision> decisions = new ConcurrentHashMap<>(); // might be too heavy, byt can be changed later
 	private final int deadline;
 	private final Decision deadlineAction;
 	private volatile boolean release = false;

@@ -1680,7 +1680,7 @@ public interface Attachment extends Appendix {
     		this.decision = Escrow.stringToDecision((String)attachmentData.get("decision"));
     	}
     	
-    	AdvancedPaymentEscrowSign(Long escrowId, Escrow.Decision decision) {
+    	public AdvancedPaymentEscrowSign(Long escrowId, Escrow.Decision decision) {
     		this.escrowId = escrowId;
     		this.decision = decision;
     	}
