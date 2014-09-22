@@ -209,6 +209,10 @@ public class Escrow {
 		return deadline;
 	}
 	
+	public Decision getDeadlineAction() {
+		return deadlineAction;
+	}
+	
 	public boolean isIdSigner(Long id) {
 		return decisions.containsKey(id);
 	}

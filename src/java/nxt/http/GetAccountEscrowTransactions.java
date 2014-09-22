@@ -33,15 +33,7 @@ public final class GetAccountEscrowTransactions extends APIServlet.APIRequestHan
 		JSONArray escrows = new JSONArray();
 		
 		for(Escrow escrow : accountEscrows) {
-			JSONObject escrowDetails = new JSONObject();
-			
-			escrowDetails.put("id", escrow.getId());
-			escrowDetails.put("sender", escrow.getSenderId());
-			escrowDetails.put("senderRS", Convert.rsAccount(escrow.getSenderId()));
-			escrowDetails.put("recipient", escrow.getRecipientId());
-			escrowDetails.put("recipientRS", Convert.rsAccount(escrow.getRecipientId()));
-			
-			escrows.add(escrowDetails);
+			escrows.add(JSONData.escrowTransaction(escrow));
 		}
 		
 		response.put("escrows", escrows);

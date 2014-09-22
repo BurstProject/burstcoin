@@ -1951,7 +1951,7 @@ public static abstract class BurstMining extends TransactionType {
 											attachment.getAmountNQT(),
 											attachment.getRequiredSigners(),
 											attachment.getSigners(),
-											attachment.getDeadline(), // add to transaction deadline
+											transaction.getTimestamp() + attachment.getDeadline(),
 											attachment.getDeadlineAction());
 			}
 			
@@ -1984,7 +1984,37 @@ public static abstract class BurstMining extends TransactionType {
 			
 			@Override
 			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-				// todo
+				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
+				Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), transaction.getFeeNQT());
+				totalAmountNQT = Convert.safeAdd(totalAmountNQT, attachment.getTotalSigners() * Constants.ONE_NXT);
+				if(transaction.getAmountNQT() != 0) {
+					throw new NxtException.NotValidException("Transaction sent amount must be 0 for escrow");
+				}
+				if(transaction.getFeeNQT() < Constants.ONE_NXT) {
+					throw new NxtException.NotValidException("Escrow transaction must have a fee at least 1 burst");
+				}
+				if(attachment.getRequiredSigners() < 1 || attachment.getRequiredSigners() > 10) {
+					throw new NxtException.NotValidException("Escrow required signers much be 1 - 10");
+				}
+				if(attachment.getRequiredSigners() > attachment.getTotalSigners()) {
+					throw new NxtException.NotValidException("Cannot have more required than signers on escrow");
+				}
+				if(attachment.getTotalSigners() < 1 || attachment.getTotalSigners() > 10) {
+					throw new NxtException.NotValidException("Escrow transaction requires 1 - 10 signers");
+				}
+				if(attachment.getDeadline() < 1 || attachment.getDeadline() > 7776000) { // max deadline 3 months
+					throw new NxtException.NotValidException("Escrow deadline must be 1 - 7776000 seconds");
+				}
+				if(attachment.getDeadlineAction() == null || attachment.getDeadlineAction() == Escrow.Decision.UNDECIDED) {
+					throw new NxtException.NotValidException("Invalid deadline action for escrow");
+				}
+				if(attachment.getSigners().contains(transaction.getSenderId()) ||
+				   attachment.getSigners().contains(transaction.getRecipientId())) {
+					throw new NxtException.NotValidException("Escrow sender and recipient cannot be signers");
+				}
+				if(Nxt.getBlockchain().getLastBlock().getHeight() < Constants.BURST_ESCROW_START_BLOCK) {
+					throw new NxtException.NotYetEnabledException("Escrow not yet enabled");
+				}
 			}
 			
 			@Override
@@ -2041,7 +2071,28 @@ public static abstract class BurstMining extends TransactionType {
 			
 			@Override
 			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-				// todo
+				Attachment.AdvancedPaymentEscrowSign attachment = (Attachment.AdvancedPaymentEscrowSign) transaction.getAttachment();
+				if(transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_NXT) {
+					throw new NxtException.NotValidException("Escrow signing must have amount 0 and fee of 1");
+				}
+				if(attachment.getEscrowId() == null || attachment.getDecision() == null) {
+					throw new NxtException.NotValidException("Escrow signing requires escrow id and decision set");
+				}
+				Escrow escrow = Escrow.getEscrowTransaction(attachment.getEscrowId());
+				if(escrow == null) {
+					throw new NxtException.NotValidException("Escrow transaction not found");
+				}
+				if(!escrow.isIdSigner(transaction.getSenderId()) &&
+				   escrow.getSenderId() != transaction.getSenderId() &&
+				   escrow.getRecipientId() != transaction.getSenderId()) {
+					throw new NxtException.NotValidException("Sender is not a participant in specified escrow");
+				}
+				if(escrow.getSenderId() == transaction.getSenderId() && attachment.getDecision() != Escrow.Decision.RELEASE) {
+					throw new NxtException.NotValidException("Escrow sender can only release");
+				}
+				if(escrow.getRecipientId() == transaction.getSenderId() && attachment.getDecision() != Escrow.Decision.REFUND) {
+					throw new NxtException.NotValidException("Escrow recipient can only refund");
+				}
 			}
 			
 			@Override

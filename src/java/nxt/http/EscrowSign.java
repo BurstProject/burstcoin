@@ -18,7 +18,7 @@ public final class EscrowSign extends CreateTransaction {
 	
 	private EscrowSign() {
 		super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION},
-			  "escrowId",
+			  "escrow",
 			  "decision");
 	}
 	
@@ -26,19 +26,19 @@ public final class EscrowSign extends CreateTransaction {
 	JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
 		Long escrowId;
 		try {
-			escrowId = Convert.parseUnsignedLong(Convert.emptyToNull(req.getParameter("escrowId")));
+			escrowId = Convert.parseUnsignedLong(Convert.emptyToNull(req.getParameter("escrow")));
 		}
 		catch(Exception e) {
 			JSONObject response = new JSONObject();
 			response.put("errorCode", 3);
-			response.put("errorDescription", "Invalid or not specified escrowId");
+			response.put("errorDescription", "Invalid or not specified escrow");
 			return response;
 		}
 		
 		Escrow escrow = Escrow.getEscrowTransaction(escrowId);
 		if(escrow == null) {
 			JSONObject response = new JSONObject();
-			response.put("errorCode", 4);
+			response.put("errorCode", 5);
 			response.put("errorDescription", "Escrow transaction not found");
 			return response;
 		}
