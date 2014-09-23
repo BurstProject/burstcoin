@@ -317,7 +317,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             try {
                 Long lastBlockId = blockchain.getLastBlock().getId();
                 while (! lastBlockId.equals(commonBlock.getId()) && ! lastBlockId.equals(Genesis.GENESIS_BLOCK_ID)) {
-                	if(Escrow.getUnpoppableBlockId() == lastBlockId) {
+                	if(Escrow.getUnpoppableBlockId().equals(lastBlockId)) {
                 		throw new TransactionType.UndoNotSupportedException("Cannot undo block that escrow deadline reached in");
                 	}
                     lastBlockId = popLastBlock();
@@ -584,7 +584,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
                 blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
                 transactionProcessor.apply(block);
-                if(block.getHeight() >= Constants.BURST_ESCROW_START_BLOCK) {
+                if(Escrow.isEnabled()) {
                 	Escrow.updateOnBlock(block.getId(), block.getTimestamp());
                 }
                 blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);

@@ -1931,7 +1931,7 @@ public static abstract class BurstMining extends TransactionType {
 			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
 				Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
-				if(senderAccount.getBalanceNQT() < totalAmountNQT) {
+				if(senderAccount.getBalanceNQT() < totalAmountNQT.longValue()) {
 					return false;
 				}
 				senderAccount.addToBalanceAndUnconfirmedBalanceNQT(-totalAmountNQT);
@@ -1943,7 +1943,7 @@ public static abstract class BurstMining extends TransactionType {
 				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
 				Collection<Long> signers = attachment.getSigners();
 				for(Long signer : signers) {
-					Account.getAccount(signer).addToBalanceAndUnconfirmedBalanceNQT(Constants.ONE_NXT);
+					Account.addOrGetAccount(signer).addToBalanceAndUnconfirmedBalanceNQT(Constants.ONE_NXT);
 				}
 				Escrow.addEscrowTransaction(senderAccount,
 											recipientAccount,
@@ -1974,18 +1974,16 @@ public static abstract class BurstMining extends TransactionType {
 			
 			@Override
 			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
-				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
-				String uniqueString = Convert.toUnsignedLong(transaction.getSenderId()) + // change this. add separators.
-									  Convert.toUnsignedLong(transaction.getRecipientId()) +
-									  Convert.toUnsignedLong(attachment.getAmountNQT()) +
-									  String.valueOf(transaction.getTimestamp());
-				return isDuplicate(AdvancedPayment.ESCROW_CREATION, uniqueString, duplicates);
+				return false;
 			}
 			
 			@Override
 			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
 				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
 				Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), transaction.getFeeNQT());
+				if(transaction.getSenderId().equals(transaction.getRecipientId())) {
+					throw new NxtException.NotValidException("Escrow must have different sender and recipient");
+				}
 				totalAmountNQT = Convert.safeAdd(totalAmountNQT, attachment.getTotalSigners() * Constants.ONE_NXT);
 				if(transaction.getAmountNQT() != 0) {
 					throw new NxtException.NotValidException("Transaction sent amount must be 0 for escrow");
@@ -2012,7 +2010,7 @@ public static abstract class BurstMining extends TransactionType {
 				   attachment.getSigners().contains(transaction.getRecipientId())) {
 					throw new NxtException.NotValidException("Escrow sender and recipient cannot be signers");
 				}
-				if(Nxt.getBlockchain().getLastBlock().getHeight() < Constants.BURST_ESCROW_START_BLOCK) {
+				if(!Escrow.isEnabled()) {
 					throw new NxtException.NotYetEnabledException("Escrow not yet enabled");
 				}
 			}
@@ -2064,7 +2062,7 @@ public static abstract class BurstMining extends TransactionType {
 			@Override
 			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
 				Attachment.AdvancedPaymentEscrowSign attachment = (Attachment.AdvancedPaymentEscrowSign) transaction.getAttachment();
-				String uniqueString = Convert.toUnsignedLong(attachment.getEscrowId()) + // need separator
+				String uniqueString = Convert.toUnsignedLong(attachment.getEscrowId()) + ":" +
 									  Convert.toUnsignedLong(transaction.getSenderId());
 				return isDuplicate(AdvancedPayment.ESCROW_SIGN, uniqueString, duplicates);
 			}
@@ -2083,15 +2081,18 @@ public static abstract class BurstMining extends TransactionType {
 					throw new NxtException.NotValidException("Escrow transaction not found");
 				}
 				if(!escrow.isIdSigner(transaction.getSenderId()) &&
-				   escrow.getSenderId() != transaction.getSenderId() &&
-				   escrow.getRecipientId() != transaction.getSenderId()) {
+				   !escrow.getSenderId().equals(transaction.getSenderId()) &&
+				   !escrow.getRecipientId().equals(transaction.getSenderId())) {
 					throw new NxtException.NotValidException("Sender is not a participant in specified escrow");
 				}
-				if(escrow.getSenderId() == transaction.getSenderId() && attachment.getDecision() != Escrow.Decision.RELEASE) {
+				if(escrow.getSenderId().equals(transaction.getSenderId()) && attachment.getDecision() != Escrow.Decision.RELEASE) {
 					throw new NxtException.NotValidException("Escrow sender can only release");
 				}
-				if(escrow.getRecipientId() == transaction.getSenderId() && attachment.getDecision() != Escrow.Decision.REFUND) {
+				if(escrow.getRecipientId().equals(transaction.getSenderId()) && attachment.getDecision() != Escrow.Decision.REFUND) {
 					throw new NxtException.NotValidException("Escrow recipient can only refund");
+				}
+				if(!Escrow.isEnabled()) {
+					throw new NxtException.NotYetEnabledException("Escrow not yet enabled");
 				}
 			}
 			

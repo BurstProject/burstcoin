@@ -144,10 +144,10 @@ final class JSONData {
     
     static JSONObject escrowTransaction(Escrow escrow) {
     	JSONObject json = new JSONObject();
-    	json.put("id", escrow.getId());
-    	json.put("sender", escrow.getSenderId());
+    	json.put("id", Convert.toUnsignedLong(escrow.getId()));
+    	json.put("sender", Convert.toUnsignedLong(escrow.getSenderId()));
     	json.put("senderRS", Convert.rsAccount(escrow.getSenderId()));
-    	json.put("recipient", escrow.getRecipientId());
+    	json.put("recipient", Convert.toUnsignedLong(escrow.getRecipientId()));
     	json.put("recipientRS", Convert.rsAccount(escrow.getRecipientId()));
     	json.put("requiredSigners", escrow.getRequiredSigners());
     	json.put("deadline", escrow.getDeadline());

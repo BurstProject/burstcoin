@@ -80,6 +80,18 @@ public class Escrow {
 		return null;
 	}
 	
+	public static boolean isEnabled() {
+		if(Nxt.getBlockchain().getLastBlock().getHeight() >= Constants.BURST_ESCROW_START_BLOCK) {
+			return true;
+		}
+		
+		Alias escrowEnabled = Alias.getAlias("featureescrow");
+		if(escrowEnabled != null && escrowEnabled.getAliasURI().equals("enabled")) {
+			return true;
+		}
+		return false;
+	}
+	
 	private static final ConcurrentMap<Long, Escrow> escrowTransactions = new ConcurrentHashMap<>();
 	private static final Collection<Escrow> allEscrowTransactions = Collections.unmodifiableCollection(escrowTransactions.values());
 	
@@ -92,8 +104,8 @@ public class Escrow {
 	public static Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId) {
 		List<Escrow> filtered = new ArrayList<>();
 		for(Escrow escrow : Escrow.getAllEscrowTransactions()) {
-			if(escrow.getSenderId() == accountId ||
-			   escrow.getRecipientId() == accountId ||
+			if(escrow.getSenderId().equals(accountId) ||
+			   escrow.getRecipientId().equals(accountId) ||
 			   escrow.isIdSigner(accountId)) {
 				filtered.add(escrow);
 			}
@@ -136,9 +148,7 @@ public class Escrow {
 			if(escrow.getValue().isComplete() ||
 			   escrow.getValue().getDeadline() < timestamp) {
 				escrow.getValue().doPayout();
-				if(escrow.getValue().getDeadline() < timestamp) {
-					lastUnpoppableBlock = blockId;
-				}
+				lastUnpoppableBlock = blockId;
 				it.remove();
 			}
 		}
