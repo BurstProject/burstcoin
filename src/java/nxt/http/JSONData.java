@@ -149,6 +149,7 @@ final class JSONData {
     	json.put("senderRS", Convert.rsAccount(escrow.getSenderId()));
     	json.put("recipient", Convert.toUnsignedLong(escrow.getRecipientId()));
     	json.put("recipientRS", Convert.rsAccount(escrow.getRecipientId()));
+    	json.put("amountNQT", Convert.toUnsignedLong(Escrow.getEscrowTransaction(escrow.getId()).getAmountNQT()));
     	json.put("requiredSigners", escrow.getRequiredSigners());
     	json.put("deadline", escrow.getDeadline());
     	json.put("deadlineAction", Escrow.decisionToString(escrow.getDeadlineAction()));
