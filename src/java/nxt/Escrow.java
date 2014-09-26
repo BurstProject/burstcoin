@@ -199,6 +199,10 @@ public class Escrow {
 		return senderId;
 	}
 	
+	public Long getAmountNQT() {
+		return amountNQT;
+	}
+	
 	public Long getRecipientId() {
 		return recipientId;
 	}

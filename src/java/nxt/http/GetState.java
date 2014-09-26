@@ -4,6 +4,7 @@ import nxt.Account;
 import nxt.Alias;
 import nxt.Asset;
 import nxt.Constants;
+import nxt.Escrow;
 import nxt.Generator;
 import nxt.Nxt;
 import nxt.Order;
@@ -46,6 +47,9 @@ public final class GetState extends APIServlet.APIRequestHandler {
             if (effectiveBalanceNXT > 0) {
                 totalEffectiveBalance += effectiveBalanceNXT;
             }
+        }
+        for (Escrow escrow : Escrow.getAllEscrowTransactions()) {
+        	totalEffectiveBalance += escrow.getAmountNQT();
         }
         response.put("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_NXT);
 

@@ -1588,7 +1588,11 @@ public interface Attachment extends Appendix {
     		if(totalSigners > 10 || totalSigners <= 0) {
     			throw new NxtException.NotValidException("Invalid number of signers listed on create escrow transaction");
     		}
-    		this.signers.addAll((JSONArray)attachmentData.get("signers"));
+    		//this.signers.addAll((JSONArray)attachmentData.get("signers"));
+    		JSONArray signersJson = (JSONArray)attachmentData.get("signers");
+    		for(int i = 0; i < signersJson.size(); i++) {
+    			this.signers.add(Convert.parseUnsignedLong((String)signersJson.get(i)));
+    		}
     		if(this.signers.size() != ((JSONArray)attachmentData.get("signers")).size()) {
     			throw new NxtException.NotValidException("Duplicate signer on escrow creation");
     		}
@@ -1641,7 +1645,10 @@ public interface Attachment extends Appendix {
     		attachment.put("deadlineAction", Escrow.decisionToString(this.deadlineAction));
     		attachment.put("requiredSigners", (int)this.requiredSigners);
     		JSONArray ids = new JSONArray();
-    		ids.addAll(this.signers);
+    		//ids.addAll(this.signers);
+    		for(Long signer : this.signers) {
+    			ids.add(Convert.toUnsignedLong(signer));
+    		}
     		attachment.put("signers", ids);
     	}
     	
