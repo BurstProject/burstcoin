@@ -153,6 +153,10 @@ public final class APIServlet extends HttpServlet {
         map.put("getRewardRecipient", GetRewardRecipient.instance);
         map.put("setRewardRecipient", SetRewardRecipient.instance);
         map.put("getAccountsWithRewardRecipient", GetAccountsWithRewardRecipient.instance);
+        map.put("sendMoneyEscrow", SendMoneyEscrow.instance);
+        map.put("escrowSign", EscrowSign.instance);
+        map.put("getEscrowTransaction", GetEscrowTransaction.instance);
+        map.put("getAccountEscrowTransactions", GetAccountEscrowTransactions.instance);
 
         apiRequestHandlers = Collections.unmodifiableMap(map);
     }

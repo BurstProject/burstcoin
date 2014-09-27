@@ -7,6 +7,7 @@ import nxt.Asset;
 import nxt.Block;
 import nxt.DigitalGoodsStore;
 import nxt.Constants;
+import nxt.Escrow;
 import nxt.Nxt;
 import nxt.Order;
 import nxt.Poll;
@@ -18,6 +19,7 @@ import nxt.crypto.EncryptedData;
 import nxt.peer.Hallmark;
 import nxt.peer.Peer;
 import nxt.util.Convert;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -138,6 +140,30 @@ final class JSONData {
         json.put("data", Convert.toHexString(encryptedData.getData()));
         json.put("nonce", Convert.toHexString(encryptedData.getNonce()));
         return json;
+    }
+    
+    static JSONObject escrowTransaction(Escrow escrow) {
+    	JSONObject json = new JSONObject();
+    	json.put("id", Convert.toUnsignedLong(escrow.getId()));
+    	json.put("sender", Convert.toUnsignedLong(escrow.getSenderId()));
+    	json.put("senderRS", Convert.rsAccount(escrow.getSenderId()));
+    	json.put("recipient", Convert.toUnsignedLong(escrow.getRecipientId()));
+    	json.put("recipientRS", Convert.rsAccount(escrow.getRecipientId()));
+    	json.put("amountNQT", Convert.toUnsignedLong(Escrow.getEscrowTransaction(escrow.getId()).getAmountNQT()));
+    	json.put("requiredSigners", escrow.getRequiredSigners());
+    	json.put("deadline", escrow.getDeadline());
+    	json.put("deadlineAction", Escrow.decisionToString(escrow.getDeadlineAction()));
+		
+		JSONArray signers = new JSONArray();
+		for(Long signer : escrow.getSigners()) {
+			JSONObject signerDetails = new JSONObject();
+			signerDetails.put("id", Convert.toUnsignedLong(signer));
+			signerDetails.put("idRS", Convert.rsAccount(signer));
+			signerDetails.put("decision", Escrow.decisionToString(escrow.getIdDecision(signer)));
+			signers.add(signerDetails);
+		}
+		json.put("signers", signers);
+    	return json;
     }
 
     static JSONObject goods(DigitalGoodsStore.Goods goods) {

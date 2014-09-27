@@ -481,6 +481,15 @@ var NRS = (function(NRS, $, undefined) {
 					transactionType = "Reward Recipient Assignment";
 					break;
 			}
+		} else if (transaction.type == 21) {
+			switch (transaction.subtype) {
+				case 0:
+					transactionType = "Escrow Creation";
+					break;
+				case 1:
+					transactionType = "Escrow Signing";
+					break;
+			}
 		}
 
 		var receiving = transaction.recipient == NRS.account;
