@@ -52,8 +52,8 @@ public final class EscrowSign extends CreateTransaction {
 		}
 		
 		Account sender = ParameterParser.getSenderAccount(req);
-		if(escrow.getSenderId() != sender.getId() &&
-		   escrow.getRecipientId() != sender.getId() &&
+		if(!(escrow.getSenderId().equals(sender.getId())) &&
+		   !(escrow.getRecipientId().equals(sender.getId())) &&
 		   !escrow.isIdSigner(sender.getId())) {
 			JSONObject response = new JSONObject();
 			response.put("errorCode", 5);
@@ -61,14 +61,14 @@ public final class EscrowSign extends CreateTransaction {
 			return response;
 		}
 		
-		if(escrow.getSenderId() == sender.getId() && decision != Escrow.Decision.RELEASE) {
+		if(escrow.getSenderId().equals(sender.getId()) && decision != Escrow.Decision.RELEASE) {
 			JSONObject response = new JSONObject();
 			response.put("errorCode", 4);
 			response.put("errorDescription", "Sender can only release");
 			return response;
 		}
 		
-		if(escrow.getRecipientId() == sender.getId() && decision != Escrow.Decision.REFUND) {
+		if(escrow.getRecipientId().equals(sender.getId()) && decision != Escrow.Decision.REFUND) {
 			JSONObject response = new JSONObject();
 			response.put("errorCode", 4);
 			response.put("errorDescription", "Recipient can only refund");
