@@ -1581,9 +1581,9 @@ public interface Attachment extends Appendix {
     	AdvancedPaymentEscrowCreation(JSONObject attachmentData) throws NxtException.NotValidException {
     		super(attachmentData);
     		this.amountNQT = Convert.parseUnsignedLong((String)attachmentData.get("amountNQT"));
-    		this.deadline = (Integer)attachmentData.get("deadline");
+    		this.deadline = ((Long)attachmentData.get("deadline")).intValue();
     		this.deadlineAction = Escrow.stringToDecision((String)attachmentData.get("deadlineAction"));
-    		this.requiredSigners = ((Integer)attachmentData.get("requiredSigners")).byteValue();
+    		this.requiredSigners = ((Long)attachmentData.get("requiredSigners")).byteValue();
     		int totalSigners = ((JSONArray)attachmentData.get("signers")).size();
     		if(totalSigners > 10 || totalSigners <= 0) {
     			throw new NxtException.NotValidException("Invalid number of signers listed on create escrow transaction");
@@ -1711,7 +1711,7 @@ public interface Attachment extends Appendix {
     	@Override
     	void putMyJSON(JSONObject attachment) {
     		attachment.put("escrowId", Convert.toUnsignedLong(this.escrowId));
-    		attachment.put("vote", Escrow.decisionToString(this.decision));
+    		attachment.put("decision", Escrow.decisionToString(this.decision));
     	}
     	
     	@Override
