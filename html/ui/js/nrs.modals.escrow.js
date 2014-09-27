@@ -38,6 +38,8 @@ var NRS = (function(NRS, $, undefined) {
 			decisions += escrow.signers[i].idRS + " " + escrow.signers[i].decision + "<br />";
 		}
 		$("#escrow_decision_decisions").html(decisions);
+		$("#escrow_decision_required").html(escrow.requiredSigners + " signers required");
+		$("#escrow_decision_deadline").html("Defaults to " + escrow.deadlineAction + " at " + NRS.formatTimestamp(escrow.deadline));
 		
 		$("#escrow_decision_modal").modal("show");
 		NRS.fetchingModalData = false;
