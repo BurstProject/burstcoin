@@ -44,6 +44,8 @@ public final class PeerServlet extends HttpServlet {
         map.put("getUnconfirmedTransactions", GetUnconfirmedTransactions.instance);
         map.put("processBlock", ProcessBlock.instance);
         map.put("processTransactions", ProcessTransactions.instance);
+        map.put("getAccountBalance", GetAccountBalance.instance);
+        map.put("getAccountRecentTransactions", GetAccountRecentTransactions.instance);
         peerRequestHandlers = Collections.unmodifiableMap(map);
     }
 

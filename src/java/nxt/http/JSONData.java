@@ -25,7 +25,7 @@ import org.json.simple.JSONObject;
 
 import java.util.Collections;
 
-final class JSONData {
+public final class JSONData {
 
     static JSONObject alias(Alias alias) {
         JSONObject json = new JSONObject();
@@ -333,7 +333,7 @@ final class JSONData {
         return json;
     }
 
-    static JSONObject transaction(Transaction transaction) {
+    public static JSONObject transaction(Transaction transaction) {
         JSONObject json = unconfirmedTransaction(transaction);
         json.put("block", Convert.toUnsignedLong(transaction.getBlockId()));
         json.put("confirmations", Nxt.getBlockchain().getLastBlock().getHeight() - transaction.getHeight());
