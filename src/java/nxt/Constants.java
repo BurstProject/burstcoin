@@ -12,6 +12,9 @@ public final class Constants {
     public static long BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME = 4;
     
     public static long BURST_ESCROW_START_BLOCK = Integer.MAX_VALUE;
+    public static long BURST_SUBSCRIPTION_START_BLOCK = Integer.MAX_VALUE;
+    public static int BURST_SUBSCRIPTION_MIN_FREQ = 86400;
+    public static int BURST_SUBSCRIPTION_MAX_FREQ = 31536000;
     
 	public static final int BLOCK_HEADER_LENGTH = 232;
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
