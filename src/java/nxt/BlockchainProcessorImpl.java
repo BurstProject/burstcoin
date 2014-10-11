@@ -346,9 +346,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                         TransactionProcessorImpl.getInstance().processLater(block.getTransactions());
                     }
                 }
-
             } // synchronized
-
         }
 
     };

@@ -1716,4 +1716,96 @@ public interface Attachment extends Appendix {
     	
     	public Escrow.DecisionType getDecision() { return this.decision; }
     }
+    
+    public final static class AdvancedPaymentSubscriptionSubscribe extends AbstractAttachment {
+    	
+    	private final Integer frequency;
+    	
+    	AdvancedPaymentSubscriptionSubscribe(ByteBuffer buffer, byte transactionVersion) {
+    		super(buffer, transactionVersion);
+    		this.frequency = buffer.getInt();
+    	}
+    	
+    	AdvancedPaymentSubscriptionSubscribe(JSONObject attachmentData) {
+    		super(attachmentData);
+    		this.frequency = ((Long)attachmentData.get("frequency")).intValue();
+    	}
+    	
+    	public AdvancedPaymentSubscriptionSubscribe(int frequency) {
+    		this.frequency = frequency;
+    	}
+    	
+    	@Override
+    	String getAppendixName() {
+    		return "SubscriptionSubscribe";
+    	}
+    	
+    	@Override
+    	int getMySize() {
+    		return 4;
+    	}
+    	
+    	@Override
+    	void putMyBytes(ByteBuffer buffer) {
+    		buffer.putInt(this.frequency);
+    	}
+    	
+    	@Override
+    	void putMyJSON(JSONObject attachment) {
+    		attachment.put("frequency", this.frequency);
+    	}
+    	
+    	@Override
+    	public TransactionType getTransactionType() {
+    		return TransactionType.AdvancedPayment.SUBSCRIPTION_SUBSCRIBE;
+    	}
+    	
+    	public Integer getFrequency() { return this.frequency; }
+    }
+    
+    public final static class AdvancedPaymentSubscriptionCancel extends AbstractAttachment {
+    	
+    	private final Long subscriptionId;
+    	
+    	AdvancedPaymentSubscriptionCancel(ByteBuffer buffer, byte transactionVersion) {
+    		super(buffer, transactionVersion);
+    		this.subscriptionId = buffer.getLong();
+    	}
+    	
+    	AdvancedPaymentSubscriptionCancel(JSONObject attachmentData) {
+    		super(attachmentData);
+    		this.subscriptionId = (Long)attachmentData.get("subscriptionId");
+    	}
+    	
+    	public AdvancedPaymentSubscriptionCancel(Long subscriptionId) {
+    		this.subscriptionId = subscriptionId;
+    	}
+    	
+    	@Override
+    	String getAppendixName() {
+    		return "SubscriptionCancel";
+    	}
+    	
+    	@Override
+    	int getMySize() {
+    		return 8;
+    	}
+    	
+    	@Override
+    	void putMyBytes(ByteBuffer buffer) {
+    		buffer.putLong(subscriptionId);
+    	}
+    	
+    	@Override
+    	void putMyJSON(JSONObject attachment) {
+    		attachment.put("subscriptionId", this.subscriptionId);
+    	}
+    	
+    	@Override
+    	public TransactionType getTransactionType() {
+    		return TransactionType.AdvancedPayment.SUBSCRIPTION_CANCEL;
+    	}
+    	
+    	public Long getSubscriptionId() { return this.subscriptionId; }
+    }
 }
