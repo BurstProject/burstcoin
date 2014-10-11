@@ -320,6 +320,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 	if(Escrow.getUnpoppableBlockId().equals(lastBlockId)) {
                 		throw new TransactionType.UndoNotSupportedException("Cannot undo block that escrow deadline reached in");
                 	}
+                	if(Subscription.getUnpoppableBlockId().equals(lastBlockId)) {
+                		throw new TransactionType.UndoNotSupportedException("Cannot undo block subscription ended on");
+                	}
                     lastBlockId = popLastBlock();
                 }
             } catch (TransactionType.UndoNotSupportedException e) {
@@ -587,6 +590,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 if(Escrow.isEnabled()) {
                 	Escrow.updateOnBlock(block.getId(), block.getTimestamp());
                 }
+                if(Subscription.isEnabled()) {
+                	Subscription.updateOnBlock(block.getId(), block.getTimestamp());
+                }
                 blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
                 blockListeners.notify(block, Event.BLOCK_PUSHED);
                 transactionProcessor.updateUnconfirmedTransactions(block);
@@ -796,6 +802,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             Alias.clear();
             Asset.clear();
             Escrow.clear();
+            Subscription.clear();
             Order.clear();
             Poll.clear();
             Trade.clear();
@@ -872,6 +879,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                         }
                         if(Escrow.isEnabled()) {
                         	Escrow.updateOnBlock(currentBlock.getId(), currentBlock.getTimestamp());
+                        }
+                        if(Subscription.isEnabled()) {
+                        	Subscription.updateOnBlock(currentBlock.getId(), currentBlock.getTimestamp());
                         }
                         blockListeners.notify(currentBlock, Event.AFTER_BLOCK_APPLY);
                         blockListeners.notify(currentBlock, Event.BLOCK_SCANNED);

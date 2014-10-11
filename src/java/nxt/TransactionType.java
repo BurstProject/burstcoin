@@ -56,6 +56,11 @@ public abstract class TransactionType {
     
     private static final byte SUBTYPE_ADVANCED_PAYMENT_ESCROW_CREATION = 0;
     private static final byte SUBTYPE_ADVANCED_PAYMENT_ESCROW_SIGN = 1;
+    // reserved 2 for escrow complete with password(for atomic cross-chain)
+    // reserved 3 for escrow result unsigned
+    private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_SUBSCRIBE = 4;
+    private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_CANCEL = 5;
+    // reserved 6 for subscription payment
 
     public static TransactionType findTransactionType(byte type, byte subtype) {
         switch (type) {
@@ -145,6 +150,10 @@ public abstract class TransactionType {
 	            		return AdvancedPayment.ESCROW_CREATION;
 	            	case SUBTYPE_ADVANCED_PAYMENT_ESCROW_SIGN:
 	            		return AdvancedPayment.ESCROW_SIGN;
+	            	case SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_SUBSCRIBE:
+	            		return AdvancedPayment.SUBSCRIPTION_SUBSCRIBE;
+	            	case SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_CANCEL:
+	            		return AdvancedPayment.SUBSCRIPTION_CANCEL;
             		default:
             			return null;
             	}
@@ -2093,6 +2102,144 @@ public static abstract class BurstMining extends TransactionType {
 				}
 				if(!Escrow.isEnabled()) {
 					throw new NxtException.NotYetEnabledException("Escrow not yet enabled");
+				}
+			}
+			
+			@Override
+			final public boolean hasRecipient() {
+				return false;
+			}
+		};
+		
+		public final static TransactionType SUBSCRIPTION_SUBSCRIBE = new AdvancedPayment() {
+			
+			@Override
+			public final byte getSubtype() {
+				return TransactionType.SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_SUBSCRIBE;
+			}
+			
+			@Override
+			Attachment.AdvancedPaymentSubscriptionSubscribe parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+				return new Attachment.AdvancedPaymentSubscriptionSubscribe(buffer, transactionVersion);
+			}
+			
+			@Override
+			Attachment.AdvancedPaymentSubscriptionSubscribe parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+				return new Attachment.AdvancedPaymentSubscriptionSubscribe(attachmentData);
+			}
+			
+			@Override
+			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+				return true;
+			}
+			
+			@Override
+			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+				Attachment.AdvancedPaymentSubscriptionSubscribe attachment = (Attachment.AdvancedPaymentSubscriptionSubscribe) transaction.getAttachment();
+				Subscription.addSubscription(senderAccount, recipientAccount, transaction.getId(), transaction.getAmountNQT(), transaction.getTimestamp(), attachment.getFrequency());
+			}
+			
+			@Override
+			final void undoAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+				Subscription.removeSubscription(transaction.getId());
+			}
+			
+			@Override
+			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+			}
+			
+			@Override
+			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+				return false;
+			}
+			
+			@Override
+			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+				Attachment.AdvancedPaymentSubscriptionSubscribe attachment = (Attachment.AdvancedPaymentSubscriptionSubscribe) transaction.getAttachment();
+				if(attachment.getFrequency() == null ||
+				   attachment.getFrequency() < Constants.BURST_SUBSCRIPTION_MIN_FREQ ||
+				   attachment.getFrequency() > Constants.BURST_SUBSCRIPTION_MAX_FREQ) {
+					throw new NxtException.NotValidException("Invalid subscription frequency");
+				}
+				if(transaction.getAmountNQT() < Constants.ONE_NXT) {
+					throw new NxtException.NotValidException("Subscriptions must be at least one burst");
+				}
+				if(transaction.getSenderId().equals(transaction.getRecipientId())) {
+					throw new NxtException.NotValidException("Cannot create subscription to same address");
+				}
+				if(!Subscription.isEnabled()) {
+					throw new NxtException.NotYetEnabledException("Subscriptions not yet enabled");
+				}
+			}
+			
+			@Override
+			final public boolean hasRecipient() {
+				return true;
+			}
+		};
+		
+		public final static TransactionType SUBSCRIPTION_CANCEL = new AdvancedPayment() {
+			
+			@Override
+			public final byte getSubtype() {
+				return TransactionType.SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_CANCEL;
+			}
+			
+			@Override
+			Attachment.AdvancedPaymentSubscriptionCancel parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+				return new Attachment.AdvancedPaymentSubscriptionCancel(buffer, transactionVersion);
+			}
+			
+			@Override
+			Attachment.AdvancedPaymentSubscriptionCancel parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+				return new Attachment.AdvancedPaymentSubscriptionCancel(attachmentData);
+			}
+			
+			@Override
+			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+				return true;
+			}
+			
+			@Override
+			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+				Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
+				Subscription.removeSubscription(attachment.getSubscriptionId());
+			}
+			
+			@Override
+			final void undoAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) throws UndoNotSupportedException {
+				throw new UndoNotSupportedException("Cannot undo subscription cancel");
+			}
+			
+			@Override
+			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+			}
+			
+			@Override
+			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+				Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
+				return isDuplicate(AdvancedPayment.SUBSCRIPTION_CANCEL, Convert.toUnsignedLong(attachment.getSubscriptionId()), duplicates);
+			}
+			
+			@Override
+			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+				Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
+				if(attachment.getSubscriptionId() == null) {
+					throw new NxtException.NotValidException("Subscription cancel must include subscription id");
+				}
+				
+				Subscription subscription = Subscription.getSubscription(attachment.getSubscriptionId());
+				if(subscription == null) {
+					throw new NxtException.NotValidException("Subscription cancel must contain current subscription id");
+				}
+				
+				if(!subscription.getSenderId().equals(transaction.getSenderId()) &&
+				   !subscription.getRecipientId().equals(transaction.getSenderId())) {
+					throw new NxtException.NotValidException("Subscription cancel can only be done by participants");
+				}
+				
+				if(!Subscription.isEnabled()) {
+					throw new NxtException.NotYetEnabledException("Subscription cancel not yet enabled");
 				}
 			}
 			

@@ -70,6 +70,10 @@ public class Subscription implements Comparable<Subscription> {
 		return filtered;
 	}
 	
+	public static Subscription getSubscription(Long id) {
+		return subscriptions.get(id);
+	}
+	
 	public static void addSubscription(Account sender,
 									   Account recipient,
 									   Long id,
