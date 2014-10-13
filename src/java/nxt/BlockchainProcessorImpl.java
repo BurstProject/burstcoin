@@ -1,5 +1,6 @@
 package nxt;
 
+import nxt.NxtException.NotValidException;
 import nxt.crypto.Crypto;
 import nxt.db.Db;
 import nxt.db.DbIterator;
@@ -13,6 +14,7 @@ import nxt.util.Listener;
 import nxt.util.Listeners;
 import nxt.util.Logger;
 import nxt.util.ThreadPool;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -562,6 +564,16 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 long calculatedTotalAmount = 0;
                 long calculatedTotalFee = 0;
                 MessageDigest digest = Crypto.sha256();
+                
+                if(Subscription.isEnabled()) {
+                	try {
+						calculatedTotalFee += Subscription.updateOnBlock(block.getId(), previousLastBlock.getHeight() + 1, block.getTimestamp(), true, false);
+					} catch (NotValidException e) {
+						Logger.logErrorMessage("Failed to process subscriptions when pushing block", e);
+						e.printStackTrace();
+						throw new BlockNotAcceptedException("Subscription processing failed");
+					}
+                }
 
                 for (TransactionImpl transaction : block.getTransactions()) {
 
@@ -670,6 +682,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         if(Escrow.isEnabled()) {
         	Escrow.updateOnBlock(block.getId(), block.getTimestamp());
         }
+        Subscription.saveTransactions();
         blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
         if (block.getTransactions().size() > 0) {
             transactionProcessor.notifyListeners(block.getTransactions(), TransactionProcessor.Event.ADDED_CONFIRMED_TRANSACTIONS);
@@ -758,6 +771,16 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         int payloadLength = 0;
         
         int blockTimestamp = Nxt.getEpochTime();
+        
+        if(Subscription.isEnabled()) {
+        	try {
+				totalFeeNQT += Subscription.updateOnBlock(null, 0, blockTimestamp, false, true);
+			} catch (NotValidException e) {
+				Logger.logErrorMessage("Failed to process subscriptions when generating block", e);
+				e.printStackTrace();
+				return;
+			}
+        }
 
         while (payloadLength <= Constants.MAX_PAYLOAD_LENGTH && newTransactions.size() <= Constants.MAX_NUMBER_OF_TRANSACTIONS) {
 
@@ -872,6 +895,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             return timestamp - transaction.getTimestamp() < 60 * 1440 * 60 && count < 10;
         }
         transaction = TransactionDb.findTransactionByFullHash(transaction.getReferencedTransactionFullHash());
+        if(!Subscription.isEnabled()) {
+        	if(transaction != null && transaction.getSignature() == null) {
+        		transaction = null;
+        	}
+        }
         return transaction != null && hasAllReferencedTransactions(transaction, timestamp, count + 1);
     }
 

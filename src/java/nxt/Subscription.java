@@ -1,5 +1,7 @@
 package nxt;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -11,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+import nxt.NxtException.NotValidException;
 import nxt.util.Convert;
 
 public class Subscription implements Comparable<Subscription> {
@@ -34,6 +37,8 @@ public class Subscription implements Comparable<Subscription> {
 
 	private volatile static Long lastUnpoppableBlock = 0L;
 	private static final Subscription cutoffSubscription = new Subscription(null, null, Long.MAX_VALUE, 0L, 0, 0);
+	
+	private static final List<TransactionImpl> paymentTransactions = new ArrayList<>();
 	
 	public static Collection<Subscription> getAllSubscriptions() {
 		return allSubscriptions;
@@ -97,26 +102,49 @@ public class Subscription implements Comparable<Subscription> {
 		subscriptions.remove(id);
 	}
 	
-	public static void updateOnBlock(Long blockId, int timestamp) {
+	public static long updateOnBlock(Long blockId, int blockHeight, int timestamp, boolean apply, boolean scanning) throws NotValidException {
+		long totalFeeNQT = 0;
+		
+		paymentTransactions.clear();
+		
 		List<Subscription> retainSubscriptions = new ArrayList<>();
 		cutoffSubscription.timeNext = timestamp;
 		NavigableSet<Subscription> processingSubscriptions = subscriptionsSorted.headSet(cutoffSubscription, true);
 		Iterator<Subscription> it = processingSubscriptions.iterator();
 		while(it.hasNext()) {
 			Subscription subscription = it.next();
-			boolean retain = subscription.process(timestamp);
+			boolean retain = subscription.process(blockId, blockHeight, timestamp, apply, scanning);
 			if(retain) {
 				retainSubscriptions.add(subscription);
 			}
-			else {
+			else if(apply) {
 				subscriptions.remove(subscription.getId());
 				lastUnpoppableBlock = blockId;
 			}
-			it.remove();
+			if(apply) {
+				it.remove();
+			}
 		}
 		
 		if(retainSubscriptions.size() > 0) {
-			subscriptionsSorted.addAll(retainSubscriptions);
+			totalFeeNQT = Convert.safeMultiply(retainSubscriptions.size(), Convert.safeDivide(Constants.ONE_NXT, 10L));
+			if(apply) {
+				subscriptionsSorted.addAll(retainSubscriptions);
+			}
+		}
+		
+		return totalFeeNQT;
+	}
+	
+	public static void saveTransactions() {
+		if(paymentTransactions.size() > 0) {
+			try (Connection con = Db.getConnection()) {
+				TransactionDb.saveTransactions(con, paymentTransactions);
+			}
+			catch(SQLException e) {
+				throw new RuntimeException(e.toString(), e);
+			}
+			paymentTransactions.clear();
 		}
 	}
 	
@@ -181,7 +209,7 @@ public class Subscription implements Comparable<Subscription> {
 		return id;
 	}
 	
-	private synchronized boolean process(int blockTime) {
+	private synchronized boolean process(Long blockId, int blockHeight, int blockTime, boolean apply, boolean scanning) throws NotValidException {
 		if(blockTime < timeNext) {
 			return true;
 		}
@@ -189,15 +217,39 @@ public class Subscription implements Comparable<Subscription> {
 		Account sender = Account.getAccount(senderId);
 		Account recipient = Account.getAccount(recipientId);
 		
-		if(sender.getBalanceNQT() < amountNQT) {
+		long totalAmountNQT = Convert.safeAdd(amountNQT, Convert.safeDivide(Constants.ONE_NXT, 10L));
+		
+		if(sender.getBalanceNQT() < totalAmountNQT) {
 			return false;
 		}
 		
-		sender.addToBalanceAndUnconfirmedBalanceNQT(-amountNQT);
-		recipient.addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
-		
-		timeLast = timeNext;
-		timeNext += frequency;
+		if(apply) {
+			sender.addToBalanceAndUnconfirmedBalanceNQT(-totalAmountNQT);
+			recipient.addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
+			
+			timeLast = timeNext;
+			timeNext += frequency;
+			
+			if(!scanning) {
+				Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentSubscriptionPayment(id);
+				TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte) 1,
+																			  sender.getPublicKey(), amountNQT,
+																			  Convert.safeDivide(Constants.ONE_NXT, 10L),
+																			  timeLast, (short)1440, attachment);
+				builder.referencedTransactionFullHash((String)null)
+					   .signature(null)
+					   .blockId(blockId)
+					   .height(blockHeight)
+					   .id(null)
+					   .senderId(null)
+					   .blockTimestamp(blockTime)
+					   .fullHash((String)null)
+					   .ecBlockHeight(0)
+					   .ecBlockId(null);
+				TransactionImpl transaction = builder.build();
+				paymentTransactions.add(transaction);
+			}
+		}
 		
 		return true;
 	}

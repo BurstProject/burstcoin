@@ -59,7 +59,7 @@ public abstract class TransactionType {
     // reserved 3 for escrow result unsigned
     private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_SUBSCRIBE = 4;
     private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_CANCEL = 5;
-    // reserved 6 for subscription payment
+    private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT = 6;
 
     private static final int BASELINE_FEE_HEIGHT = 1; // At release time must be less than current block - 1440
     private static final Fee BASELINE_FEE = new Fee(Constants.ONE_NXT, 0);
@@ -160,6 +160,8 @@ public abstract class TransactionType {
 	            		return AdvancedPayment.SUBSCRIPTION_SUBSCRIBE;
 	            	case SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_CANCEL:
 	            		return AdvancedPayment.SUBSCRIPTION_CANCEL;
+	            	case SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT:
+	            		return AdvancedPayment.SUBSCRIPTION_PAYMENT;
             		default:
             			return null;
             	}
@@ -240,6 +242,10 @@ public abstract class TransactionType {
     }
 
     public abstract boolean hasRecipient();
+    
+    public boolean isSigned() {
+    	return true;
+    }
 
     @Override
     public final String toString() {
@@ -1991,7 +1997,7 @@ public abstract class TransactionType {
 				   attachment.getFrequency() > Constants.BURST_SUBSCRIPTION_MAX_FREQ) {
 					throw new NxtException.NotValidException("Invalid subscription frequency");
 				}
-				if(transaction.getAmountNQT() < Constants.ONE_NXT) {
+				if(transaction.getAmountNQT() < Constants.ONE_NXT || transaction.getAmountNQT() > Constants.MAX_BALANCE_NQT) {
 					throw new NxtException.NotValidException("Subscriptions must be at least one burst");
 				}
 				if(transaction.getSenderId().equals(transaction.getRecipientId())) {
@@ -2079,6 +2085,61 @@ public abstract class TransactionType {
 			}
 		};
 	}
+	
+	public final static TransactionType SUBSCRIPTION_PAYMENT = new AdvancedPayment() {
+		
+		@Override
+		public final byte getSubtype() {
+			return TransactionType.SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT;
+		}
+		
+		@Override
+		Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+			return new Attachment.AdvancedPaymentSubscriptionPayment(buffer, transactionVersion);
+		}
+		
+		@Override
+		Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+			return new Attachment.AdvancedPaymentSubscriptionPayment(attachmentData);
+		}
+		
+		@Override
+		final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+			return false;
+		}
+		
+		@Override
+		final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+		}
+		
+		@Override
+		final void undoAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) throws UndoNotSupportedException {
+		}
+		
+		@Override
+		final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+		}
+		
+		@Override
+		boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+			return true;
+		}
+		
+		@Override
+		void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+			throw new NxtException.NotValidException("Subscription payment never validates");
+		}
+		
+		@Override
+		final public boolean hasRecipient() {
+			return true;
+		}
+		
+		@Override
+		final public boolean isSigned() {
+			return false;
+		}
+	};
 
     long minimumFeeNQT(int height, int appendagesSize) {
         if (height < BASELINE_FEE_HEIGHT) {

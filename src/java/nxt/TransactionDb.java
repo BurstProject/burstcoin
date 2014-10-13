@@ -147,7 +147,7 @@ final class TransactionDb {
 
     static List<TransactionImpl> findBlockTransactions(Connection con, long blockId) {
         List<TransactionImpl> list = new ArrayList<>();
-        try (PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE block_id = ? ORDER BY id")) {
+        try (PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE block_id = ? AND signature IS NOT NULL ORDER BY id")) {
             pstmt.setLong(1, blockId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -182,7 +182,11 @@ final class TransactionDb {
                     DbUtils.setBytes(pstmt, ++i, Convert.parseHexString(transaction.getReferencedTransactionFullHash()));
                     pstmt.setInt(++i, transaction.getHeight());
                     pstmt.setLong(++i, transaction.getBlockId());
-                    pstmt.setBytes(++i, transaction.getSignature());
+                    if(transaction.getSignature() != null) {
+                    	pstmt.setBytes(++i, transaction.getSignature());
+                    } else {
+                    	pstmt.setNull(++i, Types.BINARY);
+                    }
                     pstmt.setInt(++i, transaction.getTimestamp());
                     pstmt.setByte(++i, transaction.getType().getType());
                     pstmt.setByte(++i, transaction.getType().getSubtype());

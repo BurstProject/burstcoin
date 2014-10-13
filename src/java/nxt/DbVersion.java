@@ -432,6 +432,8 @@ final class DbVersion {
             case 137:
             	apply("CREATE INDEX IF NOT EXISTS escrow_decision_account_id_height_idx ON escrow_decision (account_id, height DESC)");
             case 138:
+            	apply("ALTER TABLE transaction ALTER COLUMN signature SET NULL");
+            case 139:
                 return;
             default:
                 throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");
