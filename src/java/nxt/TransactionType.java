@@ -60,7 +60,7 @@ public abstract class TransactionType {
     // reserved 3 for escrow result unsigned
     private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_SUBSCRIBE = 4;
     private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_CANCEL = 5;
-    // reserved 6 for subscription payment
+    private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT = 6;
 
     public static TransactionType findTransactionType(byte type, byte subtype) {
         switch (type) {
@@ -154,6 +154,8 @@ public abstract class TransactionType {
 	            		return AdvancedPayment.SUBSCRIPTION_SUBSCRIBE;
 	            	case SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_CANCEL:
 	            		return AdvancedPayment.SUBSCRIPTION_CANCEL;
+	            	case SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT:
+	            		return AdvancedPayment.SUBSCRIPTION_PAYMENT;
             		default:
             			return null;
             	}
@@ -248,6 +250,10 @@ public abstract class TransactionType {
     }
 
     public abstract boolean hasRecipient();
+    
+    public boolean isSigned() {
+    	return true;
+    }
 
     @Override
     public final String toString() {
@@ -1997,6 +2003,11 @@ public static abstract class BurstMining extends TransactionType {
 				if(transaction.getAmountNQT() != 0) {
 					throw new NxtException.NotValidException("Transaction sent amount must be 0 for escrow");
 				}
+				if(totalAmountNQT.compareTo(0L) < 0 ||
+				   totalAmountNQT.compareTo(Constants.MAX_BALANCE_NQT) > 0)
+				{
+					throw new NxtException.NotValidException("Invalid escrow creation amount");
+				}
 				if(transaction.getFeeNQT() < Constants.ONE_NXT) {
 					throw new NxtException.NotValidException("Escrow transaction must have a fee at least 1 burst");
 				}
@@ -2161,7 +2172,7 @@ public static abstract class BurstMining extends TransactionType {
 				   attachment.getFrequency() > Constants.BURST_SUBSCRIPTION_MAX_FREQ) {
 					throw new NxtException.NotValidException("Invalid subscription frequency");
 				}
-				if(transaction.getAmountNQT() < Constants.ONE_NXT) {
+				if(transaction.getAmountNQT() < Constants.ONE_NXT || transaction.getAmountNQT() > Constants.MAX_BALANCE_NQT) {
 					throw new NxtException.NotValidException("Subscriptions must be at least one burst");
 				}
 				if(transaction.getSenderId().equals(transaction.getRecipientId())) {
@@ -2249,6 +2260,61 @@ public static abstract class BurstMining extends TransactionType {
 			}
 		};
 	}
+	
+	public final static TransactionType SUBSCRIPTION_PAYMENT = new AdvancedPayment() {
+		
+		@Override
+		public final byte getSubtype() {
+			return TransactionType.SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT;
+		}
+		
+		@Override
+		Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+			return new Attachment.AdvancedPaymentSubscriptionPayment(buffer, transactionVersion);
+		}
+		
+		@Override
+		Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+			return new Attachment.AdvancedPaymentSubscriptionPayment(attachmentData);
+		}
+		
+		@Override
+		final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+			return false;
+		}
+		
+		@Override
+		final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+		}
+		
+		@Override
+		final void undoAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) throws UndoNotSupportedException {
+		}
+		
+		@Override
+		final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+		}
+		
+		@Override
+		boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+			return true;
+		}
+		
+		@Override
+		void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+			throw new NxtException.NotValidException("Subscription payment never validates");
+		}
+		
+		@Override
+		final public boolean hasRecipient() {
+			return true;
+		}
+		
+		@Override
+		final public boolean isSigned() {
+			return false;
+		}
+	};
 
     public static final class UndoNotSupportedException extends NxtException {
 

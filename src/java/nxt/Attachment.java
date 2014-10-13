@@ -1815,4 +1815,48 @@ public interface Attachment extends Appendix {
     	
     	public Long getSubscriptionId() { return this.subscriptionId; }
     }
+    
+    public final static class AdvancedPaymentSubscriptionPayment extends AbstractAttachment {
+    	
+    	private final Long subscriptionId;
+    	
+    	AdvancedPaymentSubscriptionPayment(ByteBuffer buffer, byte transactionVersion) {
+    		super(buffer, transactionVersion);
+    		this.subscriptionId = buffer.getLong();
+    	}
+    	
+    	AdvancedPaymentSubscriptionPayment(JSONObject attachmentData) {
+    		super(attachmentData);
+    		this.subscriptionId = (Long) attachmentData.get("subscriptionId");
+    	}
+    	
+    	public AdvancedPaymentSubscriptionPayment(Long subscriptionId) {
+    		this.subscriptionId = subscriptionId;
+    	}
+    	
+    	@Override
+    	String getAppendixName() {
+    		return "SubscriptionPayment";
+    	}
+    	
+    	@Override
+    	int getMySize() {
+    		return 8;
+    	}
+    	
+    	@Override
+    	void putMyBytes(ByteBuffer buffer) {
+    		buffer.putLong(this.subscriptionId);
+    	}
+    	
+    	@Override
+    	void putMyJSON(JSONObject attachment) {
+    		attachment.put("subscriptionId", this.subscriptionId);
+    	}
+    	
+    	@Override
+    	public TransactionType getTransactionType() {
+    		return TransactionType.AdvancedPayment.SUBSCRIPTION_PAYMENT;
+    	}
+    }
 }

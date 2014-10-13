@@ -233,13 +233,15 @@ final class TransactionImpl implements Transaction {
         }
         this.appendagesSize = appendagesSize;
 
-        if ((deadline < 1 || feeNQT < Constants.ONE_NXT)
-                || feeNQT > Constants.MAX_BALANCE_NQT
-                || amountNQT < 0
-                || amountNQT > Constants.MAX_BALANCE_NQT
-                || type == null) {
-            throw new NxtException.NotValidException("Invalid transaction parameters:\n type: " + type + ", timestamp: " + timestamp
-                    + ", deadline: " + deadline + ", fee: " + feeNQT + ", amount: " + amountNQT);
+        if(type == null || type.isSigned()) {
+        	if ((deadline < 1 || feeNQT < Constants.ONE_NXT)
+                    || feeNQT > Constants.MAX_BALANCE_NQT
+                    || amountNQT < 0
+                    || amountNQT > Constants.MAX_BALANCE_NQT
+                    || type == null) {
+                throw new NxtException.NotValidException("Invalid transaction parameters:\n type: " + type + ", timestamp: " + timestamp
+                        + ", deadline: " + deadline + ", fee: " + feeNQT + ", amount: " + amountNQT);
+            }
         }
 
         if (attachment == null || type != attachment.getTransactionType()) {
@@ -367,13 +369,13 @@ final class TransactionImpl implements Transaction {
     @Override
     public Long getId() {
         if (id == null) {
-            if (signature == null) {
+            if (signature == null && type.isSigned()) {
                 throw new IllegalStateException("Transaction is not signed yet");
             }
             byte[] hash;
             if (useNQT()) {
                 byte[] data = zeroSignature(getBytes());
-                byte[] signatureHash = Crypto.sha256().digest(signature);
+                byte[] signatureHash = Crypto.sha256().digest(signature != null ? signature : new byte[64]);
                 MessageDigest digest = Crypto.sha256();
                 digest.update(data);
                 hash = digest.digest(signatureHash);

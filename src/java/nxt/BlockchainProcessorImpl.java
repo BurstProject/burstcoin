@@ -1,5 +1,6 @@
 package nxt;
 
+import nxt.NxtException.NotValidException;
 import nxt.crypto.Crypto;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
@@ -10,6 +11,7 @@ import nxt.util.Listener;
 import nxt.util.Listeners;
 import nxt.util.Logger;
 import nxt.util.ThreadPool;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -494,6 +496,16 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
                 Set<Long> unappliedUnconfirmed = transactionProcessor.undoAllUnconfirmed();
                 Set<Long> appliedUnconfirmed = new HashSet<>();
+                
+                if(Subscription.isEnabled()) {
+                	try {
+						calculatedTotalFee += Subscription.updateOnBlock(block.getId(), previousLastBlock.getHeight() + 1, block.getTimestamp(), true, false);
+					} catch (NotValidException e) {
+						Logger.logErrorMessage("Failed to process subscriptions when pushing block", e);
+						e.printStackTrace();
+						throw new BlockNotAcceptedException("Subscription processing failed");
+					}
+                }
 
                 try {
 
@@ -591,7 +603,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 	Escrow.updateOnBlock(block.getId(), block.getTimestamp());
                 }
                 if(Subscription.isEnabled()) {
-                	Subscription.updateOnBlock(block.getId(), block.getTimestamp());
+                	Subscription.saveTransactions();
                 }
                 blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
                 blockListeners.notify(block, Event.BLOCK_PUSHED);
@@ -661,6 +673,16 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         int payloadLength = 0;
         
         int blockTimestamp = Convert.getEpochTime();
+        
+        if(Subscription.isEnabled()) {
+        	try {
+				totalFeeNQT += Subscription.updateOnBlock(null, 0, blockTimestamp, false, true);
+			} catch (NotValidException e) {
+				Logger.logErrorMessage("Failed to process subscriptions when generating block", e);
+				e.printStackTrace();
+				return true;
+			}
+        }
 
         while (payloadLength <= Constants.MAX_PAYLOAD_LENGTH && newTransactions.size() <= Constants.MAX_NUMBER_OF_TRANSACTIONS) {
 
@@ -782,6 +804,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             return timestamp - transaction.getTimestamp() < 60 * 1440 * 60 && count < 10;
         }
         transaction = TransactionDb.findTransactionByFullHash(transaction.getReferencedTransactionFullHash());
+        if(!Subscription.isEnabled()) {
+        	if(transaction != null && transaction.getSignature() == null) {
+        		transaction = null;
+        	}
+        }
         return transaction != null && hasAllReferencedTransactions(transaction, timestamp, count + 1);
     }
 
@@ -826,6 +853,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                         		Logger.logDebugMessage("Wrong genesis block id set. Should be: " + currentBlock.getId().toString());
                         	}
                             throw new NxtException.NotValidException("Database blocks in the wrong order!");
+                        }
+                        if(Subscription.isEnabled()) {
+                        	Subscription.updateOnBlock(currentBlock.getId(), currentBlock.getHeight(), currentBlock.getTimestamp(), true, true);
                         }
                         if (validateAtScan && ! currentBlockId.equals(Genesis.GENESIS_BLOCK_ID)) {
                             if (!currentBlock.verifyBlockSignature() || !currentBlock.verifyGenerationSignature()) {
@@ -880,9 +910,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                         if(Escrow.isEnabled()) {
                         	Escrow.updateOnBlock(currentBlock.getId(), currentBlock.getTimestamp());
                         }
-                        if(Subscription.isEnabled()) {
-                        	Subscription.updateOnBlock(currentBlock.getId(), currentBlock.getTimestamp());
-                        }
+                        //if(Subscription.isEnabled()) {
+                        //	Subscription.updateOnBlock(currentBlock.getId(), currentBlock.getTimestamp(), true, true);
+                        //}
                         blockListeners.notify(currentBlock, Event.AFTER_BLOCK_APPLY);
                         blockListeners.notify(currentBlock, Event.BLOCK_SCANNED);
                         currentBlockId = currentBlock.getNextBlockId();

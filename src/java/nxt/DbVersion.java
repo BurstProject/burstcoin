@@ -294,6 +294,8 @@ final class DbVersion {
             case 70:
                 apply("DROP INDEX transaction_timestamp_idx");
             case 71:
+            	apply("ALTER TABLE transaction ALTER COLUMN signature SET NULL");
+            case 72:
                 return;
             default:
                 throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");
