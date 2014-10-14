@@ -298,10 +298,10 @@ public final class JSONData {
     
     static JSONObject subscription(Subscription subscription) {
     	JSONObject json = new JSONObject();
-    	json.put("id", subscription.getId());
+    	json.put("id", Convert.toUnsignedLong(subscription.getId()));
     	putAccount(json, "sender", subscription.getSenderId());
     	putAccount(json, "recipient", subscription.getRecipientId());
-    	json.put("amountNQT", subscription.getAmountNQT());
+    	json.put("amountNQT", Convert.toUnsignedLong(subscription.getAmountNQT()));
     	json.put("frequency", subscription.getFrequency());
     	json.put("timeStart", subscription.getTimeStart());
     	json.put("timeLast", subscription.getTimeLast());

@@ -484,7 +484,8 @@ public class Escrow {
 		Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentEscrowResult(escrowId, decision);
 		TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte)1, Genesis.CREATOR_PUBLIC_KEY,
 																	  amountNQT, 0L, blockTime, (short)1440, attachment);
-		builder.recipientId(recipientId)
+		builder.senderId(0L)
+		   .recipientId(recipientId)
 		   .referencedTransactionFullHash((String)null)
 		   .signature(null)
 		   .blockId(blockId)
@@ -494,7 +495,7 @@ public class Escrow {
 		   .blockTimestamp(blockTime)
 		   .fullHash((String)null)
 		   .ecBlockHeight(0)
-		   .ecBlockId(null);
+		   .ecBlockId(0L);
 		
 		List<TransactionImpl> transactionList = new ArrayList<>();
 		try {
@@ -507,6 +508,7 @@ public class Escrow {
 		
 		try (Connection con = Db.getConnection()) {
 			TransactionDb.saveTransactions(con, transactionList);
+			con.commit();
 		}
 		catch(SQLException e) {
 			throw new RuntimeException(e.toString(), e);
