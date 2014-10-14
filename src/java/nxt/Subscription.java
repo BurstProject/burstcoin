@@ -140,6 +140,7 @@ public class Subscription implements Comparable<Subscription> {
 		if(paymentTransactions.size() > 0) {
 			try (Connection con = Db.getConnection()) {
 				TransactionDb.saveTransactions(con, paymentTransactions);
+				con.commit();
 			}
 			catch(SQLException e) {
 				throw new RuntimeException(e.toString(), e);
@@ -252,7 +253,9 @@ public class Subscription implements Comparable<Subscription> {
 																			  sender.getPublicKey(), amountNQT,
 																			  Convert.safeDivide(Constants.ONE_NXT, 10L),
 																			  timeLast, (short)1440, attachment);
-				builder.referencedTransactionFullHash((String)null)
+				builder.senderId(senderId)
+					   .recipientId(recipientId)
+					   .referencedTransactionFullHash((String)null)
 					   .signature(null)
 					   .blockId(blockId)
 					   .height(blockHeight)
@@ -261,7 +264,7 @@ public class Subscription implements Comparable<Subscription> {
 					   .blockTimestamp(blockTime)
 					   .fullHash((String)null)
 					   .ecBlockHeight(0)
-					   .ecBlockId(null);
+					   .ecBlockId(0L);
 				TransactionImpl transaction = builder.build();
 				paymentTransactions.add(transaction);
 			}
@@ -274,7 +277,7 @@ public class Subscription implements Comparable<Subscription> {
 		if(prevBlockTime >= timeLast) {
 			return;
 		}
-		
+		// todo add back fee
 		Account sender = Account.getAccount(senderId);
 		Account recipient = Account.getAccount(recipientId);
 		
