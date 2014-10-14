@@ -600,11 +600,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
                 transactionProcessor.apply(block);
                 if(Escrow.isEnabled()) {
-                	Escrow.updateOnBlock(block.getId(), block.getTimestamp());
+                	Escrow.updateOnBlock(block.getId(), block.getHeight(), block.getTimestamp(), true);
                 }
-                if(Subscription.isEnabled()) {
-                	Subscription.saveTransactions();
-                }
+                Subscription.saveTransactions();
+                
                 blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
                 blockListeners.notify(block, Event.BLOCK_PUSHED);
                 transactionProcessor.updateUnconfirmedTransactions(block);
@@ -908,7 +907,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                             transaction.apply();
                         }
                         if(Escrow.isEnabled()) {
-                        	Escrow.updateOnBlock(currentBlock.getId(), currentBlock.getTimestamp());
+                        	Escrow.updateOnBlock(currentBlock.getId(), currentBlock.getHeight(), currentBlock.getTimestamp(), false);
                         }
                         //if(Subscription.isEnabled()) {
                         //	Subscription.updateOnBlock(currentBlock.getId(), currentBlock.getTimestamp(), true, true);

@@ -57,7 +57,7 @@ public abstract class TransactionType {
     private static final byte SUBTYPE_ADVANCED_PAYMENT_ESCROW_CREATION = 0;
     private static final byte SUBTYPE_ADVANCED_PAYMENT_ESCROW_SIGN = 1;
     // reserved 2 for escrow complete with password(for atomic cross-chain)
-    // reserved 3 for escrow result unsigned
+    private static final byte SUBTYPE_ADVANCED_PAYMENT_ESCROW_RESULT = 3;
     private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_SUBSCRIBE = 4;
     private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_CANCEL = 5;
     private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT = 6;
@@ -150,6 +150,8 @@ public abstract class TransactionType {
 	            		return AdvancedPayment.ESCROW_CREATION;
 	            	case SUBTYPE_ADVANCED_PAYMENT_ESCROW_SIGN:
 	            		return AdvancedPayment.ESCROW_SIGN;
+	            	case SUBTYPE_ADVANCED_PAYMENT_ESCROW_RESULT:
+	            		return AdvancedPayment.ESCROW_RESULT;
 	            	case SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_SUBSCRIBE:
 	            		return AdvancedPayment.SUBSCRIPTION_SUBSCRIBE;
 	            	case SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_CANCEL:
@@ -2122,6 +2124,61 @@ public static abstract class BurstMining extends TransactionType {
 			}
 		};
 		
+		public final static TransactionType ESCROW_RESULT = new AdvancedPayment() {
+			
+			@Override
+			public final byte getSubtype() {
+				return TransactionType.SUBTYPE_ADVANCED_PAYMENT_ESCROW_RESULT;
+			}
+			
+			@Override
+			Attachment.AdvancedPaymentEscrowResult parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+				return new Attachment.AdvancedPaymentEscrowResult(buffer, transactionVersion);
+			}
+			
+			@Override
+			Attachment.AdvancedPaymentEscrowResult parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+				return new Attachment.AdvancedPaymentEscrowResult(attachmentData);
+			}
+			
+			@Override
+			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+				return false;
+			}
+			
+			@Override
+			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+			}
+			
+			@Override
+			final void undoAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) throws UndoNotSupportedException {
+			}
+			
+			@Override
+			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+			}
+			
+			@Override
+			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+				return true;
+			}
+			
+			@Override
+			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+				throw new NxtException.NotValidException("Escrow result never validates");
+			}
+			
+			@Override
+			final public boolean hasRecipient() {
+				return true;
+			}
+			
+			@Override
+			final public boolean isSigned() {
+				return false;
+			}
+		};
+		
 		public final static TransactionType SUBSCRIPTION_SUBSCRIBE = new AdvancedPayment() {
 			
 			@Override
@@ -2168,8 +2225,8 @@ public static abstract class BurstMining extends TransactionType {
 			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
 				Attachment.AdvancedPaymentSubscriptionSubscribe attachment = (Attachment.AdvancedPaymentSubscriptionSubscribe) transaction.getAttachment();
 				if(attachment.getFrequency() == null ||
-				   attachment.getFrequency() < Constants.BURST_SUBSCRIPTION_MIN_FREQ ||
-				   attachment.getFrequency() > Constants.BURST_SUBSCRIPTION_MAX_FREQ) {
+				   attachment.getFrequency().intValue() < Constants.BURST_SUBSCRIPTION_MIN_FREQ ||
+				   attachment.getFrequency().intValue() > Constants.BURST_SUBSCRIPTION_MAX_FREQ) {
 					throw new NxtException.NotValidException("Invalid subscription frequency");
 				}
 				if(transaction.getAmountNQT() < Constants.ONE_NXT || transaction.getAmountNQT() > Constants.MAX_BALANCE_NQT) {

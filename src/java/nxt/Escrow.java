@@ -1,5 +1,7 @@
 package nxt;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -141,13 +143,13 @@ public class Escrow {
 		escrowTransactions.remove(id);
 	}
 	
-	public static void updateOnBlock(Long blockId, int timestamp) {
+	public static void updateOnBlock(Long blockId, int blockHeight, int timestamp, boolean saveTransaction) {
 		Iterator<Entry<Long, Escrow>> it = escrowTransactions.entrySet().iterator();
 		while(it.hasNext()) {
 			Entry<Long, Escrow> escrow = it.next();
 			if(escrow.getValue().isComplete() ||
 			   escrow.getValue().getDeadline() < timestamp) {
-				escrow.getValue().doPayout();
+				escrow.getValue().doPayout(blockId, blockHeight, timestamp, saveTransaction);
 				lastUnpoppableBlock = blockId;
 				it.remove();
 			}
@@ -296,7 +298,7 @@ public class Escrow {
 		return;
 	}
 	
-	private synchronized Decision doPayout() {
+	private synchronized Decision doPayout(Long blockId, int blockHeight, int blockTime, boolean saveTransaction) {
 		Decision result = deadlineAction; // default to deadline up if no other result
 		
 		if(release) {
@@ -318,14 +320,24 @@ public class Escrow {
 		switch(result) {
 		case RELEASE:
 			Account.getAccount(recipientId).addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
+			if(saveTransaction) {
+				saveResultTransaction(blockId, blockHeight, blockTime, id, recipientId, amountNQT, Decision.RELEASE);
+			}
 			break;
 		case REFUND:
 			Account.getAccount(senderId).addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
+			if(saveTransaction) {
+				saveResultTransaction(blockId, blockHeight, blockTime, id, senderId, amountNQT, Decision.REFUND);
+			}
 			break;
 		case SPLIT:
 			Long halfAmountNQT = amountNQT / 2;
 			Account.getAccount(recipientId).addToBalanceAndUnconfirmedBalanceNQT(halfAmountNQT);
 			Account.getAccount(senderId).addToBalanceAndUnconfirmedBalanceNQT(amountNQT - halfAmountNQT);
+			if(saveTransaction) {
+				saveResultTransaction(blockId, blockHeight, blockTime, id, recipientId, halfAmountNQT, Decision.SPLIT);
+				saveResultTransaction(blockId, blockHeight, blockTime, id, senderId, amountNQT - halfAmountNQT, Decision.SPLIT);
+			}
 			break;
 		default: // should never get here
 			break;
@@ -333,5 +345,37 @@ public class Escrow {
 		
 		return result;
 	}
-
+	
+	private static void saveResultTransaction(Long blockId, int blockHeight, int blockTime, Long escrowId, Long recipientId, Long amountNQT, Decision decision) {
+		Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentEscrowResult(escrowId, decision);
+		TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte)1, Genesis.CREATOR_PUBLIC_KEY,
+																	  amountNQT, 0L, blockTime, (short)1440, attachment);
+		builder.recipientId(recipientId)
+		   .referencedTransactionFullHash((String)null)
+		   .signature(null)
+		   .blockId(blockId)
+		   .height(blockHeight)
+		   .id(null)
+		   .senderId(null)
+		   .blockTimestamp(blockTime)
+		   .fullHash((String)null)
+		   .ecBlockHeight(0)
+		   .ecBlockId(null);
+		
+		List<TransactionImpl> transactionList = new ArrayList<>();
+		try {
+			TransactionImpl transaction = builder.build();
+			transactionList.add(transaction);
+		}
+		catch(NxtException.NotValidException e) {
+			throw new RuntimeException(e.toString(), e);
+		}
+		
+		try (Connection con = Db.getConnection()) {
+			TransactionDb.saveTransactions(con, transactionList);
+		}
+		catch(SQLException e) {
+			throw new RuntimeException(e.toString(), e);
+		}
+	}
 }

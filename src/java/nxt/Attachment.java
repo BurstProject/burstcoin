@@ -1724,6 +1724,56 @@ public interface Attachment extends Appendix {
     	public Escrow.Decision getDecision() { return this.decision; }
     }
     
+    public final static class AdvancedPaymentEscrowResult extends AbstractAttachment {
+    	
+    	private final Long escrowId;
+    	private final Escrow.Decision decision;
+    	
+    	AdvancedPaymentEscrowResult(ByteBuffer buffer, byte transactionVersion) {
+    		super(buffer, transactionVersion);
+    		this.escrowId = buffer.getLong();
+    		this.decision = Escrow.byteToDecision(buffer.get());
+    	}
+    	
+    	AdvancedPaymentEscrowResult(JSONObject attachmentData) {
+    		super(attachmentData);
+    		this.escrowId = (Long) attachmentData.get("escrowId");
+    		this.decision = Escrow.stringToDecision((String)attachmentData.get("decision"));
+    	}
+    	
+    	public AdvancedPaymentEscrowResult(Long escrowId, Escrow.Decision decision) {
+    		this.escrowId = escrowId;
+    		this.decision = decision;
+    	}
+    	
+    	@Override
+    	String getAppendixName() {
+    		return "EscrowResult";
+    	}
+    	
+    	@Override
+    	int getMySize() {
+    		return 8 + 1;
+    	}
+    	
+    	@Override
+    	void putMyBytes(ByteBuffer buffer) {
+    		buffer.putLong(this.escrowId);
+    		buffer.put(Escrow.decisionToByte(this.decision));
+    	}
+    	
+    	@Override
+    	void putMyJSON(JSONObject attachment) {
+    		attachment.put("escrowId", this.escrowId);
+    		attachment.put("decision", Escrow.decisionToString(this.decision));
+    	}
+    	
+    	@Override
+    	public TransactionType getTransactionType() {
+    		return TransactionType.AdvancedPayment.ESCROW_RESULT;
+    	}
+    }
+    
     public final static class AdvancedPaymentSubscriptionSubscribe extends AbstractAttachment {
     	
     	private final Integer frequency;
