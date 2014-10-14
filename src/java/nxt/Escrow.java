@@ -1,5 +1,7 @@
 package nxt;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -268,7 +270,7 @@ public class Escrow {
 		escrowTable.delete(escrow);
 	}
 	
-	public static void updateOnBlock(Long blockId, int timestamp) {
+	public static void updateOnBlock(Long blockId, int blockHeight, int timestamp, int timestamp, boolean saveTransaction) {
 		if(updatedEscrowIds.size() > 0) {
 			for(Long escrowId : updatedEscrowIds) {
 				Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(escrowId));
@@ -277,7 +279,7 @@ public class Escrow {
 					if(result == DecisionType.UNDECIDED) {
 						result = escrow.getDeadlineAction();
 					}
-					escrow.doPayout(result);
+					escrow.doPayout(result, blockId, blockHeight, timestamp, saveTransaction);
 					
 					removeEscrowTransaction(escrowId);
 				}
@@ -450,21 +452,64 @@ public class Escrow {
 		return DecisionType.UNDECIDED;
 	}
 	
-	private synchronized void doPayout(DecisionType result) {
+	private synchronized void doPayout(DecisionType result, Long blockId, int blockHeight, int blockTime, boolean saveTransaction) {
 		switch(result) {
 		case RELEASE:
 			Account.getAccount(recipientId).addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
+			if(saveTransaction) {
+				saveResultTransaction(blockId, blockHeight, blockTime, id, recipientId, amountNQT, DecisionType.RELEASE);
+			}
 			break;
 		case REFUND:
 			Account.getAccount(senderId).addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
+			if(saveTransaction) {
+				saveResultTransaction(blockId, blockHeight, blockTime, id, senderId, amountNQT, DecisionType.REFUND);
+			}
 			break;
 		case SPLIT:
 			Long halfAmountNQT = amountNQT / 2;
 			Account.getAccount(recipientId).addToBalanceAndUnconfirmedBalanceNQT(halfAmountNQT);
 			Account.getAccount(senderId).addToBalanceAndUnconfirmedBalanceNQT(amountNQT - halfAmountNQT);
+			if(saveTransaction) {
+				saveResultTransaction(blockId, blockHeight, blockTime, id, recipientId, halfAmountNQT, DecisionType.SPLIT);
+				saveResultTransaction(blockId, blockHeight, blockTime, id, senderId, amountNQT - halfAmountNQT, DecisionType.SPLIT);
+			}
 			break;
 		default: // should never get here
 			break;
+		}
+	}
+	
+	private static void saveResultTransaction(Long blockId, int blockHeight, int blockTime, Long escrowId, Long recipientId, Long amountNQT, DecisionType decision) {
+		Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentEscrowResult(escrowId, decision);
+		TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte)1, Genesis.CREATOR_PUBLIC_KEY,
+																	  amountNQT, 0L, blockTime, (short)1440, attachment);
+		builder.recipientId(recipientId)
+		   .referencedTransactionFullHash((String)null)
+		   .signature(null)
+		   .blockId(blockId)
+		   .height(blockHeight)
+		   .id(null)
+		   .senderId(null)
+		   .blockTimestamp(blockTime)
+		   .fullHash((String)null)
+		   .ecBlockHeight(0)
+		   .ecBlockId(null);
+		
+		List<TransactionImpl> transactionList = new ArrayList<>();
+		try {
+			TransactionImpl transaction = builder.build();
+			transactionList.add(transaction);
+		}
+		catch(NxtException.NotValidException e) {
+			throw new RuntimeException(e.toString(), e);
+		}
+		
+		try (Connection con = Db.getConnection()) {
+			TransactionDb.saveTransactions(con, transactionList);
+		}
+		catch(SQLException e) {
+			throw new RuntimeException(e.toString(), e);
 		}
 	}
 }

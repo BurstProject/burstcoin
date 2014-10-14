@@ -12,6 +12,7 @@ import nxt.Escrow;
 import nxt.Nxt;
 import nxt.Order;
 import nxt.Poll;
+import nxt.Subscription;
 import nxt.Token;
 import nxt.Trade;
 import nxt.Transaction;
@@ -293,6 +294,19 @@ public final class JSONData {
             json.put("refundNQT", String.valueOf(purchase.getRefundNQT()));
         }
         return json;
+    }
+    
+    static JSONObject subscription(Subscription subscription) {
+    	JSONObject json = new JSONObject();
+    	json.put("id", subscription.getId());
+    	putAccount(json, "sender", subscription.getSenderId());
+    	putAccount(json, "recipient", subscription.getRecipientId());
+    	json.put("amountNQT", subscription.getAmountNQT());
+    	json.put("frequency", subscription.getFrequency());
+    	json.put("timeStart", subscription.getTimeStart());
+    	json.put("timeLast", subscription.getTimeLast());
+    	json.put("timeNext", subscription.getTimeNext());
+    	return json;
     }
 
     static JSONObject trade(Trade trade) {

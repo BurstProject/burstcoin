@@ -169,7 +169,7 @@ public class Subscription implements Comparable<Subscription> {
 	}
 	
 	private final Long senderId;
-	private final long recipientId;
+	private final Long recipientId;
 	private final Long id;
 	private final Long amountNQT;
 	private final int frequency;
@@ -207,6 +207,22 @@ public class Subscription implements Comparable<Subscription> {
 	
 	public Long getId() {
 		return id;
+	}
+	
+	public int getFrequency() {
+		return frequency;
+	}
+	
+	public int getTimeStart() {
+		return timeStart;
+	}
+	
+	public int getTimeLast() {
+		return timeLast != 0 ? timeLast : timeStart;
+	}
+	
+	public int getTimeNext() {
+		return timeNext;
 	}
 	
 	private synchronized boolean process(Long blockId, int blockHeight, int blockTime, boolean apply, boolean scanning) throws NotValidException {
