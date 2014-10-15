@@ -357,7 +357,6 @@ public class Escrow {
 		   .blockId(blockId)
 		   .height(blockHeight)
 		   .id(null)
-		   .senderId(null)
 		   .blockTimestamp(blockTime)
 		   .fullHash((String)null)
 		   .ecBlockHeight(0)

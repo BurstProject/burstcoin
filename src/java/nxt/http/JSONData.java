@@ -328,6 +328,10 @@ public final class JSONData {
             json.put("fullHash", transaction.getFullHash());
             json.put("transaction", transaction.getStringId());
         }
+        else if (!transaction.getType().isSigned()) {
+        	json.put("fullHash", transaction.getFullHash());
+            json.put("transaction", transaction.getStringId());
+        }
         JSONObject attachmentJSON = new JSONObject();
         for (Appendix appendage : transaction.getAppendages()) {
             attachmentJSON.putAll(appendage.getJSONObject());
