@@ -260,7 +260,6 @@ public class Subscription implements Comparable<Subscription> {
 					   .blockId(blockId)
 					   .height(blockHeight)
 					   .id(null)
-					   .senderId(null)
 					   .blockTimestamp(blockTime)
 					   .fullHash((String)null)
 					   .ecBlockHeight(0)
@@ -277,12 +276,14 @@ public class Subscription implements Comparable<Subscription> {
 		if(prevBlockTime >= timeLast) {
 			return;
 		}
-		// todo add back fee
+		
 		Account sender = Account.getAccount(senderId);
 		Account recipient = Account.getAccount(recipientId);
 		
+		long totalAmountNQT = Convert.safeAdd(amountNQT, Convert.safeDivide(Constants.ONE_NXT, 10L));
+		
 		recipient.addToBalanceAndUnconfirmedBalanceNQT(-amountNQT);
-		sender.addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
+		sender.addToBalanceAndUnconfirmedBalanceNQT(totalAmountNQT);
 		
 		timeNext = timeLast;
 		timeLast -= frequency;
