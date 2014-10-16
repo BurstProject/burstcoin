@@ -24,7 +24,7 @@ public final class JSONResponses {
     public static final JSONStreamAware INCORRECT_DEADLINE = incorrect("deadline");
     public static final JSONStreamAware INCORRECT_FEE = incorrect("fee");
     public static final JSONStreamAware MISSING_TRANSACTION_BYTES_OR_JSON = missing("transactionBytes", "transactionJSON");
-    public static final JSONStreamAware INCORRECT_TRANSACTION_BYTES = incorrect("transactionBytes");
+    public static final JSONStreamAware INCORRECT_TRANSACTION_BYTES_OR_JSON = incorrect("transactionBytes or transactionJSON");
     public static final JSONStreamAware MISSING_ORDER = missing("order");
     public static final JSONStreamAware INCORRECT_ORDER = incorrect("order");
     public static final JSONStreamAware UNKNOWN_ORDER = unknown("order");
@@ -218,6 +218,14 @@ public final class JSONResponses {
         response.put("errorCode", 8);
         response.put("errorDescription", "No attached message found");
         NO_MESSAGE = JSON.prepare(response);
+    }
+    
+    public static final JSONStreamAware HEIGHT_NOT_AVAILABLE;
+    static {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 8);
+        response.put("errorDescription", "Requested height not available");
+        HEIGHT_NOT_AVAILABLE = JSON.prepare(response);
     }
 
     private static JSONStreamAware missing(String... paramNames) {

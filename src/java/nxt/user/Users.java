@@ -381,9 +381,9 @@ public final class Users {
                 }
             }, Peers.Event.NEW_PEER);
 
-            Nxt.getTransactionProcessor().addListener(new Listener<List<Transaction>>() {
+            Nxt.getTransactionProcessor().addListener(new Listener<List<? extends Transaction>>() {
                 @Override
-                public void notify(List<Transaction> transactions) {
+                public void notify(List<? extends Transaction> transactions) {
                     JSONObject response = new JSONObject();
                     JSONArray removedUnconfirmedTransactions = new JSONArray();
                     for (Transaction transaction : transactions) {
@@ -396,9 +396,9 @@ public final class Users {
                 }
             }, TransactionProcessor.Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
 
-            Nxt.getTransactionProcessor().addListener(new Listener<List<Transaction>>() {
+            Nxt.getTransactionProcessor().addListener(new Listener<List<? extends Transaction>>() {
                 @Override
-                public void notify(List<Transaction> transactions) {
+                public void notify(List<? extends Transaction> transactions) {
                     JSONObject response = new JSONObject();
                     JSONArray addedUnconfirmedTransactions = new JSONArray();
                     for (Transaction transaction : transactions) {
@@ -418,9 +418,9 @@ public final class Users {
                 }
             }, TransactionProcessor.Event.ADDED_UNCONFIRMED_TRANSACTIONS);
 
-            Nxt.getTransactionProcessor().addListener(new Listener<List<Transaction>>() {
+            Nxt.getTransactionProcessor().addListener(new Listener<List<? extends Transaction>>() {
                 @Override
-                public void notify(List<Transaction> transactions) {
+                public void notify(List<? extends Transaction> transactions) {
                     JSONObject response = new JSONObject();
                     JSONArray addedConfirmedTransactions = new JSONArray();
                     for (Transaction transaction : transactions) {
@@ -440,9 +440,9 @@ public final class Users {
                 }
             }, TransactionProcessor.Event.ADDED_CONFIRMED_TRANSACTIONS);
 
-            Nxt.getTransactionProcessor().addListener(new Listener<List<Transaction>>() {
+            Nxt.getTransactionProcessor().addListener(new Listener<List<? extends Transaction>>() {
                 @Override
-                public void notify(List<Transaction> transactions) {
+                public void notify(List<? extends Transaction> transactions) {
                     JSONObject response = new JSONObject();
                     JSONArray newTransactions = new JSONArray();
                     for (Transaction transaction : transactions) {
@@ -470,7 +470,7 @@ public final class Users {
                     JSONObject addedOrphanedBlock = new JSONObject();
                     addedOrphanedBlock.put("index", Users.getIndex(block));
                     addedOrphanedBlock.put("timestamp", block.getTimestamp());
-                    addedOrphanedBlock.put("numberOfTransactions", block.getTransactionIds().size());
+                    addedOrphanedBlock.put("numberOfTransactions", block.getTransactions().size());
                     addedOrphanedBlock.put("totalAmountNQT", block.getTotalAmountNQT());
                     addedOrphanedBlock.put("totalFeeNQT", block.getTotalFeeNQT());
                     addedOrphanedBlock.put("payloadLength", block.getPayloadLength());
@@ -493,7 +493,7 @@ public final class Users {
                     JSONObject addedRecentBlock = new JSONObject();
                     addedRecentBlock.put("index", Users.getIndex(block));
                     addedRecentBlock.put("timestamp", block.getTimestamp());
-                    addedRecentBlock.put("numberOfTransactions", block.getTransactionIds().size());
+                    addedRecentBlock.put("numberOfTransactions", block.getTransactions().size());
                     addedRecentBlock.put("totalAmountNQT", block.getTotalAmountNQT());
                     addedRecentBlock.put("totalFeeNQT", block.getTotalFeeNQT());
                     addedRecentBlock.put("payloadLength", block.getPayloadLength());
@@ -603,7 +603,7 @@ public final class Users {
             try {
                 userServer.stop();
             } catch (Exception e) {
-                Logger.logDebugMessage("Failed to stop user interface server", e);
+                Logger.logShutdownMessage("Failed to stop user interface server", e);
             }
         }
     }

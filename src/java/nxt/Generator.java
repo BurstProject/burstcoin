@@ -196,7 +196,7 @@ public final class Generator {
     private void forge() {
         Block lastBlock = Nxt.getBlockchain().getLastBlock();
 
-        int elapsedTime = Convert.getEpochTime() - lastBlock.getTimestamp();
+        int elapsedTime = Nxt.getEpochTime() - lastBlock.getTimestamp();
         if (BigInteger.valueOf(elapsedTime).compareTo(deadline) > 0) {
             BlockchainProcessorImpl.getInstance().generateBlock(secretPhrase, publicKey, nonce);
         }

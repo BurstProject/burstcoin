@@ -14,11 +14,11 @@ package nxt;
  *
  *                                                                              Come-from-Beyond (21.05.2014)
  */
-final class EconomicClustering {
+public final class EconomicClustering {
 
     private static final Blockchain blockchain = BlockchainImpl.getInstance();
 
-    static Block getECBlockId(int timestamp) {
+    public static Block getECBlockId(int timestamp) {
         Block block = blockchain.getLastBlock();
         int distance = 0;
         while (block.getTimestamp() > timestamp - Constants.EC_RULE_TERMINATOR && distance < Constants.EC_BLOCK_DISTANCE_LIMIT) {
@@ -28,7 +28,7 @@ final class EconomicClustering {
         return block;
     }
 
-    static boolean verifyFork(Transaction transaction) {
+    public static boolean verifyFork(Transaction transaction) {
         if (blockchain.getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
             return true;
         }

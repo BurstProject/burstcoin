@@ -57,19 +57,15 @@ public final class Convert {
         return id.toString();
     }
 
-    public static String toUnsignedLong(Long objectId) {
-        return toUnsignedLong(nullToZero(objectId));
-    }
-
-    public static Long parseUnsignedLong(String number) {
+    public static long parseUnsignedLong(String number) {
         if (number == null) {
-            return null;
+            return 0;
         }
         BigInteger bigInt = new BigInteger(number.trim());
         if (bigInt.signum() < 0 || bigInt.compareTo(two64) != -1) {
             throw new IllegalArgumentException("overflow: " + number);
         }
-        return zeroToNull(bigInt.longValue());
+        return bigInt.longValue();
     }
 
     public static long parseLong(Object o) {
@@ -84,23 +80,23 @@ public final class Convert {
         }
     }
 
-    public static Long parseAccountId(String account) {
+    public static long parseAccountId(String account) {
         if (account == null) {
-            return null;
+            return 0;
         }
         account = account.toUpperCase();
         if (account.startsWith("BURST-")) {
-            return zeroToNull(Crypto.rsDecode(account.substring(6)));
+            return Crypto.rsDecode(account.substring(6));
         } else {
             return parseUnsignedLong(account);
         }
     }
 
-    public static String rsAccount(Long accountId) {
-        return "BURST-" + Crypto.rsEncode(nullToZero(accountId));
+    public static String rsAccount(long accountId) {
+        return "BURST-" + Crypto.rsEncode(accountId);
     }
 
-    public static Long fullHashToId(byte[] hash) {
+    public static long fullHashToId(byte[] hash) {
         if (hash == null || hash.length < 8) {
             throw new IllegalArgumentException("Invalid hash: " + Arrays.toString(hash));
         }
@@ -108,31 +104,15 @@ public final class Convert {
         return bigInteger.longValue();
     }
 
-    public static Long fullHashToId(String hash) {
+    public static long fullHashToId(String hash) {
         if (hash == null) {
-            return null;
+            return 0;
         }
         return fullHashToId(Convert.parseHexString(hash));
     }
 
-    public static int getEpochTime() {
-        return (int)((System.currentTimeMillis() - Constants.EPOCH_BEGINNING + 500) / 1000);
-    }
-
     public static Date fromEpochTime(int epochTime) {
         return new Date(epochTime * 1000L + Constants.EPOCH_BEGINNING - 500L);
-    }
-
-    public static Long zeroToNull(long l) {
-        return l == 0 ? null : l;
-    }
-
-    public static long nullToZero(Long l) {
-        return l == null ? 0 : l;
-    }
-
-    public static int nullToZero(Integer i) {
-        return i == null ? 0 : i;
     }
 
     public static String emptyToNull(String s) {
@@ -165,7 +145,7 @@ public final class Convert {
 
     public static String toString(byte[] bytes) {
         try {
-            return new String(bytes, "UTF-8").trim().intern();
+            return new String(bytes, "UTF-8").trim();
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e.toString(), e);
         }

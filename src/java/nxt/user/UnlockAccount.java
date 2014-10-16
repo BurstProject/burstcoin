@@ -4,8 +4,8 @@ import nxt.Account;
 import nxt.Block;
 import nxt.Nxt;
 import nxt.Transaction;
+import nxt.db.DbIterator;
 import nxt.util.Convert;
-import nxt.util.DbIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -56,7 +56,7 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
             }
         }
 
-        Long accountId = user.unlockAccount(secretPhrase);
+        long accountId = user.unlockAccount(secretPhrase);
 
         JSONObject response = new JSONObject();
         response.put("response", "unlockAccount");
@@ -83,41 +83,42 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
 
             JSONArray myTransactions = new JSONArray();
             byte[] accountPublicKey = account.getPublicKey();
-            for (Transaction transaction : Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+            try (DbIterator<? extends Transaction> transactions = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+                while (transactions.hasNext()) {
+                    Transaction transaction = transactions.next();
+                    if (Arrays.equals(transaction.getSenderPublicKey(), accountPublicKey)) {
 
-                if (Arrays.equals(transaction.getSenderPublicKey(), accountPublicKey)) {
+                        JSONObject myTransaction = new JSONObject();
+                        myTransaction.put("index", Users.getIndex(transaction));
+                        myTransaction.put("transactionTimestamp", transaction.getTimestamp());
+                        myTransaction.put("deadline", transaction.getDeadline());
+                        myTransaction.put("account", Convert.toUnsignedLong(transaction.getRecipientId()));
+                        myTransaction.put("sentAmountNQT", transaction.getAmountNQT());
+                        if (accountId == transaction.getRecipientId()) {
+                            myTransaction.put("receivedAmountNQT", transaction.getAmountNQT());
+                        }
+                        myTransaction.put("feeNQT", transaction.getFeeNQT());
+                        myTransaction.put("numberOfConfirmations", -1);
+                        myTransaction.put("id", transaction.getStringId());
 
-                    JSONObject myTransaction = new JSONObject();
-                    myTransaction.put("index", Users.getIndex(transaction));
-                    myTransaction.put("transactionTimestamp", transaction.getTimestamp());
-                    myTransaction.put("deadline", transaction.getDeadline());
-                    myTransaction.put("account", Convert.toUnsignedLong(transaction.getRecipientId()));
-                    myTransaction.put("sentAmountNQT", transaction.getAmountNQT());
-                    if (accountId.equals(transaction.getRecipientId())) {
+                        myTransactions.add(myTransaction);
+
+                    } else if (accountId == transaction.getRecipientId()) {
+
+                        JSONObject myTransaction = new JSONObject();
+                        myTransaction.put("index", Users.getIndex(transaction));
+                        myTransaction.put("transactionTimestamp", transaction.getTimestamp());
+                        myTransaction.put("deadline", transaction.getDeadline());
+                        myTransaction.put("account", Convert.toUnsignedLong(transaction.getSenderId()));
                         myTransaction.put("receivedAmountNQT", transaction.getAmountNQT());
+                        myTransaction.put("feeNQT", transaction.getFeeNQT());
+                        myTransaction.put("numberOfConfirmations", -1);
+                        myTransaction.put("id", transaction.getStringId());
+
+                        myTransactions.add(myTransaction);
+
                     }
-                    myTransaction.put("feeNQT", transaction.getFeeNQT());
-                    myTransaction.put("numberOfConfirmations", -1);
-                    myTransaction.put("id", transaction.getStringId());
-
-                    myTransactions.add(myTransaction);
-
-                } else if (accountId.equals(transaction.getRecipientId())) {
-
-                    JSONObject myTransaction = new JSONObject();
-                    myTransaction.put("index", Users.getIndex(transaction));
-                    myTransaction.put("transactionTimestamp", transaction.getTimestamp());
-                    myTransaction.put("deadline", transaction.getDeadline());
-                    myTransaction.put("account", Convert.toUnsignedLong(transaction.getSenderId()));
-                    myTransaction.put("receivedAmountNQT", transaction.getAmountNQT());
-                    myTransaction.put("feeNQT", transaction.getFeeNQT());
-                    myTransaction.put("numberOfConfirmations", -1);
-                    myTransaction.put("id", transaction.getStringId());
-
-                    myTransactions.add(myTransaction);
-
                 }
-
             }
 
             SortedSet<JSONObject> myTransactionsSet = new TreeSet<>(myTransactionsComparator);
@@ -143,14 +144,14 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
             try (DbIterator<? extends Transaction> transactionIterator = Nxt.getBlockchain().getTransactions(account, (byte) -1, (byte) -1, 0)) {
                 while (transactionIterator.hasNext()) {
                     Transaction transaction = transactionIterator.next();
-                    if (transaction.getSenderId().equals(accountId)) {
+                    if (transaction.getSenderId() == accountId) {
                         JSONObject myTransaction = new JSONObject();
                         myTransaction.put("index", Users.getIndex(transaction));
                         myTransaction.put("blockTimestamp", transaction.getBlockTimestamp());
                         myTransaction.put("transactionTimestamp", transaction.getTimestamp());
                         myTransaction.put("account", Convert.toUnsignedLong(transaction.getRecipientId()));
                         myTransaction.put("sentAmountNQT", transaction.getAmountNQT());
-                        if (accountId.equals(transaction.getRecipientId())) {
+                        if (accountId == transaction.getRecipientId()) {
                             myTransaction.put("receivedAmountNQT", transaction.getAmountNQT());
                         }
                         myTransaction.put("feeNQT", transaction.getFeeNQT());
@@ -158,7 +159,7 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
                         myTransaction.put("id", transaction.getStringId());
                         myTransaction.put("timestamp", transaction.getTimestamp());
                         myTransactionsSet.add(myTransaction);
-                    } else if (transaction.getRecipientId().equals(accountId)) {
+                    } else if (transaction.getRecipientId() == accountId) {
                         JSONObject myTransaction = new JSONObject();
                         myTransaction.put("index", Users.getIndex(transaction));
                         myTransaction.put("blockTimestamp", transaction.getBlockTimestamp());

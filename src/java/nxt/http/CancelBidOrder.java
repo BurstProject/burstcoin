@@ -20,10 +20,10 @@ public final class CancelBidOrder extends CreateTransaction {
 
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
-        Long orderId = ParameterParser.getOrderId(req);
+        long orderId = ParameterParser.getOrderId(req);
         Account account = ParameterParser.getSenderAccount(req);
         Order.Bid orderData = Order.Bid.getBidOrder(orderId);
-        if (orderData == null || !orderData.getAccount().getId().equals(account.getId())) {
+        if (orderData == null || orderData.getAccountId() != account.getId()) {
             return UNKNOWN_ORDER;
         }
         Attachment attachment = new Attachment.ColoredCoinsBidOrderCancellation(orderId);

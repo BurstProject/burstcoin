@@ -2,38 +2,34 @@ package nxt.http;
 
 import nxt.NxtException;
 import nxt.Order;
+import nxt.db.DbIterator;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Iterator;
 
 public final class GetAskOrderIds extends APIServlet.APIRequestHandler {
 
     static final GetAskOrderIds instance = new GetAskOrderIds();
 
     private GetAskOrderIds() {
-        super(new APITag[] {APITag.AE}, "asset", "limit");
+        super(new APITag[] {APITag.AE}, "asset", "firstIndex", "lastIndex");
     }
 
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
 
-        Long assetId = ParameterParser.getAsset(req).getId();
-
-        int limit;
-        try {
-            limit = Integer.parseInt(req.getParameter("limit"));
-        } catch (NumberFormatException e) {
-            limit = Integer.MAX_VALUE;
-        }
+        long assetId = ParameterParser.getAsset(req).getId();
+        int firstIndex = ParameterParser.getFirstIndex(req);
+        int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray orderIds = new JSONArray();
-        Iterator<Order.Ask> askOrders = Order.Ask.getSortedOrders(assetId).iterator();
-        while (askOrders.hasNext() && limit-- > 0) {
-            orderIds.add(Convert.toUnsignedLong(askOrders.next().getId()));
+        try (DbIterator<Order.Ask> askOrders = Order.Ask.getSortedOrders(assetId, firstIndex, lastIndex)) {
+            while (askOrders.hasNext()) {
+                orderIds.add(Convert.toUnsignedLong(askOrders.next().getId()));
+            }
         }
 
         JSONObject response = new JSONObject();

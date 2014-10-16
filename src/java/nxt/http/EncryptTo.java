@@ -20,7 +20,7 @@ public final class EncryptTo extends APIServlet.APIRequestHandler {
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
 
-        Long recipientId = ParameterParser.getRecipientId(req);
+        long recipientId = ParameterParser.getRecipientId(req);
         Account recipientAccount = Account.getAccount(recipientId);
         if (recipientAccount == null || recipientAccount.getPublicKey() == null) {
             return INCORRECT_RECIPIENT;

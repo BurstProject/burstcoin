@@ -2,6 +2,7 @@ package nxt.http;
 
 import nxt.NxtException;
 import nxt.Order;
+import nxt.db.DbIterator;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -14,27 +15,36 @@ public final class GetAccountCurrentAskOrderIds extends APIServlet.APIRequestHan
     static final GetAccountCurrentAskOrderIds instance = new GetAccountCurrentAskOrderIds();
 
     private GetAccountCurrentAskOrderIds() {
-        super(new APITag[] {APITag.ACCOUNTS, APITag.AE}, "account", "asset");
+        super(new APITag[] {APITag.ACCOUNTS, APITag.AE}, "account", "asset", "firstIndex", "lastIndex");
     }
 
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
 
-        Long accountId = ParameterParser.getAccount(req).getId();
-        Long assetId = null;
+        long accountId = ParameterParser.getAccount(req).getId();
+        long assetId = 0;
         try {
             assetId = Convert.parseUnsignedLong(req.getParameter("asset"));
         } catch (RuntimeException e) {
             // ignore
         }
+        int firstIndex = ParameterParser.getFirstIndex(req);
+        int lastIndex = ParameterParser.getLastIndex(req);
 
-        JSONArray orderIds = new JSONArray();
-        for (Order.Ask askOrder : Order.Ask.getAllAskOrders()) {
-            if ((assetId == null || askOrder.getAssetId().equals(assetId)) && askOrder.getAccount().getId().equals(accountId)) {
-                orderIds.add(Convert.toUnsignedLong(askOrder.getId()));
-            }
+        DbIterator<Order.Ask> askOrders;
+        if (assetId == 0) {
+            askOrders = Order.Ask.getAskOrdersByAccount(accountId, firstIndex, lastIndex);
+        } else {
+            askOrders = Order.Ask.getAskOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex);
         }
-
+        JSONArray orderIds = new JSONArray();
+        try {
+            while (askOrders.hasNext()) {
+                orderIds.add(Convert.toUnsignedLong(askOrders.next().getId()));
+            }
+        } finally {
+            askOrders.close();
+        }
         JSONObject response = new JSONObject();
         response.put("askOrderIds", orderIds);
         return response;

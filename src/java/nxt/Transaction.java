@@ -8,7 +8,7 @@ public interface Transaction extends Comparable<Transaction> {
 
     public static interface Builder {
 
-        Builder recipientId(Long recipientId);
+        Builder recipientId(long recipientId);
 
         Builder referencedTransactionFullHash(String referencedTransactionFullHash);
 
@@ -24,19 +24,19 @@ public interface Transaction extends Comparable<Transaction> {
 
     }
 
-    Long getId();
+    long getId();
 
     String getStringId();
 
-    Long getSenderId();
+    long getSenderId();
 
     byte[] getSenderPublicKey();
 
-    Long getRecipientId();
+    long getRecipientId();
 
     int getHeight();
 
-    Long getBlockId();
+    long getBlockId();
 
     Block getBlock();
 
@@ -92,6 +92,6 @@ public interface Transaction extends Comparable<Transaction> {
 
     int getECBlockHeight();
 
-    Long getECBlockId();
+    long getECBlockId();
 
 }

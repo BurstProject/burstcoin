@@ -24,7 +24,7 @@ public final class DGSPriceChange extends CreateTransaction {
         Account account = ParameterParser.getSenderAccount(req);
         DigitalGoodsStore.Goods goods = ParameterParser.getGoods(req);
         long priceNQT = ParameterParser.getPriceNQT(req);
-        if (goods.isDelisted() || ! goods.getSellerId().equals(account.getId())) {
+        if (goods.isDelisted() || goods.getSellerId() != account.getId()) {
             return UNKNOWN_GOODS;
         }
         Attachment attachment = new Attachment.DigitalGoodsPriceChange(goods.getId(), priceNQT);

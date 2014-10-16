@@ -21,7 +21,7 @@ public final class GetAccountId extends APIServlet.APIRequestHandler {
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) {
 
-        Long accountId;
+        long accountId;
         String secretPhrase = Convert.emptyToNull(req.getParameter("secretPhrase"));
         String publicKeyString = Convert.emptyToNull(req.getParameter("publicKey"));
         if (secretPhrase != null) {

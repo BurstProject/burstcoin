@@ -1,8 +1,8 @@
 package nxt.http;
 
-import nxt.Constants;
 import nxt.Nxt;
 import nxt.NxtException;
+import nxt.db.Db;
 import nxt.util.JSON;
 import nxt.util.Logger;
 import org.json.simple.JSONStreamAware;
@@ -51,6 +51,10 @@ public final class APIServlet extends HttpServlet {
             return false;
         }
 
+        boolean startDbTransaction() {
+            return false;
+        }
+
     }
 
     private static final boolean enforcePost = Nxt.getBooleanProperty("nxt.apiServerEnforcePOST");
@@ -65,8 +69,8 @@ public final class APIServlet extends HttpServlet {
         map.put("calculateFullHash", CalculateFullHash.instance);
         map.put("cancelAskOrder", CancelAskOrder.instance);
         map.put("cancelBidOrder", CancelBidOrder.instance);
-        map.put("castVote", CastVote.instance);
-        map.put("createPoll", CreatePoll.instance);
+        //map.put("castVote", CastVote.instance);
+        //map.put("createPoll", CreatePoll.instance);
         map.put("decryptFrom", DecryptFrom.instance);
         map.put("dgsListing", DGSListing.instance);
         map.put("dgsDelisting", DGSDelisting.instance);
@@ -82,10 +86,12 @@ public final class APIServlet extends HttpServlet {
         map.put("generateToken", GenerateToken.instance);
         map.put("getAccount", GetAccount.instance);
         map.put("getAccountBlockIds", GetAccountBlockIds.instance);
+        map.put("getAccountBlocks", GetAccountBlocks.instance);
         map.put("getAccountId", GetAccountId.instance);
         map.put("getAccountPublicKey", GetAccountPublicKey.instance);
         map.put("getAccountTransactionIds", GetAccountTransactionIds.instance);
         map.put("getAccountTransactions", GetAccountTransactions.instance);
+        map.put("getAccountLessors", GetAccountLessors.instance);
         map.put("sellAlias", SellAlias.instance);
         map.put("buyAlias", BuyAlias.instance);
         map.put("getAlias", GetAlias.instance);
@@ -95,6 +101,7 @@ public final class APIServlet extends HttpServlet {
         map.put("getAssets", GetAssets.instance);
         map.put("getAssetIds", GetAssetIds.instance);
         map.put("getAssetsByIssuer", GetAssetsByIssuer.instance);
+        map.put("getAssetAccounts", GetAssetAccounts.instance);
         map.put("getBalance", GetBalance.instance);
         map.put("getBlock", GetBlock.instance);
         map.put("getBlockId", GetBlockId.instance);
@@ -106,25 +113,28 @@ public final class APIServlet extends HttpServlet {
         map.put("getDGSPurchase", GetDGSPurchase.instance);
         map.put("getDGSPendingPurchases", GetDGSPendingPurchases.instance);
         map.put("getGuaranteedBalance", GetGuaranteedBalance.instance);
+        map.put("getECBlock", GetECBlock.instance);
         map.put("getMyInfo", GetMyInfo.instance);
-        //if (Constants.isTestnet) {
-        //    map.put("getNextBlockGenerators", GetNextBlockGenerators.instance);
-        //}
+        //map.put("getNextBlockGenerators", GetNextBlockGenerators.instance);
         map.put("getPeer", GetPeer.instance);
         map.put("getPeers", GetPeers.instance);
-        map.put("getPoll", GetPoll.instance);
-        map.put("getPollIds", GetPollIds.instance);
+        //map.put("getPoll", GetPoll.instance);
+        //map.put("getPollIds", GetPollIds.instance);
         map.put("getState", GetState.instance);
         map.put("getTime", GetTime.instance);
         map.put("getTrades", GetTrades.instance);
         map.put("getAllTrades", GetAllTrades.instance);
+        map.put("getAssetTransfers", GetAssetTransfers.instance);
         map.put("getTransaction", GetTransaction.instance);
         map.put("getTransactionBytes", GetTransactionBytes.instance);
         map.put("getUnconfirmedTransactionIds", GetUnconfirmedTransactionIds.instance);
         map.put("getUnconfirmedTransactions", GetUnconfirmedTransactions.instance);
         map.put("getAccountCurrentAskOrderIds", GetAccountCurrentAskOrderIds.instance);
         map.put("getAccountCurrentBidOrderIds", GetAccountCurrentBidOrderIds.instance);
-        map.put("getAllOpenOrders", GetAllOpenOrders.instance);
+        map.put("getAccountCurrentAskOrders", GetAccountCurrentAskOrders.instance);
+        map.put("getAccountCurrentBidOrders", GetAccountCurrentBidOrders.instance);
+        map.put("getAllOpenAskOrders", GetAllOpenAskOrders.instance);
+        map.put("getAllOpenBidOrders", GetAllOpenBidOrders.instance);
         map.put("getAskOrder", GetAskOrder.instance);
         map.put("getAskOrderIds", GetAskOrderIds.instance);
         map.put("getAskOrders", GetAskOrders.instance);
@@ -133,6 +143,7 @@ public final class APIServlet extends HttpServlet {
         map.put("getBidOrders", GetBidOrders.instance);
         map.put("issueAsset", IssueAsset.instance);
         map.put("leaseBalance", LeaseBalance.instance);
+        map.put("longConvert", LongConvert.instance);
         map.put("markHost", MarkHost.instance);
         map.put("parseTransaction", ParseTransaction.instance);
         map.put("placeAskOrder", PlaceAskOrder.instance);
@@ -157,6 +168,12 @@ public final class APIServlet extends HttpServlet {
         map.put("escrowSign", EscrowSign.instance);
         map.put("getEscrowTransaction", GetEscrowTransaction.instance);
         map.put("getAccountEscrowTransactions", GetAccountEscrowTransactions.instance);
+
+        if (API.enableDebugAPI) {
+            map.put("fullReset", FullReset.instance);
+            map.put("popOff", PopOff.instance);
+            map.put("scan", Scan.instance);
+        }
 
         apiRequestHandlers = Collections.unmodifiableMap(map);
     }
@@ -204,12 +221,19 @@ public final class APIServlet extends HttpServlet {
             }
 
             try {
+                if (apiRequestHandler.startDbTransaction()) {
+                    Db.beginTransaction();
+                }
                 response = apiRequestHandler.processRequest(req);
             } catch (ParameterException e) {
                 response = e.getErrorResponse();
             } catch (NxtException |RuntimeException e) {
                 Logger.logDebugMessage("Error processing API request", e);
                 response = ERROR_INCORRECT_REQUEST;
+            } finally {
+                if (apiRequestHandler.startDbTransaction()) {
+                    Db.endTransaction();
+                }
             }
 
         } finally {

@@ -1,97 +1,105 @@
 package nxt;
 
+import nxt.db.Db;
+import nxt.db.DbClause;
+import nxt.db.DbIterator;
+import nxt.db.DbKey;
+import nxt.db.VersionedEntityDbTable;
 import nxt.util.Convert;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.SortedSet;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public abstract class Order {
 
-    private static final SortedSet<? extends Order> emptySortedSet = Collections.unmodifiableSortedSet(new ConcurrentSkipListSet<Order>());
+    private static void matchOrders(long assetId) {
 
-    static void clear() {
-        Ask.askOrders.clear();
-        Ask.sortedAskOrders.clear();
-        Bid.bidOrders.clear();
-        Bid.sortedBidOrders.clear();
-    }
+        Order.Ask askOrder;
+        Order.Bid bidOrder;
 
-    private static void matchOrders(Long assetId) {
-
-        SortedSet<Ask> sortedAssetAskOrders = Ask.sortedAskOrders.get(assetId);
-        SortedSet<Bid> sortedAssetBidOrders = Bid.sortedBidOrders.get(assetId);
-
-        if (sortedAssetAskOrders == null || sortedAssetBidOrders == null) {
-            return;
-        }
-
-        while (!sortedAssetAskOrders.isEmpty() && !sortedAssetBidOrders.isEmpty()) {
-
-            Order askOrder = sortedAssetAskOrders.first();
-            Order bidOrder = sortedAssetBidOrders.first();
+        while ((askOrder = Ask.getNextOrder(assetId)) != null
+                && (bidOrder = Bid.getNextOrder(assetId)) != null) {
 
             if (askOrder.getPriceNQT() > bidOrder.getPriceNQT()) {
                 break;
             }
 
-            long quantityQNT = Math.min(askOrder.quantityQNT, bidOrder.quantityQNT);
-            long priceNQT = askOrder.getHeight() < bidOrder.getHeight()
-                    || (askOrder.getHeight() == bidOrder.getHeight()
-                    && askOrder.getId() < bidOrder.getId())
-                    ? askOrder.getPriceNQT() : bidOrder.getPriceNQT();
 
-            Block lastBlock=Nxt.getBlockchain().getLastBlock();
-            int timestamp=lastBlock.getTimestamp();
-            
-            Trade.addTrade(assetId, timestamp, lastBlock.getId(), askOrder.getId(), bidOrder.getId(), quantityQNT, priceNQT);
+            Trade trade = Trade.addTrade(assetId, Nxt.getBlockchain().getLastBlock(), askOrder, bidOrder);
 
-            if ((askOrder.quantityQNT = Convert.safeSubtract(askOrder.quantityQNT, quantityQNT)) == 0) {
-                Ask.removeOrder(askOrder.getId());
-            }
-            askOrder.getAccount().addToBalanceAndUnconfirmedBalanceNQT(Convert.safeMultiply(quantityQNT, priceNQT));
-            askOrder.getAccount().addToAssetBalanceQNT(assetId, -quantityQNT);
+            askOrder.updateQuantityQNT(Convert.safeSubtract(askOrder.getQuantityQNT(), trade.getQuantityQNT()));
+            Account askAccount = Account.getAccount(askOrder.getAccountId());
+            askAccount.addToBalanceAndUnconfirmedBalanceNQT(Convert.safeMultiply(trade.getQuantityQNT(), trade.getPriceNQT()));
+            askAccount.addToAssetBalanceQNT(assetId, -trade.getQuantityQNT());
 
-            if ((bidOrder.quantityQNT = Convert.safeSubtract(bidOrder.quantityQNT, quantityQNT)) == 0) {
-                Bid.removeOrder(bidOrder.getId());
-            }
-            bidOrder.getAccount().addToAssetAndUnconfirmedAssetBalanceQNT(assetId, quantityQNT);
-            bidOrder.getAccount().addToBalanceNQT(- Convert.safeMultiply(quantityQNT, priceNQT));
-            bidOrder.getAccount().addToUnconfirmedBalanceNQT(Convert.safeMultiply(quantityQNT, (bidOrder.getPriceNQT() - priceNQT)));
+            bidOrder.updateQuantityQNT(Convert.safeSubtract(bidOrder.getQuantityQNT(), trade.getQuantityQNT()));
+            Account bidAccount = Account.getAccount(bidOrder.getAccountId());
+            bidAccount.addToAssetAndUnconfirmedAssetBalanceQNT(assetId, trade.getQuantityQNT());
+            bidAccount.addToBalanceNQT(-Convert.safeMultiply(trade.getQuantityQNT(), trade.getPriceNQT()));
+            bidAccount.addToUnconfirmedBalanceNQT(Convert.safeMultiply(trade.getQuantityQNT(), (bidOrder.getPriceNQT() - trade.getPriceNQT())));
 
         }
 
     }
 
-    private final Long id;
-    private final Account account;
-    private final Long assetId;
-    private final long priceNQT;
-    private final long height;
-
-    private volatile long quantityQNT;
-
-    private Order(Long id, Account account, Long assetId, long quantityQNT, long priceNQT) {
-        this.id = id;
-        this.account = account;
-        this.assetId = assetId;
-        this.quantityQNT = quantityQNT;
-        this.priceNQT = priceNQT;
-        this.height = Nxt.getBlockchain().getLastBlock().getHeight();
+    static void init() {
+        Ask.init();
+        Bid.init();
     }
 
-    public Long getId() {
+
+    private final long id;
+    private final long accountId;
+    private final long assetId;
+    private final long priceNQT;
+    private final int creationHeight;
+
+    private long quantityQNT;
+
+    private Order(Transaction transaction, Attachment.ColoredCoinsOrderPlacement attachment) {
+        this.id = transaction.getId();
+        this.accountId = transaction.getSenderId();
+        this.assetId = attachment.getAssetId();
+        this.quantityQNT = attachment.getQuantityQNT();
+        this.priceNQT = attachment.getPriceNQT();
+        this.creationHeight = transaction.getHeight();
+    }
+
+    private Order(ResultSet rs) throws SQLException {
+        this.id = rs.getLong("id");
+        this.accountId = rs.getLong("account_id");
+        this.assetId = rs.getLong("asset_id");
+        this.priceNQT = rs.getLong("price");
+        this.quantityQNT = rs.getLong("quantity");
+        this.creationHeight = rs.getInt("creation_height");
+    }
+
+    private void save(Connection con, String table) throws SQLException {
+        try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO " + table + " (id, account_id, asset_id, "
+                + "price, quantity, creation_height, height, latest) KEY (id, height) VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)")) {
+            int i = 0;
+            pstmt.setLong(++i, this.getId());
+            pstmt.setLong(++i, this.getAccountId());
+            pstmt.setLong(++i, this.getAssetId());
+            pstmt.setLong(++i, this.getPriceNQT());
+            pstmt.setLong(++i, this.getQuantityQNT());
+            pstmt.setInt(++i, this.getHeight());
+            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.executeUpdate();
+        }
+    }
+
+    public long getId() {
         return id;
     }
 
-    public Account getAccount() {
-        return account;
+    public long getAccountId() {
+        return accountId;
     }
 
-    public Long getAssetId() {
+    public long getAssetId() {
         return assetId;
     }
 
@@ -103,10 +111,21 @@ public abstract class Order {
         return quantityQNT;
     }
 
-    public long getHeight() {
-        return height;
+    public int getHeight() {
+        return creationHeight;
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " id: " + Convert.toUnsignedLong(id) + " account: " + Convert.toUnsignedLong(accountId)
+                + " asset: " + Convert.toUnsignedLong(assetId) + " price: " + priceNQT + " quantity: " + quantityQNT + " height: " + creationHeight;
+    }
+
+    private void setQuantityQNT(long quantityQNT) {
+        this.quantityQNT = quantityQNT;
+    }
+
+    /*
     private int compareTo(Order o) {
         if (height < o.height) {
             return -1;
@@ -123,53 +142,129 @@ public abstract class Order {
         }
 
     }
+    */
 
-    public static final class Ask extends Order implements Comparable<Ask> {
+    public static final class Ask extends Order {
 
-        private static final ConcurrentMap<Long, Ask> askOrders = new ConcurrentHashMap<>();
-        private static final ConcurrentMap<Long, SortedSet<Ask>> sortedAskOrders = new ConcurrentHashMap<>();
+        private static final DbKey.LongKeyFactory<Ask> askOrderDbKeyFactory = new DbKey.LongKeyFactory<Ask>("id") {
 
-        private static final Collection<Ask> allAskOrders = Collections.unmodifiableCollection(askOrders.values());
-
-        public static Collection<Ask> getAllAskOrders() {
-            return allAskOrders;
-        }
-
-        public static Ask getAskOrder(Long orderId) {
-            return askOrders.get(orderId);
-        }
-
-        public static SortedSet<Ask> getSortedOrders(Long assetId) {
-            SortedSet<Ask> sortedOrders = sortedAskOrders.get(assetId);
-            return sortedOrders == null ? (SortedSet<Ask>)emptySortedSet : Collections.unmodifiableSortedSet(sortedOrders);
-        }
-
-        static void addOrder(Long transactionId, Account senderAccount, Long assetId, long quantityQNT, long priceNQT) {
-            Ask order = new Ask(transactionId, senderAccount, assetId, quantityQNT, priceNQT);
-            if (askOrders.putIfAbsent(order.getId(), order) != null) {
-                throw new IllegalStateException("Ask order id " + Convert.toUnsignedLong(order.getId()) + " already exists");
+            @Override
+            public DbKey newKey(Ask ask) {
+                return ask.dbKey;
             }
-            SortedSet<Ask> sortedAssetAskOrders = sortedAskOrders.get(assetId);
-            if (sortedAssetAskOrders == null) {
-                sortedAssetAskOrders = new ConcurrentSkipListSet<>();
-                sortedAskOrders.put(assetId,sortedAssetAskOrders);
+
+        };
+
+        private static final VersionedEntityDbTable<Ask> askOrderTable = new VersionedEntityDbTable<Ask>("ask_order", askOrderDbKeyFactory) {
+            @Override
+            protected Ask load(Connection con, ResultSet rs) throws SQLException {
+                return new Ask(rs);
             }
-            sortedAssetAskOrders.add(order);
-            matchOrders(assetId);
-        }
 
-        static Ask removeOrder(Long orderId) {
-            Ask askOrder = askOrders.remove(orderId);
-            if (askOrder != null) {
-                sortedAskOrders.get(askOrder.getAssetId()).remove(askOrder);
+            @Override
+            protected void save(Connection con, Ask ask) throws SQLException {
+                ask.save(con, table);
             }
-            return askOrder;
+
+            @Override
+            protected String defaultSort() {
+                return " ORDER BY creation_height DESC ";
+            }
+
+        };
+
+        public static int getCount() {
+            return askOrderTable.getCount();
         }
 
-        private Ask(Long orderId, Account account, Long assetId, long quantityQNT, long priceNQT) {
-            super(orderId, account, assetId, quantityQNT, priceNQT);
+        public static Ask getAskOrder(long orderId) {
+            return askOrderTable.get(askOrderDbKeyFactory.newKey(orderId));
         }
 
+        public static DbIterator<Ask> getAll(int from, int to) {
+            return askOrderTable.getAll(from, to);
+        }
+
+        public static DbIterator<Ask> getAskOrdersByAccount(long accountId, int from, int to) {
+            return askOrderTable.getManyBy(new DbClause.LongClause("account_id", accountId), from, to);
+        }
+
+        public static DbIterator<Ask> getAskOrdersByAsset(long assetId, int from, int to) {
+            return askOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
+        }
+
+        public static DbIterator<Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
+            DbClause dbClause = new DbClause(" account_id = ? AND asset_id = ? ") {
+                @Override
+                public int set(PreparedStatement pstmt, int index) throws SQLException {
+                    pstmt.setLong(index++, accountId);
+                    pstmt.setLong(index++, assetId);
+                    return index;
+                }
+            };
+            return askOrderTable.getManyBy(dbClause, from, to);
+        }
+
+        public static DbIterator<Ask> getSortedOrders(long assetId, int from, int to) {
+            return askOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to,
+                    " ORDER BY price ASC, creation_height ASC, id ASC ");
+        }
+
+        private static Ask getNextOrder(long assetId) {
+            try (Connection con = Db.getConnection();
+                 PreparedStatement pstmt = con.prepareStatement("SELECT * FROM ask_order WHERE asset_id = ? "
+                         + "AND latest = TRUE ORDER BY price ASC, creation_height ASC, id ASC LIMIT 1")) {
+                pstmt.setLong(1, assetId);
+                try (DbIterator<Ask> askOrders = askOrderTable.getManyBy(con, pstmt, true)) {
+                    return askOrders.hasNext() ? askOrders.next() : null;
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e.toString(), e);
+            }
+        }
+
+        static void addOrder(Transaction transaction, Attachment.ColoredCoinsAskOrderPlacement attachment) {
+            Ask order = new Ask(transaction, attachment);
+            askOrderTable.insert(order);
+            matchOrders(attachment.getAssetId());
+        }
+
+        static void removeOrder(long orderId) {
+            askOrderTable.delete(getAskOrder(orderId));
+        }
+
+        static void init() {}
+
+
+        private final DbKey dbKey;
+
+        private Ask(Transaction transaction, Attachment.ColoredCoinsAskOrderPlacement attachment) {
+            super(transaction, attachment);
+            this.dbKey = askOrderDbKeyFactory.newKey(super.id);
+        }
+
+        private Ask(ResultSet rs) throws SQLException {
+            super(rs);
+            this.dbKey = askOrderDbKeyFactory.newKey(super.id);
+        }
+
+        private void save(Connection con, String table) throws SQLException {
+            super.save(con, table);
+        }
+
+        private void updateQuantityQNT(long quantityQNT) {
+            super.setQuantityQNT(quantityQNT);
+            if (quantityQNT > 0) {
+                askOrderTable.insert(this);
+            } else if (quantityQNT == 0) {
+                askOrderTable.delete(this);
+            } else {
+                throw new IllegalArgumentException("Negative quantity: " + quantityQNT
+                        + " for order: " + Convert.toUnsignedLong(getId()));
+            }
+        }
+
+        /*
         @Override
         public int compareTo(Ask o) {
             if (this.getPriceNQT() < o.getPriceNQT()) {
@@ -180,55 +275,132 @@ public abstract class Order {
                 return super.compareTo(o);
             }
         }
+        */
 
     }
 
-    public static final class Bid extends Order implements Comparable<Bid> {
+    public static final class Bid extends Order {
 
-        private static final ConcurrentMap<Long, Bid> bidOrders = new ConcurrentHashMap<>();
-        private static final ConcurrentMap<Long, SortedSet<Bid>> sortedBidOrders = new ConcurrentHashMap<>();
+        private static final DbKey.LongKeyFactory<Bid> bidOrderDbKeyFactory = new DbKey.LongKeyFactory<Bid>("id") {
 
-        private static final Collection<Bid> allBidOrders = Collections.unmodifiableCollection(bidOrders.values());
-
-        public static Collection<Bid> getAllBidOrders() {
-            return allBidOrders;
-        }
-
-        public static Bid getBidOrder(Long orderId) {
-            return bidOrders.get(orderId);
-        }
-
-        public static SortedSet<Bid> getSortedOrders(Long assetId) {
-            SortedSet<Bid> sortedOrders = sortedBidOrders.get(assetId);
-            return sortedOrders == null ? (SortedSet<Bid>)emptySortedSet : Collections.unmodifiableSortedSet(sortedOrders);
-        }
-
-        static void addOrder(Long transactionId, Account senderAccount, Long assetId, long quantityQNT, long priceNQT) {
-            Bid order = new Bid(transactionId, senderAccount, assetId, quantityQNT, priceNQT);
-            if (bidOrders.putIfAbsent(order.getId(), order) != null) {
-                throw new IllegalStateException("Bid order id " + Convert.toUnsignedLong(order.getId()) + " already exists");
+            @Override
+            public DbKey newKey(Bid bid) {
+                return bid.dbKey;
             }
-            SortedSet<Bid> sortedAssetBidOrders = sortedBidOrders.get(assetId);
-            if (sortedAssetBidOrders == null) {
-                sortedAssetBidOrders = new ConcurrentSkipListSet<>();
-                sortedBidOrders.put(assetId,sortedAssetBidOrders);
+
+        };
+
+        private static final VersionedEntityDbTable<Bid> bidOrderTable = new VersionedEntityDbTable<Bid>("bid_order", bidOrderDbKeyFactory) {
+
+            @Override
+            protected Bid load(Connection con, ResultSet rs) throws SQLException {
+                return new Bid(rs);
             }
-            sortedAssetBidOrders.add(order);
-            matchOrders(assetId);
-        }
 
-        static Bid removeOrder(Long orderId) {
-            Bid bidOrder = bidOrders.remove(orderId);
-            if (bidOrder != null) {
-                sortedBidOrders.get(bidOrder.getAssetId()).remove(bidOrder);
+            @Override
+            protected void save(Connection con, Bid bid) throws SQLException {
+                bid.save(con, table);
             }
-            return bidOrder;
+
+            @Override
+            protected String defaultSort() {
+                return " ORDER BY creation_height DESC ";
+            }
+
+        };
+
+        public static int getCount() {
+            return bidOrderTable.getCount();
         }
 
-        private Bid(Long orderId, Account account, Long assetId, long quantityQNT, long priceNQT) {
-            super(orderId, account, assetId, quantityQNT, priceNQT);
+        public static Bid getBidOrder(long orderId) {
+            return bidOrderTable.get(bidOrderDbKeyFactory.newKey(orderId));
         }
 
+        public static DbIterator<Bid> getAll(int from, int to) {
+            return bidOrderTable.getAll(from, to);
+        }
+
+        public static DbIterator<Bid> getBidOrdersByAccount(long accountId, int from, int to) {
+            return bidOrderTable.getManyBy(new DbClause.LongClause("account_id", accountId), from, to);
+        }
+
+        public static DbIterator<Bid> getBidOrdersByAsset(long assetId, int from, int to) {
+            return bidOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
+        }
+
+        public static DbIterator<Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
+            DbClause dbClause = new DbClause(" account_id = ? AND asset_id = ? ") {
+                @Override
+                public int set(PreparedStatement pstmt, int index) throws SQLException {
+                    pstmt.setLong(index++, accountId);
+                    pstmt.setLong(index++, assetId);
+                    return index;
+                }
+            };
+            return bidOrderTable.getManyBy(dbClause, from, to);
+        }
+
+        public static DbIterator<Bid> getSortedOrders(long assetId, int from, int to) {
+            return bidOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to,
+                    " ORDER BY price DESC, creation_height ASC, id ASC ");
+        }
+
+        private static Bid getNextOrder(long assetId) {
+            try (Connection con = Db.getConnection();
+                 PreparedStatement pstmt = con.prepareStatement("SELECT * FROM bid_order WHERE asset_id = ? "
+                         + "AND latest = TRUE ORDER BY price DESC, creation_height ASC, id ASC LIMIT 1")) {
+                pstmt.setLong(1, assetId);
+                try (DbIterator<Bid> bidOrders = bidOrderTable.getManyBy(con, pstmt, true)) {
+                    return bidOrders.hasNext() ? bidOrders.next() : null;
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e.toString(), e);
+            }
+        }
+
+        static void addOrder(Transaction transaction, Attachment.ColoredCoinsBidOrderPlacement attachment) {
+            Bid order = new Bid(transaction, attachment);
+            bidOrderTable.insert(order);
+            matchOrders(attachment.getAssetId());
+        }
+
+        static void removeOrder(long orderId) {
+            bidOrderTable.delete(getBidOrder(orderId));
+        }
+
+        static void init() {}
+
+
+        private final DbKey dbKey;
+
+        private Bid(Transaction transaction, Attachment.ColoredCoinsBidOrderPlacement attachment) {
+            super(transaction, attachment);
+            this.dbKey = bidOrderDbKeyFactory.newKey(super.id);
+        }
+
+        private Bid(ResultSet rs) throws SQLException {
+            super(rs);
+            this.dbKey = bidOrderDbKeyFactory.newKey(super.id);
+        }
+
+        private void save(Connection con, String table) throws SQLException {
+            super.save(con, table);
+        }
+
+        private void updateQuantityQNT(long quantityQNT) {
+            super.setQuantityQNT(quantityQNT);
+            if (quantityQNT > 0) {
+                bidOrderTable.insert(this);
+            } else if (quantityQNT == 0) {
+                bidOrderTable.delete(this);
+            } else {
+                throw new IllegalArgumentException("Negative quantity: " + quantityQNT
+                        + " for order: " + Convert.toUnsignedLong(getId()));
+            }
+        }
+
+        /*
         @Override
         public int compareTo(Bid o) {
             if (this.getPriceNQT() > o.getPriceNQT()) {
@@ -239,6 +411,6 @@ public abstract class Order {
                 return super.compareTo(o);
             }
         }
-
+        */
     }
 }

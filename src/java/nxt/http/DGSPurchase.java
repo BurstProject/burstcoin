@@ -3,6 +3,7 @@ package nxt.http;
 import nxt.Account;
 import nxt.Attachment;
 import nxt.DigitalGoodsStore;
+import nxt.Nxt;
 import nxt.NxtException;
 import nxt.util.Convert;
 import org.json.simple.JSONStreamAware;
@@ -49,7 +50,7 @@ public final class DGSPurchase extends CreateTransaction {
         int deliveryDeadline;
         try {
             deliveryDeadline = Integer.parseInt(deliveryDeadlineString);
-            if (deliveryDeadline <= Convert.getEpochTime()) {
+            if (deliveryDeadline <= Nxt.getEpochTime()) {
                 return INCORRECT_DELIVERY_DEADLINE_TIMESTAMP;
             }
         } catch (NumberFormatException e) {

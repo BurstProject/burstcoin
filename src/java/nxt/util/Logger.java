@@ -58,8 +58,9 @@ public final class Logger {
         System.setProperty("java.util.logging.manager", "nxt.util.NxtLogManager");
         if (!(LogManager.getLogManager() instanceof NxtLogManager)) {
             System.setProperty("java.util.logging.manager",
-                               (oldManager!=null ? oldManager : "java.util.logging.LogManager"));
-        } else {
+                    (oldManager != null ? oldManager : "java.util.logging.LogManager"));
+        }
+        if (! Boolean.getBoolean("nxt.doNotConfigureLogging")) {
             try {
                 boolean foundProperties = false;
                 Properties loggingProperties = new Properties();
@@ -168,6 +169,22 @@ public final class Logger {
         doLog(Level.ERROR, message, exc);
     }
 
+    public static void logShutdownMessage(String message) {
+        if (LogManager.getLogManager() instanceof NxtLogManager) {
+            logMessage(message);
+        } else {
+            System.out.println(message);
+        }
+    }
+
+    public static void logShutdownMessage(String message, Exception e) {
+        if (LogManager.getLogManager() instanceof NxtLogManager) {
+            logMessage(message, e);
+        } else {
+            System.out.println(message);
+            System.out.println(e.toString());
+        }
+    }
     /**
      * Log an ERROR message
      *
