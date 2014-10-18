@@ -118,7 +118,7 @@ public final class JSONData {
         json.put("nonce", Convert.toUnsignedLong(block.getNonce()));
         json.put("scoopNum", block.getScoopNum());
         json.put("timestamp", block.getTimestamp());
-        json.put("numberOfTransactions", block.getTransactions.size());
+        json.put("numberOfTransactions", block.getTransactions().size());
         json.put("totalAmountNQT", String.valueOf(block.getTotalAmountNQT()));
         json.put("totalFeeNQT", String.valueOf(block.getTotalFeeNQT()));
         json.put("blockReward", Convert.toUnsignedLong(block.getBlockReward() / Constants.ONE_NXT));

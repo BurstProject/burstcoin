@@ -18,7 +18,7 @@ public final class EconomicClustering {
 
     private static final Blockchain blockchain = BlockchainImpl.getInstance();
 
-    public static Block getECBlockId(int timestamp) {
+    public static Block getECBlock(int timestamp) {
         Block block = blockchain.getLastBlock();
         int distance = 0;
         while (block.getTimestamp() > timestamp - Constants.EC_RULE_TERMINATOR && distance < Constants.EC_BLOCK_DISTANCE_LIMIT) {

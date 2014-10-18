@@ -403,11 +403,11 @@ final class DbVersion {
             case 125:
                 apply("CREATE INDEX IF NOT EXISTS bid_order_creation_idx ON bid_order (creation_height DESC)");
             case 126:
-            	apply("CREATE TABLE IF NOT EXISTS reward_recip_assign (db_id IDENTITY, id BIGINT NOT NULL, "
+            	apply("CREATE TABLE IF NOT EXISTS reward_recip_assign (db_id IDENTITY, account_id BIGINT NOT NULL, "
             			+ "prev_recip_id BIGINT NOT NULL, recip_id BIGINT NOT NULL, from_height INT NOT NULL, "
             			+ "height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
             case 127:
-            	apply("CREATE UNIQUE INDEX IF NOT EXISTS reward_recip_assign_id_height_idx ON reward_recip_assign (id, height DESC)");
+            	apply("CREATE UNIQUE INDEX IF NOT EXISTS reward_recip_assign_account_id_height_idx ON reward_recip_assign (account_id, height DESC)");
             case 128:
             	apply("CREATE INDEX IF NOT EXISTS reward_recip_assign_recip_id_height_idx ON reward_recip_assign (recip_id, height DESC)");
             case 129:

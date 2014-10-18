@@ -1719,7 +1719,7 @@ public abstract class TransactionType {
     			long height = Nxt.getBlockchain().getLastBlock().getHeight() + 1;
     			Account sender = Account.getAccount(transaction.getSenderId());
     			Account.RewardRecipientAssignment rewardAssignment = sender.getRewardRecipientAssignment();
-    			if(rewardAssignment != null && rewardAssignment.fromHeight >= height) {
+    			if(rewardAssignment != null && rewardAssignment.getFromHeight() >= height) {
     				throw new NxtException.NotValidException("Cannot reassign reward recipient before previous goes into effect: " + transaction.getJSONObject());
     			}
     			Account recip = Account.getAccount(transaction.getRecipientId());

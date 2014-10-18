@@ -353,11 +353,11 @@ final class BlockImpl implements Block {
             	publicKey = generatorPublicKey;
             }
             else {
-            	if(previousBlock.getHeight() + 1 >= rewardAssignment.fromHeight) {
-            		publicKey = Account.getAccount(rewardAssignment.recipientId).getPublicKey();
+            	if(previousBlock.getHeight() + 1 >= rewardAssignment.getFromHeight()) {
+            		publicKey = Account.getAccount(rewardAssignment.getRecipientId()).getPublicKey();
             	}
             	else {
-            		publicKey = Account.getAccount(rewardAssignment.prevRecipientId).getPublicKey();
+            		publicKey = Account.getAccount(rewardAssignment.getPrevRecipientId()).getPublicKey();
             	}
             }
 
@@ -438,11 +438,11 @@ final class BlockImpl implements Block {
         	if(rewardAssignment == null) {
         		rewardAccount = generatorAccount;
         	}
-        	else if(height >= rewardAssignment.fromHeight) {
-        		rewardAccount = Account.getAccount(rewardAssignment.recipientId);
+        	else if(height >= rewardAssignment.getFromHeight()) {
+        		rewardAccount = Account.getAccount(rewardAssignment.getRecipientId());
         	}
         	else {
-        		rewardAccount = Account.getAccount(rewardAssignment.prevRecipientId);
+        		rewardAccount = Account.getAccount(rewardAssignment.getPrevRecipientId());
         	}
         	rewardAccount.addToBalanceAndUnconfirmedBalanceNQT(totalFeeNQT + getBlockReward());
         	rewardAccount.addToForgedBalanceNQT(totalFeeNQT + getBlockReward());

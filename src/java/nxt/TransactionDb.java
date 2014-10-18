@@ -133,7 +133,7 @@ final class TransactionDb {
             if (rs.getBoolean("has_encrypttoself_message")) {
                 builder.encryptToSelfMessage(new Appendix.EncryptToSelfMessage(buffer, version));
             }
-            if (ecBlockHeight != 0) {
+            if (version > 0) {
                 builder.ecBlockHeight(ecBlockHeight);
                 builder.ecBlockId(ecBlockId);
             }

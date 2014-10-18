@@ -54,12 +54,16 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 			}
 			
 			if(genAccount != null) {
+				Account.RewardRecipientAssignment assignment = genAccount.getRewardRecipientAssignment();
 				Long rewardId;
-				if(genAccount.getRewardRecipientFrom() > Nxt.getBlockchain().getLastBlock().getHeight() + 1) {
-					rewardId = genAccount.getPrevRewardRecipient();
+				if(assignment == null) {
+					rewardId = genAccount.getId();
+				}
+				else if(assignment.getFromHeight() > Nxt.getBlockchain().getLastBlock().getHeight() + 1) {
+					rewardId = assignment.getPrevRecipientId();
 				}
 				else {
-					rewardId = genAccount.getRewardRecipient();
+					rewardId = assignment.getRecipientId();
 				}
 				if(rewardId != secretAccount.getId()) {
 					response.put("result", "Passphrase does not match reward recipient");

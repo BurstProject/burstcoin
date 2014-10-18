@@ -117,41 +117,60 @@ public final class Account {
     public static class RewardRecipientAssignment {
     	
     	public final Long accountId;
-    	public Long prevRecipientId;
-    	public Long recipientId;
-    	public Long fromHeight;
-    	public Long height;
+    	private Long prevRecipientId;
+    	private Long recipientId;
+    	private int fromHeight;
     	private final DbKey dbKey;
     	
-    	private RewardRecipientAssignment(Long accountId, Long prevRecipientId, Long recipientId, Long fromHeight, Long height) {
+    	private RewardRecipientAssignment(Long accountId, Long prevRecipientId, Long recipientId, int fromHeight) {
     		this.accountId = accountId;
     		this.prevRecipientId = prevRecipientId;
     		this.recipientId = recipientId;
     		this.fromHeight = fromHeight;
-    		this.height = height;
     		this.dbKey = rewardRecipientAssignmentDbKeyFactory.newKey(this.accountId);
     	}
     	
     	private RewardRecipientAssignment(ResultSet rs) throws SQLException {
-    		this.accountId = rs.getLong("id");
+    		this.accountId = rs.getLong("account_id");
     		this.dbKey = rewardRecipientAssignmentDbKeyFactory.newKey(this.accountId);
     		this.prevRecipientId = rs.getLong("prev_recip_id");
     		this.recipientId = rs.getLong("recip_id");
-    		this.fromHeight = rs.getLong("from_height");
-    		this.height = rs.getLong("height");
+    		this.fromHeight = (int) rs.getLong("from_height");
     	}
     	
     	private void save(Connection con) throws SQLException {
     		try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO reward_recip_assign "
-    				+ "(id, prev_recip_id, recip_id, from_height, height) KEY (id, height) VALUES (?, ?, ?, ?, ?)")) {
+    				+ "(account_id, prev_recip_id, recip_id, from_height, height) KEY (id, height) VALUES (?, ?, ?, ?, ?)")) {
     			int i = 0;
     			pstmt.setLong(++i, this.accountId);
     			pstmt.setLong(++i, this.prevRecipientId);
     			pstmt.setLong(++i, this.recipientId);
-    			pstmt.setLong(++i, this.fromHeight);
-    			pstmt.setLong(++i, this.height);
+    			pstmt.setInt(++i, this.fromHeight);
+    			pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
     			pstmt.executeUpdate();
     		}
+    	}
+    	
+    	public long getAccountId() {
+    		return accountId;
+    	}
+    	
+    	public long getPrevRecipientId() {
+    		return prevRecipientId;
+    	}
+    	
+    	public long getRecipientId() {
+    		return recipientId;
+    	}
+    	
+    	public int getFromHeight() {
+    		return fromHeight;
+    	}
+    	
+    	public void setRecipient(long newRecipientId, int fromHeight) {
+    		prevRecipientId = recipientId;
+    		recipientId = newRecipientId;
+    		this.fromHeight = fromHeight;
     	}
     }
 
@@ -272,7 +291,7 @@ public final class Account {
 
     };
     
-    private static final DbKey.LongKeyFactory<RewardRecipientAssignment> rewardRecipientAssignmentDbKeyFactory = new DbKey.LongKeyFactory<RewardRecipientAssignment>("id") {
+    private static final DbKey.LongKeyFactory<RewardRecipientAssignment> rewardRecipientAssignmentDbKeyFactory = new DbKey.LongKeyFactory<RewardRecipientAssignment>("account_id") {
     	
     	@Override
     	public DbKey newKey(RewardRecipientAssignment assignment) {
@@ -658,15 +677,27 @@ public final class Account {
     	int currentHeight = Nxt.getBlockchain().getLastBlock().getHeight();
     	RewardRecipientAssignment assignment = getRewardRecipientAssignment(id);
     	if(assignment == null) {
-    		assignment = new RewardRecipientAssignment(id, id, recipient, (long)currentHeight + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME, (long)currentHeight);
+    		assignment = new RewardRecipientAssignment(id, id, recipient, (int) (currentHeight + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME));
     	}
     	else {
-    		assignment.prevRecipientId = assignment.recipientId;
-    		assignment.recipientId = recipient;
-    		assignment.height = (long)currentHeight;
-    		assignment.fromHeight = currentHeight + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME;
+    		assignment.setRecipient(recipient, (int) (currentHeight + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME));
     	}
     	rewardRecipientAssignmentTable.insert(assignment);
+    }
+    
+    private static DbClause getAccountsWithRewardRecipientClause(final long id, final int height) {
+    	return new DbClause(" account_id = ? AND from_height >= ? ") {
+    		@Override
+    		public int set(PreparedStatement pstmt, int index) throws SQLException {
+    			pstmt.setLong(index++, id);
+    			pstmt.setInt(index++, height);
+    			return index;
+    		}
+    	};
+    }
+    
+    public static DbIterator<RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
+    	return rewardRecipientAssignmentTable.getManyBy(getAccountsWithRewardRecipientClause(recipientId, Nxt.getBlockchain().getHeight() + 1), 0, -1);
     }
 
     public long getCurrentLesseeId() {
