@@ -289,7 +289,7 @@ final class PeerImpl implements Peer {
                 buf.append(':');
                 buf.append(Constants.isTestnet ? Peers.TESTNET_PEER_PORT : Peers.DEFAULT_PEER_PORT);
             }
-            buf.append("/nxt");
+            buf.append("/burst");
             URL url = new URL(buf.toString());
 
             if (Peers.communicationLoggingMask != 0) {

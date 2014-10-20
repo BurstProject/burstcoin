@@ -140,7 +140,7 @@ public final class Account {
     	
     	private void save(Connection con) throws SQLException {
     		try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO reward_recip_assign "
-    				+ "(account_id, prev_recip_id, recip_id, from_height, height) KEY (id, height) VALUES (?, ?, ?, ?, ?)")) {
+    				+ "(account_id, prev_recip_id, recip_id, from_height, height, latest) KEY (account_id, height) VALUES (?, ?, ?, ?, ?, TRUE)")) {
     			int i = 0;
     			pstmt.setLong(++i, this.accountId);
     			pstmt.setLong(++i, this.prevRecipientId);
@@ -686,7 +686,7 @@ public final class Account {
     }
     
     private static DbClause getAccountsWithRewardRecipientClause(final long id, final int height) {
-    	return new DbClause(" account_id = ? AND from_height >= ? ") {
+    	return new DbClause(" account_id = ? AND from_height <= ? ") {
     		@Override
     		public int set(PreparedStatement pstmt, int index) throws SQLException {
     			pstmt.setLong(index++, id);

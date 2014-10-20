@@ -165,11 +165,15 @@ public final class JSONData {
     	json.put("deadlineAction", Escrow.decisionToString(escrow.getDeadlineAction()));
 		
 		JSONArray signers = new JSONArray();
-		for(Long signer : escrow.getSigners()) {
+		for(Escrow.Decision decision : escrow.getDecisions()) {
+			if(decision.getAccountId().equals(escrow.getSenderId()) ||
+			   decision.getAccountId().equals(escrow.getRecipientId())) {
+				continue;
+			}
 			JSONObject signerDetails = new JSONObject();
-			signerDetails.put("id", Convert.toUnsignedLong(signer));
-			signerDetails.put("idRS", Convert.rsAccount(signer));
-			signerDetails.put("decision", Escrow.decisionToString(escrow.getIdDecision(signer)));
+			signerDetails.put("id", Convert.toUnsignedLong(decision.getAccountId()));
+			signerDetails.put("idRS", Convert.rsAccount(decision.getAccountId()));
+			signerDetails.put("decision", Escrow.decisionToString(decision.getDecision()));
 			signers.add(signerDetails);
 		}
 		json.put("signers", signers);

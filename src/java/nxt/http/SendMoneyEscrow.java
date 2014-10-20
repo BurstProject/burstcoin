@@ -112,8 +112,8 @@ public final class SendMoneyEscrow extends CreateTransaction {
 			return response;
 		}
 		
-		Escrow.Decision deadlineAction = Escrow.stringToDecision(req.getParameter("deadlineAction"));
-		if(deadlineAction == null || deadlineAction == Escrow.Decision.UNDECIDED) {
+		Escrow.DecisionType deadlineAction = Escrow.stringToDecision(req.getParameter("deadlineAction"));
+		if(deadlineAction == null || deadlineAction == Escrow.DecisionType.UNDECIDED) {
 			JSONObject response = new JSONObject();
 			response.put("errorCode", 4);
 			response.put("errorDescription", "Invalid deadlineAction parameter");

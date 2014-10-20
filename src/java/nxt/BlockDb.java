@@ -137,7 +137,7 @@ final class BlockDb {
         try {
             try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO block (id, version, timestamp, previous_block_id, "
                     + "total_amount, total_fee, payload_length, generator_public_key, previous_block_hash, cumulative_difficulty, "
-                    + "base_target, height, generation_signature, block_signature, payload_hash, generator_id) "
+                    + "base_target, height, generation_signature, block_signature, payload_hash, generator_id, nonce) "
                     + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
                 int i = 0;
                 pstmt.setLong(++i, block.getId());

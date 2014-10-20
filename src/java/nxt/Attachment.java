@@ -1552,7 +1552,7 @@ public interface Attachment extends Appendix {
     	private final byte requiredSigners;
     	private final SortedSet<Long> signers = new TreeSet<>();
     	private final int deadline;
-    	private final Escrow.Decision deadlineAction;
+    	private final Escrow.DecisionType deadlineAction;
     	
     	AdvancedPaymentEscrowCreation(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
     		super(buffer, transactionVersion);
@@ -1591,7 +1591,7 @@ public interface Attachment extends Appendix {
     		}
     	}
     	
-    	public AdvancedPaymentEscrowCreation(Long amountNQT, int deadline, Escrow.Decision deadlineAction,
+    	public AdvancedPaymentEscrowCreation(Long amountNQT, int deadline, Escrow.DecisionType deadlineAction,
     											  int requiredSigners, Collection<Long> signers) throws NxtException.NotValidException {
     		this.amountNQT = amountNQT;
     		this.deadline = deadline;
@@ -1654,7 +1654,7 @@ public interface Attachment extends Appendix {
     	
     	public int getDeadline() { return deadline; }
     	
-    	public Escrow.Decision getDeadlineAction() { return deadlineAction; }
+    	public Escrow.DecisionType getDeadlineAction() { return deadlineAction; }
     	
     	public int getRequiredSigners() { return (int)requiredSigners; }
     	
@@ -1666,7 +1666,7 @@ public interface Attachment extends Appendix {
     public final static class AdvancedPaymentEscrowSign extends AbstractAttachment {
     	
     	private final Long escrowId;
-    	private final Escrow.Decision decision;
+    	private final Escrow.DecisionType decision;
     	
     	AdvancedPaymentEscrowSign(ByteBuffer buffer, byte transactionVersion) {
     		super(buffer, transactionVersion);
@@ -1680,7 +1680,7 @@ public interface Attachment extends Appendix {
     		this.decision = Escrow.stringToDecision((String)attachmentData.get("decision"));
     	}
     	
-    	public AdvancedPaymentEscrowSign(Long escrowId, Escrow.Decision decision) {
+    	public AdvancedPaymentEscrowSign(Long escrowId, Escrow.DecisionType decision) {
     		this.escrowId = escrowId;
     		this.decision = decision;
     	}
@@ -1714,6 +1714,6 @@ public interface Attachment extends Appendix {
     	
     	public Long getEscrowId() { return this.escrowId; }
     	
-    	public Escrow.Decision getDecision() { return this.decision; }
+    	public Escrow.DecisionType getDecision() { return this.decision; }
     }
 }

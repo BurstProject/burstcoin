@@ -1838,7 +1838,7 @@ public abstract class TransactionType {
 				if(attachment.getDeadline() < 1 || attachment.getDeadline() > 7776000) { // max deadline 3 months
 					throw new NxtException.NotValidException("Escrow deadline must be 1 - 7776000 seconds");
 				}
-				if(attachment.getDeadlineAction() == null || attachment.getDeadlineAction() == Escrow.Decision.UNDECIDED) {
+				if(attachment.getDeadlineAction() == null || attachment.getDeadlineAction() == Escrow.DecisionType.UNDECIDED) {
 					throw new NxtException.NotValidException("Invalid deadline action for escrow");
 				}
 				if(attachment.getSigners().contains(transaction.getSenderId()) ||
@@ -1915,10 +1915,10 @@ public abstract class TransactionType {
 				   !escrow.getRecipientId().equals(transaction.getSenderId())) {
 					throw new NxtException.NotValidException("Sender is not a participant in specified escrow");
 				}
-				if(escrow.getSenderId().equals(transaction.getSenderId()) && attachment.getDecision() != Escrow.Decision.RELEASE) {
+				if(escrow.getSenderId().equals(transaction.getSenderId()) && attachment.getDecision() != Escrow.DecisionType.RELEASE) {
 					throw new NxtException.NotValidException("Escrow sender can only release");
 				}
-				if(escrow.getRecipientId().equals(transaction.getSenderId()) && attachment.getDecision() != Escrow.Decision.REFUND) {
+				if(escrow.getRecipientId().equals(transaction.getSenderId()) && attachment.getDecision() != Escrow.DecisionType.REFUND) {
 					throw new NxtException.NotValidException("Escrow recipient can only refund");
 				}
 				if(!Escrow.isEnabled()) {

@@ -411,6 +411,27 @@ final class DbVersion {
             case 128:
             	apply("CREATE INDEX IF NOT EXISTS reward_recip_assign_recip_id_height_idx ON reward_recip_assign (recip_id, height DESC)");
             case 129:
+            	apply("CREATE TABLE IF NOT EXISTS escrow (db_id IDENTITY, id BIGINT NOT NULL, sender_id BIGINT NOT NULL, recipient_id BIGINT NOT NULL, "
+            			+ "amount BIGINT NOT NULL, required_signers INT, deadline INT NOT NULL, deadline_action INT NOT NULL, "
+            			+ "height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
+            case 130:
+            	apply("CREATE UNIQUE INDEX IF NOT EXISTS escrow_id_height_idx ON escrow (id, height DESC)");
+            case 131:
+            	apply("CREATE INDEX IF NOT EXISTS escrow_sender_id_height_idx ON escrow (sender_id, height DESC)");
+            case 132:
+            	apply("CREATE INDEX IF NOT EXISTS escrow_recipient_id_height_idx ON escrow (recipient_id, height DESC)");
+            case 133:
+            	apply("CREATE INDEX IF NOT EXISTS escrow_deadline_height_idx ON escrow (deadline, height DESC)");
+            case 134:
+            	apply("CREATE TABLE IF NOT EXISTS escrow_decision (db_id IDENTITY, escrow_id BIGINT NOT NULL, account_id BIGINT NOT NULL, "
+            			+ "decision INT NOT NULL, height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
+            case 135:
+            	apply("CREATE UNIQUE INDEX IF NOT EXISTS escrow_decision_escrow_id_account_id_height_idx ON escrow_decision (escrow_id, account_id, height DESC)");
+            case 136:
+            	apply("CREATE INDEX IF NOT EXISTS escrow_decision_escrow_id_height_idx ON escrow_decision (escrow_id, height DESC)");
+            case 137:
+            	apply("CREATE INDEX IF NOT EXISTS escrow_decision_account_id_height_idx ON escrow_decision (account_id, height DESC)");
+            case 138:
                 return;
             default:
                 throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");
