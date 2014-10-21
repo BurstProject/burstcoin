@@ -4,6 +4,9 @@ import nxt.Account;
 import nxt.Alias;
 import nxt.Asset;
 import nxt.AssetTransfer;
+import nxt.Constants;
+import nxt.db.DbIterator;
+import nxt.Escrow;
 import nxt.Generator;
 import nxt.Nxt;
 import nxt.Order;
@@ -34,18 +37,23 @@ public final class GetState extends APIServlet.APIRequestHandler {
         response.put("lastBlock", Nxt.getBlockchain().getLastBlock().getStringId());
         response.put("cumulativeDifficulty", Nxt.getBlockchain().getLastBlock().getCumulativeDifficulty().toString());
 
-        /* todo: fix balance
+        
         long totalEffectiveBalance = 0;
         try (DbIterator<Account> accounts = Account.getAllAccounts(0, -1)) {
             for (Account account : accounts) {
-                long effectiveBalanceNXT = account.getEffectiveBalanceNXT();
+                long effectiveBalanceNXT = account.getBalanceNQT();
                 if (effectiveBalanceNXT > 0) {
                     totalEffectiveBalance += effectiveBalanceNXT;
                 }
             }
         }
-        response.put("totalEffectiveBalanceNXT", totalEffectiveBalance);
-        */
+        try(DbIterator<Escrow> escrows = Escrow.getAllEscrowTransactions()) {
+        	for(Escrow escrow : escrows) {
+        		totalEffectiveBalance += escrow.getAmountNQT();
+        	}
+        }
+        response.put("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_NXT);
+        
 
         response.put("numberOfBlocks", Nxt.getBlockchain().getHeight() + 1);
         response.put("numberOfTransactions", Nxt.getBlockchain().getTransactionCount());
