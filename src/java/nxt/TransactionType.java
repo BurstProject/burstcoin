@@ -55,11 +55,10 @@ public abstract class TransactionType {
     
     private static final byte SUBTYPE_ADVANCED_PAYMENT_ESCROW_CREATION = 0;
     private static final byte SUBTYPE_ADVANCED_PAYMENT_ESCROW_SIGN = 1;
-    // reserved 2 for escrow complete with password(for atomic cross-chain)
-    private static final byte SUBTYPE_ADVANCED_PAYMENT_ESCROW_RESULT = 3;
-    private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_SUBSCRIBE = 4;
-    private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_CANCEL = 5;
-    private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT = 6;
+    private static final byte SUBTYPE_ADVANCED_PAYMENT_ESCROW_RESULT = 2;
+    private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_SUBSCRIBE = 3;
+    private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_CANCEL = 4;
+    private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT = 5;
 
     private static final int BASELINE_FEE_HEIGHT = 1; // At release time must be less than current block - 1440
     private static final Fee BASELINE_FEE = new Fee(Constants.ONE_NXT, 0);
@@ -1976,10 +1975,6 @@ public abstract class TransactionType {
 			}
 			
 			@Override
-			final void undoAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) throws UndoNotSupportedException {
-			}
-			
-			@Override
 			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 			}
 			
@@ -2033,11 +2028,6 @@ public abstract class TransactionType {
 			}
 			
 			@Override
-			final void undoAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-				Subscription.removeSubscription(transaction.getId());
-			}
-			
-			@Override
 			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 			}
 			
@@ -2057,7 +2047,7 @@ public abstract class TransactionType {
 				if(transaction.getAmountNQT() < Constants.ONE_NXT || transaction.getAmountNQT() > Constants.MAX_BALANCE_NQT) {
 					throw new NxtException.NotValidException("Subscriptions must be at least one burst");
 				}
-				if(transaction.getSenderId().equals(transaction.getRecipientId())) {
+				if(transaction.getSenderId() == transaction.getRecipientId()) {
 					throw new NxtException.NotValidException("Cannot create subscription to same address");
 				}
 				if(!Subscription.isEnabled()) {
@@ -2097,11 +2087,6 @@ public abstract class TransactionType {
 			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
 				Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
 				Subscription.removeSubscription(attachment.getSubscriptionId());
-			}
-			
-			@Override
-			final void undoAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) throws UndoNotSupportedException {
-				throw new UndoNotSupportedException("Cannot undo subscription cancel");
 			}
 			
 			@Override
@@ -2167,10 +2152,6 @@ public abstract class TransactionType {
 		
 		@Override
 		final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-		}
-		
-		@Override
-		final void undoAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) throws UndoNotSupportedException {
 		}
 		
 		@Override

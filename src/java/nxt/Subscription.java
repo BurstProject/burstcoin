@@ -1,22 +1,25 @@
 package nxt;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.NavigableSet;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListSet;
+
+import nxt.db.Db;
+import nxt.db.DbClause;
+import nxt.db.DbClause.LongClause;
+import nxt.db.DbIterator;
+import nxt.db.DbKey;
+import nxt.db.DbUtils;
+import nxt.db.VersionedEntityDbTable;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import nxt.NxtException.NotValidException;
 import nxt.util.Convert;
 
-public class Subscription implements Comparable<Subscription> {
+public class Subscription {
 	
 	public static boolean isEnabled() {
 		if(Nxt.getBlockchain().getLastBlock().getHeight() >= Constants.BURST_SUBSCRIPTION_START_BLOCK) {
@@ -31,52 +34,55 @@ public class Subscription implements Comparable<Subscription> {
 		return false;
 	}
 	
-	private static final ConcurrentMap<Long, Subscription> subscriptions = new ConcurrentHashMap<>();
-	private static final ConcurrentSkipListSet<Subscription> subscriptionsSorted = new ConcurrentSkipListSet<>();
-	private static final Collection<Subscription> allSubscriptions = Collections.unmodifiableCollection(subscriptionsSorted);
-
-	private volatile static Long lastUnpoppableBlock = 0L;
-	private static final Subscription cutoffSubscription = new Subscription(null, null, Long.MAX_VALUE, 0L, 0, 0);
+	private static final DbKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory = new DbKey.LongKeyFactory<Subscription>("id") {
+		@Override
+		public DbKey newKey(Subscription subscription) {
+			return subscription.dbKey;
+		}
+	};
+	
+	private static final VersionedEntityDbTable<Subscription> subscriptionTable = new VersionedEntityDbTable<Subscription>("subscription", subscriptionDbKeyFactory) {
+		@Override
+		protected Subscription load(Connection con, ResultSet rs) throws SQLException {
+			return new Subscription(rs);
+		}
+		@Override
+		protected void save(Connection con, Subscription subscription) throws SQLException {
+			subscription.save(con);
+		}
+	};
 	
 	private static final List<TransactionImpl> paymentTransactions = new ArrayList<>();
 	
-	public static Collection<Subscription> getAllSubscriptions() {
-		return allSubscriptions;
+	public static DbIterator<Subscription> getAllSubscriptions() {
+		return subscriptionTable.getAll(0, -1);
 	}
 	
-	public static Collection<Subscription> getSubscriptionsByParticipent(Long accountId) {
-		List<Subscription> filtered = new ArrayList<>();
-		for(Subscription subscription : Subscription.getAllSubscriptions()) {
-			if(subscription.getSenderId().equals(accountId) ||
-			   subscription.getRecipientId().equals(accountId)) {
-				filtered.add(subscription);
+	private static DbClause getByParticipantClause(final long id) {
+		return new DbClause(" sender_id = ? OR recipient_id = ? ") {
+			@Override
+			public int set(PreparedStatement pstmt, int index) throws SQLException {
+				pstmt.setLong(index++, id);
+				pstmt.setLong(index++, id);
+				return index;
 			}
-		}
-		return filtered;
+		};
 	}
 	
-	public static Collection<Subscription> getIdSubscriptions(Long accountId) {
-		List<Subscription> filtered = new ArrayList<>();
-		for(Subscription subscription : Subscription.getAllSubscriptions()) {
-			if(subscription.getSenderId().equals(accountId)) {
-				filtered.add(subscription);
-			}
-		}
-		return filtered;
+	public static DbIterator<Subscription> getSubscriptionsByParticipant(Long accountId) {
+		return subscriptionTable.getManyBy(getByParticipantClause(accountId), 0, -1);
 	}
 	
-	public static Collection<Subscription> getSubscriptionsToId(Long accountId) {
-		List<Subscription> filtered = new ArrayList<>();
-		for(Subscription subscription : Subscription.getAllSubscriptions()) {
-			if(subscription.getRecipientId().equals(accountId)) {
-				filtered.add(subscription);
-			}
-		}
-		return filtered;
+	public static DbIterator<Subscription> getIdSubscriptions(Long accountId) {
+		return subscriptionTable.getManyBy(new DbClause.LongClause("sender_id", accountId), 0, -1);
+	}
+	
+	public static DbIterator<Subscription> getSubscriptionsToId(Long accountId) {
+		return subscriptionTable.getManyBy(new DbClause.LongClause("recipient_id", accountId), 0, -1);
 	}
 	
 	public static Subscription getSubscription(Long id) {
-		return subscriptions.get(id);
+		return subscriptionTable.get(subscriptionDbKeyFactory.newKey(id));
 	}
 	
 	public static void addSubscription(Account sender,
@@ -92,45 +98,47 @@ public class Subscription implements Comparable<Subscription> {
 													 frequency,
 													 startTimestamp);
 		
-		subscriptions.put(subscription.getId(), subscription);
-		subscriptionsSorted.add(subscription);
+		subscriptionTable.insert(subscription);
 	}
 	
 	public static void removeSubscription(Long id) {
-		Subscription subscription = subscriptions.get(id);
-		subscriptionsSorted.remove(subscription);
-		subscriptions.remove(id);
+		Subscription subscription = subscriptionTable.get(subscriptionDbKeyFactory.newKey(id));
+		subscriptionTable.delete(subscription);
 	}
 	
-	public static long updateOnBlock(Long blockId, int blockHeight, int timestamp, boolean apply, boolean scanning) throws NotValidException {
+	private static DbClause getUpdateOnBlockClause(final int timestamp) {
+		return new DbClause(" time_next <= ? ") {
+			@Override
+			public int set(PreparedStatement pstmt, int index) throws SQLException {
+				pstmt.setInt(index++, timestamp);
+				return index;
+			}
+		};
+	}
+	
+	public static long updateOnBlock(Long blockId, int blockHeight, int timestamp, boolean apply, boolean scanning) {
 		long totalFeeNQT = 0;
 		
-		paymentTransactions.clear();
-		
-		List<Subscription> retainSubscriptions = new ArrayList<>();
-		cutoffSubscription.timeNext = timestamp;
-		NavigableSet<Subscription> processingSubscriptions = subscriptionsSorted.headSet(cutoffSubscription, true);
-		Iterator<Subscription> it = processingSubscriptions.iterator();
-		while(it.hasNext()) {
-			Subscription subscription = it.next();
-			boolean retain = subscription.process(blockId, blockHeight, timestamp, apply, scanning);
-			if(retain) {
-				retainSubscriptions.add(subscription);
+		long retainCount = 0;
+		List<Long> removeSubscriptions = new  ArrayList<>();
+		DbIterator<Subscription> updateSubscriptions = subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
+		for(Subscription subscription : updateSubscriptions) {
+			if(subscription.process(blockId, blockHeight, timestamp, apply, scanning)) {
+				retainCount++;
 			}
 			else if(apply) {
-				subscriptions.remove(subscription.getId());
-				lastUnpoppableBlock = blockId;
-			}
-			if(apply) {
-				it.remove();
+				removeSubscriptions.add(subscription.getId());
 			}
 		}
 		
-		if(retainSubscriptions.size() > 0) {
-			totalFeeNQT = Convert.safeMultiply(retainSubscriptions.size(), Convert.safeDivide(Constants.ONE_NXT, 10L));
-			if(apply) {
-				subscriptionsSorted.addAll(retainSubscriptions);
+		if(removeSubscriptions.size() > 0) {
+			for(Long subscriptionId : removeSubscriptions) {
+				Subscription.removeSubscription(subscriptionId);
 			}
+		}
+		
+		if(retainCount > 0) {
+			totalFeeNQT = Convert.safeMultiply(retainCount, Convert.safeDivide(Constants.ONE_NXT, 10L));
 		}
 		
 		return totalFeeNQT;
@@ -149,34 +157,13 @@ public class Subscription implements Comparable<Subscription> {
 		}
 	}
 	
-	public static void undoBlock(int prevBlockTimestamp) {
-		Iterator<Subscription> it = subscriptionsSorted.iterator();
-		while(it.hasNext()) {
-			Subscription subscription = it.next();
-			subscription.undo(prevBlockTimestamp);
-		}
-		subscriptionsSorted.clear();
-		subscriptionsSorted.addAll(subscriptions.values());
-	}
-	
-	public static Long getUnpoppableBlockId() {
-		return lastUnpoppableBlock;
-	}
-	
-	public static void clear() {
-		subscriptions.clear();
-		subscriptionsSorted.clear();
-		lastUnpoppableBlock = 0L;
-	}
-	
 	private final Long senderId;
 	private final Long recipientId;
 	private final Long id;
+	private final DbKey dbKey;
 	private final Long amountNQT;
 	private final int frequency;
-	private final int timeStart;
 	private volatile int timeNext;
-	private volatile int timeLast;
 	
 	private Subscription(Long senderId,
 						 Long recipientId,
@@ -187,11 +174,36 @@ public class Subscription implements Comparable<Subscription> {
 		this.senderId = senderId;
 		this.recipientId = recipientId;
 		this.id = id;
+		this.dbKey = subscriptionDbKeyFactory.newKey(this.id);
 		this.amountNQT = amountNQT;
 		this.frequency  = frequency;
-		this.timeStart = timeStart;
-		this.timeLast = 0;
 		this.timeNext = timeStart + frequency;
+	}
+	
+	private Subscription(ResultSet rs) throws SQLException {
+		this.id = rs.getLong("id");
+		this.dbKey = subscriptionDbKeyFactory.newKey(this.id);
+		this.senderId = rs.getLong("sender_id");
+		this.recipientId = rs.getLong("recipient_id");
+		this.amountNQT = rs.getLong("amount");
+		this.frequency = rs.getInt("frequency");
+		this.timeNext = rs.getInt("time_next");
+	}
+	
+	private void save(Connection con) throws SQLException {
+		try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO subscription (id, "
+				+ "sender_id, recipient_id, amount, frequency, time_next, height, latest) "
+				+ "KEY (id, height) VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)")) {
+			int i = 0;
+			pstmt.setLong(++i, this.id);
+			pstmt.setLong(++i, this.senderId);
+			pstmt.setLong(++i, this.recipientId);
+			pstmt.setLong(++i, this.amountNQT);
+			pstmt.setInt(++i, this.frequency);
+			pstmt.setInt(++i, this.timeNext);
+			pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+			pstmt.executeUpdate();
+		}
 	}
 	
 	public Long getSenderId() {
@@ -214,19 +226,11 @@ public class Subscription implements Comparable<Subscription> {
 		return frequency;
 	}
 	
-	public int getTimeStart() {
-		return timeStart;
-	}
-	
-	public int getTimeLast() {
-		return timeLast != 0 ? timeLast : timeStart;
-	}
-	
 	public int getTimeNext() {
 		return timeNext;
 	}
 	
-	private synchronized boolean process(Long blockId, int blockHeight, int blockTime, boolean apply, boolean scanning) throws NotValidException {
+	private synchronized boolean process(Long blockId, int blockHeight, int blockTime, boolean apply, boolean scanning) {
 		if(blockTime < timeNext) {
 			return true;
 		}
@@ -244,65 +248,31 @@ public class Subscription implements Comparable<Subscription> {
 			sender.addToBalanceAndUnconfirmedBalanceNQT(-totalAmountNQT);
 			recipient.addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
 			
-			timeLast = timeNext;
-			timeNext += frequency;
-			
 			if(!scanning) {
 				Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentSubscriptionPayment(id);
 				TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte) 1,
 																			  sender.getPublicKey(), amountNQT,
 																			  Convert.safeDivide(Constants.ONE_NXT, 10L),
-																			  timeLast, (short)1440, attachment);
-				builder.senderId(senderId)
+																			  timeNext, (short)1440, attachment);
+				
+				try {
+					builder.senderId(senderId)
 					   .recipientId(recipientId)
-					   .referencedTransactionFullHash((String)null)
-					   .signature(null)
 					   .blockId(blockId)
 					   .height(blockHeight)
-					   .id(null)
 					   .blockTimestamp(blockTime)
-					   .fullHash((String)null)
 					   .ecBlockHeight(0)
 					   .ecBlockId(0L);
-				TransactionImpl transaction = builder.build();
-				paymentTransactions.add(transaction);
+					TransactionImpl transaction = builder.build();
+					paymentTransactions.add(transaction);
+				} catch (NotValidException e) {
+					throw new RuntimeException("Failed to build subscription payment transaction");
+				}
 			}
+			
+			timeNext += frequency;
 		}
 		
 		return true;
-	}
-	
-	private synchronized void undo(int prevBlockTime) {
-		if(prevBlockTime >= timeLast) {
-			return;
-		}
-		
-		Account sender = Account.getAccount(senderId);
-		Account recipient = Account.getAccount(recipientId);
-		
-		long totalAmountNQT = Convert.safeAdd(amountNQT, Convert.safeDivide(Constants.ONE_NXT, 10L));
-		
-		recipient.addToBalanceAndUnconfirmedBalanceNQT(-amountNQT);
-		sender.addToBalanceAndUnconfirmedBalanceNQT(totalAmountNQT);
-		
-		timeNext = timeLast;
-		timeLast -= frequency;
-		
-		if(timeLast <= timeStart) {
-			timeLast = 0;
-		}
-	}
-
-	@Override
-	public int compareTo(Subscription o) {
-		if(timeNext < o.timeNext) {
-			return -1;
-		}
-		
-		if(timeNext > o.timeNext) {
-			return 1;
-		}
-		
-		return id.compareTo(o.id);
 	}
 }

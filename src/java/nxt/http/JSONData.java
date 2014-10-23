@@ -303,8 +303,6 @@ public final class JSONData {
     	putAccount(json, "recipient", subscription.getRecipientId());
     	json.put("amountNQT", Convert.toUnsignedLong(subscription.getAmountNQT()));
     	json.put("frequency", subscription.getFrequency());
-    	json.put("timeStart", subscription.getTimeStart());
-    	json.put("timeLast", subscription.getTimeLast());
     	json.put("timeNext", subscription.getTimeNext());
     	return json;
     }

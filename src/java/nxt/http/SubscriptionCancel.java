@@ -52,8 +52,8 @@ public final class SubscriptionCancel extends CreateTransaction {
 			return response;
 		}
 		
-		if(!sender.getId().equals(subscription.getSenderId()) &&
-		   !sender.getId().equals(subscription.getRecipientId())) {
+		if(sender.getId() != subscription.getSenderId() &&
+		   sender.getId()!= subscription.getRecipientId()) {
 			JSONObject response = new JSONObject();
 			response.put("errorCode", 7);
 			response.put("errorDescription", "Must be sender or recipient to cancel subscription");

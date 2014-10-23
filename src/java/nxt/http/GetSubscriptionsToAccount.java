@@ -5,6 +5,7 @@ import java.util.Collection;
 import nxt.Account;
 import nxt.NxtException;
 import nxt.Subscription;
+import nxt.db.DbIterator;
 import nxt.util.Convert;
 
 import org.json.simple.JSONArray;
@@ -30,7 +31,7 @@ public final class GetSubscriptionsToAccount extends APIServlet.APIRequestHandle
 		
 		JSONArray subscriptions = new JSONArray();
 		
-		Collection<Subscription> accountSubscriptions = Subscription.getSubscriptionsToId(account.getId());
+		DbIterator<Subscription> accountSubscriptions = Subscription.getSubscriptionsToId(account.getId());
 		
 		for(Subscription subscription : accountSubscriptions) {
 			subscriptions.add(JSONData.subscription(subscription));

@@ -566,13 +566,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 MessageDigest digest = Crypto.sha256();
                 
                 if(Subscription.isEnabled()) {
-                	try {
-						calculatedTotalFee += Subscription.updateOnBlock(block.getId(), previousLastBlock.getHeight() + 1, block.getTimestamp(), true, false);
-					} catch (NotValidException e) {
-						Logger.logErrorMessage("Failed to process subscriptions when pushing block", e);
-						e.printStackTrace();
-						throw new BlockNotAcceptedException("Subscription processing failed");
-					}
+					calculatedTotalFee += Subscription.updateOnBlock(block.getId(), previousLastBlock.getHeight() + 1, block.getTimestamp(), true, false);
                 }
 
                 for (TransactionImpl transaction : block.getTransactions()) {
@@ -680,7 +674,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
         block.apply();
         if(Escrow.isEnabled()) {
-        	Escrow.updateOnBlock(block.getId(), block.getTimestamp());
+        	Escrow.updateOnBlock(block);
         }
         Subscription.saveTransactions();
         blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
@@ -773,13 +767,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         int blockTimestamp = Nxt.getEpochTime();
         
         if(Subscription.isEnabled()) {
-        	try {
-				totalFeeNQT += Subscription.updateOnBlock(null, 0, blockTimestamp, false, true);
-			} catch (NotValidException e) {
-				Logger.logErrorMessage("Failed to process subscriptions when generating block", e);
-				e.printStackTrace();
-				return;
-			}
+			totalFeeNQT += Subscription.updateOnBlock(null, 0, blockTimestamp, false, true);
         }
 
         while (payloadLength <= Constants.MAX_PAYLOAD_LENGTH && newTransactions.size() <= Constants.MAX_NUMBER_OF_TRANSACTIONS) {
