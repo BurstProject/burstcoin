@@ -268,7 +268,22 @@ public class Escrow {
 		escrowTable.delete(escrow);
 	}
 	
+	private static DbClause getUpdateOnBlockClause(final int timestamp) {
+		return new DbClause(" deadline < ? ") {
+			@Override
+			public int set(PreparedStatement pstmt, int index) throws SQLException {
+				pstmt.setInt(index++, timestamp);
+				return index;
+			}
+		};
+	}
+	
 	public static void updateOnBlock(Long blockId, int timestamp) {
+		DbIterator<Escrow> deadlineEscrows = escrowTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
+		for(Escrow escrow : deadlineEscrows) {
+			updatedEscrowIds.add(escrow.getId());
+		}
+		
 		if(updatedEscrowIds.size() > 0) {
 			for(Long escrowId : updatedEscrowIds) {
 				Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(escrowId));
@@ -336,6 +351,7 @@ public class Escrow {
 			pstmt.setInt(++i, this.deadline);
 			pstmt.setInt(++i, decisionToByte(this.deadlineAction));
 			pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+			pstmt.executeUpdate();
 		}
 	}
 	
