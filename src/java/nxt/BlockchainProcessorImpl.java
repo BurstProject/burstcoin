@@ -564,10 +564,6 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 long calculatedTotalAmount = 0;
                 long calculatedTotalFee = 0;
                 MessageDigest digest = Crypto.sha256();
-                
-                if(Subscription.isEnabled()) {
-					calculatedTotalFee += Subscription.updateOnBlock(block.getId(), previousLastBlock.getHeight() + 1, block.getTimestamp(), true, false);
-                }
 
                 for (TransactionImpl transaction : block.getTransactions()) {
 
@@ -633,18 +629,20 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
                 }
 
-                if (calculatedTotalAmount != block.getTotalAmountNQT() || calculatedTotalFee != block.getTotalFeeNQT()) {
+                if (calculatedTotalAmount != block.getTotalAmountNQT() || calculatedTotalFee > block.getTotalFeeNQT()) {
                     throw new BlockNotAcceptedException("Total amount or fee don't match transaction totals");
                 }
                 if (!Arrays.equals(digest.digest(), block.getPayloadHash())) {
                     throw new BlockNotAcceptedException("Payload hash doesn't match");
                 }
+                
+                long remainingFee = Convert.safeSubtract(block.getTotalFeeNQT(), calculatedTotalFee);
 
                 block.setPrevious(previousLastBlock);
                 blockListeners.notify(block, Event.BEFORE_BLOCK_ACCEPT);
                 transactionProcessor.requeueAllUnconfirmedTransactions();
                 addBlock(block);
-                accept(block);
+                accept(block, remainingFee);
 
                 Db.commitTransaction();
             } catch (Exception e) {
@@ -664,19 +662,32 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     }
 
-    private void accept(BlockImpl block) throws TransactionNotAcceptedException {
+    private void accept(BlockImpl block, Long remainingFee) throws TransactionNotAcceptedException, BlockNotAcceptedException {
         TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
         for (TransactionImpl transaction : block.getTransactions()) {
             if (! transaction.applyUnconfirmed()) {
                 throw new TransactionNotAcceptedException("Double spending transaction: " + transaction.getStringId(), transaction);
             }
         }
+        long calculatedRemainingFee = 0;
+        List<Subscription> subscriptions = null;
+        if(Subscription.isEnabled()) {
+        	subscriptions = Subscription.applyUnconfirmed(block.getTimestamp());
+        	for(Subscription subscription : subscriptions) {
+        		calculatedRemainingFee = Convert.safeAdd(calculatedRemainingFee, subscription.getFee());
+        	}
+        }
+        if(remainingFee != null && remainingFee.longValue() != calculatedRemainingFee) {
+        	throw new BlockNotAcceptedException("Calculated remaining fee doesn't add up");
+        }
         blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
         block.apply();
-        if(Escrow.isEnabled()) {
-        	Escrow.updateOnBlock(block);
+        if(subscriptions != null) {
+        	Subscription.apply(subscriptions, block);
         }
-        Subscription.saveTransactions();
+        if(Escrow.isEnabled()) {
+        	Escrow.updateOnBlock(block.getId(), block.getHeight(), block.getTimestamp(), true);
+        }
         blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
         if (block.getTransactions().size() > 0) {
             transactionProcessor.notifyListeners(block.getTransactions(), TransactionProcessor.Event.ADDED_CONFIRMED_TRANSACTIONS);
@@ -765,10 +776,6 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         int payloadLength = 0;
         
         int blockTimestamp = Nxt.getEpochTime();
-        
-        if(Subscription.isEnabled()) {
-			totalFeeNQT += Subscription.updateOnBlock(null, 0, blockTimestamp, false, true);
-        }
 
         while (payloadLength <= Constants.MAX_PAYLOAD_LENGTH && newTransactions.size() <= Constants.MAX_NUMBER_OF_TRANSACTIONS) {
 
@@ -823,6 +830,14 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             if (newTransactions.size() == prevNumberOfNewTransactions) {
                 break;
+            }
+        }
+        
+        if(Subscription.isEnabled()) {
+        	synchronized(blockchain) {
+            	transactionProcessor.requeueAllUnconfirmedTransactions();
+            	transactionProcessor.processTransactions(newTransactions, false);
+            	totalFeeNQT += Subscription.calculateFees(blockTimestamp);
             }
         }
 
@@ -985,7 +1000,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                             }
                             blockListeners.notify(currentBlock, Event.BEFORE_BLOCK_ACCEPT);
                             blockchain.setLastBlock(currentBlock);
-                            accept(currentBlock);
+                            accept(currentBlock, null);
                             currentBlockId = currentBlock.getNextBlockId();
                             Db.commitTransaction();
                         } catch (NxtException | RuntimeException e) {

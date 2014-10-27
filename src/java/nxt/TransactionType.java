@@ -1787,7 +1787,7 @@ public abstract class TransactionType {
 			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
 				Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
-				if(senderAccount.getBalanceNQT() < totalAmountNQT.longValue()) {
+				if(senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT.longValue()) {
 					return false;
 				}
 				senderAccount.addToBalanceAndUnconfirmedBalanceNQT(-totalAmountNQT);

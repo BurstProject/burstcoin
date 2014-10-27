@@ -54,6 +54,10 @@ public class Subscription {
 	
 	private static final List<TransactionImpl> paymentTransactions = new ArrayList<>();
 	
+	public static long getFee() {
+		return Convert.safeDivide(Constants.ONE_NXT, 10L);
+	}
+	
 	public static DbIterator<Subscription> getAllSubscriptions() {
 		return subscriptionTable.getAll(0, -1);
 	}
@@ -116,44 +120,62 @@ public class Subscription {
 		};
 	}
 	
-	public static long updateOnBlock(Long blockId, int blockHeight, int timestamp, boolean apply, boolean scanning) {
+	public static long calculateFees(int timestamp) {
 		long totalFeeNQT = 0;
-		
-		long retainCount = 0;
-		List<Long> removeSubscriptions = new  ArrayList<>();
 		DbIterator<Subscription> updateSubscriptions = subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
+		List<Subscription> appliedSubscriptions = new ArrayList<>();
 		for(Subscription subscription : updateSubscriptions) {
-			if(subscription.process(blockId, blockHeight, timestamp, apply, scanning)) {
-				retainCount++;
-			}
-			else if(apply) {
-				removeSubscriptions.add(subscription.getId());
+			if(subscription.applyUnconfirmed()) {
+				appliedSubscriptions.add(subscription);
 			}
 		}
-		
-		if(removeSubscriptions.size() > 0) {
-			for(Long subscriptionId : removeSubscriptions) {
-				Subscription.removeSubscription(subscriptionId);
+		if(appliedSubscriptions.size() > 0) {
+			totalFeeNQT = Convert.safeMultiply(getFee(), appliedSubscriptions.size());
+			for(Subscription subscription : appliedSubscriptions) {
+				subscription.undoUnconfirmed();
 			}
 		}
-		
-		if(retainCount > 0) {
-			totalFeeNQT = Convert.safeMultiply(retainCount, Convert.safeDivide(Constants.ONE_NXT, 10L));
-		}
-		
 		return totalFeeNQT;
 	}
 	
-	public static void saveTransactions() {
+	public static List<Subscription> applyUnconfirmed(int timestamp) {
+		DbIterator<Subscription> updateSubscriptions = subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
+		List<Subscription> appliedSubscriptions = new ArrayList<>();
+		for(Subscription subscription : updateSubscriptions) {
+			if(subscription.applyUnconfirmed()) {
+				appliedSubscriptions.add(subscription);
+			}
+		}
+		return appliedSubscriptions;
+	}
+	
+	public static void undoUnconfirmed(List<Subscription> subscriptions) {
+		for(Subscription subscription : subscriptions) {
+			subscription.undoUnconfirmed();
+		}
+	}
+	
+	public static void apply(List<Subscription> subscriptions, Block block) {
+		paymentTransactions.clear();
+		for(Subscription subscription : subscriptions) {
+			subscription.apply(block);
+			subscriptionTable.insert(subscription);
+		}
 		if(paymentTransactions.size() > 0) {
 			try (Connection con = Db.getConnection()) {
 				TransactionDb.saveTransactions(con, paymentTransactions);
-				con.commit();
 			}
 			catch(SQLException e) {
 				throw new RuntimeException(e.toString(), e);
 			}
-			paymentTransactions.clear();
+		}
+		DbIterator<Subscription> removeIt = subscriptionTable.getManyBy(getUpdateOnBlockClause(block.getTimestamp()), 0, -1);
+		List<Subscription> removeSubscriptions = new ArrayList<>();
+		for(Subscription subscription : removeIt) {
+			removeSubscriptions.add(subscription);
+		}
+		for(Subscription subscription : removeSubscriptions) {
+			subscriptionTable.delete(subscription);
 		}
 	}
 	
@@ -230,49 +252,57 @@ public class Subscription {
 		return timeNext;
 	}
 	
-	private synchronized boolean process(Long blockId, int blockHeight, int blockTime, boolean apply, boolean scanning) {
-		if(blockTime < timeNext) {
-			return true;
+	private boolean applyUnconfirmed() {
+		Account sender = Account.getAccount(senderId);
+		long totalAmountNQT = Convert.safeAdd(amountNQT, getFee());
+		
+		if(sender.getUnconfirmedBalanceNQT() < totalAmountNQT) {
+			return false;
 		}
 		
+		sender.addToUnconfirmedBalanceNQT(-totalAmountNQT);
+		
+		return true;
+	}
+	
+	private void undoUnconfirmed() {
+		Account sender = Account.getAccount(senderId);
+		long totalAmountNQT = Convert.safeAdd(amountNQT, getFee());
+		
+		sender.addToUnconfirmedBalanceNQT(totalAmountNQT);
+	}
+	
+	private void apply(Block block) {
 		Account sender = Account.getAccount(senderId);
 		Account recipient = Account.getAccount(recipientId);
 		
 		long totalAmountNQT = Convert.safeAdd(amountNQT, Convert.safeDivide(Constants.ONE_NXT, 10L));
 		
-		if(sender.getBalanceNQT() < totalAmountNQT) {
-			return false;
-		}
+		sender.addToBalanceNQT(-totalAmountNQT);
+		recipient.addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
 		
-		if(apply) {
-			sender.addToBalanceAndUnconfirmedBalanceNQT(-totalAmountNQT);
-			recipient.addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
-			
-			if(!scanning) {
-				Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentSubscriptionPayment(id);
-				TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte) 1,
-																			  sender.getPublicKey(), amountNQT,
-																			  Convert.safeDivide(Constants.ONE_NXT, 10L),
-																			  timeNext, (short)1440, attachment);
-				
-				try {
-					builder.senderId(senderId)
-					   .recipientId(recipientId)
-					   .blockId(blockId)
-					   .height(blockHeight)
-					   .blockTimestamp(blockTime)
-					   .ecBlockHeight(0)
-					   .ecBlockId(0L);
-					TransactionImpl transaction = builder.build();
-					paymentTransactions.add(transaction);
-				} catch (NotValidException e) {
-					throw new RuntimeException("Failed to build subscription payment transaction");
-				}
+		Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentSubscriptionPayment(id);
+		TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte) 1,
+																	  sender.getPublicKey(), amountNQT,
+																	  Convert.safeDivide(Constants.ONE_NXT, 10L),
+																	  timeNext, (short)1440, attachment);
+		
+		try {
+			builder.senderId(senderId)
+			   .recipientId(recipientId)
+			   .blockId(block.getId())
+			   .height(block.getHeight())
+			   .blockTimestamp(block.getTimestamp())
+			   .ecBlockHeight(0)
+			   .ecBlockId(0L);
+			TransactionImpl transaction = builder.build();
+			if(!TransactionDb.hasTransaction(transaction.getId())) {
+				paymentTransactions.add(transaction);
 			}
-			
-			timeNext += frequency;
+		} catch (NotValidException e) {
+			throw new RuntimeException("Failed to build subscription payment transaction");
 		}
 		
-		return true;
+		timeNext += frequency;
 	}
 }
