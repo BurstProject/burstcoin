@@ -686,7 +686,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         	Subscription.apply(subscriptions, block);
         }
         if(Escrow.isEnabled()) {
-        	Escrow.updateOnBlock(block.getId(), block.getHeight(), block.getTimestamp(), true);
+        	Escrow.updateOnBlock(block);
         }
         blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
         if (block.getTransactions().size() > 0) {
