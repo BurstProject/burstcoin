@@ -434,6 +434,15 @@ final class DbVersion {
             case 138:
             	apply("ALTER TABLE transaction ALTER COLUMN signature SET NULL");
             case 139:
+            	apply("CREATE TABLE IF NOT EXISTS subscription (db_id IDENTITY, id BIGINT NOT NULL, sender_id BIGINT NOT NULL, recipient_id BIGINT NOT NULL, "
+            			+ "amount BIGINT NOT NULL, frequency INT NOT NULL, time_next INT NOT NULL, height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
+            case 140:
+            	apply("CREATE UNIQUE INDEX IF NOT EXISTS subscription_id_height_idx ON subscription (id, height DESC)");
+            case 141:
+            	apply("CREATE INDEX IF NOT EXISTS subscription_sender_id_height_idx ON subscription (sender_id, height DESC)");
+            case 142:
+            	apply("CREATE INDEX IF NOT EXISTS subscription_recipient_id_height_idx ON subscription (recipient_id, height DESC)");
+            case 143:
                 return;
             default:
                 throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");

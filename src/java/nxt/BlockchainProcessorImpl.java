@@ -671,7 +671,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
         long calculatedRemainingFee = 0;
         List<Subscription> subscriptions = null;
-        if(Subscription.isEnabled()) {
+        if(remainingFee.longValue() != 0L && Subscription.isEnabled()) {
         	subscriptions = Subscription.applyUnconfirmed(block.getTimestamp());
         	for(Subscription subscription : subscriptions) {
         		calculatedRemainingFee = Convert.safeAdd(calculatedRemainingFee, subscription.getFee());
@@ -835,9 +835,19 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         
         if(Subscription.isEnabled()) {
         	synchronized(blockchain) {
-            	transactionProcessor.requeueAllUnconfirmedTransactions();
-            	transactionProcessor.processTransactions(newTransactions, false);
-            	totalFeeNQT += Subscription.calculateFees(blockTimestamp);
+        		try {
+        			Db.beginTransaction();
+        			transactionProcessor.requeueAllUnconfirmedTransactions();
+                	//transactionProcessor.processTransactions(newTransactions, false);
+        			for(TransactionImpl transaction : newTransactions) {
+        				transaction.applyUnconfirmed();
+        			}
+                	totalFeeNQT += Subscription.calculateFees(blockTimestamp);
+        		}
+            	finally {
+            		Db.rollbackTransaction();
+            		Db.endTransaction();
+            	}
             }
         }
 
