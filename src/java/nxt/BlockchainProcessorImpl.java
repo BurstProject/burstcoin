@@ -670,21 +670,15 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
         }
         long calculatedRemainingFee = 0;
-        List<Subscription> subscriptions = null;
-        if(remainingFee.longValue() != 0L && Subscription.isEnabled()) {
-        	subscriptions = Subscription.applyUnconfirmed(block.getTimestamp());
-        	for(Subscription subscription : subscriptions) {
-        		calculatedRemainingFee = Convert.safeAdd(calculatedRemainingFee, subscription.getFee());
-        	}
+        if(Subscription.isEnabled()) {
+        	calculatedRemainingFee += Subscription.applyUnconfirmed(block.getTimestamp());
         }
         if(remainingFee != null && remainingFee.longValue() != calculatedRemainingFee) {
         	throw new BlockNotAcceptedException("Calculated remaining fee doesn't add up");
         }
         blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
         block.apply();
-        if(subscriptions != null) {
-        	Subscription.apply(subscriptions, block);
-        }
+        Subscription.applyConfirmed(block);
         if(Escrow.isEnabled()) {
         	Escrow.updateOnBlock(block);
         }

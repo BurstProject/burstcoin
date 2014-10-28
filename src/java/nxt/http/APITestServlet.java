@@ -51,7 +51,7 @@ public class APITestServlet extends HttpServlet {
             "            }\n" +
             "        }\n" +
             "        function submitForm(form) {\n" +
-            "            var url = '/nxt';\n" +
+            "            var url = '/burst';\n" +
             "            var params = {};\n" +
             "            for (i = 0; i < form.elements.length; i++) {\n" +
             "                if (form.elements[i].type != 'button' && form.elements[i].value && form.elements[i].value != 'submit') {\n" +
@@ -71,7 +71,7 @@ public class APITestServlet extends HttpServlet {
             "                alert('API not available, check if Nxt Server is running!');\n" +
             "            });\n" +
             "            if ($(form).has('.uri-link').length > 0) {\n" + 
-            "                  var uri = '/nxt?' + jQuery.param(params);\n" +
+            "                  var uri = '/burst?' + jQuery.param(params);\n" +
             "                  var html = '<a href=\"' + uri + '\" target=\"_blank\" style=\"font-size:12px;font-weight:normal;\">Open GET URL</a>';" +
             "                  form.getElementsByClassName(\"uri-link\")[0].innerHTML = html;\n" +
             "            }" +
@@ -263,7 +263,7 @@ public class APITestServlet extends HttpServlet {
         }
         buf.append("\">");
         buf.append("<div class=\"panel-body\">");
-        buf.append("<form action=\"/nxt\" method=\"POST\" onsubmit=\"return submitForm(this);\">");
+        buf.append("<form action=\"/burst\" method=\"POST\" onsubmit=\"return submitForm(this);\">");
         buf.append("<input type=\"hidden\" name=\"requestType\" value=\"").append(requestType).append("\"/>");
         buf.append("<div class=\"col-xs-12 col-lg-6\" style=\"width: 40%;\">");
         buf.append("<table class=\"table\">");

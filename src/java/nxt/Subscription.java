@@ -50,9 +50,15 @@ public class Subscription {
 		protected void save(Connection con, Subscription subscription) throws SQLException {
 			subscription.save(con);
 		}
+		@Override
+		protected String defaultSort() {
+			return " ORDER BY time_next ASC, id ASC ";
+		}
 	};
 	
 	private static final List<TransactionImpl> paymentTransactions = new ArrayList<>();
+	private static final List<Subscription> appliedSubscriptions = new ArrayList<>();
+	private static final List<Subscription> removeSubscriptions = new ArrayList<>();
 	
 	public static long getFee() {
 		return Convert.safeDivide(Constants.ONE_NXT, 10L);
@@ -138,26 +144,32 @@ public class Subscription {
 		return totalFeeNQT;
 	}
 	
-	public static List<Subscription> applyUnconfirmed(int timestamp) {
+	public static long applyUnconfirmed(int timestamp) {
+		appliedSubscriptions.clear();
+		removeSubscriptions.clear();
+		long totalFees = 0;
 		DbIterator<Subscription> updateSubscriptions = subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
-		List<Subscription> appliedSubscriptions = new ArrayList<>();
 		for(Subscription subscription : updateSubscriptions) {
 			if(subscription.applyUnconfirmed()) {
 				appliedSubscriptions.add(subscription);
+				totalFees += subscription.getFee();
+			}
+			else {
+				removeSubscriptions.add(subscription);
 			}
 		}
-		return appliedSubscriptions;
+		return totalFees;
 	}
 	
-	public static void undoUnconfirmed(List<Subscription> subscriptions) {
+	/*public static void undoUnconfirmed(List<Subscription> subscriptions) {
 		for(Subscription subscription : subscriptions) {
 			subscription.undoUnconfirmed();
 		}
-	}
+	}*/
 	
-	public static void apply(List<Subscription> subscriptions, Block block) {
+	public static void applyConfirmed(Block block) {
 		paymentTransactions.clear();
-		for(Subscription subscription : subscriptions) {
+		for(Subscription subscription : appliedSubscriptions) {
 			subscription.apply(block);
 			subscriptionTable.insert(subscription);
 		}
@@ -168,11 +180,6 @@ public class Subscription {
 			catch(SQLException e) {
 				throw new RuntimeException(e.toString(), e);
 			}
-		}
-		DbIterator<Subscription> removeIt = subscriptionTable.getManyBy(getUpdateOnBlockClause(block.getTimestamp()), 0, -1);
-		List<Subscription> removeSubscriptions = new ArrayList<>();
-		for(Subscription subscription : removeIt) {
-			removeSubscriptions.add(subscription);
 		}
 		for(Subscription subscription : removeSubscriptions) {
 			subscriptionTable.delete(subscription);
