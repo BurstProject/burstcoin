@@ -69,7 +69,7 @@ public class Subscription {
 	}
 	
 	private static DbClause getByParticipantClause(final long id) {
-		return new DbClause(" sender_id = ? OR recipient_id = ? ") {
+		return new DbClause(" (sender_id = ? OR recipient_id = ?) ") {
 			@Override
 			public int set(PreparedStatement pstmt, int index) throws SQLException {
 				pstmt.setLong(index++, id);

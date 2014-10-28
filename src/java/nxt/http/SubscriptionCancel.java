@@ -18,14 +18,14 @@ public final class SubscriptionCancel extends CreateTransaction {
 	
 	private SubscriptionCancel() {
 		super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION},
-			  "subscriptionId");
+			  "subscription");
 	}
 	
 	@Override
 	JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
 		Account sender = ParameterParser.getSenderAccount(req);
 		
-		String subscriptionString = Convert.emptyToNull(req.getParameter("subscriptionId"));
+		String subscriptionString = Convert.emptyToNull(req.getParameter("subscription"));
 		if(subscriptionString == null) {
 			JSONObject response = new JSONObject();
 			response.put("errorCode", 3);
