@@ -135,6 +135,9 @@ public class Subscription {
 		DbIterator<Subscription> updateSubscriptions = subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
 		List<Subscription> appliedSubscriptions = new ArrayList<>();
 		for(Subscription subscription : updateSubscriptions) {
+			if(removeSubscriptions.contains(subscription.getId())) {
+				continue;
+			}
 			if(subscription.applyUnconfirmed()) {
 				appliedSubscriptions.add(subscription);
 			}
