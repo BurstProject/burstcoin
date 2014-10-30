@@ -2080,6 +2080,8 @@ public abstract class TransactionType {
 			
 			@Override
 			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+				Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
+				Subscription.addRemoval(attachment.getSubscriptionId());
 				return true;
 			}
 			

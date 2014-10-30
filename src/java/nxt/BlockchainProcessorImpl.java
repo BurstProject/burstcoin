@@ -663,7 +663,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
 
     private void accept(BlockImpl block, Long remainingFee) throws TransactionNotAcceptedException, BlockNotAcceptedException {
-        TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
+        if(Subscription.isEnabled()) {
+        	Subscription.clearRemovals();
+        }
+    	TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
         for (TransactionImpl transaction : block.getTransactions()) {
             if (! transaction.applyUnconfirmed()) {
                 throw new TransactionNotAcceptedException("Double spending transaction: " + transaction.getStringId(), transaction);
@@ -829,6 +832,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         
         if(Subscription.isEnabled()) {
         	synchronized(blockchain) {
+        		Subscription.clearRemovals();
         		try {
         			Db.beginTransaction();
         			transactionProcessor.requeueAllUnconfirmedTransactions();

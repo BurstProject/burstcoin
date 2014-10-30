@@ -227,16 +227,16 @@ var NRS = (function(NRS, $, undefined) {
 							case 1:
 								transactionType = "Escrow Signing";
 								break;
-							case 3:
+							case 2:
 								transactionType = "Escrow Result";
 								break;
-							case 4:
+							case 3:
 								transactionType = "Subscription Subscribe";
 								break;
-							case 5:
+							case 4:
 								transactionType = "Subscription Cancel";
 								break;
-							case 6:
+							case 5:
 								transactionType = "Subscription Payment";
 								break;
 						}

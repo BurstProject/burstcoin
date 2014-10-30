@@ -202,7 +202,7 @@ public class Escrow {
 	}
 	
 	private static DbClause getEscrowParticipentClause(final long accountId) {
-		return new DbClause(" sender_id = ? OR recipient_id = ? ") {
+		return new DbClause(" (sender_id = ? OR recipient_id = ?) ") {
 			@Override
 	        public int set(PreparedStatement pstmt, int index) throws SQLException {
 	            pstmt.setLong(index++, accountId);

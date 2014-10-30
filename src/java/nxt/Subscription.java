@@ -1,7 +1,9 @@
 package nxt;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import nxt.db.Db;
 import nxt.db.DbClause;
@@ -58,7 +60,7 @@ public class Subscription {
 	
 	private static final List<TransactionImpl> paymentTransactions = new ArrayList<>();
 	private static final List<Subscription> appliedSubscriptions = new ArrayList<>();
-	private static final List<Subscription> removeSubscriptions = new ArrayList<>();
+	private static final Set<Long> removeSubscriptions = new HashSet<>();
 	
 	public static long getFee() {
 		return Convert.safeDivide(Constants.ONE_NXT, 10L);
@@ -113,7 +115,9 @@ public class Subscription {
 	
 	public static void removeSubscription(Long id) {
 		Subscription subscription = subscriptionTable.get(subscriptionDbKeyFactory.newKey(id));
-		subscriptionTable.delete(subscription);
+		if(subscription != null) {
+			subscriptionTable.delete(subscription);
+		}
 	}
 	
 	private static DbClause getUpdateOnBlockClause(final int timestamp) {
@@ -144,18 +148,28 @@ public class Subscription {
 		return totalFeeNQT;
 	}
 	
+	public static void clearRemovals() {
+		removeSubscriptions.clear();
+	}
+	
+	public static void addRemoval(Long id) {
+		removeSubscriptions.add(id);
+	}
+	
 	public static long applyUnconfirmed(int timestamp) {
 		appliedSubscriptions.clear();
-		removeSubscriptions.clear();
 		long totalFees = 0;
 		DbIterator<Subscription> updateSubscriptions = subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
 		for(Subscription subscription : updateSubscriptions) {
+			if(removeSubscriptions.contains(subscription.getId())) {
+				continue;
+			}
 			if(subscription.applyUnconfirmed()) {
 				appliedSubscriptions.add(subscription);
 				totalFees += subscription.getFee();
 			}
 			else {
-				removeSubscriptions.add(subscription);
+				removeSubscriptions.add(subscription.getId());
 			}
 		}
 		return totalFees;
@@ -181,8 +195,8 @@ public class Subscription {
 				throw new RuntimeException(e.toString(), e);
 			}
 		}
-		for(Subscription subscription : removeSubscriptions) {
-			subscriptionTable.delete(subscription);
+		for(Long subscription : removeSubscriptions) {
+			removeSubscription(subscription);
 		}
 	}
 	
