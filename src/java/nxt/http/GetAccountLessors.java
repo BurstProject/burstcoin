@@ -4,7 +4,6 @@ import nxt.Account;
 import nxt.Nxt;
 import nxt.NxtException;
 import nxt.db.DbIterator;
-import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -24,24 +23,27 @@ public final class GetAccountLessors extends APIServlet.APIRequestHandler {
 
         Account account = ParameterParser.getAccount(req);
         int height = ParameterParser.getHeight(req);
+        if (height < 0) {
+            height = Nxt.getBlockchain().getHeight();
+        }
 
         JSONObject response = new JSONObject();
         JSONData.putAccount(response, "account", account.getId());
-        response.put("height", height < 0 ? Nxt.getBlockchain().getHeight() : height);
-        JSONArray lessorIds = new JSONArray();
-        JSONArray lessorIdsRS = new JSONArray();
+        response.put("height", height);
+        JSONArray lessorsJSON = new JSONArray();
 
         try (DbIterator<Account> lessors = account.getLessors(height)) {
             if (lessors.hasNext()) {
                 while (lessors.hasNext()) {
                     Account lessor = lessors.next();
-                    lessorIds.add(Convert.toUnsignedLong(lessor.getId()));
-                    lessorIdsRS.add(Convert.rsAccount(lessor.getId()));
+                    JSONObject lessorJSON = new JSONObject();
+                    JSONData.putAccount(lessorJSON, "lessor", lessor.getId());
+                    lessorJSON.put("guaranteedBalanceNQT", String.valueOf(account.getGuaranteedBalanceNQT(1440, height)));
+                    lessorsJSON.add(lessorJSON);
                 }
             }
         }
-        response.put("lessors", lessorIds);
-        response.put("lessorsRS", lessorIdsRS);
+        response.put("lessors", lessorsJSON);
         return response;
 
     }

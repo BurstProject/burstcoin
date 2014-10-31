@@ -300,15 +300,31 @@ final class TransactionProcessorImpl implements TransactionProcessor {
         if (! transaction.verifySignature()) {
             throw new NxtException.NotValidException("Transaction signature verification failed");
         }
-        List<Transaction> validTransactions = processTransactions(Collections.singleton((TransactionImpl) transaction), true);
-        if (validTransactions.contains(transaction)) {
+        List<Transaction> processedTransactions;
+        synchronized (BlockchainImpl.getInstance()) {
+            if (TransactionDb.hasTransaction(transaction.getId())) {
+                Logger.logMessage("Transaction " + transaction.getStringId() + " already in blockchain, will not broadcast again");
+                return;
+            }
+            if (unconfirmedTransactionTable.get(((TransactionImpl) transaction).getDbKey()) != null) {
+                if (enableTransactionRebroadcasting) {
+                    nonBroadcastedTransactions.add((TransactionImpl) transaction);
+                    Logger.logMessage("Transaction " + transaction.getStringId() + " already in unconfirmed pool, will re-broadcast");
+                } else {
+                    Logger.logMessage("Transaction " + transaction.getStringId() + " already in unconfirmed pool, will not broadcast again");
+                }
+                return;
+            }
+            processedTransactions = processTransactions(Collections.singleton((TransactionImpl) transaction), true);
+        }
+        if (processedTransactions.contains(transaction)) {
             if (enableTransactionRebroadcasting) {
                 nonBroadcastedTransactions.add((TransactionImpl) transaction);
             }
             Logger.logDebugMessage("Accepted new transaction " + transaction.getStringId());
         } else {
-            Logger.logDebugMessage("Rejecting double spending transaction " + transaction.getStringId());
-            throw new NxtException.NotValidException("Double spending transaction");
+            Logger.logDebugMessage("Could not accept new transaction " + transaction.getStringId());
+            throw new NxtException.NotValidException("Invalid transaction " + transaction.getStringId());
         }
     }
 
@@ -326,6 +342,31 @@ final class TransactionProcessorImpl implements TransactionProcessor {
     @Override
     public TransactionImpl parseTransaction(JSONObject transactionData) throws NxtException.NotValidException {
         return TransactionImpl.parseTransaction(transactionData);
+    }
+    
+    @Override
+    public void clearUnconfirmedTransactions() {
+        synchronized (BlockchainImpl.getInstance()) {
+            List<Transaction> removed = new ArrayList<>();
+            try {
+                Db.beginTransaction();
+                try (DbIterator<TransactionImpl> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
+                    for (TransactionImpl transaction : unconfirmedTransactions) {
+                        transaction.undoUnconfirmed();
+                        removed.add(transaction);
+                    }
+                }
+                unconfirmedTransactionTable.truncate();
+                Db.commitTransaction();
+            } catch (Exception e) {
+                Logger.logErrorMessage(e.toString(), e);
+                Db.rollbackTransaction();
+                throw e;
+            } finally {
+                Db.endTransaction();
+            }
+            transactionListeners.notify(removed, Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
+        }
     }
 
     void requeueAllUnconfirmedTransactions() {
@@ -433,8 +474,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                             break; // not ready to process transactions
                         }
 
-                        long id = transaction.getId();
-                        if (TransactionDb.hasTransaction(id) || unconfirmedTransactionTable.get(transaction.getDbKey()) != null) {
+                        if (TransactionDb.hasTransaction(transaction.getId()) || unconfirmedTransactionTable.get(transaction.getDbKey()) != null) {
                             continue;
                         }
 

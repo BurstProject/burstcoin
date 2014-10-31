@@ -537,6 +537,16 @@ public final class Peers {
         }
         return activePeers;
     }
+    
+    public static Collection<? extends Peer> getPeers(Peer.State state) {
+        List<PeerImpl> peerList = new ArrayList<>();
+        for (PeerImpl peer : peers.values()) {
+            if (peer.getState() == state) {
+                peerList.add(peer);
+            }
+        }
+        return peerList;
+    }
 
     public static Peer getPeer(String peerAddress) {
         return peers.get(peerAddress);

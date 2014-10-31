@@ -18,7 +18,7 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
     static final GetTrades instance = new GetTrades();
 
     private GetTrades() {
-        super(new APITag[] {APITag.AE}, "asset", "account", "firstIndex", "lastIndex");
+        super(new APITag[] {APITag.AE}, "asset", "account", "firstIndex", "lastIndex", "includeAssetInfo");
     }
 
     @Override
@@ -29,6 +29,7 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
 
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
+        boolean includeAssetInfo = !"false".equalsIgnoreCase(req.getParameter("includeAssetInfo"));
 
         JSONObject response = new JSONObject();
         JSONArray tradesData = new JSONArray();
@@ -46,7 +47,7 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
                 trades = Trade.getAccountAssetTrades(account.getId(), asset.getId(), firstIndex, lastIndex);
             }
             while (trades.hasNext()) {
-                tradesData.add(JSONData.trade(trades.next()));
+                tradesData.add(JSONData.trade(trades.next(), includeAssetInfo));
             }
         } finally {
             DbUtils.close(trades);

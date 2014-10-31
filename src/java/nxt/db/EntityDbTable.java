@@ -21,7 +21,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         super(table);
         this.dbKeyFactory = dbKeyFactory;
         this.multiversion = multiversion;
-        this.defaultSort = " ORDER BY " + (multiversion ? dbKeyFactory.getPKColumns() : " db_id DESC ");
+        this.defaultSort = " ORDER BY " + (multiversion ? dbKeyFactory.getPKColumns() : " height DESC ");
     }
 
     protected abstract T load(Connection con, ResultSet rs) throws SQLException;

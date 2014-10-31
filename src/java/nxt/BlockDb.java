@@ -95,6 +95,24 @@ final class BlockDb {
             throw new RuntimeException("Last block already in database does not pass validation!", e);
         }
     }
+    
+    static BlockImpl findLastBlock(int timestamp) {
+        try (Connection con = Db.getConnection();
+             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE timestamp <= ? ORDER BY timestamp DESC LIMIT 1")) {
+            pstmt.setInt(1, timestamp);
+            BlockImpl block = null;
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    block = loadBlock(con, rs);
+                }
+            }
+            return block;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        } catch (NxtException.ValidationException e) {
+            throw new RuntimeException("Block already in database at timestamp " + timestamp + " does not pass validation!", e);
+        }
+    }
 
     static BlockImpl loadBlock(Connection con, ResultSet rs) throws NxtException.ValidationException {
         try {

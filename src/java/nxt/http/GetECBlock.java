@@ -23,6 +23,9 @@ public final class GetECBlock extends APIServlet.APIRequestHandler {
         if (timestamp == 0) {
             timestamp = Nxt.getEpochTime();
         }
+        if (timestamp < Nxt.getBlockchain().getLastBlock().getTimestamp() - 15) {
+            return JSONResponses.INCORRECT_TIMESTAMP;
+        }
         Block ecBlock = EconomicClustering.getECBlock(timestamp);
         JSONObject response = new JSONObject();
         response.put("ecBlockId", ecBlock.getStringId());

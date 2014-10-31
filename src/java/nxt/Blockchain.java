@@ -9,6 +9,8 @@ import java.util.List;
 public interface Blockchain {
 
     Block getLastBlock();
+    
+    Block getLastBlock(int timestamp);
 
     int getHeight();
 
@@ -19,6 +21,8 @@ public interface Blockchain {
     boolean hasBlock(long blockId);
 
     DbIterator<? extends Block> getAllBlocks();
+    
+    DbIterator<? extends Block> getBlocks(int from, int to);
 
     DbIterator<? extends Block> getBlocks(Account account, int timestamp);
     
@@ -31,8 +35,6 @@ public interface Blockchain {
     List<? extends Block> getBlocksAfter(long blockId, int limit);
 
     long getBlockIdAtHeight(int height);
-
-    List<? extends Block> getBlocksFromHeight(int height);
 
     Transaction getTransaction(long transactionId);
 

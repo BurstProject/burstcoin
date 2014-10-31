@@ -23,7 +23,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
     static final GetState instance = new GetState();
 
     private GetState() {
-        super(new APITag[] {APITag.INFO});
+        super(new APITag[] {APITag.INFO}, "includeCounts");
     }
 
     @Override
@@ -55,16 +55,22 @@ public final class GetState extends APIServlet.APIRequestHandler {
         response.put("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_NXT);
         
 
-        response.put("numberOfBlocks", Nxt.getBlockchain().getHeight() + 1);
-        response.put("numberOfTransactions", Nxt.getBlockchain().getTransactionCount());
-        response.put("numberOfAccounts", Account.getCount());
-        response.put("numberOfAssets", Asset.getCount());
-        response.put("numberOfOrders", Order.Ask.getCount() + Order.Bid.getCount());
-        response.put("numberOfTrades", Trade.getCount());
-        response.put("numberOfTransfers", AssetTransfer.getCount());
-        response.put("numberOfAliases", Alias.getCount());
-        //response.put("numberOfPolls", Poll.getCount());
-        //response.put("numberOfVotes", Vote.getCount());
+        if (!"false".equalsIgnoreCase(req.getParameter("includeCounts"))) {
+            response.put("numberOfBlocks", Nxt.getBlockchain().getHeight() + 1);
+            response.put("numberOfTransactions", Nxt.getBlockchain().getTransactionCount());
+            response.put("numberOfAccounts", Account.getCount());
+            response.put("numberOfAssets", Asset.getCount());
+            int askCount = Order.Ask.getCount();
+            int bidCount = Order.Bid.getCount();
+            response.put("numberOfOrders", askCount + bidCount);
+            response.put("numberOfAskOrders", askCount);
+            response.put("numberOfBidOrders", bidCount);
+            response.put("numberOfTrades", Trade.getCount());
+            response.put("numberOfTransfers", AssetTransfer.getCount());
+            response.put("numberOfAliases", Alias.getCount());
+            //response.put("numberOfPolls", Poll.getCount());
+            //response.put("numberOfVotes", Vote.getCount());
+        }
         response.put("numberOfPeers", Peers.getAllPeers().size());
         response.put("numberOfUnlockedAccounts", Generator.getAllGenerators().size());
         Peer lastBlockchainFeeder = Nxt.getBlockchainProcessor().getLastBlockchainFeeder();

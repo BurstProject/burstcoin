@@ -443,6 +443,8 @@ final class DbVersion {
             case 142:
             	apply("CREATE INDEX IF NOT EXISTS subscription_recipient_id_height_idx ON subscription (recipient_id, height DESC)");
             case 143:
+            	apply("CREATE UNIQUE INDEX IF NOT EXISTS block_timestamp_idx ON block (timestamp DESC)");
+            case 144:
                 return;
             default:
                 throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");

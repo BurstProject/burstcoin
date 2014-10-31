@@ -307,7 +307,7 @@ public final class JSONData {
     	return json;
     }
 
-    static JSONObject trade(Trade trade) {
+    static JSONObject trade(Trade trade, boolean includeAssetInfo) {
         JSONObject json = new JSONObject();
         json.put("timestamp", trade.getTimestamp());
         json.put("quantityQNT", String.valueOf(trade.getQuantityQNT()));
@@ -321,14 +321,16 @@ public final class JSONData {
         putAccount(json, "buyer", trade.getBuyerId());
         json.put("block", Convert.toUnsignedLong(trade.getBlockId()));
         json.put("height", trade.getHeight());
-        Asset asset = Asset.getAsset(trade.getAssetId());
-        json.put("name", asset.getName());
-        json.put("decimals", asset.getDecimals());
         json.put("tradeType", trade.isBuy() ? "buy" : "sell");
+        if (includeAssetInfo) {
+            Asset asset = Asset.getAsset(trade.getAssetId());
+            json.put("name", asset.getName());
+            json.put("decimals", asset.getDecimals());
+        }
         return json;
     }
     
-    static JSONObject assetTransfer(AssetTransfer assetTransfer) {
+    static JSONObject assetTransfer(AssetTransfer assetTransfer, boolean includeAssetInfo) {
         JSONObject json = new JSONObject();
         json.put("assetTransfer", Convert.toUnsignedLong(assetTransfer.getId()));
         json.put("asset", Convert.toUnsignedLong(assetTransfer.getAssetId()));
@@ -336,10 +338,12 @@ public final class JSONData {
         putAccount(json, "recipient", assetTransfer.getRecipientId());
         json.put("quantityQNT", String.valueOf(assetTransfer.getQuantityQNT()));
         json.put("height", assetTransfer.getHeight());
-        Asset asset = Asset.getAsset(assetTransfer.getAssetId());
-        json.put("name", asset.getName());
-        json.put("decimals", asset.getDecimals());
         json.put("timestamp", assetTransfer.getTimestamp());
+        if (includeAssetInfo) {
+            Asset asset = Asset.getAsset(assetTransfer.getAssetId());
+            json.put("name", asset.getName());
+            json.put("decimals", asset.getDecimals());
+        }
         return json;
     }
 

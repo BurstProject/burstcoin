@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static nxt.http.JSONResponses.INCORRECT_BLOCK;
 import static nxt.http.JSONResponses.INCORRECT_HEIGHT;
-import static nxt.http.JSONResponses.MISSING_BLOCK;
+import static nxt.http.JSONResponses.INCORRECT_TIMESTAMP;
 import static nxt.http.JSONResponses.UNKNOWN_BLOCK;
 
 public final class GetBlock extends APIServlet.APIRequestHandler {
@@ -17,45 +17,51 @@ public final class GetBlock extends APIServlet.APIRequestHandler {
     static final GetBlock instance = new GetBlock();
 
     private GetBlock() {
-        super(new APITag[] {APITag.BLOCKS}, "block", "height", "includeTransactions");
+        super(new APITag[] {APITag.BLOCKS}, "block", "height", "timestamp", "includeTransactions");
     }
 
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) {
 
-        int height = -1;
-        String block = Convert.emptyToNull(req.getParameter("block"));
+        Block blockData;
+        String blockValue = Convert.emptyToNull(req.getParameter("block"));
         String heightValue = Convert.emptyToNull(req.getParameter("height"));
-        if (block == null) {
+        String timestampValue = Convert.emptyToNull(req.getParameter("timestamp"));
+        if (blockValue != null) {
             try {
-                if (heightValue != null) {
-                    height = Integer.parseInt(heightValue);
-                    if (height < 0 || height > Nxt.getBlockchain().getHeight()) {
-                        return INCORRECT_HEIGHT;
-                    }
-                } else {
-                    return MISSING_BLOCK;
+                blockData = Nxt.getBlockchain().getBlock(Convert.parseUnsignedLong(blockValue));
+            } catch (RuntimeException e) {
+                return INCORRECT_BLOCK;
+            }
+        } else if (heightValue != null) {
+            try {
+                int height = Integer.parseInt(heightValue);
+                if (height < 0 || height > Nxt.getBlockchain().getHeight()) {
+                    return INCORRECT_HEIGHT;
                 }
+                blockData = Nxt.getBlockchain().getBlockAtHeight(height);
             } catch (RuntimeException e) {
                 return INCORRECT_HEIGHT;
             }
+        } else if (timestampValue != null) {
+            try {
+                int timestamp = Integer.parseInt(timestampValue);
+                if (timestamp < 0) {
+                    return INCORRECT_TIMESTAMP;
+                }
+                blockData = Nxt.getBlockchain().getLastBlock(timestamp);
+            } catch (RuntimeException e) {
+                return INCORRECT_TIMESTAMP;
+            }
+        } else {
+            blockData = Nxt.getBlockchain().getLastBlock();
+        }
+
+        if (blockData == null) {
+            return UNKNOWN_BLOCK;
         }
 
         boolean includeTransactions = "true".equalsIgnoreCase(req.getParameter("includeTransactions"));
-
-        Block blockData;
-        try {
-            if (block != null) {
-                blockData = Nxt.getBlockchain().getBlock(Convert.parseUnsignedLong(block));
-            } else {
-                blockData = Nxt.getBlockchain().getBlockAtHeight(height);
-            }
-            if (blockData == null) {
-                return UNKNOWN_BLOCK;
-            }
-        } catch (RuntimeException e) {
-            return INCORRECT_BLOCK;
-        }
 
         return JSONData.block(blockData, includeTransactions);
 

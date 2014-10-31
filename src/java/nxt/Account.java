@@ -366,6 +366,10 @@ public final class Account {
     public static Account getAccount(long id) {
         return id == 0 ? null : accountTable.get(accountDbKeyFactory.newKey(id));
     }
+    
+    public static Account getAccount(long id, int height) {
+        return id == 0 ? null : accountTable.get(accountDbKeyFactory.newKey(id), height);
+    }
 
     public static Account getAccount(byte[] publicKey) {
         Account account = accountTable.get(accountDbKeyFactory.newKey(getId(publicKey)));
@@ -614,20 +618,25 @@ public final class Account {
         }
         return accountTable.getManyBy(getLessorsClause(height), height, 0, -1);
     }
-
+    
     public long getGuaranteedBalanceNQT(final int numberOfConfirmations) {
+        return getGuaranteedBalanceNQT(numberOfConfirmations, Nxt.getBlockchain().getHeight());
+    }
+
+    public long getGuaranteedBalanceNQT(final int numberOfConfirmations, final int currentHeight) {
         if (numberOfConfirmations >= Nxt.getBlockchain().getHeight()) {
             return 0;
         }
         if (numberOfConfirmations > 2880 || numberOfConfirmations < 0) {
             throw new IllegalArgumentException("Number of required confirmations must be between 0 and " + 2880);
         }
-        int height = Nxt.getBlockchain().getHeight() - numberOfConfirmations;
+        int height = currentHeight - numberOfConfirmations;
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT SUM (additions) AS additions "
-                     + "FROM account_guaranteed_balance WHERE account_id = ? AND height > ?")) {
+            		 + "FROM account_guaranteed_balance WHERE account_id = ? AND height > ? AND height <= ?")) {
             pstmt.setLong(1, this.id);
             pstmt.setInt(2, height);
+            pstmt.setInt(3, currentHeight);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (!rs.next()) {
                     return balanceNQT;
@@ -759,9 +768,11 @@ public final class Account {
     // this.publicKey is already set to an array equal to key
     boolean setOrVerify(byte[] key, int height) {
         if (this.publicKey == null) {
-            this.publicKey = key;
-            this.keyHeight = -1;
-            accountTable.insert(this);
+        	if (Db.isInTransaction()) {
+        		this.publicKey = key;
+                this.keyHeight = -1;
+                accountTable.insert(this);
+        	}
             return true;
         } else if (Arrays.equals(this.publicKey, key)) {
             return true;
@@ -772,11 +783,13 @@ public final class Account {
             return false;
         } else if (this.keyHeight >= height) {
             Logger.logMessage("DUPLICATE KEY!!!");
-            Logger.logMessage("Changing key for account " + Convert.toUnsignedLong(id) + " at height " + height
-                    + ", was previously set to a different one at height " + keyHeight);
-            this.publicKey = key;
-            this.keyHeight = height;
-            accountTable.insert(this);
+            if (Db.isInTransaction()) {
+            	Logger.logMessage("Changing key for account " + Convert.toUnsignedLong(id) + " at height " + height
+                        + ", was previously set to a different one at height " + keyHeight);
+                this.publicKey = key;
+                this.keyHeight = height;
+                accountTable.insert(this);
+            }
             return true;
         }
         Logger.logMessage("DUPLICATE KEY!!!");

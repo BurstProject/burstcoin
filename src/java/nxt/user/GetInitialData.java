@@ -15,7 +15,6 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.List;
 
 public final class GetInitialData extends UserServlet.UserRequestHandler {
 
@@ -94,26 +93,24 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
             }
         }
 
-        int height = Nxt.getBlockchain().getLastBlock().getHeight();
-        List<? extends Block> lastBlocks = Nxt.getBlockchain().getBlocksFromHeight(Math.max(0, height - 59));
+        try (DbIterator<? extends Block> lastBlocks = Nxt.getBlockchain().getBlocks(0, 59)) {
+            for (Block block : lastBlocks) {
+                JSONObject recentBlock = new JSONObject();
+                recentBlock.put("index", Users.getIndex(block));
+                recentBlock.put("timestamp", block.getTimestamp());
+                recentBlock.put("numberOfTransactions", block.getTransactions().size());
+                recentBlock.put("totalAmountNQT", block.getTotalAmountNQT());
+                recentBlock.put("totalFeeNQT", block.getTotalFeeNQT());
+                recentBlock.put("payloadLength", block.getPayloadLength());
+                recentBlock.put("generator", Convert.toUnsignedLong(block.getGeneratorId()));
+                recentBlock.put("height", block.getHeight());
+                recentBlock.put("version", block.getVersion());
+                recentBlock.put("block", block.getStringId());
+                recentBlock.put("baseTarget", BigInteger.valueOf(block.getBaseTarget()).multiply(BigInteger.valueOf(100000))
+                        .divide(BigInteger.valueOf(Constants.INITIAL_BASE_TARGET)));
 
-        for (int i = lastBlocks.size() - 1; i >=0; i--) {
-            Block block = lastBlocks.get(i);
-            JSONObject recentBlock = new JSONObject();
-            recentBlock.put("index", Users.getIndex(block));
-            recentBlock.put("timestamp", block.getTimestamp());
-            recentBlock.put("numberOfTransactions", block.getTransactions().size());
-            recentBlock.put("totalAmountNQT", block.getTotalAmountNQT());
-            recentBlock.put("totalFeeNQT", block.getTotalFeeNQT());
-            recentBlock.put("payloadLength", block.getPayloadLength());
-            recentBlock.put("generator", Convert.toUnsignedLong(block.getGeneratorId()));
-            recentBlock.put("height", block.getHeight());
-            recentBlock.put("version", block.getVersion());
-            recentBlock.put("block", block.getStringId());
-            recentBlock.put("baseTarget", BigInteger.valueOf(block.getBaseTarget()).multiply(BigInteger.valueOf(100000))
-                    .divide(BigInteger.valueOf(Constants.INITIAL_BASE_TARGET)));
-
-            recentBlocks.add(recentBlock);
+                recentBlocks.add(recentBlock);
+            }
         }
 
         JSONObject response = new JSONObject();

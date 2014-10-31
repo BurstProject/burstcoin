@@ -76,7 +76,7 @@ public final class Db {
     static {
         long maxCacheSize = Nxt.getIntProperty("nxt.dbCacheKB");
         if (maxCacheSize == 0) {
-            maxCacheSize = Runtime.getRuntime().maxMemory() / (1024 * 2);
+        	maxCacheSize = Math.min(256, Math.max(16, (Runtime.getRuntime().maxMemory() / (1024 * 1024) - 128)/2)) * 1024;
         }
         String dbUrl = Constants.isTestnet ? Nxt.getStringProperty("nxt.testDbUrl") : Nxt.getStringProperty("nxt.dbUrl");
         if (! dbUrl.contains("CACHE_SIZE=")) {
@@ -94,10 +94,20 @@ public final class Db {
             throw new RuntimeException(e.toString(), e);
         }
     }
-
-    public static void shutdown() {
+    
+    public static void analyzeTables() {
         try (Connection con = cp.getConnection();
              Statement stmt = con.createStatement()) {
+            stmt.execute("ANALYZE SAMPLE_SIZE 0");
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+
+    public static void shutdown() {
+        try {
+            Connection con = cp.getConnection();
+            Statement stmt = con.createStatement();
             stmt.execute("SHUTDOWN COMPACT");
             Logger.logShutdownMessage("Database shutdown completed");
         } catch (SQLException e) {

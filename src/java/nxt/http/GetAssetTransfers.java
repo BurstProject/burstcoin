@@ -18,7 +18,7 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
     static final GetAssetTransfers instance = new GetAssetTransfers();
 
     private GetAssetTransfers() {
-        super(new APITag[] {APITag.AE}, "asset", "account", "firstIndex", "lastIndex");
+        super(new APITag[] {APITag.AE}, "asset", "account", "firstIndex", "lastIndex", "includeAssetInfo");
     }
 
     @Override
@@ -29,6 +29,7 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
 
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
+        boolean includeAssetInfo = !"false".equalsIgnoreCase(req.getParameter("includeAssetInfo"));
 
         JSONObject response = new JSONObject();
         JSONArray transfersData = new JSONArray();
@@ -46,7 +47,7 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
                 transfers = AssetTransfer.getAccountAssetTransfers(account.getId(), asset.getId(), firstIndex, lastIndex);
             }
             while (transfers.hasNext()) {
-                transfersData.add(JSONData.assetTransfer(transfers.next()));
+                transfersData.add(JSONData.assetTransfer(transfers.next(), includeAssetInfo));
             }
         } finally {
             DbUtils.close(transfers);

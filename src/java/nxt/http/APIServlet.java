@@ -106,6 +106,7 @@ public final class APIServlet extends HttpServlet {
         map.put("getBalance", GetBalance.instance);
         map.put("getBlock", GetBlock.instance);
         map.put("getBlockId", GetBlockId.instance);
+        map.put("getBlocks", GetBlocks.instance);
         map.put("getBlockchainStatus", GetBlockchainStatus.instance);
         map.put("getConstants", GetConstants.instance);
         map.put("getDGSGoods", GetDGSGoods.instance);
@@ -176,6 +177,7 @@ public final class APIServlet extends HttpServlet {
         map.put("getSubscriptionsToAccount", GetSubscriptionsToAccount.instance);
 
         if (API.enableDebugAPI) {
+        	map.put("clearUnconfirmedTransactions", ClearUnconfirmedTransactions.instance);
             map.put("fullReset", FullReset.instance);
             map.put("popOff", PopOff.instance);
             map.put("scan", Scan.instance);

@@ -44,6 +44,15 @@ final class BlockchainImpl implements Blockchain {
         BlockImpl last = lastBlock.get();
         return last == null ? 0 : last.getHeight();
     }
+    
+    @Override
+    public BlockImpl getLastBlock(int timestamp) {
+        BlockImpl block = lastBlock.get();
+        if (timestamp >= block.getTimestamp()) {
+            return block;
+        }
+        return BlockDb.findLastBlock(timestamp);
+    }
 
     @Override
     public BlockImpl getBlock(long blockId) {
@@ -65,6 +74,22 @@ final class BlockchainImpl implements Blockchain {
         try {
             con = Db.getConnection();
             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block ORDER BY db_id ASC");
+            return getBlocks(con, pstmt);
+        } catch (SQLException e) {
+            DbUtils.close(con);
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+    
+    @Override
+    public DbIterator<BlockImpl> getBlocks(int from, int to) {
+        Connection con = null;
+        try {
+            con = Db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE height <= ? AND height >= ? ORDER BY height DESC");
+            int blockchainHeight = getHeight();
+            pstmt.setInt(1, blockchainHeight - Math.max(from, 0));
+            pstmt.setInt(2, to > 0 ? blockchainHeight - to : 0);
             return getBlocks(con, pstmt);
         } catch (SQLException e) {
             DbUtils.close(con);
@@ -172,26 +197,6 @@ final class BlockchainImpl implements Blockchain {
             return block;
         }
         return BlockDb.findBlockAtHeight(height);
-    }
-
-    @Override
-    public List<BlockImpl> getBlocksFromHeight(int height) {
-        if (height < 0 || getHeight() - height > 1440) {
-            throw new IllegalArgumentException("Can't go back more than 1440 blocks");
-        }
-        try (Connection con = Db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE height >= ? ORDER BY height ASC")) {
-            pstmt.setInt(1, height);
-            List<BlockImpl> result = new ArrayList<>();
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    result.add(BlockDb.loadBlock(con, rs));
-                }
-            }
-            return result;
-        } catch (SQLException|NxtException.ValidationException e) {
-            throw new RuntimeException(e.toString(), e);
-        }
     }
 
     @Override
