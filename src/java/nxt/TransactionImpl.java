@@ -432,7 +432,7 @@ final class TransactionImpl implements Transaction {
 
     @Override
     public long getSenderId() {
-        if (senderId == 0) {
+        if (senderId == 0 && (type == null || type.isSigned())) {
             senderId = Account.getId(senderPublicKey);
         }
         return senderId;
