@@ -32,7 +32,7 @@ final class BlockImpl implements Block {
     private final int payloadLength;
     private final byte[] generationSignature;
     private final byte[] payloadHash;
-    private final List<TransactionImpl> blockTransactions;
+    private volatile List<TransactionImpl> blockTransactions;
 
     private byte[] blockSignature;
     private BigInteger cumulativeDifficulty = BigInteger.ZERO;
@@ -48,10 +48,6 @@ final class BlockImpl implements Block {
     BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
               byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions, long nonce)
             throws NxtException.ValidationException {
-
-        if (transactions.size() > Constants.MAX_NUMBER_OF_TRANSACTIONS) {
-            throw new NxtException.NotValidException("attempted to create a block with " + transactions.size() + " transactions");
-        }
 
         if (payloadLength > Constants.MAX_PAYLOAD_LENGTH || payloadLength < 0) {
             throw new NxtException.NotValidException("attempted to create a block with payloadLength " + payloadLength);
@@ -69,24 +65,28 @@ final class BlockImpl implements Block {
         this.blockSignature = blockSignature;
 
         this.previousBlockHash = previousBlockHash;
-        this.blockTransactions = Collections.unmodifiableList(transactions);
-        long previousId = 0;
-        for (Transaction transaction : this.blockTransactions) {
-            if (transaction.getId() <= previousId && previousId != 0) {
-                throw new NxtException.NotValidException("Block transactions are not sorted!");
-            }
-            previousId = transaction.getId();
+        if (transactions != null) {
+        	this.blockTransactions = Collections.unmodifiableList(transactions);
+        	if (blockTransactions.size() > Constants.MAX_NUMBER_OF_TRANSACTIONS) {
+        		throw new NxtException.NotValidException("attempted to create a block with " + blockTransactions.size() + " transactions");
+    		}
+        	long previousId = 0;
+        	for (Transaction transaction : this.blockTransactions) {
+        		if (transaction.getId() <= previousId && previousId != 0) {
+        			throw new NxtException.NotValidException("Block transactions are not sorted!");
+        		}
+        		previousId = transaction.getId();
+        	}
         }
         this.nonce = nonce;
     }
 
     BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
               byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature,
-              byte[] previousBlockHash, List<TransactionImpl> transactions, BigInteger cumulativeDifficulty,
-              long baseTarget, long nextBlockId, int height, Long id, long nonce)
+              byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long nextBlockId, int height, Long id, long nonce)
             throws NxtException.ValidationException {
         this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
-                generatorPublicKey, generationSignature, blockSignature, previousBlockHash, transactions, nonce);
+                generatorPublicKey, generationSignature, blockSignature, previousBlockHash, null, nonce);
         this.cumulativeDifficulty = cumulativeDifficulty;
         this.baseTarget = baseTarget;
         this.nextBlockId = nextBlockId;
@@ -151,7 +151,13 @@ final class BlockImpl implements Block {
 
     @Override
     public List<TransactionImpl> getTransactions() {
-        return blockTransactions;
+    	if (blockTransactions == null) {
+            this.blockTransactions = Collections.unmodifiableList(TransactionDb.findBlockTransactions(getId()));
+            for (TransactionImpl transaction : this.blockTransactions) {
+                transaction.setBlock(this);
+            }
+        }
+    	return blockTransactions;
     }
 
     @Override
@@ -254,7 +260,7 @@ final class BlockImpl implements Block {
         }
         json.put("blockSignature", Convert.toHexString(blockSignature));
         JSONArray transactionsData = new JSONArray();
-        for (Transaction transaction : blockTransactions) {
+        for (Transaction transaction : getTransactions()) {
             transactionsData.add(transaction.getJSONObject());
         }
         json.put("transactions", transactionsData);
@@ -299,7 +305,7 @@ final class BlockImpl implements Block {
         buffer.putInt(version);
         buffer.putInt(timestamp);
         buffer.putLong(previousBlockId);
-        buffer.putInt(blockTransactions.size());
+        buffer.putInt(getTransactions().size());
         if (version < 3) {
             buffer.putInt((int)(totalAmountNQT / Constants.ONE_NXT));
             buffer.putInt((int)(totalFeeNQT / Constants.ONE_NXT));
@@ -476,7 +482,7 @@ final class BlockImpl implements Block {
         } else {
             this.height = 0;
         }
-        for (TransactionImpl transaction : blockTransactions) {
+        for (TransactionImpl transaction : getTransactions()) {
             transaction.setBlock(this);
         }
     }

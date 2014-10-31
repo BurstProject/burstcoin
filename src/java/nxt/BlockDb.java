@@ -116,18 +116,10 @@ final class BlockDb {
 
             long id = rs.getLong("id");
             long nonce = rs.getLong("nonce");
-            List<TransactionImpl> transactions = TransactionDb.findBlockTransactions(con, id);
 
-            BlockImpl block = new BlockImpl(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
-                    generatorPublicKey, generationSignature, blockSignature, previousBlockHash, transactions,
+            return new BlockImpl(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
+                    generatorPublicKey, generationSignature, blockSignature, previousBlockHash,
                     cumulativeDifficulty, baseTarget, nextBlockId, height, id, nonce);
-
-            for (TransactionImpl transaction : transactions) {
-                transaction.setBlock(block);
-            }
-
-            return block;
-
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }

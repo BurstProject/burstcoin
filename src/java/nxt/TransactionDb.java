@@ -145,16 +145,17 @@ final class TransactionDb {
         }
     }
 
-    static List<TransactionImpl> findBlockTransactions(Connection con, long blockId) {
-        List<TransactionImpl> list = new ArrayList<>();
-        try (PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE block_id = ? AND signature IS NOT NULL ORDER BY id")) {
+    static List<TransactionImpl> findBlockTransactions(long blockId) {
+    	try (Connection con = Db.getConnection();
+    			PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE block_id = ? AND signature IS NOT NULL ORDER BY id")) {
             pstmt.setLong(1, blockId);
             try (ResultSet rs = pstmt.executeQuery()) {
+            	List<TransactionImpl> list = new ArrayList<>();
                 while (rs.next()) {
                     list.add(loadTransaction(con, rs));
                 }
+                return list;
             }
-            return list;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         } catch (NxtException.ValidationException e) {
