@@ -26,7 +26,7 @@ public final class DGSFeedback extends CreateTransaction {
         DigitalGoodsStore.Purchase purchase = ParameterParser.getPurchase(req);
 
         Account buyerAccount = ParameterParser.getSenderAccount(req);
-        if (! buyerAccount.getId().equals(purchase.getBuyerId())) {
+        if (buyerAccount.getId() != purchase.getBuyerId()) {
             return INCORRECT_PURCHASE;
         }
         if (purchase.getEncryptedGoods() == null) {

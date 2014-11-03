@@ -12,6 +12,9 @@ public final class Constants {
     public static long BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME = 4;
     
     public static long BURST_ESCROW_START_BLOCK = Integer.MAX_VALUE;
+    public static long BURST_SUBSCRIPTION_START_BLOCK = Integer.MAX_VALUE;
+    public static int BURST_SUBSCRIPTION_MIN_FREQ = 3600;
+    public static int BURST_SUBSCRIPTION_MAX_FREQ = 31536000;
     
 	public static final int BLOCK_HEADER_LENGTH = 232;
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
@@ -21,6 +24,12 @@ public final class Constants {
     public static final long MAX_BALANCE_NQT = MAX_BALANCE_NXT * ONE_NXT;
     public static final long INITIAL_BASE_TARGET = 18325193796L;
     public static final long MAX_BASE_TARGET = 18325193796L;
+    public static final int MAX_ROLLBACK = Nxt.getIntProperty("nxt.maxRollback");
+    static {
+        if (MAX_ROLLBACK < 1440) {
+            throw new RuntimeException("nxt.maxRollback must be at least 1440");
+        }
+    }
 
     public static final int MAX_ALIAS_URI_LENGTH = 1000;
     public static final int MAX_ALIAS_LENGTH = 100;
@@ -64,7 +73,7 @@ public final class Constants {
     public static final int TRANSPARENT_FORGING_BLOCK_4 = 0;
     public static final int TRANSPARENT_FORGING_BLOCK_5 = 0;
     public static final int TRANSPARENT_FORGING_BLOCK_6 = 0;
-    public static final int TRANSPARENT_FORGING_BLOCK_7 = isTestnet ? 75000 : Integer.MAX_VALUE;
+    public static final int TRANSPARENT_FORGING_BLOCK_7 = Integer.MAX_VALUE;
     public static final int TRANSPARENT_FORGING_BLOCK_8 = 0;
     public static final int NQT_BLOCK = 0;
     public static final int FRACTIONAL_BLOCK = 0;

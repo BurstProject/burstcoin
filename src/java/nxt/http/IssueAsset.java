@@ -68,9 +68,4 @@ public final class IssueAsset extends CreateTransaction {
 
     }
 
-    @Override
-    final long minimumFeeNQT() {
-        return Constants.ASSET_ISSUANCE_FEE_NQT;
-    }
-
 }

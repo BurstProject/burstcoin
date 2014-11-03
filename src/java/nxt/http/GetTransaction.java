@@ -28,7 +28,7 @@ public final class GetTransaction extends APIServlet.APIRequestHandler {
             return MISSING_TRANSACTION;
         }
 
-        Long transactionId = null;
+        long transactionId = 0;
         Transaction transaction;
         try {
             if (transactionIdString != null) {

@@ -16,7 +16,7 @@ public final class SendMoney extends CreateTransaction {
 
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
-        Long recipient = ParameterParser.getRecipientId(req);
+        long recipient = ParameterParser.getRecipientId(req);
         long amountNQT = ParameterParser.getAmountNQT(req);
         Account account = ParameterParser.getSenderAccount(req);
         return createTransaction(req, account, recipient, amountNQT);

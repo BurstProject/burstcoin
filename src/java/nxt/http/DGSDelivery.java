@@ -30,7 +30,7 @@ public final class DGSDelivery extends CreateTransaction {
 
         Account sellerAccount = ParameterParser.getSenderAccount(req);
         DigitalGoodsStore.Purchase purchase = ParameterParser.getPurchase(req);
-        if (! sellerAccount.getId().equals(purchase.getSellerId())) {
+        if (sellerAccount.getId() != purchase.getSellerId()) {
             return INCORRECT_PURCHASE;
         }
         if (! purchase.isPending()) {

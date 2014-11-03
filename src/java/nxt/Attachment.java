@@ -2,7 +2,6 @@ package nxt;
 
 import nxt.crypto.EncryptedData;
 import nxt.util.Convert;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -40,12 +39,6 @@ public interface Attachment extends Appendix {
         @Override
         final void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
             getTransactionType().apply(transaction, senderAccount, recipientAccount);
-        }
-
-        @Override
-        final void undo(Transaction transaction, Account senderAccount, Account recipientAccount)
-                throws TransactionType.UndoNotSupportedException {
-            getTransactionType().undo(transaction, senderAccount, recipientAccount);
         }
 
     }
@@ -112,19 +105,19 @@ public interface Attachment extends Appendix {
 
         MessagingAliasAssignment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
             super(buffer, transactionVersion);
-            aliasName = Convert.readString(buffer, buffer.get(), Constants.MAX_ALIAS_LENGTH).trim().intern();
-            aliasURI = Convert.readString(buffer, buffer.getShort(), Constants.MAX_ALIAS_URI_LENGTH).trim().intern();
+            aliasName = Convert.readString(buffer, buffer.get(), Constants.MAX_ALIAS_LENGTH).trim();
+            aliasURI = Convert.readString(buffer, buffer.getShort(), Constants.MAX_ALIAS_URI_LENGTH).trim();
         }
 
         MessagingAliasAssignment(JSONObject attachmentData) {
             super(attachmentData);
-            aliasName = (Convert.nullToEmpty((String) attachmentData.get("alias"))).trim().intern();
-            aliasURI = (Convert.nullToEmpty((String) attachmentData.get("uri"))).trim().intern();
+            aliasName = (Convert.nullToEmpty((String) attachmentData.get("alias"))).trim();
+            aliasURI = (Convert.nullToEmpty((String) attachmentData.get("uri"))).trim();
         }
 
         public MessagingAliasAssignment(String aliasName, String aliasURI) {
-            this.aliasName = aliasName.trim().intern();
-            this.aliasURI = aliasURI.trim().intern();
+            this.aliasName = aliasName.trim();
+            this.aliasURI = aliasURI.trim();
         }
 
         @Override
@@ -398,7 +391,7 @@ public interface Attachment extends Appendix {
 
     public final static class MessagingVoteCasting extends AbstractAttachment {
 
-        private final Long pollId;
+        private final long pollId;
         private final byte[] pollVote;
 
         MessagingVoteCasting(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
@@ -422,7 +415,7 @@ public interface Attachment extends Appendix {
             }
         }
 
-        public MessagingVoteCasting(Long pollId, byte[] pollVote) {
+        public MessagingVoteCasting(long pollId, byte[] pollVote) {
             this.pollId = pollId;
             this.pollVote = pollVote;
         }
@@ -461,7 +454,7 @@ public interface Attachment extends Appendix {
             return TransactionType.Messaging.VOTE_CASTING;
         }
 
-        public Long getPollId() { return pollId; }
+        public long getPollId() { return pollId; }
 
         public byte[] getPollVote() { return pollVote; }
 
@@ -699,13 +692,13 @@ public interface Attachment extends Appendix {
 
     public final static class ColoredCoinsAssetTransfer extends AbstractAttachment {
 
-        private final Long assetId;
+        private final long assetId;
         private final long quantityQNT;
         private final String comment;
 
         ColoredCoinsAssetTransfer(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
             super(buffer, transactionVersion);
-            this.assetId = Convert.zeroToNull(buffer.getLong());
+            this.assetId = buffer.getLong();
             this.quantityQNT = buffer.getLong();
             this.comment = getVersion() == 0 ? Convert.readString(buffer, buffer.getShort(), Constants.MAX_ASSET_TRANSFER_COMMENT_LENGTH) : null;
         }
@@ -717,10 +710,10 @@ public interface Attachment extends Appendix {
             this.comment = getVersion() == 0 ? Convert.nullToEmpty((String) attachmentData.get("comment")) : null;
         }
 
-        public ColoredCoinsAssetTransfer(Long assetId, long quantityQNT, String comment) {
+        public ColoredCoinsAssetTransfer(long assetId, long quantityQNT) {
             this.assetId = assetId;
             this.quantityQNT = quantityQNT;
-            this.comment = getVersion() == 0 ? Convert.nullToEmpty(comment) : null;
+            this.comment = null;
         }
 
         @Override
@@ -735,7 +728,7 @@ public interface Attachment extends Appendix {
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-            buffer.putLong(Convert.nullToZero(assetId));
+            buffer.putLong(assetId);
             buffer.putLong(quantityQNT);
             if (getVersion() == 0 && comment != null) {
                 byte[] commentBytes = Convert.toBytes(this.comment);
@@ -758,7 +751,7 @@ public interface Attachment extends Appendix {
             return TransactionType.ColoredCoins.ASSET_TRANSFER;
         }
 
-        public Long getAssetId() {
+        public long getAssetId() {
             return assetId;
         }
 
@@ -774,13 +767,13 @@ public interface Attachment extends Appendix {
 
     abstract static class ColoredCoinsOrderPlacement extends AbstractAttachment {
 
-        private final Long assetId;
+        private final long assetId;
         private final long quantityQNT;
         private final long priceNQT;
 
         private ColoredCoinsOrderPlacement(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
-            this.assetId = Convert.zeroToNull(buffer.getLong());
+            this.assetId = buffer.getLong();
             this.quantityQNT = buffer.getLong();
             this.priceNQT = buffer.getLong();
         }
@@ -792,7 +785,7 @@ public interface Attachment extends Appendix {
             this.priceNQT = Convert.parseLong(attachmentData.get("priceNQT"));
         }
 
-        private ColoredCoinsOrderPlacement(Long assetId, long quantityQNT, long priceNQT) {
+        private ColoredCoinsOrderPlacement(long assetId, long quantityQNT, long priceNQT) {
             this.assetId = assetId;
             this.quantityQNT = quantityQNT;
             this.priceNQT = priceNQT;
@@ -805,7 +798,7 @@ public interface Attachment extends Appendix {
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-            buffer.putLong(Convert.nullToZero(assetId));
+            buffer.putLong(assetId);
             buffer.putLong(quantityQNT);
             buffer.putLong(priceNQT);
         }
@@ -817,7 +810,7 @@ public interface Attachment extends Appendix {
             attachment.put("priceNQT", priceNQT);
         }
 
-        public Long getAssetId() {
+        public long getAssetId() {
             return assetId;
         }
 
@@ -840,7 +833,7 @@ public interface Attachment extends Appendix {
             super(attachmentData);
         }
 
-        public ColoredCoinsAskOrderPlacement(Long assetId, long quantityQNT, long priceNQT) {
+        public ColoredCoinsAskOrderPlacement(long assetId, long quantityQNT, long priceNQT) {
             super(assetId, quantityQNT, priceNQT);
         }
 
@@ -866,7 +859,7 @@ public interface Attachment extends Appendix {
             super(attachmentData);
         }
 
-        public ColoredCoinsBidOrderPlacement(Long assetId, long quantityQNT, long priceNQT) {
+        public ColoredCoinsBidOrderPlacement(long assetId, long quantityQNT, long priceNQT) {
             super(assetId, quantityQNT, priceNQT);
         }
 
@@ -884,11 +877,11 @@ public interface Attachment extends Appendix {
 
     abstract static class ColoredCoinsOrderCancellation extends AbstractAttachment {
 
-        private final Long orderId;
+        private final long orderId;
 
         private ColoredCoinsOrderCancellation(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
-            this.orderId = Convert.zeroToNull(buffer.getLong());
+            this.orderId = buffer.getLong();
         }
 
         private ColoredCoinsOrderCancellation(JSONObject attachmentData) {
@@ -896,7 +889,7 @@ public interface Attachment extends Appendix {
             this.orderId = Convert.parseUnsignedLong((String) attachmentData.get("order"));
         }
 
-        private ColoredCoinsOrderCancellation(Long orderId) {
+        private ColoredCoinsOrderCancellation(long orderId) {
             this.orderId = orderId;
         }
 
@@ -907,7 +900,7 @@ public interface Attachment extends Appendix {
 
         @Override
         void putMyBytes(ByteBuffer buffer) {
-            buffer.putLong(Convert.nullToZero(orderId));
+            buffer.putLong(orderId);
         }
 
         @Override
@@ -915,7 +908,7 @@ public interface Attachment extends Appendix {
             attachment.put("order", Convert.toUnsignedLong(orderId));
         }
 
-        public Long getOrderId() {
+        public long getOrderId() {
             return orderId;
         }
     }
@@ -930,7 +923,7 @@ public interface Attachment extends Appendix {
             super(attachmentData);
         }
 
-        public ColoredCoinsAskOrderCancellation(Long orderId) {
+        public ColoredCoinsAskOrderCancellation(long orderId) {
             super(orderId);
         }
 
@@ -956,7 +949,7 @@ public interface Attachment extends Appendix {
             super(attachmentData);
         }
 
-        public ColoredCoinsBidOrderCancellation(Long orderId) {
+        public ColoredCoinsBidOrderCancellation(long orderId) {
             super(orderId);
         }
 
@@ -1060,7 +1053,7 @@ public interface Attachment extends Appendix {
 
     public final static class DigitalGoodsDelisting extends AbstractAttachment {
 
-        private final Long goodsId;
+        private final long goodsId;
 
         DigitalGoodsDelisting(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
@@ -1072,7 +1065,7 @@ public interface Attachment extends Appendix {
             this.goodsId = Convert.parseUnsignedLong((String)attachmentData.get("goods"));
         }
 
-        public DigitalGoodsDelisting(Long goodsId) {
+        public DigitalGoodsDelisting(long goodsId) {
             this.goodsId = goodsId;
         }
 
@@ -1101,13 +1094,13 @@ public interface Attachment extends Appendix {
             return TransactionType.DigitalGoods.DELISTING;
         }
 
-        public Long getGoodsId() { return goodsId; }
+        public long getGoodsId() { return goodsId; }
 
     }
 
     public final static class DigitalGoodsPriceChange extends AbstractAttachment {
 
-        private final Long goodsId;
+        private final long goodsId;
         private final long priceNQT;
 
         DigitalGoodsPriceChange(ByteBuffer buffer, byte transactionVersion) {
@@ -1122,7 +1115,7 @@ public interface Attachment extends Appendix {
             this.priceNQT = Convert.parseLong(attachmentData.get("priceNQT"));
         }
 
-        public DigitalGoodsPriceChange(Long goodsId, long priceNQT) {
+        public DigitalGoodsPriceChange(long goodsId, long priceNQT) {
             this.goodsId = goodsId;
             this.priceNQT = priceNQT;
         }
@@ -1154,7 +1147,7 @@ public interface Attachment extends Appendix {
             return TransactionType.DigitalGoods.PRICE_CHANGE;
         }
 
-        public Long getGoodsId() { return goodsId; }
+        public long getGoodsId() { return goodsId; }
 
         public long getPriceNQT() { return priceNQT; }
 
@@ -1162,7 +1155,7 @@ public interface Attachment extends Appendix {
 
     public final static class DigitalGoodsQuantityChange extends AbstractAttachment {
 
-        private final Long goodsId;
+        private final long goodsId;
         private final int deltaQuantity;
 
         DigitalGoodsQuantityChange(ByteBuffer buffer, byte transactionVersion) {
@@ -1177,7 +1170,7 @@ public interface Attachment extends Appendix {
             this.deltaQuantity = ((Long)attachmentData.get("deltaQuantity")).intValue();
         }
 
-        public DigitalGoodsQuantityChange(Long goodsId, int deltaQuantity) {
+        public DigitalGoodsQuantityChange(long goodsId, int deltaQuantity) {
             this.goodsId = goodsId;
             this.deltaQuantity = deltaQuantity;
         }
@@ -1209,7 +1202,7 @@ public interface Attachment extends Appendix {
             return TransactionType.DigitalGoods.QUANTITY_CHANGE;
         }
 
-        public Long getGoodsId() { return goodsId; }
+        public long getGoodsId() { return goodsId; }
 
         public int getDeltaQuantity() { return deltaQuantity; }
 
@@ -1217,7 +1210,7 @@ public interface Attachment extends Appendix {
 
     public final static class DigitalGoodsPurchase extends AbstractAttachment {
 
-        private final Long goodsId;
+        private final long goodsId;
         private final int quantity;
         private final long priceNQT;
         private final int deliveryDeadlineTimestamp;
@@ -1238,7 +1231,7 @@ public interface Attachment extends Appendix {
             this.deliveryDeadlineTimestamp = ((Long)attachmentData.get("deliveryDeadlineTimestamp")).intValue();
         }
 
-        public DigitalGoodsPurchase(Long goodsId, int quantity, long priceNQT, int deliveryDeadlineTimestamp) {
+        public DigitalGoodsPurchase(long goodsId, int quantity, long priceNQT, int deliveryDeadlineTimestamp) {
             this.goodsId = goodsId;
             this.quantity = quantity;
             this.priceNQT = priceNQT;
@@ -1276,7 +1269,7 @@ public interface Attachment extends Appendix {
             return TransactionType.DigitalGoods.PURCHASE;
         }
 
-        public Long getGoodsId() { return goodsId; }
+        public long getGoodsId() { return goodsId; }
 
         public int getQuantity() { return quantity; }
 
@@ -1288,7 +1281,7 @@ public interface Attachment extends Appendix {
 
     public final static class DigitalGoodsDelivery extends AbstractAttachment {
 
-        private final Long purchaseId;
+        private final long purchaseId;
         private final EncryptedData goods;
         private final long discountNQT;
         private final boolean goodsIsText;
@@ -1314,7 +1307,7 @@ public interface Attachment extends Appendix {
             this.goodsIsText = Boolean.TRUE.equals(attachmentData.get("goodsIsText"));
         }
 
-        public DigitalGoodsDelivery(Long purchaseId, EncryptedData goods, boolean goodsIsText, long discountNQT) {
+        public DigitalGoodsDelivery(long purchaseId, EncryptedData goods, boolean goodsIsText, long discountNQT) {
             this.purchaseId = purchaseId;
             this.goods = goods;
             this.discountNQT = discountNQT;
@@ -1354,7 +1347,7 @@ public interface Attachment extends Appendix {
             return TransactionType.DigitalGoods.DELIVERY;
         }
 
-        public Long getPurchaseId() { return purchaseId; }
+        public long getPurchaseId() { return purchaseId; }
 
         public EncryptedData getGoods() { return goods; }
 
@@ -1368,7 +1361,7 @@ public interface Attachment extends Appendix {
 
     public final static class DigitalGoodsFeedback extends AbstractAttachment {
 
-        private final Long purchaseId;
+        private final long purchaseId;
 
         DigitalGoodsFeedback(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
@@ -1380,7 +1373,7 @@ public interface Attachment extends Appendix {
             this.purchaseId = Convert.parseUnsignedLong((String)attachmentData.get("purchase"));
         }
 
-        public DigitalGoodsFeedback(Long purchaseId) {
+        public DigitalGoodsFeedback(long purchaseId) {
             this.purchaseId = purchaseId;
         }
 
@@ -1409,13 +1402,13 @@ public interface Attachment extends Appendix {
             return TransactionType.DigitalGoods.FEEDBACK;
         }
 
-        public Long getPurchaseId() { return purchaseId; }
+        public long getPurchaseId() { return purchaseId; }
 
     }
 
     public final static class DigitalGoodsRefund extends AbstractAttachment {
 
-        private final Long purchaseId;
+        private final long purchaseId;
         private final long refundNQT;
 
         DigitalGoodsRefund(ByteBuffer buffer, byte transactionVersion) {
@@ -1430,7 +1423,7 @@ public interface Attachment extends Appendix {
             this.refundNQT = Convert.parseLong(attachmentData.get("refundNQT"));
         }
 
-        public DigitalGoodsRefund(Long purchaseId, long refundNQT) {
+        public DigitalGoodsRefund(long purchaseId, long refundNQT) {
             this.purchaseId = purchaseId;
             this.refundNQT = refundNQT;
         }
@@ -1462,7 +1455,7 @@ public interface Attachment extends Appendix {
             return TransactionType.DigitalGoods.REFUND;
         }
 
-        public Long getPurchaseId() { return purchaseId; }
+        public long getPurchaseId() { return purchaseId; }
 
         public long getRefundNQT() { return refundNQT; }
 
@@ -1559,7 +1552,7 @@ public interface Attachment extends Appendix {
     	private final byte requiredSigners;
     	private final SortedSet<Long> signers = new TreeSet<>();
     	private final int deadline;
-    	private final Escrow.Decision deadlineAction;
+    	private final Escrow.DecisionType deadlineAction;
     	
     	AdvancedPaymentEscrowCreation(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
     		super(buffer, transactionVersion);
@@ -1598,7 +1591,7 @@ public interface Attachment extends Appendix {
     		}
     	}
     	
-    	public AdvancedPaymentEscrowCreation(Long amountNQT, int deadline, Escrow.Decision deadlineAction,
+    	public AdvancedPaymentEscrowCreation(Long amountNQT, int deadline, Escrow.DecisionType deadlineAction,
     											  int requiredSigners, Collection<Long> signers) throws NxtException.NotValidException {
     		this.amountNQT = amountNQT;
     		this.deadline = deadline;
@@ -1661,7 +1654,7 @@ public interface Attachment extends Appendix {
     	
     	public int getDeadline() { return deadline; }
     	
-    	public Escrow.Decision getDeadlineAction() { return deadlineAction; }
+    	public Escrow.DecisionType getDeadlineAction() { return deadlineAction; }
     	
     	public int getRequiredSigners() { return (int)requiredSigners; }
     	
@@ -1673,7 +1666,7 @@ public interface Attachment extends Appendix {
     public final static class AdvancedPaymentEscrowSign extends AbstractAttachment {
     	
     	private final Long escrowId;
-    	private final Escrow.Decision decision;
+    	private final Escrow.DecisionType decision;
     	
     	AdvancedPaymentEscrowSign(ByteBuffer buffer, byte transactionVersion) {
     		super(buffer, transactionVersion);
@@ -1687,7 +1680,7 @@ public interface Attachment extends Appendix {
     		this.decision = Escrow.stringToDecision((String)attachmentData.get("decision"));
     	}
     	
-    	public AdvancedPaymentEscrowSign(Long escrowId, Escrow.Decision decision) {
+    	public AdvancedPaymentEscrowSign(Long escrowId, Escrow.DecisionType decision) {
     		this.escrowId = escrowId;
     		this.decision = decision;
     	}
@@ -1721,6 +1714,192 @@ public interface Attachment extends Appendix {
     	
     	public Long getEscrowId() { return this.escrowId; }
     	
-    	public Escrow.Decision getDecision() { return this.decision; }
+    	public Escrow.DecisionType getDecision() { return this.decision; }
+    }
+    
+    public final static class AdvancedPaymentEscrowResult extends AbstractAttachment {
+    	
+    	private final Long escrowId;
+    	private final Escrow.DecisionType decision;
+    	
+    	AdvancedPaymentEscrowResult(ByteBuffer buffer, byte transactionVersion) {
+    		super(buffer, transactionVersion);
+    		this.escrowId = buffer.getLong();
+    		this.decision = Escrow.byteToDecision(buffer.get());
+    	}
+    	
+    	AdvancedPaymentEscrowResult(JSONObject attachmentData) {
+    		super(attachmentData);
+    		this.escrowId = (Long) attachmentData.get("escrowId");
+    		this.decision = Escrow.stringToDecision((String)attachmentData.get("decision"));
+    	}
+    	
+    	public AdvancedPaymentEscrowResult(Long escrowId, Escrow.DecisionType decision) {
+    		this.escrowId = escrowId;
+    		this.decision = decision;
+    	}
+    	
+    	@Override
+    	String getAppendixName() {
+    		return "EscrowResult";
+    	}
+    	
+    	@Override
+    	int getMySize() {
+    		return 8 + 1;
+    	}
+    	
+    	@Override
+    	void putMyBytes(ByteBuffer buffer) {
+    		buffer.putLong(this.escrowId);
+    		buffer.put(Escrow.decisionToByte(this.decision));
+    	}
+    	
+    	@Override
+    	void putMyJSON(JSONObject attachment) {
+    		attachment.put("escrowId", this.escrowId);
+    		attachment.put("decision", Escrow.decisionToString(this.decision));
+    	}
+    	
+    	@Override
+    	public TransactionType getTransactionType() {
+    		return TransactionType.AdvancedPayment.ESCROW_RESULT;
+    	}
+    }
+    
+    public final static class AdvancedPaymentSubscriptionSubscribe extends AbstractAttachment {
+    	
+    	private final Integer frequency;
+    	
+    	AdvancedPaymentSubscriptionSubscribe(ByteBuffer buffer, byte transactionVersion) {
+    		super(buffer, transactionVersion);
+    		this.frequency = buffer.getInt();
+    	}
+    	
+    	AdvancedPaymentSubscriptionSubscribe(JSONObject attachmentData) {
+    		super(attachmentData);
+    		this.frequency = ((Long)attachmentData.get("frequency")).intValue();
+    	}
+    	
+    	public AdvancedPaymentSubscriptionSubscribe(int frequency) {
+    		this.frequency = frequency;
+    	}
+    	
+    	@Override
+    	String getAppendixName() {
+    		return "SubscriptionSubscribe";
+    	}
+    	
+    	@Override
+    	int getMySize() {
+    		return 4;
+    	}
+    	
+    	@Override
+    	void putMyBytes(ByteBuffer buffer) {
+    		buffer.putInt(this.frequency);
+    	}
+    	
+    	@Override
+    	void putMyJSON(JSONObject attachment) {
+    		attachment.put("frequency", this.frequency);
+    	}
+    	
+    	@Override
+    	public TransactionType getTransactionType() {
+    		return TransactionType.AdvancedPayment.SUBSCRIPTION_SUBSCRIBE;
+    	}
+    	
+    	public Integer getFrequency() { return this.frequency; }
+    }
+    
+    public final static class AdvancedPaymentSubscriptionCancel extends AbstractAttachment {
+    	
+    	private final Long subscriptionId;
+    	
+    	AdvancedPaymentSubscriptionCancel(ByteBuffer buffer, byte transactionVersion) {
+    		super(buffer, transactionVersion);
+    		this.subscriptionId = buffer.getLong();
+    	}
+    	
+    	AdvancedPaymentSubscriptionCancel(JSONObject attachmentData) {
+    		super(attachmentData);
+    		this.subscriptionId = (Long)attachmentData.get("subscriptionId");
+    	}
+    	
+    	public AdvancedPaymentSubscriptionCancel(Long subscriptionId) {
+    		this.subscriptionId = subscriptionId;
+    	}
+    	
+    	@Override
+    	String getAppendixName() {
+    		return "SubscriptionCancel";
+    	}
+    	
+    	@Override
+    	int getMySize() {
+    		return 8;
+    	}
+    	
+    	@Override
+    	void putMyBytes(ByteBuffer buffer) {
+    		buffer.putLong(subscriptionId);
+    	}
+    	
+    	@Override
+    	void putMyJSON(JSONObject attachment) {
+    		attachment.put("subscriptionId", this.subscriptionId);
+    	}
+    	
+    	@Override
+    	public TransactionType getTransactionType() {
+    		return TransactionType.AdvancedPayment.SUBSCRIPTION_CANCEL;
+    	}
+    	
+    	public Long getSubscriptionId() { return this.subscriptionId; }
+    }
+    
+    public final static class AdvancedPaymentSubscriptionPayment extends AbstractAttachment {
+    	
+    	private final Long subscriptionId;
+    	
+    	AdvancedPaymentSubscriptionPayment(ByteBuffer buffer, byte transactionVersion) {
+    		super(buffer, transactionVersion);
+    		this.subscriptionId = buffer.getLong();
+    	}
+    	
+    	AdvancedPaymentSubscriptionPayment(JSONObject attachmentData) {
+    		super(attachmentData);
+    		this.subscriptionId = (Long) attachmentData.get("subscriptionId");
+    	}
+    	
+    	public AdvancedPaymentSubscriptionPayment(Long subscriptionId) {
+    		this.subscriptionId = subscriptionId;
+    	}
+    	
+    	@Override
+    	String getAppendixName() {
+    		return "SubscriptionPayment";
+    	}
+    	
+    	@Override
+    	int getMySize() {
+    		return 8;
+    	}
+    	
+    	@Override
+    	void putMyBytes(ByteBuffer buffer) {
+    		buffer.putLong(this.subscriptionId);
+    	}
+    	
+    	@Override
+    	void putMyJSON(JSONObject attachment) {
+    		attachment.put("subscriptionId", this.subscriptionId);
+    	}
+    	
+    	@Override
+    	public TransactionType getTransactionType() {
+    		return TransactionType.AdvancedPayment.SUBSCRIPTION_PAYMENT;
+    	}
     }
 }

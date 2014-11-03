@@ -1,58 +1,94 @@
 package nxt;
 
-import nxt.util.Convert;
+import nxt.db.DbClause;
+import nxt.db.DbIterator;
+import nxt.db.DbKey;
+import nxt.db.EntityDbTable;
 
-import java.util.Collections;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public final class Vote {
 
-    private static final ConcurrentMap<Long, Vote> votes = new ConcurrentHashMap<>();
+    private static final DbKey.LongKeyFactory<Vote> voteDbKeyFactory = null;
 
-    private final Long id;
-    private final Long pollId;
-    private final Long voterId;
-    private final byte[] vote;
+    private static final EntityDbTable<Vote> voteTable = null;
 
-    private Vote(Long id, Long pollId, Long voterId, byte[] vote) {
-
-        this.id = id;
-        this.pollId = pollId;
-        this.voterId = voterId;
-        this.vote = vote;
-
+    static Vote addVote(Transaction transaction, Attachment.MessagingVoteCasting attachment) {
+        Vote vote = new Vote(transaction, attachment);
+        voteTable.insert(vote);
+        return vote;
     }
 
-    static Vote addVote(Long id, Long pollId, Long voterId, byte[] vote) {
-        Vote voteData = new Vote(id, pollId, voterId, vote);
-        if (votes.putIfAbsent(id, voteData) != null) {
-            throw new IllegalStateException("Vote with id " + Convert.toUnsignedLong(id) + " already exists");
+    public static int getCount() {
+        return voteTable.getCount();
+    }
+
+    public static Vote getVote(long id) {
+        return voteTable.get(voteDbKeyFactory.newKey(id));
+    }
+
+    public static Map<Long,Long> getVoters(Poll poll) {
+        Map<Long,Long> map = new HashMap<>();
+        try (DbIterator<Vote> voteIterator = voteTable.getManyBy(new DbClause.LongClause("poll_id", poll.getId()), 0, -1)) {
+            while (voteIterator.hasNext()) {
+                Vote vote = voteIterator.next();
+                map.put(vote.getVoterId(), vote.getId());
+            }
         }
-        return voteData;
+        return map;
     }
 
-    public static Map<Long, Vote> getVotes() {
-        return Collections.unmodifiableMap(votes);
+    static void init() {}
+
+
+    private final long id;
+    private final DbKey dbKey;
+    private final long pollId;
+    private final long voterId;
+    private final byte[] voteBytes;
+
+    private Vote(Transaction transaction, Attachment.MessagingVoteCasting attachment) {
+        this.id = transaction.getId();
+        this.dbKey = voteDbKeyFactory.newKey(this.id);
+        this.pollId = attachment.getPollId();
+        this.voterId = transaction.getSenderId();
+        this.voteBytes = attachment.getPollVote();
     }
 
-    static void clear() {
-        votes.clear();
+    private Vote(ResultSet rs) throws SQLException {
+        this.id = rs.getLong("id");
+        this.dbKey = voteDbKeyFactory.newKey(this.id);
+        this.pollId = rs.getLong("poll_id");
+        this.voterId = rs.getLong("voter_id");
+        this.voteBytes = rs.getBytes("vote_bytes");
     }
 
-    public static Vote getVote(Long id) {
-        return votes.get(id);
+    private void save(Connection con) throws SQLException {
+        try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO vote (id, poll_id, voter_id, "
+                + "vote_bytes, height) VALUES (?, ?, ?, ?, ?)")) {
+            int i = 0;
+            pstmt.setLong(++i, this.getId());
+            pstmt.setLong(++i, this.getPollId());
+            pstmt.setLong(++i, this.getVoterId());
+            pstmt.setBytes(++i, this.getVote());
+            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.executeUpdate();
+        }
     }
 
-    public Long getId() {
+    public long getId() {
         return id;
     }
 
-    public Long getPollId() { return pollId; }
+    public long getPollId() { return pollId; }
 
-    public Long getVoterId() { return voterId; }
+    public long getVoterId() { return voterId; }
 
-    public byte[] getVote() { return vote; }
+    public byte[] getVote() { return voteBytes; }
 
 }

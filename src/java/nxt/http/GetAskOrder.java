@@ -18,7 +18,7 @@ public final class GetAskOrder extends APIServlet.APIRequestHandler {
 
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
-        Long orderId = ParameterParser.getOrderId(req);
+        long orderId = ParameterParser.getOrderId(req);
         Order.Ask askOrder = Order.Ask.getAskOrder(orderId);
         if (askOrder == null) {
             return UNKNOWN_ORDER;

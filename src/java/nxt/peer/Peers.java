@@ -5,7 +5,7 @@ import nxt.Block;
 import nxt.Constants;
 import nxt.Nxt;
 import nxt.Transaction;
-import nxt.util.Convert;
+import nxt.db.Db;
 import nxt.util.JSON;
 import nxt.util.Listener;
 import nxt.util.Listeners;
@@ -81,6 +81,8 @@ public final class Peers {
     private static final int sendToPeersLimit;
     private static final boolean usePeersDb;
     private static final boolean savePeers;
+    private static final String dumpPeersVersion;
+
 
     static final JSONStreamAware myPeerInfoRequest;
     static final JSONStreamAware myPeerInfoResponse;
@@ -183,10 +185,13 @@ public final class Peers {
         usePeersDb = Nxt.getBooleanProperty("nxt.usePeersDb") && ! Constants.isOffline;
         savePeers = usePeersDb && Nxt.getBooleanProperty("nxt.savePeers");
         getMorePeers = Nxt.getBooleanProperty("nxt.getMorePeers");
+        dumpPeersVersion = Nxt.getStringProperty("nxt.dumpPeersVersion");
+
+        final List<Future<String>> unresolvedPeers = Collections.synchronizedList(new ArrayList<Future<String>>());
 
         ThreadPool.runBeforeStart(new Runnable() {
 
-            private void loadPeers(List<Future<String>> unresolved, Collection<String> addresses) {
+            private void loadPeers(Collection<String> addresses) {
                 for (final String address : addresses) {
                     Future<String> unresolvedAddress = sendToPeersService.submit(new Callable<String>() {
                         @Override
@@ -195,20 +200,25 @@ public final class Peers {
                             return peer == null ? address : null;
                         }
                     });
-                    unresolved.add(unresolvedAddress);
+                    unresolvedPeers.add(unresolvedAddress);
                 }
             }
 
             @Override
             public void run() {
-                List<Future<String>> unresolvedPeers = new ArrayList<>();
                 if (! wellKnownPeers.isEmpty()) {
-                    loadPeers(unresolvedPeers, wellKnownPeers);
+                    loadPeers(wellKnownPeers);
                 }
                 if (usePeersDb) {
                     Logger.logDebugMessage("Loading known peers from the database...");
-                    loadPeers(unresolvedPeers, PeerDb.loadPeers());
+                    loadPeers(PeerDb.loadPeers());
                 }
+            }
+        }, false);
+
+        ThreadPool.runAfterStart(new Runnable() {
+            @Override
+            public void run() {
                 for (Future<String> unresolvedPeer : unresolvedPeers) {
                     try {
                         String badAddress = unresolvedPeer.get(5, TimeUnit.SECONDS);
@@ -224,7 +234,7 @@ public final class Peers {
                 }
                 Logger.logDebugMessage("Known peers: " + peers.size());
             }
-        }, false);
+        });
 
     }
 
@@ -330,7 +340,7 @@ public final class Peers {
                         }
                     }
 
-                    int now = Convert.getEpochTime();
+                    int now = Nxt.getEpochTime();
                     for (PeerImpl peer : peers.values()) {
                         if (peer.getState() == Peer.State.CONNECTED && now - peer.getLastUpdated() > 3600) {
                             peer.connect();
@@ -434,11 +444,20 @@ public final class Peers {
             }
             Set<String> toDelete = new HashSet<>(oldPeers);
             toDelete.removeAll(currentPeers);
-            PeerDb.deletePeers(toDelete);
-            //Logger.logDebugMessage("Deleted " + toDelete.size() + " peers from the peers database");
-            currentPeers.removeAll(oldPeers);
-            PeerDb.addPeers(currentPeers);
-            //Logger.logDebugMessage("Added " + currentPeers.size() + " peers to the peers database");
+            try {
+                Db.beginTransaction();
+                PeerDb.deletePeers(toDelete);
+	            //Logger.logDebugMessage("Deleted " + toDelete.size() + " peers from the peers database");
+                currentPeers.removeAll(oldPeers);
+                PeerDb.addPeers(currentPeers);
+	            //Logger.logDebugMessage("Added " + currentPeers.size() + " peers to the peers database");
+                Db.commitTransaction();
+            } catch (Exception e) {
+                Db.rollbackTransaction();
+                throw e;
+            } finally {
+                Db.endTransaction();
+            }
         }
 
     };
@@ -448,7 +467,7 @@ public final class Peers {
             @Override
             public void notify(Account account) {
                 for (PeerImpl peer : Peers.peers.values()) {
-                    if (peer.getHallmark() != null && peer.getHallmark().getAccountId().equals(account.getId())) {
+                    if (peer.getHallmark() != null && peer.getHallmark().getAccountId() == account.getId()) {
                         Peers.listeners.notify(peer, Peers.Event.WEIGHT);
                     }
                 }
@@ -458,10 +477,10 @@ public final class Peers {
 
     static {
         if (! Constants.isOffline) {
-            ThreadPool.scheduleThread(Peers.peerConnectingThread, 5);
-            ThreadPool.scheduleThread(Peers.peerUnBlacklistingThread, 1);
+            ThreadPool.scheduleThread("PeerConnecting", Peers.peerConnectingThread, 5);
+            ThreadPool.scheduleThread("PeerUnBlacklisting", Peers.peerUnBlacklistingThread, 1);
             if (Peers.getMorePeers) {
-                ThreadPool.scheduleThread(Peers.getMorePeersThread, 5);
+                ThreadPool.scheduleThread("GetMorePeers", Peers.getMorePeersThread, 5);
             }
         }
     }
@@ -475,10 +494,9 @@ public final class Peers {
             try {
                 Init.peerServer.stop();
             } catch (Exception e) {
-                Logger.logDebugMessage("Failed to stop peer server", e);
+                Logger.logShutdownMessage("Failed to stop peer server", e);
             }
         }
-        String dumpPeersVersion = Nxt.getStringProperty("nxt.dumpPeersVersion");
         if (dumpPeersVersion != null) {
             StringBuilder buf = new StringBuilder();
             for (Map.Entry<String,String> entry : announcedAddresses.entrySet()) {
@@ -488,7 +506,7 @@ public final class Peers {
                     buf.append("('").append(entry.getKey()).append("'), ");
                 }
             }
-            Logger.logDebugMessage(buf.toString());
+            Logger.logShutdownMessage(buf.toString());
         }
         ThreadPool.shutdownExecutor(sendToPeersService);
 
@@ -518,6 +536,16 @@ public final class Peers {
             }
         }
         return activePeers;
+    }
+    
+    public static Collection<? extends Peer> getPeers(Peer.State state) {
+        List<PeerImpl> peerList = new ArrayList<>();
+        for (PeerImpl peer : peers.values()) {
+            if (peer.getState() == state) {
+                peerList.add(peer);
+            }
+        }
+        return peerList;
     }
 
     public static Peer getPeer(String peerAddress) {
@@ -599,8 +627,8 @@ public final class Peers {
     static void updateAddress(PeerImpl peer) {
         String oldAddress = announcedAddresses.put(peer.getAnnouncedAddress(), peer.getPeerAddress());
         if (oldAddress != null && !peer.getPeerAddress().equals(oldAddress)) {
-            Logger.logDebugMessage("Peer " + peer.getAnnouncedAddress() + " has changed address from " + oldAddress
-                    + " to " + peer.getPeerAddress());
+            //Logger.logDebugMessage("Peer " + peer.getAnnouncedAddress() + " has changed address from " + oldAddress
+            //        + " to " + peer.getPeerAddress());
             Peer oldPeer = peers.remove(oldAddress);
             if (oldPeer != null) {
                 Peers.notifyListeners(oldPeer, Peers.Event.REMOVE);

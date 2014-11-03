@@ -1,6 +1,7 @@
 package nxt.http;
 
 import nxt.Asset;
+import nxt.db.DbIterator;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -13,17 +14,21 @@ public final class GetAssetIds extends APIServlet.APIRequestHandler {
     static final GetAssetIds instance = new GetAssetIds();
 
     private GetAssetIds() {
-        super(new APITag[] {APITag.AE});
+        super(new APITag[] {APITag.AE}, "firstIndex", "lastIndex");
     }
 
     @Override
     JSONStreamAware processRequest(HttpServletRequest req) {
 
-        JSONArray assetIds = new JSONArray();
-        for (Asset asset : Asset.getAllAssets()) {
-            assetIds.add(Convert.toUnsignedLong(asset.getId()));
-        }
+        int firstIndex = ParameterParser.getFirstIndex(req);
+        int lastIndex = ParameterParser.getLastIndex(req);
 
+        JSONArray assetIds = new JSONArray();
+        try (DbIterator<Asset> assets = Asset.getAllAssets(firstIndex, lastIndex)) {
+            while (assets.hasNext()) {
+                assetIds.add(Convert.toUnsignedLong(assets.next().getId()));
+            }
+        }
         JSONObject response = new JSONObject();
         response.put("assetIds", assetIds);
         return response;

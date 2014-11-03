@@ -19,7 +19,8 @@ public interface Appendix {
         private final byte version;
 
         AbstractAppendix(JSONObject attachmentData) {
-            version = (byte)Convert.nullToZero(((Long) attachmentData.get("version." + getAppendixName())));
+            Long l = (Long) attachmentData.get("version." + getAppendixName());
+            version = (byte) (l == null ? 0 : l);
         }
 
         AbstractAppendix(ByteBuffer buffer, byte transactionVersion) {
@@ -82,8 +83,6 @@ public interface Appendix {
 
         abstract void apply(Transaction transaction, Account senderAccount, Account recipientAccount);
 
-        abstract void undo(Transaction transaction, Account senderAccount, Account recipientAccount) throws TransactionType.UndoNotSupportedException;
-
     }
 
     public static class Message extends AbstractAppendix {
@@ -112,10 +111,10 @@ public interface Appendix {
             buffer.get(this.message);
         }
 
-        Message(JSONObject attachmentData) throws NxtException.NotValidException {
+        Message(JSONObject attachmentData) {
             super(attachmentData);
             String messageString = (String)attachmentData.get("message");
-            this.isText = Boolean.TRUE.equals((Boolean)attachmentData.get("messageIsText"));
+            this.isText = Boolean.TRUE.equals(attachmentData.get("messageIsText"));
             this.message = isText ? Convert.toBytes(messageString) : Convert.parseHexString(messageString);
         }
 
@@ -167,9 +166,6 @@ public interface Appendix {
         @Override
         void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {}
 
-        @Override
-        void undo(Transaction transaction, Account senderAccount, Account recipientAccount) {}
-
         public byte[] getMessage() {
             return message;
         }
@@ -194,7 +190,7 @@ public interface Appendix {
             this.encryptedData = EncryptedData.readEncryptedData(buffer, length, Constants.MAX_ENCRYPTED_MESSAGE_LENGTH);
         }
 
-        private AbstractEncryptedMessage(JSONObject attachmentJSON, JSONObject encryptedMessageJSON) throws NxtException.NotValidException {
+        private AbstractEncryptedMessage(JSONObject attachmentJSON, JSONObject encryptedMessageJSON) {
             super(attachmentJSON);
             byte[] data = Convert.parseHexString((String)encryptedMessageJSON.get("data"));
             byte[] nonce = Convert.parseHexString((String)encryptedMessageJSON.get("nonce"));
@@ -238,9 +234,6 @@ public interface Appendix {
         }
 
         void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {}
-
-        @Override
-        void undo(Transaction transaction, Account senderAccount, Account recipientAccount) {}
 
         public final EncryptedData getEncryptedData() {
             return encryptedData;
@@ -358,7 +351,7 @@ public interface Appendix {
             buffer.get(this.publicKey);
         }
 
-        PublicKeyAnnouncement(JSONObject attachmentData) throws NxtException.NotValidException {
+        PublicKeyAnnouncement(JSONObject attachmentData) {
             super(attachmentData);
             this.publicKey = Convert.parseHexString((String)attachmentData.get("recipientPublicKey"));
         }
@@ -395,8 +388,8 @@ public interface Appendix {
             if (publicKey.length != 32) {
                 throw new NxtException.NotValidException("Invalid recipient public key length: " + Convert.toHexString(publicKey));
             }
-            Long recipientId = transaction.getRecipientId();
-            if (! Account.getId(this.publicKey).equals(recipientId)) {
+            long recipientId = transaction.getRecipientId();
+            if (Account.getId(this.publicKey) != recipientId) {
                 throw new NxtException.NotValidException("Announced public key does not match recipient accountId");
             }
             if (transaction.getVersion() == 0) {
@@ -413,11 +406,6 @@ public interface Appendix {
             if (recipientAccount.setOrVerify(publicKey, transaction.getHeight())) {
                 recipientAccount.apply(this.publicKey, transaction.getHeight());
             }
-        }
-
-        @Override
-        void undo(Transaction transaction, Account senderAccount, Account recipientAccount) {
-            recipientAccount.undo(transaction.getHeight());
         }
 
         public byte[] getPublicKey() {

@@ -9,7 +9,7 @@ public interface Block {
 
     int getVersion();
 
-    Long getId();
+    long getId();
 
     String getStringId();
 
@@ -17,7 +17,7 @@ public interface Block {
 
     int getTimestamp();
 
-    Long getGeneratorId();
+    long getGeneratorId();
     
     Long getNonce();
     
@@ -25,11 +25,11 @@ public interface Block {
 
     byte[] getGeneratorPublicKey();
 
-    Long getPreviousBlockId();
+    long getPreviousBlockId();
 
     byte[] getPreviousBlockHash();
 
-    Long getNextBlockId();
+    long getNextBlockId();
 
     long getTotalAmountNQT();
 
@@ -38,8 +38,6 @@ public interface Block {
     int getPayloadLength();
 
     byte[] getPayloadHash();
-
-    List<Long> getTransactionIds();
 
     List<? extends Transaction> getTransactions();
 

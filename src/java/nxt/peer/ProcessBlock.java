@@ -2,7 +2,6 @@ package nxt.peer;
 
 import nxt.Nxt;
 import nxt.NxtException;
-import nxt.util.Convert;
 import nxt.util.JSON;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -32,7 +31,7 @@ final class ProcessBlock extends PeerServlet.PeerRequestHandler {
 
         try {
 
-            if (! Nxt.getBlockchain().getLastBlock().getId().equals(Convert.parseUnsignedLong((String) request.get("previousBlock")))) {
+            if (! Nxt.getBlockchain().getLastBlock().getStringId().equals(request.get("previousBlock"))) {
                 // do this check first to avoid validation failures of future blocks and transactions
                 // when loading blockchain from scratch
                 return NOT_ACCEPTED;

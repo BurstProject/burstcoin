@@ -4,6 +4,7 @@ import nxt.Block;
 import nxt.Constants;
 import nxt.Nxt;
 import nxt.Transaction;
+import nxt.db.DbIterator;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
 import nxt.util.Convert;
@@ -14,7 +15,6 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.List;
 
 public final class GetInitialData extends UserServlet.UserRequestHandler {
 
@@ -29,20 +29,22 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
         JSONArray activePeers = new JSONArray(), knownPeers = new JSONArray(), blacklistedPeers = new JSONArray();
         JSONArray recentBlocks = new JSONArray();
 
-        for (Transaction transaction : Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+        try (DbIterator<? extends Transaction> transactions = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+            while (transactions.hasNext()) {
+                Transaction transaction = transactions.next();
 
-            JSONObject unconfirmedTransaction = new JSONObject();
-            unconfirmedTransaction.put("index", Users.getIndex(transaction));
-            unconfirmedTransaction.put("timestamp", transaction.getTimestamp());
-            unconfirmedTransaction.put("deadline", transaction.getDeadline());
-            unconfirmedTransaction.put("recipient", Convert.toUnsignedLong(transaction.getRecipientId()));
-            unconfirmedTransaction.put("amountNQT", transaction.getAmountNQT());
-            unconfirmedTransaction.put("feeNQT", transaction.getFeeNQT());
-            unconfirmedTransaction.put("sender", Convert.toUnsignedLong(transaction.getSenderId()));
-            unconfirmedTransaction.put("id", transaction.getStringId());
+                JSONObject unconfirmedTransaction = new JSONObject();
+                unconfirmedTransaction.put("index", Users.getIndex(transaction));
+                unconfirmedTransaction.put("timestamp", transaction.getTimestamp());
+                unconfirmedTransaction.put("deadline", transaction.getDeadline());
+                unconfirmedTransaction.put("recipient", Convert.toUnsignedLong(transaction.getRecipientId()));
+                unconfirmedTransaction.put("amountNQT", transaction.getAmountNQT());
+                unconfirmedTransaction.put("feeNQT", transaction.getFeeNQT());
+                unconfirmedTransaction.put("sender", Convert.toUnsignedLong(transaction.getSenderId()));
+                unconfirmedTransaction.put("id", transaction.getStringId());
 
-            unconfirmedTransactions.add(unconfirmedTransaction);
-
+                unconfirmedTransactions.add(unconfirmedTransaction);
+            }
         }
 
         for (Peer peer : Peers.getAllPeers()) {
@@ -91,26 +93,24 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
             }
         }
 
-        int height = Nxt.getBlockchain().getLastBlock().getHeight();
-        List<? extends Block> lastBlocks = Nxt.getBlockchain().getBlocksFromHeight(Math.max(0, height - 59));
+        try (DbIterator<? extends Block> lastBlocks = Nxt.getBlockchain().getBlocks(0, 59)) {
+            for (Block block : lastBlocks) {
+                JSONObject recentBlock = new JSONObject();
+                recentBlock.put("index", Users.getIndex(block));
+                recentBlock.put("timestamp", block.getTimestamp());
+                recentBlock.put("numberOfTransactions", block.getTransactions().size());
+                recentBlock.put("totalAmountNQT", block.getTotalAmountNQT());
+                recentBlock.put("totalFeeNQT", block.getTotalFeeNQT());
+                recentBlock.put("payloadLength", block.getPayloadLength());
+                recentBlock.put("generator", Convert.toUnsignedLong(block.getGeneratorId()));
+                recentBlock.put("height", block.getHeight());
+                recentBlock.put("version", block.getVersion());
+                recentBlock.put("block", block.getStringId());
+                recentBlock.put("baseTarget", BigInteger.valueOf(block.getBaseTarget()).multiply(BigInteger.valueOf(100000))
+                        .divide(BigInteger.valueOf(Constants.INITIAL_BASE_TARGET)));
 
-        for (int i = lastBlocks.size() - 1; i >=0; i--) {
-            Block block = lastBlocks.get(i);
-            JSONObject recentBlock = new JSONObject();
-            recentBlock.put("index", Users.getIndex(block));
-            recentBlock.put("timestamp", block.getTimestamp());
-            recentBlock.put("numberOfTransactions", block.getTransactionIds().size());
-            recentBlock.put("totalAmountNQT", block.getTotalAmountNQT());
-            recentBlock.put("totalFeeNQT", block.getTotalFeeNQT());
-            recentBlock.put("payloadLength", block.getPayloadLength());
-            recentBlock.put("generator", Convert.toUnsignedLong(block.getGeneratorId()));
-            recentBlock.put("height", block.getHeight());
-            recentBlock.put("version", block.getVersion());
-            recentBlock.put("block", block.getStringId());
-            recentBlock.put("baseTarget", BigInteger.valueOf(block.getBaseTarget()).multiply(BigInteger.valueOf(100000))
-                    .divide(BigInteger.valueOf(Constants.INITIAL_BASE_TARGET)));
-
-            recentBlocks.add(recentBlock);
+                recentBlocks.add(recentBlock);
+            }
         }
 
         JSONObject response = new JSONObject();

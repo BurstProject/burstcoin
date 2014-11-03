@@ -1,15 +1,16 @@
-package nxt.util;
+package nxt.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-public final class DbIterator<T> implements Iterator<T>, AutoCloseable {
+public final class DbIterator<T> implements Iterator<T>, Iterable<T>, AutoCloseable {
 
     public interface ResultSetReader<T> {
-        public T get(Connection con, ResultSet rs) throws Exception;
+        T get(Connection con, ResultSet rs) throws Exception;
     }
 
     private final Connection con;
@@ -18,6 +19,7 @@ public final class DbIterator<T> implements Iterator<T>, AutoCloseable {
     private final ResultSet rs;
 
     private boolean hasNext;
+    private boolean iterated;
 
     public DbIterator(Connection con, PreparedStatement pstmt, ResultSetReader<T> rsReader) {
         this.con = con;
@@ -44,7 +46,7 @@ public final class DbIterator<T> implements Iterator<T>, AutoCloseable {
     public T next() {
         if (! hasNext) {
             DbUtils.close(rs, pstmt, con);
-            return null;
+            throw new NoSuchElementException();
         }
         try {
             T result = rsReader.get(con, rs);
@@ -64,6 +66,15 @@ public final class DbIterator<T> implements Iterator<T>, AutoCloseable {
     @Override
     public void close() {
         DbUtils.close(rs, pstmt, con);
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        if (iterated) {
+            throw new IllegalStateException("Already iterated");
+        }
+        iterated = true;
+        return this;
     }
 
 }

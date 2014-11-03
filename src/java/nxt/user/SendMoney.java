@@ -33,7 +33,7 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
         String deadlineValue = req.getParameter("deadline");
         String secretPhrase = req.getParameter("secretPhrase");
 
-        Long recipient;
+        long recipient;
         long amountNQT = 0;
         long feeNQT = 0;
         short deadline = 0;
@@ -41,7 +41,7 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
         try {
 
             recipient = Convert.parseUnsignedLong(recipientValue);
-            if (recipient == null) throw new IllegalArgumentException("invalid recipient");
+            if (recipient == 0) throw new IllegalArgumentException("invalid recipient");
             amountNQT = Convert.parseNXT(amountValue.trim());
             feeNQT = Convert.parseNXT(feeValue.trim());
             deadline = (short)(Double.parseDouble(deadlineValue) * 60);

@@ -1,10 +1,12 @@
 package nxt;
 
+import nxt.db.Db;
 import nxt.http.API;
 import nxt.peer.Peers;
 import nxt.user.Users;
 import nxt.util.Logger;
 import nxt.util.ThreadPool;
+import nxt.util.Time;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -16,8 +18,10 @@ import java.util.Properties;
 
 public final class Nxt {
 
-    public static final String VERSION = "1.1.4";
+    public static final String VERSION = "1.1.5";
     public static final String APPLICATION = "NRS";
+
+    private static volatile Time time = new Time.EpochTime();
 
     private static final Properties defaultProperties = new Properties();
     static {
@@ -118,6 +122,14 @@ public final class Nxt {
         return TransactionProcessorImpl.getInstance();
     }
 
+    public static int getEpochTime() {
+        return time.getTime();
+    }
+
+    static void setTime(Time time) {
+        Nxt.time = time;
+    }
+
     public static void main(String[] args) {
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
@@ -138,14 +150,13 @@ public final class Nxt {
     }
 
     public static void shutdown() {
-        Logger.logMessage("Shutting down...");
+        Logger.logShutdownMessage("Shutting down...");
         API.shutdown();
         Users.shutdown();
         Peers.shutdown();
-        TransactionProcessorImpl.getInstance().shutdown();
         ThreadPool.shutdown();
         Db.shutdown();
-        Logger.logMessage("Burst server " + VERSION + " stopped.");
+        Logger.logShutdownMessage("Burst server " + VERSION + " stopped.");
         Logger.shutdown();
     }
 
@@ -156,14 +167,30 @@ public final class Nxt {
                 long startTime = System.currentTimeMillis();
                 Logger.init();
                 Db.init();
-                BlockchainProcessorImpl.getInstance();
                 TransactionProcessorImpl.getInstance();
+                BlockchainProcessorImpl.getInstance();
+                DbVersion.init();
+                Account.init();
+                Alias.init();
+                Asset.init();
+                DigitalGoodsStore.init();
+                Hub.init();
+                Order.init();
+                Poll.init();
+                Trade.init();
+                AssetTransfer.init();
+                Vote.init();
                 Peers.init();
                 Generator.init();
                 API.init();
                 Users.init();
                 DebugTrace.init();
-                ThreadPool.start();
+                int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(Nxt.getIntProperty("nxt.timeMultiplier"), 1) : 1;
+                ThreadPool.start(timeMultiplier);
+                if (timeMultiplier > 1) {
+                    setTime(new Time.FasterTime(Math.max(getEpochTime(), Nxt.getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
+                    Logger.logMessage("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
+                }
 
                 long currentTime = System.currentTimeMillis();
                 Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");

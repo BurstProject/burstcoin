@@ -89,7 +89,7 @@ public final class Hallmark {
     private final int weight;
     private final int date;
     private final byte[] publicKey;
-    private final Long accountId;
+    private final long accountId;
     private final byte[] signature;
     private final boolean isValid;
 
@@ -128,7 +128,7 @@ public final class Hallmark {
         return publicKey;
     }
 
-    public Long getAccountId() {
+    public long getAccountId() {
         return accountId;
     }
 

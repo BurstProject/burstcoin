@@ -95,6 +95,7 @@ public final class Users {
                 sslContextFactory.setExcludeCipherSuites("SSL_RSA_WITH_DES_CBC_SHA", "SSL_DHE_RSA_WITH_DES_CBC_SHA",
                         "SSL_DHE_DSS_WITH_DES_CBC_SHA", "SSL_RSA_EXPORT_WITH_RC4_40_MD5", "SSL_RSA_EXPORT_WITH_DES40_CBC_SHA",
                         "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA", "SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA");
+                sslContextFactory.setExcludeProtocols("SSLv3");
                 connector = new ServerConnector(userServer, new SslConnectionFactory(sslContextFactory, "http/1.1"),
                         new HttpConnectionFactory(https_config));
             } else {
@@ -381,9 +382,9 @@ public final class Users {
                 }
             }, Peers.Event.NEW_PEER);
 
-            Nxt.getTransactionProcessor().addListener(new Listener<List<Transaction>>() {
+            Nxt.getTransactionProcessor().addListener(new Listener<List<? extends Transaction>>() {
                 @Override
-                public void notify(List<Transaction> transactions) {
+                public void notify(List<? extends Transaction> transactions) {
                     JSONObject response = new JSONObject();
                     JSONArray removedUnconfirmedTransactions = new JSONArray();
                     for (Transaction transaction : transactions) {
@@ -396,9 +397,9 @@ public final class Users {
                 }
             }, TransactionProcessor.Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
 
-            Nxt.getTransactionProcessor().addListener(new Listener<List<Transaction>>() {
+            Nxt.getTransactionProcessor().addListener(new Listener<List<? extends Transaction>>() {
                 @Override
-                public void notify(List<Transaction> transactions) {
+                public void notify(List<? extends Transaction> transactions) {
                     JSONObject response = new JSONObject();
                     JSONArray addedUnconfirmedTransactions = new JSONArray();
                     for (Transaction transaction : transactions) {
@@ -418,9 +419,9 @@ public final class Users {
                 }
             }, TransactionProcessor.Event.ADDED_UNCONFIRMED_TRANSACTIONS);
 
-            Nxt.getTransactionProcessor().addListener(new Listener<List<Transaction>>() {
+            Nxt.getTransactionProcessor().addListener(new Listener<List<? extends Transaction>>() {
                 @Override
-                public void notify(List<Transaction> transactions) {
+                public void notify(List<? extends Transaction> transactions) {
                     JSONObject response = new JSONObject();
                     JSONArray addedConfirmedTransactions = new JSONArray();
                     for (Transaction transaction : transactions) {
@@ -440,9 +441,9 @@ public final class Users {
                 }
             }, TransactionProcessor.Event.ADDED_CONFIRMED_TRANSACTIONS);
 
-            Nxt.getTransactionProcessor().addListener(new Listener<List<Transaction>>() {
+            Nxt.getTransactionProcessor().addListener(new Listener<List<? extends Transaction>>() {
                 @Override
-                public void notify(List<Transaction> transactions) {
+                public void notify(List<? extends Transaction> transactions) {
                     JSONObject response = new JSONObject();
                     JSONArray newTransactions = new JSONArray();
                     for (Transaction transaction : transactions) {
@@ -470,7 +471,7 @@ public final class Users {
                     JSONObject addedOrphanedBlock = new JSONObject();
                     addedOrphanedBlock.put("index", Users.getIndex(block));
                     addedOrphanedBlock.put("timestamp", block.getTimestamp());
-                    addedOrphanedBlock.put("numberOfTransactions", block.getTransactionIds().size());
+                    addedOrphanedBlock.put("numberOfTransactions", block.getTransactions().size());
                     addedOrphanedBlock.put("totalAmountNQT", block.getTotalAmountNQT());
                     addedOrphanedBlock.put("totalFeeNQT", block.getTotalFeeNQT());
                     addedOrphanedBlock.put("payloadLength", block.getPayloadLength());
@@ -493,7 +494,7 @@ public final class Users {
                     JSONObject addedRecentBlock = new JSONObject();
                     addedRecentBlock.put("index", Users.getIndex(block));
                     addedRecentBlock.put("timestamp", block.getTimestamp());
-                    addedRecentBlock.put("numberOfTransactions", block.getTransactionIds().size());
+                    addedRecentBlock.put("numberOfTransactions", block.getTransactions().size());
                     addedRecentBlock.put("totalAmountNQT", block.getTotalAmountNQT());
                     addedRecentBlock.put("totalFeeNQT", block.getTotalFeeNQT());
                     addedRecentBlock.put("payloadLength", block.getPayloadLength());
@@ -603,7 +604,7 @@ public final class Users {
             try {
                 userServer.stop();
             } catch (Exception e) {
-                Logger.logDebugMessage("Failed to stop user interface server", e);
+                Logger.logShutdownMessage("Failed to stop user interface server", e);
             }
         }
     }

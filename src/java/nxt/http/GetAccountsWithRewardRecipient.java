@@ -5,6 +5,7 @@ import nxt.Attachment;
 import nxt.Constants;
 import nxt.Nxt;
 import nxt.NxtException;
+import nxt.db.DbIterator;
 import nxt.util.Convert;
 
 import org.json.simple.JSONArray;
@@ -18,7 +19,7 @@ public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestH
 	static final GetAccountsWithRewardRecipient instance = new GetAccountsWithRewardRecipient();
 	
 	private GetAccountsWithRewardRecipient() {
-		super(new APITag[] {APITag.ACCOUNTS, APITag.MINING, APITag.INFO}, "recipient");
+		super(new APITag[] {APITag.ACCOUNTS, APITag.MINING, APITag.INFO}, "account");
 	}
 	
 	@Override
@@ -30,7 +31,7 @@ public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestH
 		long height = Nxt.getBlockchain().getLastBlock().getHeight();
 		
 		JSONArray accounts = new JSONArray();
-		for(Account account : Account.getAllAccounts()) {
+		/*for(Account account : Account.getAllAccounts()) {
 			long recip;
 			if(account.getRewardRecipientFrom() > height + 1) {
 				recip = 0L; // this api is intended for pools, so drop changing users a few blocks early to avoid overpaying
@@ -41,6 +42,11 @@ public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestH
 			if(targetAccount.getId() == recip) {
 				accounts.add(Convert.toUnsignedLong(account.getId()));
 			}
+		}*/
+		DbIterator<Account.RewardRecipientAssignment> assignments = Account.getAccountsWithRewardRecipient(targetAccount.getId());
+		while(assignments.hasNext()) {
+			Account.RewardRecipientAssignment assignment = assignments.next();
+			accounts.add(assignment.accountId);
 		}
 		
 		response.put("accounts", accounts);

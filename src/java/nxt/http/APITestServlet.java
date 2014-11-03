@@ -20,17 +20,7 @@ import java.util.TreeSet;
 
 public class APITestServlet extends HttpServlet {
 
-    private static final String links;
-    static {
-        StringBuilder buf = new StringBuilder();
-        for (APITag apiTag : APITag.values()) {
-            buf.append("<a class=\"navbar-brand\" href=\"/test?requestTag=").append(apiTag.name()).append("\">");
-            buf.append(apiTag.getDisplayName()).append("</a>").append(" ");
-        }
-        links = buf.toString();
-    }
-
-    private static final String header =
+    private static final String header1 =
             "<!DOCTYPE html>\n" +
             "<html>\n" +
             "<head>\n" +
@@ -45,56 +35,124 @@ public class APITestServlet extends HttpServlet {
             "        .result {white-space: pre; font-family: monospace; overflow: auto;}\n" +
             "    </style>\n" +
             "    <script type=\"text/javascript\">\n" +
+            "        var apiCalls;\n" +
+            "        function performSearch(searchStr) {\n" +
+            "            if (searchStr == '') {\n" +
+            "              $('.api-call-All').show();\n" +
+            "            } else {\n" +
+            "              $('.api-call-All').hide();\n" +
+            "              $('.topic-link').css('font-weight', 'normal');\n" +
+            "              for(var i=0; i<apiCalls.length; i++) {\n" +
+            "                var apiCall = apiCalls[i];\n" +
+            "                if (new RegExp(searchStr.toLowerCase()).test(apiCall.toLowerCase())) {\n" +
+            "                  $('#api-call-' + apiCall).show();\n" +
+            "                }\n" +
+            "              }\n" +
+            "            }\n" +
+            "        }\n" +
             "        function submitForm(form) {\n" +
             "            var url = '/burst';\n" +
-            "            var params = '';\n" +
+            "            var params = {};\n" +
             "            for (i = 0; i < form.elements.length; i++) {\n" +
-            "                if (! form.elements[i].name) {\n" +
-            "                    continue;\n" +
+            "                if (form.elements[i].type != 'button' && form.elements[i].value && form.elements[i].value != 'submit') {\n" +
+            "                    params[form.elements[i].name] = form.elements[i].value;\n" +
             "                }\n" +
-            "                if (i > 0) {\n" +
-            "                    params += '&';\n" +
-            "                }\n" +
-            "                params += encodeURIComponent(form.elements[i].name);\n" +
-            "                params += '=';\n" +
-            "                params += encodeURIComponent(form.elements[i].value);\n" +
             "            }\n" +
-            "            var request = new XMLHttpRequest();\n" +
-            "            request.open(\"POST\", url, false);\n" +
-            "            request.setRequestHeader(\"Content-type\", \"application/x-www-form-urlencoded\");\n" +
-            "            request.send(params);\n" +
-            "            var result = JSON.stringify(JSON.parse(request.responseText), null, 4);\n" +
-            "            form.getElementsByClassName(\"result\")[0].textContent = result;\n" +
+            "            $.ajax({\n" +
+            "                url: url,\n" +
+            "                type: 'POST',\n" +
+            "                data: params\n" +
+            "            })\n" +
+            "            .done(function(result) {\n" +
+            "                var resultStr = JSON.stringify(JSON.parse(result), null, 4);\n" +
+            "                form.getElementsByClassName(\"result\")[0].textContent = resultStr;\n" +
+            "            })\n" +
+            "            .error(function() {\n" +
+            "                alert('API not available, check if Nxt Server is running!');\n" +
+            "            });\n" +
+            "            if ($(form).has('.uri-link').length > 0) {\n" + 
+            "                  var uri = '/burst?' + jQuery.param(params);\n" +
+            "                  var html = '<a href=\"' + uri + '\" target=\"_blank\" style=\"font-size:12px;font-weight:normal;\">Open GET URL</a>';" +
+            "                  form.getElementsByClassName(\"uri-link\")[0].innerHTML = html;\n" +
+            "            }" +
             "            return false;\n" +
             "        }\n" +
             "    </script>\n" +
             "</head>\n" +
             "<body>\n" +
             "<div class=\"navbar navbar-default\" role=\"navigation\">" +
-            "   <div class=\"container\" style=\"width: 90%;\">" +
+            "   <div class=\"container\" style=\"min-width: 90%;\">" +
             "       <div class=\"navbar-header\">" +
-            "           <a class=\"navbar-brand\" href=\"/test\">All</a> " + links +
+            "           <a class=\"navbar-brand\" href=\"/test\">Nxt http API</a>" + 
             "       </div>" +
             "       <div class=\"navbar-collapse collapse\">" +
             "           <ul class=\"nav navbar-nav navbar-right\">" +
-            "               <li><a href=\"https://wiki.nxtcrypto.org/wiki/Nxt_API\" target=\"_blank\">wiki docs</a></li>" +
+            "               <li><input type=\"text\" class=\"form-control\" id=\"search\" " + 
+            "                    placeholder=\"Search\" style=\"margin-top:8px;\"></li>\n" +
+            "               <li><a href=\"https://wiki.nxtcrypto.org/wiki/Nxt_API\" target=\"_blank\" style=\"margin-left:20px;\">Wiki Docs</a></li>" +
             "           </ul>" +
             "       </div>" +
             "   </div>" + 
             "</div>" +
-            "<div class=\"container\" style=\"width: 90%;\">" +
-            "<div class=\"row\">" +
-            "<div class=\"col-xs-12\">" +
-            "<div class=\"panel-group\" id=\"accordion\">";
+            "<div class=\"container\" style=\"min-width: 90%;\">" +
+            "<div class=\"row\">" + 
+            "  <div class=\"col-xs-12\" style=\"margin-bottom:15px;\">" +
+            "    <div class=\"pull-right\">" +
+            "      <a href=\"#\" id=\"navi-show-open\">Show Open</a>" +
+            "       | " +
+            "      <a href=\"#\" id=\"navi-show-all\" style=\"font-weight:bold;\">Show All</a>" +
+            "    </div>" +
+            "  </div>" +
+            "</div>" +
+            "<div class=\"row\" style=\"margin-bottom:15px;\">" +
+            "  <div class=\"col-xs-4 col-sm-3 col-md-2\">" +
+            "    <ul class=\"nav nav-pills nav-stacked\">";
+    private static final String header2 =
+            "    </ul>" +
+            "  </div> <!-- col -->" +
+            "  <div  class=\"col-xs-8 col-sm-9 col-md-10\">" +
+            "    <div class=\"panel-group\" id=\"accordion\">";
 
-    private static final String footer =
-            "</div> <!-- panel-group -->" +
-            "<br/><br/>" +
-            "</div> <!-- col -->" +
+    private static final String footer1 =
+            "    </div> <!-- panel-group -->" +
+            "  </div> <!-- col -->" +
             "</div> <!-- row -->" +
             "</div> <!-- container -->" +
             "<script src=\"js/3rdparty/jquery.js\"></script>" +
             "<script src=\"js/3rdparty/bootstrap.js\" type=\"text/javascript\"></script>" +
+            "<script>" + 
+            "  $(document).ready(function() {" +
+            "    apiCalls = [];\n";
+
+    private static final String footer2 =
+            "    $(\".collapse-link\").click(function(event) {" +
+            "       event.preventDefault();" +    
+            "    });" +
+            "    $('#search').keyup(function(e) {\n" +
+            "      if (e.keyCode == 13) {\n" +
+            "        performSearch($(this).val());\n" +
+            "      }\n" +
+            "    });\n" +
+            "    $('#navi-show-open').click(function(e) {" +
+            "      $('.api-call-All').each(function() {" +
+            "        if($(this).find('.panel-collapse.in').length != 0) {" +
+            "          $(this).show();" +
+            "        } else {" +
+            "          $(this).hide();" +
+            "        }" +
+            "      });" +
+            "      $('#navi-show-all').css('font-weight', 'normal');" +
+            "      $(this).css('font-weight', 'bold');" +
+            "      e.preventDefault();" +
+            "    });" +
+            "    $('#navi-show-all').click(function(e) {" +
+            "      $('.api-call-All').show();" +
+            "      $('#navi-show-open').css('font-weight', 'normal');" +
+            "      $(this).css('font-weight', 'bold');" +
+            "      e.preventDefault();" +
+            "    });" +
+            "  });" + 
+            "</script>" +
             "</body>\n" +
             "</html>\n";
 
@@ -119,6 +177,27 @@ public class APITestServlet extends HttpServlet {
         }
     }
 
+    private static String buildLinks(HttpServletRequest req) {
+        StringBuilder buf = new StringBuilder();
+        String requestTag = Convert.nullToEmpty(req.getParameter("requestTag"));
+        buf.append("<li");
+        if (requestTag.equals("")) {
+            buf.append(" class=\"active\"");
+        }
+        buf.append("><a href=\"/test\">All</a></li>");
+        for (APITag apiTag : APITag.values()) {
+            if (requestTags.get(apiTag.name()) != null) {
+            	buf.append("<li");
+	            if (requestTag.equals(apiTag.name())) {
+    	            buf.append(" class=\"active\"");
+        	    }
+            	buf.append("><a href=\"/test?requestTag=").append(apiTag.name()).append("\">");
+            	buf.append(apiTag.getDisplayName()).append("</a></li>").append(" ");
+            }
+        }
+        return buf.toString();
+    }
+
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
         resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
@@ -126,55 +205,92 @@ public class APITestServlet extends HttpServlet {
         resp.setDateHeader("Expires", 0);
         resp.setContentType("text/html; charset=UTF-8");
 
+        if (API.allowedBotHosts != null && ! API.allowedBotHosts.contains(req.getRemoteHost())) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
         try (PrintWriter writer = resp.getWriter()) {
-            writer.print(header);
+            writer.print(header1);
+            writer.print(buildLinks(req));
+            writer.print(header2);
             String requestType = Convert.nullToEmpty(req.getParameter("requestType"));
             APIServlet.APIRequestHandler requestHandler = APIServlet.apiRequestHandlers.get(requestType);
+            StringBuilder bufJSCalls = new StringBuilder();
             if (requestHandler != null) {
-                writer.print(form(requestType, requestHandler.getClass().getName(), requestHandler.getParameters()));
+                writer.print(form(requestType, true, requestHandler.getClass().getName(), requestHandler.getParameters(), requestHandler.requirePost()));
+                bufJSCalls.append("apiCalls.push(\"").append(requestType).append("\");\n");
             } else {
                 String requestTag = Convert.nullToEmpty(req.getParameter("requestTag"));
                 Set<String> taggedTypes = requestTags.get(requestTag);
                 for (String type : (taggedTypes != null ? taggedTypes : allRequestTypes)) {
                     requestHandler = APIServlet.apiRequestHandlers.get(type);
-                    writer.print(form(type, requestHandler.getClass().getName(), APIServlet.apiRequestHandlers.get(type).getParameters()));
+                    writer.print(form(type, false, requestHandler.getClass().getName(), APIServlet.apiRequestHandlers.get(type).getParameters(), 
+                                      APIServlet.apiRequestHandlers.get(type).requirePost()));
+                    bufJSCalls.append("apiCalls.push(\"").append(type).append("\");\n");
                 }
             }
-            writer.print(footer);
+            writer.print(footer1);
+            writer.print(bufJSCalls.toString());
+            writer.print(footer2);
         }
 
     }
 
-    private static String form(String requestType, String className, List<String> parameters) {
+    private static String form(String requestType, boolean singleView, String className, List<String> parameters, boolean requirePost) {
         StringBuilder buf = new StringBuilder();
-        buf.append("<div class=\"panel panel-default\">");
+        buf.append("<div class=\"panel panel-default api-call-All\" ");
+        buf.append("id=\"api-call-").append(requestType).append("\">");
         buf.append("<div class=\"panel-heading\">");
         buf.append("<h4 class=\"panel-title\">");
-        buf.append("<a data-toggle=\"collapse\" data-parent=\"#accordion\" href=\"#collapse");
-        buf.append(requestType).append("\">");
+        buf.append("<a data-toggle=\"collapse\" class=\"collapse-link\" data-target=\"#collapse").append(requestType).append("\" href=\"#\">");
         buf.append(requestType);
         buf.append("</a>");
-        buf.append("<a style=\"float:right;\" href=\"/doc/").append(className.replace('.','/')).append(".html\" target=\"_blank\">javadoc</a>");
+        buf.append("<span style=\"float:right;font-weight:normal;font-size:14px;\">");
+        if (!singleView) {
+            buf.append("<a href=\"/test?requestType=").append(requestType);
+            buf.append("\" target=\"_blank\" style=\"font-weight:normal;font-size:14px;color:#777;\"><span class=\"glyphicon glyphicon-new-window\"></span></a>");
+            buf.append(" &nbsp;&nbsp;");
+        }
+        buf.append("<a style=\"font-weight:normal;font-size:14px;color:#777;\" href=\"/doc/");
+        buf.append(className.replace('.','/')).append(".html\" target=\"_blank\">javadoc</a>");
+        buf.append("</span>");
         buf.append("</h4>");
         buf.append("</div> <!-- panel-heading -->");
-        buf.append("<div id=\"collapse").append(requestType).append("\" class=\"panel-collapse collapse\">");
+        buf.append("<div id=\"collapse").append(requestType).append("\" class=\"panel-collapse collapse");
+        if (singleView) {
+            buf.append(" in");
+        }
+        buf.append("\">");
         buf.append("<div class=\"panel-body\">");
         buf.append("<form action=\"/burst\" method=\"POST\" onsubmit=\"return submitForm(this);\">");
-        buf.append("<pre class=\"result\" style=\"float:right;width:50%;\">JSON response</pre>");
         buf.append("<input type=\"hidden\" name=\"requestType\" value=\"").append(requestType).append("\"/>");
-        buf.append("<table class=\"table\" style=\"width:46%;\">");
+        buf.append("<div class=\"col-xs-12 col-lg-6\" style=\"width: 40%;\">");
+        buf.append("<table class=\"table\">");
         for (String parameter : parameters) {
             buf.append("<tr>");
             buf.append("<td>").append(parameter).append(":</td>");
             buf.append("<td><input type=\"");
             buf.append("secretPhrase".equals(parameter) ? "password" : "text");
-            buf.append("\" name=\"").append(parameter).append("\" style=\"width:200px;\"/></td>");
+            buf.append("\" name=\"").append(parameter).append("\" style=\"width:100%;min-width:200px;\"/></td>");
             buf.append("</tr>");
         }
         buf.append("<tr>");
         buf.append("<td colspan=\"2\"><input type=\"submit\" class=\"btn btn-default\" value=\"submit\"/></td>");
         buf.append("</tr>");
         buf.append("</table>");
+        buf.append("</div>");
+        buf.append("<div class=\"col-xs-12 col-lg-6\" style=\"min-width: 60%;\">");
+        buf.append("<h5 style=\"margin-top:0px;\">");
+        if (!requirePost) {
+            buf.append("<span style=\"float:right;\" class=\"uri-link\">");
+            buf.append("</span>");
+        } else {
+            buf.append("<span style=\"float:right;font-size:12px;font-weight:normal;\">POST only</span>");
+        }
+        buf.append("Response</h5>");
+        buf.append("<pre class=\"result\">JSON response</pre>");
+        buf.append("</div>");
         buf.append("</form>");
         buf.append("</div> <!-- panel-body -->");
         buf.append("</div> <!-- panel-collapse -->");

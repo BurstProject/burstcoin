@@ -14,12 +14,15 @@ package nxt;
  *
  *                                                                              Come-from-Beyond (21.05.2014)
  */
-final class EconomicClustering {
+public final class EconomicClustering {
 
     private static final Blockchain blockchain = BlockchainImpl.getInstance();
 
-    static Block getECBlockId(int timestamp) {
+    public static Block getECBlock(int timestamp) {
         Block block = blockchain.getLastBlock();
+        if (timestamp < block.getTimestamp() - 15) {
+            throw new IllegalArgumentException("Timestamp cannot be more than 15 s earlier than last block timestamp: " + block.getTimestamp());
+        }
         int distance = 0;
         while (block.getTimestamp() > timestamp - Constants.EC_RULE_TERMINATOR && distance < Constants.EC_BLOCK_DISTANCE_LIMIT) {
             block = blockchain.getBlock(block.getPreviousBlockId());
@@ -28,7 +31,7 @@ final class EconomicClustering {
         return block;
     }
 
-    static boolean verifyFork(Transaction transaction) {
+    public static boolean verifyFork(Transaction transaction) {
         if (blockchain.getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
             return true;
         }

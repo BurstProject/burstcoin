@@ -44,19 +44,19 @@ public final class SellAlias extends CreateTransaction {
         }
 
         String recipientValue = Convert.emptyToNull(req.getParameter("recipient"));
-        Long recipientId = null;
+        long recipientId = 0;
         if (recipientValue != null) {
             try {
                 recipientId = Convert.parseAccountId(recipientValue);
             } catch (RuntimeException e) {
                 return INCORRECT_RECIPIENT;
             }
-            if (recipientId == null) {
+            if (recipientId == 0) {
                 return INCORRECT_RECIPIENT;
             }
         }
 
-        if (! alias.getAccountId().equals(owner.getId())) {
+        if (alias.getAccountId() != owner.getId()) {
             return INCORRECT_ALIAS_OWNER;
         }
 

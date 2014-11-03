@@ -66,4 +66,16 @@ public abstract class NxtException extends Exception {
 
     }
 
+    public static final class StopException extends RuntimeException {
+
+        public StopException(String message) {
+            super(message);
+        }
+
+        public StopException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+    }
+
 }

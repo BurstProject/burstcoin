@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 import fr.cryptohash.Shabal256;
 
@@ -67,7 +68,7 @@ public final class Generator {
     };
 
     static {
-        ThreadPool.scheduleThread(generateBlockThread, 1);
+        ThreadPool.scheduleThread("GenerateBlocks", generateBlockThread, 500, TimeUnit.MILLISECONDS);
     }
 
     static void init() {}
@@ -173,8 +174,6 @@ public final class Generator {
         BigInteger hit = new BigInteger(1, new byte[] {hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
         
         deadline = hit.divide(BigInteger.valueOf(lastBlock.getBaseTarget()));
-		
-        forge();
     }
 
     public byte[] getPublicKey() {
@@ -193,10 +192,10 @@ public final class Generator {
     	return block;
     }
 
-    private void forge() {
+    private void forge() throws BlockchainProcessor.BlockNotAcceptedException {
         Block lastBlock = Nxt.getBlockchain().getLastBlock();
 
-        int elapsedTime = Convert.getEpochTime() - lastBlock.getTimestamp();
+        int elapsedTime = Nxt.getEpochTime() - lastBlock.getTimestamp();
         if (BigInteger.valueOf(elapsedTime).compareTo(deadline) > 0) {
             BlockchainProcessorImpl.getInstance().generateBlock(secretPhrase, publicKey, nonce);
         }

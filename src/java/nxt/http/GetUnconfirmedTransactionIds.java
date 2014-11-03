@@ -2,6 +2,7 @@ package nxt.http;
 
 import nxt.Nxt;
 import nxt.Transaction;
+import nxt.db.DbIterator;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -23,22 +24,25 @@ public final class GetUnconfirmedTransactionIds extends APIServlet.APIRequestHan
     JSONStreamAware processRequest(HttpServletRequest req) {
 
         String accountIdString = Convert.emptyToNull(req.getParameter("account"));
-        Long accountId = null;
+        long accountId = 0;
 
         if (accountIdString != null) {
             try {
-                accountId = Convert.parseUnsignedLong(accountIdString);
+                accountId = Convert.parseAccountId(accountIdString);
             } catch (RuntimeException e) {
                 return INCORRECT_ACCOUNT;
             }
         }
 
         JSONArray transactionIds = new JSONArray();
-        for (Transaction transaction : Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
-            if (accountId != null && ! (accountId.equals(transaction.getSenderId()) || accountId.equals(transaction.getRecipientId()))) {
-                continue;
+        try (DbIterator<? extends Transaction> transactionsIterator = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+            while (transactionsIterator.hasNext()) {
+                Transaction transaction = transactionsIterator.next();
+                if (accountId != 0 && !(accountId == transaction.getSenderId() || accountId == transaction.getRecipientId())) {
+                    continue;
+                }
+                transactionIds.add(transaction.getStringId());
             }
-            transactionIds.add(transaction.getStringId());
         }
 
         JSONObject response = new JSONObject();

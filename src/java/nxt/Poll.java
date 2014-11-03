@@ -1,58 +1,88 @@
 package nxt;
 
-import nxt.util.Convert;
+import nxt.db.DbIterator;
+import nxt.db.DbKey;
+import nxt.db.EntityDbTable;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public final class Poll {
 
-    private static final ConcurrentMap<Long, Poll> polls = new ConcurrentHashMap<>();
-    private static final Collection<Poll> allPolls = Collections.unmodifiableCollection(polls.values());
+    private static final DbKey.LongKeyFactory<Poll> pollDbKeyFactory = null;
 
-    private final Long id;
+    private static final EntityDbTable<Poll> pollTable = null;
+
+    static void init() {}
+
+
+    private final long id;
+    private final DbKey dbKey;
     private final String name;
     private final String description;
     private final String[] options;
     private final byte minNumberOfOptions, maxNumberOfOptions;
     private final boolean optionsAreBinary;
-    private final ConcurrentMap<Long, Long> voters;
 
-    private Poll(Long id, String name, String description, String[] options, byte minNumberOfOptions, byte maxNumberOfOptions, boolean optionsAreBinary) {
-
+    private Poll(long id, Attachment.MessagingPollCreation attachment) {
         this.id = id;
-        this.name = name;
-        this.description = description;
-        this.options = options;
-        this.minNumberOfOptions = minNumberOfOptions;
-        this.maxNumberOfOptions = maxNumberOfOptions;
-        this.optionsAreBinary = optionsAreBinary;
-        this.voters = new ConcurrentHashMap<>();
-
+        this.dbKey = pollDbKeyFactory.newKey(this.id);
+        this.name = attachment.getPollName();
+        this.description = attachment.getPollDescription();
+        this.options = attachment.getPollOptions();
+        this.minNumberOfOptions = attachment.getMinNumberOfOptions();
+        this.maxNumberOfOptions = attachment.getMaxNumberOfOptions();
+        this.optionsAreBinary = attachment.isOptionsAreBinary();
     }
 
-    static void addPoll(Long id, String name, String description, String[] options, byte minNumberOfOptions, byte maxNumberOfOptions, boolean optionsAreBinary) {
-        if (polls.putIfAbsent(id, new Poll(id, name, description, options, minNumberOfOptions, maxNumberOfOptions, optionsAreBinary)) != null) {
-            throw new IllegalStateException("Poll with id " + Convert.toUnsignedLong(id) + " already exists");
+    private Poll(ResultSet rs) throws SQLException {
+        this.id = rs.getLong("id");
+        this.dbKey = pollDbKeyFactory.newKey(this.id);
+        this.name = rs.getString("name");
+        this.description = rs.getString("description");
+        this.options = (String[])rs.getArray("options").getArray();
+        this.minNumberOfOptions = rs.getByte("min_num_options");
+        this.maxNumberOfOptions = rs.getByte("max_num_options");
+        this.optionsAreBinary = rs.getBoolean("binary_options");
+    }
+
+    private void save(Connection con) throws SQLException {
+        try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO poll (id, name, description, "
+                + "options, min_num_options, max_num_options, binary_options, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
+            int i = 0;
+            pstmt.setLong(++i, this.getId());
+            pstmt.setString(++i, this.getName());
+            pstmt.setString(++i, this.getDescription());
+            pstmt.setObject(++i, this.getOptions());
+            pstmt.setByte(++i, this.getMinNumberOfOptions());
+            pstmt.setByte(++i, this.getMaxNumberOfOptions());
+            pstmt.setBoolean(++i, this.isOptionsAreBinary());
+            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.executeUpdate();
         }
     }
 
-    public static Collection<Poll> getAllPolls() {
-        return allPolls;
+    static void addPoll(Transaction transaction, Attachment.MessagingPollCreation attachment) {
+        pollTable.insert(new Poll(transaction.getId(), attachment));
     }
 
-    static void clear() {
-        polls.clear();
+    public static Poll getPoll(long id) {
+        return pollTable.get(pollDbKeyFactory.newKey(id));
     }
 
-    public static Poll getPoll(Long id) {
-        return polls.get(id);
+    public static DbIterator<Poll> getAllPolls(int from, int to) {
+        return pollTable.getAll(from, to);
     }
 
-    public Long getId() {
+    public static int getCount() {
+        return pollTable.getCount();
+    }
+
+
+    public long getId() {
         return id;
     }
 
@@ -69,11 +99,7 @@ public final class Poll {
     public boolean isOptionsAreBinary() { return optionsAreBinary; }
 
     public Map<Long, Long> getVoters() {
-        return Collections.unmodifiableMap(voters);
-    }
-
-    void addVoter(Long voterId, Long voteId) {
-        voters.put(voterId, voteId);
+        return Vote.getVoters(this);
     }
 
 }

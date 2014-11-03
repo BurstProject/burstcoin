@@ -57,8 +57,8 @@ public final class ReadMessage extends APIServlet.APIRequestHandler {
         String secretPhrase = Convert.emptyToNull(req.getParameter("secretPhrase"));
         if (secretPhrase != null) {
             if (encryptedMessage != null) {
-                Long readerAccountId = Account.getId(Crypto.getPublicKey(secretPhrase));
-                Account account = senderAccount.getId().equals(readerAccountId) ? Account.getAccount(transaction.getRecipientId()) : senderAccount;
+                long readerAccountId = Account.getId(Crypto.getPublicKey(secretPhrase));
+                Account account = senderAccount.getId() == readerAccountId ? Account.getAccount(transaction.getRecipientId()) : senderAccount;
                 if (account != null) {
                     try {
                         byte[] decrypted = account.decryptFrom(encryptedMessage.getEncryptedData(), secretPhrase);

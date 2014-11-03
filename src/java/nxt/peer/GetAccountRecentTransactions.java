@@ -4,7 +4,7 @@ import nxt.Account;
 import nxt.Nxt;
 import nxt.Transaction;
 import nxt.util.Convert;
-import nxt.util.DbIterator;
+import nxt.db.DbIterator;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

@@ -14,7 +14,7 @@ public final class RSConvert extends APIServlet.APIRequestHandler {
     static final RSConvert instance = new RSConvert();
 
     private RSConvert() {
-        super(new APITag[] {APITag.ACCOUNTS}, "account");
+        super(new APITag[] {APITag.ACCOUNTS, APITag.UTILS}, "account");
     }
 
     @Override
@@ -24,8 +24,8 @@ public final class RSConvert extends APIServlet.APIRequestHandler {
             return MISSING_ACCOUNT;
         }
         try {
-            Long accountId = Convert.parseAccountId(accountValue);
-            if (accountId == null) {
+            long accountId = Convert.parseAccountId(accountValue);
+            if (accountId == 0) {
                 return INCORRECT_ACCOUNT;
             }
             JSONObject response = new JSONObject();
