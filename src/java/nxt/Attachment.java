@@ -1730,7 +1730,7 @@ public interface Attachment extends Appendix {
     	
     	AdvancedPaymentEscrowResult(JSONObject attachmentData) {
     		super(attachmentData);
-    		this.escrowId = (Long) attachmentData.get("escrowId");
+    		this.escrowId = Convert.parseUnsignedLong((String) attachmentData.get("escrowId"));
     		this.decision = Escrow.stringToDecision((String)attachmentData.get("decision"));
     	}
     	
@@ -1757,7 +1757,7 @@ public interface Attachment extends Appendix {
     	
     	@Override
     	void putMyJSON(JSONObject attachment) {
-    		attachment.put("escrowId", this.escrowId);
+    		attachment.put("escrowId", Convert.toUnsignedLong(this.escrowId));
     		attachment.put("decision", Escrow.decisionToString(this.decision));
     	}
     	
@@ -1824,7 +1824,7 @@ public interface Attachment extends Appendix {
     	
     	AdvancedPaymentSubscriptionCancel(JSONObject attachmentData) {
     		super(attachmentData);
-    		this.subscriptionId = (Long)attachmentData.get("subscriptionId");
+    		this.subscriptionId = Convert.parseUnsignedLong((String)attachmentData.get("subscriptionId"));
     	}
     	
     	public AdvancedPaymentSubscriptionCancel(Long subscriptionId) {
@@ -1848,7 +1848,7 @@ public interface Attachment extends Appendix {
     	
     	@Override
     	void putMyJSON(JSONObject attachment) {
-    		attachment.put("subscriptionId", this.subscriptionId);
+    		attachment.put("subscriptionId", Convert.toUnsignedLong(this.subscriptionId));
     	}
     	
     	@Override
@@ -1870,7 +1870,7 @@ public interface Attachment extends Appendix {
     	
     	AdvancedPaymentSubscriptionPayment(JSONObject attachmentData) {
     		super(attachmentData);
-    		this.subscriptionId = (Long) attachmentData.get("subscriptionId");
+    		this.subscriptionId = Convert.parseUnsignedLong((String) attachmentData.get("subscriptionId"));
     	}
     	
     	public AdvancedPaymentSubscriptionPayment(Long subscriptionId) {
@@ -1894,7 +1894,7 @@ public interface Attachment extends Appendix {
     	
     	@Override
     	void putMyJSON(JSONObject attachment) {
-    		attachment.put("subscriptionId", this.subscriptionId);
+    		attachment.put("subscriptionId", Convert.toUnsignedLong(this.subscriptionId));
     	}
     	
     	@Override
