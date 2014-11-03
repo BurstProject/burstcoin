@@ -258,6 +258,9 @@ public class Escrow {
 	
 	public static void removeEscrowTransaction(Long id) {
 		Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(id));
+		if(escrow == null) {
+			return;
+		}
 		DbIterator<Decision> decisionIt = escrow.getDecisions();
 		
 		List<Decision> decisions = new ArrayList<>();

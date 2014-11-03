@@ -63,7 +63,7 @@ public class Subscription {
 	private static final Set<Long> removeSubscriptions = new HashSet<>();
 	
 	public static long getFee() {
-		return Convert.safeDivide(Constants.ONE_NXT, 10L);
+		return Constants.ONE_NXT;
 	}
 	
 	public static DbIterator<Subscription> getAllSubscriptions() {
@@ -130,6 +130,7 @@ public class Subscription {
 		};
 	}
 	
+	@SuppressWarnings("static-access")
 	public static long calculateFees(int timestamp) {
 		long totalFeeNQT = 0;
 		DbIterator<Subscription> updateSubscriptions = subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
@@ -143,8 +144,8 @@ public class Subscription {
 			}
 		}
 		if(appliedSubscriptions.size() > 0) {
-			totalFeeNQT = Convert.safeMultiply(getFee(), appliedSubscriptions.size());
 			for(Subscription subscription : appliedSubscriptions) {
+				totalFeeNQT = Convert.safeAdd(totalFeeNQT, subscription.getFee());
 				subscription.undoUnconfirmed();
 			}
 		}
@@ -159,6 +160,7 @@ public class Subscription {
 		removeSubscriptions.add(id);
 	}
 	
+	@SuppressWarnings("static-access")
 	public static long applyUnconfirmed(int timestamp) {
 		appliedSubscriptions.clear();
 		long totalFees = 0;
@@ -300,7 +302,7 @@ public class Subscription {
 		Account sender = Account.getAccount(senderId);
 		Account recipient = Account.getAccount(recipientId);
 		
-		long totalAmountNQT = Convert.safeAdd(amountNQT, Convert.safeDivide(Constants.ONE_NXT, 10L));
+		long totalAmountNQT = Convert.safeAdd(amountNQT, getFee());
 		
 		sender.addToBalanceNQT(-totalAmountNQT);
 		recipient.addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
@@ -308,7 +310,7 @@ public class Subscription {
 		Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentSubscriptionPayment(id);
 		TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte) 1,
 																	  sender.getPublicKey(), amountNQT,
-																	  Convert.safeDivide(Constants.ONE_NXT, 10L),
+																	  getFee(),
 																	  timeNext, (short)1440, attachment);
 		
 		try {

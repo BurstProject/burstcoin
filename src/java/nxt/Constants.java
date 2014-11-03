@@ -13,7 +13,7 @@ public final class Constants {
     
     public static long BURST_ESCROW_START_BLOCK = Integer.MAX_VALUE;
     public static long BURST_SUBSCRIPTION_START_BLOCK = Integer.MAX_VALUE;
-    public static int BURST_SUBSCRIPTION_MIN_FREQ = 86400;
+    public static int BURST_SUBSCRIPTION_MIN_FREQ = 3600;
     public static int BURST_SUBSCRIPTION_MAX_FREQ = 31536000;
     
 	public static final int BLOCK_HEADER_LENGTH = 232;
