@@ -46,7 +46,10 @@ public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestH
 		DbIterator<Account.RewardRecipientAssignment> assignments = Account.getAccountsWithRewardRecipient(targetAccount.getId());
 		while(assignments.hasNext()) {
 			Account.RewardRecipientAssignment assignment = assignments.next();
-			accounts.add(assignment.accountId);
+			accounts.add(Convert.toUnsignedLong(assignment.accountId));
+		}
+		if(targetAccount.getRewardRecipientAssignment() == null) {
+			accounts.add(Convert.toUnsignedLong(targetAccount.getId()));
 		}
 		
 		response.put("accounts", accounts);

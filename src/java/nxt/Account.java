@@ -695,7 +695,7 @@ public final class Account {
     }
     
     private static DbClause getAccountsWithRewardRecipientClause(final long id, final int height) {
-    	return new DbClause(" account_id = ? AND from_height <= ? ") {
+    	return new DbClause(" recip_id = ? AND from_height <= ? ") {
     		@Override
     		public int set(PreparedStatement pstmt, int index) throws SQLException {
     			pstmt.setLong(index++, id);
