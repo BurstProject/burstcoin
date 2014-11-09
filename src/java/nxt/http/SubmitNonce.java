@@ -1,7 +1,7 @@
 package nxt.http;
 
 import java.nio.ByteBuffer;
-
+import java.math.BigInteger; //used to write deadline
 import javax.servlet.http.HttpServletRequest;
 
 import nxt.Account;
@@ -96,12 +96,14 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 		}
 		//this will write all interesting deadlines submitted to the wallet from miners to the console. 
 		//Should probably go via the logging system but i don't think it is accessible from here currently
+		
 		BigInteger deadline = generator.getDeadline();
-		if (deadline < 1000000)
-		    System.out.println("Block:"+(Nxt.getBlockchain().getLastBlock().getHeight() + 1)+" Nonce: "+String.format("%15s",nonce)+ " Deadline:" + String.format("%15s",deadline));
+		BigInteger maxToReport = BigInteger.valueOf(1000000);
+		if (maxToReport.compareTo( deadline) >0){
+		    System.out.println("Block:"+(Nxt.getBlockchain().getLastBlock().getHeight() + 1)+" Nonce: "+String.format("%15s",nonce)+ " Deadline:" + String.format("%15s",deadline));}
 		//response.put("result", "deadline: " + generator.getDeadline());
 		response.put("result", "success");
-		response.put("deadline", generator.getDeadline());
+		response.put("deadline", deadline);
 		
 		return response;
 	}
