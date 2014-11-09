@@ -2,6 +2,7 @@ package nxt.http;
 
 import java.nio.ByteBuffer;
 import java.math.BigInteger; //used to write deadline
+import nxt.util.Logger;//used to write deadline
 import javax.servlet.http.HttpServletRequest;
 
 import nxt.Account;
@@ -100,7 +101,8 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 		BigInteger deadline = generator.getDeadline();
 		BigInteger maxToReport = BigInteger.valueOf(1000000);
 		if (maxToReport.compareTo( deadline) >0){
-		    System.out.println("Block:"+(Nxt.getBlockchain().getLastBlock().getHeight() + 1)+" Nonce: "+String.format("%15s",nonce)+ " Deadline:" + String.format("%15s",deadline));}
+		    String log_msg = "Block:"+(Nxt.getBlockchain().getLastBlock().getHeight() + 1)+" Nonce: "+String.format("%15s",nonce)+ " Deadline:" + String.format("%15s",deadline);
+		    Logger.logMessage(log_msg);}
 		//response.put("result", "deadline: " + generator.getDeadline());
 		response.put("result", "success");
 		response.put("deadline", deadline);
