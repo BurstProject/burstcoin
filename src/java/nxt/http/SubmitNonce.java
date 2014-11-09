@@ -94,7 +94,11 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 			response.put("result", "failed to create generator");
 			return response;
 		}
-		
+		//this will write all interesting deadlines submitted to the wallet from miners to the console. 
+		//Should probably go via the logging system but i don't think it is accessible from here currently
+		BigInteger deadline = generator.getDeadline();
+		if (deadline < 1000000)
+		    System.out.println("Block:"+(Nxt.getBlockchain().getLastBlock().getHeight() + 1)+" Nonce: "+String.format("%15s",nonce)+ " Deadline:" + String.format("%15s",deadline));
 		//response.put("result", "deadline: " + generator.getDeadline());
 		response.put("result", "success");
 		response.put("deadline", generator.getDeadline());
