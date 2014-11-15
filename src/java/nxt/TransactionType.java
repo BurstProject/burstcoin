@@ -1,6 +1,12 @@
 package nxt;
 
+import nxt.Attachment.AbstractAttachment;
+import nxt.Attachment.AutomatedTransactionsCreation;
+import nxt.NxtException.NotValidException;
+import nxt.NxtException.ValidationException;
+import nxt.at.AT_Constants;
 import nxt.util.Convert;
+
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
@@ -18,6 +24,7 @@ public abstract class TransactionType {
     private static final byte TYPE_COLORED_COINS = 2;
     private static final byte TYPE_DIGITAL_GOODS = 3;
     private static final byte TYPE_ACCOUNT_CONTROL = 4;
+    private static final byte TYPE_AUTOMATED_TRANSACTIONS = 5;
     
     private static final byte TYPE_BURST_MINING = 20; // jump some for easier nxt updating
     private static final byte TYPE_ADVANCED_PAYMENT = 21;
@@ -48,6 +55,9 @@ public abstract class TransactionType {
     private static final byte SUBTYPE_DIGITAL_GOODS_DELIVERY = 5;
     private static final byte SUBTYPE_DIGITAL_GOODS_FEEDBACK = 6;
     private static final byte SUBTYPE_DIGITAL_GOODS_REFUND = 7;
+    
+    private static final byte SUBTYPE_AT_CREATION = 0;
+    private static final byte SUBTYPE_AT_NXT_PAYMENT = 1;
 
     private static final byte SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING = 0;
     
@@ -163,6 +173,15 @@ public abstract class TransactionType {
 	            		return AdvancedPayment.SUBSCRIPTION_CANCEL;
 	            	case SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT:
 	            		return AdvancedPayment.SUBSCRIPTION_PAYMENT;
+            		default:
+            			return null;
+            	}
+            case TYPE_AUTOMATED_TRANSACTIONS:
+            	switch (subtype) {
+            		case SUBTYPE_AT_CREATION:
+            			return AutomatedTransactions.AUTOMATED_TRANSACTION_CREATION;
+            		case SUBTYPE_AT_NXT_PAYMENT:
+            			return AutomatedTransactions.AT_PAYMENT;
             		default:
             			return null;
             	}
@@ -2129,6 +2148,136 @@ public abstract class TransactionType {
 			}
 		};
 	}
+	
+	  public static abstract class AutomatedTransactions extends TransactionType{
+	    	private AutomatedTransactions() {
+
+	    	}
+	    	
+	    	@Override
+	    	public final byte getType(){
+	    		return TransactionType.TYPE_AUTOMATED_TRANSACTIONS;
+	    	}
+	    	
+	    	@Override
+	    	boolean applyAttachmentUnconfirmed(Transaction transaction,Account senderAccount){
+	    		return true;
+	    	}
+	    	
+	    	@Override
+	    	void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount){
+	    		
+	    	}
+	    	
+	    	 @Override
+	         final void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+	             if (transaction.getAmountNQT() != 0) {
+	                 throw new NxtException.NotValidException("Invalid automated transaction transaction");
+	             }
+	             doValidateAttachment(transaction);
+	         }
+
+	         abstract void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException;
+
+	    	
+	    	public static final TransactionType AUTOMATED_TRANSACTION_CREATION = new AutomatedTransactions(){
+
+				@Override
+				public byte getSubtype() {
+					return TransactionType.SUBTYPE_AT_CREATION;
+				}
+
+				@Override
+				AbstractAttachment parseAttachment(ByteBuffer buffer,
+						byte transactionVersion) throws NotValidException {
+					// TODO Auto-generated method stub
+					System.out.println("parsing byte AT attachment");
+					AutomatedTransactionsCreation attachment = new Attachment.AutomatedTransactionsCreation(buffer,transactionVersion);
+					System.out.println("byte AT attachment parsed");
+					return attachment;
+				}
+
+				@Override
+				AbstractAttachment parseAttachment(JSONObject attachmentData)
+						throws NotValidException {
+					// TODO Auto-generated method stub
+					System.out.println("parsing at attachment");
+					Attachment.AutomatedTransactionsCreation atCreateAttachment = new Attachment.AutomatedTransactionsCreation(attachmentData);
+					System.out.println("attachment parsed");
+					return atCreateAttachment;
+				}
+
+				@Override
+				void doValidateAttachment(Transaction transaction)
+						throws ValidationException {
+					System.out.println("validating attachment");
+					if (Nxt.getBlockchain().getLastBlock().getHeight()< Constants.AUTOMATED_TRANSACTION_BLOCK){
+						throw new NxtException.NotYetEnabledException("Automated Transactions not yet enabled at height " + Nxt.getBlockchain().getLastBlock().getHeight());
+					}
+					Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
+					if (transaction.getFeeNQT() < attachment.getTotalPages() * AT_Constants.getInstance().COST_PER_PAGE( transaction.getHeight() ) ){
+						throw new NxtException.NotValidException("Invalid automated transaction program creation attachment: " + attachment.getJSONObject());
+					}
+					System.out.println("validating success");
+				}
+
+				@Override
+				void applyAttachment(Transaction transaction,
+						Account senderAccount, Account recipientAccount) {
+					// TODO Auto-generated method stub
+	                Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
+	                Long atId = transaction.getId();
+	                System.out.println("Applying AT attachent");
+	                AT.addAT( transaction.getId() , transaction.getSenderId() , attachment.getName() , attachment.getDescription() , attachment.getCreationBytes() , transaction.getHeight() ); 
+	                System.out.println("At with id "+atId+" successfully applied");
+				}
+
+
+				@Override
+				public boolean hasRecipient() {
+					// TODO Auto-generated method stub
+					return false;
+				}
+	    	};
+	    	
+	    	public static final TransactionType AT_PAYMENT = new AutomatedTransactions() {
+	    		@Override
+	            public final byte getSubtype() {
+	                return TransactionType.SUBTYPE_AT_NXT_PAYMENT;
+	            }
+
+	            @Override
+	            Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+	                return Attachment.AT_PAYMENT;
+	            }
+
+	            @Override
+	            Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+	                return Attachment.AT_PAYMENT;
+	            }
+
+	            @Override
+	            void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException {
+	                if (transaction.getAmountNQT() <= 0 || transaction.getAmountNQT() >= Constants.MAX_BALANCE_NQT) {
+	                    throw new NxtException.NotValidException("Invalid ordinary payment");
+	                }
+	            }
+
+				@Override
+				void applyAttachment(Transaction transaction,
+						Account senderAccount, Account recipientAccount) {
+					// TODO Auto-generated method stub
+					
+				}
+
+
+				@Override
+				public boolean hasRecipient() {
+					return true;
+				}
+	    	};
+	    	
+	    }
 	
 	public final static TransactionType SUBSCRIPTION_PAYMENT = new AdvancedPayment() {
 		

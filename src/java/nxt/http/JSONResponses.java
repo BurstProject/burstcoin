@@ -124,6 +124,16 @@ public final class JSONResponses {
     public static final JSONStreamAware MISSING_HEIGHT = missing("height");
     public static final JSONStreamAware INCORRECT_PLAIN_MESSAGE = incorrect("messageToEncrypt");
 
+    public static final JSONStreamAware INCORRECT_AUTOMATED_TRANSACTION_NAME_LENGTH = incorrect("description", "(length must not exceed " + Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH+ " characters)");
+    public static final JSONStreamAware INCORRECT_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH = incorrect("description", "(length must not exceed " + Constants.MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH + " characters)");
+    public static final JSONStreamAware INCORRECT_AUTOMATED_TRANSACTION_NAME = incorrect("name", "(must contain only digits and latin letters)");
+    public static final JSONStreamAware INCORRECT_AUTOMATED_TRANSACTION_DESCRIPTION = incorrect("description", "(length must not exceed " + Constants.MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH + " characters)");
+    public static final JSONStreamAware MISSING_AT = missing("at");
+    public static final JSONStreamAware UNKNOWN_AT = unknown("at");
+    public static final JSONStreamAware INCORRECT_AT = incorrect("at");
+    public static final JSONStreamAware INCORRECT_CREATION_BYTES = incorrect("incorrect creation bytes");
+    
+    
     public static final JSONStreamAware NOT_ENOUGH_FUNDS;
     static {
         JSONObject response = new JSONObject();
