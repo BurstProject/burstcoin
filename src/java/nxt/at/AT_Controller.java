@@ -264,7 +264,7 @@ public abstract class AT_Controller {
 
 						at.setP_balance( at.getG_balance() );
 						processedATs.add( at );
-						
+
 						ATsLastStates.put(  id , state );
 					}
 					catch ( Exception e )
@@ -303,7 +303,7 @@ public abstract class AT_Controller {
 		LinkedHashMap< byte[] , byte[] > ats = getATsFromBlock( blockATs );
 
 		HashMap< Long , byte[] > tempATStates = new HashMap< Long, byte[] >();
-		
+
 		List< AT > processedATs = new ArrayList< >();
 
 		boolean validated = true;
@@ -313,31 +313,31 @@ public abstract class AT_Controller {
 		for ( byte[] atId : ats.keySet() )
 		{
 			AT at = AT.getAT( atId );
-			
+
 			byte[] state = at.getState();
 			try
 			{
-			at.clearTransactions();
-			at.setWaitForNumberOfBlocks( 0 );
+				at.clearTransactions();
+				at.setWaitForNumberOfBlocks( 0 );
 
-			long atAccountBalance = getATAccountBalance( AT_API_Helper.getLong( atId ) );
+				long atAccountBalance = getATAccountBalance( AT_API_Helper.getLong( atId ) );
 
-			at.setG_balance( atAccountBalance );
+				at.setG_balance( atAccountBalance );
 
 
-			runSteps( at );
+				runSteps( at );
 
-			totalSteps += at.getMachineState().steps;
+				totalSteps += at.getMachineState().steps;
 
-			at.setP_balance( at.getG_balance() );
-			processedATs.add( at );
+				at.setP_balance( at.getG_balance() );
+				processedATs.add( at );
 
-			md5 = digest.digest( at.getBytes() );
-			if ( !Arrays.equals( md5 , ats.get( atId ) ) )
-			{
-				throw new AT_Exception( "Calculated md5 and recieved md5 are not matching" );
-			}
-			tempATStates.put( AT_API_Helper.getLong( atId )  , state );
+				md5 = digest.digest( at.getBytes() );
+				if ( !Arrays.equals( md5 , ats.get( atId ) ) )
+				{
+					throw new AT_Exception( "Calculated md5 and recieved md5 are not matching" );
+				}
+				tempATStates.put( AT_API_Helper.getLong( atId )  , state );
 			}
 			catch ( Exception e )
 			{
