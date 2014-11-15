@@ -8,6 +8,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ import nxt.util.Logger;
 
 public abstract class AT_Controller {
 
+	static HashMap< Long , byte[] > ATsLastStates = new HashMap< Long , byte[] >();
 
 	public static int runSteps( AT_Machine_State state )
 	{
@@ -110,10 +112,10 @@ public abstract class AT_Controller {
 		{
 			ByteBuffer b = ByteBuffer.allocate( creation.length );
 			b.order( ByteOrder.LITTLE_ENDIAN );
-			
+
 			b.put(  creation );
 			b.clear();
-			
+
 			AT_Constants instance = AT_Constants.getInstance();
 
 			short version = b.getShort();
@@ -192,13 +194,13 @@ public abstract class AT_Controller {
 			}
 			byte[] data = new byte[ dataLen ];
 			b.get( data , 0 , dataLen );
-			
+
 			totalPages = codePages + dataPages + userStackPages + callStackPages;
 			/*if ( ( codePages + dataPages + userStackPages + callStackPages ) * instance.COST_PER_PAGE( height ) < txFeeAmount )
 			{
 				return AT_Error.INCORRECT_CREATION_FEE.getCode();
 			}*/
-			
+
 			if ( b.position() != b.capacity() )
 			{
 				throw new AT_Exception( AT_Error.INCORRECT_CREATION_TX.getDescription() );
@@ -243,21 +245,32 @@ public abstract class AT_Controller {
 					continue;
 				}
 
-				at.setG_balance( atAccountBalance );
+
 
 				if ( blockHeight - height >= at.getWaitForNumberOfBlocks() &&
 						atAccountBalance >= AT_Constants.getInstance().STEP_FEE( height ) )
 				{
-					at.clearTransactions();
-					at.setWaitForNumberOfBlocks( 0 );
-					runSteps ( at );
+					byte[] state = at.getState();
+					try
+					{
+						at.setG_balance( atAccountBalance );
+						at.clearTransactions();
+						at.setWaitForNumberOfBlocks( 0 );
+						runSteps ( at );
 
-					totalSteps += at.getMachineState().steps;
+						totalSteps += at.getMachineState().steps;
 
-					payload += costOfOneAT;
-					
-					at.setP_balance( at.getG_balance() );
-					processedATs.add( at );
+						payload += costOfOneAT;
+
+						at.setP_balance( at.getG_balance() );
+						processedATs.add( at );
+						
+						ATsLastStates.put(  id , state );
+					}
+					catch ( Exception e )
+					{
+						at.setState( state ); //roll back to previous state
+					}
 				}
 			}
 		}
@@ -288,9 +301,11 @@ public abstract class AT_Controller {
 	public static AT_Block validateATs( byte[] blockATs , int blockHeight ) throws NoSuchAlgorithmException, AT_Exception {
 
 		LinkedHashMap< byte[] , byte[] > ats = getATsFromBlock( blockATs );
+
+		HashMap< Long , byte[] > tempATStates = new HashMap< Long, byte[] >();
 		
 		List< AT > processedATs = new ArrayList< >();
-		
+
 		boolean validated = true;
 		long totalSteps = 0;
 		MessageDigest digest = MessageDigest.getInstance( "MD5" );
@@ -298,31 +313,42 @@ public abstract class AT_Controller {
 		for ( byte[] atId : ats.keySet() )
 		{
 			AT at = AT.getAT( atId );
+			
+			byte[] state = at.getState();
+			try
+			{
 			at.clearTransactions();
 			at.setWaitForNumberOfBlocks( 0 );
-			
+
 			long atAccountBalance = getATAccountBalance( AT_API_Helper.getLong( atId ) );
-			
+
 			at.setG_balance( atAccountBalance );
-			
-			
+
+
 			runSteps( at );
-			
+
 			totalSteps += at.getMachineState().steps;
-			
+
 			at.setP_balance( at.getG_balance() );
 			processedATs.add( at );
-			
+
 			md5 = digest.digest( at.getBytes() );
 			if ( !Arrays.equals( md5 , ats.get( atId ) ) )
 			{
 				throw new AT_Exception( "Calculated md5 and recieved md5 are not matching" );
 			}
+			tempATStates.put( AT_API_Helper.getLong( atId )  , state );
+			}
+			catch ( Exception e )
+			{
+				throw new AT_Exception( "ATs error. Block rejected" );
+			}
 		}
-		
+
 		long totalAmount = 0;
 		for ( AT at : processedATs )
 		{
+			ATsLastStates.put( AT_API_Helper.getLong( at.getId() )  , tempATStates.get(AT_API_Helper.getLong( at.getId() ) ) );
 			totalAmount = makeTransactions( at );
 		}
 		AT_Block atBlock = new AT_Block( totalSteps * AT_Constants.getInstance().STEP_FEE( blockHeight ) , totalAmount , new byte[ 1 ] , validated );
@@ -339,7 +365,7 @@ public abstract class AT_Controller {
 				throw new AT_Exception("blockATs must be a multiple of cost of one AT ( " + getCostOfOneAT() +" )" );
 			}
 		}
-		
+
 		ByteBuffer b = ByteBuffer.wrap( blockATs );
 		b.order( ByteOrder.LITTLE_ENDIAN );
 
@@ -354,12 +380,12 @@ public abstract class AT_Controller {
 			b.get( md5 , 0 , md5.length );
 			ats.put( temp , md5 ); 
 		}
-		
+
 		if ( b.position() != b.capacity() )
 		{
 			throw new AT_Exception("bytebuffer not matching");
 		}
-		
+
 		return ats;
 	}
 
@@ -382,7 +408,7 @@ public abstract class AT_Controller {
 	private static int getCostOfOneAT() {
 		return AT_Constants.AT_ID_SIZE + 16;
 	}
-	
+
 	//platform based implementations
 	//platform based 
 	private static long makeTransactions( AT at ) {
@@ -391,81 +417,15 @@ public abstract class AT_Controller {
 		{
 			totalAmount += tx.getAmount();
 			Logger.logInfoMessage("Transaction to " + Convert.toUnsignedLong(AT_API_Helper.getLong(tx.getRecipientId())) + " amount " + tx.getAmount() );
-			
+
 		}
 		return totalAmount;
 	}
-	
-	/*private static void saveTransaction(Connection con, TransactionImpl transaction)
-	{
-		 try {
-	                try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO transaction (id, deadline, sender_public_key, "
-	                        + "recipient_id, amount, fee, referenced_transaction_full_hash, height, "
-	                        + "block_id, signature, timestamp, type, subtype, sender_id, attachment_bytes, "
-	                        + "block_timestamp, full_hash, version, has_message, has_encrypted_message, has_public_key_announcement, "
-	                        + "has_encrypttoself_message, ec_block_height, ec_block_id) "
-	                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-	                    int i = 0;
-	                    pstmt.setLong(++i, transaction.getId());
-	                    pstmt.setShort(++i, transaction.getDeadline());
-	                    pstmt.setBytes(++i, transaction.getSenderPublicKey());
-	                    if (transaction.getType().hasRecipient() && transaction.getRecipientId() != null) {
-	                        pstmt.setLong(++i, transaction.getRecipientId());
-	                    } else {
-	                        pstmt.setNull(++i, Types.BIGINT);
-	                    }
-	                    pstmt.setLong(++i, transaction.getAmountNQT());
-	                    pstmt.setLong(++i, transaction.getFeeNQT());
-	                    if (transaction.getReferencedTransactionFullHash() != null) {
-	                        pstmt.setBytes(++i, Convert.parseHexString(transaction.getReferencedTransactionFullHash()));
-	                    } else {
-	                        pstmt.setNull(++i, Types.BINARY);
-	                    }
-	                    pstmt.setInt(++i, transaction.getHeight());
-	                    pstmt.setLong(++i, transaction.getBlockId());
-	                    pstmt.setBytes(++i, transaction.getSignature());
-	                    pstmt.setInt(++i, transaction.getTimestamp());
-	                    pstmt.setByte(++i, transaction.getType().getType());
-	                    pstmt.setByte(++i, transaction.getType().getSubtype());
-	                    pstmt.setLong(++i, transaction.getSenderId());
-	                    int bytesLength = 0;
-	                    for (Appendix appendage : transaction.getAppendages()) {
-	                        bytesLength += appendage.getSize();
-	                    }
-	                    if (bytesLength == 0) {
-	                        pstmt.setNull(++i, Types.VARBINARY);
-	                    } else {
-	                        ByteBuffer buffer = ByteBuffer.allocate(bytesLength);
-	                        buffer.order(ByteOrder.LITTLE_ENDIAN);
-	                        for (Appendix appendage : transaction.getAppendages()) {
-	                            appendage.putBytes(buffer);
-	                        }
-	                        pstmt.setBytes(++i, buffer.array());
-	                    }
-	                    pstmt.setInt(++i, transaction.getBlockTimestamp());
-	                    pstmt.setBytes(++i, Convert.parseHexString(transaction.getFullHash()));
-	                    pstmt.setByte(++i, transaction.getVersion());
-	                    pstmt.setBoolean(++i, transaction.getMessage() != null);
-	                    pstmt.setBoolean(++i, transaction.getEncryptedMessage() != null);
-	                    pstmt.setBoolean( ++i, false );
-	                    pstmt.setBoolean(++i, transaction.getEncryptToSelfMessage() != null);
-	                    pstmt.setInt(++i, transaction.getECBlockHeight());
-	                    if (transaction.getECBlockId() != null) {
-	                        pstmt.setLong(++i, transaction.getECBlockId());
-	                    } else {
-	                        pstmt.setNull(++i, Types.BIGINT);
-	                    }
-	                    pstmt.executeUpdate();
-	                }
-	        } catch (SQLException e) {
-	            throw new RuntimeException(e.toString(), e);
-	        }
-	}*/
-	
-	
+
+
 
 	//platform based
-	
+
 
 	//platform based
 	private static long getATAccountBalance( Long id ) {

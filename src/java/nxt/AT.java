@@ -217,6 +217,14 @@ public final class AT extends AT_Machine_State implements Cloneable  {
 		this.previousBlock = 0;
 
 	}
+	
+	public AT( String name , String description , byte[] stateBytes )
+	{
+		super( stateBytes );
+		this.name = name;
+		this.description = description;
+		
+	}
 
 	public String getName() {
 		return name;
