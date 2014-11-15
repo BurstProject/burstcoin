@@ -4,6 +4,7 @@ import nxt.crypto.Crypto;
 import nxt.util.Convert;
 import nxt.util.Logger;
 import nxt.util.MiningPlot;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -44,9 +45,10 @@ final class BlockImpl implements Block {
     private volatile long generatorId;
     private long nonce;
 
+    private final byte[] blockATs;
 
     BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
-              byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions, long nonce)
+              byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions, long nonce, byte[] blockATs)
             throws NxtException.ValidationException {
 
         if (payloadLength > Constants.MAX_PAYLOAD_LENGTH || payloadLength < 0) {
@@ -79,14 +81,15 @@ final class BlockImpl implements Block {
         	}
         }
         this.nonce = nonce;
+        this.blockATs = blockATs;
     }
 
     BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
               byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature,
-              byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long nextBlockId, int height, Long id, long nonce)
+              byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long nextBlockId, int height, Long id, long nonce , byte[] blockATs)
             throws NxtException.ValidationException {
         this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
-                generatorPublicKey, generationSignature, blockSignature, previousBlockHash, null, nonce);
+                generatorPublicKey, generationSignature, blockSignature, previousBlockHash, null, nonce , blockATs);
         this.cumulativeDifficulty = cumulativeDifficulty;
         this.baseTarget = baseTarget;
         this.nextBlockId = nextBlockId;
@@ -265,6 +268,7 @@ final class BlockImpl implements Block {
         }
         json.put("transactions", transactionsData);
         json.put("nonce", Convert.toUnsignedLong(nonce));
+        json.put("blockATs", Convert.toHexString( blockATs ));
         return json;
     }
 
@@ -291,8 +295,9 @@ final class BlockImpl implements Block {
                     throw new NxtException.NotValidException("Block contains duplicate transactions: " + transaction.getStringId());
                 }
             }
+            byte[] blockATs = Convert.parseHexString( (String) blockData.get("blockATs") );
             return new BlockImpl(version, timestamp, previousBlock, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash, generatorPublicKey,
-                    generationSignature, blockSignature, previousBlockHash, new ArrayList<>(blockTransactions.values()), nonce);
+                    generationSignature, blockSignature, previousBlockHash, new ArrayList<>(blockTransactions.values()), nonce , blockATs);
     	} catch (NxtException.ValidationException|RuntimeException e) {
     		Logger.logDebugMessage("Failed to parse block: " + blockData.toJSONString());
     		throw e;
@@ -321,6 +326,7 @@ final class BlockImpl implements Block {
             buffer.put(previousBlockHash);
         }
         buffer.putLong(nonce);
+        buffer.put(blockATs);
         buffer.put(blockSignature);
         return buffer.array();
     }
@@ -575,5 +581,10 @@ final class BlockImpl implements Block {
             cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
         }
     }
+    
+    @Override
+	public byte[] getBlockATs() {
+		return blockATs;
+	}
 
 }
