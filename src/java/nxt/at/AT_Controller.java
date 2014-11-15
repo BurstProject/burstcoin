@@ -23,7 +23,7 @@ import nxt.util.Logger;
 
 public abstract class AT_Controller {
 
-	static HashMap< Long , byte[] > ATsLastStates = new HashMap< Long , byte[] >();
+	private static HashMap< Long , byte[] > ATsLastStates = new HashMap< Long , byte[] >();
 
 	public static int runSteps( AT_Machine_State state )
 	{
@@ -423,6 +423,10 @@ public abstract class AT_Controller {
 	}
 
 
+	public static HashMap< Long , byte[] > getATsLastStates()
+	{
+		return ATsLastStates;
+	}
 
 	//platform based
 

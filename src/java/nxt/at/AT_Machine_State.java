@@ -546,5 +546,24 @@ public class AT_Machine_State
 	protected int getStateSize() {
 		return ( this.machineState.getSize() + 8 + 8 + 4 + ap_data.capacity() ) ;
 	}
+	
+	//these bytes are digested with MD5
+	public byte[] getBytes()
+	{
+		byte[] txBytes = getTransactionBytes();
+		byte[] stateBytes = machineState.getMachineStateBytes();
+		byte[] dataBytes = ap_data.array();
+
+		ByteBuffer b = ByteBuffer.allocate( atID.length + txBytes.length + stateBytes.length + dataBytes.length );
+		b.order( ByteOrder.LITTLE_ENDIAN );
+
+		b.put( atID );
+		b.put( stateBytes );
+		b.put( dataBytes );
+		b.put( txBytes );
+
+		return b.array();
+
+	}
 
 }
