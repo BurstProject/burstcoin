@@ -23,7 +23,6 @@ import nxt.util.Logger;
 
 public abstract class AT_Controller {
 
-	private static HashMap< Long , byte[] > ATsLastStates = new HashMap< Long , byte[] >();
 
 	public static int runSteps( AT_Machine_State state )
 	{
@@ -250,7 +249,6 @@ public abstract class AT_Controller {
 				if ( blockHeight - height >= at.getWaitForNumberOfBlocks() &&
 						atAccountBalance >= AT_Constants.getInstance().STEP_FEE( height ) )
 				{
-					byte[] state = at.getState();
 					try
 					{
 						at.setG_balance( atAccountBalance );
@@ -265,11 +263,11 @@ public abstract class AT_Controller {
 						at.setP_balance( at.getG_balance() );
 						processedATs.add( at );
 
-						ATsLastStates.put(  id , state );
+						at.saveState();
 					}
 					catch ( Exception e )
 					{
-						at.setState( state ); //roll back to previous state
+						
 					}
 				}
 			}
@@ -302,8 +300,6 @@ public abstract class AT_Controller {
 
 		LinkedHashMap< byte[] , byte[] > ats = getATsFromBlock( blockATs );
 
-		HashMap< Long , byte[] > tempATStates = new HashMap< Long, byte[] >();
-
 		List< AT > processedATs = new ArrayList< >();
 
 		boolean validated = true;
@@ -314,7 +310,6 @@ public abstract class AT_Controller {
 		{
 			AT at = AT.getAT( atId );
 
-			byte[] state = at.getState();
 			try
 			{
 				at.clearTransactions();
@@ -337,7 +332,6 @@ public abstract class AT_Controller {
 				{
 					throw new AT_Exception( "Calculated md5 and recieved md5 are not matching" );
 				}
-				tempATStates.put( AT_API_Helper.getLong( atId )  , state );
 			}
 			catch ( Exception e )
 			{
@@ -348,7 +342,7 @@ public abstract class AT_Controller {
 		long totalAmount = 0;
 		for ( AT at : processedATs )
 		{
-			ATsLastStates.put( AT_API_Helper.getLong( at.getId() )  , tempATStates.get(AT_API_Helper.getLong( at.getId() ) ) );
+			at.saveState();
 			totalAmount = makeTransactions( at );
 		}
 		AT_Block atBlock = new AT_Block( totalSteps * AT_Constants.getInstance().STEP_FEE( blockHeight ) , totalAmount , new byte[ 1 ] , validated );
@@ -422,11 +416,6 @@ public abstract class AT_Controller {
 		return totalAmount;
 	}
 
-
-	public static HashMap< Long , byte[] > getATsLastStates()
-	{
-		return ATsLastStates;
-	}
 
 	//platform based
 

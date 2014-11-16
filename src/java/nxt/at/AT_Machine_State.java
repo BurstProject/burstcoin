@@ -162,30 +162,23 @@ public class AT_Machine_State
 
 	private LinkedList<AT_Transaction> transactions;
 	
-	public AT_Machine_State ( 	byte[] atId , byte[] creator , short version , long g_balance , long p_balance , 
+	public AT_Machine_State ( 	byte[] atId , byte[] creator , short version ,
 								byte[] stateBytes, int csize , int dsize , int c_user_stack_bytes , int c_call_stack_bytes ,
-								long minimumFee , int creationBlockHeight , int waitForNumberOfBlocks , 
-								boolean freezeWhenSameBalance , byte[] apData , byte[] apCode )
+								long minimumFee , int creationBlockHeight , 
+								boolean freezeWhenSameBalance , byte[] apCode )
 	{
 		this.atID = atId;
 		this.creator = creator;
 		this.version = version;
-		this.g_balance = g_balance;
-		this.p_balance = p_balance;
 		this.machineState = new Machine_State();
-		machineState.setMachineState( stateBytes );
+		this.setState( stateBytes );
 		this.csize = csize;
 		this.dsize = dsize;
 		this.c_user_stack_bytes = c_user_stack_bytes;
 		this.c_call_stack_bytes = c_call_stack_bytes;
 		this.minimumFee = minimumFee;
 		this.creationBlockHeight = creationBlockHeight;
-		this.waitForNumberOfBlocks = waitForNumberOfBlocks;
 		this.freezeWhenSameBalance = freezeWhenSameBalance;
-		
-		this.ap_data = ByteBuffer.allocate( apData.length );
-		ap_data.order( ByteOrder.LITTLE_ENDIAN );
-		ap_data.put( apData );
 		
 		this.ap_code = ByteBuffer.allocate( apCode.length );
 		ap_code.order( ByteOrder.LITTLE_ENDIAN );
@@ -539,7 +532,11 @@ public class AT_Machine_State
 		p_balance = b.getLong();
 		waitForNumberOfBlocks = b.getInt();
 		
-		b.get( ap_data.array() );
+		byte[] apData = new byte[ b.capacity() - b.position() ];
+		b.get( apData );
+		ap_data = ByteBuffer.allocate( apData.length );
+		ap_data.order( ByteOrder.LITTLE_ENDIAN );
+		ap_data.put( apData );
 		
 	}
 	
