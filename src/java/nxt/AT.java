@@ -100,9 +100,10 @@ public final class AT extends AT_Machine_State {
 		private final long atId;
 		private final DbKey dbKey;
 		private byte[] state;
+		private int prevHeight
 		private int nextHeight;
 
-		private ATState(long atId, byte[] state, int nextHeight) {
+		private ATState(long atId, byte[] state , int prevHeight , int nextHeight) {
 			this.atId = atId;
 			this.dbKey = atStateDbKeyFactory.newKey(this.atId);
 			this.state = state;
@@ -118,10 +119,11 @@ public final class AT extends AT_Machine_State {
 
 		private void save(Connection con) throws SQLException {
 			try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO at_state (at_id, "
-					+ "state, next_height, height, latest) KEY (at_id) VALUES (?, ?, ?, ?, TRUE)")) {
+					+ "state, prevHeight ,next_height, height, latest) KEY (at_id) VALUES (?, ?, ?, ?, ?, TRUE)")) {
 				int i = 0;
 				pstmt.setLong(++i, atId);
 				DbUtils.setBytes(pstmt, ++i, state);
+				pstmt.setInt( ++i , prevHeight);
 				pstmt.setInt(++i, nextHeight);
 				pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
 				pstmt.executeUpdate();
@@ -135,6 +137,10 @@ public final class AT extends AT_Machine_State {
 		public byte[] getState() {
 			return state;
 		}
+		
+		public int getPrevHeight() {
+			return prevHeight;
+		}
 
 		public int getNextHeight() {
 			return nextHeight;
@@ -143,7 +149,11 @@ public final class AT extends AT_Machine_State {
 		public void setState(byte[] newState) {
 			state = newState;
 		}
-
+		
+		public void setPrevHeight(int prevHeight){
+			this.prevHeight = prevHeight; 
+		}
+		
 		public void setNextHeight(int newNextHeight) {
 			nextHeight = newNextHeight;
 		}
@@ -168,11 +178,11 @@ public final class AT extends AT_Machine_State {
 		}
 		@Override
 		protected String defaultSort() {
-			return " ORDER BY height, at_id ";
+			return " ORDER BY prevHeight, height, at_id ";
 		}
 	};
 
-
+	
 	public static Collection<AT> getAllATs() 
 	{
 		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT atId FROM at " ) )
@@ -183,11 +193,6 @@ public final class AT extends AT_Machine_State {
 		catch (SQLException e) {
 			throw new RuntimeException(e.toString(), e);
 		}
-	}
-
-	protected int getPreviousBlock() 
-	{
-		return this.previousBlock;
 	}
 
 	public static AT getAT(byte[] id) 
@@ -217,7 +222,10 @@ public final class AT extends AT_Machine_State {
 	}
 
 	public static List<AT> getATsIssuedBy(Long accountId) {
-		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT atId FROM at WHERE creator = " + accountId ) )
+		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT a.id , a.creator , a.name , a.description , a.version , "
+				+ "s.stateBytes , a.csize , a.dsize , a.c_user_stack_bytes , a.c_call_stack_bytes , "
+				+ "a.minimumFee , a.creationBlockHeight , a.freezeWhenSameBalance , "
+				+ "a.ap_code , latest, FROM at a, at_state s WHERE a.id = ? and s.at_id = ? and s.latest = TRUE and creator = " + accountId ) )
 		{
 			ResultSet result = pstmt.executeQuery();
 			return createATs( result );
@@ -247,7 +255,7 @@ public final class AT extends AT_Machine_State {
 
 		AT_Controller.resetMachine(at);
 
-		saveAT( at );
+		at.saveAT( );
 		
 		at.saveState();
 
@@ -258,10 +266,11 @@ public final class AT extends AT_Machine_State {
 		int nextHeight = Nxt.getBlockchain().getHeight() + getWaitForNumberOfBlocks();
 		if(state != null) {
 			state.setState(getState());
+			state.setPrevHeight( Nxt.getBlockchain().getHeight() );
 			state.setNextHeight(nextHeight);
 		}
 		else {
-			state = new ATState( AT_API_Helper.getLong( this.getId() ) , getState(), nextHeight);
+			state = new ATState( AT_API_Helper.getLong( this.getId() ) , getState(), Nxt.getBlockchain().getHeight(), nextHeight);
 		}
 		atStateTable.insert(state);
 	}
@@ -296,29 +305,29 @@ public final class AT extends AT_Machine_State {
 		return ats;
 	}
 
-	private static void saveAT( AT at )
+	private void saveAT( )
 	{
 		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "INSERT INTO at " 
 				+ "(id , creator , name , description , version , "
 				+ "csize , dsize , c_user_stack_bytes , c_call_stack_bytes , "
 				+ "minimumFee , creationBlockHeight , freezeWhenSameBalance , "
-				+ "ap_code , latest) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)" ) )
+				+ "ap_code , height ,latest) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)" ) )
 				{
 			int i = 0;
-			pstmt.setLong( ++i , AT_API_Helper.getLong( at.getId() ) );
-			pstmt.setLong( ++i, AT_API_Helper.getLong( at.getCreator() ) );
-			DbUtils.setString( pstmt , ++i , at.getName() );
-			DbUtils.setString( pstmt , ++i , at.getDescription() );
-			pstmt.setShort( ++i , at.getVersion() );
-			DbUtils.setBytes( pstmt , ++i ,  at.getState() );
-			pstmt.setInt( ++i , at.getCsize() );
-			pstmt.setInt( ++i , at.getDsize() );
-			pstmt.setInt( ++i , at.getC_user_stack_bytes() );
-			pstmt.setInt( ++i , at.getC_call_stack_bytes() );
-			pstmt.setLong( ++i , at.getMinimumFee() );
-			pstmt.setInt( ++i, at.getCreationBlockHeight() );
-			pstmt.setBoolean( ++i , at.freezeOnSameBalance() );
-			DbUtils.setBytes( pstmt , ++i , at.getApCode() );
+			pstmt.setLong( ++i , AT_API_Helper.getLong( this.getId() ) );
+			pstmt.setLong( ++i, AT_API_Helper.getLong( this.getCreator() ) );
+			DbUtils.setString( pstmt , ++i , this.getName() );
+			DbUtils.setString( pstmt , ++i , this.getDescription() );
+			pstmt.setShort( ++i , this.getVersion() );
+			pstmt.setInt( ++i , this.getCsize() );
+			pstmt.setInt( ++i , this.getDsize() );
+			pstmt.setInt( ++i , this.getC_user_stack_bytes() );
+			pstmt.setInt( ++i , this.getC_call_stack_bytes() );
+			pstmt.setLong( ++i , this.getMinimumFee() );
+			pstmt.setInt( ++i, this.getCreationBlockHeight() );
+			pstmt.setBoolean( ++i , this.freezeOnSameBalance() );
+			DbUtils.setBytes( pstmt , ++i , this.getApCode() );
+			pstmt.setInt( ++i , Nxt.getBlockchain().getHeight() );
 
 			pstmt.executeUpdate();
 				}
