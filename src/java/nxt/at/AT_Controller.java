@@ -216,9 +216,8 @@ public abstract class AT_Controller {
 
 	public static AT_Block getCurrentBlockATs( int freePayload , int blockHeight ){
 
-		ConcurrentSkipListMap< Integer , List< Long > > orderedATs = AT.getOrderedATs();
-		NavigableSet< Integer > heightSet = orderedATs.keySet();
-		Iterator< Integer > keys = heightSet.iterator();
+		List< Long > orderedATs = AT.getOrderedATs();
+		Iterator< Long > keys = orderedATs.iterator();
 
 		List< AT > processedATs = new ArrayList< >();
 
@@ -227,13 +226,7 @@ public abstract class AT_Controller {
 		long totalSteps = 0;
 		while ( payload < freePayload - costOfOneAT && keys.hasNext() )
 		{
-			int height = keys.next();
-			List< Long > ats = orderedATs.get( height );
-
-			Iterator< Long > ids = ats.iterator();
-			while ( payload < freePayload - costOfOneAT && ids.hasNext() )
-			{
-				Long id = ids.next();
+				Long id = keys.next();
 				AT at = AT.getAT( id );
 
 				long atAccountBalance = getATAccountBalance( id );
@@ -246,14 +239,13 @@ public abstract class AT_Controller {
 
 
 
-				if ( blockHeight - height >= at.getWaitForNumberOfBlocks() &&
-						atAccountBalance >= AT_Constants.getInstance().STEP_FEE( height ) )
+				if ( atAccountBalance >= AT_Constants.getInstance().STEP_FEE( blockHeight ) )
 				{
 					try
 					{
 						at.setG_balance( atAccountBalance );
 						at.clearTransactions();
-						at.setWaitForNumberOfBlocks( 0 );
+						at.setWaitForNumberOfBlocks( at.getSleepBetween() );
 						runSteps ( at );
 
 						totalSteps += at.getMachineState().steps;
@@ -270,7 +262,6 @@ public abstract class AT_Controller {
 						
 					}
 				}
-			}
 		}
 
 		long totalAmount = 0;

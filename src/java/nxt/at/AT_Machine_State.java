@@ -152,6 +152,8 @@ public class AT_Machine_State
 	private int creationBlockHeight;
 
 	private int waitForNumberOfBlocks;
+	
+	private int sleepBetween;
 
 	private boolean freezeWhenSameBalance;
 
@@ -164,7 +166,7 @@ public class AT_Machine_State
 	
 	public AT_Machine_State ( 	byte[] atId , byte[] creator , short version ,
 								byte[] stateBytes, int csize , int dsize , int c_user_stack_bytes , int c_call_stack_bytes ,
-								long minimumFee , int creationBlockHeight , 
+								long minimumFee , int creationBlockHeight , int sleepBetween , 
 								boolean freezeWhenSameBalance , byte[] apCode )
 	{
 		this.atID = atId;
@@ -178,6 +180,7 @@ public class AT_Machine_State
 		this.c_call_stack_bytes = c_call_stack_bytes;
 		this.minimumFee = minimumFee;
 		this.creationBlockHeight = creationBlockHeight;
+		this.sleepBetween = sleepBetween;
 		this.freezeWhenSameBalance = freezeWhenSameBalance;
 		
 		this.ap_code = ByteBuffer.allocate( apCode.length );
@@ -263,6 +266,7 @@ public class AT_Machine_State
 				callStackPages +
 				userStackPages ) * AT_Constants.getInstance().COST_PER_PAGE( height );
 		this.waitForNumberOfBlocks = 0;
+		this.sleepBetween = 0;
 		this.freezeWhenSameBalance = false;
 		this.transactions = new LinkedList<>();
 		this.g_balance = 0;
@@ -484,6 +488,10 @@ public class AT_Machine_State
 		return version;
 	}
 
+	public int getSleepBetween()
+	{
+		return sleepBetween;
+	}
 	
 	public byte[] getTransactionBytes( )
 	{
