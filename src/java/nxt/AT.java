@@ -80,13 +80,7 @@ public final class AT extends AT_Machine_State {
 			private void makeTransactions( AT at, Block block )
 			{
 				try (Connection con = Db.getConnection()) {
-					try {
-						TransactionDb.saveTransactions(con , at , block );
-						con.commit();
-					} catch (SQLException e) {
-						con.rollback();
-						throw e;
-					}
+					TransactionDb.saveTransactions(con , at , block );
 				} catch (SQLException e) {
 					throw new RuntimeException(e.toString(), e);
 				}
@@ -111,7 +105,7 @@ public final class AT extends AT_Machine_State {
 		}
 
 		private ATState(ResultSet rs) throws SQLException {
-			this.atId = rs.getLong("id");
+			this.atId = rs.getLong("at_id");
 			this.dbKey = atStateDbKeyFactory.newKey(this.atId);
 			this.state = rs.getBytes("state");
 			this.prevHeight = rs.getInt("prev_height");
@@ -160,6 +154,28 @@ public final class AT extends AT_Machine_State {
 		}
 	}
 
+	private static final DbKey.LongKeyFactory<AT> atDbKeyFactory = new DbKey.LongKeyFactory<AT>("id") {
+		@Override
+		public DbKey newKey(AT at) {
+			return at.dbKey;
+		}
+	};
+	
+	private static final VersionedEntityDbTable<AT> atTable = new VersionedEntityDbTable<AT>("at", atDbKeyFactory) {
+		@Override
+		protected AT load(Connection con, ResultSet rs) throws SQLException {
+			//return new AT(rs);
+			throw new RuntimeException("AT attempted to be created with atTable.load");
+		}
+		@Override
+		protected void save(Connection con, AT at) throws SQLException {
+			at.saveAT();
+		}
+		@Override
+		protected String defaultSort() {
+			return " ORDER BY id ";
+		}
+	};
 
 	private static final DbKey.LongKeyFactory<ATState> atStateDbKeyFactory = new DbKey.LongKeyFactory<AT.ATState>("at_id") {
 		@Override
@@ -186,7 +202,7 @@ public final class AT extends AT_Machine_State {
 	
 	public static Collection<AT> getAllATs() 
 	{
-		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT atId FROM at " ) )
+		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT atId FROM at WHERE latest = TRUE" ) )
 		{
 			ResultSet result = pstmt.executeQuery();
 			return createATs( result );
@@ -202,10 +218,10 @@ public final class AT extends AT_Machine_State {
 	}
 
 	public static AT getAT(Long id) {
-		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT a.id , a.creator , a.name , a.description , a.version , "
-				+ "s.stateBytes , a.csize , a.dsize , a.c_user_stack_bytes , a.c_call_stack_bytes , "
-				+ "a.minimumFee , a.creationBlockHeight , a.sleepBetween , a.freezeWhenSameBalance , "
-				+ "a.ap_code , latest, FROM at a, at_state s WHERE a.id = ? and s.at_id = ? and s.latest = TRUE" ) )
+		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT a.id , a.creator_id , a.name , a.description , a.version , "
+				+ "s.state , a.csize , a.dsize , a.c_user_stack_bytes , a.c_call_stack_bytes , "
+				+ "a.minimum_fee , a.creation_height , a.sleep_between , a.freeze_when_same_balance , "
+				+ "a.ap_code, s.prev_height, s.next_height FROM at a, at_state s WHERE a.id = ? AND a.latest = TRUE AND s.at_id = ? AND s.latest = TRUE" ) )
 		{
 			int i = 0;
 			pstmt.setLong( ++i ,  id );
@@ -225,9 +241,10 @@ public final class AT extends AT_Machine_State {
 	public static List<AT> getATsIssuedBy(Long accountId) {
 		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT a.id , a.creator , a.name , a.description , a.version , "
 				+ "s.stateBytes , a.csize , a.dsize , a.c_user_stack_bytes , a.c_call_stack_bytes , "
-				+ "a.minimumFee , a.creationBlockHeight , a.sleepBetween , a.freezeWhenSameBalance , "
-				+ "a.ap_code , latest, FROM at a, at_state s WHERE a.id = ? and s.at_id = ? and s.latest = TRUE and creator = " + accountId ) )
+				+ "a.minimum_fee , a.creation_height , a.sleep_between , a.freeze_when_same_balance , "
+				+ "a.ap_code, s.prev_height, s.next_height FROM at a, at_state s WHERE a.id = s.at_id AND a.latest = true AND s.latest = TRUE and creator = ?") )
 		{
+			pstmt.setLong(1, accountId);
 			ResultSet result = pstmt.executeQuery();
 			return createATs( result );
 		}
@@ -297,10 +314,12 @@ public final class AT extends AT_Machine_State {
 			int sleepBetween = rs.getInt( ++i );
 			boolean freezeWhenSameBalance = rs.getBoolean( ++i );
 			byte[] ap_code = rs.getBytes( ++i );
+			int prevHeight = rs.getInt(++i);
+			int nextHeight =rs.getInt(++i);
 
 			AT at = new AT( AT_API_Helper.getByteArray( atId ) , AT_API_Helper.getByteArray( creator ) , name , description , version ,
 					stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes , minimumFee , creationBlockHeight , sleepBetween , 
-					freezeWhenSameBalance , ap_code );
+					freezeWhenSameBalance , ap_code, prevHeight, nextHeight );
 			ats.add( at );
 
 		}
@@ -310,10 +329,10 @@ public final class AT extends AT_Machine_State {
 	private void saveAT( )
 	{
 		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "INSERT INTO at " 
-				+ "(id , creator , name , description , version , "
+				+ "(id , creator_id , name , description , version , "
 				+ "csize , dsize , c_user_stack_bytes , c_call_stack_bytes , "
-				+ "minimumFee , creationBlockHeight , freezeWhenSameBalance , "
-				+ "ap_code , height ,latest) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)" ) )
+				+ "minimum_fee , creation_height , sleep_between, freeze_when_same_balance , "
+				+ "ap_code , height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" ) )
 				{
 			int i = 0;
 			pstmt.setLong( ++i , AT_API_Helper.getLong( this.getId() ) );
@@ -327,6 +346,7 @@ public final class AT extends AT_Machine_State {
 			pstmt.setInt( ++i , this.getC_call_stack_bytes() );
 			pstmt.setLong( ++i , this.getMinimumFee() );
 			pstmt.setInt( ++i, this.getCreationBlockHeight() );
+			pstmt.setInt(++i, this.getSleepBetween());
 			pstmt.setBoolean( ++i , this.freezeOnSameBalance() );
 			DbUtils.setBytes( pstmt , ++i , this.getApCode() );
 			pstmt.setInt( ++i , Nxt.getBlockchain().getHeight() );
@@ -341,18 +361,19 @@ public final class AT extends AT_Machine_State {
 
 	private static void deleteAT( AT at )
 	{
-		deleteAT( AT_API_Helper.getLong( at.getId() ));
+		ATState atState = atStateTable.get(atStateDbKeyFactory.newKey(AT_API_Helper.getLong(at.getId())));
+		if(atState != null) {
+			atStateTable.delete(atState);
+		}
+		atTable.delete(at);
 		
 	}
 
 	private static void deleteAT( Long id )
 	{
-		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "DELETE FROM at where atId = " + id  ) )
-		{
-			pstmt.executeUpdate();
-		}
-		catch (SQLException e) {
-			throw new RuntimeException(e.toString(), e);
+		AT at = atTable.get(atDbKeyFactory.newKey(id));
+		if(at != null) {
+			deleteAT(at);
 		}
 		
 	}
@@ -361,11 +382,11 @@ public final class AT extends AT_Machine_State {
 		List< Long > orderedATs = new ArrayList<>();
 		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT at_id from at_state WHERE next_height <= ? ORDER BY prev_height, next_height asc" ) )
 		{
-			pstmt.setInt( 0 ,  Nxt.getBlockchain().getHeight() );
+			pstmt.setInt( 1 ,  Nxt.getBlockchain().getHeight() );
 			ResultSet result = pstmt.executeQuery();
 			while ( result.next() )
 			{
-				Long id = result.getLong( 0 );
+				Long id = result.getLong( 1 );
 				orderedATs.add( id );
 			}
 		}
@@ -377,8 +398,9 @@ public final class AT extends AT_Machine_State {
 
 
 	static boolean isATAccountId(Long id) {
-		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT id FROM at WHERE id = " + id ) )
+		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT id FROM at WHERE id = ? AND latest = TRUE" ) )
 		{
+			pstmt.setLong(1, id);
 			ResultSet result = pstmt.executeQuery();
 			return result.next();
 		}
@@ -390,6 +412,7 @@ public final class AT extends AT_Machine_State {
 	private final String name;    
 	private final String description;
 	private int previousBlock;
+	private final DbKey dbKey;
 
 
 	private AT( byte[] atId , byte[] creator , String name , String description , byte[] creationBytes , int height ) {
@@ -397,12 +420,13 @@ public final class AT extends AT_Machine_State {
 		this.name = name;
 		this.description = description;
 		this.previousBlock = 0;
+		dbKey = atDbKeyFactory.newKey(AT_API_Helper.getLong(atId));
 	}
 
 	public AT ( byte[] atId , byte[] creator , String name , String description , short version ,
 			byte[] stateBytes, int csize , int dsize , int c_user_stack_bytes , int c_call_stack_bytes ,
 			long minimumFee , int creationBlockHeight, int sleepBetween , 
-			boolean freezeWhenSameBalance, byte[] apCode )
+			boolean freezeWhenSameBalance, byte[] apCode, int prevHeight, int nextHeight )
 	{
 		super( 	atId , creator , version ,
 				stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes ,
@@ -410,7 +434,8 @@ public final class AT extends AT_Machine_State {
 				freezeWhenSameBalance , apCode );
 		this.name = name;
 		this.description = description;
-
+		this.previousBlock = prevHeight;
+		dbKey = atDbKeyFactory.newKey(AT_API_Helper.getLong(atId));
 	}
 
 	public String getName() {
