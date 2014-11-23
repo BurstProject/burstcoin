@@ -51,4 +51,6 @@ public final class OpCode
 		static byte e_op_code_EXT_FUN_RET = Byte.parseByte("35",16);
 		static byte e_op_code_EXT_FUN_RET_DAT = Byte.parseByte("36",16);
 		static byte e_op_code_EXT_FUN_RET_DAT_2 = Byte.parseByte("37",16);
+		static byte e_op_code_IND_SET = Byte.parseByte("38", 16);
+		static byte e_op_code_IDX_SET = Byte.parseByte("39", 16);
 	}
