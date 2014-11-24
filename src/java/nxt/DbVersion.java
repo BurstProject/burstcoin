@@ -446,8 +446,8 @@ final class DbVersion {
             	apply("CREATE UNIQUE INDEX IF NOT EXISTS block_timestamp_idx ON block (timestamp DESC)");
             case 144:
             	apply("CREATE TABLE IF NOT EXISTS at (db_id IDENTITY, id BIGINT NOT NULL, creator_id BIGINT NOT NULL, name VARCHAR, description VARCHAR, "
-            			+ "version INT NOT NULL, csize INT NOT NULL, dsize INT NOT NULL, c_user_stack_bytes INT NOT NULL, c_call_stack_bytes INT NOT NULL, "
-            			+ "minimum_fee BIGINT NOT NULL, creation_height INT NOT NULL, sleep_between INT NOT NULL, freeze_when_same_balance BOOLEAN NOT NULL, ap_code BINARY NOT NULL, "
+            			+ "version SMALLINT NOT NULL, csize INT NOT NULL, dsize INT NOT NULL, c_user_stack_bytes INT NOT NULL, c_call_stack_bytes INT NOT NULL, "
+            			+ "minimum_fee BIGINT NOT NULL, creation_height INT NOT NULL, ap_code BINARY NOT NULL, "
             			+ "height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE");
             case 145:
             	apply("CREATE UNIQUE INDEX IF NOT EXISTS at_id_height_idx ON at (id, height DESC)");
@@ -455,7 +455,8 @@ final class DbVersion {
             	apply("CREATE INDEX IF NOT EXISTS at_creator_id_height_idx ON at (creator_id, height DESC)");
             case 147:
             	apply("CREATE TABLE IF NOT EXISTS at_state (db_id IDENTITY, at_id BIGINT NOT NULL, state BINARY NOT NULL, prev_height INT NOT NULL, "
-            			+ "next_height INT NOT NULL, height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
+            			+ "next_height INT NOT NULL, sleep_between INT NOT NULL, "
+            			+ "prev_balance BIGINT NOT NULL, freeze_when_same_balance BOOLEAN NOT NULL, height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
             case 148:
             	apply("CREATE UNIQUE INDEX IF NOT EXISTS at_state_at_id_height_idx ON at_state (at_id, height DESC)");
             case 149:

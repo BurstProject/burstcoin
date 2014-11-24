@@ -96,12 +96,18 @@ public final class AT extends AT_Machine_State {
 		private byte[] state;
 		private int prevHeight;
 		private int nextHeight;
+		private int sleepBetween;
+		private long prevBalance;
+		private boolean freezeWhenSameBalance;
 
-		private ATState(long atId, byte[] state , int prevHeight , int nextHeight) {
+		private ATState(long atId, byte[] state , int prevHeight , int nextHeight, int sleepBetween, long prevBalance, boolean freezeWhenSameBalance) {
 			this.atId = atId;
 			this.dbKey = atStateDbKeyFactory.newKey(this.atId);
 			this.state = state;
 			this.nextHeight = nextHeight;
+			this.sleepBetween = sleepBetween;
+			this.prevBalance = prevBalance;
+			this.freezeWhenSameBalance = freezeWhenSameBalance;
 		}
 
 		private ATState(ResultSet rs) throws SQLException {
@@ -110,16 +116,23 @@ public final class AT extends AT_Machine_State {
 			this.state = rs.getBytes("state");
 			this.prevHeight = rs.getInt("prev_height");
 			this.nextHeight = rs.getInt("next_height");
+			this.sleepBetween = rs.getInt("sleep_between");
+			this.prevBalance = rs.getLong("prev_balance");
+			this.freezeWhenSameBalance = rs.getBoolean("freeze_when_same_balance");
 		}
 
 		private void save(Connection con) throws SQLException {
 			try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO at_state (at_id, "
-					+ "state, prev_height ,next_height, height, latest) KEY (at_id) VALUES (?, ?, ?, ?, ?, TRUE)")) {
+					+ "state, prev_height ,next_height, sleep_between, prev_balance, freeze_when_same_balance, height, latest) "
+					+ "KEY (at_id, height) VALUES (?, ?, ?, ?, ?, ?, ?, ? TRUE)")) {
 				int i = 0;
 				pstmt.setLong(++i, atId);
 				DbUtils.setBytes(pstmt, ++i, state);
 				pstmt.setInt( ++i , prevHeight);
 				pstmt.setInt(++i, nextHeight);
+				pstmt.setInt(++i, sleepBetween);
+				pstmt.setLong(++i, prevBalance);
+				pstmt.setBoolean(++i, freezeWhenSameBalance);
 				pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
 				pstmt.executeUpdate();
 			}
@@ -140,6 +153,18 @@ public final class AT extends AT_Machine_State {
 		public int getNextHeight() {
 			return nextHeight;
 		}
+		
+		public int getSleepBetween() {
+			return sleepBetween;
+		}
+		
+		public long getPrevBalance() {
+			return prevBalance;
+		}
+		
+		public boolean getFreezeWhenSameBalance() {
+			return freezeWhenSameBalance;
+		}
 
 		public void setState(byte[] newState) {
 			state = newState;
@@ -151,6 +176,18 @@ public final class AT extends AT_Machine_State {
 		
 		public void setNextHeight(int newNextHeight) {
 			nextHeight = newNextHeight;
+		}
+		
+		public void setSleepBetween(int newSleepBetween) {
+			this.sleepBetween = newSleepBetween;
+		}
+		
+		public void setPrevBalance(long newPrevBalance) {
+			this.prevBalance = newPrevBalance;
+		}
+		
+		public void setFreezeWhenSameBalance(boolean newFreezeWhenSameBalance) {
+			this.freezeWhenSameBalance = newFreezeWhenSameBalance;
 		}
 	}
 
@@ -169,7 +206,7 @@ public final class AT extends AT_Machine_State {
 		}
 		@Override
 		protected void save(Connection con, AT at) throws SQLException {
-			at.saveAT();
+			at.save(con);
 		}
 		@Override
 		protected String defaultSort() {
@@ -200,12 +237,16 @@ public final class AT extends AT_Machine_State {
 	};
 
 	
-	public static Collection<AT> getAllATs() 
+	public static Collection<Long> getAllATIds() 
 	{
-		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT atId FROM at WHERE latest = TRUE" ) )
+		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT id FROM at WHERE latest = TRUE" ) )
 		{
 			ResultSet result = pstmt.executeQuery();
-			return createATs( result );
+			List<Long> ids = new ArrayList<>();
+			while(result.next()) {
+				ids.add(result.getLong("id"));
+			}
+			return ids;
 		}
 		catch (SQLException e) {
 			throw new RuntimeException(e.toString(), e);
@@ -218,18 +259,20 @@ public final class AT extends AT_Machine_State {
 	}
 
 	public static AT getAT(Long id) {
-		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT a.id , a.creator_id , a.name , a.description , a.version , "
-				+ "s.state , a.csize , a.dsize , a.c_user_stack_bytes , a.c_call_stack_bytes , "
-				+ "a.minimum_fee , a.creation_height , a.sleep_between , a.freeze_when_same_balance , "
-				+ "a.ap_code, s.prev_height, s.next_height FROM at a, at_state s WHERE a.id = ? AND a.latest = TRUE AND s.at_id = ? AND s.latest = TRUE" ) )
+		try (PreparedStatement pstmt = Db.getConnection().prepareStatement("SELECT at.id, at.creator_id, at.name, at.description, at.version, "
+				+ "at_state.state, at.csize, at.dsize, at.c_user_stack_bytes, at.c_call_stack_bytes, "
+				+ "at.minimum_fee, at.creation_height, at_state.sleep_between, at_state.freeze_when_same_balance, "
+				+ "at.ap_code "
+				+ "FROM at INNER JOIN at_state ON at.id = at_state.at_id "
+				+ "WHERE at.latest = TRUE AND at_state.latest = TRUE "
+				+ "AND at.id = ?"))
 		{
 			int i = 0;
 			pstmt.setLong( ++i ,  id );
-			pstmt.setLong( ++i , id );
 			ResultSet result = pstmt.executeQuery();
-			if ( result.next() )
-			{
-				return createATs( result ).get( 0 );
+			List<AT> ats = createATs( result );
+			if(ats.size() > 0) {
+				return ats.get(0);
 			}
 			return null;
 		}
@@ -239,10 +282,13 @@ public final class AT extends AT_Machine_State {
 	}
 
 	public static List<AT> getATsIssuedBy(Long accountId) {
-		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT a.id , a.creator , a.name , a.description , a.version , "
-				+ "s.stateBytes , a.csize , a.dsize , a.c_user_stack_bytes , a.c_call_stack_bytes , "
-				+ "a.minimum_fee , a.creation_height , a.sleep_between , a.freeze_when_same_balance , "
-				+ "a.ap_code, s.prev_height, s.next_height FROM at a, at_state s WHERE a.id = s.at_id AND a.latest = true AND s.latest = TRUE and creator = ?") )
+		try (PreparedStatement pstmt = Db.getConnection().prepareStatement("SELECT at.id, at.creator_id, at.name, at.description, at.version, "
+				+ "at_state.state, at.csize, at.dsize, at.c_user_stack_bytes, at.c_call_stack_bytes, "
+				+ "at.minimum_fee, at.creation_height, at_state.sleep_between, at_state.freeze_when_same_balance, "
+				+ "at.ap_code "
+				+ "FROM at INNER JOIN at_state ON at.id = at_state.at_id "
+				+ "WHERE at.latest = TRUE AND at_state.latest = TRUE "
+				+ "AND at.creator_id = ?"))
 		{
 			pstmt.setLong(1, accountId);
 			ResultSet result = pstmt.executeQuery();
@@ -273,22 +319,28 @@ public final class AT extends AT_Machine_State {
 
 		AT_Controller.resetMachine(at);
 
-		at.saveAT( );
+		atTable.insert(at);
 		
 		at.saveState();
 
+		Account account = Account.addOrGetAccount(atId);
+		account.apply(new byte[32], height);
 	}
 
 	public void saveState() {
 		ATState state = atStateTable.get(atStateDbKeyFactory.newKey( AT_API_Helper.getLong( this.getId() ) ) );
-		int nextHeight = Nxt.getBlockchain().getHeight() + getWaitForNumberOfBlocks();
+		int prevHeight = Nxt.getBlockchain().getHeight();
+		int nextHeight = prevHeight + getWaitForNumberOfBlocks();
 		if(state != null) {
 			state.setState(getState());
-			state.setPrevHeight( Nxt.getBlockchain().getHeight() );
+			state.setPrevHeight( prevHeight );
 			state.setNextHeight(nextHeight);
+			state.setSleepBetween(getSleepBetween());
+			state.setPrevBalance(getP_balance());
+			state.setFreezeWhenSameBalance(freezeOnSameBalance());
 		}
 		else {
-			state = new ATState( AT_API_Helper.getLong( this.getId() ) , getState(), Nxt.getBlockchain().getHeight(), nextHeight);
+			state = new ATState( AT_API_Helper.getLong( this.getId() ) , getState(), prevHeight, nextHeight, getSleepBetween(), getP_balance(), freezeOnSameBalance());
 		}
 		atStateTable.insert(state);
 	}
@@ -314,24 +366,22 @@ public final class AT extends AT_Machine_State {
 			int sleepBetween = rs.getInt( ++i );
 			boolean freezeWhenSameBalance = rs.getBoolean( ++i );
 			byte[] ap_code = rs.getBytes( ++i );
-			int prevHeight = rs.getInt(++i);
-			int nextHeight =rs.getInt(++i);
 
 			AT at = new AT( AT_API_Helper.getByteArray( atId ) , AT_API_Helper.getByteArray( creator ) , name , description , version ,
 					stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes , minimumFee , creationBlockHeight , sleepBetween , 
-					freezeWhenSameBalance , ap_code, prevHeight, nextHeight );
+					freezeWhenSameBalance , ap_code );
 			ats.add( at );
 
 		}
 		return ats;
 	}
 
-	private void saveAT( )
+	private void save(Connection con)
 	{
-		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "INSERT INTO at " 
+		try ( PreparedStatement pstmt = con.prepareStatement( "INSERT INTO at " 
 				+ "(id , creator_id , name , description , version , "
 				+ "csize , dsize , c_user_stack_bytes , c_call_stack_bytes , "
-				+ "minimum_fee , creation_height , sleep_between, freeze_when_same_balance , "
+				+ "minimum_fee , creation_height , "
 				+ "ap_code , height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" ) )
 				{
 			int i = 0;
@@ -346,8 +396,6 @@ public final class AT extends AT_Machine_State {
 			pstmt.setInt( ++i , this.getC_call_stack_bytes() );
 			pstmt.setLong( ++i , this.getMinimumFee() );
 			pstmt.setInt( ++i, this.getCreationBlockHeight() );
-			pstmt.setInt(++i, this.getSleepBetween());
-			pstmt.setBoolean( ++i , this.freezeOnSameBalance() );
 			DbUtils.setBytes( pstmt , ++i , this.getApCode() );
 			pstmt.setInt( ++i , Nxt.getBlockchain().getHeight() );
 
@@ -366,12 +414,12 @@ public final class AT extends AT_Machine_State {
 			atStateTable.delete(atState);
 		}
 		atTable.delete(at);
-		
+		//TODO: release account
 	}
 
 	private static void deleteAT( Long id )
 	{
-		AT at = atTable.get(atDbKeyFactory.newKey(id));
+		AT at = AT.getAT(id);
 		if(at != null) {
 			deleteAT(at);
 		}
@@ -380,7 +428,12 @@ public final class AT extends AT_Machine_State {
 
 	public static List< Long > getOrderedATs(){
 		List< Long > orderedATs = new ArrayList<>();
-		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT at_id from at_state WHERE next_height <= ? ORDER BY prev_height, next_height asc" ) )
+		try (PreparedStatement pstmt = Db.getConnection().prepareStatement("SELECT at.id FROM at "
+				+ "INNER JOIN at_state ON at.id = at_state.at_id INNER JOIN account ON at.id = account.id "
+				+ "WHERE at.latest = TRUE AND at_state.latest = TRUE AND account.latest = TRUE "
+				+ "AND at_state.next_height <= ? AND account.balance >= at.minimum_fee "
+				+ "AND (at_state.freeze_when_same_balance = FALSE OR account.balance > at_state.prev_balance) "
+				+ "ORDER BY at_state.prev_height, at_state.next_height, at.id"))
 		{
 			pstmt.setInt( 1 ,  Nxt.getBlockchain().getHeight() );
 			ResultSet result = pstmt.executeQuery();
@@ -411,7 +464,6 @@ public final class AT extends AT_Machine_State {
 
 	private final String name;    
 	private final String description;
-	private int previousBlock;
 	private final DbKey dbKey;
 
 
@@ -419,14 +471,13 @@ public final class AT extends AT_Machine_State {
 		super( atId , creator , creationBytes , height );
 		this.name = name;
 		this.description = description;
-		this.previousBlock = 0;
 		dbKey = atDbKeyFactory.newKey(AT_API_Helper.getLong(atId));
 	}
 
 	public AT ( byte[] atId , byte[] creator , String name , String description , short version ,
 			byte[] stateBytes, int csize , int dsize , int c_user_stack_bytes , int c_call_stack_bytes ,
 			long minimumFee , int creationBlockHeight, int sleepBetween , 
-			boolean freezeWhenSameBalance, byte[] apCode, int prevHeight, int nextHeight )
+			boolean freezeWhenSameBalance, byte[] apCode )
 	{
 		super( 	atId , creator , version ,
 				stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes ,
@@ -434,7 +485,6 @@ public final class AT extends AT_Machine_State {
 				freezeWhenSameBalance , apCode );
 		this.name = name;
 		this.description = description;
-		this.previousBlock = prevHeight;
 		dbKey = atDbKeyFactory.newKey(AT_API_Helper.getLong(atId));
 	}
 

@@ -484,10 +484,7 @@ final class ParameterParser {
         AT at;
         try {
             Long atId = Convert.parseUnsignedLong(atValue);
-            ByteBuffer bf = ByteBuffer.allocate( 8 );
-            bf.order( ByteOrder.LITTLE_ENDIAN );
-            bf.putLong( atId );
-            at = AT.getAT( bf.array() );
+            at = AT.getAT( atId );
         } catch (RuntimeException e) {
             throw new ParameterException(INCORRECT_AT);
         }

@@ -26,8 +26,8 @@ public final class GetATIds extends APIServlet.APIRequestHandler {
     JSONStreamAware processRequest(HttpServletRequest req) {
 
         JSONArray atIds = new JSONArray();
-        for (AT at : AT.getAllATs()) {
-            atIds.add(Convert.toUnsignedLong( AT_API_Helper.getLong( at.getId() ) ) );
+        for (Long id : AT.getAllATIds()) {
+            atIds.add(Convert.toUnsignedLong(id));
         }
 
         JSONObject response = new JSONObject();
