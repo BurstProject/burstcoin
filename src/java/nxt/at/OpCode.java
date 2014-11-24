@@ -24,12 +24,14 @@ public final class OpCode
 		static byte e_op_code_AND_DAT = Byte.parseByte("0b",16);
 		static byte e_op_code_XOR_DAT = Byte.parseByte("0c",16);
 		static byte e_op_code_NOT_DAT = Byte.parseByte("0d",16);
-		static byte e_op_code_SET_IND = Byte.parseByte("0e",16);
-		static byte e_op_code_SET_IDX = Byte.parseByte("0f",16);
+		static byte e_op_code_IND_DAT = Byte.parseByte("0e",16);//
+		static byte e_op_code_IDX_DAT = Byte.parseByte("0f",16);//
 		static byte e_op_code_PSH_DAT = Byte.parseByte("10",16);
 		static byte e_op_code_POP_DAT = Byte.parseByte("11",16);
 		static byte e_op_code_JMP_SUB = Byte.parseByte("12",16);
 		static byte e_op_code_RET_SUB = Byte.parseByte("13",16);
+		static byte e_op_code_SET_IND = Byte.parseByte("14", 16);
+		static byte e_op_code_SET_IDX = Byte.parseByte("15", 16);
 		static byte e_op_code_JMP_ADR = Byte.parseByte("1a",16);
 		static byte e_op_code_BZR_DAT = Byte.parseByte("1b",16);
 		static byte e_op_code_BNZ_DAT = Byte.parseByte("1e",16);
@@ -51,6 +53,5 @@ public final class OpCode
 		static byte e_op_code_EXT_FUN_RET = Byte.parseByte("35",16);
 		static byte e_op_code_EXT_FUN_RET_DAT = Byte.parseByte("36",16);
 		static byte e_op_code_EXT_FUN_RET_DAT_2 = Byte.parseByte("37",16);
-		static byte e_op_code_IND_SET = Byte.parseByte("38", 16);
-		static byte e_op_code_IDX_SET = Byte.parseByte("39", 16);
+		
 	}

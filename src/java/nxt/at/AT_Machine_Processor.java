@@ -466,7 +466,7 @@ public class AT_Machine_Processor{
 				}
 			}
 		}
-		else if (op==OpCode.e_op_code_SET_IND)
+		else if (op==OpCode.e_op_code_IND_DAT)
 		{
 			rc = getAddrs();
 			
@@ -497,7 +497,7 @@ public class AT_Machine_Processor{
 				}
 			}
 		}
-		else if ( op == OpCode.e_op_code_SET_IDX) {
+		else if ( op == OpCode.e_op_code_IDX_DAT) {
 			int addr1,addr2;
 			rc=getAddrs();
 			addr1=fun.addr1;
@@ -654,6 +654,76 @@ public class AT_Machine_Processor{
 						machineData.getMachineState().pc = addr;
 					else
 						rc = -2;
+				}
+			}
+		}
+		else if (op==OpCode.e_op_code_SET_IND)
+		{
+			rc = getAddrs();
+			
+			if (rc==0)
+			{
+				rc = 1+4+4;
+				
+				if (disassemble)
+				{
+					if(!determine_jumps)
+						System.out.println("SET @"+
+								String.format("($%8s)", fun.addr1).replace(' ', '0')+" "+
+								String.format("$%8s", fun.addr2).replace(' ', '0'));
+				}
+				else
+				{
+					long addr = machineData.getAp_data().getLong( fun.addr1*8 );
+					
+					if (!validAddr((int)addr, false))
+						rc=-1;
+					else
+					{
+						machineData.getMachineState().pc+=rc;
+						machineData.getAp_data().putLong((int)addr*8, machineData.getAp_data().getLong((int)fun.addr2*8));
+						machineData.getAp_data().clear();
+					}
+				}
+			}
+		}
+		else if (op == OpCode.e_op_code_SET_IDX)
+		{
+			int addr1,addr2;
+			rc = getAddrs();
+			addr1 = fun.addr1;
+			addr2 = fun.addr2;
+			int size = 4 + 4;
+			if (rc==0 || disassemble)
+			{
+				(machineData.getAp_code()).position(size);
+				rc = getAddr(false);
+				(machineData.getAp_code()).position((machineData.getAp_code()).position()-size);
+				
+				if (rc==0 || disassemble)
+				{
+					rc=13;
+					
+					if (disassemble)
+					{
+						if (!determine_jumps)
+							System.out.println("SET @"+
+									String.format("($%8s+$%8s)", addr1, addr2).replace(' ', '0')+" "+
+									String.format("$%8s", fun.addr1).replace(' ', '0'));
+					}
+					else
+					{
+						long addr = addr1+addr2;
+						
+						if(!validAddr((int)addr, false))
+							rc=-1;
+						else
+						{
+							machineData.getMachineState().pc+=rc;
+							machineData.getAp_data().putLong((int)addr*8, machineData.getAp_data().getLong((int)fun.addr1*8));
+							machineData.getAp_data().clear();
+						}
+					}
 				}
 			}
 		}
@@ -1046,76 +1116,6 @@ public class AT_Machine_Processor{
 						machineData.getAp_data().putLong(   ( fun.addr3 * 8 ), AT_API_Controller.func2( fun.fun, val, val2,machineData ));
 					}
 					machineData.getAp_data().clear();
-				}
-			}
-		}
-		else if (op==OpCode.e_op_code_IND_SET)
-		{
-			rc = getAddrs();
-			
-			if (rc==0)
-			{
-				rc = 1+4+4;
-				
-				if (disassemble)
-				{
-					if(!determine_jumps)
-						System.out.println("SET @"+
-								String.format("($%8s)", fun.addr1).replace(' ', '0')+" "+
-								String.format("$%8s", fun.addr2).replace(' ', '0'));
-				}
-				else
-				{
-					long addr = machineData.getAp_data().getLong( fun.addr1*8 );
-					
-					if (!validAddr((int)addr, false))
-						rc=-1;
-					else
-					{
-						machineData.getMachineState().pc+=rc;
-						machineData.getAp_data().putLong((int)addr*8, machineData.getAp_data().getLong((int)fun.addr2*8));
-						machineData.getAp_data().clear();
-					}
-				}
-			}
-		}
-		else if (op == OpCode.e_op_code_IDX_SET)
-		{
-			int addr1,addr2;
-			rc = getAddrs();
-			addr1 = fun.addr1;
-			addr2 = fun.addr2;
-			int size = 4 + 4;
-			if (rc==0 || disassemble)
-			{
-				(machineData.getAp_code()).position(size);
-				rc = getAddr(false);
-				(machineData.getAp_code()).position((machineData.getAp_code()).position()-size);
-				
-				if (rc==0 || disassemble)
-				{
-					rc=13;
-					
-					if (disassemble)
-					{
-						if (!determine_jumps)
-							System.out.println("SET @"+
-									String.format("($%8s+$%8s)", addr1, addr2).replace(' ', '0')+" "+
-									String.format("$%8s", fun.addr1).replace(' ', '0'));
-					}
-					else
-					{
-						long addr = addr1+addr2;
-						
-						if(!validAddr((int)addr, false))
-							rc=-1;
-						else
-						{
-							machineData.getMachineState().pc+=rc;
-							machineData.getAp_data().putLong((int)addr*8, machineData.getAp_data().getLong((int)fun.addr1*8));
-							machineData.getAp_data().clear();
-						}
-					}
 				}
 			}
 		}
