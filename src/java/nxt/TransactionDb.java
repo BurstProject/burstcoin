@@ -315,10 +315,10 @@ final class TransactionDb {
 							pstmt.setBoolean(++i, false );
 							pstmt.setBoolean(++i, false );
 							pstmt.setBoolean(++i, false );
-							Block ecBlock = EconomicClustering.getECBlockId(block.getTimestamp());
+							Block ecBlock = EconomicClustering.getECBlock(block.getTimestamp());
 							pstmt.setInt(++i, ecBlock.getHeight());
-							if (block.getId() != null) {
-								pstmt.setLong(++i, block.getId());
+							if (block.getId() != 0L) {
+								pstmt.setLong(++i, ecBlock.getId());
 							} else {
 								pstmt.setNull(++i, Types.BIGINT);
 							}
