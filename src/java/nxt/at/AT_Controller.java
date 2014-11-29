@@ -118,7 +118,7 @@ public abstract class AT_Controller {
 			AT_Constants instance = AT_Constants.getInstance();
 
 			short version = b.getShort();
-			if ( version > instance.AT_VERSION( height ) )
+			if ( version != instance.AT_VERSION( height ) )
 			{
 				throw new AT_Exception( AT_Error.INCORRECT_VERSION.getDescription() );
 			}
@@ -126,25 +126,25 @@ public abstract class AT_Controller {
 			short reserved = b.getShort(); //future: reserved for future needs
 
 			short codePages = b.getShort();
-			if ( codePages > instance.MAX_MACHINE_CODE_PAGES( height ) )
+			if ( codePages > instance.MAX_MACHINE_CODE_PAGES( height ) || codePages < 1)
 			{
 				throw new AT_Exception( AT_Error.INCORRECT_CODE_PAGES.getDescription() );
 			}
 
 			short dataPages = b.getShort();
-			if ( dataPages > instance.MAX_MACHINE_DATA_PAGES( height ) )
+			if ( dataPages > instance.MAX_MACHINE_DATA_PAGES( height ) || dataPages < 0)
 			{
 				throw new AT_Exception( AT_Error.INCORRECT_DATA_PAGES.getDescription() );
 			}
 
 			short callStackPages = b.getShort();
-			if ( callStackPages > instance.MAX_MACHINE_CALL_STACK_PAGES( height ) )
+			if ( callStackPages > instance.MAX_MACHINE_CALL_STACK_PAGES( height ) || callStackPages < 0)
 			{
 				throw new AT_Exception( AT_Error.INCORRECT_CALL_PAGES.getDescription() );
 			}
 
 			short userStackPages = b.getShort();
-			if ( userStackPages > instance.MAX_MACHINE_USER_STACK_PAGES( height ) )
+			if ( userStackPages > instance.MAX_MACHINE_USER_STACK_PAGES( height ) || userStackPages < 0)
 			{
 				throw new AT_Exception( AT_Error.INCORRECT_USER_PAGES.getDescription() );
 			}
@@ -158,7 +158,7 @@ public abstract class AT_Controller {
 			{
 				codeLen = b.getShort();
 			}
-			else if ( codePages * 256 < Integer.MAX_VALUE + 1 )
+			else if ( codePages * 256 <= Integer.MAX_VALUE )
 			{
 				codeLen = b.getInt();
 			}
@@ -183,13 +183,17 @@ public abstract class AT_Controller {
 			{
 				dataLen = b.getShort();
 			}
-			else if ( dataPages * 256 < Integer.MAX_VALUE + 1 )
+			else if ( dataPages * 256 <= Integer.MAX_VALUE )
 			{
 				dataLen = b.getInt();
 			}
 			else
 			{
 				throw new AT_Exception( AT_Error.INCORRECT_CODE_LENGTH.getDescription() );
+			}
+			if( dataLen < 0 )
+			{
+				throw new AT_Exception( AT_Error.INCORRECT_DATA_LENGTH.getDescription() );
 			}
 			byte[] data = new byte[ dataLen ];
 			b.get( data , 0 , dataLen );
@@ -246,6 +250,7 @@ public abstract class AT_Controller {
 						at.setG_balance( atAccountBalance );
 						at.clearTransactions();
 						at.setWaitForNumberOfBlocks( at.getSleepBetween() );
+						listCode(at, true, true);
 						runSteps ( at );
 
 						totalSteps += at.getMachineState().steps;
@@ -296,7 +301,7 @@ public abstract class AT_Controller {
 		boolean validated = true;
 		long totalSteps = 0;
 		MessageDigest digest = MessageDigest.getInstance( "MD5" );
-		byte[] md5 = new byte[ getCostOfOneAT() ];
+		byte[] md5 = null;
 		for ( byte[] atId : ats.keySet() )
 		{
 			AT at = AT.getAT( atId );
@@ -304,12 +309,22 @@ public abstract class AT_Controller {
 			try
 			{
 				at.clearTransactions();
-				at.setWaitForNumberOfBlocks( 0 );
+				at.setWaitForNumberOfBlocks( at.getSleepBetween() );
 
 				long atAccountBalance = getATAccountBalance( AT_API_Helper.getLong( atId ) );
+				if(atAccountBalance < AT_Constants.getInstance().STEP_FEE( blockHeight ))
+				{
+					throw new AT_Exception( "AT has insufficient balance to run" );
+				}
+				
+				if ( at.freezeOnSameBalance() && atAccountBalance == at.getG_balance() )
+				{
+					throw new AT_Exception( "AT should be frozen due to unchanged balance" );
+				}
 
 				at.setG_balance( atAccountBalance );
-
+				
+				listCode(at, true, true);
 
 				runSteps( at );
 
@@ -363,6 +378,9 @@ public abstract class AT_Controller {
 		{
 			b.get( temp , 0 , temp.length );
 			b.get( md5 , 0 , md5.length );
+			if(ats.containsKey(temp)) {
+				throw new AT_Exception("AT included in block multiple times");
+			}
 			ats.put( temp , md5 ); 
 		}
 
@@ -376,6 +394,11 @@ public abstract class AT_Controller {
 
 	private static byte[] getBlockATBytes(List<AT> processedATs , int payload ) throws NoSuchAlgorithmException {
 
+		if(payload <= 0)
+		{
+			return null;
+		}
+		
 		ByteBuffer b = ByteBuffer.allocate( payload );
 		b.order( ByteOrder.LITTLE_ENDIAN );
 

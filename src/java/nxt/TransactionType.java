@@ -2147,6 +2147,57 @@ public abstract class TransactionType {
 				return false;
 			}
 		};
+		
+		public final static TransactionType SUBSCRIPTION_PAYMENT = new AdvancedPayment() {
+			
+			@Override
+			public final byte getSubtype() {
+				return TransactionType.SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT;
+			}
+			
+			@Override
+			Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+				return new Attachment.AdvancedPaymentSubscriptionPayment(buffer, transactionVersion);
+			}
+			
+			@Override
+			Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+				return new Attachment.AdvancedPaymentSubscriptionPayment(attachmentData);
+			}
+			
+			@Override
+			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+				return false;
+			}
+			
+			@Override
+			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+			}
+			
+			@Override
+			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+			}
+			
+			@Override
+			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+				return true;
+			}
+			
+			@Override
+			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+				throw new NxtException.NotValidException("Subscription payment never validates");
+			}
+			
+			@Override
+			final public boolean hasRecipient() {
+				return true;
+			}
+			
+			@Override
+			final public boolean isSigned() {
+				return false;
+			}
+		};
 	}
 	
 	  public static abstract class AutomatedTransactions extends TransactionType{
@@ -2278,57 +2329,6 @@ public abstract class TransactionType {
 	    	};
 	    	
 	    }
-	
-	public final static TransactionType SUBSCRIPTION_PAYMENT = new AdvancedPayment() {
-		
-		@Override
-		public final byte getSubtype() {
-			return TransactionType.SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT;
-		}
-		
-		@Override
-		Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
-			return new Attachment.AdvancedPaymentSubscriptionPayment(buffer, transactionVersion);
-		}
-		
-		@Override
-		Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
-			return new Attachment.AdvancedPaymentSubscriptionPayment(attachmentData);
-		}
-		
-		@Override
-		final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-			return false;
-		}
-		
-		@Override
-		final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-		}
-		
-		@Override
-		final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-		}
-		
-		@Override
-		boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
-			return true;
-		}
-		
-		@Override
-		void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-			throw new NxtException.NotValidException("Subscription payment never validates");
-		}
-		
-		@Override
-		final public boolean hasRecipient() {
-			return true;
-		}
-		
-		@Override
-		final public boolean isSigned() {
-			return false;
-		}
-	};
 
     long minimumFeeNQT(int height, int appendagesSize) {
         if (height < BASELINE_FEE_HEIGHT) {

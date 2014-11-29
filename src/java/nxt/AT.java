@@ -431,11 +431,12 @@ public final class AT extends AT_Machine_State {
 		try (PreparedStatement pstmt = Db.getConnection().prepareStatement("SELECT at.id FROM at "
 				+ "INNER JOIN at_state ON at.id = at_state.at_id INNER JOIN account ON at.id = account.id "
 				+ "WHERE at.latest = TRUE AND at_state.latest = TRUE AND account.latest = TRUE "
-				+ "AND at_state.next_height <= ? AND account.balance >= at.minimum_fee "
+				+ "AND at_state.next_height <= ? AND account.balance >= ? "
 				+ "AND (at_state.freeze_when_same_balance = FALSE OR account.balance > at_state.prev_balance) "
 				+ "ORDER BY at_state.prev_height, at_state.next_height, at.id"))
 		{
 			pstmt.setInt( 1 ,  Nxt.getBlockchain().getHeight() );
+			pstmt.setLong(2, AT_Constants.getInstance().STEP_FEE(Nxt.getBlockchain().getHeight()));
 			ResultSet result = pstmt.executeQuery();
 			while ( result.next() )
 			{

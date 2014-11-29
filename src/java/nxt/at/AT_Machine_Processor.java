@@ -263,34 +263,25 @@ public class AT_Machine_Processor{
 				}
 			}
 		}
-		else if (op==OpCode.e_op_code_CLR_DAT)
+		else if( op == OpCode.e_op_code_CLR_DAT )
 		{
-			rc = getAddr(false);
+			rc = getAddr(false );
 
-			if (rc==0 || disassemble)
+			if( rc == 0 || disassemble)
 			{
-
 				rc = 1 + 4;
-				if (disassemble)
+
+				if( disassemble )
 				{
-					if (!determine_jumps)
-					{
-						System.out.println("CLR @"+String.format("%8s", fun.addr1).replace(' ', '0'));
-					}
+					if( !determine_jumps )
+						System.out.println("CLR @"+String.format("%8s",fun.addr1));
 				}
 				else
 				{
-					machineData.getMachineState().pc +=rc;
-					byte zero = 0;
-					int pos = fun.addr1*8;
-					machineData.getAp_data().position(pos);
-					for (int i=fun.addr1*8;i<fun.addr1*8+8;i++)
-					{
-						machineData.getAp_data().put(zero);
-					}
+					machineData.getMachineState().pc = rc;
+					machineData.getAp_data().putLong( fun.addr1*8,(long)0);
 					machineData.getAp_data().clear();
 				}
-
 			}
 		}
 		else if (op==OpCode.e_op_code_INC_DAT||op==OpCode.e_op_code_DEC_DAT||op==OpCode.e_op_code_NOT_DAT)
@@ -611,27 +602,6 @@ public class AT_Machine_Processor{
 				}
 			}
 		}
-		else if( op == OpCode.e_op_code_CLR_DAT )
-		{
-			rc = getAddr(false );
-
-			if( rc == 0 || disassemble)
-			{
-				rc = 1 + 4;
-
-				if( disassemble )
-				{
-					if( !determine_jumps )
-						System.out.println("CLR @"+String.format("%8s",fun.addr1));
-				}
-				else
-				{
-					machineData.getMachineState().pc = rc;
-					machineData.getAp_data().putLong( fun.addr1*8,(long)0);
-					machineData.getAp_data().clear();
-				}
-			}
-		}
 		else if( op == OpCode.e_op_code_RET_SUB )
 		{
 			rc = 1;
@@ -854,7 +824,14 @@ public class AT_Machine_Processor{
 				else
 				{
 					machineData.getMachineState().pc += rc;
-					//TODO sleep
+					int numBlocks = (int)machineData.getAp_data().getLong((int)fun.addr1*8);
+					if(numBlocks < 0)
+						numBlocks = 0;
+					int maxNumBlocks = (int)AT_Constants.getInstance().get_MAX_WAIT_FOR_NUM_OF_BLOCKS(machineData.getCreationBlockHeight());
+					if(numBlocks > maxNumBlocks)
+						numBlocks = maxNumBlocks;
+					machineData.setWaitForNumberOfBlocks(numBlocks);
+					machineData.getMachineState().stopped = true;
 				}
 				
 			}

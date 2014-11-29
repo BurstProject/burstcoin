@@ -229,7 +229,7 @@ public class AT_Machine_State
 		{
 			codeLen = b.getShort();
 		}
-		else if ( codePages * pageSize < Integer.MAX_VALUE + 1 )
+		else
 		{
 			codeLen = b.getInt();
 		}
@@ -249,7 +249,7 @@ public class AT_Machine_State
 		{
 			dataLen = b.getShort();
 		}
-		else if ( dataPages * pageSize < Integer.MAX_VALUE + 1 )
+		else
 		{
 			dataLen = b.getInt();
 		}

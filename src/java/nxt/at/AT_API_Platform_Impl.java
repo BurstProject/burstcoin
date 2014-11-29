@@ -169,7 +169,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 			if ( blockHeight - txBlockHeight < AT_Constants.getInstance().BLOCKS_FOR_TICKET( blockHeight ) ){ //for tests - for real case 1440
 				state.setWaitForNumberOfBlocks( (int)AT_Constants.getInstance().BLOCKS_FOR_TICKET( blockHeight ) - ( blockHeight - txBlockHeight ) );
 				state.getMachineState().pc -= 11;
-				state.setG_balance( 0L ); // hack to halt and continue from that point
+				state.getMachineState().stopped = true;
 				return 0;
 			}
 
