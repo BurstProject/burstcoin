@@ -51,7 +51,7 @@ public final class AT extends AT_Machine_State {
 			@Override
 			public void notify(Block block) {
 				try {
-					if (block.getBlockATs()!=null)
+					/*if (block.getBlockATs()!=null)
 					{
 						LinkedHashMap<byte[],byte[]> blockATs = AT_Controller.getATsFromBlock(block.getBlockATs());
 						for ( byte[] id : blockATs.keySet()){
@@ -70,6 +70,13 @@ public final class AT extends AT_Machine_State {
 
 
 						}
+					}*/
+					for(Long id : pendingFees.keySet()) {
+						Account atAccount = Account.getAccount(id);
+						atAccount.addToBalanceAndUnconfirmedBalanceNQT(-pendingFees.get(id));
+					}
+					for(AT_Transaction transaction : pendingTransactions) {
+						//TODO makeTransactions
 					}
 				} catch (AT_Exception e) {
 					e.printStackTrace();
@@ -87,7 +94,30 @@ public final class AT extends AT_Machine_State {
 			}
 
 		}, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
-	}    
+	}
+	
+	private static final LinkedHashMap<Long, Long> pendingFees = new LinkedHashMap<>();
+	private static final List<AT_Transaction> pendingTransactions = new ArrayList<>();
+	
+	public static void clearPendingFees() {
+		pendingFees.clear();
+	}
+	
+	public static void clearPendingTransactions() {
+		pendingTransactions.clear();
+	}
+	
+	public static void addPendingFee(long id, long fee) {
+		pendingFees.put(id, fee);
+	}
+	
+	public static void addPendingFee(byte[] id, long fee) {
+		addPendingFee(AT_API_Helper.getLong(id), fee);
+	}
+	
+	public static void addPendingTransaction(AT_Transaction atTransaction) {
+		pendingTransactions.add(atTransaction);
+	}
 
 	public static class ATState {
 

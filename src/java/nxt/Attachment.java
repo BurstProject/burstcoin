@@ -2027,36 +2027,29 @@ public interface Attachment extends Appendix {
    	
     }
     
-    public final static class AutomatedTransactionsUpdate extends AbstractAttachment{
+    public final static class AutomatedTransactionsPayment extends AbstractAttachment{
 
 		@Override
 		public TransactionType getTransactionType() {
-			// TODO Auto-generated method stub
-			return null;
+			return TransactionType.AutomatedTransactions.AT_PAYMENT;
 		}
 
 		@Override
 		String getAppendixName() {
-			// TODO Auto-generated method stub
-			return null;
+			return "AutomatedTransactionsPayment";
 		}
 
 		@Override
 		int getMySize() {
-			// TODO Auto-generated method stub
 			return 0;
 		}
 
 		@Override
 		void putMyBytes(ByteBuffer buffer) {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override
 		void putMyJSON(JSONObject json) {
-			// TODO Auto-generated method stub
-			
 		}
     	
     }

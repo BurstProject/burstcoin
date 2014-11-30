@@ -168,7 +168,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 									if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
 										try {
-											pushBlock(block, false, null);
+											pushBlock(block, null);
 										} catch (BlockNotAcceptedException e) {
 											peer.blacklist(e);
 											return;
@@ -320,7 +320,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 					for (BlockImpl block : forkBlocks) {
 						if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
 							try {
-								pushBlock(block,false,null);
+								pushBlock(block, null);
 								pushedForkBlocks += 1;
 							} catch (BlockNotAcceptedException e) {
 								peer.blacklist(e);
@@ -344,7 +344,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 					for (int i = myPoppedOffBlocks.size() - 1; i >= 0; i--) {
 						BlockImpl block = myPoppedOffBlocks.remove(i);
 						try {
-							pushBlock(block,false,null);
+							pushBlock(block, null);
 						} catch (BlockNotAcceptedException e) {
 							Logger.logErrorMessage("Popped off block no longer acceptable: " + block.getJSONObject().toJSONString(), e);
 							break;
@@ -456,7 +456,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 	@Override
 	public void processPeerBlock(JSONObject request) throws NxtException {
 		BlockImpl block = BlockImpl.parseBlock(request);
-		pushBlock(block,false,null);
+		pushBlock(block, null);
 	}
 
 	@Override
@@ -525,7 +525,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		}
 	}
 
-	private void pushBlock(final BlockImpl block , boolean forger, AT_Block ats) throws BlockNotAcceptedException {
+	private void pushBlock(final BlockImpl block , AT_Block ats) throws BlockNotAcceptedException {
 
 		int curTime = Nxt.getEpochTime();
 
@@ -565,37 +565,6 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				long calculatedTotalAmount = 0;
 				long calculatedTotalFee = 0;
 				MessageDigest digest = Crypto.sha256();
-
-				//ATs
-				if ( !forger )
-				{
-					AT_Block atBlock;
-					try {
-						atBlock = AT_Controller.validateATs( block.getBlockATs() , Nxt.getBlockchain().getHeight());
-					} catch (NoSuchAlgorithmException e) {
-						//should never reach that point
-						throw new BlockNotAcceptedException( "md5 does not exist" );
-					} catch (AT_Exception e) {
-						throw new BlockNotAcceptedException("ats are not matching at block height " + Nxt.getBlockchain().getHeight() );
-					}
-					calculatedTotalAmount += atBlock.getTotalAmount();
-					calculatedTotalFee += atBlock.getTotalFees();
-				}
-				else
-				{
-					if (ats!=null)
-					{
-						calculatedTotalAmount += ats.getTotalAmount();
-						calculatedTotalFee += ats.getTotalFees();
-
-					}
-				}
-				
-				if (block.getBlockATs()!=null)
-				{
-					digest.update(block.getBlockATs());
-				}
-				//ATs
 				
 				for (TransactionImpl transaction : block.getTransactions()) {
 
@@ -674,7 +643,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				blockListeners.notify(block, Event.BEFORE_BLOCK_ACCEPT);
 				transactionProcessor.requeueAllUnconfirmedTransactions();
 				addBlock(block);
-				accept(block, remainingFee);
+				accept(block, remainingFee, ats);
 
 				Db.commitTransaction();
 			} catch (Exception e) {
@@ -694,7 +663,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 	}
 
-	private void accept(BlockImpl block, Long remainingFee) throws TransactionNotAcceptedException, BlockNotAcceptedException {
+	private void accept(BlockImpl block, Long remainingFee, AT_Block ats) throws TransactionNotAcceptedException, BlockNotAcceptedException {
 		Subscription.clearRemovals();
 		TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
 		for (TransactionImpl transaction : block.getTransactions()) {
@@ -703,6 +672,27 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 			}
 		}
 		long calculatedRemainingFee = 0;
+		//ATs
+		if ( ats == null )
+		{
+			AT_Block atBlock;
+			AT.clearPendingFees();
+			AT.clearPendingTransactions();
+			try {
+				atBlock = AT_Controller.validateATs( block.getBlockATs() , Nxt.getBlockchain().getHeight());
+			} catch (NoSuchAlgorithmException e) {
+				//should never reach that point
+				throw new BlockNotAcceptedException( "md5 does not exist" );
+			} catch (AT_Exception e) {
+				throw new BlockNotAcceptedException("ats are not matching at block height " + Nxt.getBlockchain().getHeight() );
+			}
+			calculatedRemainingFee += atBlock.getTotalFees();
+		}
+		else
+		{
+			calculatedRemainingFee += ats.getTotalFees();
+		}
+		//ATs
 		if(Subscription.isEnabled()) {
 			calculatedRemainingFee += Subscription.applyUnconfirmed(block.getTimestamp());
 		}
@@ -804,8 +794,6 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 		int blockTimestamp = Nxt.getEpochTime();
 
-		payloadLength += Constants.AT_BLOCK_PAYLOAD;
-
 		while (payloadLength <= Constants.MAX_PAYLOAD_LENGTH && blockTransactions.size() <= Constants.MAX_NUMBER_OF_TRANSACTIONS) {
 
 			int prevNumberOfNewTransactions = blockTransactions.size();
@@ -882,11 +870,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		}
 
 		//final byte[] publicKey = Crypto.getPublicKey(secretPhrase);
-
-		MessageDigest digest = Crypto.sha256();
 		
 		//ATs for block
-		payloadLength -= AT_Constants.getInstance().MAX_PAYLOAD_FOR_BLOCK( previousBlock.getHeight() );
+		AT.clearPendingFees();
+		AT.clearPendingTransactions();
 		AT_Block atBlock = AT_Controller.getCurrentBlockATs( Constants.MAX_PAYLOAD_LENGTH - payloadLength , previousBlock.getHeight() + 1 );
 		byte[] byteATs = atBlock.getBytesForBlock();
 
@@ -896,13 +883,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 			payloadLength += byteATs.length;
 			totalFeeNQT += atBlock.getTotalFees();
 			totalAmountNQT += atBlock.getTotalAmount();
-			digest.update(byteATs);
 
 		}
 
 		//ATs for block
 
-
+		MessageDigest digest = Crypto.sha256();
 		
 		for (Transaction transaction : blockTransactions) {
 			digest.update(transaction.getBytes());
@@ -937,7 +923,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		block.setPrevious(previousBlock);
 
 		try {
-			pushBlock(block,true,atBlock);
+			pushBlock(block, atBlock);
 			blockListeners.notify(block, Event.BLOCK_GENERATED);
 			Logger.logDebugMessage("Account " + Convert.toUnsignedLong(block.getGeneratorId()) + " generated block " + block.getStringId()
 					+ " at height " + block.getHeight());
@@ -1060,7 +1046,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 							}
 							blockListeners.notify(currentBlock, Event.BEFORE_BLOCK_ACCEPT);
 							blockchain.setLastBlock(currentBlock);
-							accept(currentBlock, null);
+							accept(currentBlock, null, null);
 							currentBlockId = currentBlock.getNextBlockId();
 							Db.commitTransaction();
 						} catch (NxtException | RuntimeException e) {

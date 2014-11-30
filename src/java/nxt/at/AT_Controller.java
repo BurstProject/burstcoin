@@ -228,7 +228,7 @@ public abstract class AT_Controller {
 		int costOfOneAT = getCostOfOneAT();
 		int payload = 0;
 		long totalSteps = 0;
-		while ( payload < freePayload - costOfOneAT && keys.hasNext() )
+		while ( payload <= freePayload - costOfOneAT && keys.hasNext() )
 		{
 				Long id = keys.next();
 				AT at = AT.getAT( id );
@@ -254,6 +254,7 @@ public abstract class AT_Controller {
 						runSteps ( at );
 
 						totalSteps += at.getMachineState().steps;
+						AT.addPendingFee(id, at.getMachineState().steps * AT_Constants.getInstance().STEP_FEE( blockHeight ));
 
 						payload += costOfOneAT;
 
@@ -329,6 +330,7 @@ public abstract class AT_Controller {
 				runSteps( at );
 
 				totalSteps += at.getMachineState().steps;
+				AT.addPendingFee(atId, at.getMachineState().steps * AT_Constants.getInstance().STEP_FEE( blockHeight ));
 
 				at.setP_balance( at.getG_balance() );
 				processedATs.add( at );
@@ -424,6 +426,7 @@ public abstract class AT_Controller {
 		for (AT_Transaction tx : at.getTransactions() )
 		{
 			totalAmount += tx.getAmount();
+			AT.addPendingTransaction(tx);
 			Logger.logInfoMessage("Transaction to " + Convert.toUnsignedLong(AT_API_Helper.getLong(tx.getRecipientId())) + " amount " + tx.getAmount() );
 
 		}
