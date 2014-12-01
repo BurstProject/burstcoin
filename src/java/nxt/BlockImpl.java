@@ -326,7 +326,8 @@ final class BlockImpl implements Block {
             buffer.put(previousBlockHash);
         }
         buffer.putLong(nonce);
-        buffer.put(blockATs);
+        if(blockATs != null)
+        	buffer.put(blockATs);
         buffer.put(blockSignature);
         return buffer.array();
     }

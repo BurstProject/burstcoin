@@ -295,6 +295,11 @@ public abstract class AT_Controller {
 
 	public static AT_Block validateATs( byte[] blockATs , int blockHeight ) throws NoSuchAlgorithmException, AT_Exception {
 
+		if(blockATs == null)
+		{
+			return new AT_Block(0, 0, null, true);
+		}
+		
 		LinkedHashMap< byte[] , byte[] > ats = getATsFromBlock( blockATs );
 
 		List< AT > processedATs = new ArrayList< >();
