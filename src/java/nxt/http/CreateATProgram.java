@@ -20,7 +20,7 @@ public final class CreateATProgram extends CreateTransaction {
 	static final CreateATProgram instance = new CreateATProgram();
 	
 	private CreateATProgram() {
-		super (new APITag[] {APITag.AT, APITag.CREATE_TRANSACTION}, "atVersion", "name", "description", "machineCodePages" ,"machineCode" , "machineDataPages" , "machineData", "machineStackPages" ,"waitForNumberOfBlocks", "minimumFee", "sleepBetween", "sleepExplicit");
+		super (new APITag[] {APITag.AT, APITag.CREATE_TRANSACTION}, "name", "description", "creationBytes");
 	}
 	
 	@Override

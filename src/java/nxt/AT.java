@@ -409,7 +409,7 @@ public final class AT extends AT_Machine_State {
 				+ "(id , creator_id , name , description , version , "
 				+ "csize , dsize , c_user_stack_bytes , c_call_stack_bytes , "
 				+ "minimum_fee , creation_height , "
-				+ "ap_code , height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" ) )
+				+ "ap_code , height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" ) )
 				{
 			int i = 0;
 			pstmt.setLong( ++i , AT_API_Helper.getLong( this.getId() ) );
