@@ -135,7 +135,7 @@ final class BlockDb {
             long id = rs.getLong("id");
             long nonce = rs.getLong("nonce");
 
-            byte[] blockATs = rs.getBytes("blockATs");
+            byte[] blockATs = rs.getBytes("ats");
             
             return new BlockImpl(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                     generatorPublicKey, generationSignature, blockSignature, previousBlockHash,
@@ -149,7 +149,7 @@ final class BlockDb {
         try {
             try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO block (id, version, timestamp, previous_block_id, "
                     + "total_amount, total_fee, payload_length, generator_public_key, previous_block_hash, cumulative_difficulty, "
-                    + "base_target, height, generation_signature, block_signature, payload_hash, generator_id, nonce , blockATs) "
+                    + "base_target, height, generation_signature, block_signature, payload_hash, generator_id, nonce , ats) "
                     + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
                 int i = 0;
                 pstmt.setLong(++i, block.getId());
@@ -169,7 +169,7 @@ final class BlockDb {
                 pstmt.setBytes(++i, block.getPayloadHash());
                 pstmt.setLong(++i, block.getGeneratorId());
                 pstmt.setLong(++i, block.getNonce());
-                pstmt.setBytes(++i, block.getBlockATs());
+                DbUtils.setBytes(pstmt, ++i, block.getBlockATs());
                 pstmt.executeUpdate();
                 TransactionDb.saveTransactions(con, block.getTransactions());
             }

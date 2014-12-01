@@ -448,7 +448,7 @@ final class DbVersion {
             	apply("CREATE TABLE IF NOT EXISTS at (db_id IDENTITY, id BIGINT NOT NULL, creator_id BIGINT NOT NULL, name VARCHAR, description VARCHAR, "
             			+ "version SMALLINT NOT NULL, csize INT NOT NULL, dsize INT NOT NULL, c_user_stack_bytes INT NOT NULL, c_call_stack_bytes INT NOT NULL, "
             			+ "minimum_fee BIGINT NOT NULL, creation_height INT NOT NULL, ap_code BINARY NOT NULL, "
-            			+ "height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE");
+            			+ "height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
             case 145:
             	apply("CREATE UNIQUE INDEX IF NOT EXISTS at_id_height_idx ON at (id, height DESC)");
             case 146:
@@ -462,6 +462,8 @@ final class DbVersion {
             case 149:
             	apply("CREATE INDEX IF NOT EXISTS at_state_prev_height_next_height_idx ON at_state(prev_height, next_height)");
             case 150:
+            	apply("ALTER TABLE block ADD COLUMN IF NOT EXISTS ats BINARY");
+            case 151:
                 return;
             default:
                 throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");
