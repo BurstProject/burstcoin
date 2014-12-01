@@ -151,7 +151,7 @@ public final class AT extends AT_Machine_State {
 		private void save(Connection con) throws SQLException {
 			try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO at_state (at_id, "
 					+ "state, prev_height ,next_height, sleep_between, prev_balance, freeze_when_same_balance, height, latest) "
-					+ "KEY (at_id, height) VALUES (?, ?, ?, ?, ?, ?, ?, ? TRUE)")) {
+					+ "KEY (at_id, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
 				int i = 0;
 				pstmt.setLong(++i, atId);
 				DbUtils.setBytes(pstmt, ++i, state);

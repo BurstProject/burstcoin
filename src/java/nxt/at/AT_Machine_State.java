@@ -124,7 +124,7 @@ public class AT_Machine_State
 		}
 
 		public int getSize() {
-			return 2 + 4 + 4 + 4 + 4 + 4*4 + 4*4;
+			return 2 + 4 + 4 + 4 + 4 + 4*8 + 4*8;
 		}
 
 		public long getSteps() {
