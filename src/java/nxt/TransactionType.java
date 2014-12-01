@@ -2309,9 +2309,10 @@ public abstract class TransactionType {
 
 	            @Override
 	            void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException {
-	                if (transaction.getAmountNQT() <= 0 || transaction.getAmountNQT() >= Constants.MAX_BALANCE_NQT) {
+	                /*if (transaction.getAmountNQT() <= 0 || transaction.getAmountNQT() >= Constants.MAX_BALANCE_NQT) {
 	                    throw new NxtException.NotValidException("Invalid ordinary payment");
-	                }
+	                }*/
+	            	throw new NxtException.NotValidException("AT payment never validates");
 	            }
 
 				@Override
@@ -2325,6 +2326,11 @@ public abstract class TransactionType {
 				@Override
 				public boolean hasRecipient() {
 					return true;
+				}
+				
+				@Override
+				final public boolean isSigned() {
+					return false;
 				}
 	    	};
 	    	

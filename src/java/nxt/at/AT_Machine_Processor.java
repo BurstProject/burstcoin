@@ -887,10 +887,10 @@ public class AT_Machine_Processor{
 
 			if( rc == 0 || disassemble)
 			{
+				rc = 1 + 4;
+				
 				if( disassemble )
 				{
-					rc = 1 + 4;
-
 					if( !determine_jumps )
 					{
 						if( op == OpCode.e_op_code_FIZ_DAT )
@@ -906,7 +906,10 @@ public class AT_Machine_Processor{
 					if(machineData.getAp_data().getLong( fun.addr1*8) == 0 )
 					{
 						if( op == OpCode.e_op_code_STZ_DAT )
+						{
+							machineData.getMachineState().pc += rc;
 							machineData.getMachineState().stopped = true;
+						}
 						else
 						{
 							machineData.getMachineState().pc = machineData.getMachineState().pcs;
@@ -923,10 +926,10 @@ public class AT_Machine_Processor{
 		}
 		else if( op == OpCode.e_op_code_FIN_IMD || op == OpCode.e_op_code_STP_IMD )
 		{
+			rc = 1;
+			
 			if( disassemble )
 			{
-				rc = 1;
-
 				if( !determine_jumps )
 				{
 					if( op == OpCode.e_op_code_FIN_IMD )
@@ -936,7 +939,10 @@ public class AT_Machine_Processor{
 				}
 			}
 			else if( op == OpCode.e_op_code_STP_IMD )
+			{
+				machineData.getMachineState().pc += rc;
 				machineData.getMachineState().stopped = true;
+			}
 			else
 			{
 				machineData.getMachineState().pc = machineData.getMachineState().pcs;

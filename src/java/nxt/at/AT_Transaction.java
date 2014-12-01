@@ -16,16 +16,22 @@ public class AT_Transaction{
 	
 	private static SortedMap<Long,SortedMap<Long,AT_Transaction>> all_AT_Txs = new TreeMap<>();
 	
+	private byte[] senderId = new byte[ AT_Constants.AT_ID_SIZE ];
 	private byte[] recipientId = new byte[ AT_Constants.AT_ID_SIZE ];
 	private long amount;
 	
-	AT_Transaction( byte[] recipientId , long amount ){
+	AT_Transaction( byte[] senderId , byte[] recipientId , long amount ){
+		this.senderId = senderId.clone();
 		this.recipientId = recipientId.clone();
 		this.amount = amount;
 	}
 	
 	public Long getAmount(){
 		return amount;
+	}
+	
+	public byte[] getSenderId(){
+		return senderId;
 	}
 	
 	public byte[] getRecipientId(){

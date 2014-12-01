@@ -276,14 +276,14 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		if ( val > at.getG_balance() )
 		{
 		
-			AT_Transaction tx = new AT_Transaction( state.get_B1().clone() , val );
+			AT_Transaction tx = new AT_Transaction( state.getId() , state.get_B1().clone() , val );
 			state.addTransaction( tx );
 		
 			at.setG_balance( at.getG_balance() - val );
 		}
 		else
 		{
-			AT_Transaction tx = new AT_Transaction( state.get_B1().clone() , at.getG_balance() );
+			AT_Transaction tx = new AT_Transaction( state.getId() , state.get_B1().clone() , at.getG_balance() );
 			state.addTransaction( tx );
 		
 			at.setG_balance( 0L );
@@ -310,7 +310,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		}*/
 
 		long atId = AT_API_Helper.getLong( state.getId() );
-		AT_Transaction tx = new AT_Transaction( state.get_B1().clone() , AT.getAT( atId ).getG_balance() );
+		AT_Transaction tx = new AT_Transaction( state.getId() , state.get_B1().clone() , AT.getAT( atId ).getG_balance() );
 		state.addTransaction( tx );
 		AT.getAT( atId ).setG_balance( 0L );
 
@@ -324,7 +324,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		
 		if ( at.getP_balance() > at.getG_balance()  )
 		{
-			AT_Transaction tx = new AT_Transaction( state.get_B1() , state.getG_balance() );
+			AT_Transaction tx = new AT_Transaction( state.getId() , state.get_B1() , state.getG_balance() );
 			state.addTransaction( tx );
 			
 			at.setG_balance( 0L );
@@ -333,7 +333,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		}
 		else
 		{
-			AT_Transaction tx = new AT_Transaction( state.get_B1() , state.getP_balance() );
+			AT_Transaction tx = new AT_Transaction( state.getId() , state.get_B1() , state.getP_balance() );
 			state.addTransaction( tx );
 			
 			at.setG_balance( at.getG_balance() - at.getP_balance() );
@@ -354,7 +354,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		if ( at.getG_balance() > amount )
 		{
 		
-			AT_Transaction tx = new AT_Transaction( state.get_B1() , amount );
+			AT_Transaction tx = new AT_Transaction( state.getId() , state.get_B1() , amount );
 			state.addTransaction( tx );
 			
 			state.setG_balance( state.getG_balance() - amount );
@@ -362,7 +362,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		}
 		else
 		{
-			AT_Transaction tx = new AT_Transaction( state.get_B1() , at.getG_balance() );
+			AT_Transaction tx = new AT_Transaction( state.getId() , state.get_B1() , at.getG_balance() );
 			state.addTransaction( tx );
 			
 			state.setG_balance( 0L );

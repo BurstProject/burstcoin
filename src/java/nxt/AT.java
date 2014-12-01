@@ -50,47 +50,44 @@ public final class AT extends AT_Machine_State {
 		Nxt.getBlockchainProcessor().addListener(new Listener<Block>() {
 			@Override
 			public void notify(Block block) {
-				try {
-					/*if (block.getBlockATs()!=null)
-					{
-						LinkedHashMap<byte[],byte[]> blockATs = AT_Controller.getATsFromBlock(block.getBlockATs());
-						for ( byte[] id : blockATs.keySet()){
-							Long atId = AT_API_Helper.getLong( id );
-							AT at = AT.getAT( atId );
-
-							Account senderAccount = Account.getAccount( atId );
-							Long fees = at.getMachineState().getSteps() * AT_Constants.getInstance().STEP_FEE( block.getHeight() );
-
-							if ( !( senderAccount.getUnconfirmedBalanceNQT() < fees ) )
-							{
-								senderAccount.addToUnconfirmedBalanceNQT( -fees );
-								senderAccount.addToBalanceNQT( -fees );
-								makeTransactions( at , block );
-							}
-
-
-						}
-					}*/
-					for(Long id : pendingFees.keySet()) {
-						Account atAccount = Account.getAccount(id);
-						atAccount.addToBalanceAndUnconfirmedBalanceNQT(-pendingFees.get(id));
-					}
-					for(AT_Transaction transaction : pendingTransactions) {
-						//TODO makeTransactions
-					}
-				} catch (AT_Exception e) {
-					e.printStackTrace();
-				}	
-
-			}
-
-			private void makeTransactions( AT at, Block block )
-			{
-				try (Connection con = Db.getConnection()) {
-					TransactionDb.saveTransactions(con , at , block );
-				} catch (SQLException e) {
-					throw new RuntimeException(e.toString(), e);
+				for(Long id : pendingFees.keySet()) {
+					Account atAccount = Account.getAccount(id);
+					atAccount.addToBalanceAndUnconfirmedBalanceNQT(-pendingFees.get(id));
 				}
+				List<TransactionImpl> transactions = new ArrayList<>();
+				for(AT_Transaction atTransaction : pendingTransactions) {
+					Attachment.AbstractAttachment attachment = new Attachment.AutomatedTransactionsPayment();
+					TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte)1, Genesis.CREATOR_PUBLIC_KEY,
+							atTransaction.getAmount(), 0L, block.getTimestamp(), (short)1440, attachment);
+					
+					builder.senderId(AT_API_Helper.getLong(atTransaction.getSenderId()))
+						.recipientId(AT_API_Helper.getLong(atTransaction.getRecipientId()))
+						.blockId(block.getId())
+						.height(block.getHeight())
+						.blockTimestamp(block.getTimestamp())
+						.ecBlockHeight(0)
+						.ecBlockId(0L);
+					
+					try {
+						TransactionImpl transaction = builder.build();
+						if(!TransactionDb.hasTransaction(transaction.getId())) {
+							transactions.add(transaction);
+						}
+					}
+					catch(NxtException.NotValidException e) {
+						throw new RuntimeException("Failed to construct AT payment transaction", e);
+					}
+				}
+				
+				if(transactions.size() > 0) {
+					try (Connection con = Db.getConnection()) {
+						TransactionDb.saveTransactions(con, transactions);
+					}
+					catch(SQLException e) {
+						throw new RuntimeException(e.toString(), e);
+					}
+				}
+
 			}
 
 		}, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
