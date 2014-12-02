@@ -261,7 +261,7 @@ public abstract class AT_Controller {
 						at.setP_balance( at.getG_balance() );
 						processedATs.add( at );
 
-						at.saveState();
+						//at.saveState();
 					}
 					catch ( Exception e )
 					{

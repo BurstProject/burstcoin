@@ -56,6 +56,9 @@ public final class AT extends AT_Machine_State {
 				}
 				List<TransactionImpl> transactions = new ArrayList<>();
 				for(AT_Transaction atTransaction : pendingTransactions) {
+					Account.getAccount(AT_API_Helper.getLong(atTransaction.getSenderId())).addToBalanceAndUnconfirmedBalanceNQT(-atTransaction.getAmount());
+					Account.getAccount(AT_API_Helper.getLong(atTransaction.getRecipientId())).addToBalanceAndUnconfirmedBalanceNQT(atTransaction.getAmount());
+					
 					Attachment.AbstractAttachment attachment = new Attachment.AutomatedTransactionsPayment();
 					TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte)1, Genesis.CREATOR_PUBLIC_KEY,
 							atTransaction.getAmount(), 0L, block.getTimestamp(), (short)1440, attachment);

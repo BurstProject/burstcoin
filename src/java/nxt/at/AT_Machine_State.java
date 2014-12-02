@@ -106,6 +106,7 @@ public class AT_Machine_State
 			ByteBuffer bf = ByteBuffer.allocate( getSize() );
 			bf.order( ByteOrder.LITTLE_ENDIAN );
 			bf.put( machineState );
+			bf.flip();
 			
 			bf.get( flags , 0 , 2 );
 			pc = bf.getInt();
@@ -530,6 +531,7 @@ public class AT_Machine_State
 		ByteBuffer b = ByteBuffer.allocate( state.length );
 		b.order( ByteOrder.LITTLE_ENDIAN );
 		b.put( state );
+		b.flip();
 		
 		int stateSize = this.machineState.getSize();
 		byte[] machineState = new byte[ stateSize ];

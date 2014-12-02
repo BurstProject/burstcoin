@@ -168,7 +168,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 									if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
 										try {
-											pushBlock(block, null);
+											pushBlock(block);
 										} catch (BlockNotAcceptedException e) {
 											peer.blacklist(e);
 											return;
@@ -320,7 +320,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 					for (BlockImpl block : forkBlocks) {
 						if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
 							try {
-								pushBlock(block, null);
+								pushBlock(block);
 								pushedForkBlocks += 1;
 							} catch (BlockNotAcceptedException e) {
 								peer.blacklist(e);
@@ -344,7 +344,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 					for (int i = myPoppedOffBlocks.size() - 1; i >= 0; i--) {
 						BlockImpl block = myPoppedOffBlocks.remove(i);
 						try {
-							pushBlock(block, null);
+							pushBlock(block);
 						} catch (BlockNotAcceptedException e) {
 							Logger.logErrorMessage("Popped off block no longer acceptable: " + block.getJSONObject().toJSONString(), e);
 							break;
@@ -456,7 +456,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 	@Override
 	public void processPeerBlock(JSONObject request) throws NxtException {
 		BlockImpl block = BlockImpl.parseBlock(request);
-		pushBlock(block, null);
+		pushBlock(block);
 	}
 
 	@Override
@@ -525,7 +525,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		}
 	}
 
-	private void pushBlock(final BlockImpl block , AT_Block ats) throws BlockNotAcceptedException {
+	private void pushBlock(final BlockImpl block) throws BlockNotAcceptedException {
 
 		int curTime = Nxt.getEpochTime();
 
@@ -630,20 +630,21 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 				}
 
-				if (calculatedTotalAmount != block.getTotalAmountNQT() || calculatedTotalFee > block.getTotalFeeNQT()) {
+				if (calculatedTotalAmount > block.getTotalAmountNQT() || calculatedTotalFee > block.getTotalFeeNQT()) {
 					throw new BlockNotAcceptedException("Total amount or fee don't match transaction totals");
 				}
 				if (!Arrays.equals(digest.digest(), block.getPayloadHash())) {
 					throw new BlockNotAcceptedException("Payload hash doesn't match");
 				}
 
+				long remainingAmount = Convert.safeSubtract(block.getTotalAmountNQT(), calculatedTotalAmount);
 				long remainingFee = Convert.safeSubtract(block.getTotalFeeNQT(), calculatedTotalFee);
 
 				block.setPrevious(previousLastBlock);
 				blockListeners.notify(block, Event.BEFORE_BLOCK_ACCEPT);
 				transactionProcessor.requeueAllUnconfirmedTransactions();
 				addBlock(block);
-				accept(block, remainingFee, ats);
+				accept(block, remainingAmount, remainingFee);
 
 				Db.commitTransaction();
 			} catch (Exception e) {
@@ -663,7 +664,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 	}
 
-	private void accept(BlockImpl block, Long remainingFee, AT_Block ats) throws TransactionNotAcceptedException, BlockNotAcceptedException {
+	private void accept(BlockImpl block, Long remainingAmount, Long remainingFee) throws TransactionNotAcceptedException, BlockNotAcceptedException {
 		Subscription.clearRemovals();
 		TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
 		for (TransactionImpl transaction : block.getTransactions()) {
@@ -671,30 +672,28 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				throw new TransactionNotAcceptedException("Double spending transaction: " + transaction.getStringId(), transaction);
 			}
 		}
+		long calculatedRemainingAmount = 0;
 		long calculatedRemainingFee = 0;
 		//ATs
-		if ( ats == null )
-		{
-			AT_Block atBlock;
-			AT.clearPendingFees();
-			AT.clearPendingTransactions();
-			try {
-				atBlock = AT_Controller.validateATs( block.getBlockATs() , Nxt.getBlockchain().getHeight());
-			} catch (NoSuchAlgorithmException e) {
-				//should never reach that point
-				throw new BlockNotAcceptedException( "md5 does not exist" );
-			} catch (AT_Exception e) {
-				throw new BlockNotAcceptedException("ats are not matching at block height " + Nxt.getBlockchain().getHeight() );
-			}
-			calculatedRemainingFee += atBlock.getTotalFees();
+		AT_Block atBlock;
+		AT.clearPendingFees();
+		AT.clearPendingTransactions();
+		try {
+			atBlock = AT_Controller.validateATs( block.getBlockATs() , Nxt.getBlockchain().getHeight());
+		} catch (NoSuchAlgorithmException e) {
+			//should never reach that point
+			throw new BlockNotAcceptedException( "md5 does not exist" );
+		} catch (AT_Exception e) {
+			throw new BlockNotAcceptedException("ats are not matching at block height " + Nxt.getBlockchain().getHeight() );
 		}
-		else
-		{
-			calculatedRemainingFee += ats.getTotalFees();
-		}
+		calculatedRemainingAmount += atBlock.getTotalAmount();
+		calculatedRemainingFee += atBlock.getTotalFees();
 		//ATs
 		if(Subscription.isEnabled()) {
 			calculatedRemainingFee += Subscription.applyUnconfirmed(block.getTimestamp());
+		}
+		if(remainingAmount != null && remainingAmount.longValue() != calculatedRemainingAmount) {
+			throw new BlockNotAcceptedException("Calculated remaining amount doesn't add up");
 		}
 		if(remainingFee != null && remainingFee.longValue() != calculatedRemainingFee) {
 			throw new BlockNotAcceptedException("Calculated remaining fee doesn't add up");
@@ -923,7 +922,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		block.setPrevious(previousBlock);
 
 		try {
-			pushBlock(block, atBlock);
+			pushBlock(block);
 			blockListeners.notify(block, Event.BLOCK_GENERATED);
 			Logger.logDebugMessage("Account " + Convert.toUnsignedLong(block.getGeneratorId()) + " generated block " + block.getStringId()
 					+ " at height " + block.getHeight());
