@@ -433,9 +433,15 @@ public class AT_API_Impl implements AT_API
 		return platform.add_Minutes_to_Timestamp( val1 , val2 , state );
 	}
 
+	@Override
+	public long freeze_When_Same_Balance( AT_Machine_State state ) {
+		return ( state.freezeOnSameBalance() ) ? 1L : 0L;
+	}
 	
-	
-	
+	@Override
+	public void revert_Freeze_When_Same_Balance( AT_Machine_State state ) {
+		state.revertFreezeOnSameBalance();
+	}
 	
 	
 

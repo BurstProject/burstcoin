@@ -340,7 +340,16 @@ public interface AT_API {
 	 */
 	public long add_Minutes_to_Timestamp ( long val1 , long val2 , AT_Machine_State state );
 	
+	/**
+	 * bool if freezeWhenSameBalance
+	 */
+	public long freeze_When_Same_Balance( AT_Machine_State state );
 	
+	
+	/**
+	 * revert freezeWhenSameBalance
+	 */
+	public void revert_Freeze_When_Same_Balance( AT_Machine_State state );
 	// end range 0x0400.0x04ff
 	// -----------------------
 }

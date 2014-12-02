@@ -198,9 +198,14 @@ public class AT_API_Controller{
 		{
 			atApi.send_A_to_Address_in_B( state );
 		}
-		
-		
-		
+		else if ( func_num == 1040 )
+		{
+			return atApi.freeze_When_Same_Balance( state );
+		}
+		else if ( func_num == 1041 )
+		{
+			atApi.revert_Freeze_When_Same_Balance( state );
+		}
 		
 		
 		return rc;
