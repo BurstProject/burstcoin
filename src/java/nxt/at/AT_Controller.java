@@ -33,6 +33,8 @@ public abstract class AT_Controller {
 
 		int height = Nxt.getBlockchain().getHeight();
 
+		state.setFreeze( false );
+		
 		while ( state.getMachineState().steps < AT_Constants.getInstance().MAX_STEPS( height ))
 		{
 			long stepFee = AT_Constants.getInstance().STEP_FEE( height );
@@ -40,6 +42,7 @@ public abstract class AT_Controller {
 			if ( ( state.getG_balance() < stepFee ) )
 			{
 				System.out.println( "stopped - not enough balance" );
+				state.setFreeze( true );
 				return 3;
 			}
 
@@ -51,7 +54,6 @@ public abstract class AT_Controller {
 			{
 				if ( state.getMachineState().stopped )
 				{
-					//TODO add freeze
 					System.out.println( "stopped" );
 					return 2;
 				}

@@ -46,6 +46,7 @@ public final class OpCode
 		static byte e_op_code_STZ_DAT = Byte.parseByte("27",16);
 		static byte e_op_code_FIN_IMD = Byte.parseByte("28",16);
 		static byte e_op_code_STP_IMD = Byte.parseByte("29",16);
+		static byte e_op_code_SLP_IMD = Byte.parseByte("30",16);
 		static byte e_op_code_SET_PCS = Byte.parseByte("30",16);
 		static byte e_op_code_EXT_FUN = Byte.parseByte("32",16);
 		static byte e_op_code_EXT_FUN_DAT = Byte.parseByte("33",16);
@@ -53,5 +54,6 @@ public final class OpCode
 		static byte e_op_code_EXT_FUN_RET = Byte.parseByte("35",16);
 		static byte e_op_code_EXT_FUN_RET_DAT = Byte.parseByte("36",16);
 		static byte e_op_code_EXT_FUN_RET_DAT_2 = Byte.parseByte("37",16);
+		
 		
 	}
