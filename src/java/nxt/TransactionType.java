@@ -5,6 +5,8 @@ import nxt.Attachment.AutomatedTransactionsCreation;
 import nxt.NxtException.NotValidException;
 import nxt.NxtException.ValidationException;
 import nxt.at.AT_Constants;
+import nxt.at.AT_Controller;
+import nxt.at.AT_Exception;
 import nxt.util.Convert;
 
 import org.json.simple.JSONObject;
@@ -2266,8 +2268,15 @@ public abstract class TransactionType {
 						throw new NxtException.NotYetEnabledException("Automated Transactions not yet enabled at height " + Nxt.getBlockchain().getLastBlock().getHeight());
 					}
 					Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
-					if (transaction.getFeeNQT() < attachment.getTotalPages() * AT_Constants.getInstance().COST_PER_PAGE( transaction.getHeight() ) ){
-						throw new NxtException.NotValidException("Invalid automated transaction program creation attachment: " + attachment.getJSONObject());
+					long totalPages = 0;
+					try {
+						totalPages = AT_Controller.checkCreationBytes(attachment.getCreationBytes(), Nxt.getBlockchain().getHeight());
+					}
+					catch(AT_Exception e) {
+						throw new NxtException.NotCurrentlyValidException("Invalid AT creation bytes", e);
+					}
+					if (transaction.getFeeNQT() < totalPages * AT_Constants.getInstance().COST_PER_PAGE( transaction.getHeight() ) ){
+						throw new NxtException.NotValidException("Insufficient fee for AT creation: " + attachment.getJSONObject());
 					}
 					System.out.println("validating success");
 				}

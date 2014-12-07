@@ -204,12 +204,7 @@ public class AT_Machine_Processor{
 			if ( disassemble ){
 				if (! determine_jumps )
 					System.out.println("NOP");
-				while (true){
-					++rc;
-					if (machineData.getMachineState().pc + rc >= machineData.getCsize() || (machineData.getAp_code()).get(machineData.getMachineState().pc + rc)!=OpCode.e_op_code_NOP){
-						break;
-					}
-				}
+				++rc;
 			}
 			else while (true){
 				++rc;

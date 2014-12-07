@@ -492,6 +492,8 @@ public final class AT extends AT_Machine_State {
 			throw new RuntimeException(e.toString(), e);
 		}
 	}
+	
+	static void init() {}
 
 	private final String name;    
 	private final String description;

@@ -180,6 +180,7 @@ public final class Nxt {
                 Trade.init();
                 AssetTransfer.init();
                 Vote.init();
+                AT.init();
                 Peers.init();
                 Generator.init();
                 API.init();

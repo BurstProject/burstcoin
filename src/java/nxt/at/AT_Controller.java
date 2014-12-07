@@ -106,6 +106,9 @@ public abstract class AT_Controller {
 	}
 
 	public static int checkCreationBytes( byte[] creation , int height ) throws AT_Exception{
+		if(creation == null)
+			throw new AT_Exception( "Creation bytes cannot be null" );
+		
 		int totalPages = 0;
 		try 
 		{

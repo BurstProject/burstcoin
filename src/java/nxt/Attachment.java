@@ -1928,7 +1928,6 @@ public interface Attachment extends Appendix {
         private final String name;    
         private final String description;
         private final byte[] creationBytes;
-        private final int totalPages;
     	
     	
 		AutomatedTransactionsCreation(ByteBuffer buffer,
@@ -1942,12 +1941,6 @@ public interface Attachment extends Appendix {
 			buffer.get( dst , 0 , buffer.capacity() - buffer.position() );
 			this.creationBytes = dst;
 			
-			try {
-				this.totalPages = AT_Controller.checkCreationBytes( creationBytes , Nxt.getBlockchain().getHeight() );
-			} catch (AT_Exception e) {
-				Logger.logErrorMessage( " error checking AT creation Bytes " + e.getMessage() );
-				throw new NxtException.NotValidException( e.getMessage() );
-			}
 		}
 
 		AutomatedTransactionsCreation(JSONObject attachmentData) throws NxtException.NotValidException {
@@ -1958,12 +1951,6 @@ public interface Attachment extends Appendix {
 			
 			this.creationBytes = Convert.parseHexString( (String) attachmentData.get( "creationBytes" ) );
 			
-			try {
-				this.totalPages = AT_Controller.checkCreationBytes( creationBytes , Nxt.getBlockchain().getHeight() );
-			} catch (AT_Exception e) {
-				Logger.logErrorMessage( " error checking AT creation Bytes " + e.getMessage() );
-				throw new NxtException.NotValidException( e.getMessage() );
-			}
 		}
 			
 		public AutomatedTransactionsCreation( String name, String description , byte[] creationBytes ) throws NotValidException
@@ -1971,13 +1958,6 @@ public interface Attachment extends Appendix {
 			this.name = name;
 			this.description = description;
 			this.creationBytes = creationBytes;
-			
-			try {
-				this.totalPages = AT_Controller.checkCreationBytes( creationBytes, Nxt.getBlockchain().getHeight() );
-			} catch (AT_Exception e) {
-				Logger.logErrorMessage( " error checking AT creation Bytes " + e.getMessage() );
-				throw new NxtException.NotValidException( e.getMessage() );
-			}
 			
 		}
 		
@@ -2013,8 +1993,6 @@ public interface Attachment extends Appendix {
             attachment.put("description", description);
             attachment.put("creationBytes", Convert.toHexString( creationBytes ) );        
 		}
-		
-		public int getTotalPages() { return totalPages; }
 
         public String getName() { return name; }
 
