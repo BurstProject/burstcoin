@@ -26,22 +26,22 @@ public interface AT_API {
 	public long get_A4( AT_Machine_State state );
 
 	/**
-	 * sets @addr to B1 (0x0105)
+	 * sets @addr to B1 (0x0104)
 	 */
 	public long get_B1( AT_Machine_State state );
 	
 	/**
-	 * sets @addr to B2 (0x0106)
+	 * sets @addr to B2 (0x0105)
 	 */
 	public long get_B2( AT_Machine_State state );
 	
 	/**
-	 * sets @addr to B3 (0x0107)
+	 * sets @addr to B3 (0x0106)
 	 */
 	public long get_B3( AT_Machine_State state );
 	
 	/**
-	 * sets @addr to B4 (0x0108)
+	 * sets @addr to B4 (0x0107)
 	 */
 	public long get_B4( AT_Machine_State state );
 	
