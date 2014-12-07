@@ -107,7 +107,7 @@ public class AT_API_Controller{
 		}
 		else if ( func_num == 311 )
 		{
-			atApi.mul_B_by_A( state );
+			atApi.div_B_by_A( state );
 		}
 		
 		else if ( func_num == 512 )
