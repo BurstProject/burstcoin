@@ -904,11 +904,13 @@ public class AT_Machine_Processor{
 						{
 							machineData.getMachineState().pc += rc;
 							machineData.getMachineState().stopped = true;
+							machineData.setFreeze( true );
 						}
 						else
 						{
 							machineData.getMachineState().pc = machineData.getMachineState().pcs;
 							machineData.getMachineState().finished = true;
+							machineData.setFreeze( true );
 						}
 					}
 					else
@@ -937,12 +939,33 @@ public class AT_Machine_Processor{
 			{
 				machineData.getMachineState().pc += rc;
 				machineData.getMachineState().stopped = true;
+				machineData.setFreeze( true );
 			}
 			else
 			{
 				machineData.getMachineState().pc = machineData.getMachineState().pcs;
 				machineData.getMachineState().finished = true;
+				machineData.setFreeze( true );
 			}
+		}
+		else if ( op == OpCode.e_op_code_SLP_IMD )
+		{
+			rc = 1;
+			
+			if( disassemble )
+			{
+				if( !determine_jumps )
+				{
+					System.out.println("SLP\n");
+				}
+			}
+			else
+			{
+				machineData.getMachineState().pc += rc;
+				machineData.getMachineState().stopped = true;
+				machineData.setFreeze( true );
+			}
+			
 		}
 		else if( op == OpCode.e_op_code_SET_PCS )
 		{
@@ -976,7 +999,7 @@ public class AT_Machine_Processor{
 				{
 
 					machineData.getMachineState().pc += rc;
-					AT_API_Controller.func( fun.fun ,machineData);
+					AT_API_Controller.func( fun.fun , machineData );
 				}
 			}
 		}
@@ -990,14 +1013,14 @@ public class AT_Machine_Processor{
 				if( disassemble )
 				{
 					if( !determine_jumps )
-						System.out.println("FUN "+fun.fun+" $"+
-								String.format("%8x", fun.addr1).replace(' ','0'));
+						System.out.println( "FUN "+fun.fun+" $"+
+								String.format( "%8x", fun.addr1 ).replace( ' ','0' ) );
 				}
 				else
 				{
 					machineData.getMachineState().pc += rc;
-					long val = (machineData.getAp_data()).getLong( fun.addr1*8);
-					AT_API_Controller.func1( fun.fun, val,machineData);
+					long val = (machineData.getAp_data()).getLong( fun.addr1*8 );
+					AT_API_Controller.func1( fun.fun, val, machineData );
 				}
 			}
 		}

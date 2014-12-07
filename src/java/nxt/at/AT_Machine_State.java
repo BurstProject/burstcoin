@@ -578,4 +578,9 @@ public class AT_Machine_State
 
 	}
 
+	public void setFreeze(boolean freeze) {
+		this.freezeWhenSameBalance = freeze;
+		
+	}
+
 }
