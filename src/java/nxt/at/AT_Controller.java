@@ -270,7 +270,7 @@ public abstract class AT_Controller {
 					}
 					catch ( Exception e )
 					{
-						
+
 					}
 				}
 		}
@@ -305,7 +305,7 @@ public abstract class AT_Controller {
 			return new AT_Block(0, 0, null, true);
 		}
 		
-		LinkedHashMap< byte[] , byte[] > ats = getATsFromBlock( blockATs );
+		LinkedHashMap< ByteBuffer , byte[] > ats = getATsFromBlock( blockATs );
 
 		List< AT > processedATs = new ArrayList< >();
 
@@ -313,8 +313,9 @@ public abstract class AT_Controller {
 		long totalSteps = 0;
 		MessageDigest digest = MessageDigest.getInstance( "MD5" );
 		byte[] md5 = null;
-		for ( byte[] atId : ats.keySet() )
+		for ( ByteBuffer atIdBuffer : ats.keySet() )
 		{
+			byte[] atId = atIdBuffer.array();
 			AT at = AT.getAT( atId );
 
 			try
@@ -346,7 +347,7 @@ public abstract class AT_Controller {
 				processedATs.add( at );
 
 				md5 = digest.digest( at.getBytes() );
-				if ( !Arrays.equals( md5 , ats.get( atId ) ) )
+				if ( !Arrays.equals( md5 , ats.get( atIdBuffer ) ) )
 				{
 					throw new AT_Exception( "Calculated md5 and recieved md5 are not matching" );
 				}
@@ -368,7 +369,7 @@ public abstract class AT_Controller {
 		return atBlock;
 	}
 
-	public static LinkedHashMap< byte[] , byte[] > getATsFromBlock( byte[] blockATs ) throws AT_Exception
+	public static LinkedHashMap< ByteBuffer , byte[] > getATsFromBlock( byte[] blockATs ) throws AT_Exception
 	{
 		if ( blockATs.length > 0 )
 		{
@@ -382,18 +383,21 @@ public abstract class AT_Controller {
 		b.order( ByteOrder.LITTLE_ENDIAN );
 
 		byte[] temp = new byte[ AT_Constants.AT_ID_SIZE ];
-		byte[] md5 = new byte[ 16 ];
 
-		LinkedHashMap< byte[] , byte[] > ats = new LinkedHashMap<>();
+		LinkedHashMap< ByteBuffer , byte[] > ats = new LinkedHashMap<>();
 
 		while ( b.position() < b.capacity() )
 		{
 			b.get( temp , 0 , temp.length );
+			byte[] md5 = new byte[ 16 ];
 			b.get( md5 , 0 , md5.length );
-			if(ats.containsKey(temp)) {
+			ByteBuffer atId = ByteBuffer.allocate(AT_Constants.AT_ID_SIZE);
+			atId.put(temp);
+			atId.clear();
+			if(ats.containsKey(atId)) {
 				throw new AT_Exception("AT included in block multiple times");
 			}
-			ats.put( temp , md5 ); 
+			ats.put( atId , md5 ); 
 		}
 
 		if ( b.position() != b.capacity() )

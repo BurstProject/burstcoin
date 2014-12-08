@@ -187,6 +187,7 @@ public class AT_Machine_State
 		this.ap_code = ByteBuffer.allocate( apCode.length );
 		ap_code.order( ByteOrder.LITTLE_ENDIAN );
 		ap_code.put( apCode );
+		ap_code.clear();
 		
 		transactions = new LinkedList< AT_Transaction >();
 		
@@ -240,6 +241,7 @@ public class AT_Machine_State
 		this.ap_code = ByteBuffer.allocate( csize );
 		this.ap_code.order( ByteOrder.LITTLE_ENDIAN );
 		this.ap_code.put( code );
+		this.ap_code.clear();
 
 		int dataLen = 0;
 		if ( dataPages * pageSize < 257 )
@@ -260,6 +262,7 @@ public class AT_Machine_State
 		this.ap_data = ByteBuffer.allocate( this.dsize + this.c_call_stack_bytes + this.c_user_stack_bytes );
 		this.ap_data.order( ByteOrder.LITTLE_ENDIAN );
 		this.ap_data.put( data );
+		this.ap_data.clear();
 
 		this.creationBlockHeight = height;
 		this.minimumFee = ( codePages + 
@@ -552,6 +555,7 @@ public class AT_Machine_State
 		ap_data = ByteBuffer.allocate( apData.length );
 		ap_data.order( ByteOrder.LITTLE_ENDIAN );
 		ap_data.put( apData );
+		ap_data.clear();
 		
 	}
 	
