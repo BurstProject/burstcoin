@@ -1124,25 +1124,24 @@ public class AT_Machine_Processor{
 		{
 			rc = getAddr(true);
 			
-			if ( rc == 0 || disassemble )
+			// don't check rc to allow for unsetting handler with -1
+			
+			rc = 1 + 4;
+			
+			if( disassemble )
 			{
-				rc = 1 + 4;
-				
-				if( disassemble )
+				if( !determine_jumps )
+					System.out.println("ERR :"+String.format("%8x",fun.addr1));
+			}
+			else
+			{
+				if( fun.addr1 == -1 || machineData.getMachineState().jumps.contains( fun.addr1 ))
 				{
-					if( !determine_jumps )
-						System.out.println("ERR :"+String.format("%8x",fun.addr1));
+					machineData.getMachineState().pc += rc;
+					machineData.getMachineState().err = fun.addr1;
 				}
 				else
-				{
-					if( fun.addr1 == -1 || machineData.getMachineState().jumps.contains( fun.addr1 ))
-					{
-						machineData.getMachineState().pc += rc;
-						machineData.getMachineState().err = fun.addr1;
-					}
-					else
-						rc = -2;
-				}
+					rc = -2;
 			}
 		}
 		else
