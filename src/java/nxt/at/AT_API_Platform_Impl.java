@@ -373,21 +373,15 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 
 	protected static Long findTransaction(int startHeight ,Long atID, int numOfTx){
 		try (Connection con = Db.getConnection();
-				PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction WHERE height>= ? AND height <= ? and recipient_id = ?")){
+				PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction WHERE height>= ? AND height < ? and recipient_id = ? LIMIT 1 OFFSET ?")){
 			pstmt.setInt(1, startHeight);
 			pstmt.setInt(2, Nxt.getBlockchain().getHeight());
 			pstmt.setLong(3, atID);
+			pstmt.setInt(4, numOfTx);
 			ResultSet rs = pstmt.executeQuery();
 			Long transactionId = 0L;
-			int counter = 0;
-			while (rs.next()) {
-				System.out.println("tx id "+rs.getLong("id"));
-				if (counter == numOfTx){
-					transactionId = rs.getLong("id");
-					rs.close();
-					return transactionId;
-				}
-				counter++;
+			if(rs.next()) {
+				transactionId = rs.getLong("id");
 			}
 			rs.close();
 			return transactionId;
