@@ -22,6 +22,7 @@ public class AT_Machine_State
 		transient boolean running;
 		transient boolean stopped;
 		transient boolean finished;
+		transient boolean dead;
 
 		int pc;
 		int pcs;
@@ -30,6 +31,8 @@ public class AT_Machine_State
 
 		int cs;
 		int us;
+		
+		int err;
 
 		int steps;
 
@@ -64,11 +67,13 @@ public class AT_Machine_State
 			opc = 0;
 			cs = 0;
 			us = 0;
+			err = -1;
 			steps = 0;
 			if ( !jumps.isEmpty() )
 				jumps.clear();
 			stopped = false;
 			finished = false;
+			dead = false;
 		}
 
 		void run()
@@ -87,6 +92,7 @@ public class AT_Machine_State
 			bytes.putInt( machineState.pcs );
 			bytes.putInt( machineState.cs );
 			bytes.putInt( machineState.us );
+			bytes.putInt( machineState.err );
 			
 			bytes.put( A1 );
 			bytes.put( A2 );
@@ -113,6 +119,7 @@ public class AT_Machine_State
 			pcs = bf.getInt();
 			cs = bf.getInt();
 			us = bf.getInt();
+			err = bf.getInt();
 			bf.get( A1 , 0 , 8 );
 			bf.get( A2 , 0 , 8 );
 			bf.get( A3 , 0 , 8 );
@@ -125,7 +132,7 @@ public class AT_Machine_State
 		}
 
 		public int getSize() {
-			return 2 + 4 + 4 + 4 + 4 + 4*8 + 4*8;
+			return 2 + 4 + 4 + 4 + 4 + 4 + 4*8 + 4*8;
 		}
 
 		public long getSteps() {

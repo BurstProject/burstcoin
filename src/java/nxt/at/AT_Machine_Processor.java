@@ -1120,6 +1120,31 @@ public class AT_Machine_Processor{
 				}
 			}
 		}
+		else if( op == OpCode.e_op_code_ERR_ADR )
+		{
+			rc = getAddr(true);
+			
+			if ( rc == 0 || disassemble )
+			{
+				rc = 1 + 4;
+				
+				if( disassemble )
+				{
+					if( !determine_jumps )
+						System.out.println("ERR :"+String.format("%8x",fun.addr1));
+				}
+				else
+				{
+					if( fun.addr1 == -1 || machineData.getMachineState().jumps.contains( fun.addr1 ))
+					{
+						machineData.getMachineState().pc += rc;
+						machineData.getMachineState().err = fun.addr1;
+					}
+					else
+						rc = -2;
+				}
+			}
+		}
 		else
 		{
 			if( !disassemble )

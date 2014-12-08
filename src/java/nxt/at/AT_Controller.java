@@ -26,7 +26,9 @@ public abstract class AT_Controller {
 
 	public static int runSteps( AT_Machine_State state )
 	{
+		state.getMachineState().stopped = false;
 		state.getMachineState().finished = false;
+		state.getMachineState().dead = false;
 		state.getMachineState().steps = 0;
 
 		AT_Machine_Processor processor = new AT_Machine_Processor( state );
@@ -71,7 +73,16 @@ public abstract class AT_Controller {
 					System.out.println( "error: invalid code" );
 				else
 					System.out.println( "unexpected error" );
-				return 0;
+				
+				if(state.getMachineState().jumps.contains(state.getMachineState().err))
+				{
+					state.getMachineState().pc = state.getMachineState().err;
+				}
+				else
+				{
+					state.getMachineState().dead = true;
+					return 0;
+				}
 			}
 		}
 		return 5;
@@ -232,7 +243,7 @@ public abstract class AT_Controller {
 
 		int costOfOneAT = getCostOfOneAT();
 		int payload = 0;
-		long totalSteps = 0;
+		long totalFee = 0;
 		while ( payload <= freePayload - costOfOneAT && keys.hasNext() )
 		{
 				Long id = keys.next();
@@ -258,8 +269,14 @@ public abstract class AT_Controller {
 						listCode(at, true, true);
 						runSteps ( at );
 
-						totalSteps += at.getMachineState().steps;
-						AT.addPendingFee(id, at.getMachineState().steps * AT_Constants.getInstance().STEP_FEE( blockHeight ));
+						long fee = at.getMachineState().steps * AT_Constants.getInstance().STEP_FEE( blockHeight );
+						if( at.getMachineState().dead )
+						{
+							fee += at.getG_balance();
+							at.setG_balance(0L);
+						}
+						totalFee += fee;
+						AT.addPendingFee(id, fee);
 
 						payload += costOfOneAT;
 
@@ -293,7 +310,7 @@ public abstract class AT_Controller {
 			e.printStackTrace();
 		}
 
-		AT_Block atBlock = new AT_Block( totalSteps * AT_Constants.getInstance().STEP_FEE( blockHeight ) , totalAmount , bytesForBlock );
+		AT_Block atBlock = new AT_Block( totalFee , totalAmount , bytesForBlock );
 
 		return atBlock;
 	}
@@ -310,7 +327,7 @@ public abstract class AT_Controller {
 		List< AT > processedATs = new ArrayList< >();
 
 		boolean validated = true;
-		long totalSteps = 0;
+		long totalFee = 0;
 		MessageDigest digest = MessageDigest.getInstance( "MD5" );
 		byte[] md5 = null;
 		for ( ByteBuffer atIdBuffer : ats.keySet() )
@@ -340,8 +357,14 @@ public abstract class AT_Controller {
 
 				runSteps( at );
 
-				totalSteps += at.getMachineState().steps;
-				AT.addPendingFee(atId, at.getMachineState().steps * AT_Constants.getInstance().STEP_FEE( blockHeight ));
+				long fee = at.getMachineState().steps * AT_Constants.getInstance().STEP_FEE( blockHeight );
+				if( at.getMachineState().dead )
+				{
+					fee += at.getG_balance();
+					at.setG_balance(0L);
+				}
+				totalFee += fee;
+				AT.addPendingFee(atId, fee);
 
 				at.setP_balance( at.getG_balance() );
 				processedATs.add( at );
@@ -364,7 +387,7 @@ public abstract class AT_Controller {
 			at.saveState();
 			totalAmount = makeTransactions( at );
 		}
-		AT_Block atBlock = new AT_Block( totalSteps * AT_Constants.getInstance().STEP_FEE( blockHeight ) , totalAmount , new byte[ 1 ] , validated );
+		AT_Block atBlock = new AT_Block( totalFee , totalAmount , new byte[ 1 ] , validated );
 
 		return atBlock;
 	}
