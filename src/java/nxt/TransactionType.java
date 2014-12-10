@@ -2267,6 +2267,9 @@ public abstract class TransactionType {
 					if (Nxt.getBlockchain().getLastBlock().getHeight()< Constants.AUTOMATED_TRANSACTION_BLOCK){
 						throw new NxtException.NotYetEnabledException("Automated Transactions not yet enabled at height " + Nxt.getBlockchain().getLastBlock().getHeight());
 					}
+					if (Account.getAccount(transaction.getId()) != null) {
+						throw new NxtException.NotValidException("Account with id already exists");
+					}
 					Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
 					long totalPages = 0;
 					try {
@@ -2275,8 +2278,9 @@ public abstract class TransactionType {
 					catch(AT_Exception e) {
 						throw new NxtException.NotCurrentlyValidException("Invalid AT creation bytes", e);
 					}
-					if (transaction.getFeeNQT() < totalPages * AT_Constants.getInstance().COST_PER_PAGE( transaction.getHeight() ) ){
-						throw new NxtException.NotValidException("Insufficient fee for AT creation: " + attachment.getJSONObject());
+					long requiredFee = totalPages * AT_Constants.getInstance().COST_PER_PAGE( transaction.getHeight() );
+					if (transaction.getFeeNQT() <  requiredFee){
+						throw new NxtException.NotValidException("Insufficient fee for AT creation. Minimum: " + Convert.toUnsignedLong(requiredFee / Constants.ONE_NXT));
 					}
 					System.out.println("validating success");
 				}
