@@ -692,6 +692,70 @@ public class AT_Machine_Processor{
 				}
 			}
 		}
+		else if ( op == OpCode.e_op_code_MOD_DAT )
+		{
+			rc = getAddrs();
+			
+			if( rc == 0 || disassemble )
+			{
+				rc = 1 + 4 + 4;
+				if (disassemble)
+				{
+					if ( !determine_jumps )
+						System.out.println("MOD @"+String.format("%8x", fun.addr1).replace(' ', '0')+
+								" $"+String.format("%8s", fun.addr2).replace(' ','0'));
+				}
+			}
+			else
+			{
+				long modData1 = machineData.getAp_data().getLong(fun.addr1 * 8);
+				long modData2 = machineData.getAp_data().getLong(fun.addr2 * 8);
+				
+				if(modData2 == 0)
+					rc = -2;
+				else
+				{
+					machineData.getMachineState().pc += rc;
+					machineData.getAp_data().putLong(fun.addr1 * 8, modData1 % modData2);
+				}
+			}
+		}
+		else if( op == OpCode.e_op_code_SHL_DAT || op == OpCode.e_op_code_SHR_DAT )
+		{
+			rc = getAddrs();
+			
+			if( rc == 0 || disassemble )
+			{
+				rc = 1 + 4 + 4;
+				if( disassemble )
+				{
+					if( !determine_jumps )
+					{
+						if( op == OpCode.e_op_code_SHL_DAT )
+							System.out.println("SHL @"+String.format("%8x", fun.addr1).replace(' ', '0')+
+									" $"+String.format("%8x", fun.addr2).replace(' ', '0'));
+						else
+							System.out.println("SHR @"+String.format("%8x", fun.addr1).replace(' ', '0')+
+									" $"+String.format("%8x", fun.addr2).replace(' ', '0'));
+					}
+				}
+				else
+				{
+					machineData.getMachineState().pc+=rc;
+					long val = machineData.getAp_data().getLong(fun.addr1 * 8);
+					long shift = machineData.getAp_data().getLong(fun.addr2 * 8);
+					if(shift < 0)
+						shift = 0;
+					else if(shift > 63)
+						shift = 63;
+					
+					if( op == OpCode.e_op_code_SHL_DAT )
+						machineData.getAp_data().putLong(fun.addr1 * 8, val << shift);
+					else
+						machineData.getAp_data().putLong(fun.addr1 * 8, val >>> shift);
+				}
+			}
+		}
 		else if( op == OpCode.e_op_code_JMP_ADR )
 		{
 			rc = getAddr(true);
