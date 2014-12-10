@@ -180,6 +180,7 @@ public final class APIServlet extends HttpServlet {
         map.put("getATDetails", GetATDetails.instance);
         map.put("getATIds", GetATIds.instance);
         map.put("getATLong", GetATLong.instance);
+        map.put("getAccountATs", GetAccountATs.instance);
 
         if (API.enableDebugAPI) {
         	map.put("clearUnconfirmedTransactions", ClearUnconfirmedTransactions.instance);

@@ -289,7 +289,8 @@ public final class AT extends AT_Machine_State {
 	}
 
 	public static AT getAT(Long id) {
-		try (PreparedStatement pstmt = Db.getConnection().prepareStatement("SELECT at.id, at.creator_id, at.name, at.description, at.version, "
+		try (Connection con = Db.getConnection();
+				PreparedStatement pstmt = con.prepareStatement("SELECT at.id, at.creator_id, at.name, at.description, at.version, "
 				+ "at_state.state, at.csize, at.dsize, at.c_user_stack_bytes, at.c_call_stack_bytes, "
 				+ "at.minimum_fee, at.creation_height, at_state.sleep_between, at_state.freeze_when_same_balance, "
 				+ "at.ap_code "
@@ -311,18 +312,20 @@ public final class AT extends AT_Machine_State {
 		}
 	}
 
-	public static List<AT> getATsIssuedBy(Long accountId) {
-		try (PreparedStatement pstmt = Db.getConnection().prepareStatement("SELECT at.id, at.creator_id, at.name, at.description, at.version, "
-				+ "at_state.state, at.csize, at.dsize, at.c_user_stack_bytes, at.c_call_stack_bytes, "
-				+ "at.minimum_fee, at.creation_height, at_state.sleep_between, at_state.freeze_when_same_balance, "
-				+ "at.ap_code "
-				+ "FROM at INNER JOIN at_state ON at.id = at_state.at_id "
-				+ "WHERE at.latest = TRUE AND at_state.latest = TRUE "
-				+ "AND at.creator_id = ?"))
+	public static List<Long> getATsIssuedBy(Long accountId) {
+		try (Connection con = Db.getConnection();
+				PreparedStatement pstmt = con.prepareStatement("SELECT id "
+				+ "FROM at "
+				+ "WHERE latest = TRUE AND creator_id = ? "
+				+ "ORDER BY creation_height DESC, id"))
 		{
 			pstmt.setLong(1, accountId);
 			ResultSet result = pstmt.executeQuery();
-			return createATs( result );
+			List<Long> resultList = new ArrayList<>();
+			while(result.next()) {
+				resultList.add(result.getLong(1));
+			}
+			return resultList;
 		}
 		catch (SQLException e) {
 			throw new RuntimeException(e.toString(), e);
@@ -458,7 +461,8 @@ public final class AT extends AT_Machine_State {
 
 	public static List< Long > getOrderedATs(){
 		List< Long > orderedATs = new ArrayList<>();
-		try (PreparedStatement pstmt = Db.getConnection().prepareStatement("SELECT at.id FROM at "
+		try (Connection con = Db.getConnection();
+				PreparedStatement pstmt = con.prepareStatement("SELECT at.id FROM at "
 				+ "INNER JOIN at_state ON at.id = at_state.at_id INNER JOIN account ON at.id = account.id "
 				+ "WHERE at.latest = TRUE AND at_state.latest = TRUE AND account.latest = TRUE "
 				+ "AND at_state.next_height <= ? AND account.balance >= ? "
