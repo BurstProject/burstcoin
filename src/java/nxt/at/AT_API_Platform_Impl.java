@@ -271,7 +271,9 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		b.put( state.get_B4() );
 		*/
 		
-		if ( val > state.getG_balance() )
+		if ( val < 0 ) return 1;
+		
+		if ( val < state.getG_balance() )
 		{
 		
 			AT_Transaction tx = new AT_Transaction( state.getId() , state.get_B1().clone() , val );
