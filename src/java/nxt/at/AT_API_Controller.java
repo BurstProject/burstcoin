@@ -160,7 +160,7 @@ public class AT_API_Controller{
 		}
 		else if ( func_num == 775 )
 		{
-			return atApi.get_Timestamp_for_Tx_in_A( state );
+			return atApi.get_Timestamp_for_Tx_in_A( 0L , state );
 		}
 		else if ( func_num == 776 )
 		{
@@ -249,11 +249,19 @@ public class AT_API_Controller{
 		}
 		else if ( func_num == 772 )
 		{
-			atApi.A_to_Tx_after_Timestamp( val , state );
+			atApi.A_to_Tx_after_Timestamp( val , 0L , state );
+		}
+		else if ( func_num == 775 )
+		{
+			return atApi.get_Timestamp_for_Tx_in_A( val , state );
 		}
 		else if ( func_num == 1026 )
 		{
 			atApi.send_to_Address_in_B( val , state );
+		}
+		else if ( func_num == 1042 )
+		{
+			atApi.set_Min_Activation_Amount(val, state);
 		}
 		
 		return rc;
@@ -278,6 +286,10 @@ public class AT_API_Controller{
 		else if ( func_num == 283 )
 		{
 			atApi.set_B3_B4( val1 , val2 , state );
+		}
+		else if ( func_num == 772 )
+		{
+			atApi.A_to_Tx_after_Timestamp( val1 , val2 , state );
 		}
 		else if ( func_num == 1030 )
 		{

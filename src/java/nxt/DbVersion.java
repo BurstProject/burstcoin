@@ -456,7 +456,7 @@ final class DbVersion {
             case 147:
             	apply("CREATE TABLE IF NOT EXISTS at_state (db_id IDENTITY, at_id BIGINT NOT NULL, state BINARY NOT NULL, prev_height INT NOT NULL, "
             			+ "next_height INT NOT NULL, sleep_between INT NOT NULL, "
-            			+ "prev_balance BIGINT NOT NULL, freeze_when_same_balance BOOLEAN NOT NULL, height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
+            			+ "prev_balance BIGINT NOT NULL, freeze_when_same_balance BOOLEAN NOT NULL, min_activate_amount BIGINT NOT NULL, height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
             case 148:
             	apply("CREATE UNIQUE INDEX IF NOT EXISTS at_state_at_id_height_idx ON at_state (at_id, height DESC)");
             case 149:

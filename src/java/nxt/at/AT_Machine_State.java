@@ -164,6 +164,8 @@ public class AT_Machine_State
 	private int sleepBetween;
 
 	private boolean freezeWhenSameBalance;
+	
+	private long minActivationAmount;
 
 
 	private transient ByteBuffer ap_data;
@@ -175,7 +177,7 @@ public class AT_Machine_State
 	public AT_Machine_State ( 	byte[] atId , byte[] creator , short version ,
 								byte[] stateBytes, int csize , int dsize , int c_user_stack_bytes , int c_call_stack_bytes ,
 								long minimumFee , int creationBlockHeight , int sleepBetween , 
-								boolean freezeWhenSameBalance , byte[] apCode )
+								boolean freezeWhenSameBalance , long minActivationAmount , byte[] apCode )
 	{
 		this.atID = atId;
 		this.creator = creator;
@@ -190,6 +192,7 @@ public class AT_Machine_State
 		this.creationBlockHeight = creationBlockHeight;
 		this.sleepBetween = sleepBetween;
 		this.freezeWhenSameBalance = freezeWhenSameBalance;
+		this.minActivationAmount = minActivationAmount;
 		
 		this.ap_code = ByteBuffer.allocate( apCode.length );
 		ap_code.order( ByteOrder.LITTLE_ENDIAN );
@@ -279,6 +282,7 @@ public class AT_Machine_State
 		this.waitForNumberOfBlocks = 0;
 		this.sleepBetween = 0;
 		this.freezeWhenSameBalance = false;
+		this.minActivationAmount = 1L;
 		this.transactions = new LinkedList<>();
 		this.g_balance = 0;
 		this.p_balance = 0;
@@ -497,6 +501,16 @@ public class AT_Machine_State
 	public void revertFreezeOnSameBalance()
 	{
 		this.freezeWhenSameBalance = !freezeWhenSameBalance;
+	}
+	
+	public long minActivationAmount()
+	{
+		return this.minActivationAmount;
+	}
+	
+	public void setMinActivationAmount(long minActivationAmount)
+	{
+		this.minActivationAmount = minActivationAmount;
 	}
 	
 	public short getVersion()

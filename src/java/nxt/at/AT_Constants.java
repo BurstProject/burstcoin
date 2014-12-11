@@ -64,7 +64,7 @@ public class AT_Constants {
 		
 		BLOCKS_FOR_TICKET.put( (short) 1, 2L ); //for testing 2 -> normally 1440
 		MAX_PAYLOAD_FOR_BLOCK.put( (short) 1 , Constants.MAX_PAYLOAD_LENGTH / 2L  ); //use at max half size of the block.
-		AVERAGE_BLOCK_MINUTES.put( (short) 1 , 1L );
+		AVERAGE_BLOCK_MINUTES.put( (short) 1 , 4L );
 		// end of AT version 1
 		
 	}

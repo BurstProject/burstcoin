@@ -254,7 +254,7 @@ public interface AT_API {
 	/**
 	 * sets A to zero/tx hash of the first tx after
 	 */
-	public void A_to_Tx_after_Timestamp( long val , AT_Machine_State state );
+	public void A_to_Tx_after_Timestamp( long val , long minAmount , AT_Machine_State state );
 	
 	/**
 	 * bool if A is a valid tx with @addr to tx type
@@ -271,7 +271,7 @@ public interface AT_API {
 	/**
 	 * bool if A is a valid tx with @addr to the tx timestamp
 	 */
-	public long get_Timestamp_for_Tx_in_A( AT_Machine_State state );
+	public long get_Timestamp_for_Tx_in_A( long minAmount , AT_Machine_State state );
 	
 	/**
 	 * bool if A is a valid tx with @addr to the tx ticket id
@@ -350,6 +350,12 @@ public interface AT_API {
 	 * revert freezeWhenSameBalance
 	 */
 	public void revert_Freeze_When_Same_Balance( AT_Machine_State state );
+	
+	/**
+	 * set min amount of balance increase needed to unfreeze
+	 */
+	public void set_Min_Activation_Amount( long val , AT_Machine_State state );
+	
 	// end range 0x0400.0x04ff
 	// -----------------------
 }

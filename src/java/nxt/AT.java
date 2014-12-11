@@ -129,8 +129,9 @@ public final class AT extends AT_Machine_State {
 		private int sleepBetween;
 		private long prevBalance;
 		private boolean freezeWhenSameBalance;
+		private long minActivationAmount;
 
-		private ATState(long atId, byte[] state , int prevHeight , int nextHeight, int sleepBetween, long prevBalance, boolean freezeWhenSameBalance) {
+		private ATState(long atId, byte[] state , int prevHeight , int nextHeight, int sleepBetween, long prevBalance, boolean freezeWhenSameBalance, long minActivationAmount) {
 			this.atId = atId;
 			this.dbKey = atStateDbKeyFactory.newKey(this.atId);
 			this.state = state;
@@ -138,6 +139,7 @@ public final class AT extends AT_Machine_State {
 			this.sleepBetween = sleepBetween;
 			this.prevBalance = prevBalance;
 			this.freezeWhenSameBalance = freezeWhenSameBalance;
+			this.minActivationAmount = minActivationAmount;
 		}
 
 		private ATState(ResultSet rs) throws SQLException {
@@ -149,12 +151,13 @@ public final class AT extends AT_Machine_State {
 			this.sleepBetween = rs.getInt("sleep_between");
 			this.prevBalance = rs.getLong("prev_balance");
 			this.freezeWhenSameBalance = rs.getBoolean("freeze_when_same_balance");
+			this.minActivationAmount = rs.getLong("min_activate_amount");
 		}
 
 		private void save(Connection con) throws SQLException {
 			try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO at_state (at_id, "
-					+ "state, prev_height ,next_height, sleep_between, prev_balance, freeze_when_same_balance, height, latest) "
-					+ "KEY (at_id, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
+					+ "state, prev_height ,next_height, sleep_between, prev_balance, freeze_when_same_balance, min_activate_amount, height, latest) "
+					+ "KEY (at_id, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
 				int i = 0;
 				pstmt.setLong(++i, atId);
 				DbUtils.setBytes(pstmt, ++i, state);
@@ -163,6 +166,7 @@ public final class AT extends AT_Machine_State {
 				pstmt.setInt(++i, sleepBetween);
 				pstmt.setLong(++i, prevBalance);
 				pstmt.setBoolean(++i, freezeWhenSameBalance);
+				pstmt.setLong(++i, minActivationAmount);
 				pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
 				pstmt.executeUpdate();
 			}
@@ -195,6 +199,10 @@ public final class AT extends AT_Machine_State {
 		public boolean getFreezeWhenSameBalance() {
 			return freezeWhenSameBalance;
 		}
+		
+		public long getMinActivationAmount() {
+			return minActivationAmount;
+		}
 
 		public void setState(byte[] newState) {
 			state = newState;
@@ -218,6 +226,10 @@ public final class AT extends AT_Machine_State {
 		
 		public void setFreezeWhenSameBalance(boolean newFreezeWhenSameBalance) {
 			this.freezeWhenSameBalance = newFreezeWhenSameBalance;
+		}
+		
+		public void setMinActivationAmount(long newMinActivationAmount) {
+			this.minActivationAmount = newMinActivationAmount;
 		}
 	}
 
@@ -292,7 +304,7 @@ public final class AT extends AT_Machine_State {
 		try (Connection con = Db.getConnection();
 				PreparedStatement pstmt = con.prepareStatement("SELECT at.id, at.creator_id, at.name, at.description, at.version, "
 				+ "at_state.state, at.csize, at.dsize, at.c_user_stack_bytes, at.c_call_stack_bytes, "
-				+ "at.minimum_fee, at.creation_height, at_state.sleep_between, at_state.freeze_when_same_balance, "
+				+ "at.minimum_fee, at.creation_height, at_state.sleep_between, at_state.freeze_when_same_balance, at_state.min_activate_amount, "
 				+ "at.ap_code "
 				+ "FROM at INNER JOIN at_state ON at.id = at_state.at_id "
 				+ "WHERE at.latest = TRUE AND at_state.latest = TRUE "
@@ -371,9 +383,10 @@ public final class AT extends AT_Machine_State {
 			state.setSleepBetween(getSleepBetween());
 			state.setPrevBalance(getP_balance());
 			state.setFreezeWhenSameBalance(freezeOnSameBalance());
+			state.setMinActivationAmount(minActivationAmount());
 		}
 		else {
-			state = new ATState( AT_API_Helper.getLong( this.getId() ) , getState(), prevHeight, nextHeight, getSleepBetween(), getP_balance(), freezeOnSameBalance());
+			state = new ATState( AT_API_Helper.getLong( this.getId() ) , getState(), prevHeight, nextHeight, getSleepBetween(), getP_balance(), freezeOnSameBalance(), minActivationAmount());
 		}
 		atStateTable.insert(state);
 	}
@@ -398,11 +411,12 @@ public final class AT extends AT_Machine_State {
 			int creationBlockHeight = rs.getInt( ++i );
 			int sleepBetween = rs.getInt( ++i );
 			boolean freezeWhenSameBalance = rs.getBoolean( ++i );
+			long minActivationAmount = rs.getLong(++i);
 			byte[] ap_code = rs.getBytes( ++i );
 
 			AT at = new AT( AT_API_Helper.getByteArray( atId ) , AT_API_Helper.getByteArray( creator ) , name , description , version ,
 					stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes , minimumFee , creationBlockHeight , sleepBetween , 
-					freezeWhenSameBalance , ap_code );
+					freezeWhenSameBalance , minActivationAmount , ap_code );
 			ats.add( at );
 
 		}
@@ -466,7 +480,7 @@ public final class AT extends AT_Machine_State {
 				+ "INNER JOIN at_state ON at.id = at_state.at_id INNER JOIN account ON at.id = account.id "
 				+ "WHERE at.latest = TRUE AND at_state.latest = TRUE AND account.latest = TRUE "
 				+ "AND at_state.next_height <= ? AND account.balance >= ? "
-				+ "AND (at_state.freeze_when_same_balance = FALSE OR account.balance > at_state.prev_balance) "
+				+ "AND (at_state.freeze_when_same_balance = FALSE OR (account.balance - at_state.prev_balance >= at_state.min_activate_amount)) "
 				+ "ORDER BY at_state.prev_height, at_state.next_height, at.id"))
 		{
 			pstmt.setInt( 1 ,  Nxt.getBlockchain().getHeight() );
@@ -486,7 +500,8 @@ public final class AT extends AT_Machine_State {
 
 
 	static boolean isATAccountId(Long id) {
-		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT id FROM at WHERE id = ? AND latest = TRUE" ) )
+		try ( Connection con = Db.getConnection();
+				PreparedStatement pstmt = con.prepareStatement( "SELECT id FROM at WHERE id = ? AND latest = TRUE" ) )
 		{
 			pstmt.setLong(1, id);
 			ResultSet result = pstmt.executeQuery();
@@ -514,12 +529,12 @@ public final class AT extends AT_Machine_State {
 	public AT ( byte[] atId , byte[] creator , String name , String description , short version ,
 			byte[] stateBytes, int csize , int dsize , int c_user_stack_bytes , int c_call_stack_bytes ,
 			long minimumFee , int creationBlockHeight, int sleepBetween , 
-			boolean freezeWhenSameBalance, byte[] apCode )
+			boolean freezeWhenSameBalance, long minActivationAmount, byte[] apCode )
 	{
 		super( 	atId , creator , version ,
 				stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes ,
 				minimumFee , creationBlockHeight , sleepBetween , 
-				freezeWhenSameBalance , apCode );
+				freezeWhenSameBalance , minActivationAmount , apCode );
 		this.name = name;
 		this.description = description;
 		dbKey = atDbKeyFactory.newKey(AT_API_Helper.getLong(atId));

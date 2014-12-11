@@ -81,7 +81,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 	}
 
 	@Override
-	public void A_to_Tx_after_Timestamp( long val , AT_Machine_State state ) {
+	public void A_to_Tx_after_Timestamp( long val , long minAmount , AT_Machine_State state ) {
 
 		int height = AT_API_Helper.longToHeight( val );
 		int numOfTx = AT_API_Helper.longToNumOfTx( val );
@@ -93,7 +93,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 			b[ i ] = bId[ i ];
 		}
 
-		long tx = findTransaction( height , AT_API_Helper.getLong( b ) , numOfTx);
+		long tx = findTransaction( height , AT_API_Helper.getLong( b ) , numOfTx , minAmount);
 		Logger.logInfoMessage("tx with id "+tx+" found");
 		clear_A( state );
 		state.set_A1( AT_API_Helper.getByteArray( tx ) );
@@ -130,7 +130,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 	}
 
 	@Override
-	public long get_Timestamp_for_Tx_in_A( AT_Machine_State state ) {
+	public long get_Timestamp_for_Tx_in_A( long minAmount , AT_Machine_State state ) {
 		long txId = AT_API_Helper.getLong( state.get_A1() );
 		Logger.logInfoMessage("get timestamp for tx with id " + txId + " found");
 		Transaction tx = Nxt.getBlockchain().getTransaction( txId );
@@ -146,7 +146,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 				b[ i ] = bId[ i ];
 			}
 
-			int txHeight = findTransactionHeight( txId , blockHeight , AT_API_Helper.getLong( b ) );
+			int txHeight = findTransactionHeight( txId , blockHeight , AT_API_Helper.getLong( b ) , minAmount );
 
 			return AT_API_Helper.getLongTimestamp( blockHeight , txHeight );
 		}
@@ -346,6 +346,8 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 
 		long amount = AT_API_Helper.getLong( state.get_A1() );
 
+		if(amount < 0) return 1;
+		
 		if ( state.getG_balance() > amount )
 		{
 		
@@ -373,13 +375,17 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		return AT_API_Helper.getLongTimestamp( addHeight , numOfTx );
 	}
 
-	protected static Long findTransaction(int startHeight ,Long atID, int numOfTx){
+	protected static Long findTransaction(int startHeight ,Long atID, int numOfTx, long minAmount){
 		try (Connection con = Db.getConnection();
-				PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction WHERE height>= ? AND height < ? and recipient_id = ? LIMIT 1 OFFSET ?")){
+				PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
+						+ "WHERE height>= ? AND height < ? and recipient_id = ? AND amount >= ? "
+						+ "ORDER BY height, id "
+						+ "LIMIT 1 OFFSET ?")){
 			pstmt.setInt(1, startHeight);
 			pstmt.setInt(2, Nxt.getBlockchain().getHeight());
 			pstmt.setLong(3, atID);
 			pstmt.setInt(4, numOfTx);
+			pstmt.setLong(5, minAmount);
 			ResultSet rs = pstmt.executeQuery();
 			Long transactionId = 0L;
 			if(rs.next()) {
@@ -394,11 +400,14 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 
 	}
 
-	protected static int findTransactionHeight(Long transactionId, int height, Long atID){
+	protected static int findTransactionHeight(Long transactionId, int height, Long atID, long minAmount){
 		try (Connection con = Db.getConnection();
-				PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction WHERE height= ? and recipient_id = ?")){
+				PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
+						+ "WHERE height= ? and recipient_id = ? AND amount >= ? "
+						+ "ORDER BY height, id")){
 			pstmt.setInt( 1, height );
 			pstmt.setLong( 2, atID );
+			pstmt.setLong(3, minAmount);
 			ResultSet rs = pstmt.executeQuery();
 
 			int counter = 0;
