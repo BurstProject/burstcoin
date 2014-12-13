@@ -177,9 +177,9 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 
 			byte[] senderPublicKey = tx.getSenderPublicKey();
 
-			ByteBuffer bf = ByteBuffer.allocate( 2 * Long.SIZE + senderPublicKey.length );
+			ByteBuffer bf = ByteBuffer.allocate( 32 + Long.SIZE + senderPublicKey.length );
 			bf.order( ByteOrder.LITTLE_ENDIAN );
-			bf.putLong( Nxt.getBlockchain().getLastBlock().getId() );
+			bf.put(Nxt.getBlockchain().getLastBlock().getGenerationSignature());
 			bf.putLong( tx.getId() );
 			bf.put( senderPublicKey);
 
@@ -246,6 +246,30 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		clear_B( state );
 
 		state.set_B1( AT_API_Helper.getByteArray( creator ) );
+
+	}
+	
+	@Override
+	public void put_Last_Block_Generation_Signature_In_A( AT_Machine_State state ) {
+		ByteBuffer b = ByteBuffer.allocate( state.get_A1().length * 4 );
+		b.order( ByteOrder.LITTLE_ENDIAN );
+
+		b.put( Nxt.getBlockchain().getLastBlock().getGenerationSignature() );
+
+		byte[] temp = new byte[ 8 ];
+
+		b.get( temp, 0 , 8 );
+		state.set_A1( temp );
+
+		b.get( temp , 0 , 8 );
+		state.set_A2( temp );
+
+		b.get( temp , 0 , 8 );
+		state.set_A3( temp );
+
+		b.get( temp , 0 , 8 );
+		state.set_A4( temp );
+
 
 	}
 

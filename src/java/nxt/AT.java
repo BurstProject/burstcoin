@@ -304,7 +304,7 @@ public final class AT extends AT_Machine_State {
 		try (Connection con = Db.getConnection();
 				PreparedStatement pstmt = con.prepareStatement("SELECT at.id, at.creator_id, at.name, at.description, at.version, "
 				+ "at_state.state, at.csize, at.dsize, at.c_user_stack_bytes, at.c_call_stack_bytes, "
-				+ "at.minimum_fee, at.creation_height, at_state.sleep_between, at_state.freeze_when_same_balance, at_state.min_activate_amount, "
+				+ "at.minimum_fee, at.creation_height, at_state.sleep_between, at_state.next_height, at_state.freeze_when_same_balance, at_state.min_activate_amount, "
 				+ "at.ap_code "
 				+ "FROM at INNER JOIN at_state ON at.id = at_state.at_id "
 				+ "WHERE at.latest = TRUE AND at_state.latest = TRUE "
@@ -410,12 +410,13 @@ public final class AT extends AT_Machine_State {
 			long minimumFee = rs.getLong( ++i );
 			int creationBlockHeight = rs.getInt( ++i );
 			int sleepBetween = rs.getInt( ++i );
+			int nextHeight = rs.getInt( ++i );
 			boolean freezeWhenSameBalance = rs.getBoolean( ++i );
 			long minActivationAmount = rs.getLong(++i);
 			byte[] ap_code = rs.getBytes( ++i );
 
 			AT at = new AT( AT_API_Helper.getByteArray( atId ) , AT_API_Helper.getByteArray( creator ) , name , description , version ,
-					stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes , minimumFee , creationBlockHeight , sleepBetween , 
+					stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes , minimumFee , creationBlockHeight , sleepBetween , nextHeight ,
 					freezeWhenSameBalance , minActivationAmount , ap_code );
 			ats.add( at );
 
@@ -517,6 +518,7 @@ public final class AT extends AT_Machine_State {
 	private final String name;    
 	private final String description;
 	private final DbKey dbKey;
+	private final int nextHeight;
 
 
 	private AT( byte[] atId , byte[] creator , String name , String description , byte[] creationBytes , int height ) {
@@ -524,11 +526,12 @@ public final class AT extends AT_Machine_State {
 		this.name = name;
 		this.description = description;
 		dbKey = atDbKeyFactory.newKey(AT_API_Helper.getLong(atId));
+		this.nextHeight = Nxt.getBlockchain().getHeight();
 	}
 
 	public AT ( byte[] atId , byte[] creator , String name , String description , short version ,
 			byte[] stateBytes, int csize , int dsize , int c_user_stack_bytes , int c_call_stack_bytes ,
-			long minimumFee , int creationBlockHeight, int sleepBetween , 
+			long minimumFee , int creationBlockHeight, int sleepBetween , int nextHeight ,
 			boolean freezeWhenSameBalance, long minActivationAmount, byte[] apCode )
 	{
 		super( 	atId , creator , version ,
@@ -538,6 +541,7 @@ public final class AT extends AT_Machine_State {
 		this.name = name;
 		this.description = description;
 		dbKey = atDbKeyFactory.newKey(AT_API_Helper.getLong(atId));
+		this.nextHeight = nextHeight;
 	}
 
 	public String getName() {
@@ -546,6 +550,10 @@ public final class AT extends AT_Machine_State {
 
 	public String getDescription() {
 		return description;
+	}
+	
+	public int nextHeight() {
+		return nextHeight;
 	}
 
 	public byte[] getApCode() {

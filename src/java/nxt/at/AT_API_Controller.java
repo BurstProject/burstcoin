@@ -178,6 +178,10 @@ public class AT_API_Controller{
 		{
 			atApi.B_to_Address_of_Creator( state );
 		}
+		else if ( func_num == 780 )
+		{
+			atApi.put_Last_Block_Generation_Signature_In_A( state );
+		}
 		else if ( func_num == 1024 )
 		{
 			atApi.get_Current_Balance( state );

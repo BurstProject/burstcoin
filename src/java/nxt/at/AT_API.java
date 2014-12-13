@@ -295,6 +295,11 @@ public interface AT_API {
 	 */
 	public void B_to_Address_of_Creator( AT_Machine_State state );
 	
+	/**
+	 * puts the gensig of the previous block in A
+	 */
+	public void put_Last_Block_Generation_Signature_In_A( AT_Machine_State state );
+	
 	// end range 0x0300..0x03ff
 	// ------------------------
 	

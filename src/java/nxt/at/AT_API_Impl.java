@@ -397,6 +397,11 @@ public class AT_API_Impl implements AT_API
 		platform.B_to_Address_of_Creator( state );
 		
 	}
+	
+	@Override
+	public void put_Last_Block_Generation_Signature_In_A( AT_Machine_State state ) {
+		platform.put_Last_Block_Generation_Signature_In_A( state );
+	}
 
 	@Override
 	public long get_Current_Balance( AT_Machine_State state ) {
