@@ -559,8 +559,8 @@ public class AT_Machine_Processor{
 				}
 				else
 				{
-					machineData.getMachineState().us--;
 					long val = machineData.getAp_data().getLong(machineData.getDsize()+machineData.getC_call_stack_bytes()+machineData.getC_user_stack_bytes()-(machineData.getMachineState().us*8));
+					machineData.getMachineState().us--;
 					machineData.getAp_data().putLong(fun.addr1*8, val);
 					machineData.getAp_data().clear();
 				}
