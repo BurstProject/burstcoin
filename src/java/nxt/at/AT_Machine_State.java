@@ -236,10 +236,14 @@ public class AT_Machine_State
 		if ( codePages * pageSize < pageSize + 1 )
 		{
 			codeLen = b.get();
+			if( codeLen < 0 )
+				codeLen += (Byte.MAX_VALUE + 1) * 2;
 		}
 		else if ( codePages * pageSize < Short.MAX_VALUE + 1 )
 		{
 			codeLen = b.getShort();
+			if( codeLen < 0 )
+				codeLen += (Short.MAX_VALUE + 1) * 2;
 		}
 		else
 		{
@@ -257,10 +261,14 @@ public class AT_Machine_State
 		if ( dataPages * pageSize < 257 )
 		{
 			dataLen = b.get();
+			if( dataLen < 0 )
+				dataLen += (Byte.MAX_VALUE + 1) * 2;
 		}
 		else if ( dataPages * pageSize < Short.MAX_VALUE + 1 )
 		{
 			dataLen = b.getShort();
+			if( dataLen < 0 )
+				dataLen += (Short.MAX_VALUE + 1) * 2;
 		}
 		else
 		{

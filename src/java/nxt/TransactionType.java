@@ -2267,8 +2267,10 @@ public abstract class TransactionType {
 					if (Nxt.getBlockchain().getLastBlock().getHeight()< Constants.AUTOMATED_TRANSACTION_BLOCK){
 						throw new NxtException.NotYetEnabledException("Automated Transactions not yet enabled at height " + Nxt.getBlockchain().getLastBlock().getHeight());
 					}
-					if (Account.getAccount(transaction.getId()) != null) {
-						throw new NxtException.NotValidException("Account with id already exists");
+					if (transaction.getSignature() != null && Account.getAccount(transaction.getId()) != null) {
+						Account existingAccount = Account.getAccount(transaction.getId());
+						if(existingAccount.getPublicKey() != null && !Arrays.equals(existingAccount.getPublicKey(), new byte[32]))
+							throw new NxtException.NotValidException("Account with id already exists");
 					}
 					Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
 					long totalPages = 0;

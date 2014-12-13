@@ -273,7 +273,7 @@ public class AT_Machine_Processor{
 				}
 				else
 				{
-					machineData.getMachineState().pc = rc;
+					machineData.getMachineState().pc += rc;
 					machineData.getAp_data().putLong( fun.addr1*8,(long)0);
 					machineData.getAp_data().clear();
 				}

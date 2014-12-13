@@ -169,10 +169,14 @@ public abstract class AT_Controller {
 			if ( codePages * 256 < 257 )
 			{
 				codeLen = b.get();
+				if( codeLen < 0 )
+					codeLen += (Byte.MAX_VALUE + 1) * 2;
 			}
 			else if ( codePages * 256 < Short.MAX_VALUE + 1 )
 			{
 				codeLen = b.getShort();
+				if( codeLen < 0 )
+					codeLen += (Short.MAX_VALUE + 1) * 2;
 			}
 			else if ( codePages * 256 <= Integer.MAX_VALUE )
 			{
@@ -194,10 +198,14 @@ public abstract class AT_Controller {
 			if ( dataPages * 256 < 257 )
 			{
 				dataLen = b.get();
+				if( dataLen < 0 )
+					dataLen += (Byte.MAX_VALUE + 1) * 2;
 			}
 			else if ( dataPages * 256 < Short.MAX_VALUE + 1 )
 			{
 				dataLen = b.getShort();
+				if( dataLen < 0 )
+					dataLen += (Short.MAX_VALUE + 1) * 2;
 			}
 			else if ( dataPages * 256 <= Integer.MAX_VALUE )
 			{
