@@ -506,11 +506,6 @@ public class AT_Machine_State
 		return this.freezeWhenSameBalance;
 	}
 	
-	public void revertFreezeOnSameBalance()
-	{
-		this.freezeWhenSameBalance = !freezeWhenSameBalance;
-	}
-	
 	public long minActivationAmount()
 	{
 		return this.minActivationAmount;

@@ -187,6 +187,36 @@ public interface AT_API {
 	 */
 	public void div_B_by_A( AT_Machine_State state );
 	
+	/**
+	 * ors A by B (result in A)
+	 */
+	public void or_A_by_B( AT_Machine_State state );
+	
+	/**
+	 * ors B by A (result in B)
+	 */
+	public void or_B_by_A( AT_Machine_State state );
+	
+	/**
+	 * ands A by B (result in A)
+	 */
+	public void and_A_by_B( AT_Machine_State state );
+	
+	/**
+	 * ands B by A (result in B)
+	 */
+	public void and_B_by_A( AT_Machine_State state );
+	
+	/**
+	 * xors A by B (result in A)
+	 */
+	public void xor_A_by_B( AT_Machine_State state );
+	
+	/**
+	 * xors B by A (result in B)
+	 */
+	public void xor_B_by_A( AT_Machine_State state );
+	
 	// end note
 	// end range 0x0100..0x01ff
 	
@@ -295,11 +325,6 @@ public interface AT_API {
 	 */
 	public void B_to_Address_of_Creator( AT_Machine_State state );
 	
-	/**
-	 * puts the gensig of the previous block in A
-	 */
-	public void put_Last_Block_Generation_Signature_In_A( AT_Machine_State state );
-	
 	// end range 0x0300..0x03ff
 	// ------------------------
 	
@@ -346,21 +371,20 @@ public interface AT_API {
 	public long add_Minutes_to_Timestamp ( long val1 , long val2 , AT_Machine_State state );
 	
 	/**
-	 * bool if freezeWhenSameBalance
-	 */
-	public long freeze_When_Same_Balance( AT_Machine_State state );
-	
-	
-	/**
-	 * revert freezeWhenSameBalance
-	 */
-	public void revert_Freeze_When_Same_Balance( AT_Machine_State state );
-	
-	/**
 	 * set min amount of balance increase needed to unfreeze
 	 */
 	public void set_Min_Activation_Amount( long val , AT_Machine_State state );
 	
 	// end range 0x0400.0x04ff
 	// -----------------------
+	
+	/**
+	 * puts the gensig of the previous block in A
+	 */
+	public void put_Last_Block_Generation_Signature_In_A( AT_Machine_State state );
+	
+	/**
+	 * take a SHA256 hash of val2 bytes starting at val1. out this in B1..4
+	 */
+	public void SHA256_to_B( long val1 , long val2 , AT_Machine_State state );
 }

@@ -24,6 +24,8 @@ import nxt.util.Listener;
 import nxt.Account;
 import nxt.TransactionImpl.BuilderImpl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -43,6 +45,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public final class AT extends AT_Machine_State {
 
@@ -160,7 +164,8 @@ public final class AT extends AT_Machine_State {
 					+ "KEY (at_id, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
 				int i = 0;
 				pstmt.setLong(++i, atId);
-				DbUtils.setBytes(pstmt, ++i, state);
+				//DbUtils.setBytes(pstmt, ++i, state);
+				DbUtils.setBytes(pstmt, ++i, compressState(state));
 				pstmt.setInt( ++i , prevHeight);
 				pstmt.setInt(++i, nextHeight);
 				pstmt.setInt(++i, sleepBetween);
@@ -402,7 +407,7 @@ public final class AT extends AT_Machine_State {
 			String name = rs.getString( ++i );
 			String description = rs.getString( ++i );
 			short version = rs.getShort( ++i );
-			byte[] stateBytes = rs.getBytes( ++i );
+			byte[] stateBytes = decompressState(rs.getBytes( ++i ));
 			int csize = rs.getInt( ++i );
 			int dsize = rs.getInt( ++i );
 			int c_user_stack_bytes = rs.getInt( ++i );
@@ -413,7 +418,7 @@ public final class AT extends AT_Machine_State {
 			int nextHeight = rs.getInt( ++i );
 			boolean freezeWhenSameBalance = rs.getBoolean( ++i );
 			long minActivationAmount = rs.getLong(++i);
-			byte[] ap_code = rs.getBytes( ++i );
+			byte[] ap_code = decompressState(rs.getBytes( ++i ));
 
 			AT at = new AT( AT_API_Helper.getByteArray( atId ) , AT_API_Helper.getByteArray( creator ) , name , description , version ,
 					stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes , minimumFee , creationBlockHeight , sleepBetween , nextHeight ,
@@ -444,7 +449,8 @@ public final class AT extends AT_Machine_State {
 			pstmt.setInt( ++i , this.getC_call_stack_bytes() );
 			pstmt.setLong( ++i , this.getMinimumFee() );
 			pstmt.setInt( ++i, this.getCreationBlockHeight() );
-			DbUtils.setBytes( pstmt , ++i , this.getApCode() );
+			//DbUtils.setBytes( pstmt , ++i , this.getApCode() );
+			DbUtils.setBytes(pstmt, ++i, compressState(this.getApCode()));
 			pstmt.setInt( ++i , Nxt.getBlockchain().getHeight() );
 
 			pstmt.executeUpdate();
@@ -510,6 +516,42 @@ public final class AT extends AT_Machine_State {
 		}
 		catch (SQLException e) {
 			throw new RuntimeException(e.toString(), e);
+		}
+	}
+	
+	private static byte[] compressState(byte[] stateBytes) {
+		if(stateBytes == null || stateBytes.length == 0) {
+			return null;
+		}
+		
+		try(ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				GZIPOutputStream gzip = new GZIPOutputStream(bos)) {
+			gzip.write(stateBytes);
+			gzip.flush();
+			gzip.close();
+			return bos.toByteArray();
+		} catch (IOException e) {
+			throw new RuntimeException(e.getMessage(), e);
+		}
+	}
+	
+	private static byte[] decompressState(byte[] stateBytes) {
+		if(stateBytes == null || stateBytes.length == 0) {
+			return null;
+		}
+		
+		try(ByteArrayInputStream bis = new ByteArrayInputStream(stateBytes);
+				GZIPInputStream gzip = new GZIPInputStream(bis);
+				ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+			byte[] buffer = new byte[256];
+			int read;
+			while((read = gzip.read(buffer, 0, buffer.length)) > 0) {
+				bos.write(buffer, 0, read);
+			}
+			bos.flush();
+			return bos.toByteArray();
+		} catch (IOException e) {
+			throw new RuntimeException(e.getMessage(), e);
 		}
 	}
 	

@@ -8,11 +8,14 @@
 
 package nxt.at;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+
+import fr.cryptohash.RIPEMD160;
 
 
 
@@ -210,50 +213,302 @@ public class AT_API_Impl implements AT_API
 
 	@Override
 	public void add_A_to_B( AT_Machine_State state ) {
-		// TODO Auto-generated method stub
+		BigInteger a = AT_API_Helper.getBigInteger(state.get_A1(), state.get_A2(), state.get_A3(), state.get_A4());
+		BigInteger b = AT_API_Helper.getBigInteger(state.get_B1(), state.get_B2(), state.get_B3(), state.get_B4());
+		BigInteger result = a.add(b);
+		ByteBuffer resultBuffer = ByteBuffer.wrap(AT_API_Helper.getByteArray(result));
+		resultBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		
+		byte[] temp = new byte[8];
+		resultBuffer.get(temp, 0, 8);
+		state.set_B1(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_B2(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_B3(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_B4(temp);
 	}
 
 	@Override
 	public void add_B_to_A( AT_Machine_State state ) {
-		// TODO Auto-generated method stub
+		BigInteger a = AT_API_Helper.getBigInteger(state.get_A1(), state.get_A2(), state.get_A3(), state.get_A4());
+		BigInteger b = AT_API_Helper.getBigInteger(state.get_B1(), state.get_B2(), state.get_B3(), state.get_B4());
+		BigInteger result = a.add(b);
+		ByteBuffer resultBuffer = ByteBuffer.wrap(AT_API_Helper.getByteArray(result));
+		resultBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		
+		byte[] temp = new byte[8];
+		resultBuffer.get(temp, 0, 8);
+		state.set_A1(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_A2(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_A3(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_A4(temp);
 	}
 
 	@Override
 	public void sub_A_from_B( AT_Machine_State state ) {
-		// TODO Auto-generated method stub
+		BigInteger a = AT_API_Helper.getBigInteger(state.get_A1(), state.get_A2(), state.get_A3(), state.get_A4());
+		BigInteger b = AT_API_Helper.getBigInteger(state.get_B1(), state.get_B2(), state.get_B3(), state.get_B4());
+		BigInteger result = b.subtract(a);
+		ByteBuffer resultBuffer = ByteBuffer.wrap(AT_API_Helper.getByteArray(result));
+		resultBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		
+		byte[] temp = new byte[8];
+		resultBuffer.get(temp, 0, 8);
+		state.set_B1(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_B2(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_B3(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_B4(temp);
 	}
 
 	@Override
 	public void sub_B_from_A( AT_Machine_State state ) {
-		// TODO Auto-generated method stub
+		BigInteger a = AT_API_Helper.getBigInteger(state.get_A1(), state.get_A2(), state.get_A3(), state.get_A4());
+		BigInteger b = AT_API_Helper.getBigInteger(state.get_B1(), state.get_B2(), state.get_B3(), state.get_B4());
+		BigInteger result = a.subtract(b);
+		ByteBuffer resultBuffer = ByteBuffer.wrap(AT_API_Helper.getByteArray(result));
+		resultBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		
+		byte[] temp = new byte[8];
+		resultBuffer.get(temp, 0, 8);
+		state.set_A1(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_A2(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_A3(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_A4(temp);
 	}
 
 	@Override
 	public void mul_A_by_B( AT_Machine_State state ) {
-		// TODO Auto-generated method stub
+		BigInteger a = AT_API_Helper.getBigInteger(state.get_A1(), state.get_A2(), state.get_A3(), state.get_A4());
+		BigInteger b = AT_API_Helper.getBigInteger(state.get_B1(), state.get_B2(), state.get_B3(), state.get_B4());
+		BigInteger result = a.multiply(b);
+		ByteBuffer resultBuffer = ByteBuffer.wrap(AT_API_Helper.getByteArray(result));
+		resultBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		
+		byte[] temp = new byte[8];
+		resultBuffer.get(temp, 0, 8);
+		state.set_A1(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_A2(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_A3(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_A4(temp);
 	}
 
 	@Override
 	public void mul_B_by_A( AT_Machine_State state ) {
-		// TODO Auto-generated method stub
+		BigInteger a = AT_API_Helper.getBigInteger(state.get_A1(), state.get_A2(), state.get_A3(), state.get_A4());
+		BigInteger b = AT_API_Helper.getBigInteger(state.get_B1(), state.get_B2(), state.get_B3(), state.get_B4());
+		BigInteger result = a.multiply(b);
+		ByteBuffer resultBuffer = ByteBuffer.wrap(AT_API_Helper.getByteArray(result));
+		resultBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		
+		byte[] temp = new byte[8];
+		resultBuffer.get(temp, 0, 8);
+		state.set_B1(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_B2(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_B3(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_B4(temp);
 	}
 
 	@Override
 	public void div_A_by_B( AT_Machine_State state ) {
-		// TODO Auto-generated method stub
+		BigInteger a = AT_API_Helper.getBigInteger(state.get_A1(), state.get_A2(), state.get_A3(), state.get_A4());
+		BigInteger b = AT_API_Helper.getBigInteger(state.get_B1(), state.get_B2(), state.get_B3(), state.get_B4());
+		if(b.compareTo(BigInteger.ZERO) == 0)
+			return;
+		BigInteger result = a.divide(b);
+		ByteBuffer resultBuffer = ByteBuffer.wrap(AT_API_Helper.getByteArray(result));
+		resultBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		
+		byte[] temp = new byte[8];
+		resultBuffer.get(temp, 0, 8);
+		state.set_A1(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_A2(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_A3(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_A4(temp);
 	}
 
 	@Override
 	public void div_B_by_A( AT_Machine_State state ) {
-		// TODO Auto-generated method stub
+		BigInteger a = AT_API_Helper.getBigInteger(state.get_A1(), state.get_A2(), state.get_A3(), state.get_A4());
+		BigInteger b = AT_API_Helper.getBigInteger(state.get_B1(), state.get_B2(), state.get_B3(), state.get_B4());
+		if(a.compareTo(BigInteger.ZERO) == 0)
+			return;
+		BigInteger result = b.divide(a);
+		ByteBuffer resultBuffer = ByteBuffer.wrap(AT_API_Helper.getByteArray(result));
+		resultBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		
+		byte[] temp = new byte[8];
+		resultBuffer.get(temp, 0, 8);
+		state.set_B1(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_B2(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_B3(temp);
+		resultBuffer.get(temp, 0, 8);
+		state.set_B4(temp);
+	}
+	
+	@Override
+	public void or_A_by_B ( AT_Machine_State state ) {
+		ByteBuffer a = ByteBuffer.allocate(32);
+		a.order( ByteOrder.LITTLE_ENDIAN );
+		a.put(state.get_A1());
+		a.put(state.get_A2());
+		a.put(state.get_A3());
+		a.put(state.get_A4());
+		a.clear();
+		
+		ByteBuffer b = ByteBuffer.allocate(32);
+		b.order( ByteOrder.LITTLE_ENDIAN );
+		b.put(state.get_B1());
+		b.put(state.get_B2());
+		b.put(state.get_B3());
+		b.put(state.get_B4());
+		b.clear();
+		
+		state.set_A1(AT_API_Helper.getByteArray(a.getLong(0) | b.getLong(0)));
+		state.set_A2(AT_API_Helper.getByteArray(a.getLong(8) | b.getLong(8)));
+		state.set_A3(AT_API_Helper.getByteArray(a.getLong(16) | b.getLong(16)));
+		state.set_A4(AT_API_Helper.getByteArray(a.getLong(24) | b.getLong(24)));
+	}
+	
+	@Override
+	public void or_B_by_A ( AT_Machine_State state ) {
+		ByteBuffer a = ByteBuffer.allocate(32);
+		a.order( ByteOrder.LITTLE_ENDIAN );
+		a.put(state.get_A1());
+		a.put(state.get_A2());
+		a.put(state.get_A3());
+		a.put(state.get_A4());
+		a.clear();
+		
+		ByteBuffer b = ByteBuffer.allocate(32);
+		b.order( ByteOrder.LITTLE_ENDIAN );
+		b.put(state.get_B1());
+		b.put(state.get_B2());
+		b.put(state.get_B3());
+		b.put(state.get_B4());
+		b.clear();
+		
+		state.set_B1(AT_API_Helper.getByteArray(a.getLong(0) | b.getLong(0)));
+		state.set_B2(AT_API_Helper.getByteArray(a.getLong(8) | b.getLong(8)));
+		state.set_B3(AT_API_Helper.getByteArray(a.getLong(16) | b.getLong(16)));
+		state.set_B4(AT_API_Helper.getByteArray(a.getLong(24) | b.getLong(24)));
+	}
+	
+	@Override
+	public void and_A_by_B ( AT_Machine_State state ) {
+		ByteBuffer a = ByteBuffer.allocate(32);
+		a.order( ByteOrder.LITTLE_ENDIAN );
+		a.put(state.get_A1());
+		a.put(state.get_A2());
+		a.put(state.get_A3());
+		a.put(state.get_A4());
+		a.clear();
+		
+		ByteBuffer b = ByteBuffer.allocate(32);
+		b.order( ByteOrder.LITTLE_ENDIAN );
+		b.put(state.get_B1());
+		b.put(state.get_B2());
+		b.put(state.get_B3());
+		b.put(state.get_B4());
+		b.clear();
+		
+		state.set_A1(AT_API_Helper.getByteArray(a.getLong(0) & b.getLong(0)));
+		state.set_A2(AT_API_Helper.getByteArray(a.getLong(8) & b.getLong(8)));
+		state.set_A3(AT_API_Helper.getByteArray(a.getLong(16) & b.getLong(16)));
+		state.set_A4(AT_API_Helper.getByteArray(a.getLong(24) & b.getLong(24)));
+	}
+	
+	@Override
+	public void and_B_by_A ( AT_Machine_State state ) {
+		ByteBuffer a = ByteBuffer.allocate(32);
+		a.order( ByteOrder.LITTLE_ENDIAN );
+		a.put(state.get_A1());
+		a.put(state.get_A2());
+		a.put(state.get_A3());
+		a.put(state.get_A4());
+		a.clear();
+		
+		ByteBuffer b = ByteBuffer.allocate(32);
+		b.order( ByteOrder.LITTLE_ENDIAN );
+		b.put(state.get_B1());
+		b.put(state.get_B2());
+		b.put(state.get_B3());
+		b.put(state.get_B4());
+		b.clear();
+		
+		state.set_B1(AT_API_Helper.getByteArray(a.getLong(0) & b.getLong(0)));
+		state.set_B2(AT_API_Helper.getByteArray(a.getLong(8) & b.getLong(8)));
+		state.set_B3(AT_API_Helper.getByteArray(a.getLong(16) & b.getLong(16)));
+		state.set_B4(AT_API_Helper.getByteArray(a.getLong(24) & b.getLong(24)));
+	}
+	
+	@Override
+	public void xor_A_by_B ( AT_Machine_State state ) {
+		ByteBuffer a = ByteBuffer.allocate(32);
+		a.order( ByteOrder.LITTLE_ENDIAN );
+		a.put(state.get_A1());
+		a.put(state.get_A2());
+		a.put(state.get_A3());
+		a.put(state.get_A4());
+		a.clear();
+		
+		ByteBuffer b = ByteBuffer.allocate(32);
+		b.order( ByteOrder.LITTLE_ENDIAN );
+		b.put(state.get_B1());
+		b.put(state.get_B2());
+		b.put(state.get_B3());
+		b.put(state.get_B4());
+		b.clear();
+		
+		state.set_A1(AT_API_Helper.getByteArray(a.getLong(0) ^ b.getLong(0)));
+		state.set_A2(AT_API_Helper.getByteArray(a.getLong(8) ^ b.getLong(8)));
+		state.set_A3(AT_API_Helper.getByteArray(a.getLong(16) ^ b.getLong(16)));
+		state.set_A4(AT_API_Helper.getByteArray(a.getLong(24) ^ b.getLong(24)));
+	}
+	
+	@Override
+	public void xor_B_by_A ( AT_Machine_State state ) {
+		ByteBuffer a = ByteBuffer.allocate(32);
+		a.order( ByteOrder.LITTLE_ENDIAN );
+		a.put(state.get_A1());
+		a.put(state.get_A2());
+		a.put(state.get_A3());
+		a.put(state.get_A4());
+		a.clear();
+		
+		ByteBuffer b = ByteBuffer.allocate(32);
+		b.order( ByteOrder.LITTLE_ENDIAN );
+		b.put(state.get_B1());
+		b.put(state.get_B2());
+		b.put(state.get_B3());
+		b.put(state.get_B4());
+		b.clear();
+		
+		state.set_B1(AT_API_Helper.getByteArray(a.getLong(0) ^ b.getLong(0)));
+		state.set_B2(AT_API_Helper.getByteArray(a.getLong(8) ^ b.getLong(8)));
+		state.set_B3(AT_API_Helper.getByteArray(a.getLong(16) ^ b.getLong(16)));
+		state.set_B4(AT_API_Helper.getByteArray(a.getLong(24) ^ b.getLong(24)));
 	}
 
 	@Override
@@ -288,14 +543,29 @@ public class AT_API_Impl implements AT_API
 
 	@Override
 	public void HASH160_A_to_B( AT_Machine_State state ) {
-		// TODO Auto-generated method stub
+		ByteBuffer b = ByteBuffer.allocate(32);
+		b.order(ByteOrder.LITTLE_ENDIAN);
+		
+		b.put(state.get_A1());
+		b.put(state.get_A2());
+		b.put(state.get_A3());
+		b.put(state.get_A4());
+		
+		RIPEMD160 ripemd160 = new RIPEMD160();
+		ByteBuffer ripemdb = ByteBuffer.wrap(ripemd160.digest(b.array()));
+		ripemdb.order(ByteOrder.LITTLE_ENDIAN);
+		
+		state.set_B1(AT_API_Helper.getByteArray(ripemdb.getLong(0)));
+		state.set_B1(AT_API_Helper.getByteArray(ripemdb.getLong(8)));
+		state.set_B1(AT_API_Helper.getByteArray((long)ripemdb.getInt(16)));
 		
 	}
 
 	@Override
 	public long check_HASH160_A_with_B( AT_Machine_State state ) {
-		// TODO Auto-generated method stub
-		return 0;
+		return(Arrays.equals(state.get_A1(), state.get_B1()) &&
+				Arrays.equals(state.get_A2(), state.get_B2()) &&
+				Arrays.equals(state.get_A3(), state.get_B3())) ? 1 : 0;
 	}
 
 	@Override
@@ -437,20 +707,39 @@ public class AT_API_Impl implements AT_API
 	public long add_Minutes_to_Timestamp( long val1 , long val2 , AT_Machine_State state ) {
 		return platform.add_Minutes_to_Timestamp( val1 , val2 , state );
 	}
-
-	@Override
-	public long freeze_When_Same_Balance( AT_Machine_State state ) {
-		return ( state.freezeOnSameBalance() ) ? 1L : 0L;
-	}
-	
-	@Override
-	public void revert_Freeze_When_Same_Balance( AT_Machine_State state ) {
-		state.revertFreezeOnSameBalance();
-	}
 	
 	@Override
 	public void set_Min_Activation_Amount( long val , AT_Machine_State state ) {
 		state.setMinActivationAmount(val);
+	}
+	
+	@Override
+	public void SHA256_to_B( long val1 , long val2 , AT_Machine_State state ) {
+		if(val1 < 0 || val2 < 0 ||
+				(val1 + val2 - 1) < 0 ||
+				((long)val1)*8+8>((long)Integer.MAX_VALUE) ||
+				val1*8+8>state.getDsize() ||
+				((long)val1 + (long)val2 - 1)*8+8>((long)Integer.MAX_VALUE) ||
+				(val1 + val2 - 1)*8+8>state.getDsize())
+		{
+			return;
+		}
+		
+		try {
+			MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+			sha256.update(state.getAp_data().array(), (int)val1, (int)(val2 > 256 ? 256 : val2));
+			ByteBuffer shab = ByteBuffer.wrap( sha256.digest() );
+			shab.order( ByteOrder.LITTLE_ENDIAN );
+			
+			state.set_B1( AT_API_Helper.getByteArray( shab.getLong( 0 ) ) );
+			state.set_B2( AT_API_Helper.getByteArray( shab.getLong( 8 ) ) );
+			state.set_B3( AT_API_Helper.getByteArray( shab.getLong( 16 ) ) );
+			state.set_B4( AT_API_Helper.getByteArray( shab.getLong( 24 ) ) );
+			
+		} catch (NoSuchAlgorithmException e) {
+			//not expected to reach that point
+			e.printStackTrace();
+		}
 	}
 
 }

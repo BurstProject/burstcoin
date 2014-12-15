@@ -8,6 +8,7 @@
 
 package nxt.at;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -52,7 +53,39 @@ public class AT_API_Helper {
     	return buffer.getLong(0);
     }
     
+    public static BigInteger getBigInteger(byte[] b1, byte[] b2, byte[] b3, byte[] b4) {
+    	ByteBuffer buffer = ByteBuffer.allocate(32);
+    	buffer.order(ByteOrder.LITTLE_ENDIAN);
+    	buffer.put(b1);
+    	buffer.put(b2);
+    	buffer.put(b3);
+    	buffer.put(b4);
+    	
+    	byte[] bytes = buffer.array();
+    	
+    	return new BigInteger(new byte[] {
+    			bytes[31], bytes[30], bytes[29], bytes[28], bytes[27], bytes[26], bytes[25], bytes[24],
+    			bytes[23], bytes[22], bytes[21], bytes[20], bytes[19], bytes[18], bytes[17], bytes[16],
+    			bytes[15], bytes[14], bytes[13], bytes[12], bytes[11], bytes[10], bytes[9], bytes[8],
+    			bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0]
+    	});
+    }
     
+    public static byte[] getByteArray(BigInteger bigInt) {
+    	byte[] bigIntBytes = bigInt.toByteArray();
+    	byte sign = (byte)(bigIntBytes[0] & ((byte)0x80));
+    	bigIntBytes[0] &= (byte)0x7F;
+    	ByteBuffer paddedBytesBuffer = ByteBuffer.allocate(32);
+    	paddedBytesBuffer.put(bigIntBytes, 32 - bigIntBytes.length, bigIntBytes.length);
+    	paddedBytesBuffer.clear();
+    	byte[] padded = paddedBytesBuffer.array();
+    	return new byte[]{
+    			padded[31], padded[30], padded[29], padded[28], padded[27], padded[26], padded[25], padded[24],
+    			padded[23], padded[22], padded[21], padded[20], padded[19], padded[18], padded[17], padded[16],
+    			padded[15], padded[14], padded[13], padded[12], padded[11], padded[10], padded[9], padded[8],
+    			padded[7], padded[6], padded[5], padded[4], padded[3], padded[2], padded[1], (byte)(padded[0] | sign)
+    	};
+    }
     
     
 }

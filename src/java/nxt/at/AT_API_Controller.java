@@ -77,6 +77,30 @@ public class AT_API_Controller{
 		{
 			atApi.swap_A_and_B( state );
 		}
+		else if ( func_num == 297 )
+		{
+			atApi.or_A_by_B( state );
+		}
+		else if ( func_num == 298 )
+		{
+			atApi.or_B_by_A( state );
+		}
+		else if ( func_num == 299 )
+		{
+			atApi.and_A_by_B( state );
+		}
+		else if ( func_num == 300 )
+		{
+			atApi.and_B_by_A( state );
+		}
+		else if ( func_num == 301 )
+		{
+			atApi.xor_A_by_B( state );
+		}
+		else if ( func_num == 302 )
+		{
+			atApi.xor_B_by_A( state );
+		}
 		else if ( func_num == 304)
 		{
 			atApi.add_A_to_B( state );
@@ -109,7 +133,6 @@ public class AT_API_Controller{
 		{
 			atApi.div_B_by_A( state );
 		}
-		
 		else if ( func_num == 512 )
 		{
 			atApi.MD5_A_to_B( state );
@@ -178,10 +201,6 @@ public class AT_API_Controller{
 		{
 			atApi.B_to_Address_of_Creator( state );
 		}
-		else if ( func_num == 780 )
-		{
-			atApi.put_Last_Block_Generation_Signature_In_A( state );
-		}
 		else if ( func_num == 1024 )
 		{
 			atApi.get_Current_Balance( state );
@@ -202,13 +221,9 @@ public class AT_API_Controller{
 		{
 			atApi.send_A_to_Address_in_B( state );
 		}
-		else if ( func_num == 1040 )
+		else if ( func_num == 1280 )
 		{
-			return atApi.freeze_When_Same_Balance( state );
-		}
-		else if ( func_num == 1041 )
-		{
-			atApi.revert_Freeze_When_Same_Balance( state );
+			atApi.put_Last_Block_Generation_Signature_In_A( state );
 		}
 		
 		
@@ -263,7 +278,7 @@ public class AT_API_Controller{
 		{
 			atApi.send_to_Address_in_B( val , state );
 		}
-		else if ( func_num == 1042 )
+		else if ( func_num == 1040 )
 		{
 			atApi.set_Min_Activation_Amount(val, state);
 		}
@@ -298,6 +313,10 @@ public class AT_API_Controller{
 		else if ( func_num == 1030 )
 		{
 			return atApi.add_Minutes_to_Timestamp( val1 , val2 , state );
+		}
+		else if ( func_num == 1536 )
+		{
+			atApi.SHA256_to_B( val1 , val2 , state );
 		}
 		
 		return rc;
