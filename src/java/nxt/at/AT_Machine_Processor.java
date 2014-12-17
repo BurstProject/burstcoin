@@ -452,7 +452,7 @@ public class AT_Machine_Processor{
 				}
 			}
 		}
-		else if (op==OpCode.e_op_code_IND_DAT)
+		else if (op==OpCode.e_op_code_SET_IND)
 		{
 			rc = getAddrs();
 			
@@ -483,7 +483,7 @@ public class AT_Machine_Processor{
 				}
 			}
 		}
-		else if ( op == OpCode.e_op_code_IDX_DAT) {
+		else if ( op == OpCode.e_op_code_SET_IDX) {
 			int addr1,addr2;
 			rc=getAddrs();
 			addr1=fun.addr1;
@@ -622,7 +622,7 @@ public class AT_Machine_Processor{
 				}
 			}
 		}
-		else if (op==OpCode.e_op_code_SET_IND)
+		else if (op==OpCode.e_op_code_IND_DAT)
 		{
 			rc = getAddrs();
 			
@@ -652,7 +652,7 @@ public class AT_Machine_Processor{
 				}
 			}
 		}
-		else if (op == OpCode.e_op_code_SET_IDX)
+		else if (op == OpCode.e_op_code_IDX_DAT)
 		{
 			int addr1,addr2;
 			rc = getAddrs();
