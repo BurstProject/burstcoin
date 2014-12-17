@@ -8,6 +8,8 @@
 
 package nxt.at;
 
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.TreeSet;
 import java.nio.ByteBuffer;
@@ -172,7 +174,7 @@ public class AT_Machine_State
 
 	private transient ByteBuffer ap_code;
 
-	private LinkedList<AT_Transaction> transactions;
+	private LinkedHashMap<ByteBuffer, AT_Transaction> transactions;
 	
 	public AT_Machine_State ( 	byte[] atId , byte[] creator , short version ,
 								byte[] stateBytes, int csize , int dsize , int c_user_stack_bytes , int c_call_stack_bytes ,
@@ -199,7 +201,7 @@ public class AT_Machine_State
 		ap_code.put( apCode );
 		ap_code.clear();
 		
-		transactions = new LinkedList< AT_Transaction >();
+		transactions = new LinkedHashMap< ByteBuffer, AT_Transaction >();
 		
 		
 		
@@ -291,7 +293,7 @@ public class AT_Machine_State
 		this.sleepBetween = 0;
 		this.freezeWhenSameBalance = false;
 		this.minActivationAmount = 1L;
-		this.transactions = new LinkedList<>();
+		this.transactions = new LinkedHashMap<>();
 		this.g_balance = 0;
 		this.p_balance = 0;
 		this.machineState = new Machine_State();
@@ -378,7 +380,20 @@ public class AT_Machine_State
 
 	protected void addTransaction(AT_Transaction tx)
 	{
-		transactions.add(tx);
+		ByteBuffer recipId = ByteBuffer.wrap(tx.getRecipientId());
+		AT_Transaction oldTx = transactions.get(recipId);
+		if(oldTx == null)
+		{
+			transactions.put(recipId, tx);
+		}
+		else
+		{
+			AT_Transaction newTx = new AT_Transaction(tx.getSenderId(),
+					tx.getRecipientId(),
+					oldTx.getAmount() + tx.getAmount(),
+					tx.getMessage() != null ? tx.getMessage() : oldTx.getMessage());
+			transactions.put(recipId, newTx);
+		}
 	}
 
 	protected void clearTransactions()
@@ -386,9 +401,9 @@ public class AT_Machine_State
 		transactions.clear();
 	}
 
-	public LinkedList<AT_Transaction> getTransactions()
+	public Collection<AT_Transaction> getTransactions()
 	{
-		return transactions;
+		return transactions.values();
 	}
 
 	protected ByteBuffer getAp_code() 
@@ -530,7 +545,7 @@ public class AT_Machine_State
 	{
 		ByteBuffer b = ByteBuffer.allocate( (creator.length + 8 ) * transactions.size() );
 		b.order( ByteOrder.LITTLE_ENDIAN );
-		for (AT_Transaction tx : transactions )
+		for (AT_Transaction tx : transactions.values() )
 		{
 			b.put( tx.getRecipientId() );
 			b.putLong( tx.getAmount() );

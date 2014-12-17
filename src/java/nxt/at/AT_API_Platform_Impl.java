@@ -104,7 +104,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 
 		if ( tx != null )
 		{
-			if (tx.getType().getType() == 1 )
+			if (tx.getMessage() != null )
 			{
 				return 1;
 			}
@@ -395,14 +395,14 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 	protected static Long findTransaction(int startHeight ,Long atID, int numOfTx, long minAmount){
 		try (Connection con = Db.getConnection();
 				PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
-						+ "WHERE height>= ? AND height < ? and recipient_id = ? AND amount >= ? "
+						+ "WHERE height>= ? AND height <= ? and recipient_id = ? AND amount >= ? "
 						+ "ORDER BY height, id "
 						+ "LIMIT 1 OFFSET ?")){
 			pstmt.setInt(1, startHeight);
 			pstmt.setInt(2, Nxt.getBlockchain().getHeight());
 			pstmt.setLong(3, atID);
-			pstmt.setInt(4, numOfTx);
-			pstmt.setLong(5, minAmount);
+			pstmt.setLong(4, minAmount);
+			pstmt.setInt(5, numOfTx);
 			ResultSet rs = pstmt.executeQuery();
 			Long transactionId = 0L;
 			if(rs.next()) {
