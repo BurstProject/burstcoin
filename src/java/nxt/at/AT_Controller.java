@@ -186,7 +186,7 @@ public abstract class AT_Controller {
 			{
 				throw new AT_Exception( AT_Error.INCORRECT_CODE_LENGTH.getDescription() );
 			}
-			if ( codeLen < 1 )
+			if ( codeLen < 1 || codeLen > codePages * 256)
 			{
 				throw new AT_Exception( AT_Error.INCORRECT_CODE_LENGTH.getDescription() );
 			}
@@ -215,7 +215,7 @@ public abstract class AT_Controller {
 			{
 				throw new AT_Exception( AT_Error.INCORRECT_CODE_LENGTH.getDescription() );
 			}
-			if( dataLen < 0 )
+			if( dataLen < 0 || dataLen > dataPages * 256 )
 			{
 				throw new AT_Exception( AT_Error.INCORRECT_DATA_LENGTH.getDescription() );
 			}
@@ -260,7 +260,7 @@ public abstract class AT_Controller {
 				long atAccountBalance = getATAccountBalance( id );
 				long atStateBalance = at.getG_balance();
 
-				if ( at.freezeOnSameBalance() && (atAccountBalance - atStateBalance <= at.minActivationAmount()) )
+				if ( at.freezeOnSameBalance() && (atAccountBalance - atStateBalance < at.minActivationAmount()) )
 				{
 					continue;
 				}
@@ -295,7 +295,7 @@ public abstract class AT_Controller {
 					}
 					catch ( Exception e )
 					{
-
+						e.printStackTrace(System.out);
 					}
 				}
 		}
@@ -354,7 +354,7 @@ public abstract class AT_Controller {
 					throw new AT_Exception( "AT has insufficient balance to run" );
 				}
 				
-				if ( at.freezeOnSameBalance() && (atAccountBalance - at.getG_balance() <= at.minActivationAmount()) )
+				if ( at.freezeOnSameBalance() && (atAccountBalance - at.getG_balance() < at.minActivationAmount()) )
 				{
 					throw new AT_Exception( "AT should be frozen due to unchanged balance" );
 				}
