@@ -297,13 +297,13 @@ public class AT_API_Impl implements AT_API
 		
 		byte[] temp = new byte[8];
 		resultBuffer.get(temp, 0, 8);
-		state.set_A1(temp);
+		state.set_B1(temp);
 		resultBuffer.get(temp, 0, 8);
-		state.set_A2(temp);
+		state.set_B2(temp);
 		resultBuffer.get(temp, 0, 8);
-		state.set_A3(temp);
+		state.set_B3(temp);
 		resultBuffer.get(temp, 0, 8);
-		state.set_A4(temp);
+		state.set_B4(temp);
 	}
 
 	@Override
@@ -316,13 +316,13 @@ public class AT_API_Impl implements AT_API
 		
 		byte[] temp = new byte[8];
 		resultBuffer.get(temp, 0, 8);
-		state.set_B1(temp);
+		state.set_A1(temp);
 		resultBuffer.get(temp, 0, 8);
-		state.set_B2(temp);
+		state.set_A2(temp);
 		resultBuffer.get(temp, 0, 8);
-		state.set_B3(temp);
+		state.set_A3(temp);
 		resultBuffer.get(temp, 0, 8);
-		state.set_B4(temp);
+		state.set_A4(temp);
 	}
 
 	@Override
@@ -337,13 +337,13 @@ public class AT_API_Impl implements AT_API
 		
 		byte[] temp = new byte[8];
 		resultBuffer.get(temp, 0, 8);
-		state.set_A1(temp);
+		state.set_B1(temp);
 		resultBuffer.get(temp, 0, 8);
-		state.set_A2(temp);
+		state.set_B2(temp);
 		resultBuffer.get(temp, 0, 8);
-		state.set_A3(temp);
+		state.set_B3(temp);
 		resultBuffer.get(temp, 0, 8);
-		state.set_A4(temp);
+		state.set_B4(temp);
 	}
 
 	@Override
@@ -358,17 +358,17 @@ public class AT_API_Impl implements AT_API
 		
 		byte[] temp = new byte[8];
 		resultBuffer.get(temp, 0, 8);
-		state.set_B1(temp);
+		state.set_A1(temp);
 		resultBuffer.get(temp, 0, 8);
-		state.set_B2(temp);
+		state.set_A2(temp);
 		resultBuffer.get(temp, 0, 8);
-		state.set_B3(temp);
+		state.set_A3(temp);
 		resultBuffer.get(temp, 0, 8);
-		state.set_B4(temp);
+		state.set_A4(temp);
 	}
 	
 	@Override
-	public void or_A_by_B ( AT_Machine_State state ) {
+	public void or_A_with_B ( AT_Machine_State state ) {
 		ByteBuffer a = ByteBuffer.allocate(32);
 		a.order( ByteOrder.LITTLE_ENDIAN );
 		a.put(state.get_A1());
@@ -392,7 +392,7 @@ public class AT_API_Impl implements AT_API
 	}
 	
 	@Override
-	public void or_B_by_A ( AT_Machine_State state ) {
+	public void or_B_with_A ( AT_Machine_State state ) {
 		ByteBuffer a = ByteBuffer.allocate(32);
 		a.order( ByteOrder.LITTLE_ENDIAN );
 		a.put(state.get_A1());
@@ -416,7 +416,7 @@ public class AT_API_Impl implements AT_API
 	}
 	
 	@Override
-	public void and_A_by_B ( AT_Machine_State state ) {
+	public void and_A_with_B ( AT_Machine_State state ) {
 		ByteBuffer a = ByteBuffer.allocate(32);
 		a.order( ByteOrder.LITTLE_ENDIAN );
 		a.put(state.get_A1());
@@ -440,7 +440,7 @@ public class AT_API_Impl implements AT_API
 	}
 	
 	@Override
-	public void and_B_by_A ( AT_Machine_State state ) {
+	public void and_B_with_A ( AT_Machine_State state ) {
 		ByteBuffer a = ByteBuffer.allocate(32);
 		a.order( ByteOrder.LITTLE_ENDIAN );
 		a.put(state.get_A1());
@@ -464,7 +464,7 @@ public class AT_API_Impl implements AT_API
 	}
 	
 	@Override
-	public void xor_A_by_B ( AT_Machine_State state ) {
+	public void xor_A_with_B ( AT_Machine_State state ) {
 		ByteBuffer a = ByteBuffer.allocate(32);
 		a.order( ByteOrder.LITTLE_ENDIAN );
 		a.put(state.get_A1());
@@ -488,7 +488,7 @@ public class AT_API_Impl implements AT_API
 	}
 	
 	@Override
-	public void xor_B_by_A ( AT_Machine_State state ) {
+	public void xor_B_with_A ( AT_Machine_State state ) {
 		ByteBuffer a = ByteBuffer.allocate(32);
 		a.order( ByteOrder.LITTLE_ENDIAN );
 		a.put(state.get_A1());
@@ -556,8 +556,8 @@ public class AT_API_Impl implements AT_API
 		ripemdb.order(ByteOrder.LITTLE_ENDIAN);
 		
 		state.set_B1(AT_API_Helper.getByteArray(ripemdb.getLong(0)));
-		state.set_B1(AT_API_Helper.getByteArray(ripemdb.getLong(8)));
-		state.set_B1(AT_API_Helper.getByteArray((long)ripemdb.getInt(16)));
+		state.set_B2(AT_API_Helper.getByteArray(ripemdb.getLong(8)));
+		state.set_B3(AT_API_Helper.getByteArray((long)ripemdb.getInt(16)));
 		
 	}
 
@@ -565,7 +565,7 @@ public class AT_API_Impl implements AT_API
 	public long check_HASH160_A_with_B( AT_Machine_State state ) {
 		return(Arrays.equals(state.get_A1(), state.get_B1()) &&
 				Arrays.equals(state.get_A2(), state.get_B2()) &&
-				Arrays.equals(state.get_A3(), state.get_B3())) ? 1 : 0;
+				(AT_API_Helper.getLong(state.get_A3()) & 0x00000000FFFFFFFFL) == (AT_API_Helper.getLong(state.get_B3()) & 0x00000000FFFFFFFFL)) ? 1 : 0;
 	}
 
 	@Override
@@ -652,25 +652,20 @@ public class AT_API_Impl implements AT_API
 	}
 
 	@Override
-	public long message_from_Tx_in_A_to_B( AT_Machine_State state ) {
-		return platform.message_from_Tx_in_A_to_B( state );
+	public void message_from_Tx_in_A_to_B( AT_Machine_State state ) {
+		platform.message_from_Tx_in_A_to_B( state );
 	}
 
 	@Override
-	public long B_to_Address_of_Tx_in_A( AT_Machine_State state ) {
+	public void B_to_Address_of_Tx_in_A( AT_Machine_State state ) {
 		
-		return platform.B_to_Address_of_Tx_in_A( state );
+		platform.B_to_Address_of_Tx_in_A( state );
 	}
 
 	@Override
 	public void B_to_Address_of_Creator( AT_Machine_State state ) {
 		platform.B_to_Address_of_Creator( state );
 		
-	}
-	
-	@Override
-	public void put_Last_Block_Generation_Signature_In_A( AT_Machine_State state ) {
-		platform.put_Last_Block_Generation_Signature_In_A( state );
 	}
 
 	@Override
@@ -684,23 +679,23 @@ public class AT_API_Impl implements AT_API
 	}
 
 	@Override
-	public long send_to_Address_in_B( long val , AT_Machine_State state ) {
-		return platform.send_to_Address_in_B( val , state );
+	public void send_to_Address_in_B( long val , AT_Machine_State state ) {
+		platform.send_to_Address_in_B( val , state );
 	}
 
 	@Override
-	public long send_All_to_Address_in_B( AT_Machine_State state ) {
-		return platform.send_All_to_Address_in_B( state );
+	public void send_All_to_Address_in_B( AT_Machine_State state ) {
+		platform.send_All_to_Address_in_B( state );
 	}
 
 	@Override
-	public long send_Old_to_Address_in_B( AT_Machine_State state ) {
-		return platform.send_Old_to_Address_in_B( state );
+	public void send_Old_to_Address_in_B( AT_Machine_State state ) {
+		platform.send_Old_to_Address_in_B( state );
 	}
 
 	@Override
-	public long send_A_to_Address_in_B( AT_Machine_State state ) {
-		return platform.send_A_to_Address_in_B( state );
+	public void send_A_to_Address_in_B( AT_Machine_State state ) {
+		platform.send_A_to_Address_in_B( state );
 	}
 
 	@Override
@@ -711,6 +706,11 @@ public class AT_API_Impl implements AT_API
 	@Override
 	public void set_Min_Activation_Amount( long val , AT_Machine_State state ) {
 		state.setMinActivationAmount(val);
+	}
+	
+	@Override
+	public void put_Last_Block_Generation_Signature_In_A( AT_Machine_State state ) {
+		platform.put_Last_Block_Generation_Signature_In_A( state );
 	}
 	
 	@Override

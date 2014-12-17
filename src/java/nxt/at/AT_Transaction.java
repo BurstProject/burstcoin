@@ -19,11 +19,13 @@ public class AT_Transaction{
 	private byte[] senderId = new byte[ AT_Constants.AT_ID_SIZE ];
 	private byte[] recipientId = new byte[ AT_Constants.AT_ID_SIZE ];
 	private long amount;
+	private byte[] message;
 	
-	AT_Transaction( byte[] senderId , byte[] recipientId , long amount ){
+	AT_Transaction( byte[] senderId , byte[] recipientId , long amount , byte[] message ){
 		this.senderId = senderId.clone();
 		this.recipientId = recipientId.clone();
 		this.amount = amount;
+		this.message = (message != null) ? message.clone() : null;
 	}
 	
 	public Long getAmount(){
@@ -36,6 +38,10 @@ public class AT_Transaction{
 	
 	public byte[] getRecipientId(){
 		return recipientId;
+	}
+	
+	public byte[] getMessage() {
+		return message;
 	}
 
 	public void addTransaction( long atId , Long height) {

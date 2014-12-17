@@ -190,32 +190,32 @@ public interface AT_API {
 	/**
 	 * ors A by B (result in A)
 	 */
-	public void or_A_by_B( AT_Machine_State state );
+	public void or_A_with_B( AT_Machine_State state );
 	
 	/**
 	 * ors B by A (result in B)
 	 */
-	public void or_B_by_A( AT_Machine_State state );
+	public void or_B_with_A( AT_Machine_State state );
 	
 	/**
 	 * ands A by B (result in A)
 	 */
-	public void and_A_by_B( AT_Machine_State state );
+	public void and_A_with_B( AT_Machine_State state );
 	
 	/**
 	 * ands B by A (result in B)
 	 */
-	public void and_B_by_A( AT_Machine_State state );
+	public void and_B_with_A( AT_Machine_State state );
 	
 	/**
 	 * xors A by B (result in A)
 	 */
-	public void xor_A_by_B( AT_Machine_State state );
+	public void xor_A_with_B( AT_Machine_State state );
 	
 	/**
 	 * xors B by A (result in B)
 	 */
-	public void xor_B_by_A( AT_Machine_State state );
+	public void xor_B_with_A( AT_Machine_State state );
 	
 	// end note
 	// end range 0x0100..0x01ff
@@ -313,12 +313,12 @@ public interface AT_API {
 	 * bool if A is a valid tx with B to the tx message
 	 * if a tx is not a message tx then this will zero out the B value
 	 */
-	public long message_from_Tx_in_A_to_B( AT_Machine_State state );
+	public void message_from_Tx_in_A_to_B( AT_Machine_State state );
 	
 	/**
 	 * bool if A is a valid tx with B set to the tx address
 	 */
-	public long B_to_Address_of_Tx_in_A( AT_Machine_State state );
+	public void B_to_Address_of_Tx_in_A( AT_Machine_State state );
 	
 	/**
 	 * set B to the address of the AT's creator
@@ -348,22 +348,22 @@ public interface AT_API {
 	 * if this amount is greater than the AT's balance then it will also
 	 * return false
 	 */
-	public long send_to_Address_in_B( long val , AT_Machine_State state );
+	public void send_to_Address_in_B( long val , AT_Machine_State state );
 	
 	/**
 	 * bool if B is a valid address then send it entire balance
 	 */
-	public long send_All_to_Address_in_B( AT_Machine_State state );
+	public void send_All_to_Address_in_B( AT_Machine_State state );
 	
 	/**
 	 * bool if B is a valid address then send it the old balance
 	 */
-	public long send_Old_to_Address_in_B( AT_Machine_State state );
+	public void send_Old_to_Address_in_B( AT_Machine_State state );
 	
 	/**
 	 * bool if B is valid address then send it A as a message
 	 */
-	public long send_A_to_Address_in_B( AT_Machine_State state );
+	public void send_A_to_Address_in_B( AT_Machine_State state );
 	
 	/**
 	 * $addr1 is timestamp calculated from $addr2

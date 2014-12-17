@@ -79,57 +79,57 @@ public class AT_API_Controller{
 		}
 		else if ( func_num == 297 )
 		{
-			atApi.or_A_by_B( state );
+			atApi.or_A_with_B( state );
 		}
 		else if ( func_num == 298 )
 		{
-			atApi.or_B_by_A( state );
+			atApi.or_B_with_A( state );
 		}
 		else if ( func_num == 299 )
 		{
-			atApi.and_A_by_B( state );
+			atApi.and_A_with_B( state );
 		}
 		else if ( func_num == 300 )
 		{
-			atApi.and_B_by_A( state );
+			atApi.and_B_with_A( state );
 		}
 		else if ( func_num == 301 )
 		{
-			atApi.xor_A_by_B( state );
+			atApi.xor_A_with_B( state );
 		}
 		else if ( func_num == 302 )
 		{
-			atApi.xor_B_by_A( state );
+			atApi.xor_B_with_A( state );
 		}
-		else if ( func_num == 304)
+		else if ( func_num == 320)
 		{
 			atApi.add_A_to_B( state );
 		}
-		else if ( func_num == 305 )
+		else if ( func_num == 321 )
 		{
 			atApi.add_B_to_A( state );
 		}
-		else if ( func_num == 306 )
+		else if ( func_num == 322 )
 		{
 			atApi.sub_A_from_B( state );
 		}
-		else if ( func_num == 307 )
+		else if ( func_num == 323 )
 		{
 			atApi.sub_B_from_A( state );
 		}
-		else if ( func_num == 308 )
+		else if ( func_num == 324 )
 		{
 			atApi.mul_A_by_B( state );
 		}
-		else if ( func_num == 309 )
+		else if ( func_num == 325 )
 		{
 			atApi.mul_B_by_A( state );
 		}
-		else if ( func_num == 310 )
+		else if ( func_num == 326 )
 		{
 			atApi.div_A_by_B( state );
 		}
-		else if ( func_num == 311 )
+		else if ( func_num == 327 )
 		{
 			atApi.div_B_by_A( state );
 		}

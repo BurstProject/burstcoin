@@ -73,17 +73,22 @@ public class AT_API_Helper {
     
     public static byte[] getByteArray(BigInteger bigInt) {
     	byte[] bigIntBytes = bigInt.toByteArray();
-    	byte sign = (byte)(bigIntBytes[0] & ((byte)0x80));
-    	bigIntBytes[0] &= (byte)0x7F;
     	ByteBuffer paddedBytesBuffer = ByteBuffer.allocate(32);
-    	paddedBytesBuffer.put(bigIntBytes, 32 - bigIntBytes.length, bigIntBytes.length);
+    	byte padding = 0;
+    	if(bigIntBytes.length < 32) {
+    		padding = (byte)(((byte)(bigIntBytes[0] & ((byte)0x80))) >> 7);
+    		for(int i = 0; i < 32 - bigIntBytes.length; i++)
+    			paddedBytesBuffer.put(padding);
+    	}
+    	
+    	paddedBytesBuffer.put(bigIntBytes, (32 >= bigIntBytes.length) ? 0 : (bigIntBytes.length - 32), (32 > bigIntBytes.length) ? bigIntBytes.length : 32);
     	paddedBytesBuffer.clear();
     	byte[] padded = paddedBytesBuffer.array();
     	return new byte[]{
     			padded[31], padded[30], padded[29], padded[28], padded[27], padded[26], padded[25], padded[24],
     			padded[23], padded[22], padded[21], padded[20], padded[19], padded[18], padded[17], padded[16],
     			padded[15], padded[14], padded[13], padded[12], padded[11], padded[10], padded[9], padded[8],
-    			padded[7], padded[6], padded[5], padded[4], padded[3], padded[2], padded[1], (byte)(padded[0] | sign)
+    			padded[7], padded[6], padded[5], padded[4], padded[3], padded[2], padded[1], padded[0]
     	};
     }
     

@@ -22,6 +22,7 @@ import nxt.db.VersionedEntityDbTable;
 import nxt.util.Convert;
 import nxt.util.Listener;
 import nxt.Account;
+import nxt.Appendix.Message;
 import nxt.TransactionImpl.BuilderImpl;
 
 import java.io.ByteArrayInputStream;
@@ -74,6 +75,11 @@ public final class AT extends AT_Machine_State {
 						.blockTimestamp(block.getTimestamp())
 						.ecBlockHeight(0)
 						.ecBlockId(0L);
+					
+					byte[] message = atTransaction.getMessage();
+					if(message != null) {
+						builder.message(new Appendix.Message(message));
+					}
 					
 					try {
 						TransactionImpl transaction = builder.build();
