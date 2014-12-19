@@ -2314,12 +2314,12 @@ public abstract class TransactionType {
 
 	            @Override
 	            AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
-	                return new Attachment.AutomatedTransactionsPayment(buffer, transactionVersion);
+	                return Attachment.AT_PAYMENT;
 	            }
 
 	            @Override
 	            AbstractAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
-	                return new Attachment.AutomatedTransactionsPayment(attachmentData);
+	                return Attachment.AT_PAYMENT;
 	            }
 
 	            @Override

@@ -2005,7 +2005,7 @@ public interface Attachment extends Appendix {
    	
     }
     
-    public final static class AutomatedTransactionsPayment extends AbstractAttachment{
+    /*public final static class AutomatedTransactionsPayment extends AbstractAttachment{
 
     	AutomatedTransactionsPayment(ByteBuffer buffer,
 				byte transactionVersion) throws NxtException.NotValidException {
@@ -2042,7 +2042,7 @@ public interface Attachment extends Appendix {
 		void putMyJSON(JSONObject json) {
 		}
     	
-    }
+    }*/
     
 
 }

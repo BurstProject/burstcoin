@@ -64,9 +64,8 @@ public final class AT extends AT_Machine_State {
 					Account.getAccount(AT_API_Helper.getLong(atTransaction.getSenderId())).addToBalanceAndUnconfirmedBalanceNQT(-atTransaction.getAmount());
 					Account.getAccount(AT_API_Helper.getLong(atTransaction.getRecipientId())).addToBalanceAndUnconfirmedBalanceNQT(atTransaction.getAmount());
 					
-					Attachment.AbstractAttachment attachment = new Attachment.AutomatedTransactionsPayment();
 					TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte)1, Genesis.CREATOR_PUBLIC_KEY,
-							atTransaction.getAmount(), 0L, block.getTimestamp(), (short)1440, attachment);
+							atTransaction.getAmount(), 0L, block.getTimestamp(), (short)1440, Attachment.AT_PAYMENT);
 					
 					builder.senderId(AT_API_Helper.getLong(atTransaction.getSenderId()))
 						.recipientId(AT_API_Helper.getLong(atTransaction.getRecipientId()))
