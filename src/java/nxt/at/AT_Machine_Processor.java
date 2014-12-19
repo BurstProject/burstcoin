@@ -678,7 +678,8 @@ public class AT_Machine_Processor{
 					}
 					else
 					{
-						long addr = addr1+addr2;
+						long addr = machineData.getAp_data().getLong( addr1*8 ) +
+								machineData.getAp_data().getLong( addr2*8 );
 						
 						if(!validAddr((int)addr, false))
 							rc=-1;
