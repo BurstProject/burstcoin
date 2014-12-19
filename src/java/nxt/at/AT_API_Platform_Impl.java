@@ -82,14 +82,14 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 	}
 
 	@Override
-	public void A_to_Tx_after_Timestamp( long val , long minAmount , AT_Machine_State state ) {
+	public void A_to_Tx_after_Timestamp( long val , AT_Machine_State state ) {
 
 		int height = AT_API_Helper.longToHeight( val );
 		int numOfTx = AT_API_Helper.longToNumOfTx( val );
 
 		byte[] b = state.getId();
 
-		long tx = findTransaction( height , AT_API_Helper.getLong( b ) , numOfTx , minAmount);
+		long tx = findTransaction( height , AT_API_Helper.getLong( b ) , numOfTx , state.minActivationAmount() );
 		Logger.logInfoMessage("tx with id "+tx+" found");
 		clear_A( state );
 		state.set_A1( AT_API_Helper.getByteArray( tx ) );
@@ -137,7 +137,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 	}
 
 	@Override
-	public long get_Timestamp_for_Tx_in_A( long minAmount , AT_Machine_State state ) {
+	public long get_Timestamp_for_Tx_in_A( AT_Machine_State state ) {
 		long txId = AT_API_Helper.getLong( state.get_A1() );
 		Logger.logInfoMessage("get timestamp for tx with id " + txId + " found");
 		Transaction tx = Nxt.getBlockchain().getTransaction( txId );
@@ -148,7 +148,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 
 			byte[] b = state.getId();
 
-			int txHeight = findTransactionHeight( txId , blockHeight , AT_API_Helper.getLong( b ) , minAmount );
+			int txHeight = findTransactionHeight( txId , blockHeight , AT_API_Helper.getLong( b ) , state.minActivationAmount() );
 
 			return AT_API_Helper.getLongTimestamp( blockHeight , txHeight );
 		}

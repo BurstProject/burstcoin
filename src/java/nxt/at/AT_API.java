@@ -284,7 +284,7 @@ public interface AT_API {
 	/**
 	 * sets A to zero/tx hash of the first tx after
 	 */
-	public void A_to_Tx_after_Timestamp( long val , long minAmount , AT_Machine_State state );
+	public void A_to_Tx_after_Timestamp( long val , AT_Machine_State state );
 	
 	/**
 	 * bool if A is a valid tx with @addr to tx type
@@ -301,7 +301,7 @@ public interface AT_API {
 	/**
 	 * bool if A is a valid tx with @addr to the tx timestamp
 	 */
-	public long get_Timestamp_for_Tx_in_A( long minAmount , AT_Machine_State state );
+	public long get_Timestamp_for_Tx_in_A( AT_Machine_State state );
 	
 	/**
 	 * bool if A is a valid tx with @addr to the tx ticket id
