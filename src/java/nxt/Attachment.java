@@ -2007,7 +2007,19 @@ public interface Attachment extends Appendix {
     
     public final static class AutomatedTransactionsPayment extends AbstractAttachment{
 
-		@Override
+    	AutomatedTransactionsPayment(ByteBuffer buffer,
+				byte transactionVersion) throws NxtException.NotValidException {
+			super(buffer, transactionVersion);
+		}
+
+		AutomatedTransactionsPayment(JSONObject attachmentData) throws NxtException.NotValidException {
+			super(attachmentData);
+		}
+		
+		public AutomatedTransactionsPayment() {
+		}
+    	
+    	@Override
 		public TransactionType getTransactionType() {
 			return TransactionType.AutomatedTransactions.AT_PAYMENT;
 		}
