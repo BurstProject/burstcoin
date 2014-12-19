@@ -705,18 +705,18 @@ public class AT_Machine_Processor{
 						System.out.println("MOD @"+String.format("%8x", fun.addr1).replace(' ', '0')+
 								" $"+String.format("%8s", fun.addr2).replace(' ','0'));
 				}
-			}
-			else
-			{
-				long modData1 = machineData.getAp_data().getLong(fun.addr1 * 8);
-				long modData2 = machineData.getAp_data().getLong(fun.addr2 * 8);
-				
-				if(modData2 == 0)
-					rc = -2;
 				else
 				{
-					machineData.getMachineState().pc += rc;
-					machineData.getAp_data().putLong(fun.addr1 * 8, modData1 % modData2);
+					long modData1 = machineData.getAp_data().getLong(fun.addr1 * 8);
+					long modData2 = machineData.getAp_data().getLong(fun.addr2 * 8);
+					
+					if(modData2 == 0)
+						rc = -2;
+					else
+					{
+						machineData.getMachineState().pc += rc;
+						machineData.getAp_data().putLong(fun.addr1 * 8, modData1 % modData2);
+					}
 				}
 			}
 		}
