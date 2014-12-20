@@ -446,7 +446,7 @@ public final class JSONData {
         json.put("description", at.getDescription());
         json.put("machineCode", Convert.toHexString(at.getApCode()));
         json.put("machineData", Convert.toHexString(at.getApData()));
-        json.put("balanceNQT", Convert.toUnsignedLong(at.getG_balance()));
+        json.put("balanceNQT", Convert.toUnsignedLong(Account.getAccount(id).getBalanceNQT()));
         return json;
     }
     

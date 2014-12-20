@@ -26,7 +26,7 @@ public final class CreateATProgram extends CreateTransaction {
 	static final CreateATProgram instance = new CreateATProgram();
 	
 	private CreateATProgram() {
-		super (new APITag[] {APITag.AT, APITag.CREATE_TRANSACTION}, "name", "description", "creationBytes", "code", "data", "dpages", "cspages", "uspages", "minActivationAmount");
+		super (new APITag[] {APITag.AT, APITag.CREATE_TRANSACTION}, "name", "description", "creationBytes", "code", "data", "dpages", "cspages", "uspages", "minActivationAmountNQT");
 	}
 	
 	@Override
@@ -76,7 +76,7 @@ public final class CreateATProgram extends CreateTransaction {
         		if(dpages < 0 || cspages < 0 || uspages < 0)
         			throw new IllegalArgumentException();
         		
-        		long minActivationAmount = Convert.parseUnsignedLong(req.getParameter("minActivationFeeNQT"));
+        		long minActivationAmount = Convert.parseUnsignedLong(req.getParameter("minActivationAmountNQT"));
         		
         		int creationLength = 4; // version + reserved
         		creationLength += 8; // pages
