@@ -1811,13 +1811,15 @@ public abstract class TransactionType {
 				if(senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT.longValue()) {
 					return false;
 				}
-				senderAccount.addToBalanceAndUnconfirmedBalanceNQT(-totalAmountNQT);
+				senderAccount.addToUnconfirmedBalanceNQT(-totalAmountNQT);
 				return true;
 			}
 			
 			@Override
 			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
 				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
+				Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
+				senderAccount.addToBalanceNQT(-totalAmountNQT);
 				Collection<Long> signers = attachment.getSigners();
 				for(Long signer : signers) {
 					Account.addOrGetAccount(signer).addToBalanceAndUnconfirmedBalanceNQT(Constants.ONE_NXT);
@@ -1836,7 +1838,7 @@ public abstract class TransactionType {
 			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
 				Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
-				senderAccount.addToBalanceAndUnconfirmedBalanceNQT(totalAmountNQT);
+				senderAccount.addToUnconfirmedBalanceNQT(totalAmountNQT);
 			}
 			
 			@Override

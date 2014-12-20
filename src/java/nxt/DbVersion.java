@@ -447,7 +447,7 @@ final class DbVersion {
             case 144:
             	apply("CREATE TABLE IF NOT EXISTS at (db_id IDENTITY, id BIGINT NOT NULL, creator_id BIGINT NOT NULL, name VARCHAR, description VARCHAR, "
             			+ "version SMALLINT NOT NULL, csize INT NOT NULL, dsize INT NOT NULL, c_user_stack_bytes INT NOT NULL, c_call_stack_bytes INT NOT NULL, "
-            			+ "minimum_fee BIGINT NOT NULL, creation_height INT NOT NULL, ap_code BINARY NOT NULL, "
+            			+ "creation_height INT NOT NULL, ap_code BINARY NOT NULL, "
             			+ "height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
             case 145:
             	apply("CREATE UNIQUE INDEX IF NOT EXISTS at_id_height_idx ON at (id, height DESC)");
@@ -464,6 +464,9 @@ final class DbVersion {
             case 150:
             	apply("ALTER TABLE block ADD COLUMN IF NOT EXISTS ats BINARY");
             case 151:
+            	BlockchainProcessorImpl.getInstance().forceScanAtStart();
+                apply(null);
+            case 152:
                 return;
             default:
                 throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");

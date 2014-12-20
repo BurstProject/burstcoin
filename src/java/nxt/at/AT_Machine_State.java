@@ -157,8 +157,6 @@ public class AT_Machine_State
 	private byte[] atID = new byte[ AT_Constants.AT_ID_SIZE ];
 	private byte[] creator = new byte[ AT_Constants.AT_ID_SIZE ];
 
-	private long minimumFee;
-
 	private int creationBlockHeight;
 
 	private int waitForNumberOfBlocks;
@@ -178,7 +176,7 @@ public class AT_Machine_State
 	
 	public AT_Machine_State ( 	byte[] atId , byte[] creator , short version ,
 								byte[] stateBytes, int csize , int dsize , int c_user_stack_bytes , int c_call_stack_bytes ,
-								long minimumFee , int creationBlockHeight , int sleepBetween , 
+								int creationBlockHeight , int sleepBetween , 
 								boolean freezeWhenSameBalance , long minActivationAmount , byte[] apCode )
 	{
 		this.atID = atId;
@@ -190,7 +188,6 @@ public class AT_Machine_State
 		this.dsize = dsize;
 		this.c_user_stack_bytes = c_user_stack_bytes;
 		this.c_call_stack_bytes = c_call_stack_bytes;
-		this.minimumFee = minimumFee;
 		this.creationBlockHeight = creationBlockHeight;
 		this.sleepBetween = sleepBetween;
 		this.freezeWhenSameBalance = freezeWhenSameBalance;
@@ -233,6 +230,8 @@ public class AT_Machine_State
 		this.dsize = dataPages * pageSize;
 		this.c_call_stack_bytes = callStackPages * pageSize;
 		this.c_user_stack_bytes = userStackPages * pageSize;
+		
+		this.minActivationAmount = b.getLong();
 
 		int codeLen = 0;
 		if ( codePages * pageSize < pageSize + 1 )
@@ -285,14 +284,9 @@ public class AT_Machine_State
 		this.ap_data.clear();
 
 		this.creationBlockHeight = height;
-		this.minimumFee = ( codePages + 
-				dataPages + 
-				callStackPages +
-				userStackPages ) * AT_Constants.getInstance().COST_PER_PAGE( height );
 		this.waitForNumberOfBlocks = 0;
 		this.sleepBetween = 0;
 		this.freezeWhenSameBalance = false;
-		this.minActivationAmount = 1L;
 		this.transactions = new LinkedHashMap<>();
 		this.g_balance = 0;
 		this.p_balance = 0;
@@ -454,11 +448,6 @@ public class AT_Machine_State
 	public Machine_State getMachineState() 
 	{
 		return machineState;
-	}
-
-	public long getMinimumFee()
-	{
-		return minimumFee;
 	}
 
 	protected void setC_call_stack_bytes(int c_call_stack_bytes) 

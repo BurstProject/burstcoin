@@ -164,6 +164,9 @@ public abstract class AT_Controller {
 			{
 				throw new AT_Exception( AT_Error.INCORRECT_USER_PAGES.getDescription() );
 			}
+			
+			long minActivationAmount = b.getLong();
+			
 			System.out.println("codePages: " + codePages );
 			int codeLen;
 			if ( codePages * 256 < 257 )
@@ -390,6 +393,7 @@ public abstract class AT_Controller {
 			}
 			catch ( Exception e )
 			{
+				e.printStackTrace(System.out);
 				throw new AT_Exception( "ATs error. Block rejected" );
 			}
 		}

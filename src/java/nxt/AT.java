@@ -314,7 +314,7 @@ public final class AT extends AT_Machine_State {
 		try (Connection con = Db.getConnection();
 				PreparedStatement pstmt = con.prepareStatement("SELECT at.id, at.creator_id, at.name, at.description, at.version, "
 				+ "at_state.state, at.csize, at.dsize, at.c_user_stack_bytes, at.c_call_stack_bytes, "
-				+ "at.minimum_fee, at.creation_height, at_state.sleep_between, at_state.next_height, at_state.freeze_when_same_balance, at_state.min_activate_amount, "
+				+ "at.creation_height, at_state.sleep_between, at_state.next_height, at_state.freeze_when_same_balance, at_state.min_activate_amount, "
 				+ "at.ap_code "
 				+ "FROM at INNER JOIN at_state ON at.id = at_state.at_id "
 				+ "WHERE at.latest = TRUE AND at_state.latest = TRUE "
@@ -417,7 +417,6 @@ public final class AT extends AT_Machine_State {
 			int dsize = rs.getInt( ++i );
 			int c_user_stack_bytes = rs.getInt( ++i );
 			int c_call_stack_bytes = rs.getInt( ++i );
-			long minimumFee = rs.getLong( ++i );
 			int creationBlockHeight = rs.getInt( ++i );
 			int sleepBetween = rs.getInt( ++i );
 			int nextHeight = rs.getInt( ++i );
@@ -426,7 +425,7 @@ public final class AT extends AT_Machine_State {
 			byte[] ap_code = decompressState(rs.getBytes( ++i ));
 
 			AT at = new AT( AT_API_Helper.getByteArray( atId ) , AT_API_Helper.getByteArray( creator ) , name , description , version ,
-					stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes , minimumFee , creationBlockHeight , sleepBetween , nextHeight ,
+					stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes , creationBlockHeight , sleepBetween , nextHeight ,
 					freezeWhenSameBalance , minActivationAmount , ap_code );
 			ats.add( at );
 
@@ -439,7 +438,7 @@ public final class AT extends AT_Machine_State {
 		try ( PreparedStatement pstmt = con.prepareStatement( "INSERT INTO at " 
 				+ "(id , creator_id , name , description , version , "
 				+ "csize , dsize , c_user_stack_bytes , c_call_stack_bytes , "
-				+ "minimum_fee , creation_height , "
+				+ "creation_height , "
 				+ "ap_code , height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)" ) )
 				{
 			int i = 0;
@@ -452,7 +451,6 @@ public final class AT extends AT_Machine_State {
 			pstmt.setInt( ++i , this.getDsize() );
 			pstmt.setInt( ++i , this.getC_user_stack_bytes() );
 			pstmt.setInt( ++i , this.getC_call_stack_bytes() );
-			pstmt.setLong( ++i , this.getMinimumFee() );
 			pstmt.setInt( ++i, this.getCreationBlockHeight() );
 			//DbUtils.setBytes( pstmt , ++i , this.getApCode() );
 			DbUtils.setBytes(pstmt, ++i, compressState(this.getApCode()));
@@ -578,12 +576,12 @@ public final class AT extends AT_Machine_State {
 
 	public AT ( byte[] atId , byte[] creator , String name , String description , short version ,
 			byte[] stateBytes, int csize , int dsize , int c_user_stack_bytes , int c_call_stack_bytes ,
-			long minimumFee , int creationBlockHeight, int sleepBetween , int nextHeight ,
+			int creationBlockHeight, int sleepBetween , int nextHeight ,
 			boolean freezeWhenSameBalance, long minActivationAmount, byte[] apCode )
 	{
 		super( 	atId , creator , version ,
 				stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes ,
-				minimumFee , creationBlockHeight , sleepBetween , 
+				creationBlockHeight , sleepBetween , 
 				freezeWhenSameBalance , minActivationAmount , apCode );
 		this.name = name;
 		this.description = description;

@@ -26,7 +26,7 @@ public final class CreateATProgram extends CreateTransaction {
 	static final CreateATProgram instance = new CreateATProgram();
 	
 	private CreateATProgram() {
-		super (new APITag[] {APITag.AT, APITag.CREATE_TRANSACTION}, "name", "description", "creationBytes", "code", "data", "dpages", "cspages", "uspages");
+		super (new APITag[] {APITag.AT, APITag.CREATE_TRANSACTION}, "name", "description", "creationBytes", "code", "data", "dpages", "cspages", "uspages", "minActivationAmount");
 	}
 	
 	@Override
@@ -76,8 +76,11 @@ public final class CreateATProgram extends CreateTransaction {
         		if(dpages < 0 || cspages < 0 || uspages < 0)
         			throw new IllegalArgumentException();
         		
+        		long minActivationAmount = Convert.parseUnsignedLong(req.getParameter("minActivationFeeNQT"));
+        		
         		int creationLength = 4; // version + reserved
         		creationLength += 8; // pages
+        		creationLength += 8; // minActivationAmount
         		creationLength += cpages * 256 <= 256 ? 1 : (cpages * 256 <= 32767 ? 2 : 4); // code size
         		creationLength += code.length() / 2;
         		creationLength += dpages * 256 <= 256 ? 1 : (dpages * 256 <= 32767 ? 2 : 4); // data size
@@ -91,6 +94,7 @@ public final class CreateATProgram extends CreateTransaction {
         		creation.putShort((short)dpages);
         		creation.putShort((short)cspages);
         		creation.putShort((short)uspages);
+        		creation.putLong(minActivationAmount);
         		if(cpages * 256 <= 256)
         			creation.put((byte)(code.length()/2));
         		else if(cpages * 256 <= 32767)
@@ -113,6 +117,7 @@ public final class CreateATProgram extends CreateTransaction {
         		creationBytes = creation.array();
         	}
         	catch(Exception e) {
+        		e.printStackTrace(System.out);
         		JSONObject response = new JSONObject();
         		response.put("errorCode", 5);
     			response.put("errorDescription", "Invalid or not specified parameters");

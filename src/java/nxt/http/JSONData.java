@@ -438,13 +438,15 @@ public final class JSONData {
         putAccount(json, "creator", bf.getLong() );
         bf.clear();
         bf.put( at.getId() , 0 , 8 );
-        json.put("at", Convert.toUnsignedLong( bf.getLong( 0 ) ));
+        long id = bf.getLong(0);
+        json.put("at", Convert.toUnsignedLong( id ));
+        json.put("atRS", Convert.rsAccount(id));
         json.put("atVersion", at.getVersion());        
         json.put("name", at.getName());
         json.put("description", at.getDescription());
         json.put("machineCode", Convert.toHexString(at.getApCode()));
         json.put("machineData", Convert.toHexString(at.getApData()));
-        json.put("balance", at.getG_balance());
+        json.put("balanceNQT", Convert.toUnsignedLong(at.getG_balance()));
         return json;
     }
     
