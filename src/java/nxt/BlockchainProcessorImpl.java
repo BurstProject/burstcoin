@@ -829,13 +829,13 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 					continue;
 				}
 
-				/*
-                if (!EconomicClustering.verifyFork(transaction)) {
-                    Logger.logDebugMessage("Including transaction that was generated on a fork: " + transaction.getStringId()
-                            + " ecBlockHeight " + transaction.getECBlockHeight() + " ecBlockId " + Convert.toUnsignedLong(transaction.getECBlockId()));
-                    //continue;
+                if (Nxt.getBlockchain().getHeight() >= Constants.AUTOMATED_TRANSACTION_BLOCK) {
+                	if (!EconomicClustering.verifyFork(transaction)) {
+                        Logger.logDebugMessage("Including transaction that was generated on a fork: " + transaction.getStringId()
+                                + " ecBlockHeight " + transaction.getECBlockHeight() + " ecBlockId " + Convert.toUnsignedLong(transaction.getECBlockId()));
+                        continue;
+                    }
                 }
-				 */
 
 				 blockTransactions.add(transaction);
 				 payloadLength += transactionLength;
