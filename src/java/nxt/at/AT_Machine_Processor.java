@@ -206,11 +206,9 @@ public class AT_Machine_Processor{
 					System.out.println("NOP");
 				++rc;
 			}
-			else while (true){
+			else {
 				++rc;
 				++machineData.getMachineState().pc;
-				if (machineData.getMachineState().pc>=machineData.getCsize() || (machineData.getAp_code()).get(machineData.getMachineState().pc) != OpCode.e_op_code_NOP)
-					break;
 			}
 		}
 		else if ( op == OpCode.e_op_code_SET_VAL)

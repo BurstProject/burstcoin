@@ -26,10 +26,10 @@ public abstract class TransactionType {
     private static final byte TYPE_COLORED_COINS = 2;
     private static final byte TYPE_DIGITAL_GOODS = 3;
     private static final byte TYPE_ACCOUNT_CONTROL = 4;
-    private static final byte TYPE_AUTOMATED_TRANSACTIONS = 5;
     
     private static final byte TYPE_BURST_MINING = 20; // jump some for easier nxt updating
     private static final byte TYPE_ADVANCED_PAYMENT = 21;
+    private static final byte TYPE_AUTOMATED_TRANSACTIONS = 22;
 
     private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;
 

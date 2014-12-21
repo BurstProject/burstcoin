@@ -49,7 +49,7 @@ public class AT_Constants {
 		//constants for AT version 1
 		MIN_FEE.put( (short) 1 , 1000L );
 		STEP_FEE.put( (short) 1 , Constants.ONE_NXT / 10L );
-		MAX_STEPS.put( (short) 1 , 200L );
+		MAX_STEPS.put( (short) 1 , 2000L );
 		API_STEP_MULTIPLIER.put( (short) 1 , 10L);
 		
 		COST_PER_PAGE.put( (short) 1 , Constants.ONE_NXT );

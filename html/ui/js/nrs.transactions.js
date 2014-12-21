@@ -502,6 +502,15 @@ var NRS = (function(NRS, $, undefined) {
 					transactionType = "Subscription Payment";
 					break;
 			}
+		} else if (transaction.type == 22) {
+			switch (transaction.subtype) {
+				case 0:
+					transactionType = "AT Creation";
+					break;
+				case 1:
+					transactionType = "AT Payment";
+					break;
+			}
 		}
 
 		var receiving = transaction.recipient == NRS.account;
