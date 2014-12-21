@@ -600,15 +600,15 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 						throw new TransactionNotAcceptedException("Signature verification failed for transaction "
 								+ transaction.getStringId() + " at height " + previousLastBlock.getHeight(), transaction);
 					}
-					/*
-                    if (!EconomicClustering.verifyFork(transaction)) {
-                        Logger.logDebugMessage("Block " + block.getStringId() + " height " + (previousLastBlock.getHeight() + 1)
-                                + " contains transaction that was generated on a fork: "
-                                + transaction.getStringId() + " ecBlockHeight " + transaction.getECBlockHeight() + " ecBlockId "
-                                + Convert.toUnsignedLong(transaction.getECBlockId()));
-                        //throw new TransactionNotAcceptedException("Transaction belongs to a different fork", transaction);
+					if (Nxt.getBlockchain().getHeight() >= Constants.AUTOMATED_TRANSACTION_BLOCK) {
+	                    if (!EconomicClustering.verifyFork(transaction)) {
+	                        Logger.logDebugMessage("Block " + block.getStringId() + " height " + (previousLastBlock.getHeight() + 1)
+	                                + " contains transaction that was generated on a fork: "
+	                                + transaction.getStringId() + " ecBlockHeight " + transaction.getECBlockHeight() + " ecBlockId "
+	                                + Convert.toUnsignedLong(transaction.getECBlockId()));
+	                        throw new TransactionNotAcceptedException("Transaction belongs to a different fork", transaction);
+	                    }
                     }
-					 */
 					if (transaction.getId() == 0L) {
 						throw new TransactionNotAcceptedException("Invalid transaction id", transaction);
 					}

@@ -54,8 +54,8 @@ public class AT_Constants {
 		
 		COST_PER_PAGE.put( (short) 1 , Constants.ONE_NXT );
 		
-		MAX_WAIT_FOR_NUM_OF_BLOCKS.put( (short) 1 , 1440L );
-		MAX_SLEEP_BETWEEN_BLOCKS.put( (short) 1 , 1440L );
+		MAX_WAIT_FOR_NUM_OF_BLOCKS.put( (short) 1 , 31536000L );
+		MAX_SLEEP_BETWEEN_BLOCKS.put( (short) 1 , 31536000L );
 		
 		PAGE_SIZE.put( (short) 1 , 256L );
 		
