@@ -1,0 +1,263 @@
+#### PEER NETWORKING ####
+
+# Announce my IP address/hostname to peers and allow them to share it with other peers.
+# If disabled, peer networking servlet will not be started at all.
+nxt.shareMyAddress=true
+
+# Port for incoming peer to peer networking requests, if enabled.
+nxt.peerServerPort=8123
+
+# Host interface on which to listen for peer networking requests, default all.
+# Use 0.0.0.0 to listen on all IPv4 interfaces or :: to listen on all IPv4 and IPv6 interfaces
+nxt.peerServerHost=0.0.0.0
+
+# My externally visible IP address or host name, to be announced to peers.
+# It can optionally include a port number, which will also be announced to peers,
+# and may be different from nxt.peerServerPort (useful if you do port forwarding behind a router).
+nxt.myAddress=
+
+# My platform, to be announced to peers.
+nxt.myPlatform=PC
+
+# My hallmark, if available.
+nxt.myHallmark=
+
+# A list of well known peer addresses / host names, separated by '; '.
+# If not set, a random selection of nxtcrypto.org and nxtbase.com nodes is used.
+nxt.wellKnownPeers=198.199.103.145; 178.62.39.204; burst.cryptoport.io; 192.155.252.202; 37.58.107.74; 119.81.165.138; 119.81.44.170; 119.81.44.171
+
+# Known bad peers to be blacklisted
+nxt.knownBlacklistedPeers=
+
+# Peers used for testnet only.
+nxt.testnetPeers=
+
+# Maintain active connections with at least that many peers.
+nxt.maxNumberOfConnectedPublicPeers=20
+
+# Peer networking connect timeout for outgoing connections.
+nxt.connectTimeout=4000
+
+# Peer networking read timeout for outgoing connections.
+nxt.readTimeout=8000
+
+# Peer networking server idle timeout, milliseconds.
+nxt.peerServerIdleTimeout=30000
+
+# Use the peer hallmark to only connect with peers above the defined push/pull hallmark thresholds.
+nxt.enableHallmarkProtection=false
+
+# Hallmark threshold to use when sending data to peers.
+nxt.pushThreshold=0
+
+# Hallmark threshold to use when requesting data from peers.
+nxt.pullThreshold=0
+
+# Blacklist peers for 600000 milliseconds (i.e. 10 minutes by default).
+nxt.blacklistingPeriod=600000
+
+# Consider a new transaction or block sent after 10 peers have received it.
+nxt.sendToPeersLimit=10
+
+# Enable the Jetty Denial of Service Filter for the peer networking server.
+nxt.enablePeerServerDoSFilter=true
+
+# Compress Http responses for the peer networking server.
+nxt.enablePeerServerGZIPFilter=true
+
+# Use testnet, leave set to false unless you are really testing.
+# Never unlock your real accounts on testnet! Use separate accounts for testing only.
+# When using testnet, all custom port settings will be ignored,
+# and hardcoded ports of 6874 (peer networking), 6875 (UI) and 6876 (API) will be used.
+nxt.isTestnet=false
+
+# Save known peers in the database
+nxt.savePeers=true
+
+# Set to false to disable use of the peers database. This will not delete saved peers.
+nxt.usePeersDb=true
+
+# Set to false to disable getting more peers from the currently connected peers. Only useful
+# when debugging and want to limit the peers to those in peersDb or wellKnownPeers.
+nxt.getMorePeers=true
+
+# Set to true to run offline - do not connect to peers and do not listen for incoming peer
+# connections. This is equivalent to setting nxt.shareMyAddress=false, nxt.wellKnownPeers=,
+# nxt.testnetPeers= and nxt.usePeersDb=false, and if set to true overrides those properties.
+nxt.isOffline=false
+
+# Enable re-broadcasting of new transactions until they are received back from at least one
+# peer, or found in the blockchain. This feature can optionally be disabled, to avoid the
+# risk of revealing that this node is the submitter of such re-broadcasted new transactions.
+nxt.enableTransactionRebroadcasting=true
+
+#### API SERVER ####
+
+# Accept http/json API requests.
+nxt.enableAPIServer=true
+
+# Hosts from which to allow http/json API requests, if enabled.
+nxt.allowedBotHosts=127.0.0.1; localhost; [0:0:0:0:0:0:0:1];
+
+# Port for http/json API requests.
+nxt.apiServerPort=8125
+
+# Host interface on which to listen for http/json API request, default localhost only.
+# Set to 0.0.0.0 to allow the API server to accept requests from all network interfaces.
+nxt.apiServerHost=127.0.0.1
+
+# Idle timeout for http/json API request connections, milliseconds.
+nxt.apiServerIdleTimeout=30000
+
+# Directory with html and javascript files for the new client UI, and admin tools utilizing
+# the http/json API.
+nxt.apiResourceBase=html/ui
+
+# Java API documentation directory, optional.
+nxt.javadocResourceBase=html/doc
+
+# Enable Cross Origin Filter for the API server.
+nxt.apiServerCORS=false
+
+# Enable SSL for the API server (also need to set nxt.keyStorePath and nxt.keyStorePassword).
+nxt.apiSSL=false
+
+# Enforce requests that require POST to only be accepted when submitted as POST.
+nxt.apiServerEnforcePOST=true
+
+# Compress Http responses for the API server.
+nxt.enableAPIServerGZIPFilter=false
+
+
+#### OLD NRS USER INTERFACE ####
+
+# Enable the deprecated NRS user interface.
+nxt.enableUIServer=false
+
+# Hosts from which to allow NRS user interface requests, if enabled.
+nxt.allowedUserHosts=127.0.0.1; localhost; [0:0:0:0:0:0:0:1];
+
+# Port for NRS user interface server.
+nxt.uiServerPort=7875
+
+# Host interface for NRS user interface server, default localhost only.
+# Set to 0.0.0.0 to allow the UI to be accessed on all network interfaces.
+nxt.uiServerHost=127.0.0.1
+
+# Idle timeout for NRS user interface server, milliseconds.
+nxt.uiServerIdleTimeout=30000
+
+# Directory with html and javascript files for the NRS client user interface.
+nxt.uiResourceBase=html/nrs
+
+# Enable Cross Origin Filter for NRS user interface server.
+nxt.uiServerCORS=false
+
+# Enable SSL for the NRS user interface (also need to set nxt.keyStorePath and nxt.keyStorePassword).
+nxt.uiSSL=false
+
+# Enforce requests that require POST to only be accepted when submitted as POST.
+nxt.uiServerEnforcePOST=true
+
+
+
+#### DEBUGGING ####
+
+# Log file, will be overwritten at every restart.
+#nxt.log=nxt.log
+# The log file is now specified in logging.properties.
+
+# Enable debug log output.
+#nxt.debug=false
+# Debug logging is now specified in logging properties.
+
+# Include caller traceback in log messages.
+nxt.enableLogTraceback=false
+
+# Enable logging of exception stack traces.
+nxt.enableStackTraces=true
+
+# Enable logging of Jetty messages.
+#nxt.debugJetty=false
+# Jetty logging is now specified in logging properties.
+
+# Used for debugging peer to peer communications.
+nxt.communicationLoggingMask=0
+
+# Track balances of the following accounts and related events for debugging purposes.
+nxt.debugTraceAccounts=
+
+# File name for logging tracked account balances.
+nxt.debugTraceLog=nxt-trace.csv
+
+# Separator character for trace log.
+nxt.debugTraceSeparator=\t
+
+# Quote character for trace log.
+nxt.debugTraceQuote="
+
+# Log changes to unconfirmed balances.
+nxt.debugLogUnconfirmed=false
+
+
+#### DATABASE ####
+
+# Database connection JDBC url, see the H2 documentation for possible customizations.
+# Append ;AUTO_SERVER=TRUE to enable automatic mixed mode access.
+# The nxt_db folder is expected to be in the current working directory, will be created if missing.
+nxt.dbUrl=jdbc:h2:burst_db/burst;DB_CLOSE_ON_EXIT=FALSE
+
+# Database connection JDBC url to use with the test network, if isTestnet=true
+nxt.testDbUrl=jdbc:h2:burst_test_db/burst;DB_CLOSE_ON_EXIT=FALSE
+
+# Database connection timeout in seconds.
+nxt.dbLoginTimeout=70
+
+# Database default lock timeout in seconds.
+nxt.dbDefaultLockTimeout=60
+
+# Maximum simultaneous database connections.
+nxt.maxDbConnections=30
+
+# The memory allocated to database cache, in kB.
+# If set to 0, defaults to 50 % of the memory available to the JVM.
+nxt.dbCacheKB=0
+
+
+
+#### JETTY ####
+
+# Settings for the Jetty Denial Of Service Filter, used for the peer networking server only.
+nxt.peerServerDoSFilter.maxRequestsPerSec=30
+nxt.peerServerDoSFilter.delayMs=1000
+nxt.peerServerDoSFilter.maxRequestMs=300000
+
+# keystore file and password, required if uiSSL or apiSSL are enabled.
+nxt.keyStorePath=keystore
+nxt.keyStorePassword=password
+
+
+
+#### Developers only ####
+
+# Force re-validation of blocks and transaction at start.
+nxt.forceValidate=false
+
+# Force re-build of derived objects tables at start.
+nxt.forceScan=false
+
+# Print a list of peers having this version on exit.
+nxt.dumpPeersVersion=
+
+# Enable trimming of derived objects tables.
+nxt.trimDerivedTables=true
+
+# If trimming enabled, maintain enough previous height records to allow rollback of at least
+# that many blocks. Must be at least 1440 to allow normal fork resolution. After increasing
+# this value, a full re-scan needs to be done in order for previously trimmed records to be
+# re-created and preserved.
+nxt.maxRollback=1440
+
+# Enable API requests used for blockchain and database manipulation.
+nxt.enableDebugAPI=false
+

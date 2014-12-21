@@ -126,7 +126,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		{
 			if( tx.getMessage() == null )
 			{
-				amount = tx.getAmountNQT();
+				amount = tx.getAmountNQT() - state.minActivationAmount();
 			}
 			else
 			{
