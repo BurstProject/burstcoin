@@ -47,7 +47,7 @@ public abstract class AT_Controller {
 		{
 			if ( ( state.getG_balance() < stepFee * numSteps ) )
 			{
-				System.out.println( "stopped - not enough balance" );
+				//System.out.println( "stopped - not enough balance" );
 				state.setFreeze( true );
 				return 3;
 			}
@@ -60,23 +60,23 @@ public abstract class AT_Controller {
 			{
 				if ( state.getMachineState().stopped )
 				{
-					System.out.println( "stopped" );
+					//System.out.println( "stopped" );
 					return 2;
 				}
 				else if ( state.getMachineState().finished )
 				{
-					System.out.println( "finished" );
+					//System.out.println( "finished" );
 					return 1;
 				}
 			}
 			else
 			{
-				if ( rc == -1 )
+				/*if ( rc == -1 )
 					System.out.println( "error: overflow" );
 				else if ( rc==-2 )
 					System.out.println( "error: invalid code" );
 				else
-					System.out.println( "unexpected error" );
+					System.out.println( "unexpected error" );*/
 				
 				if(state.getMachineState().jumps.contains(state.getMachineState().err))
 				{
@@ -178,7 +178,7 @@ public abstract class AT_Controller {
 			
 			long minActivationAmount = b.getLong();
 			
-			System.out.println("codePages: " + codePages );
+			//System.out.println("codePages: " + codePages );
 			int codeLen;
 			if ( codePages * 256 < 257 )
 			{

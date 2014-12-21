@@ -2246,9 +2246,9 @@ public abstract class TransactionType {
 				AbstractAttachment parseAttachment(ByteBuffer buffer,
 						byte transactionVersion) throws NotValidException {
 					// TODO Auto-generated method stub
-					System.out.println("parsing byte AT attachment");
+					//System.out.println("parsing byte AT attachment");
 					AutomatedTransactionsCreation attachment = new Attachment.AutomatedTransactionsCreation(buffer,transactionVersion);
-					System.out.println("byte AT attachment parsed");
+					//System.out.println("byte AT attachment parsed");
 					return attachment;
 				}
 
@@ -2256,16 +2256,16 @@ public abstract class TransactionType {
 				AbstractAttachment parseAttachment(JSONObject attachmentData)
 						throws NotValidException {
 					// TODO Auto-generated method stub
-					System.out.println("parsing at attachment");
+					//System.out.println("parsing at attachment");
 					Attachment.AutomatedTransactionsCreation atCreateAttachment = new Attachment.AutomatedTransactionsCreation(attachmentData);
-					System.out.println("attachment parsed");
+					//System.out.println("attachment parsed");
 					return atCreateAttachment;
 				}
 
 				@Override
 				void doValidateAttachment(Transaction transaction)
 						throws ValidationException {
-					System.out.println("validating attachment");
+					//System.out.println("validating attachment");
 					if (Nxt.getBlockchain().getLastBlock().getHeight()< Constants.AUTOMATED_TRANSACTION_BLOCK){
 						throw new NxtException.NotYetEnabledException("Automated Transactions not yet enabled at height " + Nxt.getBlockchain().getLastBlock().getHeight());
 					}
@@ -2286,7 +2286,7 @@ public abstract class TransactionType {
 					if (transaction.getFeeNQT() <  requiredFee){
 						throw new NxtException.NotValidException("Insufficient fee for AT creation. Minimum: " + Convert.toUnsignedLong(requiredFee / Constants.ONE_NXT));
 					}
-					System.out.println("validating success");
+					//System.out.println("validating success");
 				}
 
 				@Override
@@ -2295,9 +2295,9 @@ public abstract class TransactionType {
 					// TODO Auto-generated method stub
 	                Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
 	                Long atId = transaction.getId();
-	                System.out.println("Applying AT attachent");
+	                //System.out.println("Applying AT attachent");
 	                AT.addAT( transaction.getId() , transaction.getSenderId() , attachment.getName() , attachment.getDescription() , attachment.getCreationBytes() , transaction.getHeight() ); 
-	                System.out.println("At with id "+atId+" successfully applied");
+	                //System.out.println("At with id "+atId+" successfully applied");
 				}
 
 

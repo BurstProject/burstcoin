@@ -64,7 +64,7 @@ public class AT_Machine_Processor{
 		{
 			fun.addr1 =  (machineData.getAp_code()).getInt(machineData.getMachineState().pc+1);
 			fun.off = (machineData.getAp_code()).get(   machineData.getMachineState().pc+1+4);
-			System.out.println(fun.addr1);
+			//System.out.println(fun.addr1);
 			if (!validAddr(fun.addr1, false) ||
 					!validAddr(machineData.getMachineState().pc+fun.off, true))
 				return -1;
@@ -95,14 +95,14 @@ public class AT_Machine_Processor{
 
 	private int getFunAddr()
 	{
-		System.out.println("pc counter: "+machineData.getMachineState().pc);
+		//System.out.println("pc counter: "+machineData.getMachineState().pc);
 		if (machineData.getMachineState().pc + 4 + 4>=machineData.getCsize())
 			return -1;
 		else
 		{
 			fun.fun =  (machineData.getAp_code()).getShort( machineData.getMachineState().pc+1);
 			fun.addr1 =  (machineData.getAp_code()).getInt((machineData.getMachineState().pc+1+2));
-			System.out.println("fun: "+fun.fun+" fun.addr1 :"+fun.addr1);
+			//System.out.println("fun: "+fun.fun+" fun.addr1 :"+fun.addr1);
 			if (!validAddr(fun.addr1, false))
 				return -1;
 			else
@@ -190,7 +190,7 @@ public class AT_Machine_Processor{
 		}
 
 		byte op = (machineData.getAp_code()).get(machineData.getMachineState().pc);
-		System.out.println("OpCode : "+op);
+		//System.out.println("OpCode : "+op);
 		if (op>0 && disassemble && !determine_jumps)
 		{
 			System.out.print(String.format("%8x", machineData.getMachineState().pc).replace(' ', '0'));

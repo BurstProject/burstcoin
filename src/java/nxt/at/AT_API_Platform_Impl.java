@@ -190,7 +190,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 
 			long ticket = Math.abs( AT_API_Helper.getLong( byteTicket ) );
 
-			System.out.println( "info: ticket for txid: " + Convert.toUnsignedLong( tx.getId() ) + "is: " + ticket );
+			//System.out.println( "info: ticket for txid: " + Convert.toUnsignedLong( tx.getId() ) + "is: " + ticket );
 			return ticket;
 		}
 		return -1;
