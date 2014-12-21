@@ -460,13 +460,17 @@ final class DbVersion {
             case 148:
             	apply("CREATE UNIQUE INDEX IF NOT EXISTS at_state_at_id_height_idx ON at_state (at_id, height DESC)");
             case 149:
-            	apply("CREATE INDEX IF NOT EXISTS at_state_prev_height_next_height_idx ON at_state(prev_height, next_height)");
+            	apply("CREATE INDEX IF NOT EXISTS at_state_id_next_height_height_idx ON at_state (at_id, next_height, height DESC)");
             case 150:
             	apply("ALTER TABLE block ADD COLUMN IF NOT EXISTS ats BINARY");
             case 151:
+            	apply("CREATE INDEX IF NOT EXISTS account_id_balance_height_idx ON account (id, balance, height DESC)");
+            case 152:
+            	apply("CREATE INDEX IF NOT EXISTS transaction_recipient_id_amount_height_idx ON transaction (recipient_id, amount, height)");
+            case 153:
             	BlockchainProcessorImpl.getInstance().forceScanAtStart();
                 apply(null);
-            case 152:
+            case 154:
                 return;
             default:
                 throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");

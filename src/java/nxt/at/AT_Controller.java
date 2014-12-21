@@ -37,19 +37,23 @@ public abstract class AT_Controller {
 
 		state.setFreeze( false );
 		
-		while ( state.getMachineState().steps < AT_Constants.getInstance().MAX_STEPS( height ))
+		long stepFee = AT_Constants.getInstance().STEP_FEE( height );
+		
+		int numSteps = 0;
+		
+		while ( state.getMachineState().steps +
+				(numSteps = getNumSteps(state.getAp_code().get(state.getMachineState().pc), height))
+				<= AT_Constants.getInstance().MAX_STEPS( height ))
 		{
-			long stepFee = AT_Constants.getInstance().STEP_FEE( height );
-
-			if ( ( state.getG_balance() < stepFee ) )
+			if ( ( state.getG_balance() < stepFee * numSteps ) )
 			{
 				System.out.println( "stopped - not enough balance" );
 				state.setFreeze( true );
 				return 3;
 			}
 
-			state.setG_balance( state.getG_balance() - stepFee );
-			state.getMachineState().steps++;
+			state.setG_balance( state.getG_balance() - (stepFee * numSteps) );
+			state.getMachineState().steps += numSteps;
 			int rc = processor.processOp( false , false );
 
 			if ( rc >= 0 )
@@ -86,6 +90,13 @@ public abstract class AT_Controller {
 			}
 		}
 		return 5;
+	}
+	
+	public static int getNumSteps(byte op, int height) {
+		if(op >= 0x32 && op < 0x38)
+			return (int)AT_Constants.getInstance().API_STEP_MULTIPLIER(height);
+		
+		return 1;
 	}
 
 	public static void resetMachine( AT_Machine_State state ) {
@@ -270,7 +281,7 @@ public abstract class AT_Controller {
 
 
 
-				if ( atAccountBalance >= AT_Constants.getInstance().STEP_FEE( blockHeight ) )
+				if ( atAccountBalance >= AT_Constants.getInstance().STEP_FEE( blockHeight ) * AT_Constants.getInstance().API_STEP_MULTIPLIER( blockHeight ) )
 				{
 					try
 					{
@@ -352,7 +363,7 @@ public abstract class AT_Controller {
 				at.setWaitForNumberOfBlocks( at.getSleepBetween() );
 
 				long atAccountBalance = getATAccountBalance( AT_API_Helper.getLong( atId ) );
-				if(atAccountBalance < AT_Constants.getInstance().STEP_FEE( blockHeight ))
+				if(atAccountBalance < AT_Constants.getInstance().STEP_FEE( blockHeight ) * AT_Constants.getInstance().API_STEP_MULTIPLIER( blockHeight ) )
 				{
 					throw new AT_Exception( "AT has insufficient balance to run" );
 				}

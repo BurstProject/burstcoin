@@ -221,10 +221,10 @@ public class AT_API_Controller{
 		{
 			atApi.send_A_to_Address_in_B( state );
 		}
-		else if ( func_num == 1280 )
+		/*else if ( func_num == 1280 )
 		{
 			atApi.put_Last_Block_Generation_Signature_In_A( state );
-		}
+		}*/
 		
 		
 		return rc;
@@ -274,10 +274,10 @@ public class AT_API_Controller{
 		{
 			atApi.send_to_Address_in_B( val , state );
 		}
-		else if ( func_num == 1040 )
+		/*else if ( func_num == 1040 )
 		{
 			atApi.set_Min_Activation_Amount(val, state);
-		}
+		}*/
 		
 		return rc;
 	}
@@ -306,10 +306,10 @@ public class AT_API_Controller{
 		{
 			return atApi.add_Minutes_to_Timestamp( val1 , val2 , state );
 		}
-		else if ( func_num == 1536 )
+		/*else if ( func_num == 1536 )
 		{
 			atApi.SHA256_to_B( val1 , val2 , state );
-		}
+		}*/
 		
 		return rc;
 		

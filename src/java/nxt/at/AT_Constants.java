@@ -16,6 +16,7 @@ public class AT_Constants {
 	private final static HashMap< Short , Long > MIN_FEE = new HashMap<>();
 	private final static HashMap< Short , Long > STEP_FEE  = new HashMap<>();
 	private final static HashMap< Short , Long > MAX_STEPS  = new HashMap<>();
+	private final static HashMap< Short , Long > API_STEP_MULTIPLIER = new HashMap<>();
 	
 	private final static HashMap< Short , Long >  COST_PER_PAGE = new HashMap<>();
 	
@@ -47,10 +48,11 @@ public class AT_Constants {
 		
 		//constants for AT version 1
 		MIN_FEE.put( (short) 1 , 1000L );
-		STEP_FEE.put( (short) 1 , 1 * Constants.ONE_NXT  );
-		MAX_STEPS.put( (short) 1 , 500L );
+		STEP_FEE.put( (short) 1 , Constants.ONE_NXT / 10L );
+		MAX_STEPS.put( (short) 1 , 200L );
+		API_STEP_MULTIPLIER.put( (short) 1 , 10L);
 		
-		COST_PER_PAGE.put( (short) 1 , 200 * Constants.ONE_NXT );
+		COST_PER_PAGE.put( (short) 1 , Constants.ONE_NXT );
 		
 		MAX_WAIT_FOR_NUM_OF_BLOCKS.put( (short) 1 , 1440L );
 		MAX_SLEEP_BETWEEN_BLOCKS.put( (short) 1 , 1440L );
@@ -62,7 +64,7 @@ public class AT_Constants {
 		MAX_MACHINE_USER_STACK_PAGES.put( (short) 1, 10L );
 		MAX_MACHINE_CALL_STACK_PAGES.put( (short) 1, 10L );
 		
-		BLOCKS_FOR_TICKET.put( (short) 1, 2L ); //for testing 2 -> normally 1440
+		BLOCKS_FOR_TICKET.put( (short) 1, 15L ); //for testing 2 -> normally 1440
 		MAX_PAYLOAD_FOR_BLOCK.put( (short) 1 , Constants.MAX_PAYLOAD_LENGTH / 2L  ); //use at max half size of the block.
 		AVERAGE_BLOCK_MINUTES.put( (short) 1 , 4L );
 		// end of AT version 1
@@ -83,6 +85,10 @@ public class AT_Constants {
 	
 	public long MAX_STEPS( int height ){
 		return MAX_STEPS.get( AT_VERSION( height ) );
+	}
+	
+	public long API_STEP_MULTIPLIER( int height ){
+		return API_STEP_MULTIPLIER.get( AT_VERSION( height ) );
 	}
 	
 	public long COST_PER_PAGE( int height ){

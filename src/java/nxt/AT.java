@@ -494,7 +494,8 @@ public final class AT extends AT_Machine_State {
 				+ "ORDER BY at_state.prev_height, at_state.next_height, at.id"))
 		{
 			pstmt.setInt( 1 ,  Nxt.getBlockchain().getHeight() );
-			pstmt.setLong(2, AT_Constants.getInstance().STEP_FEE(Nxt.getBlockchain().getHeight()));
+			pstmt.setLong(2, AT_Constants.getInstance().STEP_FEE(Nxt.getBlockchain().getHeight()) *
+					AT_Constants.getInstance().API_STEP_MULTIPLIER(Nxt.getBlockchain().getHeight()));
 			ResultSet result = pstmt.executeQuery();
 			while ( result.next() )
 			{
