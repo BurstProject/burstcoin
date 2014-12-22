@@ -1,6 +1,14 @@
 package nxt;
 
+import nxt.Attachment.AbstractAttachment;
+import nxt.Attachment.AutomatedTransactionsCreation;
+import nxt.NxtException.NotValidException;
+import nxt.NxtException.ValidationException;
+import nxt.at.AT_Constants;
+import nxt.at.AT_Controller;
+import nxt.at.AT_Exception;
 import nxt.util.Convert;
+
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
@@ -21,6 +29,7 @@ public abstract class TransactionType {
     
     private static final byte TYPE_BURST_MINING = 20; // jump some for easier nxt updating
     private static final byte TYPE_ADVANCED_PAYMENT = 21;
+    private static final byte TYPE_AUTOMATED_TRANSACTIONS = 22;
 
     private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;
 
@@ -48,6 +57,9 @@ public abstract class TransactionType {
     private static final byte SUBTYPE_DIGITAL_GOODS_DELIVERY = 5;
     private static final byte SUBTYPE_DIGITAL_GOODS_FEEDBACK = 6;
     private static final byte SUBTYPE_DIGITAL_GOODS_REFUND = 7;
+    
+    private static final byte SUBTYPE_AT_CREATION = 0;
+    private static final byte SUBTYPE_AT_NXT_PAYMENT = 1;
 
     private static final byte SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING = 0;
     
@@ -163,6 +175,15 @@ public abstract class TransactionType {
 	            		return AdvancedPayment.SUBSCRIPTION_CANCEL;
 	            	case SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT:
 	            		return AdvancedPayment.SUBSCRIPTION_PAYMENT;
+            		default:
+            			return null;
+            	}
+            case TYPE_AUTOMATED_TRANSACTIONS:
+            	switch (subtype) {
+            		case SUBTYPE_AT_CREATION:
+            			return AutomatedTransactions.AUTOMATED_TRANSACTION_CREATION;
+            		case SUBTYPE_AT_NXT_PAYMENT:
+            			return AutomatedTransactions.AT_PAYMENT;
             		default:
             			return null;
             	}
@@ -1790,13 +1811,15 @@ public abstract class TransactionType {
 				if(senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT.longValue()) {
 					return false;
 				}
-				senderAccount.addToBalanceAndUnconfirmedBalanceNQT(-totalAmountNQT);
+				senderAccount.addToUnconfirmedBalanceNQT(-totalAmountNQT);
 				return true;
 			}
 			
 			@Override
 			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
 				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
+				Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
+				senderAccount.addToBalanceNQT(-totalAmountNQT);
 				Collection<Long> signers = attachment.getSigners();
 				for(Long signer : signers) {
 					Account.addOrGetAccount(signer).addToBalanceAndUnconfirmedBalanceNQT(Constants.ONE_NXT);
@@ -1815,7 +1838,7 @@ public abstract class TransactionType {
 			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
 				Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
-				senderAccount.addToBalanceAndUnconfirmedBalanceNQT(totalAmountNQT);
+				senderAccount.addToUnconfirmedBalanceNQT(totalAmountNQT);
 			}
 			
 			@Override
@@ -2128,58 +2151,207 @@ public abstract class TransactionType {
 				return false;
 			}
 		};
+		
+		public final static TransactionType SUBSCRIPTION_PAYMENT = new AdvancedPayment() {
+			
+			@Override
+			public final byte getSubtype() {
+				return TransactionType.SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT;
+			}
+			
+			@Override
+			Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+				return new Attachment.AdvancedPaymentSubscriptionPayment(buffer, transactionVersion);
+			}
+			
+			@Override
+			Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+				return new Attachment.AdvancedPaymentSubscriptionPayment(attachmentData);
+			}
+			
+			@Override
+			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+				return false;
+			}
+			
+			@Override
+			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+			}
+			
+			@Override
+			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+			}
+			
+			@Override
+			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+				return true;
+			}
+			
+			@Override
+			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+				throw new NxtException.NotValidException("Subscription payment never validates");
+			}
+			
+			@Override
+			final public boolean hasRecipient() {
+				return true;
+			}
+			
+			@Override
+			final public boolean isSigned() {
+				return false;
+			}
+		};
 	}
 	
-	public final static TransactionType SUBSCRIPTION_PAYMENT = new AdvancedPayment() {
-		
-		@Override
-		public final byte getSubtype() {
-			return TransactionType.SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT;
-		}
-		
-		@Override
-		Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
-			return new Attachment.AdvancedPaymentSubscriptionPayment(buffer, transactionVersion);
-		}
-		
-		@Override
-		Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
-			return new Attachment.AdvancedPaymentSubscriptionPayment(attachmentData);
-		}
-		
-		@Override
-		final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-			return false;
-		}
-		
-		@Override
-		final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-		}
-		
-		@Override
-		final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-		}
-		
-		@Override
-		boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
-			return true;
-		}
-		
-		@Override
-		void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-			throw new NxtException.NotValidException("Subscription payment never validates");
-		}
-		
-		@Override
-		final public boolean hasRecipient() {
-			return true;
-		}
-		
-		@Override
-		final public boolean isSigned() {
-			return false;
-		}
-	};
+	  public static abstract class AutomatedTransactions extends TransactionType{
+	    	private AutomatedTransactions() {
+
+	    	}
+	    	
+	    	@Override
+	    	public final byte getType(){
+	    		return TransactionType.TYPE_AUTOMATED_TRANSACTIONS;
+	    	}
+	    	
+	    	@Override
+	    	boolean applyAttachmentUnconfirmed(Transaction transaction,Account senderAccount){
+	    		return true;
+	    	}
+	    	
+	    	@Override
+	    	void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount){
+	    		
+	    	}
+	    	
+	    	 @Override
+	         final void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+	             if (transaction.getAmountNQT() != 0) {
+	                 throw new NxtException.NotValidException("Invalid automated transaction transaction");
+	             }
+	             doValidateAttachment(transaction);
+	         }
+
+	         abstract void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException;
+
+	    	
+	    	public static final TransactionType AUTOMATED_TRANSACTION_CREATION = new AutomatedTransactions(){
+
+				@Override
+				public byte getSubtype() {
+					return TransactionType.SUBTYPE_AT_CREATION;
+				}
+
+				@Override
+				AbstractAttachment parseAttachment(ByteBuffer buffer,
+						byte transactionVersion) throws NotValidException {
+					// TODO Auto-generated method stub
+					//System.out.println("parsing byte AT attachment");
+					AutomatedTransactionsCreation attachment = new Attachment.AutomatedTransactionsCreation(buffer,transactionVersion);
+					//System.out.println("byte AT attachment parsed");
+					return attachment;
+				}
+
+				@Override
+				AbstractAttachment parseAttachment(JSONObject attachmentData)
+						throws NotValidException {
+					// TODO Auto-generated method stub
+					//System.out.println("parsing at attachment");
+					Attachment.AutomatedTransactionsCreation atCreateAttachment = new Attachment.AutomatedTransactionsCreation(attachmentData);
+					//System.out.println("attachment parsed");
+					return atCreateAttachment;
+				}
+
+				@Override
+				void doValidateAttachment(Transaction transaction)
+						throws ValidationException {
+					//System.out.println("validating attachment");
+					if (Nxt.getBlockchain().getLastBlock().getHeight()< Constants.AUTOMATED_TRANSACTION_BLOCK){
+						throw new NxtException.NotYetEnabledException("Automated Transactions not yet enabled at height " + Nxt.getBlockchain().getLastBlock().getHeight());
+					}
+					if (transaction.getSignature() != null && Account.getAccount(transaction.getId()) != null) {
+						Account existingAccount = Account.getAccount(transaction.getId());
+						if(existingAccount.getPublicKey() != null && !Arrays.equals(existingAccount.getPublicKey(), new byte[32]))
+							throw new NxtException.NotValidException("Account with id already exists");
+					}
+					Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
+					long totalPages = 0;
+					try {
+						totalPages = AT_Controller.checkCreationBytes(attachment.getCreationBytes(), Nxt.getBlockchain().getHeight());
+					}
+					catch(AT_Exception e) {
+						throw new NxtException.NotCurrentlyValidException("Invalid AT creation bytes", e);
+					}
+					long requiredFee = totalPages * AT_Constants.getInstance().COST_PER_PAGE( transaction.getHeight() );
+					if (transaction.getFeeNQT() <  requiredFee){
+						throw new NxtException.NotValidException("Insufficient fee for AT creation. Minimum: " + Convert.toUnsignedLong(requiredFee / Constants.ONE_NXT));
+					}
+					//System.out.println("validating success");
+				}
+
+				@Override
+				void applyAttachment(Transaction transaction,
+						Account senderAccount, Account recipientAccount) {
+					// TODO Auto-generated method stub
+	                Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
+	                Long atId = transaction.getId();
+	                //System.out.println("Applying AT attachent");
+	                AT.addAT( transaction.getId() , transaction.getSenderId() , attachment.getName() , attachment.getDescription() , attachment.getCreationBytes() , transaction.getHeight() ); 
+	                //System.out.println("At with id "+atId+" successfully applied");
+				}
+
+
+				@Override
+				public boolean hasRecipient() {
+					// TODO Auto-generated method stub
+					return false;
+				}
+	    	};
+	    	
+	    	public static final TransactionType AT_PAYMENT = new AutomatedTransactions() {
+	    		@Override
+	            public final byte getSubtype() {
+	                return TransactionType.SUBTYPE_AT_NXT_PAYMENT;
+	            }
+
+	            @Override
+	            AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+	                return Attachment.AT_PAYMENT;
+	            }
+
+	            @Override
+	            AbstractAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+	                return Attachment.AT_PAYMENT;
+	            }
+
+	            @Override
+	            void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException {
+	                /*if (transaction.getAmountNQT() <= 0 || transaction.getAmountNQT() >= Constants.MAX_BALANCE_NQT) {
+	                    throw new NxtException.NotValidException("Invalid ordinary payment");
+	                }*/
+	            	throw new NxtException.NotValidException("AT payment never validates");
+	            }
+
+				@Override
+				void applyAttachment(Transaction transaction,
+						Account senderAccount, Account recipientAccount) {
+					// TODO Auto-generated method stub
+					
+				}
+
+
+				@Override
+				public boolean hasRecipient() {
+					return true;
+				}
+				
+				@Override
+				final public boolean isSigned() {
+					return false;
+				}
+	    	};
+	    	
+	    }
 
     long minimumFeeNQT(int height, int appendagesSize) {
         if (height < BASELINE_FEE_HEIGHT) {

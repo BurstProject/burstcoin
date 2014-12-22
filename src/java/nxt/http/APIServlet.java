@@ -175,6 +175,12 @@ public final class APIServlet extends HttpServlet {
         map.put("getSubscription", GetSubscription.instance);
         map.put("getAccountSubscriptions", GetAccountSubscriptions.instance);
         map.put("getSubscriptionsToAccount", GetSubscriptionsToAccount.instance);
+        map.put("createATProgram", CreateATProgram.instance);
+        map.put("getAT", GetAT.instance);
+        map.put("getATDetails", GetATDetails.instance);
+        map.put("getATIds", GetATIds.instance);
+        map.put("getATLong", GetATLong.instance);
+        map.put("getAccountATs", GetAccountATs.instance);
 
         if (API.enableDebugAPI) {
         	map.put("clearUnconfirmedTransactions", ClearUnconfirmedTransactions.instance);

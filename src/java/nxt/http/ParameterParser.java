@@ -1,5 +1,6 @@
 package nxt.http;
 
+import nxt.AT;
 import nxt.Account;
 import nxt.Alias;
 import nxt.Asset;
@@ -12,11 +13,15 @@ import nxt.crypto.Crypto;
 import nxt.crypto.EncryptedData;
 import nxt.util.Convert;
 import nxt.util.Logger;
+
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -468,5 +473,47 @@ final class ParameterParser {
 
 
     private ParameterParser() {} // never
+    
+
+	
+	static AT getAT(HttpServletRequest req) throws ParameterException {
+        String atValue = Convert.emptyToNull(req.getParameter("at"));
+        if (atValue == null) {
+            throw new ParameterException(MISSING_AT);
+        }
+        AT at;
+        try {
+            Long atId = Convert.parseUnsignedLong(atValue);
+            at = AT.getAT( atId );
+        } catch (RuntimeException e) {
+            throw new ParameterException(INCORRECT_AT);
+        }
+        if (at == null) {
+            throw new ParameterException(UNKNOWN_AT);
+        }
+        return at;
+    }
+	
+	public static byte[] getCreationBytes( HttpServletRequest req ) throws ParameterException {
+		try {
+			return Convert.parseHexString(req.getParameter("creationBytes"));
+		} catch (RuntimeException e) {
+			throw new ParameterException(INCORRECT_CREATION_BYTES);
+		}
+		
+		
+		
+	}
+
+	public static String getATLong(HttpServletRequest req) {
+		String hex = req.getParameter("hexString");
+		ByteBuffer bf = ByteBuffer.allocate(8);
+		bf.order(ByteOrder.LITTLE_ENDIAN);
+		bf.put(Convert.parseHexString(hex));
+		
+		String ret = Convert.toUnsignedLong(bf.getLong(0));
+		return ret;
+	}
+
 
 }

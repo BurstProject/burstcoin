@@ -445,6 +445,32 @@ final class DbVersion {
             case 143:
             	apply("CREATE UNIQUE INDEX IF NOT EXISTS block_timestamp_idx ON block (timestamp DESC)");
             case 144:
+            	apply("CREATE TABLE IF NOT EXISTS at (db_id IDENTITY, id BIGINT NOT NULL, creator_id BIGINT NOT NULL, name VARCHAR, description VARCHAR, "
+            			+ "version SMALLINT NOT NULL, csize INT NOT NULL, dsize INT NOT NULL, c_user_stack_bytes INT NOT NULL, c_call_stack_bytes INT NOT NULL, "
+            			+ "creation_height INT NOT NULL, ap_code BINARY NOT NULL, "
+            			+ "height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
+            case 145:
+            	apply("CREATE UNIQUE INDEX IF NOT EXISTS at_id_height_idx ON at (id, height DESC)");
+            case 146:
+            	apply("CREATE INDEX IF NOT EXISTS at_creator_id_height_idx ON at (creator_id, height DESC)");
+            case 147:
+            	apply("CREATE TABLE IF NOT EXISTS at_state (db_id IDENTITY, at_id BIGINT NOT NULL, state BINARY NOT NULL, prev_height INT NOT NULL, "
+            			+ "next_height INT NOT NULL, sleep_between INT NOT NULL, "
+            			+ "prev_balance BIGINT NOT NULL, freeze_when_same_balance BOOLEAN NOT NULL, min_activate_amount BIGINT NOT NULL, height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
+            case 148:
+            	apply("CREATE UNIQUE INDEX IF NOT EXISTS at_state_at_id_height_idx ON at_state (at_id, height DESC)");
+            case 149:
+            	apply("CREATE INDEX IF NOT EXISTS at_state_id_next_height_height_idx ON at_state (at_id, next_height, height DESC)");
+            case 150:
+            	apply("ALTER TABLE block ADD COLUMN IF NOT EXISTS ats BINARY");
+            case 151:
+            	apply("CREATE INDEX IF NOT EXISTS account_id_balance_height_idx ON account (id, balance, height DESC)");
+            case 152:
+            	apply("CREATE INDEX IF NOT EXISTS transaction_recipient_id_amount_height_idx ON transaction (recipient_id, amount, height)");
+            case 153:
+            	BlockchainProcessorImpl.getInstance().forceScanAtStart();
+                apply(null);
+            case 154:
                 return;
             default:
                 throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");

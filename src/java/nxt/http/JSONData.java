@@ -1,5 +1,6 @@
 package nxt.http;
 
+import nxt.AT;
 import nxt.Account;
 import nxt.Alias;
 import nxt.Appendix;
@@ -25,6 +26,8 @@ import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Collections;
 
 public final class JSONData {
@@ -425,6 +428,36 @@ public final class JSONData {
         json.put(name + "RS", Convert.rsAccount(accountId));
     }
 
+    static JSONObject at(AT at) {
+        JSONObject json = new JSONObject();
+        ByteBuffer bf = ByteBuffer.allocate( 8 );
+        bf.order( ByteOrder.LITTLE_ENDIAN );
+        
+        bf.put( at.getCreator() );
+        bf.clear();
+        putAccount(json, "creator", bf.getLong() );
+        bf.clear();
+        bf.put( at.getId() , 0 , 8 );
+        long id = bf.getLong(0);
+        json.put("at", Convert.toUnsignedLong( id ));
+        json.put("atRS", Convert.rsAccount(id));
+        json.put("atVersion", at.getVersion());        
+        json.put("name", at.getName());
+        json.put("description", at.getDescription());
+        json.put("machineCode", Convert.toHexString(at.getApCode()));
+        json.put("machineData", Convert.toHexString(at.getApData()));
+        json.put("balanceNQT", Convert.toUnsignedLong(Account.getAccount(id).getBalanceNQT()));
+        return json;
+    }
+    
+    static JSONObject hex2long(String longString){
+    	JSONObject json = new JSONObject();
+        json.put("hex2long", longString);
+        return json;
+    }
+   
+    
+    
     private JSONData() {} // never
 
 }
