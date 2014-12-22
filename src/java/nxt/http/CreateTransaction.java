@@ -161,6 +161,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
             if (secretPhrase != null) {
                 transaction.sign(secretPhrase);
+                transaction.validate(); // 2nd validate may be needed if validation requires id to be known
                 response.put("transaction", transaction.getStringId());
                 response.put("fullHash", transaction.getFullHash());
                 response.put("transactionBytes", Convert.toHexString(transaction.getBytes()));

@@ -52,5 +52,7 @@ public interface Block {
     BigInteger getCumulativeDifficulty();
 
     JSONObject getJSONObject();
+    
+    byte[] getBlockATs();
 
 }

@@ -1,7 +1,12 @@
 package nxt;
 
+import nxt.NxtException.NotValidException;
+import nxt.at.AT_Controller;
+import nxt.at.AT_Exception;
 import nxt.crypto.EncryptedData;
 import nxt.util.Convert;
+import nxt.util.Logger;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -98,6 +103,21 @@ public interface Attachment extends Appendix {
 
     };
 
+    public static final EmptyAttachment AT_PAYMENT = new EmptyAttachment() {
+
+		@Override
+		public TransactionType getTransactionType() {
+			return TransactionType.AutomatedTransactions.AT_PAYMENT; 
+		}
+
+		@Override
+		String getAppendixName() {
+			return "AT Payment";
+		}
+		
+		
+	};
+    
     public final static class MessagingAliasAssignment extends AbstractAttachment {
 
         private final String aliasName;
@@ -1902,4 +1922,127 @@ public interface Attachment extends Appendix {
     		return TransactionType.AdvancedPayment.SUBSCRIPTION_PAYMENT;
     	}
     }
+
+    public final static class AutomatedTransactionsCreation extends AbstractAttachment{
+    	
+        private final String name;    
+        private final String description;
+        private final byte[] creationBytes;
+    	
+    	
+		AutomatedTransactionsCreation(ByteBuffer buffer,
+				byte transactionVersion) throws NxtException.NotValidException {
+			super(buffer, transactionVersion);
+			
+			this.name = Convert.readString( buffer , buffer.get() , Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH );
+			this.description = Convert.readString( buffer , buffer.getShort() , Constants.MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH );
+			
+			byte[] dst = new byte[ buffer.capacity() - buffer.position() ];
+			buffer.get( dst , 0 , buffer.capacity() - buffer.position() );
+			this.creationBytes = dst;
+			
+		}
+
+		AutomatedTransactionsCreation(JSONObject attachmentData) throws NxtException.NotValidException {
+			super(attachmentData);
+			
+			this.name = ( String ) attachmentData.get( "name" );
+			this.description = ( String ) attachmentData.get( "description" );
+			
+			this.creationBytes = Convert.parseHexString( (String) attachmentData.get( "creationBytes" ) );
+			
+		}
+			
+		public AutomatedTransactionsCreation( String name, String description , byte[] creationBytes ) throws NotValidException
+		{
+			this.name = name;
+			this.description = description;
+			this.creationBytes = creationBytes;
+			
+		}
+		
+		@Override
+		public TransactionType getTransactionType() {
+			return TransactionType.AutomatedTransactions.AUTOMATED_TRANSACTION_CREATION;
+		}
+
+		@Override
+		String getAppendixName() {
+            return "AutomatedTransactionsCreation";
+        }
+		@Override
+		int getMySize() {
+            return 1 + Convert.toBytes( name ).length + 2 + Convert.toBytes( description ).length + creationBytes.length;
+		}
+
+		@Override
+		void putMyBytes(ByteBuffer buffer) {        
+            byte[] nameBytes = Convert.toBytes( name );            
+            buffer.put( ( byte ) nameBytes.length );
+            buffer.put( nameBytes );
+            byte[] descriptionBytes = Convert.toBytes( description );
+            buffer.putShort( ( short ) descriptionBytes.length );
+            buffer.put( descriptionBytes );
+            
+            buffer.put( creationBytes );       
+		}
+
+		@Override
+		void putMyJSON(JSONObject attachment) {       
+			attachment.put("name", name);
+            attachment.put("description", description);
+            attachment.put("creationBytes", Convert.toHexString( creationBytes ) );        
+		}
+
+        public String getName() { return name; }
+
+        public String getDescription() { return description; }
+
+		public byte[] getCreationBytes() {
+			return creationBytes;
+		}
+        
+   	
+    }
+    
+    /*public final static class AutomatedTransactionsPayment extends AbstractAttachment{
+
+    	AutomatedTransactionsPayment(ByteBuffer buffer,
+				byte transactionVersion) throws NxtException.NotValidException {
+			super(buffer, transactionVersion);
+		}
+
+		AutomatedTransactionsPayment(JSONObject attachmentData) throws NxtException.NotValidException {
+			super(attachmentData);
+		}
+		
+		public AutomatedTransactionsPayment() {
+		}
+    	
+    	@Override
+		public TransactionType getTransactionType() {
+			return TransactionType.AutomatedTransactions.AT_PAYMENT;
+		}
+
+		@Override
+		String getAppendixName() {
+			return "AutomatedTransactionsPayment";
+		}
+
+		@Override
+		int getMySize() {
+			return 0;
+		}
+
+		@Override
+		void putMyBytes(ByteBuffer buffer) {
+		}
+
+		@Override
+		void putMyJSON(JSONObject json) {
+		}
+    	
+    }*/
+    
+
 }

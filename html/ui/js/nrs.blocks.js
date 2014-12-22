@@ -241,7 +241,7 @@ var NRS = (function(NRS, $, undefined) {
 					var blocks = [];
 					var nrBlocks = 0;
 
-					var blockIds = response.blockIds.reverse().slice(0, 100);
+					var blockIds = response.blockIds.slice(0, 100);
 
 					if (response.blockIds.length > 100) {
 						$("#blocks_page_forged_warning").show();
