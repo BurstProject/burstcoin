@@ -24,6 +24,8 @@ public interface Block {
     int getScoopNum();
 
     byte[] getGeneratorPublicKey();
+    
+    byte[] getBlockHash();
 
     long getPreviousBlockId();
 

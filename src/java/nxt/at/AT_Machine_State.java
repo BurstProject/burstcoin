@@ -171,6 +171,8 @@ public class AT_Machine_State
 	private transient ByteBuffer ap_data;
 
 	private transient ByteBuffer ap_code;
+	
+	private int height;
 
 	private LinkedHashMap<ByteBuffer, AT_Transaction> transactions;
 	
@@ -528,6 +530,16 @@ public class AT_Machine_State
 	public int getSleepBetween()
 	{
 		return sleepBetween;
+	}
+	
+	public int getHeight()
+	{
+		return height;
+	}
+	
+	public void setHeight(int height)
+	{
+		this.height = height;
 	}
 	
 	public byte[] getTransactionBytes( )
