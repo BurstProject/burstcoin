@@ -62,7 +62,7 @@ public final class AT extends AT_Machine_State {
 				List<TransactionImpl> transactions = new ArrayList<>();
 				for(AT_Transaction atTransaction : pendingTransactions) {
 					Account.getAccount(AT_API_Helper.getLong(atTransaction.getSenderId())).addToBalanceAndUnconfirmedBalanceNQT(-atTransaction.getAmount());
-					Account.getAccount(AT_API_Helper.getLong(atTransaction.getRecipientId())).addToBalanceAndUnconfirmedBalanceNQT(atTransaction.getAmount());
+					Account.addOrGetAccount(AT_API_Helper.getLong(atTransaction.getRecipientId())).addToBalanceAndUnconfirmedBalanceNQT(atTransaction.getAmount());
 					
 					TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte)1, Genesis.CREATOR_PUBLIC_KEY,
 							atTransaction.getAmount(), 0L, block.getTimestamp(), (short)1440, Attachment.AT_PAYMENT);
@@ -493,7 +493,7 @@ public final class AT extends AT_Machine_State {
 				+ "AND (at_state.freeze_when_same_balance = FALSE OR (account.balance - at_state.prev_balance >= at_state.min_activate_amount)) "
 				+ "ORDER BY at_state.prev_height, at_state.next_height, at.id"))
 		{
-			pstmt.setInt( 1 ,  Nxt.getBlockchain().getHeight() );
+			pstmt.setInt( 1 ,  Nxt.getBlockchain().getHeight() + 1 );
 			pstmt.setLong(2, AT_Constants.getInstance().STEP_FEE(Nxt.getBlockchain().getHeight()) *
 					AT_Constants.getInstance().API_STEP_MULTIPLIER(Nxt.getBlockchain().getHeight()));
 			ResultSet result = pstmt.executeQuery();

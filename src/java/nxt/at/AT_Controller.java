@@ -33,17 +33,17 @@ public abstract class AT_Controller {
 
 		AT_Machine_Processor processor = new AT_Machine_Processor( state );
 
-		int height = Nxt.getBlockchain().getHeight();
+		//int height = Nxt.getBlockchain().getHeight();
 
 		state.setFreeze( false );
 		
-		long stepFee = AT_Constants.getInstance().STEP_FEE( height );
+		long stepFee = AT_Constants.getInstance().STEP_FEE( state.getCreationBlockHeight() );
 		
 		int numSteps = 0;
 		
 		while ( state.getMachineState().steps +
-				(numSteps = getNumSteps(state.getAp_code().get(state.getMachineState().pc), height))
-				<= AT_Constants.getInstance().MAX_STEPS( height ))
+				(numSteps = getNumSteps(state.getAp_code().get(state.getMachineState().pc), state.getCreationBlockHeight()))
+				<= AT_Constants.getInstance().MAX_STEPS( state.getHeight() ))
 		{
 			if ( ( state.getG_balance() < stepFee * numSteps ) )
 			{
@@ -281,17 +281,18 @@ public abstract class AT_Controller {
 
 
 
-				if ( atAccountBalance >= AT_Constants.getInstance().STEP_FEE( blockHeight ) * AT_Constants.getInstance().API_STEP_MULTIPLIER( blockHeight ) )
+				if ( atAccountBalance >= AT_Constants.getInstance().STEP_FEE( at.getCreationBlockHeight() ) * AT_Constants.getInstance().API_STEP_MULTIPLIER( at.getCreationBlockHeight() ) )
 				{
 					try
 					{
 						at.setG_balance( atAccountBalance );
+						at.setHeight(blockHeight);
 						at.clearTransactions();
 						at.setWaitForNumberOfBlocks( at.getSleepBetween() );
 						listCode(at, true, true);
 						runSteps ( at );
 
-						long fee = at.getMachineState().steps * AT_Constants.getInstance().STEP_FEE( blockHeight );
+						long fee = at.getMachineState().steps * AT_Constants.getInstance().STEP_FEE( at.getCreationBlockHeight() );
 						if( at.getMachineState().dead )
 						{
 							fee += at.getG_balance();
@@ -360,10 +361,11 @@ public abstract class AT_Controller {
 			try
 			{
 				at.clearTransactions();
+				at.setHeight(blockHeight);
 				at.setWaitForNumberOfBlocks( at.getSleepBetween() );
 
 				long atAccountBalance = getATAccountBalance( AT_API_Helper.getLong( atId ) );
-				if(atAccountBalance < AT_Constants.getInstance().STEP_FEE( blockHeight ) * AT_Constants.getInstance().API_STEP_MULTIPLIER( blockHeight ) )
+				if(atAccountBalance < AT_Constants.getInstance().STEP_FEE( at.getCreationBlockHeight() ) * AT_Constants.getInstance().API_STEP_MULTIPLIER( at.getCreationBlockHeight() ) )
 				{
 					throw new AT_Exception( "AT has insufficient balance to run" );
 				}
@@ -384,7 +386,7 @@ public abstract class AT_Controller {
 
 				runSteps( at );
 
-				long fee = at.getMachineState().steps * AT_Constants.getInstance().STEP_FEE( blockHeight );
+				long fee = at.getMachineState().steps * AT_Constants.getInstance().STEP_FEE( at.getCreationBlockHeight() );
 				if( at.getMachineState().dead )
 				{
 					fee += at.getG_balance();
@@ -429,7 +431,7 @@ public abstract class AT_Controller {
 				throw new AT_Exception("blockATs must be a multiple of cost of one AT ( " + getCostOfOneAT() +" )" );
 			}
 		}
-
+		
 		ByteBuffer b = ByteBuffer.wrap( blockATs );
 		b.order( ByteOrder.LITTLE_ENDIAN );
 

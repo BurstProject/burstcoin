@@ -116,6 +116,11 @@ final class BlockImpl implements Block {
     public byte[] getGeneratorPublicKey() {
         return generatorPublicKey;
     }
+    
+    @Override
+    public byte[] getBlockHash() {
+    	return Crypto.sha256().digest(getBytes());
+    }
 
     @Override
     public byte[] getPreviousBlockHash() {
