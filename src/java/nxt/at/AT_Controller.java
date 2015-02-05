@@ -410,7 +410,7 @@ public abstract class AT_Controller {
 			}
 			catch ( Exception e )
 			{
-				e.printStackTrace(System.out);
+				//e.printStackTrace(System.out);
 				throw new AT_Exception( "ATs error. Block rejected" );
 			}
 		}
@@ -498,7 +498,7 @@ public abstract class AT_Controller {
 		{
 			totalAmount += tx.getAmount();
 			AT.addPendingTransaction(tx);
-			Logger.logInfoMessage("Transaction to " + Convert.toUnsignedLong(AT_API_Helper.getLong(tx.getRecipientId())) + " amount " + tx.getAmount() );
+			Logger.logDebugMessage("Transaction to " + Convert.toUnsignedLong(AT_API_Helper.getLong(tx.getRecipientId())) + " amount " + tx.getAmount() );
 
 		}
 		return totalAmount;
