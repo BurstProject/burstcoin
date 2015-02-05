@@ -88,6 +88,7 @@ public final class Constants {
 	public static final int MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH = 1000 ;
 	protected static final int AUTOMATED_TRANSACTION_BLOCK = 49200;
 	public static final int AT_BLOCK_PAYLOAD = MAX_PAYLOAD_LENGTH/2;
+	public static final int AT_FIX_BLOCK_2 = 67000;
     
     static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (isTestnet ? 50 : 100) * ONE_NXT;
 
@@ -111,7 +112,7 @@ public final class Constants {
                                                         is set as number of seconds before the current time. */
 
     public static final int EC_BLOCK_DISTANCE_LIMIT = 60;
-
+    public static final int EC_CHANGE_BLOCK_1 = 67000;
 	
 
     private Constants() {} // never

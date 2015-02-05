@@ -647,8 +647,8 @@ public class AT_API_Impl implements AT_API
 	}
 
 	@Override
-	public long get_Ticket_Id_for_Tx_in_A( AT_Machine_State state ) {
-		return platform.get_Ticket_Id_for_Tx_in_A( state );
+	public long get_Random_Id_for_Tx_in_A( AT_Machine_State state ) {
+		return platform.get_Random_Id_for_Tx_in_A( state );
 	}
 
 	@Override

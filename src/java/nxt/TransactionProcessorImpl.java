@@ -435,6 +435,12 @@ final class TransactionProcessorImpl implements TransactionProcessor {
             try {
                 TransactionImpl transaction = parseTransaction((JSONObject) transactionData);
                 transaction.validate();
+                if(!EconomicClustering.verifyFork(transaction)) {
+                	/*if(Nxt.getBlockchain().getHeight() >= Constants.EC_CHANGE_BLOCK_1) {
+                		throw new NxtException.NotValidException("Transaction from wrong fork");
+                	}*/
+                	continue;
+                }
                 transactions.add(transaction);
             } catch (NxtException.NotCurrentlyValidException ignore) {
             } catch (NxtException.NotValidException e) {

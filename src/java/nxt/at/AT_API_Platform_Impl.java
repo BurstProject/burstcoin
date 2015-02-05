@@ -12,6 +12,7 @@ import java.util.Arrays;
 import nxt.AT;
 import nxt.Account;
 import nxt.Appendix;
+import nxt.Constants;
 import nxt.db.Db;
 import nxt.Nxt;
 import nxt.Transaction;
@@ -138,7 +139,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		long amount = -1;
 		if ( tx != null )
 		{
-			if( tx.getMessage() == null && state.minActivationAmount() <= tx.getAmountNQT() )
+			if( (tx.getMessage() == null || state.getHeight() >= Constants.AT_FIX_BLOCK_2) && state.minActivationAmount() <= tx.getAmountNQT() )
 			{
 				amount = tx.getAmountNQT() - state.minActivationAmount();
 			}
@@ -175,7 +176,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 	}
 
 	@Override
-	public long get_Ticket_Id_for_Tx_in_A( AT_Machine_State state ) {
+	public long get_Random_Id_for_Tx_in_A( AT_Machine_State state ) {
 		long txId = AT_API_Helper.getLong( state.get_A1() );
 
 		Transaction tx = Nxt.getBlockchain().getTransaction( txId );
@@ -192,8 +193,8 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 
 			int blockHeight = state.getHeight();
 
-			if ( blockHeight - txBlockHeight < AT_Constants.getInstance().BLOCKS_FOR_TICKET( blockHeight ) ){ //for tests - for real case 1440
-				state.setWaitForNumberOfBlocks( (int)AT_Constants.getInstance().BLOCKS_FOR_TICKET( blockHeight ) - ( blockHeight - txBlockHeight ) );
+			if ( blockHeight - txBlockHeight < AT_Constants.getInstance().BLOCKS_FOR_RANDOM( blockHeight ) ){ //for tests - for real case 1440
+				state.setWaitForNumberOfBlocks( (int)AT_Constants.getInstance().BLOCKS_FOR_RANDOM( blockHeight ) - ( blockHeight - txBlockHeight ) );
 				state.getMachineState().pc -= 7;
 				state.getMachineState().stopped = true;
 				return 0;
@@ -210,12 +211,12 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 			bf.put( senderPublicKey);
 
 			digest.update(bf.array());
-			byte[] byteTicket = digest.digest();
+			byte[] byteRandom = digest.digest();
 
-			long ticket = Math.abs( AT_API_Helper.getLong( Arrays.copyOfRange(byteTicket, 0, 8) ) );
+			long random = Math.abs( AT_API_Helper.getLong( Arrays.copyOfRange(byteRandom, 0, 8) ) );
 
-			//System.out.println( "info: ticket for txid: " + Convert.toUnsignedLong( tx.getId() ) + "is: " + ticket );
-			return ticket;
+			//System.out.println( "info: random for txid: " + Convert.toUnsignedLong( tx.getId() ) + "is: " + random );
+			return random;
 		}
 		return -1;
 	}
@@ -316,12 +317,18 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 
 	@Override
 	public long get_Current_Balance( AT_Machine_State state ) {
-		long balance = Account.getAccount( AT_API_Helper.getLong(state.getId()) ).getBalanceNQT();
-		return balance;
+		if(state.getHeight() < Constants.AT_FIX_BLOCK_2 )
+			return 0;
+		
+		//long balance = Account.getAccount( AT_API_Helper.getLong(state.getId()) ).getBalanceNQT();
+		return state.getG_balance();
 	}
 
 	@Override
 	public long get_Previous_Balance( AT_Machine_State state ) {
+		if(state.getHeight() < Constants.AT_FIX_BLOCK_2 )
+			return 0;
+		
 		return state.getP_balance();
 	}
 

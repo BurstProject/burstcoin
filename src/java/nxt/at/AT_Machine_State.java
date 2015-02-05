@@ -15,6 +15,8 @@ import java.util.TreeSet;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import nxt.Constants;
+
 
 public class AT_Machine_State
 {
@@ -58,9 +60,24 @@ public class AT_Machine_State
 			reset();
 		}
 
-		boolean isRunning()
+		public boolean isRunning()
 		{
 			return running;
+		}
+		
+		public boolean isStopped()
+		{
+			return stopped;
+		}
+		
+		public boolean isFinished()
+		{
+			return finished;
+		}
+		
+		public boolean isDead()
+		{
+			return dead;
 		}
 
 		void reset()
@@ -73,21 +90,33 @@ public class AT_Machine_State
 			steps = 0;
 			if ( !jumps.isEmpty() )
 				jumps.clear();
-			stopped = false;
+			flags[0] = 0;
+			flags[1] = 0;
+			running = false;
+			stopped = true;
 			finished = false;
 			dead = false;
 		}
 
-		void run()
+		/*void run()
 		{
 			running = true;
-		}
+		}*/
 
 		protected byte[] getMachineStateBytes()
 		{
 
 			ByteBuffer bytes = ByteBuffer.allocate( getSize() );
 			bytes.order( ByteOrder.LITTLE_ENDIAN );
+			
+			if(getHeight() >= Constants.AT_FIX_BLOCK_2) {
+				flags[0] = (byte)((running?1:0)
+						| (stopped?1:0) << 1
+						| (finished?1:0) << 2
+						| (dead?1:0) << 3);
+				flags[1] = 0;
+			}
+			
 			bytes.put( flags );
 			
 			bytes.putInt( machineState.pc );
@@ -117,6 +146,11 @@ public class AT_Machine_State
 			bf.flip();
 			
 			bf.get( flags , 0 , 2 );
+			running = (flags[0] & 1) == 1;
+			stopped = (flags[0] >>> 1 & 1) == 1;
+			finished = (flags[0] >>> 2 & 1) == 1;
+			dead = (flags[0] >>> 3 & 1) == 1;
+			
 			pc = bf.getInt();
 			pcs = bf.getInt();
 			cs = bf.getInt();
@@ -285,6 +319,7 @@ public class AT_Machine_State
 		this.ap_data.put( data );
 		this.ap_data.clear();
 
+		this.height = height;
 		this.creationBlockHeight = height;
 		this.waitForNumberOfBlocks = 0;
 		this.sleepBetween = 0;

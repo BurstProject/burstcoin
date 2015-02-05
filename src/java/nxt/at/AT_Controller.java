@@ -26,6 +26,7 @@ public abstract class AT_Controller {
 
 	public static int runSteps( AT_Machine_State state )
 	{
+		state.getMachineState().running = true;
 		state.getMachineState().stopped = false;
 		state.getMachineState().finished = false;
 		state.getMachineState().dead = false;
@@ -61,11 +62,13 @@ public abstract class AT_Controller {
 				if ( state.getMachineState().stopped )
 				{
 					//System.out.println( "stopped" );
+					state.getMachineState().running = false;
 					return 2;
 				}
 				else if ( state.getMachineState().finished )
 				{
 					//System.out.println( "finished" );
+					state.getMachineState().running = false;
 					return 1;
 				}
 			}
@@ -85,6 +88,7 @@ public abstract class AT_Controller {
 				else
 				{
 					state.getMachineState().dead = true;
+					state.getMachineState().running = false;
 					return 0;
 				}
 			}
