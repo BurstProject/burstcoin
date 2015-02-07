@@ -38,8 +38,10 @@ public final class EconomicClustering {
         if (transaction.getReferencedTransactionFullHash() != null) {
             return true;
         }
-        if (blockchain.getHeight() - transaction.getECBlockHeight() > Constants.EC_BLOCK_DISTANCE_LIMIT) {
-            return false;
+        if (blockchain.getHeight() < Constants.EC_CHANGE_BLOCK_1 ) {
+        	if (blockchain.getHeight() - transaction.getECBlockHeight() > Constants.EC_BLOCK_DISTANCE_LIMIT) {
+                return false;
+            }
         }
         Block ecBlock = blockchain.getBlock(transaction.getECBlockId());
         return ecBlock != null && ecBlock.getHeight() == transaction.getECBlockHeight();

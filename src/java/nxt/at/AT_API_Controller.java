@@ -187,7 +187,7 @@ public class AT_API_Controller{
 		}
 		else if ( func_num == 776 )
 		{
-			return atApi.get_Ticket_Id_for_Tx_in_A( state );
+			return atApi.get_Random_Id_for_Tx_in_A( state );
 		}
 		else if ( func_num == 777 )
 		{
@@ -203,11 +203,11 @@ public class AT_API_Controller{
 		}
 		else if ( func_num == 1024 )
 		{
-			atApi.get_Current_Balance( state );
+			return atApi.get_Current_Balance( state );
 		}
 		else if ( func_num == 1025 )
 		{
-			atApi.get_Previous_Balance( state );
+			return atApi.get_Previous_Balance( state );
 		}
 		else if ( func_num == 1027 )
 		{

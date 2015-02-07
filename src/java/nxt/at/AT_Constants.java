@@ -30,7 +30,7 @@ public class AT_Constants {
 	private final static HashMap< Short , Long >  MAX_MACHINE_USER_STACK_PAGES = new HashMap<>();
 	private final static HashMap< Short , Long >  MAX_MACHINE_CALL_STACK_PAGES = new HashMap<>();
 
-	private final static HashMap< Short , Long >  BLOCKS_FOR_TICKET = new HashMap<>();
+	private final static HashMap< Short , Long >  BLOCKS_FOR_RANDOM = new HashMap<>();
 	
 	private final static HashMap< Short , Long >  MAX_PAYLOAD_FOR_BLOCK = new HashMap<>();
 	
@@ -64,7 +64,7 @@ public class AT_Constants {
 		MAX_MACHINE_USER_STACK_PAGES.put( (short) 1, 10L );
 		MAX_MACHINE_CALL_STACK_PAGES.put( (short) 1, 10L );
 		
-		BLOCKS_FOR_TICKET.put( (short) 1, 15L ); //for testing 2 -> normally 1440
+		BLOCKS_FOR_RANDOM.put( (short) 1, 15L ); //for testing 2 -> normally 1440
 		MAX_PAYLOAD_FOR_BLOCK.put( (short) 1 , Constants.MAX_PAYLOAD_LENGTH / 2L  ); //use at max half size of the block.
 		AVERAGE_BLOCK_MINUTES.put( (short) 1 , 4L );
 		// end of AT version 1
@@ -123,8 +123,8 @@ public class AT_Constants {
 		return MAX_MACHINE_CALL_STACK_PAGES.get( AT_VERSION( height ) );
 	}
 	
-	public long BLOCKS_FOR_TICKET( int height ){
-		return BLOCKS_FOR_TICKET.get( AT_VERSION( height ) );
+	public long BLOCKS_FOR_RANDOM( int height ){
+		return BLOCKS_FOR_RANDOM.get( AT_VERSION( height ) );
 	}
 	
 	public long MAX_PAYLOAD_FOR_BLOCK( int height ){

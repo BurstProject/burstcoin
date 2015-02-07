@@ -304,10 +304,10 @@ public interface AT_API {
 	public long get_Timestamp_for_Tx_in_A( AT_Machine_State state );
 	
 	/**
-	 * bool if A is a valid tx with @addr to the tx ticket id
-	 * ticket id is a 64bit signed value (always positive) and this is a blocking function
+	 * bool if A is a valid tx with @addr to the tx random id
+	 * random id is a 64bit signed value (always positive) and this is a blocking function
 	 */
-	public long get_Ticket_Id_for_Tx_in_A( AT_Machine_State state );
+	public long get_Random_Id_for_Tx_in_A( AT_Machine_State state );
 	
 	/**
 	 * bool if A is a valid tx with B to the tx message

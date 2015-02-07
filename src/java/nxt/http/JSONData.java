@@ -17,6 +17,7 @@ import nxt.Subscription;
 import nxt.Token;
 import nxt.Trade;
 import nxt.Transaction;
+import nxt.at.AT_API_Helper;
 import nxt.crypto.Crypto;
 import nxt.crypto.EncryptedData;
 import nxt.peer.Hallmark;
@@ -444,9 +445,20 @@ public final class JSONData {
         json.put("atVersion", at.getVersion());        
         json.put("name", at.getName());
         json.put("description", at.getDescription());
+        json.put("creator", Convert.toUnsignedLong(AT_API_Helper.getLong(at.getCreator())));
+        json.put("creatorRS", Convert.rsAccount(AT_API_Helper.getLong(at.getCreator())));
         json.put("machineCode", Convert.toHexString(at.getApCode()));
         json.put("machineData", Convert.toHexString(at.getApData()));
         json.put("balanceNQT", Convert.toUnsignedLong(Account.getAccount(id).getBalanceNQT()));
+        json.put("prevBalanceNQT", Convert.toUnsignedLong(at.getP_balance()));
+        json.put("nextBlock", at.nextHeight());
+        json.put("frozen", at.freezeOnSameBalance());
+        json.put("running", at.getMachineState().isRunning());
+        json.put("stopped", at.getMachineState().isStopped());
+        json.put("finished", at.getMachineState().isFinished());
+        json.put("dead", at.getMachineState().isDead());
+        json.put("minActivation", Convert.toUnsignedLong(at.minActivationAmount()));
+        json.put("creationBlock", at.getCreationBlockHeight());
         return json;
     }
     
