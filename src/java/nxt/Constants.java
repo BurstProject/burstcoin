@@ -89,6 +89,7 @@ public final class Constants {
 	protected static final int AUTOMATED_TRANSACTION_BLOCK = 49200;
 	public static final int AT_BLOCK_PAYLOAD = MAX_PAYLOAD_LENGTH/2;
 	public static final int AT_FIX_BLOCK_2 = 67000;
+	public static final int AT_FIX_BLOCK_3 = 92000;
     
     static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (isTestnet ? 50 : 100) * ONE_NXT;
 

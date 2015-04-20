@@ -365,6 +365,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
             } finally {
                 Db.endTransaction();
             }
+            lostTransactions.clear();
             transactionListeners.notify(removed, Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
         }
     }

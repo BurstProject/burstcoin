@@ -1049,17 +1049,6 @@ public abstract class TransactionType {
         abstract static class ColoredCoinsOrderCancellation extends ColoredCoins {
 
             @Override
-            final void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-                Attachment.ColoredCoinsOrderCancellation attachment = (Attachment.ColoredCoinsOrderCancellation) transaction.getAttachment();
-                if (attachment.getOrderId() == 0) {
-                    throw new NxtException.NotValidException("Invalid order cancellation attachment: " + attachment.getJSONObject());
-                }
-                doValidateAttachment(transaction);
-            }
-
-            abstract void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException;
-
-            @Override
             final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
                 return true;
             }
@@ -1103,10 +1092,15 @@ public abstract class TransactionType {
             }
 
             @Override
-            void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException {
+            void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
                 Attachment.ColoredCoinsAskOrderCancellation attachment = (Attachment.ColoredCoinsAskOrderCancellation) transaction.getAttachment();
-                if (Order.Ask.getAskOrder(attachment.getOrderId()) == null) {
+                Order ask = Order.Ask.getAskOrder(attachment.getOrderId());
+                if(ask == null) {
                     throw new NxtException.NotCurrentlyValidException("Invalid ask order: " + Convert.toUnsignedLong(attachment.getOrderId()));
+                }
+                if(ask.getAccountId() != transaction.getSenderId()) {
+                	throw new NxtException.NotValidException("Order " + Convert.toUnsignedLong(attachment.getOrderId()) + " was created by account "
+                			+ Convert.toUnsignedLong(ask.getAccountId()));
                 }
             }
 
@@ -1140,10 +1134,15 @@ public abstract class TransactionType {
             }
 
             @Override
-            void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException {
+            void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
                 Attachment.ColoredCoinsBidOrderCancellation attachment = (Attachment.ColoredCoinsBidOrderCancellation) transaction.getAttachment();
-                if (Order.Bid.getBidOrder(attachment.getOrderId()) == null) {
+                Order bid = Order.Bid.getBidOrder(attachment.getOrderId());
+                if(bid == null) {
                     throw new NxtException.NotCurrentlyValidException("Invalid bid order: " + Convert.toUnsignedLong(attachment.getOrderId()));
+                }
+                if(bid.getAccountId() != transaction.getSenderId()) {
+                	throw new NxtException.NotValidException("Order " + Convert.toUnsignedLong(attachment.getOrderId()) + " was created by account "
+                			+ Convert.toUnsignedLong(bid.getAccountId()));
                 }
             }
 
@@ -2285,6 +2284,14 @@ public abstract class TransactionType {
 					long requiredFee = totalPages * AT_Constants.getInstance().COST_PER_PAGE( transaction.getHeight() );
 					if (transaction.getFeeNQT() <  requiredFee){
 						throw new NxtException.NotValidException("Insufficient fee for AT creation. Minimum: " + Convert.toUnsignedLong(requiredFee / Constants.ONE_NXT));
+					}
+					if(Nxt.getBlockchain().getHeight() >= Constants.AT_FIX_BLOCK_3) {
+						if(attachment.getName().length() > Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH) {
+							throw new NxtException.NotValidException("Name of automated transaction over size limit");
+						}
+						if(attachment.getDescription().length() > Constants.MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH) {
+							throw new NxtException.NotValidException("Description of automated transaction over size limit");
+						}
 					}
 					//System.out.println("validating success");
 				}

@@ -15,6 +15,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
+import nxt.Constants;
+import nxt.util.Convert;
 import fr.cryptohash.RIPEMD160;
 
 
@@ -536,9 +538,30 @@ public class AT_API_Impl implements AT_API
 
 	@Override
 	public long check_MD5_A_with_B( AT_Machine_State state ) {
-		
-		return ( Arrays.equals( state.get_A1() , state.get_B1() ) && 
-				 Arrays.equals( state.get_A2() , state.get_B2() ) ) ? 1 : 0;
+		if ( state.getHeight() >= Constants.AT_FIX_BLOCK_3 ) {
+			ByteBuffer b = ByteBuffer.allocate( 16 );
+			b.order( ByteOrder.LITTLE_ENDIAN );
+			
+			b.put( state.get_A1() );
+			b.put( state.get_A2() );
+			
+			try {
+				MessageDigest md5 = MessageDigest.getInstance("MD5");
+				ByteBuffer mdb = ByteBuffer.wrap( md5.digest( b.array() ) );
+				mdb.order( ByteOrder.LITTLE_ENDIAN );
+				
+				return ( mdb.getLong(0) == AT_API_Helper.getLong( state.get_B1() ) &&
+						 mdb.getLong(8) == AT_API_Helper.getLong( state.get_B2() ) ) ? 1 : 0;
+			} catch (NoSuchAlgorithmException e) {
+				//not expected to reach that point
+				e.printStackTrace();
+				throw new RuntimeException("Failed to check md5");
+			}
+		}
+		else {
+			return ( Arrays.equals( state.get_A1() , state.get_B1() ) && 
+					 Arrays.equals( state.get_A2() , state.get_B2() ) ) ? 1 : 0;
+		}
 	}
 
 	@Override
@@ -563,9 +586,29 @@ public class AT_API_Impl implements AT_API
 
 	@Override
 	public long check_HASH160_A_with_B( AT_Machine_State state ) {
-		return(Arrays.equals(state.get_A1(), state.get_B1()) &&
-				Arrays.equals(state.get_A2(), state.get_B2()) &&
-				(AT_API_Helper.getLong(state.get_A3()) & 0x00000000FFFFFFFFL) == (AT_API_Helper.getLong(state.get_B3()) & 0x00000000FFFFFFFFL)) ? 1 : 0;
+		if ( state.getHeight() >= Constants.AT_FIX_BLOCK_3 ) {
+			ByteBuffer b = ByteBuffer.allocate( 32 );
+			b.order( ByteOrder.LITTLE_ENDIAN );
+			
+			b.put( state.get_A1() );
+			b.put( state.get_A2() );
+			b.put( state.get_A3() );
+			b.put( state.get_A4() );
+			
+			RIPEMD160 ripemd160 = new RIPEMD160();
+			ByteBuffer ripemdb = ByteBuffer.wrap( ripemd160.digest( b.array() ) );
+			ripemdb.order( ByteOrder.LITTLE_ENDIAN );
+			
+			return ( ripemdb.getLong(0) == AT_API_Helper.getLong( state.get_B1() ) &&
+					 ripemdb.getLong(8) == AT_API_Helper.getLong( state.get_B2() ) &&
+					 ripemdb.getInt(16) == ((int)(AT_API_Helper.getLong( state.get_B3() ) & 0x00000000FFFFFFFFL ))
+					 ) ? 1 : 0;
+		}
+		else {
+			return(Arrays.equals(state.get_A1(), state.get_B1()) &&
+					Arrays.equals(state.get_A2(), state.get_B2()) &&
+					(AT_API_Helper.getLong(state.get_A3()) & 0x00000000FFFFFFFFL) == (AT_API_Helper.getLong(state.get_B3()) & 0x00000000FFFFFFFFL)) ? 1 : 0;
+		}
 	}
 
 	@Override
@@ -596,11 +639,36 @@ public class AT_API_Impl implements AT_API
 
 	@Override
 	public long check_SHA256_A_with_B( AT_Machine_State state ) {
-		
-		return ( Arrays.equals( state.get_A1() , state.get_B1() ) && 
-				 Arrays.equals( state.get_A2() , state.get_B2() ) &&
-				 Arrays.equals( state.get_A3() , state.get_B3() ) &&
-				 Arrays.equals( state.get_A4() , state.get_B4() )) ? 1 : 0;
+		if ( state.getHeight() >= Constants.AT_FIX_BLOCK_3 ) {
+			ByteBuffer b = ByteBuffer.allocate(32);
+			b.order( ByteOrder.LITTLE_ENDIAN );
+			
+			b.put( state.get_A1() );
+			b.put( state.get_A2() );
+			b.put( state.get_A3() );
+			b.put( state.get_A4() );
+			
+			try {
+				MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+				ByteBuffer shab = ByteBuffer.wrap( sha256.digest( b.array() ) );
+				shab.order( ByteOrder.LITTLE_ENDIAN );
+				
+				return ( shab.getLong(0) == AT_API_Helper.getLong( state.get_B1() ) &&
+						 shab.getLong(8) == AT_API_Helper.getLong( state.get_B2() ) &&
+						 shab.getLong(16) == AT_API_Helper.getLong( state.get_B3() ) &&
+						 shab.getLong(24) == AT_API_Helper.getLong( state.get_B4() ) ) ? 1 : 0;
+			} catch (NoSuchAlgorithmException e) {
+				//not expected to reach that point
+				e.printStackTrace();
+				throw new RuntimeException("Failed to check sha256");
+			}
+		}
+		else {
+			return ( Arrays.equals( state.get_A1() , state.get_B1() ) && 
+					 Arrays.equals( state.get_A2() , state.get_B2() ) &&
+					 Arrays.equals( state.get_A3() , state.get_B3() ) &&
+					 Arrays.equals( state.get_A4() , state.get_B4() )) ? 1 : 0;
+		}
 	}
 
 	@Override
