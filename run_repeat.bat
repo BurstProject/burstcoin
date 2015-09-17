@@ -1,7 +1,7 @@
 title BURST WALLET
 set MAXRAM=700m
 set LAUNCH=-Xmx%MAXRAM% -cp burst.jar;lib\*;conf nxt.Nxt
-set JAVAVERSION=jre1.8.0_31
+set JAVAVERSION=jre1.8.0_40
 set JAVAEXEC=\Java\%JAVAVERSION%\bin\java.exe
 :runagain
 @ECHO OFF
