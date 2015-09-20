@@ -1,7 +1,8 @@
 package nxt.http;
 
 import java.nio.ByteBuffer;
-
+import java.math.BigInteger; //used to write deadline
+import nxt.util.Logger;//used to write deadline
 import javax.servlet.http.HttpServletRequest;
 
 import nxt.Account;
@@ -19,6 +20,8 @@ import org.json.simple.JSONStreamAware;
 public final class SubmitNonce extends APIServlet.APIRequestHandler {
 	static final SubmitNonce instance = new SubmitNonce();
 	
+	static final int MaxDeadlineToLog = Nxt.getIntProperty("nxt.MaxDeadlineToLog"); //potential bug:you cannot set the max to more than what fits in an int
+
 	private SubmitNonce() {
 		super(new APITag[] {APITag.MINING}, "secretPhrase", "nonce", "accountId");
 	}
@@ -94,10 +97,22 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 			response.put("result", "failed to create generator");
 			return response;
 		}
-		
+		//this will write all interesting deadlines submitted to the wallet from miners to the console. 	
+		//to enable the feature, add 
+		//MaxDeadlineToLog=100000 
+		//to the config file - the number 100000 means that all deadlines with a value below that, gets logged
+		BigInteger deadline = generator.getDeadline();
+
+		if (MaxDeadlineToLog!=0){
+		    BigInteger maxToReport = BigInteger.valueOf(MaxDeadlineToLog);
+			if (maxToReport.compareTo( deadline) >0){
+				String log_msg = "Block:"+(Nxt.getBlockchain().getLastBlock().getHeight() + 1)+" Nonce: "+String.format("%15s",nonce)+ " Deadline:" + String.format("%8s",deadline);
+				Logger.logMessage(log_msg);
+			}
+		}
 		//response.put("result", "deadline: " + generator.getDeadline());
 		response.put("result", "success");
-		response.put("deadline", generator.getDeadline());
+		response.put("deadline", deadline);
 		
 		return response;
 	}
