@@ -307,7 +307,12 @@ public abstract class AT_Controller {
 						at.setP_balance( at.getG_balance() );
 
 						long amount = makeTransactions( at );
-						totalAmount = amount;
+						if(blockHeight < Constants.AT_FIX_BLOCK_4) {
+							totalAmount = amount;
+						}
+						else {
+							totalAmount += amount;
+						}
 
 						totalFee += fee;
 						AT.addPendingFee(id, fee);
@@ -399,7 +404,12 @@ public abstract class AT_Controller {
 				}
 				at.setP_balance( at.getG_balance() );
 
-				totalAmount = makeTransactions( at );
+				if(blockHeight < Constants.AT_FIX_BLOCK_4) {
+					totalAmount = makeTransactions( at );
+				}
+				else {
+					totalAmount += makeTransactions(at);
+				}
 
 				totalFee += fee;
 				AT.addPendingFee(atId, fee);
