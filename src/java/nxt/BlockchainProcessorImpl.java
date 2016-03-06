@@ -993,13 +993,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 		byte[] payloadHash = digest.digest();
 
-		ByteBuffer gensigbuf = ByteBuffer.allocate(32 + 8);
-		gensigbuf.put(previousBlock.getGenerationSignature());
-		gensigbuf.putLong(previousBlock.getGeneratorId());
-
-		Shabal256 md = new Shabal256();
-		md.update(gensigbuf.array());
-		byte[] generationSignature = md.digest();
+		byte[] generationSignature = Nxt.getGenerator().calculateGenerationSignature(previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
 
 		BlockImpl block;
 		byte[] previousBlockHash = Crypto.sha256().digest(previousBlock.getBytes());

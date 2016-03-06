@@ -72,7 +72,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
             //response.put("numberOfVotes", Vote.getCount());
         }
         response.put("numberOfPeers", Peers.getAllPeers().size());
-        response.put("numberOfUnlockedAccounts", Generator.getAllGenerators().size());
+        response.put("numberOfUnlockedAccounts", Nxt.getGenerator().getAllGenerators().size());
         Peer lastBlockchainFeeder = Nxt.getBlockchainProcessor().getLastBlockchainFeeder();
         response.put("lastBlockchainFeeder", lastBlockchainFeeder == null ? null : lastBlockchainFeeder.getAnnouncedAddress());
         response.put("lastBlockchainFeederHeight", Nxt.getBlockchainProcessor().getLastBlockchainFeederHeight());
