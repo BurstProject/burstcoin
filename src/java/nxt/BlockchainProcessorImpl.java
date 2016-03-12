@@ -50,7 +50,7 @@ import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 final class BlockchainProcessorImpl implements BlockchainProcessor {
-	public static final int BLOCKCACHEMB = 40;
+	public static final int BLOCKCACHEMB = Nxt.getIntProperty("burst.blockCacheMB") == 0 ? 40 : Nxt.getIntProperty("blockCacheMB");
 
 	private static final BlockchainProcessorImpl instance = new BlockchainProcessorImpl();
 
@@ -134,12 +134,16 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 						pushBlock(currentBlock);
 					} catch (BlockNotAcceptedException e) {
 						Logger.logMessage("Block not accepted");
-						//peer.blacklist(e);
+						currentBlock.getPeer().blacklist(e);
 						synchronized(BlockchainProcessorImpl.blockCache) {
-							BlockchainProcessorImpl.reverseCache.remove(lastId);
-							
-							BlockchainProcessorImpl.blockCache.remove(currentBlockId);
-							blockCacheSize -= currentBlock.getByteLength();
+							long removeId = lastId;
+							while(reverseCache.containsKey(removeId)) {
+								long id = reverseCache.get(removeId);
+								reverseCache.remove(removeId);
+								blockCacheSize -= ((BlockImpl)blockCache.get(id)).getByteLength();
+								blockCache.remove(id);
+								removeId = id;
+							}
 						}
 						return;
 					}
@@ -233,13 +237,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 					boolean processedAll = true;
 					int requestCount = 0;
 					outer:
-						while (forkBlocks.size() < 1440 && requestCount++ < 10 && blockCacheSize < BLOCKCACHEMB * 1024 * 1024) {
+						while (forkBlocks.size() < 1440 && requestCount++ < 10 && ((blockCacheSize < BLOCKCACHEMB * 1024 * 1024) || forkBlocks.size() > 0)) { // fork decision could be wrong if cut off so ignore cache size for forks
 							//Logger.logMessage("Downloading " + String.valueOf(currentBlockId));
 							JSONArray nextBlocks = getNextBlocks(peer, currentBlockId);
 							if (nextBlocks == null || nextBlocks.size() == 0) {
 								break;
-							}	
-
+							}
 							// Insert Blocks to blockCache
 							synchronized(BlockchainProcessorImpl.blockCache) {
 								for(Object o : nextBlocks) {
@@ -248,6 +251,17 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 									
 									try {
                                                                                 block = BlockImpl.parseBlock(blockData);
+										if(block.getPreviousBlockId() != currentBlockId) { // ensure peer isn't cluttering cache with unrequested stuff
+											Logger.logMessage("Peer sent unrequested block. Blacklisting...");
+											peer.blacklist();
+											return;
+										}
+										lastDownloaded = currentBlockId = block.getId();
+
+										if(blockCache.containsKey(block.getId()) || BlockDb.hasBlock(block.getId())) {
+											continue;
+										}
+
 										block.setPeer(peer);
 										int blockSize = blockData.toString().length();
 										blockCacheSize += blockSize;
@@ -265,19 +279,29 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 												peer.blacklist();
 												return;
 											}
+											Long altBlockId = null;
+											try {
+												altBlockId = BlockDb.findBlockIdAtHeight(prevBlock.getHeight() + 1);
+											} catch (Exception e) {}
+											if(altBlockId != null && altBlockId.longValue() != block.getId()) {
+												// fork
+												forkBlocks.add(block);
+											}
 											block.setHeight(prevBlock.getHeight() + 1);
 										}
 										//Logger.logMessage("Block Height " + String.valueOf(block.getHeight()) + " ID " + String.valueOf(block.getId()));
-	
-										// Add to Blockcache
-										lastDownloaded = currentBlockId = block.getId();
-										BlockchainProcessorImpl.blockCache.put(lastDownloaded, block);
 
-										// Add to reverse cache
-										BlockchainProcessorImpl.reverseCache.put(prevId, currentBlockId);								
+										if(forkBlocks.size() == 0) { // keep old cache separate from fork. blindly adding to reverseCache could cause it to end up in an uncleanable state
+											// Add to Blockcache
+											BlockchainProcessorImpl.blockCache.put(lastDownloaded, block);
 
-										// Mark for threaded poc verification
-										BlockchainProcessorImpl.unverified.add(lastDownloaded);
+											// Add to reverse cache
+											BlockchainProcessorImpl.reverseCache.put(prevId, currentBlockId);
+
+											// Mark for threaded poc verification
+											BlockchainProcessorImpl.unverified.add(lastDownloaded);
+										}
+
                                                                         } catch (RuntimeException | NxtException.ValidationException e) {
                                                                                 Logger.logMessage("Failed to parse block: " + e.toString(), e);
                                                                                 peer.blacklist(e);
@@ -287,6 +311,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 								}
 							}
 						}
+					if(forkBlocks.size() > 0 && blockchain.getHeight() - commonBlock.getHeight() < 720) {
+						processFork(forkBlocks.get(0).getPeer(), forkBlocks, commonBlock);
+					}
 				} catch (NxtException.StopException e) {
 					Logger.logMessage("Blockchain download stopped: " + e.getMessage());
 				} catch (Exception e) {
@@ -452,6 +479,14 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 					}
 				}
 			} // synchronized
+
+			synchronized (blockCache) { // cache may no longer correspond with current chain, so dump it
+				blockCache.clear();
+				reverseCache.clear();
+				unverified.clear();
+				lastDownloaded = blockchain.getLastBlock().getId();
+				blockCacheSize = 0;
+			}
 		}
 
 	};
