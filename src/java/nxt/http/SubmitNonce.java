@@ -76,9 +76,9 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 			}
 		}
 		
-		Generator generator;
+		Generator.GeneratorState generator;
 		if(accountId == null || secretAccount == null) {
-			generator = Generator.addNonce(secret, nonce);
+			generator = Nxt.getGenerator().addNonce(secret, nonce);
 		}
 		else {
 			Account genAccount = Account.getAccount(Convert.parseUnsignedLong(accountId));
@@ -87,7 +87,7 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 				response.put("result", "Passthrough mining requires public key in blockchain");
 			}
 			byte[] publicKey = genAccount.getPublicKey();
-			generator = Generator.addNonce(secret, nonce, publicKey);
+			generator = Nxt.getGenerator().addNonce(secret, nonce, publicKey);
 		}
 		
 		if(generator == null) {

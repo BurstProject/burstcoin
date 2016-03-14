@@ -18,7 +18,7 @@ import java.util.Properties;
 
 public final class Nxt {
 
-    public static final String VERSION = "1.3.0";
+    public static final String VERSION = "1.2.3";
     public static final String APPLICATION = "NRS";
 
     private static volatile Time time = new Time.EpochTime();
@@ -122,6 +122,14 @@ public final class Nxt {
         return TransactionProcessorImpl.getInstance();
     }
 
+    private static Generator generator = new GeneratorImpl();
+    public static Generator getGenerator() {
+        return generator;
+    }
+    public static void setGenerator(Generator newGenerator) {
+        generator = newGenerator;
+    }
+
     public static int getEpochTime() {
         return time.getTime();
     }
@@ -182,7 +190,7 @@ public final class Nxt {
                 Vote.init();
                 AT.init();
                 Peers.init();
-                Generator.init();
+                getGenerator().init();
                 API.init();
                 Users.init();
                 DebugTrace.init();
@@ -198,6 +206,9 @@ public final class Nxt {
                 Logger.logMessage("Burst server " + VERSION + " started successfully.");
                 if (Constants.isTestnet) {
                     Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
+                }
+                if(Nxt.getBooleanProperty("burst.mockMining")) {
+                    setGenerator(new GeneratorImpl.MockGeneratorImpl());
                 }
             } catch (Exception e) {
                 Logger.logErrorMessage(e.getMessage(), e);

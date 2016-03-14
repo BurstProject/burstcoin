@@ -258,14 +258,7 @@ final class BlockImpl implements Block {
     
     @Override
     public int getScoopNum() {
-    	ByteBuffer posbuf = ByteBuffer.allocate(32 + 8);
-		posbuf.put(generationSignature);
-		posbuf.putLong(getHeight());
-		Shabal256 md = new Shabal256();
-		md.update(posbuf.array());
-		BigInteger hashnum = new BigInteger(1, md.digest());
-		int scoopNum = hashnum.mod(BigInteger.valueOf(MiningPlot.SCOOPS_PER_PLOT)).intValue();
-		return scoopNum;
+		return Nxt.getGenerator().calculateScoop(generationSignature, getHeight());
     }
 
     @Override
@@ -431,13 +424,7 @@ final class BlockImpl implements Block {
 			preVerify();
 	    }
 
-	    ByteBuffer gensigbuf = ByteBuffer.allocate(32 + 8);
-	    gensigbuf.put(previousBlock.getGenerationSignature());
-	    gensigbuf.putLong(previousBlock.getGeneratorId());
-	    
-	    Shabal256 md = new Shabal256();
-	    md.update(gensigbuf.array());
-	    byte[] correctGenerationSignature = md.digest();
+	    byte[] correctGenerationSignature = Nxt.getGenerator().calculateGenerationSignature(previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
 	    if(!Arrays.equals(generationSignature, correctGenerationSignature)) {
 		return false;
 	    }
@@ -463,22 +450,7 @@ final class BlockImpl implements Block {
 
 		try {
 		    // Pre-verify poc:
-		    MiningPlot plot = new MiningPlot(getGeneratorId(), nonce);
-	    	    Shabal256 md = new Shabal256();
-		    
-		    ByteBuffer posbuf = ByteBuffer.allocate(32 + 8);
-			posbuf.put(generationSignature);
-			posbuf.putLong(this.getHeight());
-			md.reset();
-			md.update(posbuf.array());
-			BigInteger hashnum = new BigInteger(1, md.digest());
-			int scoopNum = hashnum.mod(BigInteger.valueOf(MiningPlot.SCOOPS_PER_PLOT)).intValue();
-			
-			md.reset();
-		    md.update(generationSignature);
-		    plot.hashScoop(md, scoopNum);
-		    byte[] hash = md.digest();
-		    this.pocTime = new BigInteger(1, new byte[] {hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
+            this.pocTime = Nxt.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, getScoopNum());
 		} catch (RuntimeException e) {
 		    Logger.logMessage("Error pre-verifying block generation signature", e);
 		    return;

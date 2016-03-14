@@ -25,7 +25,8 @@ public final class StopForging extends APIServlet.APIRequestHandler {
             return MISSING_SECRET_PHRASE;
         }
 
-        Generator generator = Generator.stopForging(secretPhrase);
+        //Generator generator = Generator.stopForging(secretPhrase);
+        Generator.GeneratorState generator = null;
 
         JSONObject response = new JSONObject();
         response.put("foundAndStopped", generator != null);
