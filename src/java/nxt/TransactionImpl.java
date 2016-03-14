@@ -473,7 +473,13 @@ final class TransactionImpl implements Transaction {
             buffer.put((byte) ((version << 4) | type.getSubtype()));
             buffer.putInt(timestamp);
             buffer.putShort(deadline);
-            buffer.put(senderPublicKey);
+            if(type.isSigned() || Nxt.getBlockchain().getHeight() < Constants.AT_FIX_BLOCK_4) {
+                buffer.put(senderPublicKey);
+            }
+            else {
+                buffer.putLong(senderId);
+                buffer.put(new byte[24]);
+            }
             buffer.putLong(type.hasRecipient() ? recipientId : Genesis.CREATOR_ID);
             if (useNQT()) {
                 buffer.putLong(amountNQT);
