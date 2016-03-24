@@ -485,7 +485,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                             continue;
                         }
 
-                        if (! transaction.verifySignature()) {
+                        if (!(transaction.verifySignature() && transaction.verifyPublicKey())) {
                             if (Account.getAccount(transaction.getSenderId()) != null) {
                                 Logger.logDebugMessage("Transaction " + transaction.getJSONObject().toJSONString() + " failed to verify");
                             }

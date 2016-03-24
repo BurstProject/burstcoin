@@ -105,7 +105,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 					block = (BlockImpl)BlockchainProcessorImpl.blockCache.get(blockId);
 				}
-				block.preVerify();
+                try {
+                    block.preVerify();
+                }
+                catch (BlockchainProcessor.BlockNotAcceptedException e) {
+                    blacklistClean(block, e);
+                }
 			}
 		}
 	};
@@ -134,7 +139,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 						pushBlock(currentBlock);
 					} catch (BlockNotAcceptedException e) {
 						Logger.logMessage("Block not accepted");
-						currentBlock.getPeer().blacklist(e);
+						/*currentBlock.getPeer().blacklist(e);
 						synchronized(BlockchainProcessorImpl.blockCache) {
 							long removeId = lastId;
 							while(reverseCache.containsKey(removeId)) {
@@ -144,7 +149,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 								blockCache.remove(id);
 								removeId = id;
 							}
-						}
+						}*/
+                        blacklistClean(currentBlock, e);
 						return;
 					}
 					// Clean up cache
@@ -163,6 +169,22 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 			}
 		}
 	};
+
+    private void blacklistClean(BlockImpl block, Exception e) {
+        block.getPeer().blacklist(e);
+        long removeId = block.getId();
+        synchronized (BlockchainProcessorImpl.blockCache) {
+            reverseCache.remove(block.getPreviousBlockId());
+            blockCache.remove(block.getId());
+            while(reverseCache.containsKey(removeId)) {
+                long id = reverseCache.get(removeId);
+                reverseCache.remove(removeId);
+                blockCacheSize -= ((BlockImpl)blockCache.get(id)).getByteLength();
+                blockCache.remove(id);
+                removeId = id;
+            }
+        }
+    }
 
 	private final Runnable getMoreBlocksThread = new Runnable() {
 		private final JSONStreamAware getCumulativeDifficultyRequest;
@@ -729,10 +751,13 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 						throw new TransactionNotAcceptedException("Invalid transaction version " + transaction.getVersion()
 								+ " at height " + previousLastBlock.getHeight(), transaction);
 					}
-					if (!transaction.verifySignature()) {
+					/*if (!transaction.verifySignature()) { // moved to preVerify
 						throw new TransactionNotAcceptedException("Signature verification failed for transaction "
 								+ transaction.getStringId() + " at height " + previousLastBlock.getHeight(), transaction);
-					}
+					}*/
+                    if(!transaction.verifyPublicKey()) {
+                        throw new TransactionNotAcceptedException("Wrong public key in transaction " + transaction.getStringId() + " at height " + previousLastBlock.getHeight(), transaction);
+                    }
 					if (Nxt.getBlockchain().getHeight() >= Constants.AUTOMATED_TRANSACTION_BLOCK) {
 	                    if (!EconomicClustering.verifyFork(transaction)) {
 	                        Logger.logDebugMessage("Block " + block.getStringId() + " height " + (previousLastBlock.getHeight() + 1)
@@ -1144,9 +1169,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 									throw new NxtException.NotValidException("Block JSON cannot be parsed back to the same block");
 								}
 								for (TransactionImpl transaction : currentBlock.getTransactions()) {
-									if (!transaction.verifySignature()) {
+									/*if (!transaction.verifySignature()) { // moved to preVerify
 										throw new NxtException.NotValidException("Invalid transaction signature");
-									}
+									}*/
+                                    if(!transaction.verifyPublicKey()) {
+                                        throw new NxtException.NotValidException("Wrong transaction public key");
+                                    }
 									if (transaction.getVersion() != transactionProcessor.getTransactionVersion(blockchain.getHeight())) {
 										throw new NxtException.NotValidException("Invalid transaction version");
 									}

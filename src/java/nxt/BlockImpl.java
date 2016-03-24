@@ -410,7 +410,7 @@ final class BlockImpl implements Block {
 
     }
 
-    boolean verifyGenerationSignature() throws BlockchainProcessor.BlockOutOfOrderException {
+    boolean verifyGenerationSignature() throws BlockchainProcessor.BlockNotAcceptedException {
 	try {
 	    BlockImpl previousBlock = (BlockImpl)Nxt.getBlockchain().getBlock(this.previousBlockId);
 
@@ -437,7 +437,7 @@ final class BlockImpl implements Block {
 	}
     }
 
-    public void preVerify() {
+    public void preVerify() throws BlockchainProcessor.BlockNotAcceptedException {
 	synchronized(this) {
 		// Remove from todo-list:
 		synchronized(BlockchainProcessorImpl.blockCache) {
@@ -455,6 +455,13 @@ final class BlockImpl implements Block {
 		    Logger.logMessage("Error pre-verifying block generation signature", e);
 		    return;
 		}
+
+        for(TransactionImpl transaction : getTransactions()) {
+            if(!transaction.verifySignature()) {
+                Logger.logMessage("Bad transaction signature during block pre-verification for tx: " + Convert.toUnsignedLong(transaction.getId()) + " at block height: " + getHeight());
+                throw new BlockchainProcessor.TransactionNotAcceptedException("Invalid signature for tx: " + Convert.toUnsignedLong(transaction.getId()) + "at block height: " + getHeight(), transaction);
+            }
+        }
 	}
     }
 
