@@ -7,8 +7,8 @@ import nxt.db.DbClause;
 import nxt.db.DbIterator;
 import nxt.db.DbKey;
 import nxt.db.DbUtils;
-import nxt.db.DerivedDbTable;
 import nxt.db.VersionedEntityDbTable;
+import nxt.db.VersionedBatchEntityDbTable;
 import nxt.util.Convert;
 import nxt.util.Listener;
 import nxt.util.Listeners;
@@ -194,16 +194,28 @@ public final class Account {
 
     };
 
-    private static final VersionedEntityDbTable<Account> accountTable = new VersionedEntityDbTable<Account>("account", accountDbKeyFactory) {
+    private static final VersionedBatchEntityDbTable<Account> accountTable = new VersionedBatchEntityDbTable<Account>("account", accountDbKeyFactory) {
 
         @Override
         protected Account load(Connection con, ResultSet rs) throws SQLException {
             return new Account(rs);
         }
 
-        @Override
+        /*@Override
         protected void save(Connection con, Account account) throws SQLException {
             account.save(con);
+        }*/
+
+        @Override
+        protected String updateQuery() {
+            return "INSERT INTO account (id, creation_height, public_key, key_height, balance, unconfirmed_balance, " +
+                    "forged_balance, name, description, height, latest) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)";
+        }
+
+        @Override
+        protected void batch(PreparedStatement pstmt, Account account) throws SQLException {
+            account.batch(pstmt);
         }
 
     };
@@ -380,7 +392,7 @@ public final class Account {
         this.description = rs.getString("description");
     }
 
-    private void save(Connection con) throws SQLException {
+    /*private void save(Connection con) throws SQLException {
         try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO account (id, creation_height, public_key, "
                 + "key_height, balance, unconfirmed_balance, forged_balance, name, description, "
                 + "height, latest) "
@@ -398,6 +410,21 @@ public final class Account {
             pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
+    }*/
+
+    private void batch(PreparedStatement pstmt) throws SQLException {
+        int i = 0;
+        pstmt.setLong(++i, this.getId());
+        pstmt.setInt(++i, this.getCreationHeight());
+        DbUtils.setBytes(pstmt, ++i, this.getPublicKey());
+        pstmt.setInt(++i, this.getKeyHeight());
+        pstmt.setLong(++i, this.getBalanceNQT());
+        pstmt.setLong(++i, this.getUnconfirmedBalanceNQT());
+        pstmt.setLong(++i, this.getForgedBalanceNQT());
+        DbUtils.setString(pstmt, ++i, this.getName());
+        DbUtils.setString(pstmt, ++i, this.getDescription());
+        pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+        pstmt.addBatch();
     }
 
     public long getId() {
