@@ -46,7 +46,7 @@ var NRS = (function(NRS, $, undefined) {
 
 	$("#send_money_amount").on("input", function(e) {
 		var amount = parseInt($(this).val(), 10);
-		var fee = isNaN(amount) ? 1 : (amount < 500 ? 1 : Math.round(amount / 1000));
+		var fee = isNaN(amount) ? 1 : (amount < 10000 ? 1 : Math.round(amount / 10000));
 
 		$("#send_money_fee").val(fee);
 
