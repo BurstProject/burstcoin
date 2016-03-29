@@ -804,6 +804,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				addBlock(block);
 				accept(block, remainingAmount, remainingFee);
 
+				for (DerivedDbTable table : derivedTables) {
+					table.finish();
+				}
+
 				Db.commitTransaction();
 			} catch (Exception e) {
 				Db.rollbackTransaction();
