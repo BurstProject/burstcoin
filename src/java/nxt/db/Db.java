@@ -83,6 +83,12 @@ public final class Db {
         if (! dbUrl.contains("CACHE_SIZE=")) {
             dbUrl += ";CACHE_SIZE=" + maxCacheSize;
         }
+	// Replace old DB-Url if needed:
+	if ( dbUrl.startsWith("jdbc:h2:burst_db")) {
+	    dbUrl = "jdbc:h2:./burst_db" + dbUrl.substring(16);
+	    Logger.logMessage(dbUrl);
+	}
+
         Logger.logDebugMessage("Database jdbc url set to: " + dbUrl);
         cp = JdbcConnectionPool.create(dbUrl, "sa", "sa");
         cp.setMaxConnections(Nxt.getIntProperty("nxt.maxDbConnections"));
