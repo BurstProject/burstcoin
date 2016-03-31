@@ -1,0 +1,15 @@
+<html>
+<body>
+Set reward recipient:<br />
+<form method="post" action="/burst">
+<input type="hidden" name="requestType" value="setRewardRecipient">
+The passphrase of your wallet you're mining with:<br />
+<input type="password" name="secretPhrase"><br />
+Recipient - Burst address of pool:<br />
+<input type="text" name="recipient"><br />
+<input type="hidden" name="deadline" value="1440">
+<input type="hidden" name="feeNQT" value="100000000">
+<input type="submit" value="submit" /><br />
+</form>
+</body>
+</html>
