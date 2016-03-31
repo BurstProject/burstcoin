@@ -220,6 +220,10 @@ public final class Account {
 
     };
 
+    public static void flushAccountTable() {
+        accountTable.finish();
+    }
+
     private static final DbKey.LinkKeyFactory<AccountAsset> accountAssetDbKeyFactory = new DbKey.LinkKeyFactory<AccountAsset>("account_id", "asset_id") {
 
         @Override

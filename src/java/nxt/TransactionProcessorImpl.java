@@ -136,6 +136,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                                 for (TransactionImpl transaction : expiredTransactions) {
                                     removeUnconfirmedTransaction(transaction);
                                 }
+                                Account.flushAccountTable();
                                 Db.commitTransaction();
                             } catch (Exception e) {
                                 Logger.logErrorMessage(e.toString(), e);
@@ -357,6 +358,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                     }
                 }
                 unconfirmedTransactionTable.truncate();
+                Account.flushAccountTable();
                 Db.commitTransaction();
             } catch (Exception e) {
                 Logger.logErrorMessage(e.toString(), e);
@@ -388,6 +390,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
             try {
                 Db.beginTransaction();
                 removeUnconfirmedTransaction(transaction);
+                Account.flushAccountTable();
                 Db.commitTransaction();
             } catch (Exception e) {
                 Logger.logErrorMessage(e.toString(), e);
@@ -507,6 +510,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                         } else {
                             addedDoubleSpendingTransactions.add(transaction);
                         }
+                        Account.flushAccountTable();
                         Db.commitTransaction();
                     } catch (Exception e) {
                         Db.rollbackTransaction();
