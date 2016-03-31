@@ -51,6 +51,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 final class BlockchainProcessorImpl implements BlockchainProcessor {
 	public static final int BLOCKCACHEMB = Nxt.getIntProperty("burst.blockCacheMB") == 0 ? 40 : Nxt.getIntProperty("blockCacheMB");
+	public static final boolean oclVerify = Nxt.getBooleanProperty("burst.oclVerify");
 
 	private static final BlockchainProcessorImpl instance = new BlockchainProcessorImpl();
 
@@ -95,22 +96,43 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		@Override
 		public void run() {
 			for(;;) {
-				BlockImpl block;
-				synchronized(BlockchainProcessorImpl.blockCache) {
-					if(BlockchainProcessorImpl.unverified.size() == 0)
-						return;
+				if(oclVerify) {
+					List<BlockImpl> blocks = new LinkedList<>();
+					synchronized (blockCache) {
+						if(unverified.size() == 0) {
+							return;
+						}
 
-					Long blockId = BlockchainProcessorImpl.unverified.get(0);
-					BlockchainProcessorImpl.unverified.remove(blockId);
+						while(unverified.size() > 0 && blocks.size() < OCLPoC.getMaxItems()) {
+							Long blockId = BlockchainProcessorImpl.unverified.get(0);
+							BlockchainProcessorImpl.unverified.remove(blockId);
 
-					block = (BlockImpl)BlockchainProcessorImpl.blockCache.get(blockId);
+							blocks.add((BlockImpl) BlockchainProcessorImpl.blockCache.get(blockId));
+						}
+					}
+					try {
+						OCLPoC.validatePoC(blocks);
+					} catch (BlockNotAcceptedException e) {
+						e.printStackTrace(); // todo: blacklistclean
+					}
 				}
-                try {
-                    block.preVerify();
-                }
-                catch (BlockchainProcessor.BlockNotAcceptedException e) {
-                    blacklistClean(block, e);
-                }
+				else {
+					BlockImpl block;
+					synchronized (BlockchainProcessorImpl.blockCache) {
+						if (BlockchainProcessorImpl.unverified.size() == 0)
+							return;
+
+						Long blockId = BlockchainProcessorImpl.unverified.get(0);
+						BlockchainProcessorImpl.unverified.remove(blockId);
+
+						block = (BlockImpl) BlockchainProcessorImpl.blockCache.get(blockId);
+					}
+					try {
+						block.preVerify();
+					} catch (BlockchainProcessor.BlockNotAcceptedException e) {
+						blacklistClean(block, e);
+					}
+				}
 			}
 		}
 	};

@@ -439,6 +439,10 @@ final class BlockImpl implements Block {
     }
 
     public void preVerify() throws BlockchainProcessor.BlockNotAcceptedException {
+        preVerify(null);
+    }
+
+    public void preVerify(byte[] scoopData) throws BlockchainProcessor.BlockNotAcceptedException {
 	synchronized(this) {
 		// Remove from todo-list:
 		synchronized(BlockchainProcessorImpl.blockCache) {
@@ -451,7 +455,12 @@ final class BlockImpl implements Block {
 
 		try {
 		    // Pre-verify poc:
-            this.pocTime = Nxt.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, getScoopNum());
+            if(scoopData == null) {
+                this.pocTime = Nxt.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, getScoopNum());
+            }
+            else {
+                this.pocTime = Nxt.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, scoopData);
+            }
 		} catch (RuntimeException e) {
 		    Logger.logMessage("Error pre-verifying block generation signature", e);
 		    return;

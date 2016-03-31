@@ -210,6 +210,7 @@ public final class Nxt {
                 if(Nxt.getBooleanProperty("burst.mockMining")) {
                     setGenerator(new GeneratorImpl.MockGeneratorImpl());
                 }
+                OCLPoC.init();
             } catch (Exception e) {
                 Logger.logErrorMessage(e.getMessage(), e);
                 System.exit(1);

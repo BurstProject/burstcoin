@@ -163,6 +163,15 @@ public final class GeneratorImpl implements Generator {
     }
 
     @Override
+    public BigInteger calculateHit(long accountId, long nonce, byte[] genSig, byte[] scoopData) {
+        Shabal256 md = new Shabal256();
+        md.update(genSig);
+        md.update(scoopData);
+        byte[] hash = md.digest();
+        return new BigInteger(1, new byte[] {hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
+    }
+
+    @Override
     public BigInteger calculateDeadline(long accountId, long nonce, byte[] genSig, int scoop, long baseTarget) {
         BigInteger hit = calculateHit(accountId, nonce, genSig, scoop);
 
@@ -281,6 +290,11 @@ public final class GeneratorImpl implements Generator {
         @Override
         public BigInteger calculateHit(long accountId, long nonce, byte[] genSig, int scoop) {
             return BigInteger.valueOf(0);
+        }
+
+        @Override
+        public BigInteger calculateHit(long accountId, long nonce, byte[] genSig, byte[] scoopData) {
+            return BigInteger.ZERO;
         }
 
         @Override
