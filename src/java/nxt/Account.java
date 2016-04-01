@@ -208,8 +208,9 @@ public final class Account {
 
         @Override
         protected String updateQuery() {
-            return "INSERT INTO account (id, creation_height, public_key, key_height, balance, unconfirmed_balance, " +
+            return "MERGE INTO account (id, creation_height, public_key, key_height, balance, unconfirmed_balance, " +
                     "forged_balance, name, description, height, latest) " +
+                    "KEY (id, height) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)";
         }
 
