@@ -51,7 +51,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 final class BlockchainProcessorImpl implements BlockchainProcessor {
 	public static final int BLOCKCACHEMB = Nxt.getIntProperty("burst.blockCacheMB") == 0 ? 40 : Nxt.getIntProperty("blockCacheMB");
-	public static final boolean oclVerify = Nxt.getBooleanProperty("burst.oclVerify");
+	public static boolean oclVerify = Nxt.getBooleanProperty("burst.oclVerify");
 
 	private static final BlockchainProcessorImpl instance = new BlockchainProcessorImpl();
 
