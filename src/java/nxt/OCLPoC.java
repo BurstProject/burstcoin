@@ -17,6 +17,8 @@ final class OCLPoC {
 
     private static final int DEFAULT_MEM_PERCENT = 50;
 
+    private static final int hashesPerEnqueue = Nxt.getIntProperty("burst.oclHashesPerEnqueue") == 0 ? 1000 : Nxt.getIntProperty("burst.oclHashesPerEnqueue");
+
     private static cl_context ctx;
     private static cl_command_queue queue;
     private static cl_program program;
@@ -168,37 +170,37 @@ final class OCLPoC {
 
         byte[] scoopsOut = new byte[MiningPlot.SCOOP_SIZE * blocks.size()];
 
+        long jobSize = blocks.size();
+        if (jobSize % maxGroupItems != 0) {
+            jobSize += (maxGroupItems - (jobSize % maxGroupItems));
+        }
+
+        if (jobSize > maxItems) {
+            throw new IllegalStateException("Attempted to validate too many blocks at once with OCL");
+        }
+        System.out.println("ocl blocks: " + blocks.size() + " jobSize: " + jobSize);
+
+        long[] ids = new long[blocks.size()];
+        long[] nonces = new long[blocks.size()];
+        int[] scoopNums = new int[blocks.size()];
+
+        ByteBuffer buffer = ByteBuffer.allocate(16);
+        int i = 0;
+        for (BlockImpl block : blocks) {
+            buffer.order(ByteOrder.LITTLE_ENDIAN);
+            buffer.putLong(block.getGeneratorId());
+            buffer.putLong(block.getNonce());
+            buffer.flip();
+            buffer.order(ByteOrder.BIG_ENDIAN);
+            ids[i] = buffer.getLong();
+            nonces[i] = buffer.getLong();
+            buffer.clear();
+            scoopNums[i] = block.getScoopNum();
+            i++;
+        }
+        System.out.println("finished preprocessing: " + blocks.size());
+
         synchronized (oclLock) {
-            long jobSize = blocks.size();
-            if (jobSize % maxGroupItems != 0) {
-                jobSize += (maxGroupItems - (jobSize % maxGroupItems));
-            }
-
-            if (jobSize > maxItems) {
-                throw new IllegalStateException("Attempted to validate too many blocks at once with OCL");
-            }
-            System.out.println("ocl blocks: " + blocks.size() + " jobSize: " + jobSize);
-
-            long[] ids = new long[blocks.size()];
-            long[] nonces = new long[blocks.size()];
-            int[] scoopNums = new int[blocks.size()];
-
-            ByteBuffer buffer = ByteBuffer.allocate(16);
-            int i = 0;
-            for (BlockImpl block : blocks) {
-                buffer.order(ByteOrder.LITTLE_ENDIAN);
-                buffer.putLong(block.getGeneratorId());
-                buffer.putLong(block.getNonce());
-                buffer.flip();
-                buffer.order(ByteOrder.BIG_ENDIAN);
-                ids[i] = buffer.getLong();
-                nonces[i] = buffer.getLong();
-                buffer.clear();
-                scoopNums[i] = block.getScoopNum();
-                i++;
-            }
-            System.out.println("finished preprocessing: " + blocks.size());
-
             cl_mem idMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 8 * blocks.size(), Pointer.to(ids), null);
             cl_mem nonceMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 8 * blocks.size(), Pointer.to(nonces), null);
             cl_mem bufferMem = clCreateBuffer(ctx, CL_MEM_READ_WRITE, (MiningPlot.PLOT_SIZE + 16) * blocks.size(), null, null);
@@ -213,7 +215,7 @@ final class OCLPoC {
             clSetKernelArg(genKernel, 5, Sizeof.cl_int, Pointer.to(totalSize));
 
             int c = 0;
-            int step = 1000;
+            int step = hashesPerEnqueue;
             int[] cur = new int[1];
             int[] st = new int[1];
             while (c < 8192) {
