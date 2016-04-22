@@ -18,6 +18,7 @@ final class OCLPoC {
     private static final int DEFAULT_MEM_PERCENT = 50;
 
     private static final int hashesPerEnqueue = Nxt.getIntProperty("burst.oclHashesPerEnqueue") == 0 ? 1000 : Nxt.getIntProperty("burst.oclHashesPerEnqueue");
+    private static final int memPercent = Nxt.getIntProperty("burst.oclMemPercent") == 0 ? DEFAULT_MEM_PERCENT : Nxt.getIntProperty("burst.oclMemPercent");
 
     private static cl_context ctx;
     private static cl_command_queue queue;
@@ -30,6 +31,14 @@ final class OCLPoC {
 
     private static final Object oclLock = new Object();
 
+    private static final long memPerItem = 8 // id
+                                + 8 // nonce
+                                + MiningPlot.PLOT_SIZE + 16 // buffer
+                                + 4 // scoop num
+                                + MiningPlot.SCOOP_SIZE; // output scoop
+
+    private static final long bufferPerItem = MiningPlot.PLOT_SIZE + 16;
+
     static void init() {}
 
     static {
@@ -41,6 +50,9 @@ final class OCLPoC {
             int deviceIndex;
             if(autoChoose) {
                 AutoChooseResult ac = autoChooseDevice();
+                if(ac == null) {
+                    throw new OCLCheckerException("Autochoose failed to select a GPU");
+                }
                 platformIndex = ac.getPlatform();
                 deviceIndex = ac.getDevice();
             }
@@ -81,27 +93,13 @@ final class OCLPoC {
 
             cl_device_id device = devices[deviceIndex];
 
-            long[] endianLittle = new long[1];
-            clGetDeviceInfo(device, CL_DEVICE_ENDIAN_LITTLE, Sizeof.cl_long, Pointer.to(endianLittle), null); // idk if the kernel works on big endian, but I'm guessing not and I don't have the hardware to find out
-            if(endianLittle[0] != 1) {
-                throw new OCLCheckerException("Chosen GPU must be little endian");
+            if(!checkAvailable(device)) {
+                throw new OCLCheckerException("Chosen GPU must be available");
             }
 
-            long[] globalMemSize = new long[1];
-            long[] maxMemAllocSize = new long[1];
-            int[] maxComputeUnits = new int[1];
-
-            clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE, 8, Pointer.to(globalMemSize), null);
-            clGetDeviceInfo(device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, 8, Pointer.to(maxMemAllocSize), null);
-            clGetDeviceInfo(device, CL_DEVICE_MAX_COMPUTE_UNITS, 4, Pointer.to(maxComputeUnits), null);
-
-            long memPerItem = 8 // id
-                    + 8 // nonce
-                    + MiningPlot.PLOT_SIZE + 16 // buffer
-                    + 4 // scoop num
-                    + MiningPlot.SCOOP_SIZE; // output scoop
-
-            long bufferPerItem = MiningPlot.PLOT_SIZE + 16;
+            if(!checkLittleEndian(device)) {
+                throw new OCLCheckerException("Chosen GPU must be little endian");
+            }
 
             cl_context_properties ctxProps = new cl_context_properties();
             ctxProps.addProperty(CL_CONTEXT_PLATFORM, platform);
@@ -133,17 +131,9 @@ final class OCLPoC {
                 throw new OCLCheckerException("OpenCL init error. Invalid max group items: " + maxGroupItems);
             }
 
-            int memPercent = Nxt.getIntProperty("burst.oclMemPercent");
-            if(memPercent == 0) {
-                Logger.logMessage("OpenCL mem percent not specified, using default: " + DEFAULT_MEM_PERCENT);
-                memPercent = DEFAULT_MEM_PERCENT;
-            }
+            long maxItemsByComputeUnits = getComputeUnits(device) * maxGroupItems;
 
-            long maxItemsByGlobalMemSize = (globalMemSize[0] * memPercent / 100) / memPerItem;
-            long maxItemsByMaxAllocSize = (maxMemAllocSize[0] * memPercent / 100) / bufferPerItem;
-            long maxItemsByComputeUnits = maxComputeUnits[0] * maxGroupItems;
-
-            maxItems = Math.min(Math.min(maxItemsByGlobalMemSize, maxItemsByMaxAllocSize), maxItemsByComputeUnits);
+            maxItems = Math.min(calculateMaxItemsByMem(device), maxItemsByComputeUnits);
 
             if(maxItems % maxGroupItems != 0) {
                 maxItems -= (maxItems % maxGroupItems);
@@ -281,9 +271,102 @@ final class OCLPoC {
         }
     }
 
+    static private boolean checkAvailable(cl_device_id device) {
+        long[] available = new long[1];
+        clGetDeviceInfo(device, CL_DEVICE_AVAILABLE, Sizeof.cl_long, Pointer.to(available), null);
+        return available[0] == 1;
+    }
+
+    static private boolean checkLittleEndian(cl_device_id device) { // idk if the kernel works on big endian, but I'm guessing not and I don't have the hardware to find out
+        long[] endianLittle = new long[1];
+        clGetDeviceInfo(device, CL_DEVICE_ENDIAN_LITTLE, Sizeof.cl_long, Pointer.to(endianLittle), null);
+        return endianLittle[0] == 1;
+    }
+
+    static private int getComputeUnits(cl_device_id device) {
+        int[] maxComputeUnits = new int[1];
+        clGetDeviceInfo(device, CL_DEVICE_MAX_COMPUTE_UNITS, 4, Pointer.to(maxComputeUnits), null);
+        return maxComputeUnits[0];
+    }
+
+    static private long calculateMaxItemsByMem(cl_device_id device) {
+        long[] globalMemSize = new long[1];
+        long[] maxMemAllocSize = new long[1];
+
+        clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE, 8, Pointer.to(globalMemSize), null);
+        clGetDeviceInfo(device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, 8, Pointer.to(maxMemAllocSize), null);
+
+        long maxItemsByGlobalMemSize = (globalMemSize[0] * memPercent / 100) / memPerItem;
+        long maxItemsByMaxAllocSize = (maxMemAllocSize[0] * memPercent / 100) / bufferPerItem;
+
+        return Math.min(maxItemsByGlobalMemSize, maxItemsByMaxAllocSize);
+    }
+
     static private AutoChooseResult autoChooseDevice() {
 
-        return new AutoChooseResult(0, 0);
+        int[] numPlatforms = new int[1];
+        clGetPlatformIDs(0, null, numPlatforms);
+
+        if(numPlatforms[0] == 0) {
+            throw new OCLCheckerException("No OpenCL platforms found");
+        }
+
+        cl_platform_id[] platforms = new cl_platform_id[numPlatforms[0]];
+        clGetPlatformIDs(platforms.length, platforms, null);
+
+        AutoChooseResult bestResult = null;
+        long bestScore = 0;
+        boolean intel = false;
+        for(int pfi = 0; pfi < platforms.length; pfi++) {
+            long[] platformNameSize = new long[1];
+            clGetPlatformInfo(platforms[pfi], CL_PLATFORM_NAME, 0, null, platformNameSize);
+            byte[] platformNameChars = new byte[(int)platformNameSize[0]];
+            clGetPlatformInfo(platforms[pfi], CL_PLATFORM_NAME, platformNameChars.length, Pointer.to(platformNameChars), null);
+            String platformName = new String(platformNameChars);
+
+            System.out.println("Platform " + pfi + ": " + platformName);
+
+            int[] numDevices = new int[1];
+            clGetDeviceIDs(platforms[pfi], CL_DEVICE_TYPE_GPU, 0, null, numDevices);
+
+            if(numDevices[0] == 0) {
+                continue;
+            }
+
+            cl_device_id[] devices = new cl_device_id[numDevices[0]];
+            clGetDeviceIDs(platforms[pfi], CL_DEVICE_TYPE_GPU, devices.length, devices, null);
+
+            for(int dvi = 0; dvi < devices.length; dvi++) {
+                if(!checkAvailable(devices[dvi])) {
+                    continue;
+                }
+
+                if(!checkLittleEndian(devices[dvi])) {
+                    continue;
+                }
+
+                if(bestResult != null && platformName.toLowerCase().contains("intel")) {
+                    continue;
+                }
+
+                long[] clock = new long[1];
+                clGetDeviceInfo(devices[dvi], CL_DEVICE_MAX_CLOCK_FREQUENCY, Sizeof.cl_long, Pointer.to(clock), null);
+
+                long maxItemsAtOnce = Math.min(calculateMaxItemsByMem(devices[dvi]), getComputeUnits(devices[dvi]) * 256);
+
+                long score = maxItemsAtOnce * clock[0];
+
+                if(bestResult == null || score > bestScore || intel) {
+                    bestResult = new AutoChooseResult(pfi, dvi);
+                    bestScore = score;
+                    if(platformName.toLowerCase().contains("intel")) {
+                        intel = true;
+                    }
+                }
+            }
+        }
+
+        return bestResult;
     }
 
     static private class AutoChooseResult {
