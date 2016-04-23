@@ -43,7 +43,7 @@ final class OCLPoC {
 
     static {
         try {
-            boolean autoChoose = Nxt.getBooleanProperty("burst.oclAuto");
+            boolean autoChoose = Nxt.getBooleanProperty("burst.oclAuto", true);
             setExceptionsEnabled(true);
 
             int platformIndex;

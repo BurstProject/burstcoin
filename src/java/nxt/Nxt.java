@@ -110,6 +110,19 @@ public final class Nxt {
         return false;
     }
 
+    public static Boolean getBooleanProperty(String name, boolean assume) {
+        String value = properties.getProperty(name);
+        if (Boolean.TRUE.toString().equals(value)) {
+            Logger.logMessage(name + " = \"true\"");
+            return true;
+        } else if (Boolean.FALSE.toString().equals(value)) {
+            Logger.logMessage(name + " = \"false\"");
+            return false;
+        }
+        Logger.logMessage(name + " not defined, assuming " + assume);
+        return assume;
+    }
+
     public static Blockchain getBlockchain() {
         return BlockchainImpl.getInstance();
     }
