@@ -141,8 +141,14 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 							else {
 								blocks.get(0).preVerify();
 							}
-						} catch (BlockNotAcceptedException e) {
-							e.printStackTrace(); // todo: blacklistclean
+						}
+						catch (OCLPoC.PreValidateFailException e) {
+							e.printStackTrace();
+							blacklistClean(e.getBlock(), e);
+						}
+						catch (BlockNotAcceptedException e) { // only thrown from cpu prevalidate
+							e.printStackTrace();
+							blacklistClean(blocks.get(0), e);
 						}
 					}
 					finally {

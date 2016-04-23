@@ -154,96 +154,128 @@ final class OCLPoC {
 
     public static long getMaxItems() { return maxItems; }
 
-    public static void validatePoC(Collection<BlockImpl> blocks) throws BlockchainProcessor.BlockNotAcceptedException {
+    public static void validatePoC(Collection<BlockImpl> blocks) {
+        try {
+            System.out.println("starting ocl verify for: " + blocks.size());
 
-        System.out.println("starting ocl verify for: " + blocks.size());
+            byte[] scoopsOut = new byte[MiningPlot.SCOOP_SIZE * blocks.size()];
 
-        byte[] scoopsOut = new byte[MiningPlot.SCOOP_SIZE * blocks.size()];
-
-        long jobSize = blocks.size();
-        if (jobSize % maxGroupItems != 0) {
-            jobSize += (maxGroupItems - (jobSize % maxGroupItems));
-        }
-
-        if (jobSize > maxItems) {
-            throw new IllegalStateException("Attempted to validate too many blocks at once with OCL");
-        }
-        System.out.println("ocl blocks: " + blocks.size() + " jobSize: " + jobSize);
-
-        long[] ids = new long[blocks.size()];
-        long[] nonces = new long[blocks.size()];
-        int[] scoopNums = new int[blocks.size()];
-
-        ByteBuffer buffer = ByteBuffer.allocate(16);
-        int i = 0;
-        for (BlockImpl block : blocks) {
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
-            buffer.putLong(block.getGeneratorId());
-            buffer.putLong(block.getNonce());
-            buffer.flip();
-            buffer.order(ByteOrder.BIG_ENDIAN);
-            ids[i] = buffer.getLong();
-            nonces[i] = buffer.getLong();
-            buffer.clear();
-            scoopNums[i] = block.getScoopNum();
-            i++;
-        }
-        System.out.println("finished preprocessing: " + blocks.size());
-
-        synchronized (oclLock) {
-            cl_mem idMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 8 * blocks.size(), Pointer.to(ids), null);
-            cl_mem nonceMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 8 * blocks.size(), Pointer.to(nonces), null);
-            cl_mem bufferMem = clCreateBuffer(ctx, CL_MEM_READ_WRITE, (MiningPlot.PLOT_SIZE + 16) * blocks.size(), null, null);
-            cl_mem scoopNumMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 4 * blocks.size(), Pointer.to(scoopNums), null);
-            cl_mem scoopOutMem = clCreateBuffer(ctx, CL_MEM_READ_WRITE, MiningPlot.SCOOP_SIZE * blocks.size(), null, null);
-
-            int[] totalSize = new int[]{blocks.size()};
-
-            clSetKernelArg(genKernel, 0, Sizeof.cl_mem, Pointer.to(idMem));
-            clSetKernelArg(genKernel, 1, Sizeof.cl_mem, Pointer.to(nonceMem));
-            clSetKernelArg(genKernel, 2, Sizeof.cl_mem, Pointer.to(bufferMem));
-            clSetKernelArg(genKernel, 5, Sizeof.cl_int, Pointer.to(totalSize));
-
-            int c = 0;
-            int step = hashesPerEnqueue;
-            int[] cur = new int[1];
-            int[] st = new int[1];
-            while (c < 8192) {
-                cur[0] = c;
-                st[0] = (c + step) > 8192 ? 8192 - c : step;
-                clSetKernelArg(genKernel, 3, Sizeof.cl_int, Pointer.to(cur));
-                clSetKernelArg(genKernel, 4, Sizeof.cl_int, Pointer.to(st));
-                clEnqueueNDRangeKernel(queue, genKernel, 1, null, new long[]{jobSize}, new long[]{maxGroupItems}, 0, null, null);
-
-                c += st[0];
+            long jobSize = blocks.size();
+            if (jobSize % maxGroupItems != 0) {
+                jobSize += (maxGroupItems - (jobSize % maxGroupItems));
             }
 
-            clSetKernelArg(getKernel, 0, Sizeof.cl_mem, Pointer.to(scoopNumMem));
-            clSetKernelArg(getKernel, 1, Sizeof.cl_mem, Pointer.to(bufferMem));
-            clSetKernelArg(getKernel, 2, Sizeof.cl_mem, Pointer.to(scoopOutMem));
-            clSetKernelArg(getKernel, 3, Sizeof.cl_int, Pointer.to(totalSize));
+            if (jobSize > maxItems) {
+                throw new IllegalStateException("Attempted to validate too many blocks at once with OCL");
+            }
+            System.out.println("ocl blocks: " + blocks.size() + " jobSize: " + jobSize);
 
-            clEnqueueNDRangeKernel(queue, getKernel, 1, null, new long[]{jobSize}, new long[]{maxGroupItems}, 0, null, null);
+            long[] ids = new long[blocks.size()];
+            long[] nonces = new long[blocks.size()];
+            int[] scoopNums = new int[blocks.size()];
 
-            clEnqueueReadBuffer(queue, scoopOutMem, true, 0, MiningPlot.SCOOP_SIZE * blocks.size(), Pointer.to(scoopsOut), 0, null, null);
+            ByteBuffer buffer = ByteBuffer.allocate(16);
+            int i = 0;
+            for (BlockImpl block : blocks) {
+                buffer.order(ByteOrder.LITTLE_ENDIAN);
+                buffer.putLong(block.getGeneratorId());
+                buffer.putLong(block.getNonce());
+                buffer.flip();
+                buffer.order(ByteOrder.BIG_ENDIAN);
+                ids[i] = buffer.getLong();
+                nonces[i] = buffer.getLong();
+                buffer.clear();
+                scoopNums[i] = block.getScoopNum();
+                i++;
+            }
+            System.out.println("finished preprocessing: " + blocks.size());
 
-            clReleaseMemObject(idMem);
-            clReleaseMemObject(nonceMem);
-            clReleaseMemObject(bufferMem);
-            clReleaseMemObject(scoopNumMem);
-            clReleaseMemObject(scoopOutMem);
+            synchronized (oclLock) {
+                if(ctx == null) {
+                    throw new OCLCheckerException("OCL context no longer exists");
+                }
+
+                cl_mem idMem = null;
+                cl_mem nonceMem = null;
+                cl_mem bufferMem = null;
+                cl_mem scoopNumMem = null;
+                cl_mem scoopOutMem = null;
+
+                try {
+                    idMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 8 * blocks.size(), Pointer.to(ids), null);
+                    nonceMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 8 * blocks.size(), Pointer.to(nonces), null);
+                    bufferMem = clCreateBuffer(ctx, CL_MEM_READ_WRITE, (MiningPlot.PLOT_SIZE + 16) * blocks.size(), null, null);
+                    scoopNumMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 4 * blocks.size(), Pointer.to(scoopNums), null);
+                    scoopOutMem = clCreateBuffer(ctx, CL_MEM_READ_WRITE, MiningPlot.SCOOP_SIZE * blocks.size(), null, null);
+
+                    int[] totalSize = new int[]{blocks.size()};
+
+                    clSetKernelArg(genKernel, 0, Sizeof.cl_mem, Pointer.to(idMem));
+                    clSetKernelArg(genKernel, 1, Sizeof.cl_mem, Pointer.to(nonceMem));
+                    clSetKernelArg(genKernel, 2, Sizeof.cl_mem, Pointer.to(bufferMem));
+                    clSetKernelArg(genKernel, 5, Sizeof.cl_int, Pointer.to(totalSize));
+
+                    int c = 0;
+                    int step = hashesPerEnqueue;
+                    int[] cur = new int[1];
+                    int[] st = new int[1];
+                    while (c < 8192) {
+                        cur[0] = c;
+                        st[0] = (c + step) > 8192 ? 8192 - c : step;
+                        clSetKernelArg(genKernel, 3, Sizeof.cl_int, Pointer.to(cur));
+                        clSetKernelArg(genKernel, 4, Sizeof.cl_int, Pointer.to(st));
+                        clEnqueueNDRangeKernel(queue, genKernel, 1, null, new long[]{jobSize}, new long[]{maxGroupItems}, 0, null, null);
+
+                        c += st[0];
+                    }
+
+                    clSetKernelArg(getKernel, 0, Sizeof.cl_mem, Pointer.to(scoopNumMem));
+                    clSetKernelArg(getKernel, 1, Sizeof.cl_mem, Pointer.to(bufferMem));
+                    clSetKernelArg(getKernel, 2, Sizeof.cl_mem, Pointer.to(scoopOutMem));
+                    clSetKernelArg(getKernel, 3, Sizeof.cl_int, Pointer.to(totalSize));
+
+                    clEnqueueNDRangeKernel(queue, getKernel, 1, null, new long[]{jobSize}, new long[]{maxGroupItems}, 0, null, null);
+
+                    clEnqueueReadBuffer(queue, scoopOutMem, true, 0, MiningPlot.SCOOP_SIZE * blocks.size(), Pointer.to(scoopsOut), 0, null, null);
+                }
+                finally {
+                    if(idMem != null) {
+                        clReleaseMemObject(idMem);
+                    }
+                    if(nonceMem != null) {
+                        clReleaseMemObject(nonceMem);
+                    }
+                    if(bufferMem != null) {
+                        clReleaseMemObject(bufferMem);
+                    }
+                    if(scoopNumMem != null) {
+                        clReleaseMemObject(scoopNumMem);
+                    }
+                    if(scoopOutMem != null) {
+                        clReleaseMemObject(scoopOutMem);
+                    }
+                }
+            }
+
+            System.out.println("finished ocl, doing rest: " + blocks.size());
+
+            ByteBuffer scoopsBuffer = ByteBuffer.wrap(scoopsOut);
+            byte[] scoop = new byte[MiningPlot.SCOOP_SIZE];
+
+            for (BlockImpl block : blocks) {
+                try {
+                    scoopsBuffer.get(scoop);
+                    block.preVerify(scoop);
+                }
+                catch (BlockchainProcessor.BlockNotAcceptedException e) {
+                    throw new PreValidateFailException("Block failed to prevalidate", e, block);
+                }
+            }
+            System.out.println("finished rest: " + blocks.size());
         }
-
-        System.out.println("finished ocl, doing rest: " + blocks.size());
-
-        ByteBuffer scoopsBuffer = ByteBuffer.wrap(scoopsOut);
-        byte[] scoop = new byte[MiningPlot.SCOOP_SIZE];
-
-        for(BlockImpl block : blocks) {
-            scoopsBuffer.get(scoop);
-            block.preVerify(scoop);
+        catch(CLException e) {
+            throw new OCLCheckerException("OpenCL error", e); // intentionally leave out of unverified cache. It won't slow it that much on one failure and avoids infinite looping on repeat failed attempts.
         }
-        System.out.println("finished rest: " + blocks.size());
     }
 
     static void destroy() {
@@ -393,6 +425,21 @@ final class OCLPoC {
         }
         OCLCheckerException(String message, Throwable cause) {
             super(message, cause);
+        }
+    }
+
+    public static class PreValidateFailException extends RuntimeException {
+        final BlockImpl block;
+        PreValidateFailException(String message, BlockImpl block) {
+            super(message);
+            this.block = block;
+        }
+        PreValidateFailException(String message, Throwable cause, BlockImpl block) {
+            super(message, cause);
+            this.block = block;
+        }
+        public BlockImpl getBlock() {
+            return block;
         }
     }
 }
