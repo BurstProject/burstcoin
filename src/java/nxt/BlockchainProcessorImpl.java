@@ -297,19 +297,26 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 											// First in cache? Get from blockchain:
 											BlockImpl prevBlock = (BlockImpl)Nxt.getBlockchain().getBlock(prevId);
 											if(prevBlock == null) {
-												Logger.logMessage("Previous Block with ID " + String.valueOf(prevId) + " not found. Blacklisting ...");
-												peer.blacklist();
-												return;
+												// We may be on a fork: Add all other Blocks to forkQueue:
+												if(forkBlocks.size() > 0) {
+													forkBlocks.add(block);
+												} else {
+													Logger.logMessage("Previous Block with ID " + String.valueOf(prevId) + " not found. Blacklisting ...");
+													peer.blacklist();
+													return;
+												}
 											}
 											Long altBlockId = null;
-											try {
-												altBlockId = BlockDb.findBlockIdAtHeight(prevBlock.getHeight() + 1);
-											} catch (Exception e) {}
-											if(altBlockId != null && altBlockId.longValue() != block.getId()) {
-												// fork
-												forkBlocks.add(block);
+											if(forkBlocks.size() == 0) {
+												try {
+													altBlockId = BlockDb.findBlockIdAtHeight(prevBlock.getHeight() + 1);
+												} catch (Exception e) {}
+												if(altBlockId != null && altBlockId.longValue() != block.getId()) {
+													// fork
+													forkBlocks.add(block);
+												}
+												block.setHeight(prevBlock.getHeight() + 1);
 											}
-											block.setHeight(prevBlock.getHeight() + 1);
 										}
 										//Logger.logMessage("Block Height " + String.valueOf(block.getHeight()) + " ID " + String.valueOf(block.getId()));
 
