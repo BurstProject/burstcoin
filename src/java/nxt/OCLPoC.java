@@ -156,7 +156,7 @@ final class OCLPoC {
 
     public static void validatePoC(Collection<BlockImpl> blocks) {
         try {
-            System.out.println("starting ocl verify for: " + blocks.size());
+            //System.out.println("starting ocl verify for: " + blocks.size());
 
             byte[] scoopsOut = new byte[MiningPlot.SCOOP_SIZE * blocks.size()];
 
@@ -168,7 +168,7 @@ final class OCLPoC {
             if (jobSize > maxItems) {
                 throw new IllegalStateException("Attempted to validate too many blocks at once with OCL");
             }
-            System.out.println("ocl blocks: " + blocks.size() + " jobSize: " + jobSize);
+            //System.out.println("ocl blocks: " + blocks.size() + " jobSize: " + jobSize);
 
             long[] ids = new long[blocks.size()];
             long[] nonces = new long[blocks.size()];
@@ -188,7 +188,7 @@ final class OCLPoC {
                 scoopNums[i] = block.getScoopNum();
                 i++;
             }
-            System.out.println("finished preprocessing: " + blocks.size());
+            //System.out.println("finished preprocessing: " + blocks.size());
 
             synchronized (oclLock) {
                 if(ctx == null) {
@@ -257,7 +257,7 @@ final class OCLPoC {
                 }
             }
 
-            System.out.println("finished ocl, doing rest: " + blocks.size());
+            //System.out.println("finished ocl, doing rest: " + blocks.size());
 
             ByteBuffer scoopsBuffer = ByteBuffer.wrap(scoopsOut);
             byte[] scoop = new byte[MiningPlot.SCOOP_SIZE];
@@ -271,7 +271,7 @@ final class OCLPoC {
                     throw new PreValidateFailException("Block failed to prevalidate", e, block);
                 }
             }
-            System.out.println("finished rest: " + blocks.size());
+            //System.out.println("finished rest: " + blocks.size());
         }
         catch(CLException e) {
             throw new OCLCheckerException("OpenCL error", e); // intentionally leave out of unverified cache. It won't slow it that much on one failure and avoids infinite looping on repeat failed attempts.
