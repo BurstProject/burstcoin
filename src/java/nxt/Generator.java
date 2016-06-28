@@ -21,6 +21,7 @@ public interface Generator {
     byte[] calculateGenerationSignature(byte[] lastGenSig, long lastGenId);
     int calculateScoop(byte[] genSig, long height);
     BigInteger calculateHit(long accountId, long nonce, byte[] genSig, int scoop);
+    BigInteger calculateHit(long accountId, long nonce, byte[] genSig, byte[] scoopData);
     BigInteger calculateDeadline(long accountId, long nonce, byte[] genSig, int scoop, long baseTarget);
 
     interface GeneratorState {

@@ -48,9 +48,14 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Semaphore;
 
 final class BlockchainProcessorImpl implements BlockchainProcessor {
 	public static final int BLOCKCACHEMB = Nxt.getIntProperty("burst.blockCacheMB") == 0 ? 40 : Nxt.getIntProperty("blockCacheMB");
+	public static boolean oclVerify = Nxt.getBooleanProperty("burst.oclVerify");
+	public static final int oclThreshold = Nxt.getIntProperty("burst.oclThreshold") == 0 ? 50 : Nxt.getIntProperty("burst.oclThreshold");
+	public static final int oclWaitThreshold = Nxt.getIntProperty("burst.oclWaitThreshold") == 0 ? 2000 : Nxt.getIntProperty("burst.oclWaitThreshold");
+	private static final Semaphore gpuUsage = new Semaphore(2);
 
 	private static final BlockchainProcessorImpl instance = new BlockchainProcessorImpl();
 
@@ -95,22 +100,80 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		@Override
 		public void run() {
 			for(;;) {
-				BlockImpl block;
-				synchronized(BlockchainProcessorImpl.blockCache) {
-					if(BlockchainProcessorImpl.unverified.size() == 0)
-						return;
+				if(oclVerify) {
+					boolean gpuAcquired = false;
+					try {
+						List<BlockImpl> blocks = new LinkedList<>();
+						synchronized (blockCache) {
+							if (unverified.size() == 0) {
+								return;
+							}
 
-					Long blockId = BlockchainProcessorImpl.unverified.get(0);
-					BlockchainProcessorImpl.unverified.remove(blockId);
+							int verifiedCached = blockCache.size() - unverified.size();
+							if(verifiedCached >= oclWaitThreshold && unverified.size() < OCLPoC.getMaxItems() / 2) {
+								return;
+							}
 
-					block = (BlockImpl)BlockchainProcessorImpl.blockCache.get(blockId);
+							if (unverified.size() < oclThreshold) {
+								Long blockId = BlockchainProcessorImpl.unverified.get(0);
+								BlockchainProcessorImpl.unverified.remove(blockId);
+
+								blocks.add((BlockImpl) BlockchainProcessorImpl.blockCache.get(blockId));
+							} else {
+								if (!gpuUsage.tryAcquire()) {
+									System.out.println("already max locked");
+									return;
+								}
+								gpuAcquired = true;
+
+								while (unverified.size() > 0 && blocks.size() < OCLPoC.getMaxItems()) {
+									Long blockId = BlockchainProcessorImpl.unverified.get(0);
+									BlockchainProcessorImpl.unverified.remove(blockId);
+
+									blocks.add((BlockImpl) BlockchainProcessorImpl.blockCache.get(blockId));
+								}
+							}
+						}
+						try {
+							if(blocks.size() > 1) {
+								OCLPoC.validatePoC(blocks);
+							}
+							else {
+								blocks.get(0).preVerify();
+							}
+						}
+						catch (OCLPoC.PreValidateFailException e) {
+							e.printStackTrace();
+							blacklistClean(e.getBlock(), e);
+						}
+						catch (BlockNotAcceptedException e) { // only thrown from cpu prevalidate
+							e.printStackTrace();
+							blacklistClean(blocks.get(0), e);
+						}
+					}
+					finally {
+						if(gpuAcquired) {
+							gpuUsage.release();
+						}
+					}
 				}
-                try {
-                    block.preVerify();
-                }
-                catch (BlockchainProcessor.BlockNotAcceptedException e) {
-                    blacklistClean(block, e);
-                }
+				else {
+					BlockImpl block;
+					synchronized (BlockchainProcessorImpl.blockCache) {
+						if (BlockchainProcessorImpl.unverified.size() == 0)
+							return;
+
+						Long blockId = BlockchainProcessorImpl.unverified.get(0);
+						BlockchainProcessorImpl.unverified.remove(blockId);
+
+						block = (BlockImpl) BlockchainProcessorImpl.blockCache.get(blockId);
+					}
+					try {
+						block.preVerify();
+					} catch (BlockchainProcessor.BlockNotAcceptedException e) {
+						blacklistClean(block, e);
+					}
+				}
 			}
 		}
 	};

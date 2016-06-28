@@ -110,6 +110,19 @@ public final class Nxt {
         return false;
     }
 
+    public static Boolean getBooleanProperty(String name, boolean assume) {
+        String value = properties.getProperty(name);
+        if (Boolean.TRUE.toString().equals(value)) {
+            Logger.logMessage(name + " = \"true\"");
+            return true;
+        } else if (Boolean.FALSE.toString().equals(value)) {
+            Logger.logMessage(name + " = \"false\"");
+            return false;
+        }
+        Logger.logMessage(name + " not defined, assuming " + assume);
+        return assume;
+    }
+
     public static Blockchain getBlockchain() {
         return BlockchainImpl.getInstance();
     }
@@ -164,6 +177,9 @@ public final class Nxt {
         Peers.shutdown();
         ThreadPool.shutdown();
         Db.shutdown();
+        if(BlockchainProcessorImpl.oclVerify) {
+            OCLPoC.destroy();
+        }
         Logger.logShutdownMessage("Burst server " + VERSION + " stopped.");
         Logger.shutdown();
     }
@@ -209,6 +225,15 @@ public final class Nxt {
                 }
                 if(Nxt.getBooleanProperty("burst.mockMining")) {
                     setGenerator(new GeneratorImpl.MockGeneratorImpl());
+                }
+                if(BlockchainProcessorImpl.oclVerify) {
+                    try {
+                        OCLPoC.init();
+                    }
+                    catch(OCLPoC.OCLCheckerException e) {
+                        Logger.logErrorMessage("Error initializing OpenCL, disabling ocl verify: " + e.getMessage());
+                        BlockchainProcessorImpl.oclVerify = false;
+                    }
                 }
             } catch (Exception e) {
                 Logger.logErrorMessage(e.getMessage(), e);
