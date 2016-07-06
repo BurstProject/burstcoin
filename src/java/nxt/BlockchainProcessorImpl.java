@@ -42,13 +42,21 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Semaphore;
 
 final class BlockchainProcessorImpl implements BlockchainProcessor {
+	public static final int BLOCKCACHEMB = Nxt.getIntProperty("burst.blockCacheMB") == 0 ? 40 : Nxt.getIntProperty("blockCacheMB");
+	public static boolean oclVerify = Nxt.getBooleanProperty("burst.oclVerify");
+	public static final int oclThreshold = Nxt.getIntProperty("burst.oclThreshold") == 0 ? 50 : Nxt.getIntProperty("burst.oclThreshold");
+	public static final int oclWaitThreshold = Nxt.getIntProperty("burst.oclWaitThreshold") == 0 ? 2000 : Nxt.getIntProperty("burst.oclWaitThreshold");
+	private static final Semaphore gpuUsage = new Semaphore(2);
+
 	private static final BlockchainProcessorImpl instance = new BlockchainProcessorImpl();
 
 	static BlockchainProcessorImpl getInstance() {
@@ -66,12 +74,182 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 	private volatile int lastBlockchainFeederHeight;
 	private volatile boolean getMoreBlocks = true;
 
+	// blockCache for faster sync
+	public static final Map<Long, Block> blockCache = new HashMap<Long, Block>();
+	public static final Map<Long, Long> reverseCache = new HashMap<Long, Long>();
+	public static final List<Long> unverified = new LinkedList<Long>();
+	private static int blockCacheSize = 0;
+
 	private volatile boolean isScanning;
 	private volatile boolean forceScan = Nxt.getBooleanProperty("nxt.forceScan");
 	private volatile boolean validateAtScan = Nxt.getBooleanProperty("nxt.forceValidate");
 
-	private final Runnable getMoreBlocksThread = new Runnable() {
+	// Last downloaded block:
+	private Long lastDownloaded = 0L;
 
+	private final Runnable debugInfoThread = new Runnable() {
+		@Override
+		public void run() {
+                        Logger.logMessage("Unverified blocks: " + String.valueOf(unverified.size()));
+                        Logger.logMessage("Blocks in cache: " + String.valueOf(blockCache.size()));
+                        Logger.logMessage("Bytes in cache: " + String.valueOf(blockCacheSize));
+		}
+	};
+
+	private final Runnable pocVerificationThread = new Runnable() {
+		@Override
+		public void run() {
+			for(;;) {
+				if(oclVerify) {
+					boolean gpuAcquired = false;
+					try {
+						List<BlockImpl> blocks = new LinkedList<>();
+						synchronized (blockCache) {
+							if (unverified.size() == 0) {
+								return;
+							}
+
+							int verifiedCached = blockCache.size() - unverified.size();
+							if(verifiedCached >= oclWaitThreshold && unverified.size() < OCLPoC.getMaxItems() / 2) {
+								return;
+							}
+
+							if (unverified.size() < oclThreshold) {
+								Long blockId = BlockchainProcessorImpl.unverified.get(0);
+								BlockchainProcessorImpl.unverified.remove(blockId);
+
+								blocks.add((BlockImpl) BlockchainProcessorImpl.blockCache.get(blockId));
+							} else {
+								if (!gpuUsage.tryAcquire()) {
+									System.out.println("already max locked");
+									return;
+								}
+								gpuAcquired = true;
+
+								while (unverified.size() > 0 && blocks.size() < OCLPoC.getMaxItems()) {
+									Long blockId = BlockchainProcessorImpl.unverified.get(0);
+									BlockchainProcessorImpl.unverified.remove(blockId);
+
+									blocks.add((BlockImpl) BlockchainProcessorImpl.blockCache.get(blockId));
+								}
+							}
+						}
+						try {
+							if(blocks.size() > 1) {
+								OCLPoC.validatePoC(blocks);
+							}
+							else {
+								blocks.get(0).preVerify();
+							}
+						}
+						catch (OCLPoC.PreValidateFailException e) {
+							e.printStackTrace();
+							blacklistClean(e.getBlock(), e);
+						}
+						catch (BlockNotAcceptedException e) { // only thrown from cpu prevalidate
+							e.printStackTrace();
+							blacklistClean(blocks.get(0), e);
+						}
+					}
+					finally {
+						if(gpuAcquired) {
+							gpuUsage.release();
+						}
+					}
+				}
+				else {
+					BlockImpl block;
+					synchronized (BlockchainProcessorImpl.blockCache) {
+						if (BlockchainProcessorImpl.unverified.size() == 0)
+							return;
+
+						Long blockId = BlockchainProcessorImpl.unverified.get(0);
+						BlockchainProcessorImpl.unverified.remove(blockId);
+
+						block = (BlockImpl) BlockchainProcessorImpl.blockCache.get(blockId);
+					}
+					try {
+						block.preVerify();
+					} catch (BlockchainProcessor.BlockNotAcceptedException e) {
+						blacklistClean(block, e);
+					}
+				}
+			}
+		}
+	};
+
+	private final Runnable blockImporterThread = new Runnable() {
+		@Override
+		public void run() {
+			synchronized (blockchain) {
+				for(;;) {
+					Long lastId = blockchain.getLastBlock().getId();
+				
+					Long currentBlockId;
+					BlockImpl currentBlock;
+					synchronized(BlockchainProcessorImpl.blockCache) {
+						if(!BlockchainProcessorImpl.reverseCache.containsKey(lastId))
+							return;
+
+						currentBlockId = BlockchainProcessorImpl.reverseCache.get(lastId);
+						currentBlock = (BlockImpl)BlockchainProcessorImpl.blockCache.get(currentBlockId);
+					}
+					try {
+						if(!currentBlock.isVerified()) {
+							currentBlock.preVerify();
+							return;
+						}
+						pushBlock(currentBlock);
+					} catch (BlockNotAcceptedException e) {
+						Logger.logMessage("Block not accepted");
+						/*currentBlock.getPeer().blacklist(e);
+						synchronized(BlockchainProcessorImpl.blockCache) {
+							long removeId = lastId;
+							while(reverseCache.containsKey(removeId)) {
+								long id = reverseCache.get(removeId);
+								reverseCache.remove(removeId);
+								blockCacheSize -= ((BlockImpl)blockCache.get(id)).getByteLength();
+								blockCache.remove(id);
+								removeId = id;
+							}
+						}*/
+                        blacklistClean(currentBlock, e);
+						return;
+					}
+					// Clean up cache
+					synchronized(BlockchainProcessorImpl.blockCache) {
+						BlockchainProcessorImpl.reverseCache.remove(lastId);
+						
+						BlockchainProcessorImpl.blockCache.remove(currentBlockId);
+						blockCacheSize -= currentBlock.getByteLength();
+						
+						/*if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
+						} else if (!BlockDb.hasBlock(block.getId())) {
+							forkBlocks.add(block);
+						}*/
+					}
+				}
+			}
+		}
+	};
+
+    private void blacklistClean(BlockImpl block, Exception e) {
+        block.getPeer().blacklist(e);
+        long removeId = block.getId();
+        synchronized (BlockchainProcessorImpl.blockCache) {
+            reverseCache.remove(block.getPreviousBlockId());
+            blockCache.remove(block.getId());
+            while(reverseCache.containsKey(removeId)) {
+                long id = reverseCache.get(removeId);
+                reverseCache.remove(removeId);
+                blockCacheSize -= ((BlockImpl)blockCache.get(id)).getByteLength();
+                blockCache.remove(id);
+                removeId = id;
+            }
+        }
+    }
+
+	private final Runnable getMoreBlocksThread = new Runnable() {
 		private final JSONStreamAware getCumulativeDifficultyRequest;
 
 		{
@@ -84,12 +262,15 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 		@Override
 		public void run() {
-
 			try {
 				try {
 					if (!getMoreBlocks) {
 						return;
 					}
+
+					if(blockCacheSize > BLOCKCACHEMB * 1024 * 1024)
+						return;
+
 					peerHasMore = true;
 					Peer peer = Peers.getAnyPeer(Peer.State.CONNECTED, true);
 					if (peer == null) {
@@ -135,66 +316,100 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 						return;
 					}
 
-					long currentBlockId = commonBlockId;
+					long currentBlockId = (lastDownloaded == 0 ? commonBlockId : lastDownloaded);
 					List<BlockImpl> forkBlocks = new ArrayList<>();
 
 					boolean processedAll = true;
 					int requestCount = 0;
 					outer:
-						while (forkBlocks.size() < 1440 && requestCount++ < 10) {
+						while (forkBlocks.size() < 1440 && requestCount++ < 10 && ((blockCacheSize < BLOCKCACHEMB * 1024 * 1024) || forkBlocks.size() > 0)) { // fork decision could be wrong if cut off so ignore cache size for forks
+							//Logger.logMessage("Downloading " + String.valueOf(currentBlockId));
 							JSONArray nextBlocks = getNextBlocks(peer, currentBlockId);
 							if (nextBlocks == null || nextBlocks.size() == 0) {
 								break;
 							}
-
-							synchronized (blockchain) {
-
-								for (Object o : nextBlocks) {
-									JSONObject blockData = (JSONObject) o;
+							// Insert Blocks to blockCache
+							synchronized(BlockchainProcessorImpl.blockCache) {
+								for(Object o : nextBlocks) {
 									BlockImpl block;
+                                                                        JSONObject blockData = (JSONObject) o;
+									
 									try {
-										block = BlockImpl.parseBlock(blockData);
-									} catch (NxtException.NotCurrentlyValidException e) {
-										Logger.logDebugMessage("Cannot validate block: " + e.toString()
-												+ ", will try again later", e);
-														processedAll = false;
-														break outer;
-									} catch (RuntimeException | NxtException.ValidationException e) {
-										Logger.logDebugMessage("Failed to parse block: " + e.toString(), e);
-										peer.blacklist(e);
-										return;
-									}
-									currentBlockId = block.getId();
-
-									if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
-										try {
-											pushBlock(block);
-										} catch (BlockNotAcceptedException e) {
-											peer.blacklist(e);
+                                                                                block = BlockImpl.parseBlock(blockData);
+										if(block.getPreviousBlockId() != currentBlockId) { // ensure peer isn't cluttering cache with unrequested stuff
+											Logger.logMessage("Peer sent unrequested block. Blacklisting...");
+											peer.blacklist();
 											return;
 										}
-									} else if (!BlockDb.hasBlock(block.getId())) {
-										forkBlocks.add(block);
+										lastDownloaded = currentBlockId = block.getId();
+
+										if(blockCache.containsKey(block.getId()) || BlockDb.hasBlock(block.getId())) {
+											continue;
+										}
+
+										block.setPeer(peer);
+										int blockSize = blockData.toString().length();
+										blockCacheSize += blockSize;
+										block.setByteLength(blockSize);
+		
+										Long prevId = Convert.parseUnsignedLong((String) blockData.get("previousBlock"));
+										// Try to find previous Block:
+										if(BlockchainProcessorImpl.blockCache.containsKey(prevId)) {
+											block.setHeight(BlockchainProcessorImpl.blockCache.get(prevId).getHeight() + 1);
+										} else {
+											// First in cache? Get from blockchain:
+											BlockImpl prevBlock = (BlockImpl)Nxt.getBlockchain().getBlock(prevId);
+											if(prevBlock == null) {
+												// We may be on a fork: Add all other Blocks to forkQueue:
+												if(forkBlocks.size() > 0) {
+													forkBlocks.add(block);
+												} else {
+													Logger.logMessage("Previous Block with ID " + String.valueOf(prevId) + " not found. Blacklisting ...");
+													peer.blacklist();
+													return;
+												}
+											}
+											Long altBlockId = null;
+											if(forkBlocks.size() == 0) {
+												try {
+													altBlockId = BlockDb.findBlockIdAtHeight(prevBlock.getHeight() + 1);
+												} catch (Exception e) {}
+												if(altBlockId != null && altBlockId.longValue() != block.getId()) {
+													// fork
+													forkBlocks.add(block);
+												}
+												block.setHeight(prevBlock.getHeight() + 1);
+											}
+										}
+										//Logger.logMessage("Block Height " + String.valueOf(block.getHeight()) + " ID " + String.valueOf(block.getId()));
+
+										if(forkBlocks.size() == 0) { // keep old cache separate from fork. blindly adding to reverseCache could cause it to end up in an uncleanable state
+											// Add to Blockcache
+											BlockchainProcessorImpl.blockCache.put(lastDownloaded, block);
+
+											// Add to reverse cache
+											BlockchainProcessorImpl.reverseCache.put(prevId, currentBlockId);
+
+											// Mark for threaded poc verification
+											BlockchainProcessorImpl.unverified.add(lastDownloaded);
+										}
+
+                                                                        } catch (RuntimeException | NxtException.ValidationException e) {
+                                                                                Logger.logMessage("Failed to parse block: " + e.toString(), e);
+                                                                                peer.blacklist(e);
+                                                                                return;
+									} catch (Exception e) {	
 									}
-
 								}
-
-							} //synchronized
-
+							}
 						}
-
-					if (forkBlocks.size() > 0) {
-						processedAll = false;
+					if(forkBlocks.size() > 0 && blockchain.getHeight() - commonBlock.getHeight() < 720) {
+						processFork(forkBlocks.get(0).getPeer(), forkBlocks, commonBlock);
 					}
-
-					if (!processedAll && blockchain.getHeight() - commonBlock.getHeight() < 720) {
-						processFork(peer, forkBlocks, commonBlock);
-					}
-
 				} catch (NxtException.StopException e) {
 					Logger.logMessage("Blockchain download stopped: " + e.getMessage());
 				} catch (Exception e) {
-					Logger.logDebugMessage("Error in blockchain download thread", e);
+					Logger.logMessage("Error in blockchain download thread", e);
 				}
 			} catch (Throwable t) {
 				Logger.logMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
@@ -356,6 +571,14 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 					}
 				}
 			} // synchronized
+
+			synchronized (blockCache) { // cache may no longer correspond with current chain, so dump it
+				blockCache.clear();
+				reverseCache.clear();
+				unverified.clear();
+				lastDownloaded = blockchain.getLastBlock().getId();
+				blockCacheSize = 0;
+			}
 		}
 
 	};
@@ -375,7 +598,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 			@Override
 			public void notify(Block block) {
 				if (block.getHeight() % 5000 == 0) {
-					Logger.logMessage("received block " + block.getHeight());
+					Logger.logMessage("processed block " + block.getHeight());
 					Db.analyzeTables();
 				}
 			}
@@ -414,8 +637,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 			}
 		}, false);
 
-		ThreadPool.scheduleThread("GetMoreBlocks", getMoreBlocksThread, 1);
-
+		ThreadPool.scheduleThread("GetMoreBlocks", getMoreBlocksThread, 2);
+		ThreadPool.scheduleThread("ImportBlocks", blockImporterThread, 10);
+		ThreadPool.scheduleThreadCores("VerifyPoc", pocVerificationThread, 9);
+		//ThreadPool.scheduleThread("Info", debugInfoThread, 5);
 	}
 
 	@Override
@@ -596,10 +821,13 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 						throw new TransactionNotAcceptedException("Invalid transaction version " + transaction.getVersion()
 								+ " at height " + previousLastBlock.getHeight(), transaction);
 					}
-					if (!transaction.verifySignature()) {
+					/*if (!transaction.verifySignature()) { // moved to preVerify
 						throw new TransactionNotAcceptedException("Signature verification failed for transaction "
 								+ transaction.getStringId() + " at height " + previousLastBlock.getHeight(), transaction);
-					}
+					}*/
+                    if(!transaction.verifyPublicKey()) {
+                        throw new TransactionNotAcceptedException("Wrong public key in transaction " + transaction.getStringId() + " at height " + previousLastBlock.getHeight(), transaction);
+                    }
 					if (Nxt.getBlockchain().getHeight() >= Constants.AUTOMATED_TRANSACTION_BLOCK) {
 	                    if (!EconomicClustering.verifyFork(transaction)) {
 	                        Logger.logDebugMessage("Block " + block.getStringId() + " height " + (previousLastBlock.getHeight() + 1)
@@ -645,6 +873,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				transactionProcessor.requeueAllUnconfirmedTransactions();
 				addBlock(block);
 				accept(block, remainingAmount, remainingFee);
+
+				for (DerivedDbTable table : derivedTables) {
+					table.finish();
+				}
 
 				Db.commitTransaction();
 			} catch (Exception e) {
@@ -895,13 +1127,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 		byte[] payloadHash = digest.digest();
 
-		ByteBuffer gensigbuf = ByteBuffer.allocate(32 + 8);
-		gensigbuf.put(previousBlock.getGenerationSignature());
-		gensigbuf.putLong(previousBlock.getGeneratorId());
-
-		Shabal256 md = new Shabal256();
-		md.update(gensigbuf.array());
-		byte[] generationSignature = md.digest();
+		byte[] generationSignature = Nxt.getGenerator().calculateGenerationSignature(previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
 
 		BlockImpl block;
 		byte[] previousBlockHash = Crypto.sha256().digest(previousBlock.getBytes());
@@ -1017,9 +1243,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 									throw new NxtException.NotValidException("Block JSON cannot be parsed back to the same block");
 								}
 								for (TransactionImpl transaction : currentBlock.getTransactions()) {
-									if (!transaction.verifySignature()) {
+									/*if (!transaction.verifySignature()) { // moved to preVerify
 										throw new NxtException.NotValidException("Invalid transaction signature");
-									}
+									}*/
+                                    if(!transaction.verifyPublicKey()) {
+                                        throw new NxtException.NotValidException("Wrong transaction public key");
+                                    }
 									if (transaction.getVersion() != transactionProcessor.getTransactionVersion(blockchain.getHeight())) {
 										throw new NxtException.NotValidException("Invalid transaction version");
 									}

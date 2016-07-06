@@ -128,6 +128,15 @@ public final class AT extends AT_Machine_State {
 		pendingTransactions.add(atTransaction);
 	}
 
+	public static boolean findPendingTransaction(byte[] recipientId) {
+		for(AT_Transaction tx : pendingTransactions) {
+			if(Arrays.equals(recipientId, tx.getRecipientId())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static class ATState {
 
 		private final long atId;

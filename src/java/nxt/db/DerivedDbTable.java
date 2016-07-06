@@ -45,4 +45,8 @@ public abstract class DerivedDbTable {
         //nothing to trim
     }
 
+    public void finish() {
+
+    }
+
 }

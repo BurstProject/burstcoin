@@ -4,6 +4,7 @@ import nxt.crypto.Crypto;
 import nxt.util.Convert;
 import nxt.util.Logger;
 import nxt.util.MiningPlot;
+import nxt.peer.Peer;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -13,10 +14,11 @@ import fr.cryptohash.Shabal256;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -45,7 +47,12 @@ final class BlockImpl implements Block {
     private volatile long generatorId;
     private long nonce;
 
+    private BigInteger pocTime = null;
+
     private final byte[] blockATs;
+
+    private Peer downloadedFrom = null;
+    private int byteLength = 0;
 
     BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
               byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions, long nonce, byte[] blockATs)
@@ -95,6 +102,26 @@ final class BlockImpl implements Block {
         this.nextBlockId = nextBlockId;
         this.height = height;
         this.id = id;
+    }
+
+    public boolean isVerified() {
+	return pocTime != null;
+    }
+
+    public void setPeer(Peer peer) {
+	this.downloadedFrom = peer;
+    }
+
+    public Peer getPeer() {
+	return this.downloadedFrom;
+    }
+
+    public void setByteLength(int length) {
+	this.byteLength = length;
+    }
+
+    public int getByteLength() {
+	return this.byteLength;
     }
 
     @Override
@@ -185,10 +212,11 @@ final class BlockImpl implements Block {
 
     @Override
     public int getHeight() {
-        if (height == -1) {
-            throw new IllegalStateException("Block height not yet set");
-        }
         return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
     }
 
     @Override
@@ -231,14 +259,7 @@ final class BlockImpl implements Block {
     
     @Override
     public int getScoopNum() {
-    	ByteBuffer posbuf = ByteBuffer.allocate(32 + 8);
-		posbuf.put(generationSignature);
-		posbuf.putLong(getHeight());
-		Shabal256 md = new Shabal256();
-		md.update(posbuf.array());
-		BigInteger hashnum = new BigInteger(1, md.digest());
-		int scoopNum = hashnum.mod(BigInteger.valueOf(MiningPlot.SCOOPS_PER_PLOT)).intValue();
-		return scoopNum;
+		return Nxt.getGenerator().calculateScoop(generationSignature, getHeight());
     }
 
     @Override
@@ -390,57 +411,68 @@ final class BlockImpl implements Block {
 
     }
 
-    boolean verifyGenerationSignature() throws BlockchainProcessor.BlockOutOfOrderException {
+    boolean verifyGenerationSignature() throws BlockchainProcessor.BlockNotAcceptedException {
+	try {
+	    BlockImpl previousBlock = (BlockImpl)Nxt.getBlockchain().getBlock(this.previousBlockId);
 
-    	try {
+	    if (previousBlock == null) {
+		throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify generation signature because previous block is missing");
+	    }
 
-            BlockImpl previousBlock = (BlockImpl)Nxt.getBlockchain().getBlock(this.previousBlockId);
-            if (previousBlock == null) {
-                throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify generation signature because previous block is missing");
+	    // In case the verifier-Threads are not done with this yet - do it yourself.
+	    synchronized(this) {
+		    if(this.pocTime == null)
+			preVerify();
+	    }
+
+	    byte[] correctGenerationSignature = Nxt.getGenerator().calculateGenerationSignature(previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
+	    if(!Arrays.equals(generationSignature, correctGenerationSignature)) {
+		return false;
+	    }
+	    int elapsedTime = timestamp - previousBlock.timestamp;
+	    BigInteger pTime = this.pocTime.divide(BigInteger.valueOf(previousBlock.getBaseTarget()));
+	    return BigInteger.valueOf(elapsedTime).compareTo(pTime) > 0;
+	} catch (RuntimeException e) {
+	    Logger.logMessage("Error verifying block generation signature", e);
+	    return false;
+	}
+    }
+
+    public void preVerify() throws BlockchainProcessor.BlockNotAcceptedException {
+        preVerify(null);
+    }
+
+    public void preVerify(byte[] scoopData) throws BlockchainProcessor.BlockNotAcceptedException {
+	synchronized(this) {
+		// Remove from todo-list:
+		synchronized(BlockchainProcessorImpl.blockCache) {
+			BlockchainProcessorImpl.unverified.remove(this.getId());
+		}
+
+		// Just in case its already verified
+		if(this.pocTime != null)
+			return;
+
+		try {
+		    // Pre-verify poc:
+            if(scoopData == null) {
+                this.pocTime = Nxt.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, getScoopNum());
             }
-
-            //Account account = Account.getAccount(getGeneratorId());
-
-            ByteBuffer gensigbuf = ByteBuffer.allocate(32 + 8);
-            gensigbuf.put(previousBlock.getGenerationSignature());
-            gensigbuf.putLong(previousBlock.getGeneratorId());
-            
-            Shabal256 md = new Shabal256();
-            md.update(gensigbuf.array());
-            byte[] correctGenerationSignature = md.digest();
-            if(!Arrays.equals(generationSignature, correctGenerationSignature)) {
-            	return false;
+            else {
+                this.pocTime = Nxt.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, scoopData);
             }
-            
-            // verify poc also
-            MiningPlot plot = new MiningPlot(getGeneratorId(), nonce);
-            
-            ByteBuffer posbuf = ByteBuffer.allocate(32 + 8);
-    		posbuf.put(correctGenerationSignature);
-    		posbuf.putLong(previousBlock.getHeight() + 1);
-    		md.reset();
-    		md.update(posbuf.array());
-    		BigInteger hashnum = new BigInteger(1, md.digest());
-    		int scoopNum = hashnum.mod(BigInteger.valueOf(MiningPlot.SCOOPS_PER_PLOT)).intValue();
-    		
-    		md.reset();
-            md.update(correctGenerationSignature);
-            plot.hashScoop(md, scoopNum);
-            byte[] hash = md.digest();
-            BigInteger hit = new BigInteger(1, new byte[] {hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
-            BigInteger hitTime = hit.divide(BigInteger.valueOf(previousBlock.getBaseTarget()));
-            
-            int elapsedTime = timestamp - previousBlock.timestamp;
-            
-            return BigInteger.valueOf(elapsedTime).compareTo(hitTime) > 0;
+		} catch (RuntimeException e) {
+		    Logger.logMessage("Error pre-verifying block generation signature", e);
+		    return;
+		}
 
-        } catch (RuntimeException e) {
-
-            Logger.logMessage("Error verifying block generation signature", e);
-            return false;
-
+        for(TransactionImpl transaction : getTransactions()) {
+            if(!transaction.verifySignature()) {
+                Logger.logMessage("Bad transaction signature during block pre-verification for tx: " + Convert.toUnsignedLong(transaction.getId()) + " at block height: " + getHeight());
+                throw new BlockchainProcessor.TransactionNotAcceptedException("Invalid signature for tx: " + Convert.toUnsignedLong(transaction.getId()) + "at block height: " + getHeight(), transaction);
+            }
         }
-
+	}
     }
 
     void apply() {
@@ -499,6 +531,10 @@ final class BlockImpl implements Block {
         }
     }
 
+    private static LinkedList<Long> baseTargetCache = new LinkedList<>();
+    private static LinkedList<Integer> timestampCache = new LinkedList<>();
+    private static int lastBaseTargetHeight = -1;
+
     private void calculateBaseTarget(BlockImpl previousBlock) {
 
     	if (this.getId() == Genesis.GENESIS_BLOCK_ID && previousBlockId == 0) {
@@ -541,50 +577,95 @@ final class BlockImpl implements Block {
             cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
         }
         else {
-        	Block itBlock = previousBlock;
-        	BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
-        	int blockCounter = 1;
-        	do {
-        		itBlock = Nxt.getBlockchain().getBlock(itBlock.getPreviousBlockId());
-        		blockCounter++;
-        		avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter))
-        							.add(BigInteger.valueOf(itBlock.getBaseTarget())))
-        							.divide(BigInteger.valueOf(blockCounter + 1));
-        	} while(blockCounter < 24);
-        	long difTime = this.timestamp - itBlock.getTimestamp();
-        	long targetTimespan = 24 * 4 * 60;
-        	
-        	if(difTime < targetTimespan /2) {
-        		difTime = targetTimespan /2;
-        	}
-        	
-        	if(difTime > targetTimespan * 2) {
-        		difTime = targetTimespan * 2;
-        	}
-        	
-        	long curBaseTarget = previousBlock.getBaseTarget();
-            long newBaseTarget = avgBaseTarget
-                    .multiply(BigInteger.valueOf(difTime))
-                    .divide(BigInteger.valueOf(targetTimespan)).longValue();
-            
-            if (newBaseTarget < 0 || newBaseTarget > Constants.MAX_BASE_TARGET) {
-                newBaseTarget = Constants.MAX_BASE_TARGET;
+            synchronized (baseTargetCache) {
+                if(previousBlock.getHeight() != lastBaseTargetHeight) {
+                    while(baseTargetCache.size() != 0 && lastBaseTargetHeight > previousBlock.getHeight()) {
+                        baseTargetCache.removeFirst();
+                        timestampCache.removeFirst();
+                        lastBaseTargetHeight--;
+                    }
+                    if(lastBaseTargetHeight < previousBlock.getHeight()) {
+                        baseTargetCache.clear();
+                        timestampCache.clear();
+                        lastBaseTargetHeight = -1;
+                    }
+                }
+
+                BigInteger avgBaseTarget = BigInteger.valueOf(previousBlock.getBaseTarget());
+                int blockCounter = 1;
+                if(baseTargetCache.size() > 1) {
+                    Iterator<Long> itBaseTarget = baseTargetCache.iterator();
+                    itBaseTarget.next();
+                    do {
+                        long bt = itBaseTarget.next();
+                        blockCounter++;
+                        avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter))
+                                .add(BigInteger.valueOf(bt)))
+                                .divide(BigInteger.valueOf(blockCounter + 1));
+                    }while(blockCounter < 24 && itBaseTarget.hasNext());
+                }
+
+                while((blockCounter + 1) <= 24) {
+                    Block itBlock = itBlock = BlockDb.findBlockAtHeight(previousBlock.getHeight() - blockCounter);
+                    blockCounter++;
+                    avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter))
+                            .add(BigInteger.valueOf(itBlock.getBaseTarget())))
+                            .divide(BigInteger.valueOf(blockCounter + 1));
+                }
+
+                int endTimestamp = 0;
+                if(baseTargetCache.size() >= 24) {
+                    endTimestamp = timestampCache.get(23);
+                }
+                else {
+                    Block endBlock = BlockDb.findBlockAtHeight(previousBlock.getHeight() - 23);
+                    endTimestamp = endBlock.getTimestamp();
+                }
+
+                long difTime = this.timestamp - endTimestamp;
+                long targetTimespan = 24 * 4 * 60;
+
+                if(difTime < targetTimespan /2) {
+                    difTime = targetTimespan /2;
+                }
+
+                if(difTime > targetTimespan * 2) {
+                    difTime = targetTimespan * 2;
+                }
+
+                long curBaseTarget = previousBlock.getBaseTarget();
+                long newBaseTarget = avgBaseTarget
+                        .multiply(BigInteger.valueOf(difTime))
+                        .divide(BigInteger.valueOf(targetTimespan)).longValue();
+
+                if (newBaseTarget < 0 || newBaseTarget > Constants.MAX_BASE_TARGET) {
+                    newBaseTarget = Constants.MAX_BASE_TARGET;
+                }
+
+                if (newBaseTarget == 0) {
+                    newBaseTarget = 1;
+                }
+
+                if(newBaseTarget < curBaseTarget * 8 / 10) {
+                    newBaseTarget = curBaseTarget * 8 / 10;
+                }
+
+                if(newBaseTarget > curBaseTarget * 12 / 10) {
+                    newBaseTarget = curBaseTarget * 12 / 10;
+                }
+
+                baseTarget = newBaseTarget;
+                cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
+
+                baseTargetCache.addFirst(baseTarget);
+                timestampCache.addFirst(this.timestamp);
+                lastBaseTargetHeight = previousBlock.getHeight() + 1;
+
+                while(baseTargetCache.size() > 24) {
+                    baseTargetCache.removeLast();
+                    timestampCache.removeLast();
+                }
             }
-            
-            if (newBaseTarget == 0) {
-                newBaseTarget = 1;
-            }
-            
-            if(newBaseTarget < curBaseTarget * 8 / 10) {
-            	newBaseTarget = curBaseTarget * 8 / 10;
-            }
-            
-            if(newBaseTarget > curBaseTarget * 12 / 10) {
-            	newBaseTarget = curBaseTarget * 12 / 10;
-            }
-            
-            baseTarget = newBaseTarget;
-            cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
         }
     }
     
