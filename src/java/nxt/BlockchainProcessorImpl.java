@@ -320,6 +320,18 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 					if(commonBlock.getHeight() < blockchain.getLastBlock().getHeight()) { // fork point
 						currentBlockId = commonBlockId;
 					}
+					else {
+						synchronized (blockCache) {
+							long checkBlockId = currentBlockId;
+							while (checkBlockId != blockchain.getLastBlock().getId()) {
+								if (blockCache.get(checkBlockId) == null) {
+									currentBlockId = blockchain.getLastBlock().getId();
+									break;
+								}
+								checkBlockId = blockCache.get(checkBlockId).getPreviousBlockId();
+							}
+						}
+					}
 					
 					List<BlockImpl> forkBlocks = new ArrayList<>();
 
