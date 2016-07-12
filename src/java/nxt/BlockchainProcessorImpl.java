@@ -378,9 +378,14 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 												try {
 													altBlockId = BlockDb.findBlockIdAtHeight(prevBlock.getHeight() + 1);
 												} catch (Exception e) {}
-												if(altBlockId != null && altBlockId.longValue() != block.getId()) {
-													// fork
-													forkBlocks.add(block);
+												if(altBlockId != null) {
+													if(altBlockId.longValue() != block.getId()) {
+														// fork
+														forkBlocks.add(block);
+													}
+													else {
+														continue; // don't clutter cache with stuff we already have
+													}
 												}
 												block.setHeight(prevBlock.getHeight() + 1);
 											}
