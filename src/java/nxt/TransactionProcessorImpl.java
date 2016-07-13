@@ -387,17 +387,19 @@ final class TransactionProcessorImpl implements TransactionProcessor {
 
     void removeUnconfirmedTransaction(TransactionImpl transaction) {
         if (!Db.isInTransaction()) {
-            try {
-                Db.beginTransaction();
-                removeUnconfirmedTransaction(transaction);
-                Account.flushAccountTable();
-                Db.commitTransaction();
-            } catch (Exception e) {
-                Logger.logErrorMessage(e.toString(), e);
-                Db.rollbackTransaction();
-                throw e;
-            } finally {
-                Db.endTransaction();
+            synchronized (BlockchainImpl.getInstance()) {
+                try {
+                    Db.beginTransaction();
+                    removeUnconfirmedTransaction(transaction);
+                    Account.flushAccountTable();
+                    Db.commitTransaction();
+                } catch (Exception e) {
+                    Logger.logErrorMessage(e.toString(), e);
+                    Db.rollbackTransaction();
+                    throw e;
+                } finally {
+                    Db.endTransaction();
+                }
             }
             return;
         }
