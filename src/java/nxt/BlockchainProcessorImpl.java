@@ -378,6 +378,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 											if(prevBlock == null) {
 												// We may be on a fork: Add all other Blocks to forkQueue:
 												if(forkBlocks.size() > 0) {
+													block.setHeight(forkBlocks.get(forkBlocks.size() - 1).getHeight() + 1);
 													forkBlocks.add(block);
 												} else {
 													Logger.logMessage("Previous Block with ID " + String.valueOf(prevId) + " not found. Blacklisting ...");
