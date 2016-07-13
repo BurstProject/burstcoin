@@ -1222,6 +1222,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 			try (Connection con = Db.beginTransaction();
 					PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE height >= ? ORDER BY db_id ASC")) {
 				transactionProcessor.requeueAllUnconfirmedTransactions();
+				Account.flushAccountTable();
 				for (DerivedDbTable table : derivedTables) {
 					if (height == 0) {
 						table.truncate();
