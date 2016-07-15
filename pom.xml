@@ -5,8 +5,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>burstcoin</groupId>
-  <artifactId>burstcoin-server</artifactId>
-  <version>1.2.5-SNAPSHOT</version>
+  <artifactId>burstcoin</artifactId>
+  <version>1.2.5</version>
 
   <packaging>jar</packaging>
 
@@ -104,8 +104,6 @@
         <version>2.6</version>
 
         <configuration>
-          <outputDirectory>./</outputDirectory>
-          <finalName>burst</finalName>
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
@@ -123,6 +121,70 @@
             <goals>
               <goal>single</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>ant-clear</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <!-- clear dist dir -->
+                <delete dir="${project.basedir}/dist"/>
+                <mkdir dir="${project.basedir}/dist"/>
+                <mkdir dir="${project.basedir}/dist/tmp"/>
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>ant-zip</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <!-- copy jar -->
+                <move file="${project.basedir}/target/${project.build.finalName}-jar-with-dependencies.jar"
+                      tofile="${project.basedir}/dist/tmp/burst.jar" />
+
+                <!-- copy html dir -->
+                <copy todir="${project.basedir}/dist/tmp/html">
+                  <fileset dir="${project.basedir}/html">
+                  </fileset>
+                </copy>
+                <!-- copy properties from conf dir -->
+                <copy todir="${project.basedir}/dist/tmp/conf">
+                  <fileset dir="${project.basedir}/conf">
+                    <include name="logging-default.properties"/>
+                    <include name="nxt-default.properties"/>
+                  </fileset>
+                </copy>
+                <!-- copy remaining files from root dir -->
+                <copy todir="${project.basedir}/dist/tmp">
+                  <fileset dir="${project.basedir}">
+                    <include name="Burst_Wallet.url"/>
+                    <include name="genscoop.cl"/>
+                    <include name="MIT-license.txt"/>
+                    <include name="Readme.txt"/>
+                    <include name="run(legacy).bat"/>
+                    <include name="run.bat"/>
+                    <include name="run.sh"/>
+                  </fileset>
+                </copy>
+                <!-- create zip file -->
+                <zip destfile="${project.basedir}/dist/${project.build.finalName}.zip" basedir="${project.basedir}/dist/tmp"/>
+              </target>
+            </configuration>
           </execution>
         </executions>
       </plugin>
