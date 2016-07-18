@@ -1,14 +1,10 @@
 package nxt;
 
-import nxt.BlockchainProcessor.BlockNotAcceptedException;
-import nxt.NxtException.NotValidException;
 import nxt.at.AT_Block;
-import nxt.at.AT_Constants;
 import nxt.at.AT_Controller;
 import nxt.at.AT_Exception;
 import nxt.crypto.Crypto;
 import nxt.db.Db;
-import nxt.db.DbIterator;
 import nxt.db.DerivedDbTable;
 import nxt.db.FilteringIterator;
 import nxt.peer.Peer;
@@ -19,13 +15,10 @@ import nxt.util.Listener;
 import nxt.util.Listeners;
 import nxt.util.Logger;
 import nxt.util.ThreadPool;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
-
-import fr.cryptohash.Shabal256;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -36,13 +29,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -121,7 +113,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 								blocks.add((BlockImpl) BlockchainProcessorImpl.blockCache.get(blockId));
 							} else {
 								if (!gpuUsage.tryAcquire()) {
-									System.out.println("already max locked");
+								        Logger.logDebugMessage("already max locked");
 									return;
 								}
 								gpuAcquired = true;
