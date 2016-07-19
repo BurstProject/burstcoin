@@ -7,7 +7,7 @@ The world's first HDD-mined cryptocurrency using the new algorithm, Proof-of-Cap
 - Proof of Capacity - ASIC Proof / Energy efficient mining
 - Fast sync. with multithread CPU or OpenCL/GPU (optional)
 - "Turing complete" smart contracts, via Automated Transactions (AT) https://ciyam.org/at/at.html
-- Crowdfunding, Lottery and ACCT via AT
+- Decentralized Crowdfunding and Lottery via AT
 - Asset Exchange and Digital Goods Store
 - Advanced transactions: Escrow and Subscription
 - Encrypted Messaging
@@ -63,7 +63,7 @@ https://web.burst-team.us
 http://burstcoin.biz/
 
 ### Forum
-https://forum.burst-team.us
+https://forums.burst-team.us
 
 ### Bitcointalk
 https://bitcointalk.org/index.php?topic=1541310 *(New unmoderated)*
@@ -72,7 +72,9 @@ https://bitcointalk.org/index.php?topic=1323657 *(Alternative moderated)*
 
 https://bitcointalk.org/index.php?topic=731923 *(Original unmoderated)*
 
-### Related reposiories
+### Related repositories
+https://github.com/BurstProject *Original/Forked Burstcoin, ATDebugger, ATAssembler, POCMiner (Proof of concept plotter/miner), etc.*
+
 https://github.com/dawallet/ *Burstcoin Win Client, Android App*
 
 https://github.com/Blagodarenko/miner-burst  *Blago's Windows Miner*
