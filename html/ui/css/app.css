@@ -578,7 +578,7 @@ body > .header .logo .icon {
 }
 .user-panel {
   padding: 10px;
-  padding-top:25%;
+  padding-top:10%;
 }
 .user-panel:before,
 .user-panel:after {
