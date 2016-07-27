@@ -173,52 +173,49 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 	private final Runnable blockImporterThread = new Runnable() {
 		@Override
 		public void run() {
-			synchronized (blockchain) {
-				for(;;) {
-					Long lastId = blockchain.getLastBlock().getId();
-				
-					Long currentBlockId;
-					BlockImpl currentBlock;
-					synchronized(BlockchainProcessorImpl.blockCache) {
-						if(!BlockchainProcessorImpl.reverseCache.containsKey(lastId))
-							return;
+			while(true) {
+				synchronized (blockchain) {
+					for (; ; ) {
+						Long lastId = blockchain.getLastBlock().getId();
 
-						currentBlockId = BlockchainProcessorImpl.reverseCache.get(lastId);
-						currentBlock = (BlockImpl)BlockchainProcessorImpl.blockCache.get(currentBlockId);
-					}
-					try {
-						if(!currentBlock.isVerified()) {
-							currentBlock.preVerify();
+						Long currentBlockId;
+						BlockImpl currentBlock;
+						synchronized (BlockchainProcessorImpl.blockCache) {
+							if (!BlockchainProcessorImpl.reverseCache.containsKey(lastId))
+								break;
+
+							currentBlockId = BlockchainProcessorImpl.reverseCache.get(lastId);
+							currentBlock = (BlockImpl) BlockchainProcessorImpl.blockCache.get(currentBlockId);
+						}
+						try {
+							if (!currentBlock.isVerified()) {
+								currentBlock.preVerify();
+							}
+							pushBlock(currentBlock);
+						} catch (BlockNotAcceptedException e) {
+							Logger.logMessage("Block not accepted");
+							blacklistClean(currentBlock, e);
 							return;
 						}
-						pushBlock(currentBlock);
-					} catch (BlockNotAcceptedException e) {
-						Logger.logMessage("Block not accepted");
-						/*currentBlock.getPeer().blacklist(e);
-						synchronized(BlockchainProcessorImpl.blockCache) {
-							long removeId = lastId;
-							while(reverseCache.containsKey(removeId)) {
-								long id = reverseCache.get(removeId);
-								reverseCache.remove(removeId);
-								blockCacheSize -= ((BlockImpl)blockCache.get(id)).getByteLength();
-								blockCache.remove(id);
-								removeId = id;
-							}
-						}*/
-                        blacklistClean(currentBlock, e);
-						return;
-					}
-					// Clean up cache
-					synchronized(BlockchainProcessorImpl.blockCache) {
-						BlockchainProcessorImpl.reverseCache.remove(lastId);
-						
-						BlockchainProcessorImpl.blockCache.remove(currentBlockId);
-						blockCacheSize -= currentBlock.getByteLength();
+						// Clean up cache
+						synchronized (BlockchainProcessorImpl.blockCache) {
+							BlockchainProcessorImpl.reverseCache.remove(lastId);
+
+							BlockchainProcessorImpl.blockCache.remove(currentBlockId);
+							blockCacheSize -= currentBlock.getByteLength();
 						
 						/*if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
 						} else if (!BlockDb.hasBlock(block.getId())) {
 							forkBlocks.add(block);
 						}*/
+						}
+					}
+				}
+				synchronized(blockCache) {
+					while(!reverseCache.containsKey(blockchain.getLastBlock().getId())) {
+						try {
+							blockCache.wait(2000);
+						} catch (InterruptedException ignore) {}
 					}
 				}
 			}
@@ -238,6 +235,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 blockCache.remove(id);
                 removeId = id;
             }
+			blockCache.notify();
         }
     }
 
@@ -415,6 +413,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 									} catch (Exception e) {	
 									}
 								}
+								blockCache.notify();
 							}
 						}
 					if(forkBlocks.size() > 0 && blockchain.getHeight() - commonBlock.getHeight() < 720) {
@@ -592,6 +591,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				unverified.clear();
 				lastDownloaded = blockchain.getLastBlock().getId();
 				blockCacheSize = 0;
+				blockCache.notify();
 			}
 		}
 
@@ -695,7 +695,13 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 	@Override
 	public void processPeerBlock(JSONObject request) throws NxtException {
 		BlockImpl block = BlockImpl.parseBlock(request);
-		pushBlock(block);
+		synchronized (blockchain) {
+			Block prevBlock = blockchain.getLastBlock();
+			if(block.getPreviousBlockId() == prevBlock.getId()) {
+				block.setHeight(prevBlock.getHeight() + 1);
+				pushBlock(block);
+			}
+		}
 	}
 
 	@Override

@@ -300,7 +300,8 @@ public final class AT extends AT_Machine_State {
 	
 	public static Collection<Long> getAllATIds() 
 	{
-		try ( PreparedStatement pstmt = Db.getConnection().prepareStatement( "SELECT id FROM at WHERE latest = TRUE" ) )
+		try ( Connection con = Db.getConnection();
+				PreparedStatement pstmt = con.prepareStatement( "SELECT id FROM at WHERE latest = TRUE" ) )
 		{
 			ResultSet result = pstmt.executeQuery();
 			List<Long> ids = new ArrayList<>();

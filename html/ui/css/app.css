@@ -429,7 +429,7 @@ body > .header .logo {
   height: 50px;
   display: block;
   font-weight:bold;
-  padding-top: 20px;
+  padding-top: 0px;
 }
 body > .header .logo .icon {
   margin-right: 10px;
@@ -876,7 +876,7 @@ body > .header .logo .icon {
   font-size: 14px;
   padding: 0;
   margin: 0 0 10px 0;
-  color: #666666;
+  color: #ffffff;
 }
 .navbar-nav > .tasks-menu > .dropdown-menu > li .menu > li > a > .progress {
   padding: 0;
@@ -1867,7 +1867,7 @@ body > .header .logo .icon {
   position: relative;
   padding: 15px 5px;
   margin: 0 0 10px 10px;
-  min-width: 80px;
+  min-width: 120px;
   height: 60px;
   -webkit-box-shadow: none;
   -moz-box-shadow: none;
@@ -2345,7 +2345,7 @@ body > .header .logo .icon {
 .sidebar-form input[type="text"]:focus,
 .sidebar-form input[type="text"]:focus + .input-group-btn .btn {
   background-color: #575d63;
-  color: #666;
+  color: #fff;
 }
 .sidebar-form input[type="text"]:focus + .input-group-btn .btn {
   border-left-color: #575d63;

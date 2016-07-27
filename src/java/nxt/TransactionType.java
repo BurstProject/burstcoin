@@ -1757,7 +1757,7 @@ public abstract class TransactionType {
     			Account sender = Account.getAccount(transaction.getSenderId());
     			Account.RewardRecipientAssignment rewardAssignment = sender.getRewardRecipientAssignment();
     			if(rewardAssignment != null && rewardAssignment.getFromHeight() >= height) {
-    				throw new NxtException.NotValidException("Cannot reassign reward recipient before previous goes into effect: " + transaction.getJSONObject());
+    				throw new NxtException.NotCurrentlyValidException("Cannot reassign reward recipient before previous goes into effect: " + transaction.getJSONObject());
     			}
     			Account recip = Account.getAccount(transaction.getRecipientId());
     			if(recip == null || recip.getPublicKey() == null) {
