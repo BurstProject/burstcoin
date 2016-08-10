@@ -355,7 +355,6 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 										block.setPeer(peer);
 										int blockSize = blockData.toString().length();
-										blockCacheSize += blockSize;
 										block.setByteLength(blockSize);
 		
 										Long prevId = Convert.parseUnsignedLong((String) blockData.get("previousBlock"));
@@ -404,6 +403,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 											// Mark for threaded poc verification
 											BlockchainProcessorImpl.unverified.add(lastDownloaded);
+
+                                            blockCacheSize += blockSize;
 										}
 
                                                                         } catch (RuntimeException | NxtException.ValidationException e) {
