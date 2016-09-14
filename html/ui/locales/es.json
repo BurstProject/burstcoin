@@ -66,7 +66,7 @@
     "error_invalid_balance_leasing_no_public_key": "Leasing de saldo efectivo no válido: La cuenta de destino no se encuentra, o no tiene clave pública.",
     "error_invalid_balance_leasing": "Leasing de saldo efectivo no válido.",
     "error_wrong_buyer_for_alias": "Comprador de alias equivocado.",
-    "status_new_account": "Bienvenido a su nueva cuenta BURST. Su ID de cuenta es <strong>__account_id__<\/strong> - Al depositar dinero en su cuenta por primera vez, necesitará declarar su clave pública, que es __public_key__",
+    "status_new_account": "Bienvenido a su nueva cuenta BURST. Su ID de cuenta es <strong>__account_id__<\/strong>",
     "error_public_key_already_announced": "La clave pública de esta cuenta ya ha sido declarada.",
     "error_public_key_announcement_no_recipient": "No se puede adjuntar una declaración de clave pública a transacciones sin destinatario.",
     "error_public_key_different_account_id": "La clave pública anunciada no coincide con la ID de cuenta del destinatario.",

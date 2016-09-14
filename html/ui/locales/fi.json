@@ -66,7 +66,7 @@
     "error_invalid_balance_leasing_no_public_key": "Virheellinen efektiivisen saldon vuokraus: Vastaanottajan tiliä ei löydy tai sillä ei ole julkista avainta.",
     "error_invalid_balance_leasing": "Virheellinen efektiivisen saldon vuokraus.",
     "error_wrong_buyer_for_alias": "Väärä ostaja aliakselle.",
-    "status_new_account": "Tervetuloa uuteen BURST-tiliisi. Tilinumerosi on <strong>__account_id__<\/strong> - Kun rahoitat tiliäsi ensimmäisen kerran, sinun täytyy ilmoittaa julkinen avaimesi, joka on __public_key__",
+    "status_new_account": "Tervetuloa uuteen BURST-tiliisi. Tilinumerosi on <strong>__account_id__<\/strong>",
     "error_public_key_already_announced": "Tämän tilin julkinen avain on jo ilmoitettu.",
     "error_public_key_announcement_no_recipient": "Julkisen avaimen ilmoitusta ei voi liittää tapahtumaan jolla ei ole vastaanottajaa.",
     "error_public_key_different_account_id": "Ilmoitettu julkinen avain ei täsmää vastaanottajan tilinumeroon.",
