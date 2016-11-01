@@ -431,7 +431,7 @@ public abstract class TransactionType {
             void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
                 Attachment.MessagingAliasAssignment attachment = (Attachment.MessagingAliasAssignment) transaction.getAttachment();
                 if (attachment.getAliasName().length() == 0
-                        || attachment.getAliasName().length() > Constants.MAX_ALIAS_LENGTH
+                        || Convert.toBytes(attachment.getAliasName()).length > Constants.MAX_ALIAS_LENGTH
                         || attachment.getAliasURI().length() > Constants.MAX_ALIAS_URI_LENGTH) {
                     throw new NxtException.NotValidException("Invalid alias assignment: " + attachment.getJSONObject());
                 }
