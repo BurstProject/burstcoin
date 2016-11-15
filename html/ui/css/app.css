@@ -1772,7 +1772,7 @@ body > .header .logo .icon {
 .btn.btn-default.btn-flat {
   border-bottom-color: #d9dadc;
 }
-.btn.btn-primary {
+/*.btn.btn-primary {
   background-color: rgba(215, 215, 215, 1);
   border-color: rgba(215, 215, 215, 1);
 }
@@ -1781,6 +1781,8 @@ body > .header .logo .icon {
 .btn.btn-primary.hover {
   background-color: #b3b3b3;
 }
+
+*/
 .btn.btn-success {
   background-color: #00a65a;
   border-color: #008d4c;
