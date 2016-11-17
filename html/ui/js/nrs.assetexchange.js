@@ -703,7 +703,7 @@ var NRS = (function(NRS, $, undefined) {
 	// if this is clicked we can assume there is asset selected
 	// might need to implement some safety check just in case.
 	// LithStud 2016.11.17
-	$("#ae_show_my_trades_only").on("click", function() {
+	$("#ae_show_my_trades_only").on("change", function() {
 		$("#asset_exchange_sidebar a.active").trigger("click");
 	});
 
