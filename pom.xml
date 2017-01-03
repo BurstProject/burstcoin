@@ -15,7 +15,7 @@
     <java.version>1.7</java.version>
     <jocl.version>0.1.9</jocl.version>
     <bcprov-jdk15on.version>1.51</bcprov-jdk15on.version>
-    <h2.version>1.4.191</h2.version>
+    <h2.version>1.4.193</h2.version>
     <jetty.version>9.2.15.v20160210</jetty.version>
     <json-simple.version>1.1.1</json-simple.version>
     <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
