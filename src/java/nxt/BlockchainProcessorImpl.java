@@ -199,10 +199,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 						}
 						// Clean up cache
 						synchronized (BlockchainProcessorImpl.blockCache) {
-							BlockchainProcessorImpl.reverseCache.remove(lastId);
+							if(blockCache.containsKey(currentBlockId)) { // make sure it wasn't already removed(ex failed preValidate) to avoid double subtracting from blockCacheSize
+								BlockchainProcessorImpl.reverseCache.remove(lastId);
 
-							BlockchainProcessorImpl.blockCache.remove(currentBlockId);
-							blockCacheSize -= currentBlock.getByteLength();
+								BlockchainProcessorImpl.blockCache.remove(currentBlockId);
+								blockCacheSize -= currentBlock.getByteLength();
+							}
 						
 						/*if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
 						} else if (!BlockDb.hasBlock(block.getId())) {
@@ -228,6 +230,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         synchronized (BlockchainProcessorImpl.blockCache) {
             reverseCache.remove(block.getPreviousBlockId());
             blockCache.remove(block.getId());
+			blockCacheSize -= block.getByteLength();
             while(reverseCache.containsKey(removeId)) {
                 long id = reverseCache.get(removeId);
                 reverseCache.remove(removeId);
