@@ -228,9 +228,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         block.getPeer().blacklist(e);
         long removeId = block.getId();
         synchronized (BlockchainProcessorImpl.blockCache) {
-            reverseCache.remove(block.getPreviousBlockId());
+			if(blockCache.containsKey(block.getId())) {
+				blockCacheSize -= block.getByteLength();
+				reverseCache.remove(block.getPreviousBlockId());
+			}
             blockCache.remove(block.getId());
-			blockCacheSize -= block.getByteLength();
             while(reverseCache.containsKey(removeId)) {
                 long id = reverseCache.get(removeId);
                 reverseCache.remove(removeId);
@@ -238,7 +240,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 blockCache.remove(id);
                 removeId = id;
             }
-			lastDownloaded = block.getPreviousBlockId();
+			Block lastBlock = blockchain.getLastBlock();
+			lastDownloaded = lastBlock.getHeight() >= block.getHeight() ? lastBlock.getId() : block.getPreviousBlockId();
 			blockCache.notify();
         }
     }
@@ -383,8 +386,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 													block.setHeight(forkBlocks.get(forkBlocks.size() - 1).getHeight() + 1);
 													forkBlocks.add(block);
 												} else {
-													Logger.logMessage("Previous Block with ID " + String.valueOf(prevId) + " not found. Blacklisting ...");
-													peer.blacklist();
+													// Logger.logMessage("Previous Block with ID " + String.valueOf(prevId) + " not found. Blacklisting ...");
+													// peer.blacklist();
+
+													// We've already verified that we asked for a block with that prevBlock,
+													// so not the peer's fault if we changed what we wanted before we receive the data.
 													return;
 												}
 											}
@@ -1219,6 +1225,14 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 			blockListeners.notify(block, Event.BLOCK_GENERATED);
 			Logger.logDebugMessage("Account " + Convert.toUnsignedLong(block.getGeneratorId()) + " generated block " + block.getStringId()
 					+ " at height " + block.getHeight());
+
+			synchronized (blockCache) {
+				blockCache.clear();
+				reverseCache.clear();
+				unverified.clear();
+				lastDownloaded = blockchain.getLastBlock().getId();
+				blockCacheSize = 0;
+			}
 		} catch (TransactionNotAcceptedException e) {
 			Logger.logDebugMessage("Generate block failed: " + e.getMessage());
 			Transaction transaction = e.getTransaction();
