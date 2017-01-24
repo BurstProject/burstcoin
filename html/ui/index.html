@@ -855,7 +855,10 @@
                         <h1 data-i18n="contacts">Contacts</h1>
                         <div style="position:absolute;top:9px;right:9px;">
                             <button id="add_contact_button" type="button" class="btn btn-default" data-toggle="modal" data-target="#add_contact_modal" data-i18n="add_contact">Add Contact</button>
-                        </div>
+                             <button id="export_contacts_button" type="button" class="btn btn-default" data-i18n="export_contact">Export Contacts</button>
+                             <input type="file" id="import_contacts_button_field" />
+                            <button id="import_contacts_button" type="button" class="btn btn-default" data-i18n="import_contact">Import Contacts</button>
+			</div>
                     </section>
                     <section class="content">
                         <div id="contact_page_database_error" style="display:none" data-i18n="contacts_no_db">Your browser does not support database access, without which contacts cannot be created.</div>
