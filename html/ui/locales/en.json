@@ -3,6 +3,7 @@
     "recipient": "Recipient",
     "export_contact": "Export Contacts",
     "import_contact": "Import Contacts",
+    "you_received_message": "You received a <a href='#' data-goto-messages-account='__account__'>message</a> from __name__.",
     "error_no_contacts_available": "There are no contacts available",
     "subtype": "Subtype",
     "error_description": "Error Description",
