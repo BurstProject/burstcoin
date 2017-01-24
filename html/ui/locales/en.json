@@ -1,6 +1,9 @@
 {
     "deadline": "Deadline",
     "recipient": "Recipient",
+    "export_contact": "Export Contacts",
+    "import_contact": "Import Contacts",
+    "error_no_contacts_available": "There are no contacts available",
     "subtype": "Subtype",
     "error_description": "Error Description",
     "alias_sale_info_outdated": "This alias sale info is outdated.",
