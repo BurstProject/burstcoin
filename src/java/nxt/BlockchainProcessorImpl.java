@@ -138,7 +138,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 							e.printStackTrace();
 							blacklistClean(e.getBlock(), e);
 						}
-						catch (BlockNotAcceptedException e) { // only thrown from cpu prevalidate
+						catch (BlockNotAcceptedException e) {
 							e.printStackTrace();
 							blacklistClean(blocks.get(0), e);
 						}
@@ -193,16 +193,18 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 							}
 							pushBlock(currentBlock);
 						} catch (BlockNotAcceptedException e) {
-							Logger.logMessage("Block not accepted");
+							Logger.logMessage("Block not accepted", e);
 							blacklistClean(currentBlock, e);
 							return;
 						}
 						// Clean up cache
 						synchronized (BlockchainProcessorImpl.blockCache) {
-							BlockchainProcessorImpl.reverseCache.remove(lastId);
+							if(blockCache.containsKey(currentBlockId)) { // make sure it wasn't already removed(ex failed preValidate) to avoid double subtracting from blockCacheSize
+								BlockchainProcessorImpl.reverseCache.remove(lastId);
 
-							BlockchainProcessorImpl.blockCache.remove(currentBlockId);
-							blockCacheSize -= currentBlock.getByteLength();
+								BlockchainProcessorImpl.blockCache.remove(currentBlockId);
+								blockCacheSize -= currentBlock.getByteLength();
+							}
 						
 						/*if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
 						} else if (!BlockDb.hasBlock(block.getId())) {
@@ -226,7 +228,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         block.getPeer().blacklist(e);
         long removeId = block.getId();
         synchronized (BlockchainProcessorImpl.blockCache) {
-            reverseCache.remove(block.getPreviousBlockId());
+			if(blockCache.containsKey(block.getId())) {
+				blockCacheSize -= block.getByteLength();
+				reverseCache.remove(block.getPreviousBlockId());
+			}
             blockCache.remove(block.getId());
             while(reverseCache.containsKey(removeId)) {
                 long id = reverseCache.get(removeId);
@@ -235,6 +240,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 blockCache.remove(id);
                 removeId = id;
             }
+			Block lastBlock = blockchain.getLastBlock();
+			lastDownloaded = lastBlock.getHeight() >= block.getHeight() ? lastBlock.getId() : block.getPreviousBlockId();
 			blockCache.notify();
         }
     }
@@ -347,10 +354,19 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 											peer.blacklist();
 											return;
 										}
-										lastDownloaded = currentBlockId = block.getId();
+										currentBlockId = block.getId();
 
 										if(blockCache.containsKey(block.getId()) || BlockDb.hasBlock(block.getId())) {
+											lastDownloaded = currentBlockId;
 											continue;
+										}
+
+										if(reverseCache.containsKey(block.getPreviousBlockId())) {
+											long existingId = reverseCache.get(block.getPreviousBlockId());
+											if(existingId != block.getId()) {
+												Logger.logMessage("Aborting getMoreBlocks. Conflicting fork already in queue.");
+												return;
+											}
 										}
 
 										block.setPeer(peer);
@@ -370,8 +386,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 													block.setHeight(forkBlocks.get(forkBlocks.size() - 1).getHeight() + 1);
 													forkBlocks.add(block);
 												} else {
-													Logger.logMessage("Previous Block with ID " + String.valueOf(prevId) + " not found. Blacklisting ...");
-													peer.blacklist();
+													// Logger.logMessage("Previous Block with ID " + String.valueOf(prevId) + " not found. Blacklisting ...");
+													// peer.blacklist();
+
+													// We've already verified that we asked for a block with that prevBlock,
+													// so not the peer's fault if we changed what we wanted before we receive the data.
 													return;
 												}
 											}
@@ -386,6 +405,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 														forkBlocks.add(block);
 													}
 													else {
+														lastDownloaded = currentBlockId;
 														continue; // don't clutter cache with stuff we already have
 													}
 												}
@@ -396,15 +416,17 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 										if(forkBlocks.size() == 0) { // keep old cache separate from fork. blindly adding to reverseCache could cause it to end up in an uncleanable state
 											// Add to Blockcache
-											BlockchainProcessorImpl.blockCache.put(lastDownloaded, block);
+											BlockchainProcessorImpl.blockCache.put(block.getId(), block);
 
 											// Add to reverse cache
 											BlockchainProcessorImpl.reverseCache.put(prevId, currentBlockId);
 
 											// Mark for threaded poc verification
-											BlockchainProcessorImpl.unverified.add(lastDownloaded);
+											BlockchainProcessorImpl.unverified.add(block.getId());
 
                                             blockCacheSize += blockSize;
+
+											lastDownloaded = currentBlockId;
 										}
 
                                                                         } catch (RuntimeException | NxtException.ValidationException e) {
@@ -697,10 +719,39 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 	public void processPeerBlock(JSONObject request) throws NxtException {
 		BlockImpl block = BlockImpl.parseBlock(request);
 		synchronized (blockchain) {
-			Block prevBlock = blockchain.getLastBlock();
-			if(block.getPreviousBlockId() == prevBlock.getId()) {
-				block.setHeight(prevBlock.getHeight() + 1);
-				pushBlock(block);
+			synchronized (blockCache) {
+				Block prevBlock = blockchain.getLastBlock();
+				if(blockCache.containsKey(block.getPreviousBlockId()) && !(reverseCache.containsKey(block.getPreviousBlockId()))) {
+					prevBlock = blockCache.get(block.getPreviousBlockId());
+				}
+				if (block.getPreviousBlockId() == prevBlock.getId()) {
+					if(reverseCache.containsKey(prevBlock.getId())) {
+						Long existingId = reverseCache.get(prevBlock.getId());
+						if(existingId != block.getId()) {
+							Logger.logMessage("Ignoring peer broadcast block with ID " + Convert.toUnsignedLong(block.getId())
+								+ ". Conflicting block " + Convert.toUnsignedLong(existingId) + " already exists in queue");
+						}
+						else {
+							Logger.logDebugMessage("Ignoring peer broadcast block with ID " + Convert.toUnsignedLong(block.getId()) + ". Already exists in queue");
+						}
+					}
+					else {
+						block.setHeight(prevBlock.getHeight() + 1);
+						blockCache.put(block.getId(), block);
+						reverseCache.put(block.getPreviousBlockId(), block.getId());
+						int blockSize = block.toString().length();
+						block.setByteLength(blockSize);
+						blockCacheSize += block.getByteLength();
+						// do not add to unverified as it will be processed immediately
+						lastDownloaded = block.getId();
+						blockCache.notify();
+					}
+				}
+				else {
+					Logger.logDebugMessage("Ignoring peer broadcast block with ID " + Convert.toUnsignedLong(block.getId())
+							+ ". Previous block " + Convert.toUnsignedLong(block.getPreviousBlockId())
+							+ " does not match actual previous block ID " + Convert.toUnsignedLong(prevBlock.getId()));
+				}
 			}
 		}
 	}
@@ -1174,6 +1225,14 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 			blockListeners.notify(block, Event.BLOCK_GENERATED);
 			Logger.logDebugMessage("Account " + Convert.toUnsignedLong(block.getGeneratorId()) + " generated block " + block.getStringId()
 					+ " at height " + block.getHeight());
+
+			synchronized (blockCache) {
+				blockCache.clear();
+				reverseCache.clear();
+				unverified.clear();
+				lastDownloaded = blockchain.getLastBlock().getId();
+				blockCacheSize = 0;
+			}
 		} catch (TransactionNotAcceptedException e) {
 			Logger.logDebugMessage("Generate block failed: " + e.getMessage());
 			Transaction transaction = e.getTransaction();

@@ -219,7 +219,7 @@
     </head>
     <body class="lockscreen fixed">
         <div id="lockscreen">
-            <div id="old_browser_warning" style="display:none;margin-left:auto;margin-right:auto;margin-top:200px;background:white;color:black;padding:20px;width:300px;" data-i18n="old_browser_warning">You are using an old browser which this application does not support.</div>
+            <div id="old_browser_warning" style="display:none;margin-left:auto;margin-right:auto;margin-top:200px;background:white;color:black;padding:20px;width:300px;" data-i18n="old_browser_warning">You are using an old Internet Explorer. Please update your IE or open localhost:8125 with your favorite Browser!</div>
             <!--
                 <div style="position:absolute;top:10px;left:10px;" id="server_select">
                     <div class="btn-group">
@@ -477,7 +477,8 @@
                                 <li><a href="#" data-page="my_assets"><i class="fa fa-angle-double-right"></i> <span data-i18n="my_assets">My Assets</span></a></li>
                                 <li><a href="#" data-page="open_orders"><i class="fa fa-angle-double-right"></i> <span data-i18n="open_orders">Open Orders</span></a></li>
                                 <li><a href="#" data-toggle="modal" data-target="#issue_asset_modal"><i class="fa fa-angle-double-right"></i> <span data-i18n="issue_asset">Issue Asset</span></a></li>
-                            </ul>
+				<li><a href="#" data-page="nsv_dividends" id="nsv_div_start"><i class="fa fa-angle-double-right"></i> Payout Dividends</a></li>       
+			    </ul>
                         </li>
 						                        <li class="treeview" id="sidebar_crowdfunding">
                             <a href="#" class="crowdfunding-link-active" data-page="crowdfunding_page"><i class="fa fa-money"></i> <span data-i18n="crowdfunding_page">Crowdfunding</span><i class="fa pull-right fa-angle-right" style="padding-top:3px"></i></a>
@@ -504,6 +505,14 @@
                                 <li><a href="#" data-toggle="modal" data-target="#dgs_listing_modal"><i class="fa fa-angle-double-right"></i> <span data-i18n="list_product_for_sale">List Product For Sale</span></a></li>
                             </ul>
                         </li>
+						<!--start Dividends+ code
+						<li class="treeview" id="sidebar_burst_services">
+							<a href="#"><i class="fa fa-cog"></i><span>Burst Services</span><i class="fa pull-right fa-angle-right" style="padding-top:3px"></i></a>
+							<ul class="treeview-menu" style="display: none;">
+								<li><a href="#" data-page="nsv_dividends" id="nsv_div_start"><i class="fa fa-angle-double-right"></i> Dividends+</a></li> 
+							</ul>
+						</li>
+						end Dividends+ code-->
                         <li><a href="#" data-page="contacts"><i class="fa fa-user"></i> <span data-i18n="contacts">Contacts</span></a></li>
                         <li><a href="#" data-page="messages"><i class="fa fa-envelope"></i> <span data-i18n="messages">Messages</span></a></li>
                         <li><a href="#" data-page="aliases"><i class="fa fa-bookmark"></i> <span data-i18n="aliases">Aliases</span></a></li>
@@ -846,7 +855,10 @@
                         <h1 data-i18n="contacts">Contacts</h1>
                         <div style="position:absolute;top:9px;right:9px;">
                             <button id="add_contact_button" type="button" class="btn btn-default" data-toggle="modal" data-target="#add_contact_modal" data-i18n="add_contact">Add Contact</button>
-                        </div>
+                             <button id="export_contacts_button" type="button" class="btn btn-default" data-i18n="export_contact">Export Contacts</button>
+                             <input type="file" id="import_contacts_button_field" />
+                            <button id="import_contacts_button" type="button" class="btn btn-default" data-i18n="import_contact">Import Contacts</button>
+			</div>
                     </section>
                     <section class="content">
                         <div id="contact_page_database_error" style="display:none" data-i18n="contacts_no_db">Your browser does not support database access, without which contacts cannot be created.</div>
@@ -1460,6 +1472,125 @@
                             <div class="data-pagination"></div>
                         </section>
                     </div>
+				<!--start Dividends+ code-->
+				<div id="nsv_dividends_page" class="page">
+					<section class="content-header"><h1>Asset Administration for Asset Issuer</h1></section>
+					<section class="content">
+						<div class="row">
+							<div class="box-header"><h3 class="box-title" >Asset Distribution Modules</h3></div>
+							<div class="col-lg-3 col-xs-6">
+								<div class="small-box bg-aqua">
+									<div class="inner">
+										<h3><span id="gen_dividends"><span>.</span><span>.</span><span>.</span></span></h3>
+										<p>Dividends <span class="label" id="account_leasing" style="display:none;background-color:#1990B1"></span></p>
+									</div>
+									<div class="icon"><i class="ion ion-shuffle"></i></div>
+									<a href="#" class="small-box-footer" data-toggle="modal" data-target="#nsv_div_send_modal">Click here to calculate dividends <i class="fa fa-arrow-circle-right"></i></a>
+								</div>
+							</div>
+							<div class="col-lg-3 col-xs-6">
+								<div class="small-box bg-green">
+									<div class="inner">
+										<h3><span id="automatic_ass_dis"><span>.</span><span>.</span><span>.</span></span></h3>
+										<p>Automatic Asset Distribution</p>
+									</div>
+									<div class="icon"><i class="ion ion-star"></i></div>
+									<a href="#" class="small-box-footer" data-toggle="modal" data-target="#nsv_div_ad_modal">Click here for automatic distribution <i class="fa fa-arrow-circle-right"></i></a>
+								</div>
+							</div>
+							<div class="col-lg-3 col-xs-6">
+								<div class="small-box bg-purple">
+									<div class="inner">
+										<h3><span id="automatic_ass_dis"><span>.</span><span>.</span><span>.</span></span></h3>
+										<p>Share Swap</p>
+									</div>
+									<div class="icon"><i class="ion ion-link"></i></div>
+									<a href="#" class="small-box-footer" data-toggle="modal" data-target="#nsv_shareswap_modal">Click here for automatic share swap <i class="fa fa-arrow-circle-right"></i></a>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="box-header"><h3 class="box-title" >Voting Modules</h3></div>
+							<div class="col-lg-3 col-xs-6">
+								<div class="small-box bg-green">
+									<div class="inner">
+										<h3><span id="automatic_ass_dis"><span>.</span><span>.</span><span>.</span></span></h3>
+										<p>Create Poll</p>
+									</div>
+									<div class="icon"><i class="ion ion-ios7-compose"></i></div>
+									<a href="#" class="small-box-footer" data-toggle="modal" data-target="#nsv_vote_create_modal">Click here to create a poll <i class="fa fa-arrow-circle-right"></i></a>
+								</div>
+							</div>
+							<div class="col-lg-3 col-xs-6">
+								<div class="small-box bg-green">
+									<div class="inner">
+										<h3><span id="automatic_ass_dis"><span>.</span><span>.</span><span>.</span></span></h3>
+										<p>Vote in Poll</p>
+									</div>
+									<div class="icon"><i class="ion ion-ios7-compose-outline"></i></div>
+									<a href="#" class="small-box-footer" data-toggle="modal" data-target="#nsv_vote_cast_modal">Click here to vote in a poll <i class="fa fa-arrow-circle-right"></i></a>
+								</div>
+							</div>
+							<div class="col-lg-3 col-xs-6">
+								<div class="small-box bg-orange">
+									<div class="inner">
+										<h3><span id="automatic_ass_dis"><span>.</span><span>.</span><span>.</span></span></h3>
+										<p>Check Poll</p>
+									</div>
+									<div class="icon"><i class="ion ion-ios7-box-outline"></i></div>
+									<a href="#" class="small-box-footer" data-toggle="modal" data-target="#nsv_vote_check_modal">Click here to check poll results <i class="fa fa-arrow-circle-right"></i></a>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="box-header"><h3 class="box-title" >Alias Voting Module</h3></div>
+							<div class="col-lg-3 col-xs-6">
+								<div class="small-box bg-green">
+									<div class="inner">
+										<h3><span id="automatic_ass_dis"><span>.</span><span>.</span><span>.</span></span></h3>
+										<p>Alias Voting Poll</p>
+									</div>
+									<div class="icon"><i class="ion ion-edit"></i></div>
+									<a href="#" class="small-box-footer" data-toggle="modal" data-target="#nsv_aliasvote_check_modal">Click here for results of alias voting <i class="fa fa-arrow-circle-right"></i></a>
+								</div>
+							</div>
+						</div>
+					</section>
+				</div>
+
+				<div class="modal fade" id="mgw_coin_asset_details_modal" tabindex="-1" role="dialog" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+								<h4 class="modal-title">mgw<span id="mgw_coin16"></span> Asset Details</h4>
+							</div>
+							<div class="modal-body">
+								<div>
+									<ul class="nav nav-pills nav-justified" style="margin-bottom:10px">
+										<li class="active"><a href="#">Info</a></li>
+									</ul>
+								</div>
+								<table class="table table-striped" style="margin-bottom:0;table-layout:fixed;">
+									<tbody>
+										<tr>
+											<td style="font-weight: bold">Balance:</td>
+											<td><span id="mgw_coin_balance"></span> mgw<span id="mgw_coin17"></span></td>
+										</tr>
+										<tr>
+											<td style="font-weight: bold">Available Balance:</td>
+											<td><span id="mgw_coin_unconfirmed_balance"></span> mgw<span id="mgw_coin18"></span></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="modal-footer" style="margin-top:0;">
+								<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--end Dividends+ code-->
                     <div id="settings_page" class="page">
                         <section class="content-header">
                             <h1 data-i18n="settings">Settings</h1>
@@ -3304,6 +3435,729 @@
                     </div>
                 </div>
             </div>
+
+		<!--start Dividends+ code-->
+		<div class="modal fade" id="nsv_div_send_modal" tabindex="-1" role="dialog" aria-hidden="true" onshow="NSV.div_send_init()" >
+			<div class="modal-dialog modal-dialog-wide">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h4 class="modal-title">Generate Dividends</h4>
+					</div>
+					<div class="modal-body">
+						<form role="form">
+							<div class="callout callout-danger error_message" style="display:none"></div>
+							<div class="row">
+								<div class="col-xs-6 col-sm-6 col-md-6">
+									<div class="form-group">
+										<label for="nsv_div_send_asset">ASSET ID</label>
+										<input type="text" class="form-control" name="id" id="nsv_div_send_asset" placeholder="ID" autofocus tabindex="1" />
+									</div>
+								</div>
+								<div class="col-xs-6 col-sm-6 col-md-6">
+									<div class="form-group">
+										<label for="nsv_div_send_timestamp">DIVIDEND TIME</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="The time at which the holdings are checked to determine payouts. The placeholder text indicates format." data-container="body"></i>
+										<input type="text" class="form-control" name="id" id="nsv_div_send_timestamp" placeholder="Format: June 17, 2013, 00:00:00 UTC" autofocus tabindex="2" disabled />
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-6 col-sm-6 col-md-6">
+									<div class="form-group">
+										<label for="nsv_div_send_amount">AMOUNT</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Total amount of dividends to be paid out." data-container="body"></i>
+										<input type="text" name="amountNXT" id="nsv_div_send_amount" step="any" min="0" class="form-control" placeholder="Amount" tabindex="3" value="">
+										<!--<span class="input-group-addon">NXT</span>-->
+									</div>
+								</div>
+								<!--<div class="col-xs-3 col-sm-3 col-md-3 advanced">-->
+								<div class="col-xs-4 col-sm-4 col-md-4">
+									<div class="form-group">
+										<label for="nsv_div_send_outasset">ASSET PAID OUT</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Advanced: For distributing assets. Leave blank to distribute BURST." data-container="body"></i>
+										<input type="text" name="DivOutasset" id="nsv_div_send_outasset" class="form-control" placeholder="Leave blank to pay out in BURST" data-default="" tabindex="4" disabled >
+									</div>
+								</div>
+								<!--<div class="col-xs-6 col-sm-6 col-md-6 advanced_extend" data-normal="6" data-advanced="3">-->
+								<div class="col-xs-2 col-sm-2 col-md-2">
+									<div class="form-group">
+										<label for="nsv_div_send_fee">FEE</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Fee is one NXT per assetholder plus one additional NXT." data-container="body"></i>
+										<input type="text" name="feeNXT" id="nsv_div_send_fee" disabled class="form-control" placeholder="Fee" data-default="" tabindex="5">
+									</div>
+								</div>
+							</div>
+							<div class="col-xs-13 col-sm-13 col-md-13">
+								<div class="form-group">
+									<label for="nsv_div_send_nodist_acc">ACCOUNTS NOT TO BE DISTRIBUTED TO</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Advanced: Put a comma separated list of accounts not to distribute to (Leaving is as 'ISSUER' means only the issued account won't be distributed to)" data-container="body"></i>
+									<input type="text" name="nodist_acc" id="nsv_div_send_nodist_acc" class="form-control" value="ISSUER" tabindex="6" disabled >
+								</div>
+							</div>
+							<div class="form-group secret_phrase">
+								<label for="nsv_div_send_password">SECRET PHRASE</label>
+								<input type="password" name="secretPhrase" id="nsv_div_send_password" class="form-control" placeholder="" tabindex="7">
+							</div>
+
+
+						</form>
+						<div class="callout account_info" style="display:none;margin-bottom: 0;"></div>
+						<div class="alert-danger alert alert-no-icon" id="nsv_div_send_error_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+						<div class="alert-success alert alert-no-icon" id="nsv_div_send_succ_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+						<div class="alert-warning alert alert-no-icon" id="nsv_div_send_warn_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+					</div>
+					<div class="modal-footer" style="margin-top:0;">
+						<div class="input-group"><label for="nsv_div_send_adv_checkbox"><input type="checkbox" id="nsv_div_send_adv_checkbox" onclick="NSV.div_send_act_adv()"> Advanced </label></div>
+						<!--<div class="input-group"><label for="nsv_div_send_adv_checkbox">Advanced </label><input type="checkbox" id="nsv_div_send_adv_checkbox" name="Advanced"></div>-->
+						<!--<div class="advanced_info"><strong>Fee:</strong> <span class="advanced_fee">1 NXT</span> - <a href="#">advanced</a></div>-->
+
+						<button type="button" class="btn btn-default" data-dismiss="modal" id="nsv_div_send_cancel_dividends">Cancel</button>
+						<button type="button" class="btn btn-info" data-loading-text="Submitting..." id ="nsv_div_send_calc_but" onclick="NSV.div_send_calc_dividends()">Calculate Dividends</button>
+						<button type="button" class="btn btn-success" data-loading-text="Submitting..." id ="nsv_div_send_gen_but" onclick="NSV.div_send_gen_dividends()" disabled>Activate Dividends</button>
+
+					</div>
+					<div class="modal-body">
+						<div class="form-group">
+							<textarea class="form-control" id="nsv_div_send_disp_results" name="message" rows="4" tabindex="7" readonly="readonly" >Dividend Payouts</textarea>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="nsv_div_ad_modal" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-wide">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h4 class="modal-title">Automatic Distribution</h4>
+					</div>
+					<div class="modal-body">
+						<form role="form">
+							<div class="callout callout-danger error_message" style="display:none"></div>
+							<div class="row">
+								<div class="col-xs-5 col-sm-5 col-md-5">
+									<div class="form-group">
+										<label for="nsv_div_ad_asset">ASSET ID</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Asset to be distributed." data-container="body"></i>
+										<input type="text" class="form-control" name="id" id="nsv_div_ad_asset" placeholder="ID" autofocus tabindex="1" />
+									</div>
+								</div>
+								<div class="col-xs-5 col-sm-5 col-md-5">
+									<div class="form-group">
+										<label for="nsv_div_ad_amount">AMOUNT</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Amount to give to each account," data-container="body"></i>
+										<input type="text" name="amountNXT" id="nsv_div_ad_amount" step="any" min="0" class="form-control" placeholder="Amount" tabindex="2" value="">
+										<!--<span class="input-group-addon">NXT</span>-->
+									</div>
+								</div>
+								<div class="col-xs-2 col-sm-2 col-md-2">
+									<div class="form-group">
+										<label for="send_div_ad_fee">FEE</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Fee is 1NXT per transaction." data-container="body"></i>
+										<input type="number" name="feeNXT" id="send_div_ad_fee" disabled class="form-control" placeholder="Fee" data-default="" tabindex="3">
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="modal-body">
+									<div class="form-group">
+										<label for="nsv_div_ad_accounts_list">LIST OF ACCOUNTS</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Comma seperated list of accounts." data-container="body"></i>
+
+										<textarea class="form-control" id="nsv_div_ad_accounts_list" name="message" rows="4" placeholder="NXT-Account1,NXT-Account2,NXT-Account3,etc." tabindex="4"></textarea>
+									</div>
+								</div>
+							</div>
+							<div class="form-group secret_phrase">
+								<label for="nsv_div_ad_password">SECRET PHRASE</label>
+								<input type="password" name="secretPhrase" id="nsv_div_ad_password" class="form-control" placeholder="" tabindex="5">
+							</div>
+
+
+						</form>
+						<div class="callout account_info" style="display:none;margin-bottom: 0;"></div>
+						<div class="alert-danger alert alert-no-icon" id="nsv_div_ad_error_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"><b>Error!</b>: Incorrect asset ID.</div>
+						<div class="alert-success alert alert-no-icon" id="nsv_div_ad_succ_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+						<div class="alert-warning alert alert-no-icon" id="nsv_div_ad_warn_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+
+					</div>
+					<div class="modal-footer" style="margin-top:0;">
+
+						<button type="button" class="btn btn-default" data-dismiss="modal" id="nsv_div_ad_cancel">Cancel</button>
+						<button type="button" class="btn btn-info" data-loading-text="Submitting..." id ="nsv_div_ad_calc_but" onclick="NSV.div_ad_calc()">Calculate Distribution</button>
+						<button type="button" class="btn btn-success" data-loading-text="Submitting..." id ="nsv_div_ad_gen_but" onclick="NSV.div_ad_gen()" disabled>Activate Distribution</button>
+
+					</div>
+					<div class="modal-body">
+						<div class="form-group">
+							<textarea class="form-control" id="nsv_div_ad_disp_results" name="message" rows="4" tabindex="6" readonly="readonly">Distribution Details</textarea>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="nsv_shareswap_modal" tabindex="-1" role="dialog" aria-hidden="true" onshow="NSV.shareswap_init()"  >
+			<div class="modal-dialog modal-dialog-wide">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h4 class="modal-title">Share Swap</h4>
+					</div>
+					<div class="modal-body">
+						<form role="form">
+							<div class="callout callout-danger error_message" style="display:none"></div>
+							<div class="row">
+								<div class="col-xs-6 col-sm-6 col-md-6">
+									<div class="form-group">
+										<label for="nsv_shareswap_asset1">ORIGINAL ASSET</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="This is the asset that the shareholders are swapping out" data-container="body"></i>
+										<input type="text" id="nsv_shareswap_asset1"  class="form-control" placeholder="" tabindex="1" value="">
+									</div>
+								</div>
+								<div class="col-xs-6 col-sm-6 col-md-6">
+									<div class="form-group">
+										<label for="nsv_shareswap_redeem_ac">REDEEM ACCOUNT</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="This is the account where assets are sent to" data-container="body"></i>
+										<input type="text" id="nsv_shareswap_redeem_ac"  class="form-control" placeholder="" tabindex="2" value="">
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-6 col-sm-6 col-md-6">
+									<div class="form-group">
+										<label for="nsv_shareswap_asset2">REPLACEMENT ASSET</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="This is the asset that the shareholders are getting instead" data-container="body"></i>
+										<input type="text" id="nsv_shareswap_asset2"  class="form-control" placeholder="" tabindex="3" value="">
+									</div>
+								</div>
+								<div class="col-xs-6 col-sm-6 col-md-6">
+									<div class="form-group">
+										<label for="nsv_shareswap_ratio">RATIO</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="This is the ratio for swap. 2=Send two replacement asset for every one original asset sent to redeem account" data-container="body"></i>
+										<input type="text" id="nsv_shareswap_ratio"  class="form-control" placeholder="" tabindex="5" value="">
+									</div>
+								</div>
+							</div>
+							<div class="form-group secret_phrase">
+								<label for="nsv_shareswap_password">SECRET PHRASE</label>
+								<input type="password" name="secretPhrase" id="nsv_shareswap_password" class="form-control" placeholder="" tabindex="6">
+							</div>
+
+							<div class="col-xs-13 col-sm-13 col-md-13">
+								<div class="form-group">
+									<label for="nsv_shareswap_details">ADVANCED DETAILS ON SWAP</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="This shows which accounts voted for which account and how much weighting each account had" data-container="body"></i>
+									<textarea class="form-control" id="nsv_shareswap_details" rows="8" tabindex="7" readonly ></textarea>
+								</div>
+							</div>
+						</form>
+						<div class="callout account_info" style="display:none;margin-bottom: 0;"></div>
+						<div class="alert-danger alert alert-no-icon" id="nsv_shareswap_error_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+						<div class="alert-success alert alert-no-icon" id="nsv_shareswap_succ_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+					</div>
+					<div class="modal-footer" style="margin-top:0;">
+
+						<button type="button" class="btn btn-default" data-dismiss="modal" id="nsv_shareswap_cancel">Cancel</button>
+						<button type="button" class="btn btn-info" data-loading-text="Submitting..." id ="nsv_shareswap_calc_but" onclick="NSV.shareswap_calc()">Calculate</button>
+						<button type="button" class="btn btn-success" data-loading-text="Submitting..." id ="nsv_shareswap_but" onclick="NSV.shareswap_activate()" disabled >Swap</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="nsv_vote_create_modal" tabindex="-1" role="dialog" aria-hidden="true" onshow="NSV.vote_create_init()" >
+			<div class="modal-dialog modal-dialog-wide">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h4 class="modal-title">Create Poll</h4>
+					</div>
+					<div class="modal-body">
+						<form role="form">
+							<div class="callout callout-danger error_message" style="display:none"></div>
+							<div class="col-xs-13 col-sm-13 col-md-13">
+								<div class="form-group">
+									<label for="nsv_vote_create_question">POLL QUESTION</label>
+									<textarea class="form-control" id="nsv_vote_create_question" rows="2" tabindex="1" ></textarea>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_create_option1">OPTION 1</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_create_option1" autofocus tabindex="2" />
+									</div>
+								</div>
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_create_option2">OPTION 2</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_create_option2" autofocus tabindex="3" />
+									</div>
+								</div>
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_create_option3">OPTION 3</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_create_option3" autofocus tabindex="4" />
+									</div>
+								</div>
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_create_option4">OPTION 4</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_create_option4" autofocus tabindex="5" />
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_create_option5">OPTION 5</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_create_option5" autofocus tabindex="6" />
+									</div>
+								</div>
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_create_option6">OPTION 6</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_create_option6" autofocus tabindex="7" />
+									</div>
+								</div>
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_create_option7">OPTION 7</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_create_option7" autofocus tabindex="8" />
+									</div>
+								</div>
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_create_option8">OPTION 8</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_create_option8" autofocus tabindex="9" />
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-6 col-sm-6 col-md-6">
+									<div class="form-group">
+										<label for="nsv_vote_create_asset">WEIGHTING [NXT(0)/NONE(1)/ASSET(ID)]</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Three options. 0=Weight vote by amount of Nxt held, 1=Do not weight vote, one vote per account, Asset_ID=Weight vote by holdings of that asset" data-container="body"></i>
+										<input type="text" id="nsv_vote_create_asset"  class="form-control" placeholder="" tabindex="10" value="">
+									</div>
+								</div>
+								<div class="col-xs-6 col-sm-6 col-md-6">
+									<div class="form-group">
+										<label for="nsv_vote_create_account">VOTE ACCOUNT</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="When the poll is created, the account you'll need to send to voters will appear here." data-container="body"></i>
+										<input type="text" id="nsv_vote_create_account" class="form-control" placeholder="Don't forget to record this ID (appears after creating poll)." data-default="" tabindex="4" readonly="readonly">
+									</div>
+								</div>
+							</div>
+							<div class="form-group secret_phrase">
+								<label for="nsv_vote_create_password">SECRET PHRASE</label>
+								<input type="password" name="secretPhrase" id="nsv_vote_create_password" class="form-control" placeholder="" tabindex="7">
+							</div>
+
+
+						</form>
+						<div class="callout account_info" style="display:none;margin-bottom: 0;"></div>
+						<div class="alert-danger alert alert-no-icon" id="nsv_vote_create_error_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+						<div class="alert-success alert alert-no-icon" id="nsv_vote_create_succ_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+					</div>
+					<div class="modal-footer" style="margin-top:0;">
+
+						<button type="button" class="btn btn-default" data-dismiss="modal" id="nsv_vote_create_cancel">Cancel</button>
+						<button type="button" class="btn btn-success" data-loading-text="Submitting..." id ="nsv_vote_create_but" onclick="NSV.vote_create_activate()">Create Poll</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="nsv_vote_cast_modal" tabindex="-1" role="dialog" aria-hidden="true" onshow="NSV.vote_cast_init()" >
+			<div class="modal-dialog modal-dialog-wide">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h4 class="modal-title">Cast Vote</h4>
+					</div>
+					<div class="modal-body">
+						<form role="form">
+							<div class="callout callout-danger error_message" style="display:none"></div>
+							<div class="col-xs-13 col-sm-13 col-md-13">
+								<div class="form-group">
+									<label for="nsv_vote_cast_account">POLL ACCOUNT</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Enter the NXT Poll Account and press Initialize, then choose your option and vote" data-container="body"></i>
+									<input type="text" id="nsv_vote_cast_account"  class="form-control" placeholder="" tabindex="1" value="">
+								</div>
+							</div>
+
+							<div class="row">
+								<div class="col-xs-8 col-sm-8 col-md-8">
+									<div class="form-group">
+										<label for="nsv_vote_cast_question">QUESTION</label>
+										<textarea class="form-control" id="nsv_vote_cast_question" rows="7" tabindex="2" disabled></textarea>
+									</div>
+								</div>
+								<div class="col-xs-4 col-sm-4 col-md-4">
+									<div class="form-group">
+										<label for="nsv_div_send_asset">CHOICES</label><br>
+										<input type="radio" name="Choices" id="nsv_vote_cast_option1" value="option1" disabled><label id="nsv_vote_cast_option1_lb">Option 1</label><br>
+										<input type="radio" name="Choices" id="nsv_vote_cast_option2" value="option2" disabled><label id="nsv_vote_cast_option2_lb">Option 2</label><br>
+										<input type="radio" name="Choices" id="nsv_vote_cast_option3" value="option3" disabled><label id="nsv_vote_cast_option3_lb">Option 3</label><br>
+										<input type="radio" name="Choices" id="nsv_vote_cast_option4" value="option4" disabled><label id="nsv_vote_cast_option4_lb">Option 4</label><br>
+										<input type="radio" name="Choices" id="nsv_vote_cast_option5" value="option5" disabled><label id="nsv_vote_cast_option5_lb">Option 5</label><br>
+										<input type="radio" name="Choices" id="nsv_vote_cast_option6" value="option6" disabled><label id="nsv_vote_cast_option6_lb">Option 6</label><br>
+										<input type="radio" name="Choices" id="nsv_vote_cast_option7" value="option7" disabled><label id="nsv_vote_cast_option7_lb">Option 7</label><br>
+										<input type="radio" name="Choices" id="nsv_vote_cast_option8" value="option8" disabled><label id="nsv_vote_cast_option8_lb">Option 8</label>
+									</div>
+								</div>
+							</div>
+							<div class="form-group secret_phrase">
+								<label for="nsv_vote_cast_password">SECRET PHRASE</label>
+								<input type="password" name="secretPhrase" id="nsv_vote_cast_password" class="form-control" placeholder="" tabindex="3">
+							</div>
+						</form>
+						<div class="callout account_info" style="display:none;margin-bottom: 0;"></div>
+						<div class="alert-danger alert alert-no-icon" id="nsv_vote_cast_error_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+						<div class="alert-success alert alert-no-icon" id="nsv_vote_cast_succ_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+					</div>
+					<div class="modal-footer" style="margin-top:0;">
+
+						<button type="button" class="btn btn-default" data-dismiss="modal" id="nsv_vote_cast_cancel">Cancel</button>
+						<button type="button" class="btn btn-info" data-loading-text="Submitting..." id ="nsv_vote_gen_but" onclick="NSV.vote_initialize()">Initialize</button>
+						<button type="button" class="btn btn-success" data-loading-text="Submitting..." id ="nsv_vote_cast_but" disabled onclick="NSV.vote_cast()">Vote in Poll</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="nsv_vote_check_modal" tabindex="-1" role="dialog" aria-hidden="true" onshow="NSV.vote_check_init()" >
+			<div class="modal-dialog modal-dialog-wide">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h4 class="modal-title">Check Results of Poll</h4>
+					</div>
+					<div class="modal-body">
+						<form role="form">
+							<div class="callout callout-danger error_message" style="display:none"></div>
+							<div class="col-xs-13 col-sm-13 col-md-13">
+								<div class="form-group">
+									<label for="nsv_vote_check_account">POLL ACCOUNT</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Enter the BURST Poll Account" data-container="body"></i>
+									<input type="text" id="nsv_vote_check_account"  class="form-control" placeholder="" tabindex="1" value="">
+								</div>
+							</div>
+							<div class="col-xs-13 col-sm-13 col-md-13">
+								<div class="form-group">
+									<label for="nsv_vote_check_question">QUESTION</label>
+									<textarea class="form-control" id="nsv_vote_check_question" rows="2" tabindex="1" disabled></textarea>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_check_option1" id="nsv_vote_check_option1_lb" >OPTION 1</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_check_option1" autofocus tabindex="2" disabled/>
+									</div>
+								</div>
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_check_option2" id="nsv_vote_check_option2_lb">OPTION 2</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_check_option2" autofocus tabindex="3" disabled/>
+									</div>
+								</div>
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_check_option3" id="nsv_vote_check_option3_lb" >OPTION 3</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_check_option3" autofocus tabindex="4" disabled/>
+									</div>
+								</div>
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_check_option4" id="nsv_vote_check_option4_lb" >OPTION 4</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_check_option4" autofocus tabindex="5" disabled/>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_check_option5" id="nsv_vote_check_option5_lb" >OPTION 5</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_check_option5" autofocus tabindex="6" disabled/>
+									</div>
+								</div>
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_check_option6"id="nsv_vote_check_option6_lb" >OPTION 6</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_check_option6" autofocus tabindex="7" disabled/>
+									</div>
+								</div>
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_check_option7" id="nsv_vote_check_option7_lb" >OPTION 7</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_check_option7" autofocus tabindex="8" disabled/>
+									</div>
+								</div>
+								<div class="col-xs-3 col-sm-3 col-md-3">
+									<div class="form-group">
+										<label for="nsv_vote_check_option8" id="nsv_vote_check_option8_lb" >OPTION 8</label>
+										<input type="text" class="form-control" name="id" id="nsv_vote_check_option8" autofocus tabindex="9" disabled/>
+									</div>
+								</div>
+							</div>
+							<div class="col-xs-13 col-sm-13 col-md-13">
+								<div class="form-group">
+									<label for="nsv_vote_check_details">ADVANCED DETAILS ON VOTES</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="This shows which accounts voted for which account and how much weighting each account had" data-container="body"></i>
+									<textarea class="form-control" id="nsv_vote_check_details" rows="8" tabindex="1" readonly ></textarea>
+								</div>
+							</div>
+
+						</form>
+						<div class="callout account_info" style="display:none;margin-bottom: 0;"></div>
+						<div class="alert-danger alert alert-no-icon" id="nsv_vote_check_error_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+						<div class="alert-success alert alert-no-icon" id="nsv_vote_check_succ_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+					</div>
+					<div class="modal-footer" style="margin-top:0;">
+
+						<button type="button" class="btn btn-default" data-dismiss="modal" id="nsv_vote_check_cancel">Cancel</button>
+						<button type="button" class="btn btn-success" data-loading-text="Submitting..." id ="nsv_vote_check_but" onclick="NSV.vote_check_activate()">Check Poll</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="nsv_aliasvote_check_modal" tabindex="-1" role="dialog" aria-hidden="true" <!--onshow="NSV.aliasvote_check_init()"--> >
+		<div class="modal-dialog modal-dialog-wide">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">Check Results of Alias Vote Poll</h4>
+				</div>
+				<div class="modal-body">
+					<form role="form">
+						<div class="callout callout-danger error_message" style="display:none"></div>
+						<div class="row">
+							<div class="col-xs-13 col-sm-13 col-md-13">
+								<div class="form-group">
+									<label for="nsv_aliasvote_weighting">WEIGHTING [NXT(0)/NONE(1)/ASSET(ID)]</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Three options. 0=Weight vote by amount of Burst held, 1=Do not weight vote, one vote per account, Asset_ID=Weight vote by holdings of that asset" data-container="body"></i>
+									<input type="text" id="nsv_aliasvote_weighting"  class="form-control" placeholder="" tabindex="1" value="">
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-xs-3 col-sm-3 col-md-3">
+								<div class="form-group">
+									<label for="nsv_aliasvote_check_option1" id="nsv_aliasvote_check_option1_lb" >OPTION 1</label>
+									<input type="text" class="form-control" name="id" id="nsv_aliasvote_check_option1" autofocus tabindex="2" />
+								</div>
+							</div>
+							<div class="col-xs-3 col-sm-3 col-md-3">
+								<div class="form-group">
+									<label for="nsv_aliasvote_check_option2" id="nsv_aliasvote_check_option2_lb">OPTION 2</label>
+									<input type="text" class="form-control" name="id" id="nsv_aliasvote_check_option2" autofocus tabindex="3" />
+								</div>
+							</div>
+							<div class="col-xs-3 col-sm-3 col-md-3">
+								<div class="form-group">
+									<label for="nsv_aliasvote_check_option3" id="nsv_aliasvote_check_option3_lb" >OPTION 3</label>
+									<input type="text" class="form-control" name="id" id="nsv_aliasvote_check_option3" autofocus tabindex="4" />
+								</div>
+							</div>
+							<div class="col-xs-3 col-sm-3 col-md-3">
+								<div class="form-group">
+									<label for="nsv_aliasvote_check_option4" id="nsv_aliasvote_check_option4_lb" >OPTION 4</label>
+									<input type="text" class="form-control" name="id" id="nsv_aliasvote_check_option4" autofocus tabindex="5" />
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-xs-3 col-sm-3 col-md-3">
+								<div class="form-group">
+									<label for="nsv_aliasvote_check_percent1" id="nsv_aliasvote_check_percent1_lb" >PERCENT 1</label>
+									<input type="text" class="form-control" name="id" id="nsv_aliasvote_check_percent1" autofocus tabindex="6" disabled/>
+								</div>
+							</div>
+							<div class="col-xs-3 col-sm-3 col-md-3">
+								<div class="form-group">
+									<label for="nsv_aliasvote_check_percent2 "id="nsv_aliasvote_check_percent2_lb" >PERCENT 2</label>
+									<input type="text" class="form-control" name="id" id="nsv_aliasvote_check_percent2" autofocus tabindex="7" disabled/>
+								</div>
+							</div>
+							<div class="col-xs-3 col-sm-3 col-md-3">
+								<div class="form-group">
+									<label for="nsv_aliasvote_check_percent3" id="nsv_aliasvote_check_percent3_lb" >PERCENT 3</label>
+									<input type="text" class="form-control" name="id" id="nsv_aliasvote_check_percent3" autofocus tabindex="8" disabled/>
+								</div>
+							</div>
+							<div class="col-xs-3 col-sm-3 col-md-3">
+								<div class="form-group">
+									<label for="nsv_aliasvote_check_percent4" id="nsv_aliasvote_check_percent4_lb" >PERCENT 4 </label>
+									<input type="text" class="form-control" name="id" id="nsv_aliasvote_check_percent4" autofocus tabindex="9" disabled/>
+								</div>
+							</div>
+						</div>
+						<div class="col-xs-13 col-sm-13 col-md-13">
+							<div class="form-group">
+								<label for="nsv_aliasvote_check_details">ADVANCED DETAILS ON VOTES</label> <i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="This shows which accounts voted for which account and how much weighting each account had" data-container="body"></i>
+								<textarea class="form-control" id="nsv_aliasvote_check_details" rows="8" tabindex="10" readonly ></textarea>
+							</div>
+						</div>
+						<input type="checkbox" name="Issuer" id="nsv_aliasvote_issuer" value="option1" ><label id="nsv_aliasvote_issuer_lb">Exclude Issuer Account </label><i class="fa fa-question-circle show_popover" style="color:#4CAA6E" data-content="Click this if to exclude transactions from issuer account" data-container="body"></i>
+					</form>
+					<div class="callout account_info" style="display:none;margin-bottom: 0;"></div>
+					<div class="alert-danger alert alert-no-icon" id="nsv_aliasvote_check_error_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+					<div class="alert-success alert alert-no-icon" id="nsv_aliasvote_check_succ_message" style="display: none;padding: 5px; padding-left: 5px; margin-bottom: 15px;"></div>
+				</div>
+				<div class="modal-footer" style="margin-top:0;">
+
+					<button type="button" class="btn btn-default" data-dismiss="modal" id="nsv_aliasvote_check_cancel">Cancel</button>
+					<button type="button" class="btn btn-success" data-loading-text="Submitting..." id ="nsv_aliasvote_check_but" onclick="NSV.aliasvote_check_activate()">Check Poll</button>
+				</div>
+			</div>
+		</div>
+		</div>
+
+		<div class="modal fade" id="create_poll_modal" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h4 class="modal-title" data-i18n="create_poll">Create Poll</h4>
+					</div>
+					<div class="modal-body">
+						<form role="form" autocomplete="off">
+							<div class="callout callout-danger error_message" style="display:none"></div>
+							<div class="form-group">
+								<label for="create_poll_name" data-i18n="name">NAME</label>
+								<input type="text" class="form-control" name="name" id="create_poll_name" placeholder="Poll Name" data-i18n="[placeholder]poll_name" autofocus tabindex="1" />
+							</div>
+							<div class="form-group">
+								<label for="create_poll_description" data-i18n="description">DESCRIPTION</label>
+								<textarea class="form-control" id="create_poll_description" name="description" rows="3" tabindex="2"></textarea>
+							</div>
+							<div class="form-group" id="create_poll_answers">
+								<label data-i18n="answers">ANSWERS</label>
+								<div class="form-group">
+									<div class="input-group">
+										<input type="text" class="form-control create_poll_answers" name="create_poll_answers[]" placeholder="Answer" data-i18n="[placeholder]answer" tabindex="3" />
+										<span class="input-group-btn">
+											<button class="btn remove_answer" type="button"><i class="fa fa-minus" style="color:white"></i></button>
+										</span>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="input-group">
+										<input type="text" class="form-control create_poll_answers" name="create_poll_answers[]" placeholder="Answer" data-i18n="[placeholder]answer" tabindex="3" />
+										<span class="input-group-btn">
+											<button class="btn remove_answer" type="button"><i class="fa fa-minus" style="color:white"></i></button>
+										</span>
+									</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<a href="#" class="btn btn-primary" id="create_poll_answers_add"><i class="fa fa-plus"></i> <span data-i18n="add_answer">Add answer</span></a>
+							</div>
+							<div class="row">
+								<div class="col-xs-6 col-sm-6 col-md-6">
+									<div class="form-group">
+										<label for="create_poll_min_options" data-i18n="minimum_nr_choices">MINIMUM NR OF CHOICES</label>
+										<input type="number" name="minNumberOfOptions" id="create_poll_min_options" min="1" class="form-control" placeholder="" data-default="1" value="1" tabindex="4">
+									</div>
+								</div>
+								<div class="col-xs-6 col-sm-6 col-md-6">
+									<div class="form-group">
+										<label for="create_poll_max_options" data-i18n="maximum_nr_choices">MAXIMUM NR OF CHOICES</label>
+										<input type="number" name="maxNumberOfOptions" id="create_poll_max_options" min="1" class="form-control" placeholder="" data-default="1" value="1" tabindex="5">
+									</div>
+								</div>
+							</div>
+							<div class="row advanced">
+								<div class="col-xs-6 col-sm-6 col-md-6">
+									<div class="form-group">
+										<label for="create_poll_fee" data-i18n="fee">FEE</label>
+										<div class="input-group">
+											<input type="number" name="feeNXT" id="create_poll_fee" class="form-control" step="any" min="1" placeholder="Fee" data-i18n="[placeholder]fee" data-default="1" value="1" tabindex="3">
+											<span class="input-group-addon">BURST</span>
+										</div>
+									</div>
+								</div>
+								<div class="col-xs-6 col-sm-6 col-md-6">
+									<div class="form-group">
+										<label for="create_poll_deadline" data-i18n="deadline_hours">DEADLINE (HOURS)</label>
+										<input type="number" name="deadline" id="create_poll_deadline" class="form-control" placeholder="Deadline" data-i18n="[placeholder]deadline" min="1" data-default="24" value="24" tabindex="4">
+									</div>
+								</div>
+							</div>
+							<div class="form-group secret_phrase">
+								<label for="create_poll_password" data-i18n="passphrase">PASSPHRASE</label>
+								<input type="password" name="secretPhrase" id="create_poll_password" class="form-control" placeholder="" tabindex="8">
+							</div>
+							<div class="form-group advanced">
+								<label for="create_poll_referenced_transaction" data-i18n="referenced_transaction_hash">REFERENCED TRANSACTION HASH</label>
+								<input type="text" class="form-control" name="referencedTransactionFullHash" id="create_poll_referenced_transaction" placeholder="Referenced Transaction Full Hash" data-i18n="referenced_transaction_full_hash" tabindex="6" spellcheck="false" />
+							</div>
+							<div class="form-group advanced" style="margin-bottom:0;">
+								<input type="checkbox" name="doNotBroadcast" id="create_poll_do_not_broadcast" value="1" /> <label for="create_poll_do_not_broadcast" style="font-weight:normal;" tabindex="7" data-i18n="do_not_broadcast">Do Not Broadcast</label>
+							</div>
+							<input type="hidden" name="request_type" value="createPoll" />
+						</form>
+					</div>
+					<div class="modal-footer" style="margin-top:0;">
+						<div class="advanced_info"><strong data-i18n="fee">Fee</strong>: <span class="advanced_fee">1 BURST</span> - <a href="#" data-i18n="advanced">advanced</a></div>
+
+						<button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+						&nbsp;&nbsp;
+						<button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="create_poll;[data-loading-text]submitting">Create Poll</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- http://bootsnipp.com/search?q=poll -->
+
+		<div class="modal fade" id="cast_vote_modal" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h4 class="modal-title" data-i18n="cast_vote">Cast Vote</h4>
+					</div>
+					<div class="modal-body">
+						<form role="form" autocomplete="off">
+							<div class="callout callout-danger error_message" style="display:none"></div>
+							<div class="form-group">
+								<label for="cast_vote_poll_name" data-i18n="name">NAME</label>
+								<input type="text" class="form-control" name="name" id="cast_vote_poll_name" placeholder="Poll Name" data-i18n="[placeholder]poll_name" autofocus tabindex="1" />
+							</div>
+							<div class="form-group">
+								<label for="cast_vote_poll_description" data-i18n="description">DESCRIPTION</label>
+								<textarea class="form-control" id="cast_vote_poll_description" name="description" rows="3" tabindex="2"></textarea>
+							</div>
+							<div class="form-group" id="cast_vote_answers">
+								<label data-i18n="answers">ANSWERS</label>
+								<div class="form-group">
+									<div class="input-group">
+										<input type="text" class="form-control cast_vote_answers" name="cast_vote_answers[]" placeholder="Answer" data-i18n="[placeholder]answer" tabindex="3" />
+										<span class="input-group-btn">
+											<button class="btn remove_answer" type="button"><i class="fa fa-minus" style="color:white"></i></button>
+										</span>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="input-group">
+										<input type="text" class="form-control cast_vote_answers" name="cast_vote_answers[]" placeholder="Answer" data-i18n="[placeholder]answer" tabindex="3" />
+										<span class="input-group-btn">
+											<button class="btn remove_answer" type="button"><i class="fa fa-minus" style="color:white"></i></button>
+										</span>
+									</div>
+								</div>
+							</div>
+							<div class="form-group secret_phrase">
+								<label for="cast_vote_password" data-i18n="passphrase">PASSPHRASE</label>
+								<input type="password" name="secretPhrase" id="cast_vote_password" class="form-control" placeholder="" tabindex="8">
+							</div>
+							<div class="form-group advanced">
+								<label for="cast_vote_referenced_transaction" data-i18n="referenced_transaction_hash">REFERENCED TRANSACTION HASH</label>
+								<input type="text" class="form-control" name="referencedTransactionFullHash" id="cast_vote_referenced_transaction" placeholder="Referenced Transaction Full Hash" data-i18n="[placeholder]referenced_transaction_full_hash" tabindex="6" spellcheck="false" />
+							</div>
+							<div class="form-group advanced" style="margin-bottom:0;">
+								<input type="checkbox" name="doNotBroadcast" id="cast_vote_do_not_broadcast" value="1" /> <label for="cast_vote_do_not_broadcast" style="font-weight:normal;" tabindex="7"> <span data-i18n="do_not_broadcast">Do Not Broadcast</span></label>
+							</div>
+							<input type="hidden" name="request_type" value="castVote" />
+						</form>
+					</div>
+					<div class="modal-footer" style="margin-top:0;">
+						<button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
+						&nbsp;&nbsp;
+						<button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="cast_vote;[data-loading-text]submitting">Cast Vote</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--end Dividends+ code-->
+
             <div class="modal fade" id="send_money_modal" tabindex="-1" role="dialog" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-700">
                     <div class="modal-content">
@@ -5212,6 +6066,8 @@
         <script src="js/nrs.modals.subscription.js" type="text/javascript"></script>
         <script src="js/nrs.at.js" type="text/javascript"></script>
         <script src="js/nrs.crowdfunding.js" type="text/javascript"></script>
+	<script src="js/nsv.dividends.js" type="text/javascript"></script>   <!--additional Dividends+ code-->
+	<script src="js/nsv.voting.js" type="text/javascript"></script>   <!--additional Dividends+ code-->
     </body>
     <!--atcrowdfund script-->
     <script type="text/javascript">

@@ -386,6 +386,99 @@ var NRS = (function(NRS, $, undefined) {
 			"stop": true
 		};
 	}
+	NRS.exportContacts = function() {
+		if (NRS.contacts && (Object.keys(NRS.contacts).length > 0)) {
+			var contacts_download = document.createElement('a');
+			contacts_download.href = 'data:attachment/json,' + JSON.stringify( NRS.contacts );
+			contacts_download.target = '_blank';
+			contacts_download.download = 'contacts.json';
+			document.body.appendChild(contacts_download);
+			contacts_download.click();
+			document.body.removeChild(contacts_download);
+		} else {
+			console.log('No contacts found in database to backup');
+		}
+	}
+	$("#export_contacts_button").on("click", function() {
+		NRS.exportContacts();
+	});
+	NRS.importContacts = function(imported_contacts) {
+		console.log('Import contacts called');
+		console.log(imported_contacts);
 
+		$.each(imported_contacts, function(index, imported_contact) {
+			console.log('Importing contact ' + imported_contact.name);
+			
+			NRS.database.select("contacts", [{
+				"account": imported_contact.account
+			}, {
+				"name": imported_contact.name
+			}], function(error, contacts) {
+				if (contacts && contacts.length) {
+					if (contacts[0].name == imported_contact.name) {
+						//$modal.find(".error_message").html($.t("error_contact_name_exists")).show();
+						$.growl($.t("error_contact_name_exists")).show();
+						console.log('Error, contact already exists with same name:'+imported_contact.name);
+					} else {
+						//$modal.find(".error_message").html($.t("error_contact_account_id_exists")).show();
+						$.growl($.t("error_contact_account_id_exists")).show();
+						console.log('Error, contact already exists with same account ID:'+imported_contact.account);
+					}
+					/*$btn.button("reset");
+					$modal.modal("unlock");*/
+				} else {
+					NRS.database.insert("contacts", {
+						name: imported_contact.name,
+						email: imported_contact.email,
+						account: imported_contact.account,
+						accountRS: imported_contact.accountRS,
+						description: imported_contact.description
+					}, function(error) {
+						NRS.contacts[imported_contact.account] = {
+							name: imported_contact.name,
+							email: imported_contact.email,
+							account: imported_contact.account,
+							accountRS: imported_contact.accountRS,
+							description: imported_contact.description
+						};
+
+						setTimeout(function() {
+							/*$btn.button("reset");
+							$modal.modal("unlock");
+							$modal.modal("hide");*/
+							$.growl($.t("success_contact_add"), {
+								"type": "success"
+							});
+
+							if (NRS.currentPage == "contacts") {
+								NRS.loadPage("contacts");
+							} else if (NRS.currentPage == "messages" && NRS.selectedContext) {
+								var heading = NRS.selectedContext.find("h4.list-group-item-heading");
+								if (heading.length) {
+									heading.html(imported_contact.name.escapeHTML());
+								}
+								NRS.selectedContext.data("context", "messages_sidebar_update_context");
+							}
+						}, 50);
+					});
+				}
+			});
+		});
+	}
+	$("#import_contacts_button_field").css({'display':'none'});
+	$("#import_contacts_button_field").on("change", function(button_event) {
+		button_event.preventDefault();
+		var file = $("#import_contacts_button_field")[0].files[0];
+		var reader = new FileReader();
+		reader.onload = function (read_event) {
+			var imported_contacts = JSON.parse(read_event.target.result);
+			NRS.importContacts(imported_contacts);
+		};
+		reader.readAsText(file);
+		return false;
+	});
+	$("#import_contacts_button").on("click", function() {
+		$("#import_contacts_button_field").click();
+	});
 	return NRS;
 }(NRS || {}, jQuery));
