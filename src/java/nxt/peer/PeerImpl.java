@@ -210,6 +210,11 @@ final class PeerImpl implements Peer {
     }
 
     @Override
+    public boolean isRebroadcastTarget() {
+        return announcedAddress != null && Peers.rebroadcastPeers.contains(announcedAddress);
+    }
+
+    @Override
     public Hallmark getHallmark() {
         return hallmark;
     }

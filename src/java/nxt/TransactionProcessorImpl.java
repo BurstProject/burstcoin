@@ -20,18 +20,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 final class TransactionProcessorImpl implements TransactionProcessor {
 
     private static final boolean enableTransactionRebroadcasting = Nxt.getBooleanProperty("nxt.enableTransactionRebroadcasting");
     private static final boolean testUnconfirmedTransactions = Nxt.getBooleanProperty("nxt.testUnconfirmedTransactions");
+
+    private static final int rebroadcastAfter = Nxt.getIntProperty("burst.rebroadcastAfter") != 0 ? Nxt.getIntProperty("burst.rebroadcastAfter") : 4;
+    private static final int rebroadcastEvery = Nxt.getIntProperty("burst.rebroadcastEvery") != 0 ? Nxt.getIntProperty("burst.rebroadcastEvery") : 2;
 
     private static final TransactionProcessorImpl instance = new TransactionProcessorImpl();
 
@@ -107,6 +105,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
     private final Set<TransactionImpl> nonBroadcastedTransactions = Collections.newSetFromMap(new ConcurrentHashMap<TransactionImpl,Boolean>());
     private final Listeners<List<? extends Transaction>,Event> transactionListeners = new Listeners<>();
     private final Set<TransactionImpl> lostTransactions = new HashSet<>();
+    private final Map<Long, Integer> lostTransactionHeights = new HashMap<>();
 
     private final Runnable removeUnconfirmedTransactionsThread = new Runnable() {
 
@@ -178,7 +177,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                     }
 
                     if (transactionList.size() > 0) {
-                        Peers.sendToSomePeers(transactionList);
+                        Peers.rebroadcastTransactions(transactionList);
                     }
 
                 } catch (Exception e) {
@@ -208,8 +207,40 @@ final class TransactionProcessorImpl implements TransactionProcessor {
             try {
                 try {
                     synchronized (BlockchainImpl.getInstance()) {
-                        processTransactions(lostTransactions, false);
-                        lostTransactions.clear();
+                        if(lostTransactions.size() > 0) {
+                            List<Transaction> reAdded = processTransactions(lostTransactions, false);
+
+                            if(enableTransactionRebroadcasting && Nxt.getEpochTime() - Nxt.getBlockchain().getLastBlock().getTimestamp() < 4 * 60) {
+                                List<Transaction> rebroadcastLost = new ArrayList<>();
+                                for (Transaction lost : reAdded) {
+                                    if (lostTransactionHeights.containsKey(lost.getId())) {
+                                        int addedHeight = lostTransactionHeights.get(lost.getId());
+                                        if (Nxt.getBlockchain().getHeight() - addedHeight >= rebroadcastAfter
+                                                && (Nxt.getBlockchain().getHeight() - addedHeight - rebroadcastAfter) % rebroadcastEvery == 0) {
+                                            rebroadcastLost.add(lost);
+                                        }
+                                    } else {
+                                        lostTransactionHeights.put(lost.getId(), Nxt.getBlockchain().getHeight());
+                                    }
+                                }
+
+                                for(Transaction lost : rebroadcastLost) {
+                                    if(!nonBroadcastedTransactions.contains(lost)) {
+                                        nonBroadcastedTransactions.add((TransactionImpl)lost);
+                                    }
+                                }
+
+                                Iterator<Long> it = lostTransactionHeights.keySet().iterator();
+                                while(it.hasNext()) {
+                                    long id = it.next();
+                                    if(getUnconfirmedTransaction(id) == null) {
+                                        it.remove();
+                                    }
+                                }
+                            }
+
+                            lostTransactions.clear();
+                        }
                     }
                     Peer peer = Peers.getAnyPeer(Peer.State.CONNECTED, true);
                     if (peer == null) {

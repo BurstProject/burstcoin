@@ -6,11 +6,7 @@ import nxt.Constants;
 import nxt.Nxt;
 import nxt.Transaction;
 import nxt.db.Db;
-import nxt.util.JSON;
-import nxt.util.Listener;
-import nxt.util.Listeners;
-import nxt.util.Logger;
-import nxt.util.ThreadPool;
+import nxt.util.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -64,6 +60,8 @@ public final class Peers {
 
     private static final int connectWellKnownFirst;
     private static boolean connectWellKnownFinished;
+
+    static final Set<String> rebroadcastPeers;
 
     static final int connectTimeout;
     static final int readTimeout;
@@ -162,8 +160,15 @@ public final class Peers {
         json.put("requestType", "getInfo");
         myPeerInfoRequest = JSON.prepareRequest(json);
 
+        rebroadcastPeers = Collections.unmodifiableSet(new HashSet<>(Nxt.getStringListProperty("burst.rebroadcastPeers")));
+
         List<String> wellKnownPeersList = Constants.isTestnet ? Nxt.getStringListProperty("nxt.testnetPeers")
                 : Nxt.getStringListProperty("nxt.wellKnownPeers");
+        for(String rePeer : rebroadcastPeers) {
+            if(!wellKnownPeersList.contains(rePeer)) {
+                wellKnownPeersList.add(rePeer);
+            }
+        }
         if (wellKnownPeersList.isEmpty() || Constants.isOffline) {
             wellKnownPeers = Collections.emptySet();
         } else {
@@ -707,6 +712,50 @@ public final class Peers {
                 }
             }
         });
+    }
+
+    public static void rebroadcastTransactions(List<Transaction> transactions) {
+        String info = "Rebroadcasting transactions: ";
+        for(Transaction tx : transactions) {
+            info = info + Convert.toUnsignedLong(tx.getId()) + " ";
+        }
+        info = info + "\n to peers ";
+        for(Peer peer : peers.values()) {
+            if(peer.isRebroadcastTarget()) {
+                info = info + peer.getPeerAddress() + " ";
+            }
+        }
+        Logger.logInfoMessage(info);
+
+        JSONObject request = new JSONObject();
+        JSONArray transactionsData = new JSONArray();
+        for (Transaction transaction : transactions) {
+            transactionsData.add(transaction.getJSONObject());
+        }
+        request.put("requestType", "processTransactions");
+        request.put("transactions", transactionsData);
+
+        final JSONObject requestFinal = request;
+
+        sendingService.submit(new Runnable() {
+            @Override
+            public void run() {
+                final JSONStreamAware jsonRequest = JSON.prepareRequest(requestFinal);
+
+                for (final Peer peer : peers.values()) {
+                    if(peer.isRebroadcastTarget()) {
+                        sendToPeersService.submit(new Callable<JSONObject>() {
+                            @Override
+                            public JSONObject call() {
+                                return peer.send(jsonRequest);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+
+        sendToSomePeers(request); // send to some normal peers too
     }
 
 
