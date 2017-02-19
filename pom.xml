@@ -6,7 +6,7 @@
 
   <groupId>burstcoin</groupId>
   <artifactId>burstcoin</artifactId>
-  <version>1.2.8b</version>
+  <version>1.2.8</version>
 
   <packaging>jar</packaging>
 

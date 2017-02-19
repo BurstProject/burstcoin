@@ -26,9 +26,10 @@ The world's first HDD-mined cryptocurrency using the new algorithm, Proof-of-Cap
 
 ## Version History
 
-- 2016/16/11 New version release Burst 1.2.7
-- 2016/27/07 New version release Burst 1.2.6
-- 2016/19/07 New version release Burst 1.2.5
+- 2017/02/24 New version release Burst 1.2.8
+- 2016/11/16 New version release Burst 1.2.7
+- 2016/07/27 New version release Burst 1.2.6
+- 2016/07/19 New version release Burst 1.2.5
 - 2016/06/07 New version release Burst 1.2.4            
 - 2016/01/11 Community takeover
 - 2015/04/20 New version release Burst 1.2.3
@@ -81,9 +82,11 @@ https://github.com/IceBurst/Burst *Burst for Android*
 
 https://github.com/dawallet/ *Burstcoin Win Client, Android App*
 
-https://github.com/Blagodarenko  *Blago's Windows Miner, PlotsChecker, etc.*
+https://github.com/Blagodarenko  *Blago's XPlotter, Windows Miner, PlotsChecker, etc.*
 
-https://github.com/de-luxe *GPU assisted jMiner, Faucet Software, Address generator*
+https://github.com/de-luxe *GPU assisted jMiner, Faucet Software, Observer, AddressGenerator*
+
+https://github.com/Creepsky/creepMiner *C++ Crossplatform Miner*
 
 https://github.com/BurstTools/BurstSoftware *Windows Plot Generator for SEE4/AVX2*
 
