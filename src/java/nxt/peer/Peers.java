@@ -725,7 +725,7 @@ public final class Peers {
                 info = info + peer.getPeerAddress() + " ";
             }
         }
-        Logger.logInfoMessage(info);
+        Logger.logDebugMessage(info);
 
         JSONObject request = new JSONObject();
         JSONArray transactionsData = new JSONArray();
