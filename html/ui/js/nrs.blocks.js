@@ -243,7 +243,7 @@ var NRS = (function(NRS, $, undefined) {
 
 					var blockIds = response.blockIds.slice(0, 100);
 
-					if (response.blockIds.length > 100) {
+					if (response.blockIds.length > 500) {
 						$("#blocks_page_forged_warning").show();
 					}
 
@@ -350,7 +350,7 @@ var NRS = (function(NRS, $, undefined) {
 		$("#blocks_average_amount").html(NRS.formatStyledAmount(averageAmount)).removeClass("loading_dots");
 
 		if (NRS.blocksPageType == "forged_blocks") {
-			if (blocks.length == 100) {
+			if (blocks.length == 500) {
 				var blockCount = blocks.length + "+";
 			} else {
 				var blockCount = blocks.length;
