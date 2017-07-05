@@ -1,0 +1,11 @@
+/*.iml
+/dist
+/.idea
+burst.jar
+burst_test_db
+burst_db
+nxt.log
+/conf/logging.properties
+/conf/nxt.properties
+nxt.log.lck
+

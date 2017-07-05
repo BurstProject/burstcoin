@@ -917,6 +917,9 @@ var NRS = (function(NRS, $, undefined) {
 						break;
 					}
 				}
+			} else {
+
+				onAFork = false;
 			}
 
 			if (onAFork) {

@@ -346,8 +346,9 @@ final class DbVersion {
             case 103:
                 apply("CREATE UNIQUE INDEX IF NOT EXISTS account_id_height_idx ON account (id, height DESC)");
             case 104:
-                apply("CREATE INDEX IF NOT EXISTS account_current_lessee_id_leasing_height_idx ON account (current_lessee_id, "
-                        + "current_leasing_height_to DESC)");
+                //apply("CREATE INDEX IF NOT EXISTS account_current_lessee_id_leasing_height_idx ON account (current_lessee_id, "
+                //        + "current_leasing_height_to DESC)");
+                apply(null);
             case 105:
                 apply("CREATE TABLE IF NOT EXISTS account_asset (db_id IDENTITY, account_id BIGINT NOT NULL, "
                         + "asset_id BIGINT NOT NULL, quantity BIGINT NOT NULL, unconfirmed_quantity BIGINT NOT NULL, height INT NOT NULL, "
@@ -355,11 +356,13 @@ final class DbVersion {
             case 106:
                 apply("CREATE UNIQUE INDEX IF NOT EXISTS account_asset_id_height_idx ON account_asset (account_id, asset_id, height DESC)");
             case 107:
-                apply("CREATE TABLE IF NOT EXISTS account_guaranteed_balance (db_id IDENTITY, account_id BIGINT NOT NULL, "
-                        + "additions BIGINT NOT NULL, height INT NOT NULL)");
+                //apply("CREATE TABLE IF NOT EXISTS account_guaranteed_balance (db_id IDENTITY, account_id BIGINT NOT NULL, "
+                //        + "additions BIGINT NOT NULL, height INT NOT NULL)");
+                apply(null);
             case 108:
-                apply("CREATE UNIQUE INDEX IF NOT EXISTS account_guaranteed_balance_id_height_idx ON account_guaranteed_balance "
-                        + "(account_id, height DESC)");
+                //apply("CREATE UNIQUE INDEX IF NOT EXISTS account_guaranteed_balance_id_height_idx ON account_guaranteed_balance "
+                //        + "(account_id, height DESC)");
+                apply(null);
             case 109:
                 apply("CREATE TABLE IF NOT EXISTS purchase_feedback (db_id IDENTITY, id BIGINT NOT NULL, feedback_data VARBINARY NOT NULL, "
                         + "feedback_nonce BINARY(32) NOT NULL, height INT NOT NULL, latest BOOLEAN NOT NULL DEFAULT TRUE)");
@@ -471,6 +474,24 @@ final class DbVersion {
             	BlockchainProcessorImpl.getInstance().forceScanAtStart();
                 apply(null);
             case 154:
+                apply("DROP INDEX IF EXISTS account_guaranteed_balance_id_height_idx");
+            case 155:
+                apply("DROP TABLE IF EXISTS account_guaranteed_balance");
+            case 156:
+                apply("DROP INDEX IF EXISTS account_current_lessee_id_leasing_height_idx");
+            case 157:
+                apply("ALTER TABLE account DROP COLUMN IF EXISTS current_leasing_height_from");
+            case 158:
+                apply("ALTER TABLE account DROP COLUMN IF EXISTS current_leasing_height_to");
+            case 159:
+                apply("ALTER TABLE account DROP COLUMN IF EXISTS current_lessee_id");
+            case 160:
+                apply("ALTER TABLE account DROP COLUMN IF EXISTS next_leasing_height_from");
+            case 161:
+                apply("ALTER TABLE account DROP COLUMN IF EXISTS next_leasing_height_to");
+            case 162:
+                apply("ALTER TABLE account DROP COLUMN IF EXISTS next_lessee_id");
+            case 163:
                 return;
             default:
                 throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");

@@ -473,7 +473,13 @@ final class TransactionImpl implements Transaction {
             buffer.put((byte) ((version << 4) | type.getSubtype()));
             buffer.putInt(timestamp);
             buffer.putShort(deadline);
-            buffer.put(senderPublicKey);
+            if(type.isSigned() || Nxt.getBlockchain().getHeight() < Constants.AT_FIX_BLOCK_4) {
+                buffer.put(senderPublicKey);
+            }
+            else {
+                buffer.putLong(senderId);
+                buffer.put(new byte[24]);
+            }
             buffer.putLong(type.hasRecipient() ? recipientId : Genesis.CREATOR_ID);
             if (useNQT()) {
                 buffer.putLong(amountNQT);
@@ -702,7 +708,7 @@ final class TransactionImpl implements Transaction {
         return Long.compare(this.getId(), other.getId());
     }
 
-    public boolean verifySignature() {
+    public boolean verifyPublicKey() {
         Account account = Account.getAccount(getSenderId());
         if (account == null) {
             return false;
@@ -710,8 +716,12 @@ final class TransactionImpl implements Transaction {
         if (signature == null) {
             return false;
         }
+        return account.setOrVerify(senderPublicKey, this.getHeight());
+    }
+
+    public boolean verifySignature() {
         byte[] data = zeroSignature(getBytes());
-        return Crypto.verify(signature, data, senderPublicKey, useNQT()) && account.setOrVerify(senderPublicKey, this.getHeight());
+        return Crypto.verify(signature, data, senderPublicKey, useNQT());
     }
 
     int getSize() {
