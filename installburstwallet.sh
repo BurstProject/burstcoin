@@ -44,8 +44,8 @@ git clone https://github.com/burst-team/burstcoin burstwallet
 cd ${CWD}/burstwallet
 ./compile.sh
 # modify some constants
-sed -i 's@rebroadcastAfter=4@rebroadcastAfter=12@' ${CWD}/burstwallet/conf/nxt-dedault.properties
-sed -i 's@rebroadcastEvery=2@rebroadcastEvery=6@' ${CWD}/burstwallet/conf/nxt-dedault.properties
+sed -i 's@rebroadcastAfter=4@rebroadcastAfter=12@' ${CWD}/burstwallet/conf/nxt-default.properties
+sed -i 's@rebroadcastEvery=2@rebroadcastEvery=6@' ${CWD}/burstwallet/conf/nxt-default.properties
 
 cd ${CWD}
 chown -R ${USER}:${USER} ${CWD}/burstwallet
