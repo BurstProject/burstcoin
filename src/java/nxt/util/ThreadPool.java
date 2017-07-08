@@ -15,6 +15,7 @@ public final class ThreadPool {
 
     private static ScheduledExecutorService scheduledThreadPool;
     private static Map<Runnable,Long> backgroundJobs = new HashMap<>();
+    private static Map<Runnable,Long> backgroundJobsCores = new HashMap<>();
     private static List<Runnable> beforeStartJobs = new ArrayList<>();
     private static List<Runnable> lastBeforeStartJobs = new ArrayList<>();
     private static List<Runnable> afterStartJobs = new ArrayList<>();
@@ -49,6 +50,13 @@ public final class ThreadPool {
         }
     }
 
+    public static synchronized void scheduleThreadCores(String name, Runnable runnable, int delay) {
+        if (scheduledThreadPool != null) {
+            throw new IllegalStateException("Executor service already started, no new jobs accepted");
+        }
+        backgroundJobsCores.put(runnable, 1000L * delay);
+    }
+
     public static synchronized void start(int timeMultiplier) {
         if (scheduledThreadPool != null) {
             throw new IllegalStateException("Executor service already started");
@@ -62,12 +70,21 @@ public final class ThreadPool {
         runAll(lastBeforeStartJobs);
         lastBeforeStartJobs = null;
 
-        Logger.logDebugMessage("Starting " + backgroundJobs.size() + " background jobs");
-        scheduledThreadPool = Executors.newScheduledThreadPool(backgroundJobs.size());
+	int cores = Runtime.getRuntime().availableProcessors();
+	int totalThreads = backgroundJobs.size() + backgroundJobsCores.size() * cores;
+        Logger.logDebugMessage("Starting " + String.valueOf(totalThreads) + " background jobs");
+        scheduledThreadPool = Executors.newScheduledThreadPool(totalThreads);
         for (Map.Entry<Runnable,Long> entry : backgroundJobs.entrySet()) {
             scheduledThreadPool.scheduleWithFixedDelay(entry.getKey(), 0, Math.max(entry.getValue() / timeMultiplier, 1), TimeUnit.MILLISECONDS);
         }
         backgroundJobs = null;
+	
+	// Starting multicore-Threads:
+        for (Map.Entry<Runnable,Long> entry : backgroundJobsCores.entrySet()) {
+	    for(int i=0; i < cores; i++)
+	            scheduledThreadPool.scheduleWithFixedDelay(entry.getKey(), 0, Math.max(entry.getValue() / timeMultiplier, 1), TimeUnit.MILLISECONDS);
+        }
+        backgroundJobsCores = null;
 
         Logger.logDebugMessage("Starting " + afterStartJobs.size() + " delayed tasks");
         Thread thread = new Thread() {

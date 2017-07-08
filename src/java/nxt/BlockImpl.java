@@ -4,6 +4,7 @@ import nxt.crypto.Crypto;
 import nxt.util.Convert;
 import nxt.util.Logger;
 import nxt.util.MiningPlot;
+import nxt.peer.Peer;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -45,7 +46,12 @@ final class BlockImpl implements Block {
     private volatile long generatorId;
     private long nonce;
 
+    private BigInteger pocTime = null;
+
     private final byte[] blockATs;
+
+    private Peer downloadedFrom = null;
+    private int byteLength = 0;
 
     BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
               byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions, long nonce, byte[] blockATs)
@@ -95,6 +101,26 @@ final class BlockImpl implements Block {
         this.nextBlockId = nextBlockId;
         this.height = height;
         this.id = id;
+    }
+
+    public boolean isVerified() {
+	return pocTime != null;
+    }
+
+    public void setPeer(Peer peer) {
+	this.downloadedFrom = peer;
+    }
+
+    public Peer getPeer() {
+	return this.downloadedFrom;
+    }
+
+    public void setByteLength(int length) {
+	this.byteLength = length;
+    }
+
+    public int getByteLength() {
+	return this.byteLength;
     }
 
     @Override
@@ -185,10 +211,11 @@ final class BlockImpl implements Block {
 
     @Override
     public int getHeight() {
-        if (height == -1) {
-            throw new IllegalStateException("Block height not yet set");
-        }
         return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
     }
 
     @Override
@@ -231,14 +258,7 @@ final class BlockImpl implements Block {
     
     @Override
     public int getScoopNum() {
-    	ByteBuffer posbuf = ByteBuffer.allocate(32 + 8);
-		posbuf.put(generationSignature);
-		posbuf.putLong(getHeight());
-		Shabal256 md = new Shabal256();
-		md.update(posbuf.array());
-		BigInteger hashnum = new BigInteger(1, md.digest());
-		int scoopNum = hashnum.mod(BigInteger.valueOf(MiningPlot.SCOOPS_PER_PLOT)).intValue();
-		return scoopNum;
+		return Nxt.getGenerator().calculateScoop(generationSignature, getHeight());
     }
 
     @Override
@@ -390,57 +410,68 @@ final class BlockImpl implements Block {
 
     }
 
-    boolean verifyGenerationSignature() throws BlockchainProcessor.BlockOutOfOrderException {
+    boolean verifyGenerationSignature() throws BlockchainProcessor.BlockNotAcceptedException {
+	try {
+	    BlockImpl previousBlock = (BlockImpl)Nxt.getBlockchain().getBlock(this.previousBlockId);
 
-    	try {
+	    if (previousBlock == null) {
+		throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify generation signature because previous block is missing");
+	    }
 
-            BlockImpl previousBlock = (BlockImpl)Nxt.getBlockchain().getBlock(this.previousBlockId);
-            if (previousBlock == null) {
-                throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify generation signature because previous block is missing");
+	    // In case the verifier-Threads are not done with this yet - do it yourself.
+	    synchronized(this) {
+		    if(this.pocTime == null)
+			preVerify();
+	    }
+
+	    byte[] correctGenerationSignature = Nxt.getGenerator().calculateGenerationSignature(previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
+	    if(!Arrays.equals(generationSignature, correctGenerationSignature)) {
+		return false;
+	    }
+	    int elapsedTime = timestamp - previousBlock.timestamp;
+	    BigInteger pTime = this.pocTime.divide(BigInteger.valueOf(previousBlock.getBaseTarget()));
+	    return BigInteger.valueOf(elapsedTime).compareTo(pTime) > 0;
+	} catch (RuntimeException e) {
+	    Logger.logMessage("Error verifying block generation signature", e);
+	    return false;
+	}
+    }
+
+    public void preVerify() throws BlockchainProcessor.BlockNotAcceptedException {
+        preVerify(null);
+    }
+
+    public void preVerify(byte[] scoopData) throws BlockchainProcessor.BlockNotAcceptedException {
+	synchronized(this) {
+		// Remove from todo-list:
+		synchronized(BlockchainProcessorImpl.blockCache) {
+			BlockchainProcessorImpl.unverified.remove(this.getId());
+		}
+
+		// Just in case its already verified
+		if(this.pocTime != null)
+			return;
+
+		try {
+		    // Pre-verify poc:
+            if(scoopData == null) {
+                this.pocTime = Nxt.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, getScoopNum());
             }
-
-            //Account account = Account.getAccount(getGeneratorId());
-
-            ByteBuffer gensigbuf = ByteBuffer.allocate(32 + 8);
-            gensigbuf.put(previousBlock.getGenerationSignature());
-            gensigbuf.putLong(previousBlock.getGeneratorId());
-            
-            Shabal256 md = new Shabal256();
-            md.update(gensigbuf.array());
-            byte[] correctGenerationSignature = md.digest();
-            if(!Arrays.equals(generationSignature, correctGenerationSignature)) {
-            	return false;
+            else {
+                this.pocTime = Nxt.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, scoopData);
             }
-            
-            // verify poc also
-            MiningPlot plot = new MiningPlot(getGeneratorId(), nonce);
-            
-            ByteBuffer posbuf = ByteBuffer.allocate(32 + 8);
-    		posbuf.put(correctGenerationSignature);
-    		posbuf.putLong(previousBlock.getHeight() + 1);
-    		md.reset();
-    		md.update(posbuf.array());
-    		BigInteger hashnum = new BigInteger(1, md.digest());
-    		int scoopNum = hashnum.mod(BigInteger.valueOf(MiningPlot.SCOOPS_PER_PLOT)).intValue();
-    		
-    		md.reset();
-            md.update(correctGenerationSignature);
-            plot.hashScoop(md, scoopNum);
-            byte[] hash = md.digest();
-            BigInteger hit = new BigInteger(1, new byte[] {hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
-            BigInteger hitTime = hit.divide(BigInteger.valueOf(previousBlock.getBaseTarget()));
-            
-            int elapsedTime = timestamp - previousBlock.timestamp;
-            
-            return BigInteger.valueOf(elapsedTime).compareTo(hitTime) > 0;
+		} catch (RuntimeException e) {
+		    Logger.logMessage("Error pre-verifying block generation signature", e);
+		    return;
+		}
 
-        } catch (RuntimeException e) {
-
-            Logger.logMessage("Error verifying block generation signature", e);
-            return false;
-
+        for(TransactionImpl transaction : getTransactions()) {
+            if(!transaction.verifySignature()) {
+                Logger.logMessage("Bad transaction signature during block pre-verification for tx: " + Convert.toUnsignedLong(transaction.getId()) + " at block height: " + getHeight());
+                throw new BlockchainProcessor.TransactionNotAcceptedException("Invalid signature for tx: " + Convert.toUnsignedLong(transaction.getId()) + "at block height: " + getHeight(), transaction);
+            }
         }
-
+	}
     }
 
     void apply() {

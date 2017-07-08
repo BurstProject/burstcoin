@@ -85,18 +85,18 @@ public final class DebugTrace {
                 }
             }, Account.Event.UNCONFIRMED_ASSET_BALANCE);
         }
-        Account.addLeaseListener(new Listener<Account.AccountLease>() {
+        /*Account.addLeaseListener(new Listener<Account.AccountLease>() {
             @Override
             public void notify(Account.AccountLease accountLease) {
                 debugTrace.trace(accountLease, true);
             }
-        }, Account.Event.LEASE_STARTED);
-        Account.addLeaseListener(new Listener<Account.AccountLease>() {
+        }, Account.Event.LEASE_STARTED);*/
+        /*Account.addLeaseListener(new Listener<Account.AccountLease>() {
             @Override
             public void notify(Account.AccountLease accountLease) {
                 debugTrace.trace(accountLease, false);
             }
-        }, Account.Event.LEASE_ENDED);
+        }, Account.Event.LEASE_ENDED);*/
         Nxt.getBlockchainProcessor().addListener(new Listener<Block>() {
             @Override
             public void notify(Block block) {
@@ -194,12 +194,12 @@ public final class DebugTrace {
         log(getValues(accountAsset.getAccountId(), accountAsset, unconfirmed));
     }
 
-    private void trace(Account.AccountLease accountLease, boolean start) {
+    /*private void trace(Account.AccountLease accountLease, boolean start) {
         if (! include(accountLease.lesseeId) && ! include(accountLease.lessorId)) {
             return;
         }
         log(getValues(accountLease.lessorId, accountLease, start));
-    }
+    }*/
 
     private void traceBeforeAccept(Block block) {
         long generatorId = block.getGeneratorId();
@@ -209,11 +209,11 @@ public final class DebugTrace {
         for (long accountId : accountIds) {
             Account account = Account.getAccount(accountId);
             if (account != null) {
-                try (DbIterator<Account> lessors = account.getLessors()) {
+                /*try (DbIterator<Account> lessors = account.getLessors()) {
                     while (lessors.hasNext()) {
                         log(lessorGuaranteedBalance(lessors.next(), accountId));
                     }
-                }
+                }*/
             }
         }
     }
@@ -241,7 +241,7 @@ public final class DebugTrace {
     private Map<String,String> lessorGuaranteedBalance(Account account, long lesseeId) {
         Map<String,String> map = new HashMap<>();
         map.put("account", Convert.toUnsignedLong(account.getId()));
-        map.put("lessor guaranteed balance", String.valueOf(account.getGuaranteedBalanceNQT(1440)));
+        map.put("lessor guaranteed balance", String.valueOf(account.getBalanceNQT()));
         map.put("lessee", Convert.toUnsignedLong(lesseeId));
         map.put("timestamp", String.valueOf(Nxt.getBlockchain().getLastBlock().getTimestamp()));
         map.put("height", String.valueOf(Nxt.getBlockchain().getHeight()));
@@ -307,7 +307,7 @@ public final class DebugTrace {
         map.put("generation fee", String.valueOf(fee));
         map.put("block", block.getStringId());
         map.put("event", "block");
-        map.put("effective balance", String.valueOf(Account.getAccount(accountId).getEffectiveBalanceNXT()));
+        //map.put("effective balance", String.valueOf(Account.getAccount(accountId).getEffectiveBalanceNXT()));
         map.put("timestamp", String.valueOf(block.getTimestamp()));
         map.put("height", String.valueOf(block.getHeight()));
         return map;
@@ -328,7 +328,7 @@ public final class DebugTrace {
         return map;
     }
 
-    private Map<String,String> getValues(long accountId, Account.AccountLease accountLease, boolean start) {
+    /*private Map<String,String> getValues(long accountId, Account.AccountLease accountLease, boolean start) {
         Map<String,String> map = new HashMap<>();
         map.put("account", Convert.toUnsignedLong(accountId));
         map.put("event", start ? "lease begin" : "lease end");
@@ -336,7 +336,7 @@ public final class DebugTrace {
         map.put("height", String.valueOf(Nxt.getBlockchain().getHeight()));
         map.put("lessee", Convert.toUnsignedLong(accountLease.lesseeId));
         return map;
-    }
+    }*/
 
     private Map<String,String> getValues(long accountId, Transaction transaction, Attachment attachment, boolean isRecipient) {
         Map<String,String> map = getValues(accountId, false);

@@ -33,7 +33,7 @@ public final class ParseTransaction extends APIServlet.APIRequestHandler {
             response.put("errorDescription", "Invalid transaction: " + e.toString());
             response.put("error", e.getMessage());
         }
-        response.put("verify", transaction.verifySignature());
+        response.put("verify", transaction.verifySignature() && transaction.verifyPublicKey());
         return response;
     }
 

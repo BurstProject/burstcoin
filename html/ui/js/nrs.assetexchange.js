@@ -674,6 +674,7 @@ var NRS = (function(NRS, $, undefined) {
 		//todo NRS.currentSubPageID ??...
 		NRS.sendRequest("getTrades+" + assetId, {
 			"asset": assetId,
+			"account": ($("#ae_show_my_trades_only").is(":checked")) ? $("#account_id").text() : "",
 			"firstIndex": 0,
 			"lastIndex": 50
 		}, function(response, input) {
@@ -698,6 +699,13 @@ var NRS = (function(NRS, $, undefined) {
 			}
 		});
 	}
+
+	// if this is clicked we can assume there is asset selected
+	// might need to implement some safety check just in case.
+	// LithStud 2016.11.17
+	$("#ae_show_my_trades_only").on("change", function() {
+		$("#asset_exchange_sidebar a.active").trigger("click");
+	});
 
 	NRS.loadAssetOrders = function(type, assetId, refresh) {
 		type = type.toLowerCase();

@@ -207,11 +207,15 @@ var NRS = (function(NRS, $, undefined) {
 		} else if (NRS.currentPage == "transactions" && NRS.transactionsPageType == "unconfirmed") {
 			NRS.incoming.transactions();
 		} else {
-			if (!oldBlock || NRS.unconfirmedTransactionsChange) {
+			if (NRS.currentPage != 'messages' && (!oldBlock || NRS.unconfirmedTransactionsChange)) {
 				if (NRS.incoming[NRS.currentPage]) {
 					NRS.incoming[NRS.currentPage](transactions);
 				}
 			}
+		}
+		// always call incoming for messages to enable message notifications
+		if (!oldBlock || NRS.unconfirmedTransactionsChange) {
+			NRS.incoming['messages'](transactions);
 		}
 	}
 
