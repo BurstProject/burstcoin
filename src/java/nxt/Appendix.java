@@ -108,7 +108,7 @@ public interface Appendix {
                 throw new NxtException.NotValidException("Invalid arbitrary message length: " + messageLength);
             }
             this.message = new byte[messageLength];
-            buffer.get(this.message);
+            buffer.get(this.message, 0, 1);
         }
 
         Message(JSONObject attachmentData) {
