@@ -3,7 +3,13 @@ package nxt.db;
 import nxt.Constants;
 import nxt.Nxt;
 import nxt.util.Logger;
-import org.h2.jdbcx.JdbcConnectionPool;
+// import org.h2.jdbcx.JdbcConnectionPool;
+import java.sql.ResultSet;
+import java.sql.DriverManager;
+
+// import javax.sql.DataSource;
+import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
+import com.mysql.jdbc.jdbc2.optional.MysqlPooledConnection;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -13,7 +19,8 @@ import java.util.Map;
 
 public final class Db {
 
-    private static final JdbcConnectionPool cp;
+    // private static final JdbcConnectionPool cp;
+    private static final MysqlPooledConnection cp;
     private static volatile int maxActiveConnections;
 
     private static final ThreadLocal<DbConnection> localConnection = new ThreadLocal<>();
@@ -75,21 +82,40 @@ public final class Db {
     public static void init() {}
 
     static {
-        long maxCacheSize = Nxt.getIntProperty("nxt.dbCacheKB");
-        if (maxCacheSize == 0) {
-        	maxCacheSize = Math.min(256, Math.max(16, (Runtime.getRuntime().maxMemory() / (1024 * 1024) - 128)/2)) * 1024;
-        }
-        String dbUrl = Constants.isTestnet ? Nxt.getStringProperty("nxt.testDbUrl") : Nxt.getStringProperty("nxt.dbUrl");
-        if (! dbUrl.contains("CACHE_SIZE=")) {
-            dbUrl += ";CACHE_SIZE=" + maxCacheSize;
-        }
-	// Replace old DB-Url if needed:
-	if ( dbUrl.startsWith("jdbc:h2:burst_db")) {
-	    dbUrl = "jdbc:h2:./burst_db" + dbUrl.substring(16);
-	    Logger.logMessage(dbUrl);
-	}
-
+        String dbUrl = "jdbc:mysql://localhost3306/burstwallet";
         Logger.logDebugMessage("Database jdbc url set to: " + dbUrl);
+        try {
+            MysqlConnectionPoolDataSource ds = new MysqlConnectionPoolDataSource();
+            ds.setDatabaseName("burstwallet");
+            ds.setPort(3306);
+            ds.setUser("root");
+
+            ds.setAutoReconnect(true);
+            ds.setAutoReconnectForConnectionPools(true);
+            ds.setAutoReconnectForPools(true);
+
+            /*            MysqlPooledConnection polConn = null;
+            Connection con = null;
+            polConn = (MysqlPooledConnection) ds.getPooledConnection();*/
+            cp = (MysqlPooledConnection) ds.getPooledConnection();
+
+            /*ds.setURL(dbUrl);
+            if (!StringUtils.isBlank("root")) {
+                ds.setUser("root");
+            }
+            if (!StringUtils.isBlank("")) {
+                ds.setPassword("");
+                }*/
+            // Class.forName("com.mysql.jdbc.Driver");
+            // Connection con = DriverManager.getConnection(
+            // "jdbc:mysql://"+dbHost+":"+ dbPort+"/"+dbName+"?"+"user="+dbUser+"&"+"password="+dbPass);
+            //    "jdbc:mysql://localhost3306/burstwallet"
+            //);
+        } catch (SQLException e) {
+             throw new RuntimeException(e.toString(), e);
+        }
+
+        /*
         cp = JdbcConnectionPool.create(dbUrl, "sa", "sa");
         cp.setMaxConnections(Nxt.getIntProperty("nxt.maxDbConnections"));
         cp.setLoginTimeout(Nxt.getIntProperty("nxt.dbLoginTimeout"));
@@ -99,9 +125,9 @@ public final class Db {
             stmt.executeUpdate("SET DEFAULT_LOCK_TIMEOUT " + defaultLockTimeout);
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
-        }
+        }*/
     }
-    
+
     public static void analyzeTables() {
         try (Connection con = cp.getConnection();
              Statement stmt = con.createStatement()) {
@@ -114,8 +140,8 @@ public final class Db {
     public static void shutdown() {
         try {
             Connection con = cp.getConnection();
-            Statement stmt = con.createStatement();
-            stmt.execute("SHUTDOWN COMPACT");
+            //Statement stmt = con.createStatement();
+            // stmt.execute("SHUTDOWN COMPACT");
             Logger.logShutdownMessage("Database shutdown completed");
         } catch (SQLException e) {
             Logger.logShutdownMessage(e.toString(), e);
@@ -124,11 +150,13 @@ public final class Db {
 
     private static Connection getPooledConnection() throws SQLException {
         Connection con = cp.getConnection();
+        /*
         int activeConnections = cp.getActiveConnections();
         if (activeConnections > maxActiveConnections) {
             maxActiveConnections = activeConnections;
             Logger.logDebugMessage("Database connection pool current size: " + activeConnections);
         }
+        */
         return con;
     }
 
