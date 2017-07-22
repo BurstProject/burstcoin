@@ -95,7 +95,7 @@ final class BlockDb {
             throw new RuntimeException("Last block already in database does not pass validation!", e);
         }
     }
-    
+
     static BlockImpl findLastBlock(int timestamp) {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE timestamp <= ? ORDER BY timestamp DESC LIMIT 1")) {
@@ -136,7 +136,7 @@ final class BlockDb {
             long nonce = rs.getLong("nonce");
 
             byte[] blockATs = rs.getBytes("ats");
-            
+
             return new BlockImpl(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                     generatorPublicKey, generationSignature, blockSignature, previousBlockHash,
                     cumulativeDifficulty, baseTarget, nextBlockId, height, id, nonce, blockATs);
@@ -241,10 +241,10 @@ final class BlockDb {
         try (Connection con = Db.getConnection();
              Statement stmt = con.createStatement()) {
             try {
-                stmt.executeUpdate("SET REFERENTIAL_INTEGRITY FALSE");
+                stmt.executeUpdate("SET foreign_key_checks = 0");
                 stmt.executeUpdate("TRUNCATE TABLE transaction");
                 stmt.executeUpdate("TRUNCATE TABLE block");
-                stmt.executeUpdate("SET REFERENTIAL_INTEGRITY TRUE");
+                stmt.executeUpdate("SET foreign_key_checks = 1");
                 Db.commitTransaction();
             } catch (SQLException e) {
                 Db.rollbackTransaction();
