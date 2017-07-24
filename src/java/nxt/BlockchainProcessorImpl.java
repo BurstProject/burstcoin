@@ -1077,7 +1077,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		public int compare(TransactionImpl o1, TransactionImpl o2) {
 			long fee1 = o1.getFeeNQT() / o1.getSize();
 			long fee2 = o2.getFeeNQT() / o2.getSize();
-			return Long.compare(fee1, fee2);
+			return Long.compare(fee2, fee1);
 		}
 	}
 
