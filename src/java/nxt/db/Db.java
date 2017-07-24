@@ -7,9 +7,8 @@ import nxt.util.Logger;
 import java.sql.ResultSet;
 import java.sql.DriverManager;
 
-// import javax.sql.DataSource;
-import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
-import com.mysql.jdbc.jdbc2.optional.MysqlPooledConnection;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -20,7 +19,7 @@ import java.util.Map;
 public final class Db {
 
     // private static final JdbcConnectionPool cp;
-    private static final MysqlPooledConnection cp;
+    private static final HikariDataSource cp;
     private static volatile int maxActiveConnections;
 
     private static final ThreadLocal<DbConnection> localConnection = new ThreadLocal<>();
@@ -82,59 +81,48 @@ public final class Db {
     public static void init() {}
 
     static {
-        String dbUrl = "jdbc:mysql://localhost3306/burstwallet";
-        Logger.logDebugMessage("Database jdbc url set to: " + dbUrl);
-        try {
-            MysqlConnectionPoolDataSource ds = new MysqlConnectionPoolDataSource();
-            ds.setDatabaseName("burstwallet");
-            ds.setPort(3306);
-            ds.setUser("root");
-
-            ds.setAutoReconnect(true);
-            ds.setAutoReconnectForConnectionPools(true);
-            ds.setAutoReconnectForPools(true);
-
-            /*            MysqlPooledConnection polConn = null;
-            Connection con = null;
-            polConn = (MysqlPooledConnection) ds.getPooledConnection();*/
-            cp = (MysqlPooledConnection) ds.getPooledConnection();
-
-            /*ds.setURL(dbUrl);
-            if (!StringUtils.isBlank("root")) {
-                ds.setUser("root");
-            }
-            if (!StringUtils.isBlank("")) {
-                ds.setPassword("");
-                }*/
-            // Class.forName("com.mysql.jdbc.Driver");
-            // Connection con = DriverManager.getConnection(
-            // "jdbc:mysql://"+dbHost+":"+ dbPort+"/"+dbName+"?"+"user="+dbUser+"&"+"password="+dbPass);
-            //    "jdbc:mysql://localhost3306/burstwallet"
-            //);
-        } catch (SQLException e) {
-             throw new RuntimeException(e.toString(), e);
+        String dbUrl;
+        String dbUsername;
+        String dbPassword;
+        if ( Constants.isTestnet ) {
+            dbUrl = Nxt.getStringProperty("nxt.testDbUrl");
+            dbUsername = Nxt.getStringProperty("nxt.testDbUsername");
+            dbPassword = Nxt.getStringProperty("nxt.testDbPassword");
+        }
+        else {
+            dbUrl = Nxt.getStringProperty("nxt.dbUrl");
+            dbUsername = Nxt.getStringProperty("nxt.dbUsername");
+            dbPassword = Nxt.getStringProperty("nxt.dbPassword");
         }
 
-        /*
-        cp = JdbcConnectionPool.create(dbUrl, "sa", "sa");
-        cp.setMaxConnections(Nxt.getIntProperty("nxt.maxDbConnections"));
-        cp.setLoginTimeout(Nxt.getIntProperty("nxt.dbLoginTimeout"));
-        int defaultLockTimeout = Nxt.getIntProperty("nxt.dbDefaultLockTimeout") * 1000;
-        try (Connection con = cp.getConnection();
-             Statement stmt = con.createStatement()) {
-            stmt.executeUpdate("SET DEFAULT_LOCK_TIMEOUT " + defaultLockTimeout);
-        } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }*/
+        Logger.logDebugMessage("Database jdbc url set to: " + dbUrl);
+        try {
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(dbUrl);
+            if ( dbUsername != null )
+                config.setUsername(dbUsername);
+            if ( dbPassword != null )
+                config.setPassword(dbPassword);
+
+            config.setMaximumPoolSize(10);
+            config.setAutoCommit(false);
+            config.addDataSourceProperty("cachePrepStmts", "true");
+            config.addDataSourceProperty("prepStmtCacheSize", "250");
+            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+
+            cp = new HikariDataSource(config);
+        } catch (Exception e) {
+             throw new RuntimeException(e.toString(), e);
+        }
     }
 
     public static void analyzeTables() {
-        try (Connection con = cp.getConnection();
+        /*        try (Connection con = cp.getConnection();
              Statement stmt = con.createStatement()) {
             stmt.execute("ANALYZE SAMPLE_SIZE 0");
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
-        }
+            }*/
     }
 
     public static void shutdown() {
