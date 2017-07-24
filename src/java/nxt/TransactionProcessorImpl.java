@@ -179,6 +179,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                                 // removed txes always means more space
                                 numUnconfirmed = unconfirmedTransactionTable.getCount();
                                 minFeePerByte = 0;
+                                maxMinFeeId = Long.MAX_VALUE;
                             }
                         } // synchronized
                     }
