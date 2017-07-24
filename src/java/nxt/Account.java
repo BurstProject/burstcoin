@@ -52,9 +52,9 @@ public final class Account {
         }
 
         private void save(Connection con) throws SQLException {
-            try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO account_asset "
+            try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO account_asset "
                     + "(account_id, asset_id, quantity, unconfirmed_quantity, height, latest) "
-                    + "KEY (account_id, asset_id, height) VALUES (?, ?, ?, ?, ?, TRUE)")) {
+                    + "VALUES (?, ?, ?, ?, ?, TRUE)")) {
                 int i = 0;
                 pstmt.setLong(++i, this.accountId);
                 pstmt.setLong(++i, this.assetId);
@@ -113,15 +113,15 @@ public final class Account {
         }
 
     }
-    
+
     public static class RewardRecipientAssignment {
-    	
+
     	public final Long accountId;
     	private Long prevRecipientId;
     	private Long recipientId;
     	private int fromHeight;
     	private final DbKey dbKey;
-    	
+
     	private RewardRecipientAssignment(Long accountId, Long prevRecipientId, Long recipientId, int fromHeight) {
     		this.accountId = accountId;
     		this.prevRecipientId = prevRecipientId;
@@ -129,7 +129,7 @@ public final class Account {
     		this.fromHeight = fromHeight;
     		this.dbKey = rewardRecipientAssignmentDbKeyFactory.newKey(this.accountId);
     	}
-    	
+
     	private RewardRecipientAssignment(ResultSet rs) throws SQLException {
     		this.accountId = rs.getLong("account_id");
     		this.dbKey = rewardRecipientAssignmentDbKeyFactory.newKey(this.accountId);
@@ -137,10 +137,10 @@ public final class Account {
     		this.recipientId = rs.getLong("recip_id");
     		this.fromHeight = (int) rs.getLong("from_height");
     	}
-    	
+
     	private void save(Connection con) throws SQLException {
-    		try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO reward_recip_assign "
-    				+ "(account_id, prev_recip_id, recip_id, from_height, height, latest) KEY (account_id, height) VALUES (?, ?, ?, ?, ?, TRUE)")) {
+    		try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO reward_recip_assign "
+    				+ "(account_id, prev_recip_id, recip_id, from_height, height, latest) VALUES (?, ?, ?, ?, ?, TRUE)")) {
     			int i = 0;
     			pstmt.setLong(++i, this.accountId);
     			pstmt.setLong(++i, this.prevRecipientId);
@@ -150,23 +150,23 @@ public final class Account {
     			pstmt.executeUpdate();
     		}
     	}
-    	
+
     	public long getAccountId() {
     		return accountId;
     	}
-    	
+
     	public long getPrevRecipientId() {
     		return prevRecipientId;
     	}
-    	
+
     	public long getRecipientId() {
     		return recipientId;
     	}
-    	
+
     	public int getFromHeight() {
     		return fromHeight;
     	}
-    	
+
     	public void setRecipient(long newRecipientId, int fromHeight) {
     		prevRecipientId = recipientId;
     		recipientId = newRecipientId;
@@ -208,9 +208,8 @@ public final class Account {
 
         @Override
         protected String updateQuery() {
-            return "MERGE INTO account (id, creation_height, public_key, key_height, balance, unconfirmed_balance, " +
+            return "REPLACE INTO account (id, creation_height, public_key, key_height, balance, unconfirmed_balance, " +
                     "forged_balance, name, description, height, latest) " +
-                    "KEY (id, height) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)";
         }
 
@@ -252,22 +251,22 @@ public final class Account {
         }
 
     };
-    
+
     private static final DbKey.LongKeyFactory<RewardRecipientAssignment> rewardRecipientAssignmentDbKeyFactory = new DbKey.LongKeyFactory<RewardRecipientAssignment>("account_id") {
-    	
+
     	@Override
     	public DbKey newKey(RewardRecipientAssignment assignment) {
     		return assignment.dbKey;
     	}
 	};
-	
+
 	private static final VersionedEntityDbTable<RewardRecipientAssignment> rewardRecipientAssignmentTable = new VersionedEntityDbTable<RewardRecipientAssignment>("reward_recip_assign", rewardRecipientAssignmentDbKeyFactory) {
-		
+
 		@Override
 		protected RewardRecipientAssignment load(Connection con, ResultSet rs) throws SQLException {
 			return new RewardRecipientAssignment(rs);
 		}
-		
+
 		@Override
 		protected void save(Connection con, RewardRecipientAssignment assignment) throws SQLException {
 			assignment.save(con);
@@ -318,7 +317,7 @@ public final class Account {
     public static Account getAccount(long id) {
         return id == 0 ? null : accountTable.get(accountDbKeyFactory.newKey(id));
     }
-    
+
     public static Account getAccount(long id, int height) {
         return id == 0 ? null : accountTable.get(accountDbKeyFactory.newKey(id), height);
     }
@@ -398,10 +397,10 @@ public final class Account {
     }
 
     /*private void save(Connection con) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO account (id, creation_height, public_key, "
+        try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO account (id, creation_height, public_key, "
                 + "key_height, balance, unconfirmed_balance, forged_balance, name, description, "
                 + "height, latest) "
-                + "KEY (id, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
             int i = 0;
             pstmt.setLong(++i, this.getId());
             pstmt.setInt(++i, this.getCreationHeight());
@@ -512,19 +511,19 @@ public final class Account {
         AccountAsset accountAsset = accountAssetTable.get(accountAssetDbKeyFactory.newKey(this.id, assetId));
         return accountAsset == null ? 0 : accountAsset.unconfirmedQuantityQNT;
     }
-    
+
     public RewardRecipientAssignment getRewardRecipientAssignment() {
     	return getRewardRecipientAssignment(id);
     }
-    
+
     public static RewardRecipientAssignment getRewardRecipientAssignment(Long id) {
     	return rewardRecipientAssignmentTable.get(rewardRecipientAssignmentDbKeyFactory.newKey(id));
     }
-    
+
     public void setRewardRecipientAssignment(Long recipient) {
     	setRewardRecipientAssignment(id, recipient);
     }
-    
+
     public static void setRewardRecipientAssignment(Long id, Long recipient) {
     	int currentHeight = Nxt.getBlockchain().getLastBlock().getHeight();
     	RewardRecipientAssignment assignment = getRewardRecipientAssignment(id);
@@ -536,7 +535,7 @@ public final class Account {
     	}
     	rewardRecipientAssignmentTable.insert(assignment);
     }
-    
+
     private static DbClause getAccountsWithRewardRecipientClause(final long id, final int height) {
     	return new DbClause(" recip_id = ? AND from_height <= ? ") {
     		@Override
@@ -547,7 +546,7 @@ public final class Account {
     		}
     	};
     }
-    
+
     public static DbIterator<RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
     	return rewardRecipientAssignmentTable.getManyBy(getAccountsWithRewardRecipientClause(recipientId, Nxt.getBlockchain().getHeight() + 1), 0, -1);
     }

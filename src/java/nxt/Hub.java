@@ -106,8 +106,8 @@ public class Hub {
     }
 
     private void save(Connection con) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO hub (account_id, min_fee_per_byte, "
-                + "uris, height) KEY (account_id, height) VALUES (?, ?, ?, ?)")) {
+        try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO hub (account_id, min_fee_per_byte, "
+                + "uris, height) VALUES (?, ?, ?, ?)")) {
             int i = 0;
             pstmt.setLong(++i, this.getAccountId());
             pstmt.setLong(++i, this.getMinFeePerByteNQT());

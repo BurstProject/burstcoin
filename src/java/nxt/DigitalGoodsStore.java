@@ -138,8 +138,8 @@ public final class DigitalGoodsStore {
         }
 
         private void save(Connection con) throws SQLException {
-            try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO goods (id, seller_id, name, "
-                    + "description, tags, timestamp, quantity, price, delisted, height, latest) KEY (id, height) "
+            try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO goods (id, seller_id, name, "
+                    + "description, tags, timestamp, quantity, price, delisted, height, latest) "
                     + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
                 int i = 0;
                 pstmt.setLong(++i, this.getId());
@@ -379,9 +379,9 @@ public final class DigitalGoodsStore {
         }
 
         private void save(Connection con) throws SQLException {
-            try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO purchase (id, buyer_id, goods_id, seller_id, "
+            try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO purchase (id, buyer_id, goods_id, seller_id, "
                     + "quantity, price, deadline, note, nonce, timestamp, pending, goods, goods_nonce, refund_note, "
-                    + "refund_nonce, has_feedback_notes, has_public_feedbacks, discount, refund, height, latest) KEY (id, height) "
+                    + "refund_nonce, has_feedback_notes, has_public_feedbacks, discount, refund, height, latest) "
                     + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
                 int i = 0;
                 pstmt.setLong(++i, this.getId());

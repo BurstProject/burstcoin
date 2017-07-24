@@ -63,10 +63,10 @@ public final class AT extends AT_Machine_State {
 				for(AT_Transaction atTransaction : pendingTransactions) {
 					Account.getAccount(AT_API_Helper.getLong(atTransaction.getSenderId())).addToBalanceAndUnconfirmedBalanceNQT(-atTransaction.getAmount());
 					Account.addOrGetAccount(AT_API_Helper.getLong(atTransaction.getRecipientId())).addToBalanceAndUnconfirmedBalanceNQT(atTransaction.getAmount());
-					
+
 					TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte)1, Genesis.CREATOR_PUBLIC_KEY,
 							atTransaction.getAmount(), 0L, block.getTimestamp(), (short)1440, Attachment.AT_PAYMENT);
-					
+
 					builder.senderId(AT_API_Helper.getLong(atTransaction.getSenderId()))
 						.recipientId(AT_API_Helper.getLong(atTransaction.getRecipientId()))
 						.blockId(block.getId())
@@ -74,12 +74,12 @@ public final class AT extends AT_Machine_State {
 						.blockTimestamp(block.getTimestamp())
 						.ecBlockHeight(0)
 						.ecBlockId(0L);
-					
+
 					byte[] message = atTransaction.getMessage();
 					if(message != null) {
 						builder.message(new Appendix.Message(message));
 					}
-					
+
 					try {
 						TransactionImpl transaction = builder.build();
 						if(!TransactionDb.hasTransaction(transaction.getId())) {
@@ -90,7 +90,7 @@ public final class AT extends AT_Machine_State {
 						throw new RuntimeException("Failed to construct AT payment transaction", e);
 					}
 				}
-				
+
 				if(transactions.size() > 0) {
 					try (Connection con = Db.getConnection()) {
 						TransactionDb.saveTransactions(con, transactions);
@@ -104,26 +104,26 @@ public final class AT extends AT_Machine_State {
 
 		}, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
 	}
-	
+
 	private static final LinkedHashMap<Long, Long> pendingFees = new LinkedHashMap<>();
 	private static final List<AT_Transaction> pendingTransactions = new ArrayList<>();
-	
+
 	public static void clearPendingFees() {
 		pendingFees.clear();
 	}
-	
+
 	public static void clearPendingTransactions() {
 		pendingTransactions.clear();
 	}
-	
+
 	public static void addPendingFee(long id, long fee) {
 		pendingFees.put(id, fee);
 	}
-	
+
 	public static void addPendingFee(byte[] id, long fee) {
 		addPendingFee(AT_API_Helper.getLong(id), fee);
 	}
-	
+
 	public static void addPendingTransaction(AT_Transaction atTransaction) {
 		pendingTransactions.add(atTransaction);
 	}
@@ -173,9 +173,9 @@ public final class AT extends AT_Machine_State {
 		}
 
 		private void save(Connection con) throws SQLException {
-			try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO at_state (at_id, "
+			try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO at_state (at_id, "
 					+ "state, prev_height ,next_height, sleep_between, prev_balance, freeze_when_same_balance, min_activate_amount, height, latest) "
-					+ "KEY (at_id, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
+					+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
 				int i = 0;
 				pstmt.setLong(++i, atId);
 				//DbUtils.setBytes(pstmt, ++i, state);
@@ -198,7 +198,7 @@ public final class AT extends AT_Machine_State {
 		public byte[] getState() {
 			return state;
 		}
-		
+
 		public int getPrevHeight() {
 			return prevHeight;
 		}
@@ -206,19 +206,19 @@ public final class AT extends AT_Machine_State {
 		public int getNextHeight() {
 			return nextHeight;
 		}
-		
+
 		public int getSleepBetween() {
 			return sleepBetween;
 		}
-		
+
 		public long getPrevBalance() {
 			return prevBalance;
 		}
-		
+
 		public boolean getFreezeWhenSameBalance() {
 			return freezeWhenSameBalance;
 		}
-		
+
 		public long getMinActivationAmount() {
 			return minActivationAmount;
 		}
@@ -226,27 +226,27 @@ public final class AT extends AT_Machine_State {
 		public void setState(byte[] newState) {
 			state = newState;
 		}
-		
+
 		public void setPrevHeight(int prevHeight){
-			this.prevHeight = prevHeight; 
+			this.prevHeight = prevHeight;
 		}
-		
+
 		public void setNextHeight(int newNextHeight) {
 			nextHeight = newNextHeight;
 		}
-		
+
 		public void setSleepBetween(int newSleepBetween) {
 			this.sleepBetween = newSleepBetween;
 		}
-		
+
 		public void setPrevBalance(long newPrevBalance) {
 			this.prevBalance = newPrevBalance;
 		}
-		
+
 		public void setFreezeWhenSameBalance(boolean newFreezeWhenSameBalance) {
 			this.freezeWhenSameBalance = newFreezeWhenSameBalance;
 		}
-		
+
 		public void setMinActivationAmount(long newMinActivationAmount) {
 			this.minActivationAmount = newMinActivationAmount;
 		}
@@ -258,7 +258,7 @@ public final class AT extends AT_Machine_State {
 			return at.dbKey;
 		}
 	};
-	
+
 	private static final VersionedEntityDbTable<AT> atTable = new VersionedEntityDbTable<AT>("at", atDbKeyFactory) {
 		@Override
 		protected AT load(Connection con, ResultSet rs) throws SQLException {
@@ -297,8 +297,8 @@ public final class AT extends AT_Machine_State {
 		}
 	};
 
-	
-	public static Collection<Long> getAllATIds() 
+
+	public static Collection<Long> getAllATIds()
 	{
 		try ( Connection con = Db.getConnection();
 				PreparedStatement pstmt = con.prepareStatement( "SELECT id FROM at WHERE latest = TRUE" ) )
@@ -315,7 +315,7 @@ public final class AT extends AT_Machine_State {
 		}
 	}
 
-	public static AT getAT(byte[] id) 
+	public static AT getAT(byte[] id)
 	{
 		return getAT( AT_API_Helper.getLong( id ) );
 	}
@@ -385,7 +385,7 @@ public final class AT extends AT_Machine_State {
 		AT_Controller.resetMachine(at);
 
 		atTable.insert(at);
-		
+
 		at.saveState();
 
 		Account account = Account.addOrGetAccount(atId);
@@ -445,7 +445,7 @@ public final class AT extends AT_Machine_State {
 
 	private void save(Connection con)
 	{
-		try ( PreparedStatement pstmt = con.prepareStatement( "INSERT INTO at " 
+		try ( PreparedStatement pstmt = con.prepareStatement( "INSERT INTO at "
 				+ "(id , creator_id , name , description , version , "
 				+ "csize , dsize , c_user_stack_bytes , c_call_stack_bytes , "
 				+ "creation_height , "
@@ -490,7 +490,7 @@ public final class AT extends AT_Machine_State {
 		if(at != null) {
 			deleteAT(at);
 		}
-		
+
 	}
 
 	public static List< Long > getOrderedATs(){
@@ -532,12 +532,12 @@ public final class AT extends AT_Machine_State {
 			throw new RuntimeException(e.toString(), e);
 		}
 	}
-	
+
 	private static byte[] compressState(byte[] stateBytes) {
 		if(stateBytes == null || stateBytes.length == 0) {
 			return null;
 		}
-		
+
 		try(ByteArrayOutputStream bos = new ByteArrayOutputStream();
 				GZIPOutputStream gzip = new GZIPOutputStream(bos)) {
 			gzip.write(stateBytes);
@@ -548,12 +548,12 @@ public final class AT extends AT_Machine_State {
 			throw new RuntimeException(e.getMessage(), e);
 		}
 	}
-	
+
 	private static byte[] decompressState(byte[] stateBytes) {
 		if(stateBytes == null || stateBytes.length == 0) {
 			return null;
 		}
-		
+
 		try(ByteArrayInputStream bis = new ByteArrayInputStream(stateBytes);
 				GZIPInputStream gzip = new GZIPInputStream(bis);
 				ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
@@ -568,10 +568,10 @@ public final class AT extends AT_Machine_State {
 			throw new RuntimeException(e.getMessage(), e);
 		}
 	}
-	
+
 	static void init() {}
 
-	private final String name;    
+	private final String name;
 	private final String description;
 	private final DbKey dbKey;
 	private final int nextHeight;
@@ -592,7 +592,7 @@ public final class AT extends AT_Machine_State {
 	{
 		super( 	atId , creator , version ,
 				stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes ,
-				creationBlockHeight , sleepBetween , 
+				creationBlockHeight , sleepBetween ,
 				freezeWhenSameBalance , minActivationAmount , apCode );
 		this.name = name;
 		this.description = description;
@@ -607,7 +607,7 @@ public final class AT extends AT_Machine_State {
 	public String getDescription() {
 		return description;
 	}
-	
+
 	public int nextHeight() {
 		return nextHeight;
 	}
