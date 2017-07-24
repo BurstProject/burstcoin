@@ -77,8 +77,8 @@ public abstract class Order {
     }
 
     private void save(Connection con, String table) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO " + table + " (id, account_id, asset_id, "
-                + "price, quantity, creation_height, height, latest) KEY (id, height) VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)")) {
+        try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO " + table + " (id, account_id, asset_id, "
+                + "price, quantity, creation_height, height, latest) VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)")) {
             int i = 0;
             pstmt.setLong(++i, this.getId());
             pstmt.setLong(++i, this.getAccountId());

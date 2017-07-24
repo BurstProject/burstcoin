@@ -28,14 +28,14 @@ import java.sql.SQLException;
 import nxt.util.Convert;
 
 public class Escrow {
-	
+
 	public static enum DecisionType {
 		UNDECIDED,
 		RELEASE,
 		REFUND,
 		SPLIT;
 	}
-	
+
 	public static String decisionToString(DecisionType decision) {
 		switch(decision) {
 		case UNDECIDED:
@@ -47,10 +47,10 @@ public class Escrow {
 		case SPLIT:
 			return "split";
 		}
-		
+
 		return null;
 	}
-	
+
 	public static DecisionType stringToDecision(String decision) {
 		switch(decision) {
 		case "undecided":
@@ -62,10 +62,10 @@ public class Escrow {
 		case "split":
 			return DecisionType.SPLIT;
 		}
-		
+
 		return null;
 	}
-	
+
 	public static Byte decisionToByte(DecisionType decision) {
 		switch(decision) {
 		case UNDECIDED:
@@ -77,10 +77,10 @@ public class Escrow {
 		case SPLIT:
 			return 3;
 		}
-		
+
 		return null;
 	}
-	
+
 	public static DecisionType byteToDecision(Byte decision) {
 		switch(decision) {
 		case 0:
@@ -92,46 +92,46 @@ public class Escrow {
 		case 3:
 			return DecisionType.SPLIT;
 		}
-		
+
 		return null;
 	}
-	
+
 	public static boolean isEnabled() {
 		if(Nxt.getBlockchain().getLastBlock().getHeight() >= Constants.BURST_ESCROW_START_BLOCK) {
 			return true;
 		}
-		
+
 		Alias escrowEnabled = Alias.getAlias("featureescrow");
 		if(escrowEnabled != null && escrowEnabled.getAliasURI().equals("enabled")) {
 			return true;
 		}
 		return false;
 	}
-	
+
 	public static class Decision {
-		
+
 		private final Long escrowId;
 		private final Long accountId;
 		private final DbKey dbKey;
 		private DecisionType decision;
-		
+
 		private Decision(Long escrowId, Long accountId, DecisionType decision) {
 			this.escrowId = escrowId;
 			this.accountId = accountId;
 			this.dbKey = decisionDbKeyFactory.newKey(this.escrowId, this.accountId);
 			this.decision = decision;
 		}
-		
+
 		private Decision(ResultSet rs) throws SQLException {
 			this.escrowId = rs.getLong("escrow_id");
 			this.accountId = rs.getLong("account_id");
 			this.dbKey = decisionDbKeyFactory.newKey(this.escrowId, this.accountId);
 			this.decision = byteToDecision((byte)rs.getInt("decision"));
 		}
-		
+
 		private void save(Connection con) throws SQLException {
-			try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO escrow_decision (escrow_id, "
-					+ "account_id, decision, height, latest) KEY (escrow_id, account_id, height) VALUES (?, ?, ?, ?, TRUE)")) {
+			try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO escrow_decision (escrow_id, "
+					+ "account_id, decision, height, latest) VALUES (?, ?, ?, ?, TRUE)")) {
 				int i = 0;
 				pstmt.setLong(++i, this.escrowId);
 				pstmt.setLong(++i, this.accountId);
@@ -140,31 +140,31 @@ public class Escrow {
 				pstmt.executeUpdate();
 			}
 		}
-		
+
 		public Long getEscrowId() {
 			return this.escrowId;
 		}
-		
+
 		public Long getAccountId() {
 			return this.accountId;
 		}
-		
+
 		public DecisionType getDecision() {
 			return this.decision;
 		}
-		
+
 		public void setDecision(DecisionType decision) {
 			this.decision = decision;
 		}
 	}
-	
+
 	private static final DbKey.LongKeyFactory<Escrow> escrowDbKeyFactory = new DbKey.LongKeyFactory<Escrow>("id") {
 		@Override
 		public DbKey newKey(Escrow escrow) {
 			return escrow.dbKey;
 		}
 	};
-	
+
 	private static final VersionedEntityDbTable<Escrow> escrowTable = new VersionedEntityDbTable<Escrow>("escrow", escrowDbKeyFactory) {
 		@Override
 		protected Escrow load(Connection con, ResultSet rs) throws SQLException {
@@ -175,14 +175,14 @@ public class Escrow {
 			escrow.save(con);
 		}
 	};
-	
+
 	private static final DbKey.LinkKeyFactory<Decision> decisionDbKeyFactory = new DbKey.LinkKeyFactory<Decision>("escrow_id", "account_id") {
 		@Override
 		public DbKey newKey(Decision decision) {
 			return decision.dbKey;
 		}
 	};
-	
+
 	private static final VersionedEntityDbTable<Decision> decisionTable = new VersionedEntityDbTable<Decision>("escrow_decision", decisionDbKeyFactory) {
 		@Override
 		protected Decision load(Connection con, ResultSet rs) throws SQLException {
@@ -193,14 +193,14 @@ public class Escrow {
 			decision.save(con);
 		}
 	};
-	
+
 	private static final ConcurrentSkipListSet<Long> updatedEscrowIds = new ConcurrentSkipListSet<>();
 	private static final List<TransactionImpl> resultTransactions = new ArrayList<>();
-	
+
 	public static DbIterator<Escrow> getAllEscrowTransactions() {
 		return escrowTable.getAll(0, -1);
 	}
-	
+
 	private static DbClause getEscrowParticipentClause(final long accountId) {
 		return new DbClause(" (sender_id = ? OR recipient_id = ?) ") {
 			@Override
@@ -211,7 +211,7 @@ public class Escrow {
 	        }
 		};
 	}
-	
+
 	public static Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId) {
 		List<Escrow> filtered = new ArrayList<>();
 		DbIterator<Decision> it = decisionTable.getManyBy(new DbClause.LongClause("account_id", accountId), 0, -1);
@@ -224,11 +224,11 @@ public class Escrow {
 		}
 		return filtered;
 	}
-	
+
 	public static Escrow getEscrowTransaction(Long id) {
 		return escrowTable.get(escrowDbKeyFactory.newKey(id));
 	}
-	
+
 	public static void addEscrowTransaction(Account sender,
 											Account recipient,
 											Long id,
@@ -245,7 +245,7 @@ public class Escrow {
 												 deadline,
 												 deadlineAction);
 		escrowTable.insert(newEscrowTransaction);
-		
+
 		Decision senderDecision = new Decision(id, sender.getId(), DecisionType.UNDECIDED);
 		decisionTable.insert(senderDecision);
 		Decision recipientDecision = new Decision(id, recipient.getId(), DecisionType.UNDECIDED);
@@ -255,26 +255,26 @@ public class Escrow {
 			decisionTable.insert(decision);
 		}
 	}
-	
+
 	public static void removeEscrowTransaction(Long id) {
 		Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(id));
 		if(escrow == null) {
 			return;
 		}
 		DbIterator<Decision> decisionIt = escrow.getDecisions();
-		
+
 		List<Decision> decisions = new ArrayList<>();
 		while(decisionIt.hasNext()) {
 			Decision decision = decisionIt.next();
 			decisions.add(decision);
 		}
-		
+
 		for(Decision decision : decisions) {
 			decisionTable.delete(decision);
 		}
 		escrowTable.delete(escrow);
 	}
-	
+
 	private static DbClause getUpdateOnBlockClause(final int timestamp) {
 		return new DbClause(" deadline < ? ") {
 			@Override
@@ -284,15 +284,15 @@ public class Escrow {
 			}
 		};
 	}
-	
+
 	public static void updateOnBlock(Block block) {
 		resultTransactions.clear();
-		
+
 		DbIterator<Escrow> deadlineEscrows = escrowTable.getManyBy(getUpdateOnBlockClause(block.getTimestamp()), 0, -1);
 		for(Escrow escrow : deadlineEscrows) {
 			updatedEscrowIds.add(escrow.getId());
 		}
-		
+
 		if(updatedEscrowIds.size() > 0) {
 			for(Long escrowId : updatedEscrowIds) {
 				Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(escrowId));
@@ -302,7 +302,7 @@ public class Escrow {
 						result = escrow.getDeadlineAction();
 					}
 					escrow.doPayout(result, block);
-					
+
 					removeEscrowTransaction(escrowId);
 				}
 			}
@@ -317,7 +317,7 @@ public class Escrow {
 			updatedEscrowIds.clear();
 		}
 	}
-	
+
 	private final Long senderId;
 	private final Long recipientId;
 	private final Long id;
@@ -326,7 +326,7 @@ public class Escrow {
 	private final int requiredSigners;
 	private final int deadline;
 	private final DecisionType deadlineAction;
-	
+
 	private Escrow(Account sender,
 				   Account recipient,
 				   Long id,
@@ -343,7 +343,7 @@ public class Escrow {
 		this.deadline = deadline;
 		this.deadlineAction = deadlineAction;
 	}
-	
+
 	private Escrow(ResultSet rs) throws SQLException {
 		this.id = rs.getLong("id");
 		this.dbKey = escrowDbKeyFactory.newKey(this.id);
@@ -354,11 +354,11 @@ public class Escrow {
 		this.deadline = rs.getInt("deadline");
 		this.deadlineAction = byteToDecision((byte)rs.getInt("deadline_action"));
 	}
-	
+
 	private void save(Connection con) throws SQLException {
-		try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO escrow (id, sender_id, "
+		try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO escrow (id, sender_id, "
 				+ "recipient_id, amount, required_signers, deadline, deadline_action, height, latest) "
-				+ "KEY (id, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
+				+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
 			int i = 0;
 			pstmt.setLong(++i, this.id);
 			pstmt.setLong(++i, this.senderId);
@@ -371,69 +371,69 @@ public class Escrow {
 			pstmt.executeUpdate();
 		}
 	}
-	
+
 	public Long getSenderId() {
 		return senderId;
 	}
-	
+
 	public Long getAmountNQT() {
 		return amountNQT;
 	}
-	
+
 	public Long getRecipientId() {
 		return recipientId;
 	}
-	
+
 	public Long getId() {
 		return id;
 	}
-	
+
 	public int getRequiredSigners() {
 		return requiredSigners;
 	}
-	
+
 	public DbIterator<Decision> getDecisions() {
 		return decisionTable.getManyBy(new DbClause.LongClause("escrow_id", id), 0, -1);
 	}
-	
+
 	public int getDeadline() {
 		return deadline;
 	}
-	
+
 	public DecisionType getDeadlineAction() {
 		return deadlineAction;
 	}
-	
+
 	public boolean isIdSigner(Long id) {
 		return decisionTable.get(decisionDbKeyFactory.newKey(this.id, id)) != null;
 	}
-	
+
 	public Decision getIdDecision(Long id) {
 		return decisionTable.get(decisionDbKeyFactory.newKey(this.id, id));
 	}
-	
+
 	public synchronized void sign(Long id, DecisionType decision) {
 		if(id.equals(senderId) && decision != DecisionType.RELEASE) {
 			return;
 		}
-		
+
 		if(id.equals(recipientId) && decision != DecisionType.REFUND) {
 			return;
 		}
-		
+
 		Decision decisionChange = decisionTable.get(decisionDbKeyFactory.newKey(this.id, id));
 		if(decisionChange == null) {
 			return;
 		}
 		decisionChange.setDecision(decision);
-		
+
 		decisionTable.insert(decisionChange);
-		
+
 		if(!updatedEscrowIds.contains(this.id)) {
 			updatedEscrowIds.add(this.id);
 		}
 	}
-	
+
 	private DecisionType checkComplete() {
 		Decision senderDecision = decisionTable.get(decisionDbKeyFactory.newKey(id, senderId));
 		if(senderDecision.getDecision() == DecisionType.RELEASE) {
@@ -443,11 +443,11 @@ public class Escrow {
 		if(recipientDecision.getDecision() == DecisionType.REFUND) {
 			return DecisionType.REFUND;
 		}
-		
+
 		int countRelease = 0;
 		int countRefund = 0;
 		int countSplit = 0;
-		
+
 		DbIterator<Decision> decisions = decisionTable.getManyBy(new DbClause.LongClause("escrow_id", id), 0, -1);
 		while(decisions.hasNext()) {
 			Decision decision = decisions.next();
@@ -469,7 +469,7 @@ public class Escrow {
 				break;
 			}
 		}
-		
+
 		if(countRelease >= requiredSigners) {
 			return DecisionType.RELEASE;
 		}
@@ -479,10 +479,10 @@ public class Escrow {
 		if(countSplit >= requiredSigners) {
 			return DecisionType.SPLIT;
 		}
-		
+
 		return DecisionType.UNDECIDED;
 	}
-	
+
 	private synchronized void doPayout(DecisionType result, Block block) {
 		switch(result) {
 		case RELEASE:
@@ -504,7 +504,7 @@ public class Escrow {
 			break;
 		}
 	}
-	
+
 	private static void saveResultTransaction(Block block, Long escrowId, Long recipientId, Long amountNQT, DecisionType decision) {
 		Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentEscrowResult(escrowId, decision);
 		TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte)1, Genesis.CREATOR_PUBLIC_KEY,
@@ -516,7 +516,7 @@ public class Escrow {
 		   .blockTimestamp(block.getTimestamp())
 		   .ecBlockHeight(0)
 		   .ecBlockId(0L);
-		
+
 		TransactionImpl transaction = null;
 		try {
 			transaction = builder.build();
@@ -524,7 +524,7 @@ public class Escrow {
 		catch(NxtException.NotValidException e) {
 			throw new RuntimeException(e.toString(), e);
 		}
-		
+
 		if(!TransactionDb.hasTransaction(transaction.getId())) {
 			resultTransactions.add(transaction);
 		}
