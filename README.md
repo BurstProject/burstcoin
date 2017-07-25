@@ -20,8 +20,8 @@ apt-get install -yqq default-jre default-jdk mariadb-server
 This is just an example of course:
 
 ```
-echo "CREATE USER 'burstwallet'@'localhost' IDENTIFIED BY 'yourpassword'; GRANT ALL PRIVILEGES ON burstwallet.* TO 'burstwallet'@'localhost';" | mysql -uroot -p
-cat init-mysql.sql | mysql -uroot -p
+echo "CREATE DATABASE burstwallet; CREATE USER 'burstwallet'@'localhost' IDENTIFIED BY 'yourpassword'; GRANT ALL PRIVILEGES ON burstwallet.* TO 'burstwallet'@'localhost';" | mysql -uroot
+mysql -uroot burstwallet < init-mysql.sql
 ```
 
 ### Configure your Wallet
