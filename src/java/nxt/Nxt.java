@@ -191,9 +191,9 @@ public final class Nxt {
                 long startTime = System.currentTimeMillis();
                 Logger.init();
                 Db.init();
+                DbVersion.init();
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
-                DbVersion.init();
                 Account.init();
                 Alias.init();
                 Asset.init();
