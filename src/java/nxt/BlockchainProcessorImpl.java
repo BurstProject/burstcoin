@@ -32,6 +32,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -269,7 +270,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 						return;
 
 					peerHasMore = true;
-					Peer peer = Peers.getAnyPeer(Peer.State.CONNECTED, true);
+					//Peer peer = Peers.getAnyPeer(Peer.State.CONNECTED, true);
+					Peer peer = Peers.getBlockFeederPeer();
 					if (peer == null) {
 						return;
 					}
@@ -1070,6 +1072,16 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 						: 3;
 	}
 
+	static class TransactionFeeRatioComparator implements Comparator<TransactionImpl> {
+
+		@Override
+		public int compare(TransactionImpl o1, TransactionImpl o2) {
+			long fee1 = o1.getFeeNQT() / o1.getSize();
+			long fee2 = o2.getFeeNQT() / o2.getSize();
+			return Long.compare(fee2, fee1);
+		}
+	}
+
 	void generateBlock(String secretPhrase, byte[] publicKey, Long nonce) throws BlockNotAcceptedException {
 
 		TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
@@ -1085,6 +1097,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				orderedUnconfirmedTransactions.add(transaction);
 			}
 		}
+
+		java.util.Collections.sort(orderedUnconfirmedTransactions, new TransactionFeeRatioComparator());
 
 		BlockImpl previousBlock = blockchain.getLastBlock();
 

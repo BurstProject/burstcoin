@@ -62,6 +62,8 @@ public final class Peers {
     private static boolean connectWellKnownFinished;
 
     static final Set<String> rebroadcastPeers;
+    private static final Map<String, Integer> priorityBlockFeeders = new ConcurrentHashMap<>();
+    private static final int priorityFeederInterval = Nxt.getIntProperty("burst.priorityFeederInterval") != 0 ? Nxt.getIntProperty("burst.priorityFeederInterval") : 300;
 
     static final int connectTimeout;
     static final int readTimeout;
@@ -162,6 +164,11 @@ public final class Peers {
 
         rebroadcastPeers = Collections.unmodifiableSet(new HashSet<>(Nxt.getStringListProperty("burst.rebroadcastPeers")));
 
+        List<String> priorityFeederAddresses = Nxt.getStringListProperty("burst.priorityBlockFeeders");
+        for(String address : priorityFeederAddresses) {
+            priorityBlockFeeders.put(address, 0);
+        }
+
         List<String> wellKnownPeersList = Constants.isTestnet ? Nxt.getStringListProperty("nxt.testnetPeers")
                 : Nxt.getStringListProperty("nxt.wellKnownPeers");
         for(String rePeer : rebroadcastPeers) {
@@ -169,6 +176,12 @@ public final class Peers {
                 wellKnownPeersList.add(rePeer);
             }
         }
+        for(String pPeer : priorityFeederAddresses) {
+            if(!wellKnownPeersList.contains(pPeer)) {
+                wellKnownPeersList.add(pPeer);
+            }
+        }
+
         if (wellKnownPeersList.isEmpty() || Constants.isOffline) {
             wellKnownPeers = Collections.emptySet();
         } else {
@@ -758,6 +771,21 @@ public final class Peers {
         sendToSomePeers(request); // send to some normal peers too
     }
 
+    public static Peer getBlockFeederPeer() {
+        Peer peer = null;
+        int curTime = Nxt.getEpochTime();
+
+        Set<Map.Entry<String, Integer>> entries = priorityBlockFeeders.entrySet();
+        for(Map.Entry<String, Integer> e : entries) {
+            if(curTime - e.getValue() > priorityFeederInterval) {
+                e.setValue(curTime);
+                peer = addPeer(e.getKey());
+                break;
+            }
+        }
+
+        return peer != null ? peer : getAnyPeer(Peer.State.CONNECTED, true);
+    }
 
     public static Peer getAnyPeer(Peer.State state, boolean applyPullThreshold) {
 
