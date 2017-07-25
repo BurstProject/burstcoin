@@ -26,6 +26,7 @@ The world's first HDD-mined cryptocurrency using the new algorithm, Proof-of-Cap
 
 ## Version History
 
+- 2017/07/25 New version release Burst 1.2.9
 - 2017/02/19 New version release Burst 1.2.8
 - 2016/11/16 New version release Burst 1.2.7
 - 2016/07/27 New version release Burst 1.2.6
