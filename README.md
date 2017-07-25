@@ -2,6 +2,38 @@
 
 The world's first HDD-mined cryptocurrency using the new algorithm, Proof-of-Capacity.
 
+## Installation and Requirements
+
+This version is using MariaDB instead of H2 as database backend. This aproach is much more reliable.
+Maybe it's also possible to use MySQL - you could give it a try if you like to.
+
+### Software
+
+Debian and Ubuntu:
+
+```
+apt-get install -yqq default-jre default-jdk mariadb-server
+```
+
+### Configuring and Initialize MariaDB
+
+This is just an example of course:
+
+```
+echo "CREATE USER 'burstwallet'@'localhost' IDENTIFIED BY 'yourpassword'; GRANT ALL PRIVILEGES ON burstwallet.* TO 'burstwallet'@'localhost';" | mysql -uroot -p
+cat init-mysql.sql | mysql -uroot -p
+```
+
+### Configure your Wallet
+
+Now you need to add the following stuff to your conf/nxt.properties:
+
+```
+nxt.dbUrl=jdbc:mariadb://localhost:3306/burstwallet
+echo nxt.dbUsername=burstwallet
+nxt.dbPassword=yourpassword
+```
+
 ## Striking Features
 
 - Proof of Capacity - ASIC Proof / Energy efficient mining
@@ -30,7 +62,7 @@ The world's first HDD-mined cryptocurrency using the new algorithm, Proof-of-Cap
 - 2016/11/16 New version release Burst 1.2.7
 - 2016/07/27 New version release Burst 1.2.6
 - 2016/07/19 New version release Burst 1.2.5
-- 2016/06/07 New version release Burst 1.2.4            
+- 2016/06/07 New version release Burst 1.2.4
 - 2016/01/11 Community takeover
 - 2015/04/20 New version release Burst 1.2.3
 - 2015/02/05 New version release Burst 1.2.2
