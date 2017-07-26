@@ -770,7 +770,8 @@ public final class Peers {
             }
             if(wellKnownConnected >= connectWellKnownFirst) {
                 connectWellKnownFinished = true;
-                Logger.logInfoMessage("Finished connecteding to " + connectWellKnownFirst + " well known peers.");
+                Logger.logInfoMessage("Finished connecting to " + connectWellKnownFirst + " well known peers.");
+                Logger.logInfoMessage("You can open your Burst Wallet in your favorite browser with: http://127.0.0.1:8125 or http://localhost:8125");
             }
         }
 
