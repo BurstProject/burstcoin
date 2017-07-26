@@ -31,8 +31,6 @@ final class TransactionProcessorImpl implements TransactionProcessor {
     private static final int rebroadcastAfter = Nxt.getIntProperty("burst.rebroadcastAfter") != 0 ? Nxt.getIntProperty("burst.rebroadcastAfter") : 4;
     private static final int rebroadcastEvery = Nxt.getIntProperty("burst.rebroadcastEvery") != 0 ? Nxt.getIntProperty("burst.rebroadcastEvery") : 2;
 
-    private static final int maxUnconfirmed = Nxt.getIntProperty("nxt.maxUnconfirmedTransactions");
-
     private static final TransactionProcessorImpl instance = new TransactionProcessorImpl();
 
     static TransactionProcessorImpl getInstance() {
@@ -104,34 +102,6 @@ final class TransactionProcessorImpl implements TransactionProcessor {
 
     };
 
-    private final Object numUnconfirmedLock = new Object();
-    private int numUnconfirmed = unconfirmedTransactionTable.getCount();
-    private long minFeePerByte = 0;
-    private long maxMinFeeId = Long.MAX_VALUE; // need better init?
-
-    private void setMinFeePerByte() {
-        if (maxUnconfirmed == 0) {
-            minFeePerByte = 0;
-            maxMinFeeId = Long.MAX_VALUE;
-        }
-        else if(unconfirmedTransactionTable.getCount() < maxUnconfirmed) {
-            minFeePerByte = 0;
-            maxMinFeeId = Long.MAX_VALUE;
-        }
-        else {
-            try (DbIterator<TransactionImpl> iterator = unconfirmedTransactionTable.getAll(0, 0, " ORDER BY fee_per_byte ASC, id DESC ")) {
-                if (iterator.hasNext()) {
-                    TransactionImpl transaction = iterator.next();
-                    minFeePerByte = transaction.getFeeNQT() / transaction.getSize();
-                    maxMinFeeId = transaction.getId();
-                } else {
-                    minFeePerByte = 0;
-                    maxMinFeeId = Long.MAX_VALUE;
-                }
-            }
-        }
-    }
-
     private final Set<TransactionImpl> nonBroadcastedTransactions = Collections.newSetFromMap(new ConcurrentHashMap<TransactionImpl,Boolean>());
     private final Listeners<List<? extends Transaction>,Event> transactionListeners = new Listeners<>();
     private final Set<TransactionImpl> lostTransactions = new HashSet<>();
@@ -160,26 +130,19 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                     }
                     if (expiredTransactions.size() > 0) {
                         synchronized (BlockchainImpl.getInstance()) {
-                            synchronized (numUnconfirmedLock) {
-                                try {
-                                    Db.beginTransaction();
-                                    for (TransactionImpl transaction : expiredTransactions) {
-                                        removeUnconfirmedTransaction(transaction);
-                                    }
-                                    Account.flushAccountTable();
-                                    Db.commitTransaction();
-                                } catch (Exception e) {
-                                    Logger.logErrorMessage(e.toString(), e);
-                                    Db.rollbackTransaction();
-                                    throw e;
-                                } finally {
-                                    Db.endTransaction();
+                            try {
+                                Db.beginTransaction();
+                                for (TransactionImpl transaction : expiredTransactions) {
+                                    removeUnconfirmedTransaction(transaction);
                                 }
-
-                                // removed txes always means more space
-                                numUnconfirmed = unconfirmedTransactionTable.getCount();
-                                minFeePerByte = 0;
-                                maxMinFeeId = Long.MAX_VALUE;
+                                Account.flushAccountTable();
+                                Db.commitTransaction();
+                            } catch (Exception e) {
+                                Logger.logErrorMessage(e.toString(), e);
+                                Db.rollbackTransaction();
+                                throw e;
+                            } finally {
+                                Db.endTransaction();
                             }
                         } // synchronized
                     }
@@ -416,55 +379,41 @@ final class TransactionProcessorImpl implements TransactionProcessor {
     @Override
     public void clearUnconfirmedTransactions() {
         synchronized (BlockchainImpl.getInstance()) {
-            synchronized (numUnconfirmedLock) {
-                List<Transaction> removed = new ArrayList<>();
-                try {
-                    Db.beginTransaction();
-                    try (DbIterator<TransactionImpl> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
-                        for (TransactionImpl transaction : unconfirmedTransactions) {
-                            transaction.undoUnconfirmed();
-                            removed.add(transaction);
-                        }
+            List<Transaction> removed = new ArrayList<>();
+            try {
+                Db.beginTransaction();
+                try (DbIterator<TransactionImpl> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
+                    for (TransactionImpl transaction : unconfirmedTransactions) {
+                        transaction.undoUnconfirmed();
+                        removed.add(transaction);
                     }
-                    unconfirmedTransactionTable.truncate();
-                    Account.flushAccountTable();
-                    Db.commitTransaction();
-                } catch (Exception e) {
-                    Logger.logErrorMessage(e.toString(), e);
-                    Db.rollbackTransaction();
-                    throw e;
-                } finally {
-                    Db.endTransaction();
                 }
-                lostTransactions.clear();
-
-                numUnconfirmed = 0;
-                minFeePerByte = 0;
-                maxMinFeeId = Long.MAX_VALUE;
-
-                transactionListeners.notify(removed, Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
+                unconfirmedTransactionTable.truncate();
+                Account.flushAccountTable();
+                Db.commitTransaction();
+            } catch (Exception e) {
+                Logger.logErrorMessage(e.toString(), e);
+                Db.rollbackTransaction();
+                throw e;
+            } finally {
+                Db.endTransaction();
             }
+            lostTransactions.clear();
+            transactionListeners.notify(removed, Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
         }
     }
 
     void requeueAllUnconfirmedTransactions() {
-        synchronized (numUnconfirmedLock) {
-            List<Transaction> removed = new ArrayList<>();
-            try (DbIterator<TransactionImpl> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
-                for (TransactionImpl transaction : unconfirmedTransactions) {
-                    transaction.undoUnconfirmed();
-                    removed.add(transaction);
-                    lostTransactions.add(transaction);
-                }
+        List<Transaction> removed = new ArrayList<>();
+        try (DbIterator<TransactionImpl> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
+            for (TransactionImpl transaction : unconfirmedTransactions) {
+                transaction.undoUnconfirmed();
+                removed.add(transaction);
+                lostTransactions.add(transaction);
             }
-            unconfirmedTransactionTable.truncate();
-
-            numUnconfirmed = 0;
-            minFeePerByte = 0;
-            maxMinFeeId = Long.MAX_VALUE;
-
-            transactionListeners.notify(removed, Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
         }
+        unconfirmedTransactionTable.truncate();
+        transactionListeners.notify(removed, Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
     }
 
     void removeUnconfirmedTransaction(TransactionImpl transaction) {
@@ -485,23 +434,17 @@ final class TransactionProcessorImpl implements TransactionProcessor {
             }
             return;
         }
-        synchronized (numUnconfirmedLock) {
-            try (Connection con = Db.getConnection();
-                 PreparedStatement pstmt = con.prepareStatement("DELETE FROM unconfirmed_transaction WHERE id = ?")) {
-                pstmt.setLong(1, transaction.getId());
-                int deleted = pstmt.executeUpdate();
-                if (deleted > 0) {
-                    transaction.undoUnconfirmed();
-
-                    numUnconfirmed--;
-                    setMinFeePerByte();
-
-                    transactionListeners.notify(Collections.singletonList(transaction), Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
-                }
-            } catch (SQLException e) {
-                Logger.logErrorMessage(e.toString(), e);
-                throw new RuntimeException(e.toString(), e);
+        try (Connection con = Db.getConnection();
+             PreparedStatement pstmt = con.prepareStatement("DELETE FROM unconfirmed_transaction WHERE id = ?")) {
+            pstmt.setLong(1, transaction.getId());
+            int deleted = pstmt.executeUpdate();
+            if (deleted > 0) {
+                transaction.undoUnconfirmed();
+                transactionListeners.notify(Collections.singletonList(transaction), Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
             }
+        } catch (SQLException e) {
+            Logger.logErrorMessage(e.toString(), e);
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
@@ -525,26 +468,21 @@ final class TransactionProcessorImpl implements TransactionProcessor {
             return;
         }
         List<TransactionImpl> transactions = new ArrayList<>();
-        synchronized (numUnconfirmedLock) {
-            for (Object transactionData : transactionsData) {
-                try {
-                    TransactionImpl transaction = parseTransaction((JSONObject) transactionData);
-                    if (maxUnconfirmed == 0 || numUnconfirmed < maxUnconfirmed || (transaction.getFeeNQT() / transaction.getSize()) > minFeePerByte ||
-                            ((transaction.getFeeNQT() / transaction.getSize()) == minFeePerByte && transaction.getId() < maxMinFeeId) ) {
-                        transaction.validate();
-                        if (!EconomicClustering.verifyFork(transaction)) {
+        for (Object transactionData : transactionsData) {
+            try {
+                TransactionImpl transaction = parseTransaction((JSONObject) transactionData);
+                transaction.validate();
+                if(!EconomicClustering.verifyFork(transaction)) {
                 	/*if(Nxt.getBlockchain().getHeight() >= Constants.EC_CHANGE_BLOCK_1) {
                 		throw new NxtException.NotValidException("Transaction from wrong fork");
                 	}*/
-                            continue;
-                        }
-                        transactions.add(transaction);
-                    }
-                } catch (NxtException.NotCurrentlyValidException ignore) {
-                } catch (NxtException.NotValidException e) {
-                    Logger.logDebugMessage("Invalid transaction from peer: " + ((JSONObject) transactionData).toJSONString());
-                    throw e;
+                	continue;
                 }
+                transactions.add(transaction);
+            } catch (NxtException.NotCurrentlyValidException ignore) {
+            } catch (NxtException.NotValidException e) {
+                Logger.logDebugMessage("Invalid transaction from peer: " + ((JSONObject) transactionData).toJSONString());
+                throw e;
             }
         }
         processTransactions(transactions, true);
@@ -573,85 +511,45 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                 //}
 
                 synchronized (BlockchainImpl.getInstance()) {
-                    synchronized (numUnconfirmedLock) {
-                        try {
-                            Db.beginTransaction();
-                            if (Nxt.getBlockchain().getHeight() < Constants.NQT_BLOCK) {
-                                break; // not ready to process transactions
-                            }
-
-                            if(maxUnconfirmed != 0 && numUnconfirmed >= maxUnconfirmed) {
-                                if(transaction.getFeeNQT() / transaction.getSize() < minFeePerByte) {
-                                    continue;
-                                }
-                                if(transaction.getFeeNQT() / transaction.getSize() == minFeePerByte && transaction.getId() >= maxMinFeeId) {
-                                    continue;
-                                }
-                            }
-
-                            if (TransactionDb.hasTransaction(transaction.getId()) || unconfirmedTransactionTable.get(transaction.getDbKey()) != null) {
-                                continue;
-                            }
-
-                            if (!(transaction.verifySignature() && transaction.verifyPublicKey())) {
-                                if (Account.getAccount(transaction.getSenderId()) != null) {
-                                    Logger.logDebugMessage("Transaction " + transaction.getJSONObject().toJSONString() + " failed to verify");
-                                }
-                                continue;
-                            }
-
-                            if (transaction.applyUnconfirmed()) {
-                                if (sendToPeers) {
-                                    if (nonBroadcastedTransactions.contains(transaction)) {
-                                        Logger.logDebugMessage("Received back transaction " + transaction.getStringId()
-                                                + " that we generated, will not forward to peers");
-                                        nonBroadcastedTransactions.remove(transaction);
-                                    } else {
-                                        sendToPeersTransactions.add(transaction);
-                                    }
-                                }
-                                unconfirmedTransactionTable.insert(transaction);
-                                addedUnconfirmedTransactions.add(transaction);
-
-                                numUnconfirmed++;
-                                setMinFeePerByte();
-                            } else {
-                                addedDoubleSpendingTransactions.add(transaction);
-                            }
-                            Account.flushAccountTable();
-                            Db.commitTransaction();
-                        } catch (Exception e) {
-                            Db.rollbackTransaction();
-                            throw e;
-                        } finally {
-                            Db.endTransaction();
+                    try {
+                        Db.beginTransaction();
+                        if (Nxt.getBlockchain().getHeight() < Constants.NQT_BLOCK) {
+                            break; // not ready to process transactions
                         }
 
-                        if(maxUnconfirmed != 0) {
-                            while(numUnconfirmed > maxUnconfirmed) {
-                                Long id = null;
-                                try (DbIterator<TransactionImpl> iterator = unconfirmedTransactionTable.getAll(0, 0, " ORDER BY fee_per_byte ASC, id DESC ")) {
-                                    if(iterator.hasNext()) {
-                                        TransactionImpl removeTransaction = iterator.next();
-                                        id = removeTransaction.getId();
-                                    }
-                                }
-                                if(id != null) {
-                                    TransactionImpl removeTransaction = unconfirmedTransactionTable.get(unconfirmedTransactionDbKeyFactory.newKey(id));
-                                    if(removeTransaction != null) {
-                                        removeUnconfirmedTransaction(removeTransaction);
-                                    }
-                                    else {
-                                        Logger.logErrorMessage("Failed to find unconfirmed transactions to remove");
-                                        break;
-                                    }
-                                }
-                                else {
-                                    Logger.logErrorMessage("Failed to removed unconfirmed transactions down to max amount");
-                                    break;
+                        if (TransactionDb.hasTransaction(transaction.getId()) || unconfirmedTransactionTable.get(transaction.getDbKey()) != null) {
+                            continue;
+                        }
+
+                        if (!(transaction.verifySignature() && transaction.verifyPublicKey())) {
+                            if (Account.getAccount(transaction.getSenderId()) != null) {
+                                Logger.logDebugMessage("Transaction " + transaction.getJSONObject().toJSONString() + " failed to verify");
+                            }
+                            continue;
+                        }
+
+                        if (transaction.applyUnconfirmed()) {
+                            if (sendToPeers) {
+                                if (nonBroadcastedTransactions.contains(transaction)) {
+                                    Logger.logDebugMessage("Received back transaction " + transaction.getStringId()
+                                            + " that we generated, will not forward to peers");
+                                    nonBroadcastedTransactions.remove(transaction);
+                                } else {
+                                    sendToPeersTransactions.add(transaction);
                                 }
                             }
+                            unconfirmedTransactionTable.insert(transaction);
+                            addedUnconfirmedTransactions.add(transaction);
+                        } else {
+                            addedDoubleSpendingTransactions.add(transaction);
                         }
+                        Account.flushAccountTable();
+                        Db.commitTransaction();
+                    } catch (Exception e) {
+                        Db.rollbackTransaction();
+                        throw e;
+                    } finally {
+                        Db.endTransaction();
                     }
                 }
             } catch (RuntimeException e) {
