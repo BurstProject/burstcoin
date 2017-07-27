@@ -10,10 +10,7 @@ import nxt.Transaction;
 import nxt.TransactionProcessor;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
-import nxt.util.Convert;
-import nxt.util.Listener;
-import nxt.util.Logger;
-import nxt.util.ThreadPool;
+import nxt.util.*;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
@@ -35,6 +32,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import java.math.BigInteger;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,7 +60,7 @@ public final class Users {
     private static final AtomicInteger transactionCounter = new AtomicInteger();
     private static final ConcurrentMap<Long, Integer> transactionIndexMap = new ConcurrentHashMap<>();
 
-    static final Set<String> allowedUserHosts;
+    static final Set<Subnet> allowedUserHosts;
 
     private static final Server userServer;
 
@@ -70,7 +68,23 @@ public final class Users {
 
         List<String> allowedUserHostsList = Nxt.getStringListProperty("nxt.allowedUserHosts");
         if (! allowedUserHostsList.contains("*")) {
-            allowedUserHosts = Collections.unmodifiableSet(new HashSet<>(allowedUserHostsList));
+
+            // Temp hashset to store allowed subnets
+            Set<Subnet> allowedSubnets = new HashSet<>();
+
+            for (String allowedHost : allowedUserHostsList)
+            {
+                try
+                {
+                    allowedSubnets.add(Subnet.createInstance(allowedHost));
+                } catch (UnknownHostException e)
+                {
+                    Logger.logErrorMessage("Error adding allowed user host '" + allowedHost + "'", e);
+                }
+            }
+
+            allowedUserHosts = Collections.unmodifiableSet(new HashSet<>(allowedSubnets));
+
         } else {
             allowedUserHosts = null;
         }

@@ -5,6 +5,7 @@ import nxt.NxtException;
 import nxt.db.Db;
 import nxt.util.JSON;
 import nxt.util.Logger;
+import nxt.util.Subnet;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -214,10 +216,24 @@ public final class APIServlet extends HttpServlet {
         	
         	long startTime = System.currentTimeMillis();
 
-            if (API.allowedBotHosts != null && ! API.allowedBotHosts.contains(req.getRemoteHost())) {
-                response = ERROR_NOT_ALLOWED;
-                return;
-            }
+            if (API.allowedBotHosts != null)
+                {
+                    InetAddress remoteAddress = InetAddress.getByName(req.getRemoteHost());
+                    boolean allowed = false;
+                    for (Subnet allowedSubnet: API.allowedBotHosts)
+                    {
+                      if (allowedSubnet.isInNet(remoteAddress))
+                      {
+                          allowed = true;
+                          break;
+                      }
+                    }
+                    if (!allowed)
+                    {
+                        response = ERROR_NOT_ALLOWED;
+                        return;
+                    }
+                }
 
             String requestType = req.getParameter("requestType");
             if (requestType == null) {

@@ -3,6 +3,7 @@ package nxt.http;
 import nxt.Constants;
 import nxt.Nxt;
 import nxt.util.Logger;
+import nxt.util.Subnet;
 import nxt.util.ThreadPool;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -22,6 +23,7 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.servlets.GzipFilter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
+import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -31,7 +33,7 @@ public final class API {
 
     private static final int TESTNET_API_PORT = 6876;
 
-    static final Set<String> allowedBotHosts;
+    static final Set<Subnet> allowedBotHosts;
     static final boolean enableDebugAPI = Nxt.getBooleanProperty("nxt.enableDebugAPI");
 
     private static final Server apiServer;
@@ -39,7 +41,20 @@ public final class API {
     static {
         List<String> allowedBotHostsList = Nxt.getStringListProperty("nxt.allowedBotHosts");
         if (! allowedBotHostsList.contains("*")) {
-            allowedBotHosts = Collections.unmodifiableSet(new HashSet<>(allowedBotHostsList));
+            // Temp hashset to store allowed subnets
+            Set<Subnet> allowedSubnets = new HashSet<>();
+
+            for (String allowedHost : allowedBotHostsList)
+            {
+                try
+                {
+                    allowedSubnets.add(Subnet.createInstance(allowedHost));
+                } catch (UnknownHostException e)
+                {
+                    Logger.logErrorMessage("Error adding allowed bot host '" + allowedHost + "'", e);
+                }
+            }
+            allowedBotHosts = Collections.unmodifiableSet(new HashSet<>(allowedSubnets));
         } else {
             allowedBotHosts = null;
         }
