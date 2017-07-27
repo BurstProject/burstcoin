@@ -2,7 +2,9 @@ package nxt.user;
 
 import nxt.Nxt;
 import nxt.NxtException;
+import nxt.http.API;
 import nxt.util.Logger;
+import nxt.util.Subnet;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -11,10 +13,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static nxt.http.JSONResponses.ERROR_NOT_ALLOWED;
 import static nxt.user.JSONResponses.DENY_ACCESS;
 import static nxt.user.JSONResponses.INCORRECT_REQUEST;
 import static nxt.user.JSONResponses.POST_REQUIRED;
@@ -72,9 +76,22 @@ public final class UserServlet extends HttpServlet  {
             }
             user = Users.getUser(userPasscode);
 
-            if (Users.allowedUserHosts != null && ! Users.allowedUserHosts.contains(req.getRemoteHost())) {
-                user.enqueue(DENY_ACCESS);
-                return;
+            if (Users.allowedUserHosts != null) {
+                InetAddress remoteAddress = InetAddress.getByName(req.getRemoteHost());
+                boolean allowed = false;
+                for (Subnet allowedSubnet: Users.allowedUserHosts)
+                {
+                    if (allowedSubnet.isInNet(remoteAddress))
+                    {
+                        allowed = true;
+                        break;
+                    }
+                }
+                if (!allowed)
+                {
+                    user.enqueue(DENY_ACCESS);
+                    return;
+                }
             }
 
             String requestType = req.getParameter("requestType");
