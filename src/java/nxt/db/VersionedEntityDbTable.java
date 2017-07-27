@@ -73,8 +73,8 @@ public abstract class VersionedEntityDbTable<T> extends EntityDbTable<T> {
              PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + table
                      + " WHERE height > ?");
              PreparedStatement pstmtSetLatest = con.prepareStatement("UPDATE " + table
-                     + " SET latest = TRUE " + dbKeyFactory.getPKClause() + " AND height ="
-                     + " (SELECT MAX(height) FROM " + table + dbKeyFactory.getPKClause() + ")")) {
+                     + " SET latest = TRUE " + dbKeyFactory.getPKClause() + " AND height IN"
+                     + " ( SELECT * FROM (SELECT MAX(height) FROM " + table + dbKeyFactory.getPKClause() + ") ) ac0v")) {
             pstmtSelectToDelete.setInt(1, height);
             List<DbKey> dbKeys = new ArrayList<>();
             try (ResultSet rs = pstmtSelectToDelete.executeQuery()) {
