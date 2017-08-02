@@ -126,9 +126,6 @@ public final class API {
             }
 
             apiHandler.addServlet(APITestServlet.class, "/test");
-            if (enableDebugAPI) {
-                apiHandler.addServlet(DbShellServlet.class, "/dbshell");
-            }
 
             if (Nxt.getBooleanProperty("nxt.apiServerCORS")) {
                 FilterHolder filterHolder = apiHandler.addFilter(CrossOriginFilter.class, "/*", null);
