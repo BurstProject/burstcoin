@@ -55,14 +55,15 @@ final class User {
     }
 
     void lockAccount() {
-        Generator.stopForging(secretPhrase);
+        //Generator.stopForging(secretPhrase);
         secretPhrase = null;
     }
 
     long unlockAccount(String secretPhrase) {
         this.publicKey = Crypto.getPublicKey(secretPhrase);
         this.secretPhrase = secretPhrase;
-        return Generator.startForging(secretPhrase).getAccountId();
+        //return Generator.startForging(secretPhrase).getAccountId();
+        return 0L;
     }
 
     synchronized void processPendingResponses(HttpServletRequest req, HttpServletResponse resp) throws IOException {

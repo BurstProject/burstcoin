@@ -66,7 +66,7 @@
     "error_invalid_balance_leasing_no_public_key": "有效餘額出租無效：未找到接收者賬戶或未公佈公鑰。",
     "error_invalid_balance_leasing": "有效餘額出租無效。",
     "error_wrong_buyer_for_alias": "別名的錯誤購買者。",
-    "status_new_account": "歡迎來到新的 BURST 帳戶，您的帳戶ID是 <strong>__account_id__<\/strong>-当第一次為您的帐户充值时，您还需要宣佈您的公鑰，公鑰是__public_key__",
+    "status_new_account": "歡迎來到新的 BURST 帳戶，您的帳戶ID是 <strong>__account_id__<\/strong>-当第",
     "error_public_key_already_announced": "該賬戶已經公佈公鑰。",
     "error_public_key_announcement_no_recipient": "沒有接收者無法給交易附加公鑰公告。",
     "error_public_key_different_account_id": "已公佈的公鑰與接收者賬戶 ID 不匹配。",

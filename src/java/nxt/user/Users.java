@@ -509,9 +509,9 @@ public final class Users {
                 }
             }, BlockchainProcessor.Event.BLOCK_PUSHED);
 
-            Generator.addListener(new Listener<Generator>() {
+            Nxt.getGenerator().addListener(new Listener<Generator.GeneratorState>() {
                 @Override
-                public void notify(Generator generator) {
+                public void notify(Generator.GeneratorState generator) {
                     JSONObject response = new JSONObject();
                     response.put("response", "setBlockGenerationDeadline");
                     response.put("deadline", generator.getDeadline());

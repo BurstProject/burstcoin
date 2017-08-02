@@ -1,4 +1,5 @@
 {
+	"get_burst": "Konto-Nr.",
     "deadline": "Frist",
     "recipient": "Empfänger",
     "subtype": "Subtyp",
@@ -66,7 +67,7 @@
     "error_invalid_balance_leasing_no_public_key": "Ungültiges Verleasen des effektiven Guthabens: Empfängerkonto nicht gefunden oder kein öffentlicher Schlüssel veröffentlicht.",
     "error_invalid_balance_leasing": "Ungültiges Verleasen des effektiven Guthabens.",
     "error_wrong_buyer_for_alias": "Falscher Käufer für dieses Alias.",
-    "status_new_account": "Willkommen in Ihrem neuen BURST-Konto. Ihre Konto-ID ist <strong>__account_id__<\/strong> - Bei Ihrer ersten Einzahlung müssen Sie auch Ihren öffentlichen Schlüssel ankündigen, dieser lautet __public_key__",
+    "status_new_account": "Willkommen in Ihrem neuen BURST-Konto. Ihre Konto-ID ist <strong>__account_id__<\/strong>",
     "error_public_key_already_announced": "Öffentlicher Schlüssel für dieses Konto wurde bereits angekündigt.",
     "error_public_key_announcement_no_recipient": "Die Ankündigung des öffentlichen Schlüssels kann nicht an Transaktionen mit keinem Empfänger angehängt werden.",
     "error_public_key_different_account_id": "Der angekündigte öffentliche Schlüssel stimmt nicht mit der Konto-ID des Empfängers überein.",

@@ -26,7 +26,8 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
 
     protected abstract T load(Connection con, ResultSet rs) throws SQLException;
 
-    protected abstract void save(Connection con, T t) throws SQLException;
+    protected void save(Connection con, T t) throws SQLException {
+    }
 
     protected String defaultSort() {
         return defaultSort;
@@ -38,7 +39,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
-    public final T get(DbKey dbKey) {
+    public T get(DbKey dbKey) {
         if (Db.isInTransaction()) {
             T t = (T)Db.getCache(table).get(dbKey);
             if (t != null) {
@@ -55,7 +56,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
-    public final T get(DbKey dbKey, int height) {
+    public T get(DbKey dbKey, int height) {
         checkAvailable(height);
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + dbKeyFactory.getPKClause()
@@ -73,7 +74,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
-    public final T getBy(DbClause dbClause) {
+    public T getBy(DbClause dbClause) {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table
                      + " WHERE " + dbClause.getClause() + (multiversion ? " AND latest = TRUE LIMIT 1" : ""))) {
@@ -84,7 +85,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
-    public final T getBy(DbClause dbClause, int height) {
+    public T getBy(DbClause dbClause, int height) {
         checkAvailable(height);
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + " AS a WHERE " + dbClause.getClause()
@@ -128,11 +129,11 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
-    public final DbIterator<T> getManyBy(DbClause dbClause, int from, int to) {
+    public DbIterator<T> getManyBy(DbClause dbClause, int from, int to) {
         return getManyBy(dbClause, from, to, defaultSort());
     }
 
-    public final DbIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort) {
+    public DbIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort) {
         Connection con = null;
         try {
             con = Db.getConnection();
@@ -149,11 +150,11 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
-    public final DbIterator<T> getManyBy(DbClause dbClause, int height, int from, int to) {
+    public DbIterator<T> getManyBy(DbClause dbClause, int height, int from, int to) {
         return getManyBy(dbClause, height, from, to, defaultSort());
     }
 
-    public final DbIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort) {
+    public DbIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort) {
         checkAvailable(height);
         Connection con = null;
         try {
@@ -180,7 +181,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
-    public final DbIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache) {
+    public DbIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache) {
         final boolean doCache = cache && Db.isInTransaction();
         return new DbIterator<>(con, pstmt, new DbIterator.ResultSetReader<T>() {
             @Override
@@ -202,11 +203,11 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         });
     }
 
-    public final DbIterator<T> getAll(int from, int to) {
+    public DbIterator<T> getAll(int from, int to) {
         return getAll(from, to, defaultSort());
     }
 
-    public final DbIterator<T> getAll(int from, int to, String sort) {
+    public DbIterator<T> getAll(int from, int to, String sort) {
         Connection con = null;
         try {
             con = Db.getConnection();
@@ -221,11 +222,11 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
-    public final DbIterator<T> getAll(int height, int from, int to) {
+    public DbIterator<T> getAll(int height, int from, int to) {
         return getAll(height, from, to, defaultSort());
     }
 
-    public final DbIterator<T> getAll(int height, int from, int to, String sort) {
+    public DbIterator<T> getAll(int height, int from, int to, String sort) {
         checkAvailable(height);
         Connection con = null;
         try {
@@ -250,7 +251,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
-    public final int getCount() {
+    public int getCount() {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + table
                      + (multiversion ? " WHERE latest = TRUE" : ""));
@@ -262,7 +263,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
-    public final int getRowCount() {
+    public int getRowCount() {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + table);
              ResultSet rs = pstmt.executeQuery()) {
@@ -273,7 +274,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
-    public final void insert(T t) {
+    public void insert(T t) {
         if (!Db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
@@ -306,7 +307,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
     }
 
     @Override
-    public final void truncate() {
+    public void truncate() {
         super.truncate();
         Db.getCache(table).clear();
     }

@@ -1,7 +1,7 @@
-Burst ver 1.0.0
+Burst ver 1.2.9
 
 Requirements:
-Java 7 compatible JVM
+Java 8 compatible JVM
 
 Setup:
 Before you do anything, sync your clock.  Burst uses your computer clock's time, and having the time off too much could cause you to reject legit blocks, or miss out on blocks you could have mined. On linux "sudo ntpd -gq", on windows go to change date/time, and go to internet time and tell it to sync with a time server.
