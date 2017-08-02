@@ -1,10 +1,8 @@
 package nxt;
 
 import nxt.crypto.Crypto;
-import nxt.util.Convert;
-import nxt.util.LoggerConfigurator;
 import nxt.peer.Peer;
-
+import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -13,12 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 final class BlockImpl implements Block {
 

@@ -1,7 +1,6 @@
 package nxt.crypto;
 
 import nxt.util.Convert;
-import nxt.util.LoggerConfigurator;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESEngine;

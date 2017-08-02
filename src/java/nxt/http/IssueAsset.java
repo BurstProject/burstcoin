@@ -9,11 +9,7 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static nxt.http.JSONResponses.INCORRECT_ASSET_DESCRIPTION;
-import static nxt.http.JSONResponses.INCORRECT_ASSET_NAME;
-import static nxt.http.JSONResponses.INCORRECT_ASSET_NAME_LENGTH;
-import static nxt.http.JSONResponses.INCORRECT_DECIMALS;
-import static nxt.http.JSONResponses.MISSING_NAME;
+import static nxt.http.JSONResponses.*;
 
 public final class IssueAsset extends CreateTransaction {
 

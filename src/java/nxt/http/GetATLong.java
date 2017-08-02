@@ -1,7 +1,6 @@
 package nxt.http;
 
 import nxt.NxtException;
-
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;

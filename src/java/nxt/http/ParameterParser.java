@@ -1,19 +1,9 @@
 package nxt.http;
 
-import nxt.AT;
-import nxt.Account;
-import nxt.Alias;
-import nxt.Asset;
-import nxt.Constants;
-import nxt.DigitalGoodsStore;
-import nxt.Nxt;
-import nxt.NxtException;
-import nxt.Transaction;
+import nxt.*;
 import nxt.crypto.Crypto;
 import nxt.crypto.EncryptedData;
 import nxt.util.Convert;
-import nxt.util.LoggerConfigurator;
-
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
@@ -21,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;

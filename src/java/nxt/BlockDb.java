@@ -2,16 +2,11 @@ package nxt;
 
 import nxt.db.Db;
 import nxt.db.DbUtils;
-import nxt.util.LoggerConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 final class BlockDb {
 

@@ -1,17 +1,14 @@
 package nxt.http;
 
-import java.util.Collection;
-
 import nxt.Account;
 import nxt.Escrow;
 import nxt.NxtException;
-import nxt.util.Convert;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 
 public final class GetAccountEscrowTransactions extends APIServlet.APIRequestHandler {
 	

@@ -1,7 +1,5 @@
 package nxt;
 
-import java.math.BigInteger;
-
 public final class Genesis {
 
     public static final long GENESIS_BLOCK_ID = 3444294670862540038L;

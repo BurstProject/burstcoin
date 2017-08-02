@@ -3,7 +3,6 @@ package nxt;
 import nxt.crypto.Crypto;
 import nxt.db.DbKey;
 import nxt.util.Convert;
-import nxt.util.LoggerConfigurator;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,11 +11,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 final class TransactionImpl implements Transaction {
 

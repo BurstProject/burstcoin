@@ -1,19 +1,12 @@
 package nxt.http;
 
-import nxt.Account;
-import nxt.Alias;
-import nxt.Attachment;
-import nxt.Constants;
-import nxt.NxtException;
+import nxt.*;
 import nxt.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static nxt.http.JSONResponses.INCORRECT_ALIAS_OWNER;
-import static nxt.http.JSONResponses.INCORRECT_PRICE;
-import static nxt.http.JSONResponses.INCORRECT_RECIPIENT;
-import static nxt.http.JSONResponses.MISSING_PRICE;
+import static nxt.http.JSONResponses.*;
 
 
 public final class SellAlias extends CreateTransaction {

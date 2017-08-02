@@ -1,19 +1,14 @@
 package nxt.http;
 
-import java.nio.ByteBuffer;
-
-import javax.servlet.http.HttpServletRequest;
-
 import nxt.Account;
-import nxt.Block;
 import nxt.Generator;
 import nxt.Nxt;
 import nxt.crypto.Crypto;
 import nxt.util.Convert;
-import fr.cryptohash.Shabal256;
-
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+
+import javax.servlet.http.HttpServletRequest;
 
 
 public final class SubmitNonce extends APIServlet.APIRequestHandler {

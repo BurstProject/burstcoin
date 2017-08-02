@@ -8,15 +8,10 @@ import nxt.at.AT_Constants;
 import nxt.at.AT_Controller;
 import nxt.at.AT_Exception;
 import nxt.util.Convert;
-
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 public abstract class TransactionType {

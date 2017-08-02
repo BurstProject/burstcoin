@@ -8,16 +8,15 @@
 
 package nxt.at;
 
+import fr.cryptohash.RIPEMD160;
+import nxt.Constants;
+
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-
-import nxt.Constants;
-import nxt.util.Convert;
-import fr.cryptohash.RIPEMD160;
 
 
 

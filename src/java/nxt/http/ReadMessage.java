@@ -6,7 +6,6 @@ import nxt.Nxt;
 import nxt.Transaction;
 import nxt.crypto.Crypto;
 import nxt.util.Convert;
-import nxt.util.LoggerConfigurator;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.slf4j.Logger;
@@ -14,10 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static nxt.http.JSONResponses.INCORRECT_TRANSACTION;
-import static nxt.http.JSONResponses.MISSING_TRANSACTION;
-import static nxt.http.JSONResponses.NO_MESSAGE;
-import static nxt.http.JSONResponses.UNKNOWN_TRANSACTION;
+import static nxt.http.JSONResponses.*;
 
 public final class ReadMessage extends APIServlet.APIRequestHandler {
 

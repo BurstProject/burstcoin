@@ -4,7 +4,6 @@ import nxt.Account;
 import nxt.NxtException;
 import nxt.crypto.EncryptedData;
 import nxt.util.Convert;
-import nxt.util.LoggerConfigurator;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.slf4j.Logger;

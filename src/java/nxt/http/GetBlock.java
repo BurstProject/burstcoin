@@ -7,10 +7,7 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static nxt.http.JSONResponses.INCORRECT_BLOCK;
-import static nxt.http.JSONResponses.INCORRECT_HEIGHT;
-import static nxt.http.JSONResponses.INCORRECT_TIMESTAMP;
-import static nxt.http.JSONResponses.UNKNOWN_BLOCK;
+import static nxt.http.JSONResponses.*;
 
 public final class GetBlock extends APIServlet.APIRequestHandler {
 

@@ -1,20 +1,13 @@
 package nxt.http;
 
-import nxt.Account;
-import nxt.Attachment;
-import nxt.Constants;
-import nxt.DigitalGoodsStore;
-import nxt.NxtException;
+import nxt.*;
 import nxt.crypto.EncryptedData;
 import nxt.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static nxt.http.JSONResponses.ALREADY_DELIVERED;
-import static nxt.http.JSONResponses.INCORRECT_DGS_DISCOUNT;
-import static nxt.http.JSONResponses.INCORRECT_DGS_GOODS;
-import static nxt.http.JSONResponses.INCORRECT_PURCHASE;
+import static nxt.http.JSONResponses.*;
 
 public final class DGSDelivery extends CreateTransaction {
 

@@ -2,7 +2,6 @@ package nxt.user;
 
 import nxt.Nxt;
 import nxt.NxtException;
-import nxt.util.LoggerConfigurator;
 import nxt.util.Subnet;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -19,9 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static nxt.user.JSONResponses.DENY_ACCESS;
-import static nxt.user.JSONResponses.INCORRECT_REQUEST;
-import static nxt.user.JSONResponses.POST_REQUIRED;
+import static nxt.user.JSONResponses.*;
 
 public final class UserServlet extends HttpServlet  {
 

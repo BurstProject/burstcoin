@@ -1,12 +1,9 @@
 package nxt.http;
 
 import nxt.Account;
-import nxt.Attachment;
-import nxt.Constants;
 import nxt.Nxt;
 import nxt.NxtException;
 import nxt.util.Convert;
-
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 

@@ -1,12 +1,10 @@
 package nxt;
 
+import fr.cryptohash.Shabal256;
 import nxt.crypto.Crypto;
-import nxt.util.Convert;
-import nxt.util.Listener;
-import nxt.util.Listeners;
-import nxt.util.LoggerConfigurator;
-import nxt.util.ThreadPool;
-import nxt.util.MiningPlot;
+import nxt.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -17,10 +15,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
-
-import fr.cryptohash.Shabal256;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class GeneratorImpl implements Generator {
 

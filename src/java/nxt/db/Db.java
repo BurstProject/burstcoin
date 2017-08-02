@@ -1,12 +1,9 @@
 package nxt.db;
 
-import nxt.Constants;
-import nxt.Nxt;
-import nxt.util.LoggerConfigurator;
-// import org.h2.jdbcx.JdbcConnectionPool;
-
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import nxt.Constants;
+import nxt.Nxt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +11,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
+// import org.h2.jdbcx.JdbcConnectionPool;
 
 public final class Db {
 
