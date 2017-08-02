@@ -1,6 +1,5 @@
 package nxt;
 
-import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.TimeZone;
 

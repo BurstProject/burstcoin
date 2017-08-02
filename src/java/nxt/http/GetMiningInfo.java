@@ -1,16 +1,14 @@
 package nxt.http;
 
-import java.nio.ByteBuffer;
-
-import javax.servlet.http.HttpServletRequest;
-
+import fr.cryptohash.Shabal256;
 import nxt.Block;
 import nxt.Nxt;
 import nxt.util.Convert;
-import fr.cryptohash.Shabal256;
-
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+
+import javax.servlet.http.HttpServletRequest;
+import java.nio.ByteBuffer;
 
 public final class GetMiningInfo extends APIServlet.APIRequestHandler {
 	static final GetMiningInfo instance = new GetMiningInfo();

@@ -1,7 +1,5 @@
 package nxt.util;
 
-import nxt.Nxt;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

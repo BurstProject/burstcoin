@@ -1,7 +1,5 @@
 package nxt.http;
 
-import nxt.Generator;
-import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;

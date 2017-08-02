@@ -1,24 +1,19 @@
 package nxt.at;
 
 
+import nxt.AT;
+import nxt.Account;
+import nxt.Constants;
+import nxt.util.Convert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-
-import nxt.AT;
-import nxt.Account;
-import nxt.Constants;
-import nxt.util.Convert;
-import nxt.util.LoggerConfigurator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.*;
 
 public abstract class AT_Controller {
 

@@ -3,7 +3,6 @@ package nxt.peer;
 import nxt.Block;
 import nxt.Nxt;
 import nxt.util.Convert;
-import nxt.util.LoggerConfigurator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

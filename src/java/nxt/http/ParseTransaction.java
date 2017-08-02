@@ -3,7 +3,6 @@ package nxt.http;
 import nxt.NxtException;
 import nxt.Transaction;
 import nxt.util.Convert;
-import nxt.util.LoggerConfigurator;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.slf4j.Logger;

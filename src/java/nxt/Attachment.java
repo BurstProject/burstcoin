@@ -3,7 +3,6 @@ package nxt;
 import nxt.NxtException.NotValidException;
 import nxt.crypto.EncryptedData;
 import nxt.util.Convert;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 

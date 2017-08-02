@@ -1,5 +1,14 @@
 package nxt.at;
 
+import nxt.Appendix;
+import nxt.Constants;
+import nxt.Nxt;
+import nxt.Transaction;
+import nxt.crypto.Crypto;
+import nxt.db.Db;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
@@ -8,16 +17,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
-
-import nxt.Appendix;
-import nxt.Constants;
-import nxt.db.Db;
-import nxt.Nxt;
-import nxt.Transaction;
-import nxt.crypto.Crypto;
-import nxt.util.LoggerConfigurator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 //NXT API IMPLEMENTATION
 

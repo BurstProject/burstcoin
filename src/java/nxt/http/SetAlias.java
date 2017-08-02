@@ -1,21 +1,14 @@
 package nxt.http;
 
 
-import nxt.Account;
-import nxt.Alias;
-import nxt.Attachment;
-import nxt.Constants;
-import nxt.NxtException;
+import nxt.*;
 import nxt.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static nxt.http.JSONResponses.INCORRECT_ALIAS_LENGTH;
-import static nxt.http.JSONResponses.INCORRECT_ALIAS_NAME;
-import static nxt.http.JSONResponses.INCORRECT_URI_LENGTH;
-import static nxt.http.JSONResponses.MISSING_ALIAS_NAME;
+import static nxt.http.JSONResponses.*;
 
 public final class SetAlias extends CreateTransaction {
 

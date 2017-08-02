@@ -1,10 +1,9 @@
 package nxt.util;
 
-import java.math.BigInteger;
+import fr.cryptohash.Shabal256;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-
-import fr.cryptohash.Shabal256;
 
 public class MiningPlot {
 	public static int HASH_SIZE = 32;

@@ -1,19 +1,12 @@
 package nxt.http;
 
-import nxt.Account;
-import nxt.Attachment;
-import nxt.Constants;
-import nxt.DigitalGoodsStore;
-import nxt.NxtException;
+import nxt.*;
 import nxt.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static nxt.http.JSONResponses.DUPLICATE_REFUND;
-import static nxt.http.JSONResponses.GOODS_NOT_DELIVERED;
-import static nxt.http.JSONResponses.INCORRECT_DGS_REFUND;
-import static nxt.http.JSONResponses.INCORRECT_PURCHASE;
+import static nxt.http.JSONResponses.*;
 
 public final class DGSRefund extends CreateTransaction {
 

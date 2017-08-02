@@ -2,7 +2,6 @@ package nxt.user;
 
 import nxt.crypto.Crypto;
 import nxt.util.JSON;
-import nxt.util.LoggerConfigurator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
