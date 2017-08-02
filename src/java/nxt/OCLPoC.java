@@ -1,8 +1,9 @@
 package nxt;
 
-import nxt.util.Logger;
 import nxt.util.MiningPlot;
 import org.jocl.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -14,6 +15,8 @@ import java.util.Collection;
 import static org.jocl.CL.*;
 
 final class OCLPoC {
+
+    private static final Logger logger = LoggerFactory.getLogger(OCLPoC.class);
 
     private static final int DEFAULT_MEM_PERCENT = 50;
 
@@ -142,10 +145,10 @@ final class OCLPoC {
             if(maxItems <= 0) {
                 throw new OCLCheckerException("OpenCL init error. Invalid calculated max items: " + maxItems);
             }
-            Logger.logMessage("OCL max items: " + maxItems);
+            logger.info("OCL max items: " + maxItems);
         }
         catch(CLException e) {
-            Logger.logErrorMessage("OpenCL exception: " + e.getMessage());
+            logger.error("OpenCL exception: " + e.getMessage());
             e.printStackTrace();
             destroy();
             throw new OCLCheckerException("OpenCL exception", e);

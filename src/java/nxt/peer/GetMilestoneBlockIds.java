@@ -3,12 +3,16 @@ package nxt.peer;
 import nxt.Block;
 import nxt.Nxt;
 import nxt.util.Convert;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class GetMilestoneBlockIds extends PeerServlet.PeerRequestHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(GetMilestoneBlockIds.class);
 
     static final GetMilestoneBlockIds instance = new GetMilestoneBlockIds();
 
@@ -69,7 +73,7 @@ final class GetMilestoneBlockIds extends PeerServlet.PeerRequestHandler {
             response.put("milestoneBlockIds", milestoneBlockIds);
 
         } catch (RuntimeException e) {
-            Logger.logDebugMessage(e.toString());
+            logger.debug(e.toString());
             response.put("error", e.toString());
         }
 

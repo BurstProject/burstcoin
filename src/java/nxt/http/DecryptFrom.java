@@ -4,9 +4,11 @@ import nxt.Account;
 import nxt.NxtException;
 import nxt.crypto.EncryptedData;
 import nxt.util.Convert;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -14,6 +16,8 @@ import static nxt.http.JSONResponses.DECRYPTION_FAILED;
 import static nxt.http.JSONResponses.INCORRECT_ACCOUNT;
 
 public final class DecryptFrom extends APIServlet.APIRequestHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(DecryptFrom.class);
 
     static final DecryptFrom instance = new DecryptFrom();
 
@@ -39,7 +43,7 @@ public final class DecryptFrom extends APIServlet.APIRequestHandler {
             response.put("decryptedMessage", isText ? Convert.toString(decrypted) : Convert.toHexString(decrypted));
             return response;
         } catch (RuntimeException e) {
-            Logger.logDebugMessage(e.toString());
+            logger.debug(e.toString());
             return DECRYPTION_FAILED;
         }
     }

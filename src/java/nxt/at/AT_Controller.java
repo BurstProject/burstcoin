@@ -8,22 +8,21 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.NavigableSet;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 import nxt.AT;
 import nxt.Account;
 import nxt.Constants;
-import nxt.Nxt;
 import nxt.util.Convert;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AT_Controller {
 
+	private static final Logger logger = LoggerFactory.getLogger(AT_Controller.class);
 
 	public static int runSteps( AT_Machine_State state )
 	{
@@ -517,7 +516,7 @@ public abstract class AT_Controller {
 		{
 			totalAmount += tx.getAmount();
 			AT.addPendingTransaction(tx);
-			Logger.logDebugMessage("Transaction to " + Convert.toUnsignedLong(AT_API_Helper.getLong(tx.getRecipientId())) + " amount " + tx.getAmount() );
+			logger.debug("Transaction to " + Convert.toUnsignedLong(AT_API_Helper.getLong(tx.getRecipientId())) + " amount " + tx.getAmount() );
 
 		}
 		return totalAmount;

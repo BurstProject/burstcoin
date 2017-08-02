@@ -4,9 +4,11 @@ import nxt.db.Db;
 import nxt.http.API;
 import nxt.peer.Peers;
 import nxt.user.Users;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
 import nxt.util.ThreadPool;
 import nxt.util.Time;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -17,6 +19,8 @@ import java.util.List;
 import java.util.Properties;
 
 public final class Nxt {
+
+    private static final Logger logger = LoggerFactory.getLogger(Nxt.class);
 
     public static final String VERSION = "1.3.0cg";
 
@@ -60,10 +64,10 @@ public final class Nxt {
     public static int getIntProperty(String name) {
         try {
             int result = Integer.parseInt(properties.getProperty(name));
-            Logger.logMessage(name + " = \"" + result + "\"");
+            logger.info(name + " = \"" + result + "\"");
             return result;
         } catch (NumberFormatException e) {
-            Logger.logMessage(name + " not defined, assuming 0");
+            logger.info(name + " not defined, assuming 0");
             return 0;
         }
     }
@@ -75,10 +79,10 @@ public final class Nxt {
     public static String getStringProperty(String name, String defaultValue) {
         String value = properties.getProperty(name);
         if (value != null && ! "".equals(value)) {
-            Logger.logMessage(name + " = \"" + value + "\"");
+            logger.info(name + " = \"" + value + "\"");
             return value;
         } else {
-            Logger.logMessage(name + " not defined");
+            logger.info(name + " not defined");
             return defaultValue;
         }
     }
@@ -101,26 +105,26 @@ public final class Nxt {
     public static Boolean getBooleanProperty(String name) {
         String value = properties.getProperty(name);
         if (Boolean.TRUE.toString().equals(value)) {
-            Logger.logMessage(name + " = \"true\"");
+            logger.info(name + " = \"true\"");
             return true;
         } else if (Boolean.FALSE.toString().equals(value)) {
-            Logger.logMessage(name + " = \"false\"");
+            logger.info(name + " = \"false\"");
             return false;
         }
-        Logger.logMessage(name + " not defined, assuming false");
+        logger.info(name + " not defined, assuming false");
         return false;
     }
 
     public static Boolean getBooleanProperty(String name, boolean assume) {
         String value = properties.getProperty(name);
         if (Boolean.TRUE.toString().equals(value)) {
-            Logger.logMessage(name + " = \"true\"");
+            logger.info(name + " = \"true\"");
             return true;
         } else if (Boolean.FALSE.toString().equals(value)) {
-            Logger.logMessage(name + " = \"false\"");
+            logger.info(name + " = \"false\"");
             return false;
         }
-        Logger.logMessage(name + " not defined, assuming " + assume);
+        logger.info(name + " not defined, assuming " + assume);
         return assume;
     }
 
@@ -172,7 +176,7 @@ public final class Nxt {
     }
 
     public static void shutdown() {
-        Logger.logShutdownMessage("Shutting down...");
+        logger.info("Shutting down...");
         API.shutdown();
         Users.shutdown();
         Peers.shutdown();
@@ -181,8 +185,8 @@ public final class Nxt {
         if(BlockchainProcessorImpl.oclVerify) {
             OCLPoC.destroy();
         }
-        Logger.logShutdownMessage("Burst server " + VERSION + " stopped.");
-        Logger.shutdown();
+        logger.info("Burst server " + VERSION + " stopped.");
+        LoggerConfigurator.shutdown();
     }
 
     private static class Init {
@@ -190,7 +194,7 @@ public final class Nxt {
         static {
             try {
                 long startTime = System.currentTimeMillis();
-                Logger.init();
+                LoggerConfigurator.init();
                 Db.init();
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
@@ -215,14 +219,14 @@ public final class Nxt {
                 ThreadPool.start(timeMultiplier);
                 if (timeMultiplier > 1) {
                     setTime(new Time.FasterTime(Math.max(getEpochTime(), Nxt.getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
-                    Logger.logMessage("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
+                    logger.info("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
                 }
 
                 long currentTime = System.currentTimeMillis();
-                Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
-                Logger.logMessage("Burst server " + VERSION + " started successfully.");
+                logger.info("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
+                logger.info("Burst server " + VERSION + " started successfully.");
                 if (Constants.isTestnet) {
-                    Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
+                    logger.info("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
                 }
                 if(Nxt.getBooleanProperty("burst.mockMining")) {
                     setGenerator(new GeneratorImpl.MockGeneratorImpl());
@@ -232,12 +236,12 @@ public final class Nxt {
                         OCLPoC.init();
                     }
                     catch(OCLPoC.OCLCheckerException e) {
-                        Logger.logErrorMessage("Error initializing OpenCL, disabling ocl verify: " + e.getMessage());
+                        logger.error("Error initializing OpenCL, disabling ocl verify: " + e.getMessage());
                         BlockchainProcessorImpl.oclVerify = false;
                     }
                 }
             } catch (Exception e) {
-                Logger.logErrorMessage(e.getMessage(), e);
+                logger.error(e.getMessage(), e);
                 System.exit(1);
             }
         }

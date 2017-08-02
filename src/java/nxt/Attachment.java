@@ -1,11 +1,8 @@
 package nxt;
 
 import nxt.NxtException.NotValidException;
-import nxt.at.AT_Controller;
-import nxt.at.AT_Exception;
 import nxt.crypto.EncryptedData;
 import nxt.util.Convert;
-import nxt.util.Logger;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

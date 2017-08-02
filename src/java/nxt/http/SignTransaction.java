@@ -4,9 +4,11 @@ import nxt.NxtException;
 import nxt.Transaction;
 import nxt.crypto.Crypto;
 import nxt.util.Convert;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -14,6 +16,8 @@ import java.util.Arrays;
 import static nxt.http.JSONResponses.MISSING_SECRET_PHRASE;
 
 public final class SignTransaction extends APIServlet.APIRequestHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(SignTransaction.class);
 
     static final SignTransaction instance = new SignTransaction();
 
@@ -53,7 +57,7 @@ public final class SignTransaction extends APIServlet.APIRequestHandler {
             response.put("signatureHash", Convert.toHexString(Crypto.sha256().digest(transaction.getSignature())));
             response.put("verify", transaction.verifySignature() && transaction.verifyPublicKey());
         } catch (NxtException.ValidationException|RuntimeException e) {
-            Logger.logDebugMessage(e.getMessage(), e);
+            logger.debug(e.getMessage(), e);
             response.put("errorCode", 4);
             response.put("errorDescription", "Incorrect unsigned transaction: " + e.toString());
             response.put("error", e.getMessage());

@@ -3,12 +3,14 @@ package nxt.peer;
 import nxt.util.CountingInputStream;
 import nxt.util.CountingOutputStream;
 import nxt.util.JSON;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.servlets.gzip.CompressedResponseWrapper;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -25,6 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class PeerServlet extends HttpServlet {
+
+    private static final Logger logger = LoggerFactory.getLogger(PeerServlet.class);
 
     abstract static class PeerRequestHandler {
         abstract JSONStreamAware processRequest(JSONObject request, Peer peer);
@@ -115,12 +119,12 @@ public final class PeerServlet extends HttpServlet {
                     response = UNSUPPORTED_REQUEST_TYPE;
                 }
             } else {
-                Logger.logDebugMessage("Unsupported protocol " + request.get("protocol"));
+                logger.debug("Unsupported protocol " + request.get("protocol"));
                 response = UNSUPPORTED_PROTOCOL;
             }
 
         } catch (RuntimeException e) {
-            Logger.logDebugMessage("Error processing POST request", e);
+            logger.debug("Error processing POST request", e);
             JSONObject json = new JSONObject();
             json.put("error", e.toString());
             response = json;
