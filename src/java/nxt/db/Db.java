@@ -2,21 +2,22 @@ package nxt.db;
 
 import nxt.Constants;
 import nxt.Nxt;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
 // import org.h2.jdbcx.JdbcConnectionPool;
-import java.sql.ResultSet;
-import java.sql.DriverManager;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
 public final class Db {
+
+    private static final Logger logger = LoggerFactory.getLogger(Db.class);
 
     // private static final JdbcConnectionPool cp;
     private static final HikariDataSource cp;
@@ -95,7 +96,7 @@ public final class Db {
             dbPassword = Nxt.getStringProperty("nxt.dbPassword");
         }
 
-        Logger.logDebugMessage("Database jdbc url set to: " + dbUrl);
+        logger.debug("Database jdbc url set to: " + dbUrl);
         try {
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(dbUrl);
@@ -130,9 +131,9 @@ public final class Db {
             Connection con = cp.getConnection();
             //Statement stmt = con.createStatement();
             // stmt.execute("SHUTDOWN COMPACT");
-            Logger.logShutdownMessage("Database shutdown completed");
+            logger.info("Database shutdown completed");
         } catch (SQLException e) {
-            Logger.logShutdownMessage(e.toString(), e);
+            logger.info(e.toString(), e);
         }
     }
 
@@ -142,7 +143,7 @@ public final class Db {
         int activeConnections = cp.getActiveConnections();
         if (activeConnections > maxActiveConnections) {
             maxActiveConnections = activeConnections;
-            Logger.logDebugMessage("Database connection pool current size: " + activeConnections);
+            logger.debug("Database connection pool current size: " + activeConnections);
         }
         */
         return con;

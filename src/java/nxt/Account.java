@@ -12,15 +12,18 @@ import nxt.db.VersionedBatchEntityDbTable;
 import nxt.util.Convert;
 import nxt.util.Listener;
 import nxt.util.Listeners;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 public final class Account {
+
+    private static final Logger logger = Logger.getLogger(Account.class.getSimpleName());
 
     public static enum Event {
         BALANCE, UNCONFIRMED_BALANCE, ASSET_BALANCE, UNCONFIRMED_ASSET_BALANCE,
@@ -376,7 +379,7 @@ public final class Account {
 
     private Account(long id) {
         if (id != Crypto.rsDecode(Crypto.rsEncode(id))) {
-            Logger.logMessage("CRITICAL ERROR: Reed-Solomon encoding fails for " + id);
+            logger.info("CRITICAL ERROR: Reed-Solomon encoding fails for " + id);
         }
         this.id = id;
         this.dbKey = accountDbKeyFactory.newKey(this.id);
@@ -566,14 +569,14 @@ public final class Account {
         } else if (Arrays.equals(this.publicKey, key)) {
             return true;
         } else if (this.keyHeight == -1) {
-            Logger.logMessage("DUPLICATE KEY!!!");
-            Logger.logMessage("Account key for " + Convert.toUnsignedLong(id) + " was already set to a different one at the same height "
+            logger.info("DUPLICATE KEY!!!");
+            logger.info("Account key for " + Convert.toUnsignedLong(id) + " was already set to a different one at the same height "
                     + ", current height is " + height + ", rejecting new key");
             return false;
         } else if (this.keyHeight >= height) {
-            Logger.logMessage("DUPLICATE KEY!!!");
+            logger.info("DUPLICATE KEY!!!");
             if (Db.isInTransaction()) {
-            	Logger.logMessage("Changing key for account " + Convert.toUnsignedLong(id) + " at height " + height
+            	logger.info("Changing key for account " + Convert.toUnsignedLong(id) + " at height " + height
                         + ", was previously set to a different one at height " + keyHeight);
                 this.publicKey = key;
                 this.keyHeight = height;
@@ -581,8 +584,8 @@ public final class Account {
             }
             return true;
         }
-        Logger.logMessage("DUPLICATE KEY!!!");
-        Logger.logMessage("Invalid key for account " + Convert.toUnsignedLong(id) + " at height " + height
+        logger.info("DUPLICATE KEY!!!");
+        logger.info("Invalid key for account " + Convert.toUnsignedLong(id) + " at height " + height
                 + ", was already set to a different one at height " + keyHeight);
         return false;
     }

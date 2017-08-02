@@ -2,7 +2,9 @@ package nxt;
 
 import nxt.db.Db;
 import nxt.db.DbUtils;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.sql.Connection;
@@ -10,9 +12,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
 
 final class BlockDb {
+
+    private static final Logger logger = LoggerFactory.getLogger(BlockDb.class);
 
     static BlockImpl findBlock(long blockId) {
         try (Connection con = Db.getConnection();
@@ -237,7 +240,7 @@ final class BlockDb {
             }
             return;
         }
-        Logger.logMessage("Deleting blockchain...");
+        logger.info("Deleting blockchain...");
         try (Connection con = Db.getConnection();
              Statement stmt = con.createStatement()) {
             try {

@@ -4,13 +4,17 @@ import nxt.Nxt;
 import nxt.NxtException;
 import nxt.Transaction;
 import nxt.util.Convert;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class BroadcastTransaction extends APIServlet.APIRequestHandler {
+
+    private static final Logger logger = Logger.getLogger(BroadcastTransaction.class.getSimpleName());
 
     static final BroadcastTransaction instance = new BroadcastTransaction();
 
@@ -31,7 +35,7 @@ public final class BroadcastTransaction extends APIServlet.APIRequestHandler {
             response.put("transaction", transaction.getStringId());
             response.put("fullHash", transaction.getFullHash());
         } catch (NxtException.ValidationException|RuntimeException e) {
-            Logger.logDebugMessage(e.getMessage(), e);
+            logger.log(Level.INFO,e.getMessage(), e);
             response.put("errorCode", 4);
             response.put("errorDescription", "Incorrect transaction: " + e.toString());
             response.put("error", e.getMessage());

@@ -9,20 +9,21 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 
-import nxt.AT;
-import nxt.Account;
 import nxt.Appendix;
 import nxt.Constants;
 import nxt.db.Db;
 import nxt.Nxt;
 import nxt.Transaction;
 import nxt.crypto.Crypto;
-import nxt.util.Convert;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 //NXT API IMPLEMENTATION
 
 public class AT_API_Platform_Impl extends AT_API_Impl {
+
+	private static final Logger logger = LoggerFactory.getLogger(AT_API_Platform_Impl.class);
 
 	private final static AT_API_Platform_Impl instance = new AT_API_Platform_Impl();
 
@@ -94,7 +95,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		byte[] b = state.getId();
 
 		long tx = findTransaction( height , state.getHeight() , AT_API_Helper.getLong( b ) , numOfTx , state.minActivationAmount() );
-		Logger.logDebugMessage("tx with id "+tx+" found");
+		logger.debug("tx with id "+tx+" found");
 		clear_A( state );
 		state.set_A1( AT_API_Helper.getByteArray( tx ) );
 
@@ -154,7 +155,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 	@Override
 	public long get_Timestamp_for_Tx_in_A( AT_Machine_State state ) {
 		long txId = AT_API_Helper.getLong( state.get_A1() );
-		Logger.logDebugMessage("get timestamp for tx with id " + txId + " found");
+		logger.debug("get timestamp for tx with id " + txId + " found");
 		Transaction tx = Nxt.getBlockchain().getTransaction( txId );
 		
 		if ( tx != null && tx.getHeight() >= state.getHeight() )

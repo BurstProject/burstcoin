@@ -1,7 +1,9 @@
 package nxt;
 
 import nxt.db.Db;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -9,6 +11,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 final class DbVersion {
+
+    private static final Logger logger = LoggerFactory.getLogger(DbVersion.class);
 
     static void init() {
         try (Connection con = Db.beginTransaction(); Statement stmt = con.createStatement()) {
@@ -23,9 +27,9 @@ final class DbVersion {
                     throw new RuntimeException("Invalid version table");
                 }
                 rs.close();
-                Logger.logMessage("Database update may take a while if needed, current db version " + (nextUpdate - 1) + "...");
+                logger.info("Database update may take a while if needed, current db version " + (nextUpdate - 1) + "...");
             } catch (SQLException e) {
-                Logger.logMessage("Initializing an empty database");
+                logger.info("Initializing an empty database");
                 stmt.executeUpdate("CREATE TABLE version (next_update INT NOT NULL)");
                 stmt.executeUpdate("INSERT INTO version VALUES (1)");
                 Db.commitTransaction();
@@ -44,7 +48,7 @@ final class DbVersion {
         try (Connection con = Db.getConnection(); Statement stmt = con.createStatement()) {
             try {
                 if (sql != null) {
-                    Logger.logDebugMessage("Will apply sql:\n" + sql);
+                    logger.debug("Will apply sql:\n" + sql);
                     stmt.executeUpdate(sql);
                 }
                 stmt.executeUpdate("UPDATE version SET next_update = next_update + 1");

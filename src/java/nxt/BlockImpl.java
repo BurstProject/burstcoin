@@ -2,19 +2,17 @@ package nxt;
 
 import nxt.crypto.Crypto;
 import nxt.util.Convert;
-import nxt.util.Logger;
-import nxt.util.MiningPlot;
+import nxt.util.LoggerConfigurator;
 import nxt.peer.Peer;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-
-import fr.cryptohash.Shabal256;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,6 +21,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 final class BlockImpl implements Block {
+
+    private static final Logger logger = LoggerFactory.getLogger(BlockImpl.class);
 
     private final int version;
     private final int timestamp;
@@ -324,7 +324,7 @@ final class BlockImpl implements Block {
             return new BlockImpl(version, timestamp, previousBlock, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash, generatorPublicKey,
                     generationSignature, blockSignature, previousBlockHash, new ArrayList<>(blockTransactions.values()), nonce , blockATs);
     	} catch (NxtException.ValidationException|RuntimeException e) {
-    		Logger.logDebugMessage("Failed to parse block: " + blockData.toJSONString());
+    		logger.debug("Failed to parse block: " + blockData.toJSONString());
     		throw e;
     	}
     }
@@ -403,7 +403,7 @@ final class BlockImpl implements Block {
     		
     	} catch (RuntimeException e) {
 
-    		Logger.logMessage("Error verifying block signature", e);
+    		logger.info("Error verifying block signature", e);
     		return false;
 
     	}
@@ -432,7 +432,7 @@ final class BlockImpl implements Block {
 	    BigInteger pTime = this.pocTime.divide(BigInteger.valueOf(previousBlock.getBaseTarget()));
 	    return BigInteger.valueOf(elapsedTime).compareTo(pTime) > 0;
 	} catch (RuntimeException e) {
-	    Logger.logMessage("Error verifying block generation signature", e);
+	    logger.info("Error verifying block generation signature", e);
 	    return false;
 	}
     }
@@ -461,13 +461,13 @@ final class BlockImpl implements Block {
                 this.pocTime = Nxt.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, scoopData);
             }
 		} catch (RuntimeException e) {
-		    Logger.logMessage("Error pre-verifying block generation signature", e);
+		    logger.info("Error pre-verifying block generation signature", e);
 		    return;
 		}
 
         for(TransactionImpl transaction : getTransactions()) {
             if(!transaction.verifySignature()) {
-                Logger.logMessage("Bad transaction signature during block pre-verification for tx: " + Convert.toUnsignedLong(transaction.getId()) + " at block height: " + getHeight());
+                logger.info("Bad transaction signature during block pre-verification for tx: " + Convert.toUnsignedLong(transaction.getId()) + " at block height: " + getHeight());
                 throw new BlockchainProcessor.TransactionNotAcceptedException("Invalid signature for tx: " + Convert.toUnsignedLong(transaction.getId()) + "at block height: " + getHeight(), transaction);
             }
         }

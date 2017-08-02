@@ -1,6 +1,8 @@
 package nxt.util;
 
 import nxt.Nxt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,6 +14,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public final class ThreadPool {
+
+    private static final Logger logger = LoggerFactory.getLogger(ThreadPool.class);
 
     private static ScheduledExecutorService scheduledThreadPool;
     private static Map<Runnable,Long> backgroundJobs = new HashMap<>();
@@ -46,7 +50,7 @@ public final class ThreadPool {
         if (! Nxt.getBooleanProperty("nxt.disable" + name + "Thread")) {
             backgroundJobs.put(runnable, timeUnit.toMillis(delay));
         } else {
-            Logger.logMessage("Will not run " + name + " thread");
+            logger.info("Will not run " + name + " thread");
         }
     }
 
@@ -62,17 +66,17 @@ public final class ThreadPool {
             throw new IllegalStateException("Executor service already started");
         }
 
-        Logger.logDebugMessage("Running " + beforeStartJobs.size() + " tasks...");
+        logger.debug("Running " + beforeStartJobs.size() + " tasks...");
         runAll(beforeStartJobs);
         beforeStartJobs = null;
 
-        Logger.logDebugMessage("Running " + lastBeforeStartJobs.size() + " final tasks...");
+        logger.debug("Running " + lastBeforeStartJobs.size() + " final tasks...");
         runAll(lastBeforeStartJobs);
         lastBeforeStartJobs = null;
 
 	int cores = Runtime.getRuntime().availableProcessors();
 	int totalThreads = backgroundJobs.size() + backgroundJobsCores.size() * cores;
-        Logger.logDebugMessage("Starting " + String.valueOf(totalThreads) + " background jobs");
+        logger.debug("Starting " + String.valueOf(totalThreads) + " background jobs");
         scheduledThreadPool = Executors.newScheduledThreadPool(totalThreads);
         for (Map.Entry<Runnable,Long> entry : backgroundJobs.entrySet()) {
             scheduledThreadPool.scheduleWithFixedDelay(entry.getKey(), 0, Math.max(entry.getValue() / timeMultiplier, 1), TimeUnit.MILLISECONDS);
@@ -86,7 +90,7 @@ public final class ThreadPool {
         }
         backgroundJobsCores = null;
 
-        Logger.logDebugMessage("Starting " + afterStartJobs.size() + " delayed tasks");
+        logger.debug("Starting " + afterStartJobs.size() + " delayed tasks");
         Thread thread = new Thread() {
             @Override
             public void run() {
@@ -100,10 +104,10 @@ public final class ThreadPool {
 
     public static synchronized void shutdown() {
         if (scheduledThreadPool != null) {
-	        Logger.logShutdownMessage("Stopping background jobs...");
+	        logger.info("Stopping background jobs...");
     	    shutdownExecutor(scheduledThreadPool);
         	scheduledThreadPool = null;
-        	Logger.logShutdownMessage("...Done");
+        	logger.info("...Done");
         }
     }
 
@@ -115,7 +119,7 @@ public final class ThreadPool {
             Thread.currentThread().interrupt();
         }
         if (! executor.isTerminated()) {
-            Logger.logShutdownMessage("some threads didn't terminate, forcing shutdown");
+            logger.info("some threads didn't terminate, forcing shutdown");
             executor.shutdownNow();
         }
     }

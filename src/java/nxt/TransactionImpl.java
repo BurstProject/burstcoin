@@ -3,21 +3,24 @@ package nxt;
 import nxt.crypto.Crypto;
 import nxt.db.DbKey;
 import nxt.util.Convert;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 final class TransactionImpl implements Transaction {
+
+    private static final Logger logger = LoggerFactory.getLogger(TransactionImpl.class);
 
     static final class BuilderImpl implements Builder {
 
@@ -509,7 +512,7 @@ final class TransactionImpl implements Transaction {
             }
             return buffer.array();
         } catch (RuntimeException e) {
-            Logger.logDebugMessage("Failed to get transaction bytes for transaction: " + getJSONObject().toJSONString());
+            logger.debug("Failed to get transaction bytes for transaction: " + getJSONObject().toJSONString());
             throw e;
         }
     }
@@ -574,7 +577,7 @@ final class TransactionImpl implements Transaction {
             }
             return builder.build();
         } catch (NxtException.NotValidException|RuntimeException e) {
-            Logger.logDebugMessage("Failed to parse transaction bytes: " + Convert.toHexString(bytes));
+            logger.debug("Failed to parse transaction bytes: " + Convert.toHexString(bytes));
             throw e;
         }
     }
@@ -669,7 +672,7 @@ final class TransactionImpl implements Transaction {
             }
             return builder.build();
         } catch (NxtException.NotValidException|RuntimeException e) {
-            Logger.logDebugMessage("Failed to parse transaction: " + transactionData.toJSONString());
+            logger.debug("Failed to parse transaction: " + transactionData.toJSONString());
             throw e;
         }
     }

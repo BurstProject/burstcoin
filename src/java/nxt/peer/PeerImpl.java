@@ -8,10 +8,12 @@ import nxt.NxtException;
 import nxt.util.Convert;
 import nxt.util.CountingInputStream;
 import nxt.util.CountingOutputStream;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -34,11 +36,12 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 final class PeerImpl implements Peer {
+
+    private static final Logger logger = LoggerFactory.getLogger(PeerImpl.class);
 
     private final String peerAddress;
     private volatile String announcedAddress;
@@ -146,7 +149,7 @@ final class PeerImpl implements Peer {
                 }
             }
             if (isOldVersion) {
-              // Logger.logDebugMessage("Blacklisting %s version %s", peerAddress, version);
+              // logger.debug("Blacklisting %s version %s", peerAddress, version);
             }
         }
     }
@@ -248,7 +251,7 @@ final class PeerImpl implements Peer {
             return;
         }
         if (! isBlacklisted() && ! (cause instanceof IOException)) {
-            Logger.logDebugMessage("Blacklisting " + peerAddress + " because of: " + cause.toString(), cause);
+            logger.debug("Blacklisting " + peerAddress + " because of: " + cause.toString(), cause);
         }
         blacklist();
     }
@@ -379,7 +382,7 @@ final class PeerImpl implements Peer {
 
         } catch (RuntimeException|IOException e) {
             if (! (e instanceof UnknownHostException || e instanceof SocketTimeoutException || e instanceof SocketException)) {
-                Logger.logDebugMessage("Error sending JSON request", e);
+                logger.debug("Error sending JSON request", e);
             }
             if ((Peers.communicationLoggingMask & Peers.LOGGING_MASK_EXCEPTIONS) != 0) {
                 log += " >>> " + e.toString();
@@ -392,7 +395,7 @@ final class PeerImpl implements Peer {
         }
 
         if (showLog) {
-            Logger.logMessage(log + "\n");
+            logger.info(log + "\n");
         }
 
         if (connection != null) {
@@ -429,7 +432,7 @@ final class PeerImpl implements Peer {
             }
             if (announcedAddress == null) {
                 setAnnouncedAddress(peerAddress);
-                //Logger.logDebugMessage("Connected to peer without announced address, setting to " + peerAddress);
+                //logger.debug("Connected to peer without announced address, setting to " + peerAddress);
             }
             if (analyzeHallmark(announcedAddress, (String)response.get("hallmark"))) {
                 setState(State.CONNECTED);
@@ -465,7 +468,7 @@ final class PeerImpl implements Peer {
             Hallmark hallmark = Hallmark.parseHallmark(hallmarkString);
             if (!hallmark.isValid()
                     || !(hallmark.getHost().equals(host) || InetAddress.getByName(host).equals(InetAddress.getByName(hallmark.getHost())))) {
-                //Logger.logDebugMessage("Invalid hallmark for " + host + ", hallmark host is " + hallmark.getHost());
+                //logger.debug("Invalid hallmark for " + host + ", hallmark host is " + hallmark.getHost());
                 return false;
             }
             this.hallmark = hallmark;
@@ -497,7 +500,7 @@ final class PeerImpl implements Peer {
 
         } catch (UnknownHostException ignore) {
         } catch (URISyntaxException | RuntimeException e) {
-            Logger.logDebugMessage("Failed to analyze hallmark for peer " + address + ", " + e.toString(), e);
+            logger.debug("Failed to analyze hallmark for peer " + address + ", " + e.toString(), e);
         }
         return false;
 

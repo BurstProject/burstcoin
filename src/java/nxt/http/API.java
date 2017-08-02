@@ -2,7 +2,7 @@ package nxt.http;
 
 import nxt.Constants;
 import nxt.Nxt;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
 import nxt.util.Subnet;
 import nxt.util.ThreadPool;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -22,6 +22,8 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.servlets.GzipFilter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.UnknownHostException;
 import java.util.Collections;
@@ -30,6 +32,8 @@ import java.util.List;
 import java.util.Set;
 
 public final class API {
+
+    private static final Logger logger = LoggerFactory.getLogger(API.class);
 
     private static final int TESTNET_API_PORT = 6876;
 
@@ -51,10 +55,10 @@ public final class API {
                     allowedSubnets.add(Subnet.createInstance(allowedHost));
                 } catch (UnknownHostException e)
                 {
-                    Logger.logErrorMessage("Error adding allowed bot host '" + allowedHost + "'", e);
+                    logger.error("Error adding allowed bot host '" + allowedHost + "'", e);
                 }
             }
-            allowedBotHosts = Collections.unmodifiableSet(new HashSet<>(allowedSubnets));
+            allowedBotHosts = Collections.unmodifiableSet(allowedSubnets);
         } else {
             allowedBotHosts = null;
         }
@@ -68,7 +72,7 @@ public final class API {
 
             boolean enableSSL = Nxt.getBooleanProperty("nxt.apiSSL");
             if (enableSSL) {
-                Logger.logMessage("Using SSL (https) for the API server");
+                logger.info("Using SSL (https) for the API server");
                 HttpConfiguration https_config = new HttpConfiguration();
                 https_config.setSecureScheme("https");
                 https_config.setSecurePort(port);
@@ -144,9 +148,9 @@ public final class API {
                 public void run() {
                     try {
                         apiServer.start();
-                        Logger.logMessage("Started API server at " + host + ":" + port);
+                        logger.info("Started API server at " + host + ":" + port);
                     } catch (Exception e) {
-                        Logger.logErrorMessage("Failed to start API server", e);
+                        logger.error("Failed to start API server", e);
                         throw new RuntimeException(e.toString(), e);
                     }
 
@@ -155,7 +159,7 @@ public final class API {
 
         } else {
             apiServer = null;
-            Logger.logMessage("API server not enabled");
+            logger.info("API server not enabled");
         }
 
     }
@@ -167,7 +171,7 @@ public final class API {
             try {
                 apiServer.stop();
             } catch (Exception e) {
-                Logger.logShutdownMessage("Failed to stop API server", e);
+                logger.info("Failed to stop API server", e);
             }
         }
     }

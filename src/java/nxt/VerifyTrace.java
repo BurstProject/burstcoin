@@ -1,7 +1,7 @@
 package nxt;
 
 import nxt.util.Convert;
-import nxt.util.Logger;
+import nxt.util.LoggerConfigurator;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -177,7 +177,7 @@ public final class VerifyTrace {
     }
 
     static {
-        Logger.init();
+        LoggerConfigurator.init();
     }
 
     private static final String beginQuote = "^" + DebugTrace.QUOTE;
