@@ -32,10 +32,11 @@ import java.util.concurrent.Semaphore;
 
 final class BlockchainProcessorImpl implements BlockchainProcessor {
 
-	private static final Logger logger = LoggerFactory.getLogger(BlockchainProcessorImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(BlockchainProcessorImpl.class);
 
 	public static final int BLOCKCACHEMB = Nxt.getIntProperty("burst.blockCacheMB") == 0 ? 40 : Nxt.getIntProperty("blockCacheMB");
-	public static boolean oclVerify = Nxt.getBooleanProperty("burst.oclVerify");
+    public static final int MAX_TIMESTAMP_DIFFERENCE = 15;
+    public static boolean oclVerify = Nxt.getBooleanProperty("burst.oclVerify");
 	public static final int oclThreshold = Nxt.getIntProperty("burst.oclThreshold") == 0 ? 50 : Nxt.getIntProperty("burst.oclThreshold");
 	public static final int oclWaitThreshold = Nxt.getIntProperty("burst.oclWaitThreshold") == 0 ? 2000 : Nxt.getIntProperty("burst.oclWaitThreshold");
 	private static final Semaphore gpuUsage = new Semaphore(2);
@@ -163,59 +164,93 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 	private final Runnable blockImporterThread = new Runnable() {
 		@Override
-		public void run() {
-			while(true) {
-				synchronized (blockchain) {
-					for (; ; ) {
-						Long lastId = blockchain.getLastBlock().getId();
+		public void run()
+		{
+			try
+			{
+				while (true)
+				{
+					synchronized (blockchain)
+					{
+						for (; ; )
+						{
+							Long lastId = blockchain.getLastBlock().getId();
 
-						Long currentBlockId;
-						BlockImpl currentBlock;
-						synchronized (BlockchainProcessorImpl.blockCache) {
-							if (!BlockchainProcessorImpl.reverseCache.containsKey(lastId))
+							Long currentBlockId;
+							BlockImpl currentBlock;
+							synchronized (BlockchainProcessorImpl.blockCache)
+							{
+								if (!BlockchainProcessorImpl.reverseCache.containsKey(lastId))
+									break;
+
+								currentBlockId = BlockchainProcessorImpl.reverseCache.get(lastId);
+								currentBlock = (BlockImpl) BlockchainProcessorImpl.blockCache.get(currentBlockId);
+							}
+							try
+							{
+								if (!currentBlock.isVerified())
+								{
+									currentBlock.preVerify();
+								}
+								pushBlock(currentBlock);
+							} catch (BlockNotAcceptedException e)
+							{
+								logger.error("Block not accepted", e);
+								blacklistClean(currentBlock, e);
+								logger.warn("Sleeping for one second and trying again");
+								// Lets sleep about it for a second
+								try
+								{
+									Thread.sleep(1000L);
+								} catch (InterruptedException ignored)
+								{
+									logger.trace("Interrupted", ignored);
+								}
 								break;
-
-							currentBlockId = BlockchainProcessorImpl.reverseCache.get(lastId);
-							currentBlock = (BlockImpl) BlockchainProcessorImpl.blockCache.get(currentBlockId);
-						}
-						try {
-							if (!currentBlock.isVerified()) {
-								currentBlock.preVerify();
 							}
-							pushBlock(currentBlock);
-						} catch (BlockNotAcceptedException e) {
-							logger.debug("Block not accepted", e);
-							blacklistClean(currentBlock, e);
-							return;
-						}
-						// Clean up cache
-						synchronized (BlockchainProcessorImpl.blockCache) {
-							if(blockCache.containsKey(currentBlockId)) { // make sure it wasn't already removed(ex failed preValidate) to avoid double subtracting from blockCacheSize
-								BlockchainProcessorImpl.reverseCache.remove(lastId);
+							// Clean up cache
+							synchronized (BlockchainProcessorImpl.blockCache)
+							{
+								if (blockCache.containsKey(currentBlockId))
+								{ // make sure it wasn't already removed(ex failed preValidate) to avoid double subtracting from blockCacheSize
+									BlockchainProcessorImpl.reverseCache.remove(lastId);
 
-								BlockchainProcessorImpl.blockCache.remove(currentBlockId);
-								blockCacheSize -= currentBlock.getByteLength();
-							}
-						
+									BlockchainProcessorImpl.blockCache.remove(currentBlockId);
+									blockCacheSize -= currentBlock.getByteLength();
+								}
+
 						/*if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
 						} else if (!BlockDb.hasBlock(block.getId())) {
 							forkBlocks.add(block);
 						}*/
+							}
+						}
+					}
+					synchronized (blockCache)
+					{
+						while (!reverseCache.containsKey(blockchain.getLastBlock().getId()))
+						{
+							try
+							{
+								blockCache.wait(2000);
+							} catch (InterruptedException ignore)
+							{
+							}
 						}
 					}
 				}
-				synchronized(blockCache) {
-					while(!reverseCache.containsKey(blockchain.getLastBlock().getId())) {
-						try {
-							blockCache.wait(2000);
-						} catch (InterruptedException ignore) {}
-					}
-				}
+			}
+			catch (Throwable exception)
+			{
+				logger.error("Uncaught exception in blockImporterThread", exception);
 			}
 		}
 	};
 
     private void blacklistClean(BlockImpl block, Exception e) {
+        logger.debug("Blacklisting peer and cleaning queue");
+    	if (block == null)
+    		return;
         block.getPeer().blacklist(e);
         long removeId = block.getId();
         synchronized (BlockchainProcessorImpl.blockCache) {
@@ -235,6 +270,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 			lastDownloaded = lastBlock.getHeight() >= block.getHeight() ? lastBlock.getId() : block.getPreviousBlockId();
 			blockCache.notify();
         }
+		logger.debug("Blacklisted peer and cleaned queue");
     }
 
 	private final Runnable getMoreBlocksThread = new Runnable() {
@@ -320,7 +356,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 							}
 						}
 					}
-					
+
 					List<BlockImpl> forkBlocks = new ArrayList<>();
 
 					boolean processedAll = true;
@@ -337,7 +373,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 								for(Object o : nextBlocks) {
 									BlockImpl block;
                                                                         JSONObject blockData = (JSONObject) o;
-									
+
 									try {
                                                                                 block = BlockImpl.parseBlock(blockData);
 										if(block.getPreviousBlockId() != currentBlockId) { // ensure peer isn't cluttering cache with unrequested stuff
@@ -363,7 +399,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 										block.setPeer(peer);
 										int blockSize = blockData.toString().length();
 										block.setByteLength(blockSize);
-		
+
 										Long prevId = Convert.parseUnsignedLong((String) blockData.get("previousBlock"));
 										// Try to find previous Block:
 										if(BlockchainProcessorImpl.blockCache.containsKey(prevId)) {
@@ -424,7 +460,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                                                                                 logger.info("Failed to parse block: " + e.toString(), e);
                                                                                 peer.blacklist(e);
                                                                                 return;
-									} catch (Exception e) {	
+									} catch (Exception e) {
 									}
 								}
 								blockCache.notify();
@@ -669,6 +705,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		ThreadPool.scheduleThread("ImportBlocks", blockImporterThread, 10);
 		ThreadPool.scheduleThreadCores("VerifyPoc", pocVerificationThread, 9);
 		//ThreadPool.scheduleThread("Info", debugInfoThread, 5);
+
 	}
 
 	@Override
@@ -801,7 +838,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				digest.update(transaction.getBytes());
 			}
 			ByteBuffer bf = ByteBuffer.allocate( 0 );
-			bf.order( ByteOrder.LITTLE_ENDIAN ); 
+			bf.order( ByteOrder.LITTLE_ENDIAN );
 			byte[] byteATs = bf.array();
 			BlockImpl genesisBlock = new BlockImpl(-1, 0, 0, 0, 0, transactions.size() * 128, digest.digest(),
 					Genesis.CREATOR_PUBLIC_KEY, new byte[32], Genesis.GENESIS_BLOCK_SIGNATURE, null, transactions, 0, byteATs);
@@ -818,6 +855,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		int curTime = Nxt.getEpochTime();
 
 		synchronized (blockchain) {
+			logger.debug("Trying to push block "+block.getId()+ " (height "+block.getHeight()+")");
 			TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
 			BlockImpl previousLastBlock = null;
 			try {
@@ -835,7 +873,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				if (block.getVersion() != 1 && !Arrays.equals(Crypto.sha256().digest(previousLastBlock.getBytes()), block.getPreviousBlockHash())) {
 					throw new BlockNotAcceptedException("Previous block hash doesn't match");
 				}
-				if (block.getTimestamp() > curTime + 15 || block.getTimestamp() <= previousLastBlock.getTimestamp()) {
+				if (block.getTimestamp() > curTime + MAX_TIMESTAMP_DIFFERENCE || block.getTimestamp() <= previousLastBlock.getTimestamp()) {
 					throw new BlockOutOfOrderException("Invalid timestamp: " + block.getTimestamp()
 							+ " current time is " + curTime + ", previous block timestamp is " + previousLastBlock.getTimestamp());
 				}
@@ -853,14 +891,14 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				long calculatedTotalAmount = 0;
 				long calculatedTotalFee = 0;
 				MessageDigest digest = Crypto.sha256();
-				
+
 				for (TransactionImpl transaction : block.getTransactions()) {
 
-					if (transaction.getTimestamp() > curTime + 15) {
+					if (transaction.getTimestamp() > curTime + MAX_TIMESTAMP_DIFFERENCE) {
 						throw new BlockOutOfOrderException("Invalid transaction timestamp: " + transaction.getTimestamp()
 								+ ", current time is " + curTime);
 					}
-					if (transaction.getTimestamp() > block.getTimestamp() + 15
+					if (transaction.getTimestamp() > block.getTimestamp() + MAX_TIMESTAMP_DIFFERENCE
 							|| transaction.getExpiration() < block.getTimestamp()) {
 						throw new TransactionNotAcceptedException("Invalid transaction timestamp " + transaction.getTimestamp()
 								+ " for transaction " + transaction.getStringId() + ", current time is " + curTime
@@ -950,11 +988,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 			} finally {
 				Db.endTransaction();
 			}
+            logger.debug("Successully pushed "+block.getId()+ " (height "+block.getHeight()+")");
 		} // synchronized
 
 		blockListeners.notify(block, Event.BLOCK_PUSHED);
 
-		if (block.getTimestamp() >= Nxt.getEpochTime() - 15) {
+		if (block.getTimestamp() >= Nxt.getEpochTime() - MAX_TIMESTAMP_DIFFERENCE) {
 			Peers.sendToSomePeers(block);
 		}
 
@@ -1108,10 +1147,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 					continue;
 				}
 
-				if (transaction.getTimestamp() > blockTimestamp + 15 || transaction.getExpiration() < blockTimestamp) {
+				if (transaction.getTimestamp() > blockTimestamp + MAX_TIMESTAMP_DIFFERENCE || transaction.getExpiration() < blockTimestamp) {
 					continue;
 				}
-				
+
 				if (Nxt.getBlockchain().getHeight() >= Constants.AUTOMATED_TRANSACTION_BLOCK) {
                 	if (!EconomicClustering.verifyFork(transaction)) {
                         logger.debug("Including transaction that was generated on a fork: " + transaction.getStringId()
@@ -1165,7 +1204,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		}
 
 		//final byte[] publicKey = Crypto.getPublicKey(secretPhrase);
-		
+
 		//ATs for block
 		AT.clearPendingFees();
 		AT.clearPendingTransactions();
@@ -1184,7 +1223,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		//ATs for block
 
 		MessageDigest digest = Crypto.sha256();
-		
+
 		for (Transaction transaction : blockTransactions) {
 			digest.update(transaction.getBytes());
 		}
