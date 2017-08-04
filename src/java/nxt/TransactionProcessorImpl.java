@@ -1,20 +1,17 @@
 package nxt;
 
-import nxt.db.Db;
-import nxt.db.DbClause;
-import nxt.db.DbIterator;
-import nxt.db.DbKey;
-import nxt.db.EntityDbTable;
+import nxt.db.*;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
 import nxt.util.JSON;
 import nxt.util.Listener;
 import nxt.util.Listeners;
-import nxt.util.Logger;
 import nxt.util.ThreadPool;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,6 +21,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 final class TransactionProcessorImpl implements TransactionProcessor {
+
+    private static final Logger logger = LoggerFactory.getLogger(TransactionProcessorImpl.class);
 
     private static final boolean enableTransactionRebroadcasting = Nxt.getBooleanProperty("nxt.enableTransactionRebroadcasting");
     private static final boolean testUnconfirmedTransactions = Nxt.getBooleanProperty("nxt.testUnconfirmedTransactions");
@@ -138,7 +137,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                                 Account.flushAccountTable();
                                 Db.commitTransaction();
                             } catch (Exception e) {
-                                Logger.logErrorMessage(e.toString(), e);
+                                logger.error(e.toString(), e);
                                 Db.rollbackTransaction();
                                 throw e;
                             } finally {
@@ -147,10 +146,10 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                         } // synchronized
                     }
                 } catch (Exception e) {
-                    Logger.logDebugMessage("Error removing unconfirmed transactions", e);
+                    logger.debug("Error removing unconfirmed transactions", e);
                 }
             } catch (Throwable t) {
-                Logger.logMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
+                logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
                 t.printStackTrace();
                 System.exit(1);
             }
@@ -181,10 +180,10 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                     }
 
                 } catch (Exception e) {
-                    Logger.logDebugMessage("Error in transaction re-broadcasting thread", e);
+                    logger.debug("Error in transaction re-broadcasting thread", e);
                 }
             } catch (Throwable t) {
-                Logger.logMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
+                logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
                 t.printStackTrace();
                 System.exit(1);
             }
@@ -260,10 +259,10 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                         peer.blacklist(e);
                     }
                 } catch (Exception e) {
-                    Logger.logDebugMessage("Error processing unconfirmed transactions", e);
+                    logger.debug("Error processing unconfirmed transactions", e);
                 }
             } catch (Throwable t) {
-                Logger.logMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
+                logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
                 t.printStackTrace();
                 System.exit(1);
             }
@@ -335,15 +334,15 @@ final class TransactionProcessorImpl implements TransactionProcessor {
         List<Transaction> processedTransactions;
         synchronized (BlockchainImpl.getInstance()) {
             if (TransactionDb.hasTransaction(transaction.getId())) {
-                Logger.logMessage("Transaction " + transaction.getStringId() + " already in blockchain, will not broadcast again");
+                logger.info("Transaction " + transaction.getStringId() + " already in blockchain, will not broadcast again");
                 return;
             }
             if (unconfirmedTransactionTable.get(((TransactionImpl) transaction).getDbKey()) != null) {
                 if (enableTransactionRebroadcasting) {
                     nonBroadcastedTransactions.add((TransactionImpl) transaction);
-                    Logger.logMessage("Transaction " + transaction.getStringId() + " already in unconfirmed pool, will re-broadcast");
+                    logger.info("Transaction " + transaction.getStringId() + " already in unconfirmed pool, will re-broadcast");
                 } else {
-                    Logger.logMessage("Transaction " + transaction.getStringId() + " already in unconfirmed pool, will not broadcast again");
+                    logger.info("Transaction " + transaction.getStringId() + " already in unconfirmed pool, will not broadcast again");
                 }
                 return;
             }
@@ -353,9 +352,9 @@ final class TransactionProcessorImpl implements TransactionProcessor {
             if (enableTransactionRebroadcasting) {
                 nonBroadcastedTransactions.add((TransactionImpl) transaction);
             }
-            Logger.logDebugMessage("Accepted new transaction " + transaction.getStringId());
+            logger.debug("Accepted new transaction " + transaction.getStringId());
         } else {
-            Logger.logDebugMessage("Could not accept new transaction " + transaction.getStringId());
+            logger.debug("Could not accept new transaction " + transaction.getStringId());
             throw new NxtException.NotValidException("Invalid transaction " + transaction.getStringId());
         }
     }
@@ -392,7 +391,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                 Account.flushAccountTable();
                 Db.commitTransaction();
             } catch (Exception e) {
-                Logger.logErrorMessage(e.toString(), e);
+                logger.error(e.toString(), e);
                 Db.rollbackTransaction();
                 throw e;
             } finally {
@@ -425,7 +424,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                     Account.flushAccountTable();
                     Db.commitTransaction();
                 } catch (Exception e) {
-                    Logger.logErrorMessage(e.toString(), e);
+                    logger.error(e.toString(), e);
                     Db.rollbackTransaction();
                     throw e;
                 } finally {
@@ -443,7 +442,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                 transactionListeners.notify(Collections.singletonList(transaction), Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
             }
         } catch (SQLException e) {
-            Logger.logErrorMessage(e.toString(), e);
+            logger.error(e.toString(), e);
             throw new RuntimeException(e.toString(), e);
         }
     }
@@ -481,7 +480,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                 transactions.add(transaction);
             } catch (NxtException.NotCurrentlyValidException ignore) {
             } catch (NxtException.NotValidException e) {
-                Logger.logDebugMessage("Invalid transaction from peer: " + ((JSONObject) transactionData).toJSONString());
+                logger.debug("Invalid transaction from peer: " + ((JSONObject) transactionData).toJSONString());
                 throw e;
             }
         }
@@ -523,7 +522,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
 
                         if (!(transaction.verifySignature() && transaction.verifyPublicKey())) {
                             if (Account.getAccount(transaction.getSenderId()) != null) {
-                                Logger.logDebugMessage("Transaction " + transaction.getJSONObject().toJSONString() + " failed to verify");
+                                logger.debug("Transaction " + transaction.getJSONObject().toJSONString() + " failed to verify");
                             }
                             continue;
                         }
@@ -531,7 +530,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                         if (transaction.applyUnconfirmed()) {
                             if (sendToPeers) {
                                 if (nonBroadcastedTransactions.contains(transaction)) {
-                                    Logger.logDebugMessage("Received back transaction " + transaction.getStringId()
+                                    logger.debug("Received back transaction " + transaction.getStringId()
                                             + " that we generated, will not forward to peers");
                                     nonBroadcastedTransactions.remove(transaction);
                                 } else {
@@ -553,7 +552,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                     }
                 }
             } catch (RuntimeException e) {
-                Logger.logMessage("Error processing transaction", e);
+                logger.info("Error processing transaction", e);
             }
 
         }

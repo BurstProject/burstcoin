@@ -1,26 +1,16 @@
 package nxt.http;
 
-import static nxt.http.JSONResponses.INCORRECT_AUTOMATED_TRANSACTION_NAME;
-import static nxt.http.JSONResponses.INCORRECT_AUTOMATED_TRANSACTION_NAME_LENGTH;
-import static nxt.http.JSONResponses.INCORRECT_AUTOMATED_TRANSACTION_DESCRIPTION;
-import static nxt.http.JSONResponses.INCORRECT_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH;
-import static nxt.http.JSONResponses.MISSING_NAME;
+import nxt.*;
+import nxt.at.AT_Constants;
+import nxt.util.Convert;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONStreamAware;
 
+import javax.servlet.http.HttpServletRequest;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import javax.servlet.http.HttpServletRequest;
-
-import nxt.Account;
-import nxt.Attachment;
-import nxt.Constants;
-import nxt.Nxt;
-import nxt.NxtException;
-import nxt.at.AT_Constants;
-import nxt.util.Convert;
-
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
+import static nxt.http.JSONResponses.*;
 
 public final class CreateATProgram extends CreateTransaction {
 	static final CreateATProgram instance = new CreateATProgram();

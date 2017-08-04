@@ -4,9 +4,11 @@ import nxt.Nxt;
 import nxt.NxtException;
 import nxt.db.Db;
 import nxt.util.JSON;
-import nxt.util.Logger;
+import nxt.util.Subnet;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -14,19 +16,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.net.InetAddress;
+import java.util.*;
 
-import static nxt.http.JSONResponses.ERROR_INCORRECT_REQUEST;
-import static nxt.http.JSONResponses.ERROR_NOT_ALLOWED;
-import static nxt.http.JSONResponses.POST_REQUIRED;
+import static nxt.http.JSONResponses.*;
 
 public final class APIServlet extends HttpServlet {
+
+    private static final Logger logger = LoggerFactory.getLogger(APIServlet.class);
 
     abstract static class APIRequestHandler {
 
@@ -214,10 +211,24 @@ public final class APIServlet extends HttpServlet {
         	
         	long startTime = System.currentTimeMillis();
 
-            if (API.allowedBotHosts != null && ! API.allowedBotHosts.contains(req.getRemoteHost())) {
-                response = ERROR_NOT_ALLOWED;
-                return;
-            }
+            if (API.allowedBotHosts != null)
+                {
+                    InetAddress remoteAddress = InetAddress.getByName(req.getRemoteHost());
+                    boolean allowed = false;
+                    for (Subnet allowedSubnet: API.allowedBotHosts)
+                    {
+                      if (allowedSubnet.isInNet(remoteAddress))
+                      {
+                          allowed = true;
+                          break;
+                      }
+                    }
+                    if (!allowed)
+                    {
+                        response = ERROR_NOT_ALLOWED;
+                        return;
+                    }
+                }
 
             String requestType = req.getParameter("requestType");
             if (requestType == null) {
@@ -244,7 +255,7 @@ public final class APIServlet extends HttpServlet {
             } catch (ParameterException e) {
                 response = e.getErrorResponse();
             } catch (NxtException |RuntimeException e) {
-                Logger.logDebugMessage("Error processing API request", e);
+                logger.debug("Error processing API request", e);
                 response = ERROR_INCORRECT_REQUEST;
             } finally {
                 if (apiRequestHandler.startDbTransaction()) {

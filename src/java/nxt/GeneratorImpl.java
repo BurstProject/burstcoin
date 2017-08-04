@@ -1,12 +1,10 @@
 package nxt;
 
+import fr.cryptohash.Shabal256;
 import nxt.crypto.Crypto;
-import nxt.util.Convert;
-import nxt.util.Listener;
-import nxt.util.Listeners;
-import nxt.util.Logger;
-import nxt.util.ThreadPool;
-import nxt.util.MiningPlot;
+import nxt.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -18,9 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
-import fr.cryptohash.Shabal256;
-
 public final class GeneratorImpl implements Generator {
+
+    private static final Logger logger = LoggerFactory.getLogger(GeneratorImpl.class);
 
     private static final Listeners<GeneratorState,Event> listeners = new Listeners<>();
 
@@ -49,10 +47,10 @@ public final class GeneratorImpl implements Generator {
                     	}
                     }
                 } catch (Exception e) {
-                    Logger.logDebugMessage("Error in block generation thread", e);
+                    logger.debug("Error in block generation thread", e);
                 }
             } catch (Throwable t) {
-                Logger.logMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
+                logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
                 t.printStackTrace();
                 System.exit(1);
             }
@@ -105,11 +103,11 @@ public final class GeneratorImpl implements Generator {
 		if(curGen == null || generator.getBlock() > curGen.getBlock() || generator.getDeadline().compareTo(curGen.getDeadline()) < 0) {
 			generators.put(id, generator);
 			listeners.notify(generator, Event.START_FORGING);
-			Logger.logDebugMessage("Account " + Convert.toUnsignedLong(id) + " started mining, deadline "
+			logger.debug("Account " + Convert.toUnsignedLong(id) + " started mining, deadline "
 			        + generator.getDeadline() + " seconds");
 		}
 		else {
-			Logger.logDebugMessage("Account " + Convert.toUnsignedLong(id) + " already has better nonce");
+			logger.debug("Account " + Convert.toUnsignedLong(id) + " already has better nonce");
 		}
 		
 		return generator;
@@ -267,7 +265,7 @@ public final class GeneratorImpl implements Generator {
             }
             catch(BlockchainProcessor.BlockNotAcceptedException e) {
                 e.printStackTrace();
-                Logger.logDebugMessage(e.getMessage(), e);
+                logger.debug(e.getMessage(), e);
             }
             return new MockGeneratorStateImpl();
         }

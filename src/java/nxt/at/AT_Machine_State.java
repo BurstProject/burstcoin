@@ -8,14 +8,13 @@
 
 package nxt.at;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.TreeSet;
+import nxt.Constants;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-
-import nxt.Constants;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.TreeSet;
 
 
 public class AT_Machine_State

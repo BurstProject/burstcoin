@@ -1,20 +1,12 @@
 package nxt.http;
 
-import nxt.Account;
-import nxt.Attachment;
-import nxt.DigitalGoodsStore;
-import nxt.Nxt;
-import nxt.NxtException;
+import nxt.*;
 import nxt.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static nxt.http.JSONResponses.INCORRECT_DELIVERY_DEADLINE_TIMESTAMP;
-import static nxt.http.JSONResponses.INCORRECT_PURCHASE_PRICE;
-import static nxt.http.JSONResponses.INCORRECT_PURCHASE_QUANTITY;
-import static nxt.http.JSONResponses.MISSING_DELIVERY_DEADLINE_TIMESTAMP;
-import static nxt.http.JSONResponses.UNKNOWN_GOODS;
+import static nxt.http.JSONResponses.*;
 
 public final class DGSPurchase extends CreateTransaction {
 

@@ -9,9 +9,7 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static nxt.http.JSONResponses.INCORRECT_POLL;
-import static nxt.http.JSONResponses.INCORRECT_VOTE;
-import static nxt.http.JSONResponses.MISSING_POLL;
+import static nxt.http.JSONResponses.*;
 
 public final class CastVote extends CreateTransaction {
 

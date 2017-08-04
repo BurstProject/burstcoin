@@ -1,16 +1,14 @@
 package nxt.http;
 
-import java.util.List;
-
-import nxt.Account;
 import nxt.AT;
+import nxt.Account;
 import nxt.NxtException;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 public final class GetAccountATs extends APIServlet.APIRequestHandler {
 	

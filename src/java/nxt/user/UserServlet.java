@@ -2,24 +2,27 @@ package nxt.user;
 
 import nxt.Nxt;
 import nxt.NxtException;
-import nxt.util.Logger;
+import nxt.util.Subnet;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static nxt.user.JSONResponses.DENY_ACCESS;
-import static nxt.user.JSONResponses.INCORRECT_REQUEST;
-import static nxt.user.JSONResponses.POST_REQUIRED;
+import static nxt.user.JSONResponses.*;
 
 public final class UserServlet extends HttpServlet  {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserServlet.class);
 
     abstract static class UserRequestHandler {
         abstract JSONStreamAware processRequest(HttpServletRequest request, User user) throws NxtException, IOException;
@@ -72,9 +75,22 @@ public final class UserServlet extends HttpServlet  {
             }
             user = Users.getUser(userPasscode);
 
-            if (Users.allowedUserHosts != null && ! Users.allowedUserHosts.contains(req.getRemoteHost())) {
-                user.enqueue(DENY_ACCESS);
-                return;
+            if (Users.allowedUserHosts != null) {
+                InetAddress remoteAddress = InetAddress.getByName(req.getRemoteHost());
+                boolean allowed = false;
+                for (Subnet allowedSubnet: Users.allowedUserHosts)
+                {
+                    if (allowedSubnet.isInNet(remoteAddress))
+                    {
+                        allowed = true;
+                        break;
+                    }
+                }
+                if (!allowed)
+                {
+                    user.enqueue(DENY_ACCESS);
+                    return;
+                }
             }
 
             String requestType = req.getParameter("requestType");
@@ -101,7 +117,7 @@ public final class UserServlet extends HttpServlet  {
 
         } catch (RuntimeException|NxtException e) {
 
-            Logger.logMessage("Error processing GET request", e);
+            logger.info("Error processing GET request", e);
             if (user != null) {
                 JSONObject response = new JSONObject();
                 response.put("response", "showMessage");

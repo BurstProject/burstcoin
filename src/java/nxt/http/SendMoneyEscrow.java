@@ -1,18 +1,12 @@
 package nxt.http;
 
-import java.util.ArrayList;
-
-import javax.servlet.http.HttpServletRequest;
-
-import nxt.Account;
-import nxt.Attachment;
-import nxt.Constants;
-import nxt.Escrow;
-import nxt.NxtException;
+import nxt.*;
 import nxt.util.Convert;
-
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 
 public final class SendMoneyEscrow extends CreateTransaction {
 	

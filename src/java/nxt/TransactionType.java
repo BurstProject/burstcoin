@@ -8,15 +8,10 @@ import nxt.at.AT_Constants;
 import nxt.at.AT_Controller;
 import nxt.at.AT_Exception;
 import nxt.util.Convert;
-
 import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 public abstract class TransactionType {
@@ -1755,6 +1750,11 @@ public abstract class TransactionType {
     		void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
     			long height = Nxt.getBlockchain().getLastBlock().getHeight() + 1;
     			Account sender = Account.getAccount(transaction.getSenderId());
+
+                if(sender == null) {
+                    throw new NxtException.NotCurrentlyValidException("Sender not yet known ?!");
+                }
+
     			Account.RewardRecipientAssignment rewardAssignment = sender.getRewardRecipientAssignment();
     			if(rewardAssignment != null && rewardAssignment.getFromHeight() >= height) {
     				throw new NxtException.NotCurrentlyValidException("Cannot reassign reward recipient before previous goes into effect: " + transaction.getJSONObject());
