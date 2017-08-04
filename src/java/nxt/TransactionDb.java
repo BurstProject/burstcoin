@@ -1,21 +1,12 @@
 package nxt;
 
-import nxt.at.AT_API_Helper;
-import nxt.at.AT_Transaction;
-import nxt.crypto.Crypto;
 import nxt.db.Db;
 import nxt.db.DbUtils;
 import nxt.util.Convert;
 
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.security.MessageDigest;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 

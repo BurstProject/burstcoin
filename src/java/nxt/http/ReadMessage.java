@@ -6,18 +6,18 @@ import nxt.Nxt;
 import nxt.Transaction;
 import nxt.crypto.Crypto;
 import nxt.util.Convert;
-import nxt.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static nxt.http.JSONResponses.INCORRECT_TRANSACTION;
-import static nxt.http.JSONResponses.MISSING_TRANSACTION;
-import static nxt.http.JSONResponses.NO_MESSAGE;
-import static nxt.http.JSONResponses.UNKNOWN_TRANSACTION;
+import static nxt.http.JSONResponses.*;
 
 public final class ReadMessage extends APIServlet.APIRequestHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReadMessage.class);
 
     static final ReadMessage instance = new ReadMessage();
 
@@ -64,7 +64,7 @@ public final class ReadMessage extends APIServlet.APIRequestHandler {
                         byte[] decrypted = account.decryptFrom(encryptedMessage.getEncryptedData(), secretPhrase);
                         response.put("decryptedMessage", encryptedMessage.isText() ? Convert.toString(decrypted) : Convert.toHexString(decrypted));
                     } catch (RuntimeException e) {
-                        Logger.logDebugMessage("Decryption of message to recipient failed: " + e.toString());
+                        logger.debug("Decryption of message to recipient failed: " + e.toString());
                     }
                 }
             }
@@ -75,7 +75,7 @@ public final class ReadMessage extends APIServlet.APIRequestHandler {
                         byte[] decrypted = account.decryptFrom(encryptToSelfMessage.getEncryptedData(), secretPhrase);
                         response.put("decryptedMessageToSelf", encryptToSelfMessage.isText() ? Convert.toString(decrypted) : Convert.toHexString(decrypted));
                     } catch (RuntimeException e) {
-                        Logger.logDebugMessage("Decryption of message to self failed: " + e.toString());
+                        logger.debug("Decryption of message to self failed: " + e.toString());
                     }
                 }
             }

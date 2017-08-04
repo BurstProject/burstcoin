@@ -10,17 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
-import static nxt.http.JSONResponses.INCORRECT_MAXNUMBEROFOPTIONS;
-import static nxt.http.JSONResponses.INCORRECT_MINNUMBEROFOPTIONS;
-import static nxt.http.JSONResponses.INCORRECT_OPTIONSAREBINARY;
-import static nxt.http.JSONResponses.INCORRECT_POLL_DESCRIPTION_LENGTH;
-import static nxt.http.JSONResponses.INCORRECT_POLL_NAME_LENGTH;
-import static nxt.http.JSONResponses.INCORRECT_POLL_OPTION_LENGTH;
-import static nxt.http.JSONResponses.MISSING_DESCRIPTION;
-import static nxt.http.JSONResponses.MISSING_MAXNUMBEROFOPTIONS;
-import static nxt.http.JSONResponses.MISSING_MINNUMBEROFOPTIONS;
-import static nxt.http.JSONResponses.MISSING_NAME;
-import static nxt.http.JSONResponses.MISSING_OPTIONSAREBINARY;
+import static nxt.http.JSONResponses.*;
 
 public final class CreatePoll extends CreateTransaction {
 

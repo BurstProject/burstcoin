@@ -1,25 +1,17 @@
 package nxt;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import nxt.db.Db;
-import nxt.db.DbClause;
-import nxt.db.DbClause.LongClause;
-import nxt.db.DbIterator;
-import nxt.db.DbKey;
-import nxt.db.DbUtils;
-import nxt.db.VersionedEntityDbTable;
+import nxt.NxtException.NotValidException;
+import nxt.db.*;
+import nxt.util.Convert;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import nxt.NxtException.NotValidException;
-import nxt.util.Convert;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class Subscription {
 

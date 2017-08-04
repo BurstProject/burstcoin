@@ -1,9 +1,9 @@
 package nxt.http;
 
-import javax.servlet.http.HttpServletRequest;
-
 import nxt.NxtException;
 import org.json.simple.JSONStreamAware;
+
+import javax.servlet.http.HttpServletRequest;
 
 public class GetATDetails extends APIServlet.APIRequestHandler {
 	static final GetATDetails instance = new GetATDetails();

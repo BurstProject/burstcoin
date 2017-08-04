@@ -1,25 +1,16 @@
 package nxt.http;
 
-import nxt.AT;
-import nxt.Account;
-import nxt.Alias;
-import nxt.Asset;
-import nxt.Constants;
-import nxt.DigitalGoodsStore;
-import nxt.Nxt;
-import nxt.NxtException;
-import nxt.Transaction;
+import nxt.*;
 import nxt.crypto.Crypto;
 import nxt.crypto.EncryptedData;
 import nxt.util.Convert;
-import nxt.util.Logger;
-
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -28,6 +19,8 @@ import java.util.List;
 import static nxt.http.JSONResponses.*;
 
 final class ParameterParser {
+
+    private static final Logger logger = LoggerFactory.getLogger(ParameterParser.class);
 
     static Alias getAlias(HttpServletRequest req) throws ParameterException {
         long aliasId;
@@ -451,7 +444,7 @@ final class ParameterParser {
                 byte[] bytes = Convert.parseHexString(transactionBytes);
                 return Nxt.getTransactionProcessor().parseTransaction(bytes);
             } catch (NxtException.ValidationException|RuntimeException e) {
-                Logger.logDebugMessage(e.getMessage(), e);
+                logger.debug(e.getMessage(), e);
                 JSONObject response = new JSONObject();
                 response.put("errorCode", 4);
                 response.put("errorDescription", "Incorrect transactionBytes: " + e.toString());
@@ -462,7 +455,7 @@ final class ParameterParser {
                 JSONObject json = (JSONObject) JSONValue.parseWithException(transactionJSON);
                 return Nxt.getTransactionProcessor().parseTransaction(json);
             } catch (NxtException.ValidationException | RuntimeException | ParseException e) {
-                Logger.logDebugMessage(e.getMessage(), e);
+                logger.debug(e.getMessage(), e);
                 JSONObject response = new JSONObject();
                 response.put("errorCode", 4);
                 response.put("errorDescription", "Incorrect transactionJSON: " + e.toString());

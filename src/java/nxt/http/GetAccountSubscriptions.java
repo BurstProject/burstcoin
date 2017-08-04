@@ -1,13 +1,9 @@
 package nxt.http;
 
-import java.util.Collection;
-
 import nxt.Account;
 import nxt.NxtException;
 import nxt.Subscription;
 import nxt.db.DbIterator;
-import nxt.util.Convert;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

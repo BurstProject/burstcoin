@@ -1,18 +1,12 @@
 package nxt.http;
 
-import nxt.Account;
-import nxt.Attachment;
-import nxt.Constants;
-import nxt.DigitalGoodsStore;
-import nxt.NxtException;
+import nxt.*;
 import nxt.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static nxt.http.JSONResponses.INCORRECT_DELTA_QUANTITY;
-import static nxt.http.JSONResponses.MISSING_DELTA_QUANTITY;
-import static nxt.http.JSONResponses.UNKNOWN_GOODS;
+import static nxt.http.JSONResponses.*;
 
 public final class DGSQuantityChange extends CreateTransaction {
 

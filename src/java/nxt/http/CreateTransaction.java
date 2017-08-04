@@ -1,12 +1,6 @@
 package nxt.http;
 
-import nxt.Account;
-import nxt.Appendix;
-import nxt.Attachment;
-import nxt.Constants;
-import nxt.Nxt;
-import nxt.NxtException;
-import nxt.Transaction;
+import nxt.*;
 import nxt.crypto.Crypto;
 import nxt.crypto.EncryptedData;
 import nxt.util.Convert;
@@ -16,14 +10,7 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
-import static nxt.http.JSONResponses.FEATURE_NOT_AVAILABLE;
-import static nxt.http.JSONResponses.INCORRECT_ARBITRARY_MESSAGE;
-import static nxt.http.JSONResponses.INCORRECT_DEADLINE;
-import static nxt.http.JSONResponses.INCORRECT_FEE;
-import static nxt.http.JSONResponses.INCORRECT_REFERENCED_TRANSACTION;
-import static nxt.http.JSONResponses.MISSING_DEADLINE;
-import static nxt.http.JSONResponses.MISSING_SECRET_PHRASE;
-import static nxt.http.JSONResponses.NOT_ENOUGH_FUNDS;
+import static nxt.http.JSONResponses.*;
 
 abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 

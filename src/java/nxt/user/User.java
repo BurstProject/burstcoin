@@ -1,12 +1,12 @@
 package nxt.user;
 
-import nxt.Generator;
 import nxt.crypto.Crypto;
 import nxt.util.JSON;
-import nxt.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.AsyncEvent;
@@ -18,6 +18,8 @@ import java.io.Writer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 final class User {
+
+    private static final Logger logger = LoggerFactory.getLogger(User.class);
 
     private volatile String secretPhrase;
     private volatile byte[] publicKey;
@@ -143,7 +145,7 @@ final class User {
             try (Writer writer = asyncContext.getResponse().getWriter()) {
                 combinedResponse.writeJSONString(writer);
             } catch (IOException e) {
-                Logger.logMessage("Error sending response to user", e);
+                logger.info("Error sending response to user", e);
             }
 
             asyncContext.complete();

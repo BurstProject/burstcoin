@@ -19,11 +19,11 @@ public class BriefLogFormatter extends Formatter {
     private static final ThreadLocal<MessageFormat> messageFormat = new ThreadLocal<MessageFormat>() {
         @Override
         protected MessageFormat initialValue() {
-            return new MessageFormat("{0,date,yyyy-MM-dd HH:mm:ss} {1}: {2}\n{3}");
+            return new MessageFormat("[{1}] {0,date,yyyy-MM-dd HH:mm:ss} {4} - {2}\n{3}");
         }
     };
 
-    /** Logger instance at the top of the name tree */
+    /** LoggerConfigurator instance at the top of the name tree */
     private static final Logger logger = Logger.getLogger("");
 
     /** singleton BriefLogFormatter instance */
@@ -48,10 +48,12 @@ public class BriefLogFormatter extends Formatter {
      */
     @Override
     public String format(LogRecord logRecord) {
-        Object[] arguments = new Object[4];
+        Object[] arguments = new Object[5];
         arguments[0] = new Date(logRecord.getMillis());
         arguments[1] = logRecord.getLevel().getName();
         arguments[2] = logRecord.getMessage();
+        arguments[4] = logRecord.getLoggerName();
+
         Throwable exc = logRecord.getThrown();
         if (exc != null) {
             Writer result = new StringWriter();
@@ -60,6 +62,9 @@ public class BriefLogFormatter extends Formatter {
         } else {
             arguments[3] = "";
         }
+
+        arguments[4] = logRecord.getLoggerName();
+
         return messageFormat.get().format(arguments);
     }
 
