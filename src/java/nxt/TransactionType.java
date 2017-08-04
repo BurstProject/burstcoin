@@ -21,7 +21,7 @@ public abstract class TransactionType {
     private static final byte TYPE_COLORED_COINS = 2;
     private static final byte TYPE_DIGITAL_GOODS = 3;
     private static final byte TYPE_ACCOUNT_CONTROL = 4;
-
+    
     private static final byte TYPE_BURST_MINING = 20; // jump some for easier nxt updating
     private static final byte TYPE_ADVANCED_PAYMENT = 21;
     private static final byte TYPE_AUTOMATED_TRANSACTIONS = 22;
@@ -52,14 +52,14 @@ public abstract class TransactionType {
     private static final byte SUBTYPE_DIGITAL_GOODS_DELIVERY = 5;
     private static final byte SUBTYPE_DIGITAL_GOODS_FEEDBACK = 6;
     private static final byte SUBTYPE_DIGITAL_GOODS_REFUND = 7;
-
+    
     private static final byte SUBTYPE_AT_CREATION = 0;
     private static final byte SUBTYPE_AT_NXT_PAYMENT = 1;
 
     private static final byte SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING = 0;
-
+    
     private static final byte SUBTYPE_BURST_MINING_REWARD_RECIPIENT_ASSIGNMENT = 0;
-
+    
     private static final byte SUBTYPE_ADVANCED_PAYMENT_ESCROW_CREATION = 0;
     private static final byte SUBTYPE_ADVANCED_PAYMENT_ESCROW_SIGN = 1;
     private static final byte SUBTYPE_ADVANCED_PAYMENT_ESCROW_RESULT = 2;
@@ -259,7 +259,7 @@ public abstract class TransactionType {
     }
 
     public abstract boolean hasRecipient();
-
+    
     public boolean isSigned() {
     	return true;
     }
@@ -1698,31 +1698,31 @@ public abstract class TransactionType {
         };
 
     }
-
+    
     public static abstract class BurstMining extends TransactionType {
-
+    	
     	private BurstMining() {}
-
+    	
     	@Override
     	public final byte getType() {
     		return TransactionType.TYPE_BURST_MINING;
     	}
-
+    	
     	@Override
     	final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
     		return true;
     	}
-
+    	
     	@Override
     	final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {}
-
+    	
     	public static final TransactionType REWARD_RECIPIENT_ASSIGNMENT = new BurstMining() {
-
+    		
     		@Override
     		public final byte getSubtype() {
     			return TransactionType.SUBTYPE_BURST_MINING_REWARD_RECIPIENT_ASSIGNMENT;
     		}
-
+    		
     		@Override
             Attachment.BurstMiningRewardRecipientAssignment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
                 return new Attachment.BurstMiningRewardRecipientAssignment(buffer, transactionVersion);
@@ -1732,12 +1732,12 @@ public abstract class TransactionType {
             Attachment.BurstMiningRewardRecipientAssignment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
                 return new Attachment.BurstMiningRewardRecipientAssignment(attachmentData);
             }
-
+    		
     		@Override
     		void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
     			senderAccount.setRewardRecipientAssignment(recipientAccount.getId());
     		}
-
+    		
     		@Override
             boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
     			if(Nxt.getBlockchain().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
@@ -1745,16 +1745,11 @@ public abstract class TransactionType {
     			}
                 return isDuplicate(BurstMining.REWARD_RECIPIENT_ASSIGNMENT, Convert.toUnsignedLong(transaction.getSenderId()), duplicates);
             }
-
+    		
     		@Override
     		void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
     			long height = Nxt.getBlockchain().getLastBlock().getHeight() + 1;
     			Account sender = Account.getAccount(transaction.getSenderId());
-
-                if(sender == null) {
-                    throw new NxtException.NotCurrentlyValidException("Sender not yet known ?!");
-                }
-
     			Account.RewardRecipientAssignment rewardAssignment = sender.getRewardRecipientAssignment();
     			if(rewardAssignment != null && rewardAssignment.getFromHeight() >= height) {
     				throw new NxtException.NotCurrentlyValidException("Cannot reassign reward recipient before previous goes into effect: " + transaction.getJSONObject());
@@ -1770,7 +1765,7 @@ public abstract class TransactionType {
     				throw new NxtException.NotCurrentlyValidException("Reward recipient assignment not allowed before block " + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK);
     			}
     		}
-
+    		
     		@Override
             public boolean hasRecipient() {
                 return true;
@@ -1779,31 +1774,31 @@ public abstract class TransactionType {
     }
 
 	public static abstract class AdvancedPayment extends TransactionType {
-
+		
 		private AdvancedPayment() {}
-
+		
 		@Override
 		public final byte getType() {
 			return TransactionType.TYPE_ADVANCED_PAYMENT;
 		}
-
+		
 		public final static TransactionType ESCROW_CREATION = new AdvancedPayment() {
-
+			
 			@Override
 			public final byte getSubtype() {
 				return TransactionType.SUBTYPE_ADVANCED_PAYMENT_ESCROW_CREATION;
 			}
-
+			
 			@Override
 			Attachment.AdvancedPaymentEscrowCreation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
 				return new Attachment.AdvancedPaymentEscrowCreation(buffer, transactionVersion);
 			}
-
+			
 			@Override
 			Attachment.AdvancedPaymentEscrowCreation parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
 				return new Attachment.AdvancedPaymentEscrowCreation(attachmentData);
 			}
-
+			
 			@Override
 			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
@@ -1814,7 +1809,7 @@ public abstract class TransactionType {
 				senderAccount.addToUnconfirmedBalanceNQT(-totalAmountNQT);
 				return true;
 			}
-
+			
 			@Override
 			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
 				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
@@ -1833,19 +1828,19 @@ public abstract class TransactionType {
 											transaction.getTimestamp() + attachment.getDeadline(),
 											attachment.getDeadlineAction());
 			}
-
+			
 			@Override
 			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
 				Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
 				senderAccount.addToUnconfirmedBalanceNQT(totalAmountNQT);
 			}
-
+			
 			@Override
 			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
 				return false;
 			}
-
+			
 			@Override
 			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
 				Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
@@ -1888,46 +1883,46 @@ public abstract class TransactionType {
 					throw new NxtException.NotYetEnabledException("Escrow not yet enabled");
 				}
 			}
-
+			
 			@Override
 			final public boolean hasRecipient() {
 				return true;
 			}
 		};
-
+		
 		public final static TransactionType ESCROW_SIGN = new AdvancedPayment() {
-
+			
 			@Override
 			public final byte getSubtype() {
 				return TransactionType.SUBTYPE_ADVANCED_PAYMENT_ESCROW_SIGN;
 			}
-
+			
 			@Override
 			Attachment.AdvancedPaymentEscrowSign parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
 				return new Attachment.AdvancedPaymentEscrowSign(buffer, transactionVersion);
 			}
-
+			
 			@Override
 			Attachment.AdvancedPaymentEscrowSign parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
 				return new Attachment.AdvancedPaymentEscrowSign(attachmentData);
 			}
-
+			
 			@Override
 			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 				return true;
 			}
-
+			
 			@Override
 			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
 				Attachment.AdvancedPaymentEscrowSign attachment = (Attachment.AdvancedPaymentEscrowSign) transaction.getAttachment();
 				Escrow escrow = Escrow.getEscrowTransaction(attachment.getEscrowId());
 				escrow.sign(senderAccount.getId(), attachment.getDecision());
 			}
-
+			
 			@Override
 			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 			}
-
+			
 			@Override
 			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
 				Attachment.AdvancedPaymentEscrowSign attachment = (Attachment.AdvancedPaymentEscrowSign) transaction.getAttachment();
@@ -1935,7 +1930,7 @@ public abstract class TransactionType {
 									  Convert.toUnsignedLong(transaction.getSenderId());
 				return isDuplicate(AdvancedPayment.ESCROW_SIGN, uniqueString, duplicates);
 			}
-
+			
 			@Override
 			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
 				Attachment.AdvancedPaymentEscrowSign attachment = (Attachment.AdvancedPaymentEscrowSign) transaction.getAttachment();
@@ -1964,101 +1959,101 @@ public abstract class TransactionType {
 					throw new NxtException.NotYetEnabledException("Escrow not yet enabled");
 				}
 			}
-
+			
 			@Override
 			final public boolean hasRecipient() {
 				return false;
 			}
 		};
-
+		
 		public final static TransactionType ESCROW_RESULT = new AdvancedPayment() {
-
+			
 			@Override
 			public final byte getSubtype() {
 				return TransactionType.SUBTYPE_ADVANCED_PAYMENT_ESCROW_RESULT;
 			}
-
+			
 			@Override
 			Attachment.AdvancedPaymentEscrowResult parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
 				return new Attachment.AdvancedPaymentEscrowResult(buffer, transactionVersion);
 			}
-
+			
 			@Override
 			Attachment.AdvancedPaymentEscrowResult parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
 				return new Attachment.AdvancedPaymentEscrowResult(attachmentData);
 			}
-
+			
 			@Override
 			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 				return false;
 			}
-
+			
 			@Override
 			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
 			}
-
+			
 			@Override
 			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 			}
-
+			
 			@Override
 			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
 				return true;
 			}
-
+			
 			@Override
 			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
 				throw new NxtException.NotValidException("Escrow result never validates");
 			}
-
+			
 			@Override
 			final public boolean hasRecipient() {
 				return true;
 			}
-
+			
 			@Override
 			final public boolean isSigned() {
 				return false;
 			}
 		};
-
+		
 		public final static TransactionType SUBSCRIPTION_SUBSCRIBE = new AdvancedPayment() {
-
+			
 			@Override
 			public final byte getSubtype() {
 				return TransactionType.SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_SUBSCRIBE;
 			}
-
+			
 			@Override
 			Attachment.AdvancedPaymentSubscriptionSubscribe parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
 				return new Attachment.AdvancedPaymentSubscriptionSubscribe(buffer, transactionVersion);
 			}
-
+			
 			@Override
 			Attachment.AdvancedPaymentSubscriptionSubscribe parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
 				return new Attachment.AdvancedPaymentSubscriptionSubscribe(attachmentData);
 			}
-
+			
 			@Override
 			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 				return true;
 			}
-
+			
 			@Override
 			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
 				Attachment.AdvancedPaymentSubscriptionSubscribe attachment = (Attachment.AdvancedPaymentSubscriptionSubscribe) transaction.getAttachment();
 				Subscription.addSubscription(senderAccount, recipientAccount, transaction.getId(), transaction.getAmountNQT(), transaction.getTimestamp(), attachment.getFrequency());
 			}
-
+			
 			@Override
 			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 			}
-
+			
 			@Override
 			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
 				return false;
 			}
-
+			
 			@Override
 			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
 				Attachment.AdvancedPaymentSubscriptionSubscribe attachment = (Attachment.AdvancedPaymentSubscriptionSubscribe) transaction.getAttachment();
@@ -2077,153 +2072,153 @@ public abstract class TransactionType {
 					throw new NxtException.NotYetEnabledException("Subscriptions not yet enabled");
 				}
 			}
-
+			
 			@Override
 			final public boolean hasRecipient() {
 				return true;
 			}
 		};
-
+		
 		public final static TransactionType SUBSCRIPTION_CANCEL = new AdvancedPayment() {
-
+			
 			@Override
 			public final byte getSubtype() {
 				return TransactionType.SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_CANCEL;
 			}
-
+			
 			@Override
 			Attachment.AdvancedPaymentSubscriptionCancel parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
 				return new Attachment.AdvancedPaymentSubscriptionCancel(buffer, transactionVersion);
 			}
-
+			
 			@Override
 			Attachment.AdvancedPaymentSubscriptionCancel parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
 				return new Attachment.AdvancedPaymentSubscriptionCancel(attachmentData);
 			}
-
+			
 			@Override
 			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 				Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
 				Subscription.addRemoval(attachment.getSubscriptionId());
 				return true;
 			}
-
+			
 			@Override
 			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
 				Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
 				Subscription.removeSubscription(attachment.getSubscriptionId());
 			}
-
+			
 			@Override
 			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 			}
-
+			
 			@Override
 			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
 				Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
 				return isDuplicate(AdvancedPayment.SUBSCRIPTION_CANCEL, Convert.toUnsignedLong(attachment.getSubscriptionId()), duplicates);
 			}
-
+			
 			@Override
 			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
 				Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
 				if(attachment.getSubscriptionId() == null) {
 					throw new NxtException.NotValidException("Subscription cancel must include subscription id");
 				}
-
+				
 				Subscription subscription = Subscription.getSubscription(attachment.getSubscriptionId());
 				if(subscription == null) {
 					throw new NxtException.NotValidException("Subscription cancel must contain current subscription id");
 				}
-
+				
 				if(!subscription.getSenderId().equals(transaction.getSenderId()) &&
 				   !subscription.getRecipientId().equals(transaction.getSenderId())) {
 					throw new NxtException.NotValidException("Subscription cancel can only be done by participants");
 				}
-
+				
 				if(!Subscription.isEnabled()) {
 					throw new NxtException.NotYetEnabledException("Subscription cancel not yet enabled");
 				}
 			}
-
+			
 			@Override
 			final public boolean hasRecipient() {
 				return false;
 			}
 		};
-
+		
 		public final static TransactionType SUBSCRIPTION_PAYMENT = new AdvancedPayment() {
-
+			
 			@Override
 			public final byte getSubtype() {
 				return TransactionType.SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT;
 			}
-
+			
 			@Override
 			Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
 				return new Attachment.AdvancedPaymentSubscriptionPayment(buffer, transactionVersion);
 			}
-
+			
 			@Override
 			Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
 				return new Attachment.AdvancedPaymentSubscriptionPayment(attachmentData);
 			}
-
+			
 			@Override
 			final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 				return false;
 			}
-
+			
 			@Override
 			final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
 			}
-
+			
 			@Override
 			final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
 			}
-
+			
 			@Override
 			boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
 				return true;
 			}
-
+			
 			@Override
 			void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
 				throw new NxtException.NotValidException("Subscription payment never validates");
 			}
-
+			
 			@Override
 			final public boolean hasRecipient() {
 				return true;
 			}
-
+			
 			@Override
 			final public boolean isSigned() {
 				return false;
 			}
 		};
 	}
-
+	
 	  public static abstract class AutomatedTransactions extends TransactionType{
 	    	private AutomatedTransactions() {
 
 	    	}
-
+	    	
 	    	@Override
 	    	public final byte getType(){
 	    		return TransactionType.TYPE_AUTOMATED_TRANSACTIONS;
 	    	}
-
+	    	
 	    	@Override
 	    	boolean applyAttachmentUnconfirmed(Transaction transaction,Account senderAccount){
 	    		return true;
 	    	}
-
+	    	
 	    	@Override
 	    	void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount){
-
+	    		
 	    	}
-
+	    	
 	    	 @Override
 	         final void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
 	             if (transaction.getAmountNQT() != 0) {
@@ -2234,7 +2229,7 @@ public abstract class TransactionType {
 
 	         abstract void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException;
 
-
+	    	
 	    	public static final TransactionType AUTOMATED_TRANSACTION_CREATION = new AutomatedTransactions(){
 
 				@Override
@@ -2304,7 +2299,7 @@ public abstract class TransactionType {
 	                Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
 	                Long atId = transaction.getId();
 	                //System.out.println("Applying AT attachent");
-	                AT.addAT( transaction.getId() , transaction.getSenderId() , attachment.getName() , attachment.getDescription() , attachment.getCreationBytes() , transaction.getHeight() );
+	                AT.addAT( transaction.getId() , transaction.getSenderId() , attachment.getName() , attachment.getDescription() , attachment.getCreationBytes() , transaction.getHeight() ); 
 	                //System.out.println("At with id "+atId+" successfully applied");
 				}
 
@@ -2315,7 +2310,7 @@ public abstract class TransactionType {
 					return false;
 				}
 	    	};
-
+	    	
 	    	public static final TransactionType AT_PAYMENT = new AutomatedTransactions() {
 	    		@Override
 	            public final byte getSubtype() {
@@ -2344,7 +2339,7 @@ public abstract class TransactionType {
 				void applyAttachment(Transaction transaction,
 						Account senderAccount, Account recipientAccount) {
 					// TODO Auto-generated method stub
-
+					
 				}
 
 
@@ -2352,13 +2347,13 @@ public abstract class TransactionType {
 				public boolean hasRecipient() {
 					return true;
 				}
-
+				
 				@Override
 				final public boolean isSigned() {
 					return false;
 				}
 	    	};
-
+	    	
 	    }
 
     long minimumFeeNQT(int height, int appendagesSize) {

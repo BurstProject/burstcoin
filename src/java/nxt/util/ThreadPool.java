@@ -79,21 +79,10 @@ public final class ThreadPool {
         logger.debug("Starting " + String.valueOf(totalThreads) + " background jobs");
         scheduledThreadPool = Executors.newScheduledThreadPool(totalThreads);
         for (Map.Entry<Runnable,Long> entry : backgroundJobs.entrySet()) {
-            final Runnable inner = entry.getKey();
-            Runnable toRun = () ->
-            {
-                try{
-                 inner.run();
-                } catch (Exception e)
-                {
-                    logger.warn("Uncaught exception while running background thread "+inner.getClass().getSimpleName());
-                }
-            };
-            scheduledThreadPool.scheduleWithFixedDelay(toRun, 0, Math.max(entry.getValue() / timeMultiplier, 1), TimeUnit.MILLISECONDS);
-
+            scheduledThreadPool.scheduleWithFixedDelay(entry.getKey(), 0, Math.max(entry.getValue() / timeMultiplier, 1), TimeUnit.MILLISECONDS);
         }
         backgroundJobs = null;
-
+	
 	// Starting multicore-Threads:
         for (Map.Entry<Runnable,Long> entry : backgroundJobsCores.entrySet()) {
 	    for(int i=0; i < cores; i++)
