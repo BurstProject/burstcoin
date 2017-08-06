@@ -232,7 +232,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         logger.debug("Blacklisting peer and cleaning queue");
     	if (block == null)
     		return;
-        block.getPeer().blacklist(e);
+    	Peer peer = block.getPeer();
+        if (peer != null)
+        	peer.blacklist(e);
         long removeId = block.getId();
         synchronized (BlockchainProcessorImpl.blockCache) {
 			if(blockCache.containsKey(block.getId())) {
