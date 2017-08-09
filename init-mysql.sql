@@ -1,5 +1,6 @@
 drop database burstwallet;
-create database burstwallet;
+create database burstwallet
+  CHARACTER SET = 'utf8';
 use burstwallet;
 CREATE TABLE version(
     next_update INT NOT NULL
