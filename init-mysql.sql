@@ -1,11 +1,11 @@
 drop database burstwallet;
 create database burstwallet
-  CHARACTER SET = 'utf8';
+  CHARACTER SET utf8 COLLATE utf8_general_ci;
 use burstwallet;
 CREATE TABLE version(
     next_update INT NOT NULL
 );
-INSERT INTO version (next_update) VALUES (163);
+INSERT INTO version (next_update) VALUES (170);
 
 CREATE TABLE alias(
     db_id BIGINT AUTO_INCREMENT,
