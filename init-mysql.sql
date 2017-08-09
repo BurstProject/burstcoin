@@ -11,7 +11,7 @@ CREATE TABLE alias(
     id BIGINT NOT NULL,
     account_id BIGINT NOT NULL,
     alias_name VARCHAR(100) NOT NULL,
-    alias_name_LOWER VARCHAR(100) NOT NULL,
+    alias_name_LOWER VARCHAR(100) NOT NULL DEFAULT '',
     alias_uri TEXT NOT NULL,
     timestamp INT NOT NULL,
     height INT NOT NULL,
