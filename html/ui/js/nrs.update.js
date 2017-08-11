@@ -20,7 +20,7 @@ var NRS = (function(NRS, $, undefined) {
 
 		//Get latest version nr+hash of normal version
 		NRS.sendRequest("getAlias", {
-			"aliasName": "nrsversioninfo"
+			"aliasName": "nrscgversioninfo"
 		}, function(response) {
 			if (response.aliasURI && (response = response.aliasURI.split(" "))) {
 				NRS.normalVersion.versionNr = response[0];
@@ -34,7 +34,7 @@ var NRS = (function(NRS, $, undefined) {
 
 		//Get latest version nr+hash of beta version
 		NRS.sendRequest("getAlias", {
-			"aliasName": "nrsbetaversion"
+			"aliasName": "nrscgbetaversion"
 		}, function(response) {
 			if (response.aliasURI && (response = response.aliasURI.split(" "))) {
 				NRS.betaVersion.versionNr = response[0];
@@ -126,17 +126,17 @@ var NRS = (function(NRS, $, undefined) {
 		}
 
 		//https://gist.github.com/TheDistantSea/8021359 (based on)
-		var v1last = v1.slice(-1);
-		var v2last = v2.slice(-1);
+		var v1last = v1.slice(-2);
+		var v2last = v2.slice(-2);
 
-		if (v1last == 'e') {
-			v1 = v1.substring(0, v1.length - 1);
+		if (v1last == 'cg') {
+			v1 = v1.substring(0, v1.length - 2);
 		} else {
 			v1last = '';
 		}
 
-		if (v2last == 'e') {
-			v2 = v2.substring(0, v2.length - 1);
+		if (v2last == 'cg') {
+			v2 = v2.substring(0, v2.length - 2);
 		} else {
 			v2last = '';
 		}
