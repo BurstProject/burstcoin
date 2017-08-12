@@ -1,5 +1,6 @@
 package nxt;
 
+import nxt.db.VersionedEntityTable;
 import nxt.db.sql.*;
 
 import java.sql.Connection;
@@ -149,7 +150,7 @@ public class Escrow {
 		}
 	};
 
-	private static final VersionedEntitySqlTable<Escrow> escrowTable = new VersionedEntitySqlTable<Escrow>("escrow", escrowDbKeyFactory) {
+	private static final VersionedEntityTable<Escrow> escrowTable = new VersionedEntitySqlTable<Escrow>("escrow", escrowDbKeyFactory) {
 		@Override
 		protected Escrow load(Connection con, ResultSet rs) throws SQLException {
 			return new Escrow(rs);
@@ -167,7 +168,7 @@ public class Escrow {
 		}
 	};
 
-	private static final VersionedEntitySqlTable<Decision> decisionTable = new VersionedEntitySqlTable<Decision>("escrow_decision", decisionDbKeyFactory) {
+	private static final VersionedEntityTable<Decision> decisionTable = new VersionedEntitySqlTable<Decision>("escrow_decision", decisionDbKeyFactory) {
 		@Override
 		protected Decision load(Connection con, ResultSet rs) throws SQLException {
 			return new Decision(rs);
