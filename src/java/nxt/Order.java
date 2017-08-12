@@ -1,6 +1,6 @@
 package nxt;
 
-import nxt.db.*;
+import nxt.db.sql.*;
 import nxt.util.Convert;
 
 import java.sql.Connection;
@@ -151,7 +151,7 @@ public abstract class Order {
 
         };
 
-        private static final VersionedEntityDbTable<Ask> askOrderTable = new VersionedEntityDbTable<Ask>("ask_order", askOrderDbKeyFactory) {
+        private static final VersionedEntitySqlTable<Ask> askOrderTable = new VersionedEntitySqlTable<Ask>("ask_order", askOrderDbKeyFactory) {
             @Override
             protected Ask load(Connection con, ResultSet rs) throws SQLException {
                 return new Ask(rs);
@@ -286,7 +286,7 @@ public abstract class Order {
 
         };
 
-        private static final VersionedEntityDbTable<Bid> bidOrderTable = new VersionedEntityDbTable<Bid>("bid_order", bidOrderDbKeyFactory) {
+        private static final VersionedEntitySqlTable<Bid> bidOrderTable = new VersionedEntitySqlTable<Bid>("bid_order", bidOrderDbKeyFactory) {
 
             @Override
             protected Bid load(Connection con, ResultSet rs) throws SQLException {

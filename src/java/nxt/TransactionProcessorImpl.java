@@ -1,6 +1,6 @@
 package nxt;
 
-import nxt.db.*;
+import nxt.db.sql.*;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
 import nxt.util.JSON;
@@ -45,7 +45,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
 
     };
 
-    private final EntityDbTable<TransactionImpl> unconfirmedTransactionTable = new EntityDbTable<TransactionImpl>("unconfirmed_transaction", unconfirmedTransactionDbKeyFactory) {
+    private final EntitySqlTable<TransactionImpl> unconfirmedTransactionTable = new EntitySqlTable<TransactionImpl>("unconfirmed_transaction", unconfirmedTransactionDbKeyFactory) {
 
         @Override
         protected TransactionImpl load(Connection con, ResultSet rs) throws SQLException {

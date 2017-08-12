@@ -1,4 +1,6 @@
-package nxt.db;
+package nxt.db.sql;
+
+import nxt.db.NxtIterator;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -7,11 +9,8 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public final class DbIterator<T> implements Iterator<T>, Iterable<T>, AutoCloseable {
-
-    public interface ResultSetReader<T> {
-        T get(Connection con, ResultSet rs) throws Exception;
-    }
+public class DbIterator<T> implements NxtIterator<T>
+{
 
     private final Connection con;
     private final PreparedStatement pstmt;

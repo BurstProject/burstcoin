@@ -1,4 +1,4 @@
-package nxt.db;
+package nxt.db.sql;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -25,7 +25,8 @@ public final class Db {
     private static final ThreadLocal<Map<String,Map<DbKey,Object>>> transactionCaches = new ThreadLocal<>();
     private static final ThreadLocal<Map<String,Map<DbKey,Object>>> transactionBatches = new ThreadLocal<>();
 
-    private static final class DbConnection extends FilteredConnection {
+    private static final class DbConnection extends FilteredConnection
+    {
 
         private DbConnection(Connection con) {
             super(con);

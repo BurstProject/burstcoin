@@ -1,7 +1,7 @@
 package nxt;
 
 import nxt.crypto.EncryptedData;
-import nxt.db.*;
+import nxt.db.sql.*;
 import nxt.util.Convert;
 import nxt.util.Listener;
 import nxt.util.Listeners;
@@ -70,7 +70,7 @@ public final class DigitalGoodsStore {
 
         };
 
-        private static final VersionedEntityDbTable<Goods> goodsTable = new VersionedEntityDbTable<Goods>("goods", goodsDbKeyFactory) {
+        private static final VersionedEntitySqlTable<Goods> goodsTable = new VersionedEntitySqlTable<Goods>("goods", goodsDbKeyFactory) {
 
             @Override
             protected Goods load(Connection con, ResultSet rs) throws SQLException {
@@ -230,7 +230,7 @@ public final class DigitalGoodsStore {
 
         };
 
-        private static final VersionedEntityDbTable<Purchase> purchaseTable = new VersionedEntityDbTable<Purchase>("purchase", purchaseDbKeyFactory) {
+        private static final VersionedEntitySqlTable<Purchase> purchaseTable = new VersionedEntitySqlTable<Purchase>("purchase", purchaseDbKeyFactory) {
 
             @Override
             protected Purchase load(Connection con, ResultSet rs) throws SQLException {
@@ -258,7 +258,8 @@ public final class DigitalGoodsStore {
 
         };
 
-        private static final VersionedValuesDbTable<Purchase, EncryptedData> feedbackTable = new VersionedValuesDbTable<Purchase, EncryptedData>("purchase_feedback", feedbackDbKeyFactory) {
+        @Deprecated
+        private static final VersionedValuesSqlTable<Purchase, EncryptedData> feedbackTable = new VersionedValuesSqlTable<Purchase, EncryptedData>("purchase_feedback", feedbackDbKeyFactory) {
 
             @Override
             protected EncryptedData load(Connection con, ResultSet rs) throws SQLException {
@@ -291,7 +292,8 @@ public final class DigitalGoodsStore {
 
         };
 
-        private static final VersionedValuesDbTable<Purchase, String> publicFeedbackTable = new VersionedValuesDbTable<Purchase, String>("purchase_public_feedback", publicFeedbackDbKeyFactory) {
+        private static final VersionedValuesSqlTable<Purchase, String> publicFeedbackTable =
+                new VersionedValuesSqlTable<Purchase, String>("purchase_public_feedback", publicFeedbackDbKeyFactory) {
 
             @Override
             protected String load(Connection con, ResultSet rs) throws SQLException {

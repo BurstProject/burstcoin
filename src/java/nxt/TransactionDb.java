@@ -1,7 +1,7 @@
 package nxt;
 
-import nxt.db.Db;
-import nxt.db.DbUtils;
+import nxt.db.sql.Db;
+import nxt.db.sql.DbUtils;
 import nxt.util.Convert;
 
 import java.nio.ByteBuffer;

@@ -5,7 +5,7 @@ import nxt.Constants;
 import nxt.Nxt;
 import nxt.Transaction;
 import nxt.crypto.Crypto;
-import nxt.db.Db;
+import nxt.db.sql.Db;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

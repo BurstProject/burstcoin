@@ -10,10 +10,10 @@ package nxt;
 
 
 import nxt.at.*;
-import nxt.db.Db;
-import nxt.db.DbKey;
-import nxt.db.DbUtils;
-import nxt.db.VersionedEntityDbTable;
+import nxt.db.sql.Db;
+import nxt.db.sql.DbKey;
+import nxt.db.sql.DbUtils;
+import nxt.db.sql.VersionedEntitySqlTable;
 import nxt.util.Listener;
 
 import java.io.ByteArrayInputStream;
@@ -239,7 +239,7 @@ public final class AT extends AT_Machine_State {
 		}
 	};
 
-	private static final VersionedEntityDbTable<AT> atTable = new VersionedEntityDbTable<AT>("at", atDbKeyFactory) {
+	private static final VersionedEntitySqlTable<AT> atTable = new VersionedEntitySqlTable<AT>("at", atDbKeyFactory) {
 		@Override
 		protected AT load(Connection con, ResultSet rs) throws SQLException {
 			//return new AT(rs);
@@ -262,7 +262,7 @@ public final class AT extends AT_Machine_State {
 		}
 	};
 
-	private static final VersionedEntityDbTable<ATState> atStateTable = new VersionedEntityDbTable<ATState>("at_state", atStateDbKeyFactory) {
+	private static final VersionedEntitySqlTable<ATState> atStateTable = new VersionedEntitySqlTable<ATState>("at_state", atStateDbKeyFactory) {
 		@Override
 		protected ATState load(Connection con, ResultSet rs) throws SQLException {
 			return new ATState(rs);

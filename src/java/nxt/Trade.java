@@ -1,6 +1,6 @@
 package nxt;
 
-import nxt.db.*;
+import nxt.db.sql.*;
 import nxt.util.Convert;
 import nxt.util.Listener;
 import nxt.util.Listeners;
@@ -27,7 +27,7 @@ public final class Trade {
 
     };
 
-    private static final EntityDbTable<Trade> tradeTable = new EntityDbTable<Trade>("trade", tradeDbKeyFactory) {
+    private static final EntitySqlTable<Trade> tradeTable = new EntitySqlTable<Trade>("trade", tradeDbKeyFactory) {
 
         @Override
         protected Trade load(Connection con, ResultSet rs) throws SQLException {

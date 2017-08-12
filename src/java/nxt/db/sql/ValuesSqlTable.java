@@ -1,4 +1,6 @@
-package nxt.db;
+package nxt.db.sql;
+
+import nxt.db.ValuesTable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -7,16 +9,17 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class ValuesDbTable<T,V> extends DerivedDbTable {
+public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements ValuesTable<T, V>
+{
 
     private final boolean multiversion;
     protected final DbKey.Factory<T> dbKeyFactory;
 
-    protected ValuesDbTable(String table, DbKey.Factory<T> dbKeyFactory) {
+    protected ValuesSqlTable(String table, DbKey.Factory<T> dbKeyFactory) {
         this(table, dbKeyFactory, false);
     }
 
-    ValuesDbTable(String table, DbKey.Factory<T> dbKeyFactory, boolean multiversion) {
+    ValuesSqlTable(String table, DbKey.Factory<T> dbKeyFactory, boolean multiversion) {
         super(table);
         this.dbKeyFactory = dbKeyFactory;
         this.multiversion = multiversion;
@@ -26,6 +29,7 @@ public abstract class ValuesDbTable<T,V> extends DerivedDbTable {
 
     protected abstract void save(Connection con, T t, V v) throws SQLException;
 
+    @Override
     public final List<V> get(DbKey dbKey) {
         List<V> values;
         if (Db.isInTransaction()) {
@@ -62,6 +66,7 @@ public abstract class ValuesDbTable<T,V> extends DerivedDbTable {
         }
     }
 
+    @Override
     public final void insert(T t, List<V> values) {
         if (!Db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");

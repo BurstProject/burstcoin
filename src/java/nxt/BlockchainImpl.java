@@ -1,8 +1,8 @@
 package nxt;
 
-import nxt.db.Db;
-import nxt.db.DbIterator;
-import nxt.db.DbUtils;
+import nxt.db.sql.Db;
+import nxt.db.sql.DbIterator;
+import nxt.db.sql.DbUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

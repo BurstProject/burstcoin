@@ -1,6 +1,6 @@
 package nxt;
 
-import nxt.db.Db;
+import nxt.db.sql.Db;
 import nxt.http.API;
 import nxt.peer.Peers;
 import nxt.user.Users;

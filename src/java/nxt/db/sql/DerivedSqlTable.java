@@ -1,21 +1,24 @@
-package nxt.db;
+package nxt.db.sql;
 
 import nxt.Nxt;
+import nxt.db.DerivedTable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public abstract class DerivedDbTable {
+public abstract class DerivedSqlTable implements DerivedTable
+{
 
     protected final String table;
 
-    protected DerivedDbTable(String table) {
+    protected DerivedSqlTable(String table) {
         this.table = table;
         Nxt.getBlockchainProcessor().registerDerivedTable(this);
     }
 
+    @Override
     public void rollback(int height) {
         if (!Db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
@@ -29,6 +32,7 @@ public abstract class DerivedDbTable {
         }
     }
 
+    @Override
     public void truncate() {
         if (!Db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
@@ -41,10 +45,12 @@ public abstract class DerivedDbTable {
         }
     }
 
+    @Override
     public void trim(int height) {
         //nothing to trim
     }
 
+    @Override
     public void finish() {
 
     }

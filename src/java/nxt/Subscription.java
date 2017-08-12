@@ -1,7 +1,7 @@
 package nxt;
 
 import nxt.NxtException.NotValidException;
-import nxt.db.*;
+import nxt.db.sql.*;
 import nxt.util.Convert;
 
 import java.sql.Connection;
@@ -35,7 +35,7 @@ public class Subscription {
 		}
 	};
 
-	private static final VersionedEntityDbTable<Subscription> subscriptionTable = new VersionedEntityDbTable<Subscription>("subscription", subscriptionDbKeyFactory) {
+	private static final VersionedEntitySqlTable<Subscription> subscriptionTable = new VersionedEntitySqlTable<Subscription>("subscription", subscriptionDbKeyFactory) {
 		@Override
 		protected Subscription load(Connection con, ResultSet rs) throws SQLException {
 			return new Subscription(rs);

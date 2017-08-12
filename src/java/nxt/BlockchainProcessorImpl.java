@@ -4,9 +4,9 @@ import nxt.at.AT_Block;
 import nxt.at.AT_Controller;
 import nxt.at.AT_Exception;
 import nxt.crypto.Crypto;
-import nxt.db.Db;
-import nxt.db.DerivedDbTable;
-import nxt.db.FilteringIterator;
+import nxt.db.sql.Db;
+import nxt.db.DerivedTable;
+import nxt.db.sql.FilteringIterator;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
 import nxt.util.*;
@@ -49,7 +49,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 	private final BlockchainImpl blockchain = BlockchainImpl.getInstance();
 
-	private final List<DerivedDbTable> derivedTables = new CopyOnWriteArrayList<>();
+	private final List<DerivedTable> derivedTables = new CopyOnWriteArrayList<>();
 	private final boolean trimDerivedTables = Nxt.getBooleanProperty("nxt.trimDerivedTables");
 	private volatile int lastTrimHeight;
 
@@ -658,7 +658,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 					if (block.getHeight() % 1440 == 0) {
 						lastTrimHeight = Math.max(block.getHeight() - Constants.MAX_ROLLBACK, 0);
 						if (lastTrimHeight > 0) {
-							for (DerivedDbTable table : derivedTables) {
+							for (DerivedTable table : derivedTables) {
 								table.trim(lastTrimHeight);
 							}
 						}
@@ -701,7 +701,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 	}
 
 	@Override
-	public void registerDerivedTable(DerivedDbTable table) {
+	public void registerDerivedTable(DerivedTable table) {
 		derivedTables.add(table);
 	}
 
@@ -958,7 +958,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				addBlock(block);
 				accept(block, remainingAmount, remainingFee);
 
-				for (DerivedDbTable table : derivedTables) {
+				for (DerivedTable table : derivedTables) {
 					table.finish();
 				}
 
@@ -1046,7 +1046,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 					poppedOffBlocks.add(block);
 					block = popLastBlock();
 				}
-				for (DerivedDbTable table : derivedTables) {
+				for (DerivedTable table : derivedTables) {
 					table.rollback(commonBlock.getHeight());
 				}
 				Db.commitTransaction();
@@ -1294,7 +1294,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 					PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE height >= ? ORDER BY db_id ASC")) {
 				transactionProcessor.requeueAllUnconfirmedTransactions();
 				Account.flushAccountTable();
-				for (DerivedDbTable table : derivedTables) {
+				for (DerivedTable table : derivedTables) {
 					if (height == 0) {
 						table.truncate();
 					} else {

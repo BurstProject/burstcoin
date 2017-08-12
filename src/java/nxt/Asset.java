@@ -1,9 +1,9 @@
 package nxt;
 
-import nxt.db.DbClause;
-import nxt.db.DbIterator;
-import nxt.db.DbKey;
-import nxt.db.EntityDbTable;
+import nxt.db.sql.DbClause;
+import nxt.db.sql.DbIterator;
+import nxt.db.sql.DbKey;
+import nxt.db.sql.EntitySqlTable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,7 +21,7 @@ public final class Asset {
 
     };
 
-    private static final EntityDbTable<Asset> assetTable = new EntityDbTable<Asset>("asset", assetDbKeyFactory) {
+    private static final EntitySqlTable<Asset> assetTable = new EntitySqlTable<Asset>("asset", assetDbKeyFactory) {
 
         @Override
         protected Asset load(Connection con, ResultSet rs) throws SQLException {

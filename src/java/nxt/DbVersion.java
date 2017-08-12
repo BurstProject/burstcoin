@@ -1,6 +1,6 @@
 package nxt;
 
-import nxt.db.Db;
+import nxt.db.sql.Db;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

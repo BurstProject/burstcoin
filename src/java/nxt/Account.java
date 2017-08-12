@@ -3,6 +3,7 @@ package nxt;
 import nxt.crypto.Crypto;
 import nxt.crypto.EncryptedData;
 import nxt.db.*;
+import nxt.db.sql.*;
 import nxt.util.Convert;
 import nxt.util.Listener;
 import nxt.util.Listeners;
@@ -14,7 +15,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
-public final class Account {
+public  class Account {
 
     private static final Logger logger = Logger.getLogger(Account.class.getSimpleName());
 
@@ -181,7 +182,7 @@ public final class Account {
     static {
     }
 
-    private static final DbKey.LongKeyFactory<Account> accountDbKeyFactory = new DbKey.LongKeyFactory<Account>("id") {
+    protected static final DbKey.LongKeyFactory<Account> accountDbKeyFactory = new DbKey.LongKeyFactory<Account>("id") {
 
         @Override
         public DbKey newKey(Account account) {
@@ -190,7 +191,7 @@ public final class Account {
 
     };
 
-    private static final VersionedBatchEntityDbTable<Account> accountTable = new VersionedBatchEntityDbTable<Account>("account", accountDbKeyFactory) {
+    private static final VersionedBatchEntitySqlTable<Account> accountTable = new VersionedBatchEntitySqlTable<Account>("account", accountDbKeyFactory) {
 
         @Override
         protected Account load(Connection con, ResultSet rs) throws SQLException {
@@ -229,7 +230,7 @@ public final class Account {
 
     };
 
-    private static final VersionedEntityDbTable<AccountAsset> accountAssetTable = new VersionedEntityDbTable<AccountAsset>("account_asset", accountAssetDbKeyFactory) {
+    private static final VersionedEntitySqlTable<AccountAsset> accountAssetTable = new VersionedEntitySqlTable<AccountAsset>("account_asset", accountAssetDbKeyFactory) {
 
         @Override
         protected AccountAsset load(Connection con, ResultSet rs) throws SQLException {
@@ -256,7 +257,7 @@ public final class Account {
     	}
 	};
 
-	private static final VersionedEntityDbTable<RewardRecipientAssignment> rewardRecipientAssignmentTable = new VersionedEntityDbTable<RewardRecipientAssignment>("reward_recip_assign", rewardRecipientAssignmentDbKeyFactory) {
+	private static final VersionedEntitySqlTable<RewardRecipientAssignment> rewardRecipientAssignmentTable = new VersionedEntitySqlTable<RewardRecipientAssignment>("reward_recip_assign", rewardRecipientAssignmentDbKeyFactory) {
 
 		@Override
 		protected RewardRecipientAssignment load(Connection con, ResultSet rs) throws SQLException {
@@ -358,19 +359,21 @@ public final class Account {
     static void init() {}
 
 
-    private final long id;
-    private final DbKey dbKey;
-    private final int creationHeight;
-    private byte[] publicKey;
-    private int keyHeight;
-    private long balanceNQT;
-    private long unconfirmedBalanceNQT;
-    private long forgedBalanceNQT;
+    protected final long id;
+    protected final DbKey dbKey;
+    protected final int creationHeight;
+    protected byte[] publicKey;
+    protected int keyHeight;
+    protected long balanceNQT;
+    protected long unconfirmedBalanceNQT;
+    protected long forgedBalanceNQT;
 
-    private String name;
-    private String description;
+    protected String name;
+    protected String description;
 
-    private Account(long id) {
+
+
+    protected Account(long id) {
         if (id != Crypto.rsDecode(Crypto.rsEncode(id))) {
             logger.info("CRITICAL ERROR: Reed-Solomon encoding fails for " + id);
         }
@@ -379,6 +382,16 @@ public final class Account {
         this.creationHeight = Nxt.getBlockchain().getHeight();
     }
 
+    protected Account(long id, DbKey dbKey, int creationHeight) {
+        if (id != Crypto.rsDecode(Crypto.rsEncode(id))) {
+            logger.info("CRITICAL ERROR: Reed-Solomon encoding fails for " + id);
+        }
+        this.id = id;
+        this.dbKey = dbKey;
+        this.creationHeight = creationHeight;
+    }
+
+    @Deprecated
     private Account(ResultSet rs) throws SQLException {
         this.id = rs.getLong("id");
         this.dbKey = accountDbKeyFactory.newKey(this.id);
@@ -392,26 +405,7 @@ public final class Account {
         this.description = rs.getString("description");
     }
 
-    /*private void save(Connection con) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO account (id, creation_height, public_key, "
-                + "key_height, balance, unconfirmed_balance, forged_balance, name, description, "
-                + "height, latest) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
-            int i = 0;
-            pstmt.setLong(++i, this.getId());
-            pstmt.setInt(++i, this.getCreationHeight());
-            DbUtils.setBytes(pstmt, ++i, this.getPublicKey());
-            pstmt.setInt(++i, this.getKeyHeight());
-            pstmt.setLong(++i, this.getBalanceNQT());
-            pstmt.setLong(++i, this.getUnconfirmedBalanceNQT());
-            pstmt.setLong(++i, this.getForgedBalanceNQT());
-            DbUtils.setString(pstmt, ++i, this.getName());
-            DbUtils.setString(pstmt, ++i, this.getDescription());
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-            pstmt.executeUpdate();
-        }
-    }*/
-
+    @Deprecated
     private void batch(PreparedStatement pstmt) throws SQLException {
         int i = 0;
         pstmt.setLong(++i, this.getId());
@@ -452,11 +446,11 @@ public final class Account {
         return publicKey;
     }
 
-    private int getCreationHeight() {
+    public int getCreationHeight() {
         return creationHeight;
     }
 
-    private int getKeyHeight() {
+    public int getKeyHeight() {
         return keyHeight;
     }
 
@@ -490,11 +484,11 @@ public final class Account {
         return accountAssetTable.getManyBy(new DbClause.LongClause("account_id", this.id), from, to);
     }
 
-    public DbIterator<Trade> getTrades(int from, int to) {
+    public NxtIterator<Trade> getTrades(int from, int to) {
         return Trade.getAccountTrades(this.id, from, to);
     }
 
-    public DbIterator<AssetTransfer> getAssetTransfers(int from, int to) {
+    public NxtIterator<AssetTransfer> getAssetTransfers(int from, int to) {
         return AssetTransfer.getAccountAssetTransfers(this.id, from, to);
     }
 

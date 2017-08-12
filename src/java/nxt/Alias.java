@@ -1,6 +1,6 @@
 package nxt;
 
-import nxt.db.*;
+import nxt.db.sql.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -65,7 +65,7 @@ public final class Alias {
 
     };
 
-    private static final VersionedEntityDbTable<Alias> aliasTable = new VersionedEntityDbTable<Alias>("alias", aliasDbKeyFactory) {
+    private static final VersionedEntitySqlTable<Alias> aliasTable = new VersionedEntitySqlTable<Alias>("alias", aliasDbKeyFactory) {
 
         @Override
         protected Alias load(Connection con, ResultSet rs) throws SQLException {
@@ -93,7 +93,7 @@ public final class Alias {
 
     };
 
-    private static final VersionedEntityDbTable<Offer> offerTable = new VersionedEntityDbTable<Offer>("alias_offer", offerDbKeyFactory) {
+    private static final VersionedEntitySqlTable<Offer> offerTable = new VersionedEntitySqlTable<Offer>("alias_offer", offerDbKeyFactory) {
 
         @Override
         protected Offer load(Connection con, ResultSet rs) throws SQLException {
