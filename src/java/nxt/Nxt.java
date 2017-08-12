@@ -1,6 +1,8 @@
 package nxt;
 
+import nxt.db.mariadb.MariadbAccountStore;
 import nxt.db.sql.Db;
+import nxt.db.store.Stores;
 import nxt.http.API;
 import nxt.peer.Peers;
 import nxt.user.Users;
@@ -28,7 +30,10 @@ public final class Nxt {
 
     private static volatile Time time = new Time.EpochTime();
 
+    private static Stores stores;
+
     private static final Properties defaultProperties = new Properties();
+
     static {
         System.out.println("Initializing Burst server version " + Nxt.VERSION);
         try (InputStream is = ClassLoader.getSystemResourceAsStream("nxt-default.properties")) {
@@ -50,7 +55,9 @@ public final class Nxt {
             throw new RuntimeException("Error loading nxt-default.properties", e);
         }
     }
+
     private static final Properties properties = new Properties(defaultProperties);
+
     static {
         try (InputStream is = ClassLoader.getSystemResourceAsStream("nxt.properties")) {
             if (is != null) {
@@ -78,7 +85,7 @@ public final class Nxt {
 
     public static String getStringProperty(String name, String defaultValue) {
         String value = properties.getProperty(name);
-        if (value != null && ! "".equals(value)) {
+        if (value != null && !"".equals(value)) {
             logger.info(name + " = \"" + value + "\"");
             return value;
         } else {
@@ -141,9 +148,11 @@ public final class Nxt {
     }
 
     private static Generator generator = new GeneratorImpl();
+
     public static Generator getGenerator() {
         return generator;
     }
+
     public static void setGenerator(Generator newGenerator) {
         generator = newGenerator;
     }
@@ -182,7 +191,7 @@ public final class Nxt {
         Peers.shutdown();
         ThreadPool.shutdown();
         Db.shutdown();
-        if(BlockchainProcessorImpl.oclVerify) {
+        if (BlockchainProcessorImpl.oclVerify) {
             OCLPoC.destroy();
         }
         logger.info("Burst server " + VERSION + " stopped.");
@@ -194,11 +203,27 @@ public final class Nxt {
         static {
             try {
                 long startTime = System.currentTimeMillis();
+
                 LoggerConfigurator.init();
-                Db.init();
+
+                String dbUrl;
+                if (Constants.isTestnet) {
+                    dbUrl = Nxt.getStringProperty("nxt.testDbUrl");
+                } else {
+                    dbUrl = Nxt.getStringProperty("nxt.dbUrl");
+                }
+                if (dbUrl != null && dbUrl.trim().startsWith("jdbc:mariadb")) {
+                    logger.info("Using mariadb Backend");
+                    Db.init();
+                    DbVersion.init();
+
+                    stores = new Stores(new MariadbAccountStore());
+
+                }
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
-                DbVersion.init();
+
+
                 Account.init();
                 Alias.init();
                 Asset.init();
@@ -228,14 +253,13 @@ public final class Nxt {
                 if (Constants.isTestnet) {
                     logger.info("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
                 }
-                if(Nxt.getBooleanProperty("burst.mockMining")) {
+                if (Nxt.getBooleanProperty("burst.mockMining")) {
                     setGenerator(new GeneratorImpl.MockGeneratorImpl());
                 }
-                if(BlockchainProcessorImpl.oclVerify) {
+                if (BlockchainProcessorImpl.oclVerify) {
                     try {
                         OCLPoC.init();
-                    }
-                    catch(OCLPoC.OCLCheckerException e) {
+                    } catch (OCLPoC.OCLCheckerException e) {
                         logger.error("Error initializing OpenCL, disabling ocl verify: " + e.getMessage());
                         BlockchainProcessorImpl.oclVerify = false;
                     }
@@ -246,12 +270,18 @@ public final class Nxt {
             }
         }
 
-        private static void init() {}
+        private static void init() {
+        }
 
-        private Init() {} // never
+        private Init() {
+        } // never
 
     }
 
-    private Nxt() {} // never
+    private Nxt() {
+    } // never
 
+    public static Stores getStores() {
+        return stores;
+    }
 }

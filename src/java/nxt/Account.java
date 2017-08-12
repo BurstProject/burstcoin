@@ -26,11 +26,11 @@ public  class Account {
 
     public static class AccountAsset {
 
-        private final long accountId;
-        private final long assetId;
+        public final long accountId;
+        public final long assetId;
         private final DbKey dbKey;
-        private long quantityQNT;
-        private long unconfirmedQuantityQNT;
+        public long quantityQNT;
+        public long unconfirmedQuantityQNT;
 
         private AccountAsset(long accountId, long assetId, long quantityQNT, long unconfirmedQuantityQNT) {
             this.accountId = accountId;
@@ -191,31 +191,8 @@ public  class Account {
 
     };
 
-    private static final VersionedBatchEntityTable<Account> accountTable = new VersionedBatchEntitySqlTable<Account>("account", accountDbKeyFactory) {
+    private static final VersionedBatchEntityTable<Account> accountTable = Nxt.getStores().getAccountStore().getAccountTable();
 
-        @Override
-        protected Account load(Connection con, ResultSet rs) throws SQLException {
-            return new Account(rs);
-        }
-
-        /*@Override
-        protected void save(Connection con, Account account) throws SQLException {
-            account.save(con);
-        }*/
-
-        @Override
-        protected String updateQuery() {
-            return "REPLACE INTO account (id, creation_height, public_key, key_height, balance, unconfirmed_balance, " +
-                    "forged_balance, name, description, height, latest) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)";
-        }
-
-        @Override
-        protected void batch(PreparedStatement pstmt, Account account) throws SQLException {
-            account.batch(pstmt);
-        }
-
-    };
 
     public static void flushAccountTable() {
         accountTable.finish();
@@ -360,7 +337,7 @@ public  class Account {
 
 
     protected final long id;
-    protected final DbKey dbKey;
+    public final DbKey dbKey;
     protected final int creationHeight;
     protected byte[] publicKey;
     protected int keyHeight;
@@ -370,7 +347,6 @@ public  class Account {
 
     protected String name;
     protected String description;
-
 
 
     protected Account(long id) {
