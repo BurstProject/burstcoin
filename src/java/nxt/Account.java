@@ -191,7 +191,7 @@ public  class Account {
 
     };
 
-    private static final VersionedBatchEntitySqlTable<Account> accountTable = new VersionedBatchEntitySqlTable<Account>("account", accountDbKeyFactory) {
+    private static final VersionedBatchEntityTable<Account> accountTable = new VersionedBatchEntitySqlTable<Account>("account", accountDbKeyFactory) {
 
         @Override
         protected Account load(Connection con, ResultSet rs) throws SQLException {
@@ -230,7 +230,7 @@ public  class Account {
 
     };
 
-    private static final VersionedEntitySqlTable<AccountAsset> accountAssetTable = new VersionedEntitySqlTable<AccountAsset>("account_asset", accountAssetDbKeyFactory) {
+    private static final VersionedEntityTable<AccountAsset> accountAssetTable = new VersionedEntitySqlTable<AccountAsset>("account_asset", accountAssetDbKeyFactory) {
 
         @Override
         protected AccountAsset load(Connection con, ResultSet rs) throws SQLException {
@@ -257,7 +257,7 @@ public  class Account {
     	}
 	};
 
-	private static final VersionedEntitySqlTable<RewardRecipientAssignment> rewardRecipientAssignmentTable = new VersionedEntitySqlTable<RewardRecipientAssignment>("reward_recip_assign", rewardRecipientAssignmentDbKeyFactory) {
+	private static final VersionedEntityTable<RewardRecipientAssignment> rewardRecipientAssignmentTable = new VersionedEntitySqlTable<RewardRecipientAssignment>("reward_recip_assign", rewardRecipientAssignmentDbKeyFactory) {
 
 		@Override
 		protected RewardRecipientAssignment load(Connection con, ResultSet rs) throws SQLException {
