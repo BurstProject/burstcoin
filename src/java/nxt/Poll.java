@@ -1,8 +1,8 @@
 package nxt;
 
-import nxt.db.DbIterator;
-import nxt.db.DbKey;
-import nxt.db.EntityDbTable;
+import nxt.db.sql.DbIterator;
+import nxt.db.sql.DbKey;
+import nxt.db.sql.EntitySqlTable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,7 +14,7 @@ public final class Poll {
 
     private static final DbKey.LongKeyFactory<Poll> pollDbKeyFactory = null;
 
-    private static final EntityDbTable<Poll> pollTable = null;
+    private static final EntitySqlTable<Poll> pollTable = null;
 
     static void init() {}
 

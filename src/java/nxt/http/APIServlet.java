@@ -2,7 +2,7 @@ package nxt.http;
 
 import nxt.Nxt;
 import nxt.NxtException;
-import nxt.db.Db;
+import nxt.db.sql.Db;
 import nxt.util.JSON;
 import nxt.util.Subnet;
 import org.json.simple.JSONObject;

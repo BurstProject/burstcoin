@@ -1,6 +1,6 @@
 package nxt;
 
-import nxt.db.*;
+import nxt.db.sql.*;
 import nxt.util.Listener;
 import nxt.util.Listeners;
 
@@ -26,7 +26,7 @@ public final class AssetTransfer {
 
     };
 
-    private static final EntityDbTable<AssetTransfer> assetTransferTable = new EntityDbTable<AssetTransfer>("asset_transfer", transferDbKeyFactory) {
+    private static final EntitySqlTable<AssetTransfer> assetTransferTable = new EntitySqlTable<AssetTransfer>("asset_transfer", transferDbKeyFactory) {
 
         @Override
         protected AssetTransfer load(Connection con, ResultSet rs) throws SQLException {

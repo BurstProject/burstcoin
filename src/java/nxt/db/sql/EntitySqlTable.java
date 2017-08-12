@@ -1,23 +1,25 @@
-package nxt.db;
+package nxt.db.sql;
 
 import nxt.Nxt;
+import nxt.db.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public abstract class EntityDbTable<T> extends DerivedDbTable {
+public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T>
+{
 
     private final boolean multiversion;
     protected final DbKey.Factory<T> dbKeyFactory;
     private final String defaultSort;
 
-    protected EntityDbTable(String table, DbKey.Factory<T> dbKeyFactory) {
+    protected EntitySqlTable(String table, DbKey.Factory<T> dbKeyFactory) {
         this(table, dbKeyFactory, false);
     }
 
-    EntityDbTable(String table, DbKey.Factory<T> dbKeyFactory, boolean multiversion) {
+    EntitySqlTable(String table, DbKey.Factory<T> dbKeyFactory, boolean multiversion) {
         super(table);
         this.dbKeyFactory = dbKeyFactory;
         this.multiversion = multiversion;
@@ -33,12 +35,14 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         return defaultSort;
     }
 
+    @Override
     public final void checkAvailable(int height) {
         if (multiversion && height < Nxt.getBlockchainProcessor().getMinRollbackHeight()) {
             throw new IllegalArgumentException("Historical data as of height " + height +" not available, set nxt.trimDerivedTables=false and re-scan");
         }
     }
 
+    @Override
     public T get(DbKey dbKey) {
         if (Db.isInTransaction()) {
             T t = (T)Db.getCache(table).get(dbKey);
@@ -56,6 +60,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
+    @Override
     public T get(DbKey dbKey, int height) {
         checkAvailable(height);
         try (Connection con = Db.getConnection();
@@ -74,6 +79,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
+    @Override
     public T getBy(DbClause dbClause) {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table
@@ -85,6 +91,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
+    @Override
     public T getBy(DbClause dbClause, int height) {
         checkAvailable(height);
         try (Connection con = Db.getConnection();
@@ -129,10 +136,12 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
+    @Override
     public DbIterator<T> getManyBy(DbClause dbClause, int from, int to) {
         return getManyBy(dbClause, from, to, defaultSort());
     }
 
+    @Override
     public DbIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort) {
         Connection con = null;
         try {
@@ -150,10 +159,12 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
+    @Override
     public DbIterator<T> getManyBy(DbClause dbClause, int height, int from, int to) {
         return getManyBy(dbClause, height, from, to, defaultSort());
     }
 
+    @Override
     public DbIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort) {
         checkAvailable(height);
         Connection con = null;
@@ -181,6 +192,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
+    @Override
     public DbIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache) {
         final boolean doCache = cache && Db.isInTransaction();
         return new DbIterator<>(con, pstmt, new DbIterator.ResultSetReader<T>() {
@@ -203,10 +215,12 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         });
     }
 
+    @Override
     public DbIterator<T> getAll(int from, int to) {
         return getAll(from, to, defaultSort());
     }
 
+    @Override
     public DbIterator<T> getAll(int from, int to, String sort) {
         Connection con = null;
         try {
@@ -222,10 +236,12 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
+    @Override
     public DbIterator<T> getAll(int height, int from, int to) {
         return getAll(height, from, to, defaultSort());
     }
 
+    @Override
     public DbIterator<T> getAll(int height, int from, int to, String sort) {
         checkAvailable(height);
         Connection con = null;
@@ -251,6 +267,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
+    @Override
     public int getCount() {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + table
@@ -263,6 +280,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
+    @Override
     public int getRowCount() {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + table);
@@ -274,6 +292,7 @@ public abstract class EntityDbTable<T> extends DerivedDbTable {
         }
     }
 
+    @Override
     public void insert(T t) {
         if (!Db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");

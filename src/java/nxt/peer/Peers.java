@@ -1,7 +1,7 @@
 package nxt.peer;
 
 import nxt.*;
-import nxt.db.Db;
+import nxt.db.sql.Db;
 import nxt.util.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;

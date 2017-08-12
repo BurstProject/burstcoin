@@ -1,4 +1,4 @@
-package nxt.db;
+package nxt.db.sql;
 
 import java.sql.*;
 import java.util.Map;

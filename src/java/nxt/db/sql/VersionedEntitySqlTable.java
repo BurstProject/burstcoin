@@ -1,6 +1,7 @@
-package nxt.db;
+package nxt.db.sql;
 
 import nxt.Nxt;
+import nxt.db.VersionedEntityTable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,9 +10,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class VersionedEntityDbTable<T> extends EntityDbTable<T> {
+public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> implements VersionedEntityTable<T>
+{
 
-    protected VersionedEntityDbTable(String table, DbKey.Factory<T> dbKeyFactory) {
+    protected VersionedEntitySqlTable(String table, DbKey.Factory<T> dbKeyFactory) {
         super(table, dbKeyFactory, true);
     }
 
@@ -20,6 +22,7 @@ public abstract class VersionedEntityDbTable<T> extends EntityDbTable<T> {
         rollback(table, height, dbKeyFactory);
     }
 
+    @Override
     public boolean delete(T t) {
         if (t == null) {
             return false;

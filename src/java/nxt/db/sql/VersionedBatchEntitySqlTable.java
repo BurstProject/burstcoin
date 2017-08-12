@@ -1,4 +1,6 @@
-package nxt.db;
+package nxt.db.sql;
+
+import nxt.db.VersionedBatchEntityTable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -6,8 +8,9 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Map;
 
-public abstract class VersionedBatchEntityDbTable<T> extends VersionedEntityDbTable<T> {
-    protected VersionedBatchEntityDbTable(String table, DbKey.Factory<T> dbKeyFactory) {
+public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySqlTable<T> implements VersionedBatchEntityTable<T>
+{
+    protected VersionedBatchEntitySqlTable(String table, DbKey.Factory<T> dbKeyFactory) {
         super(table, dbKeyFactory);
     }
 

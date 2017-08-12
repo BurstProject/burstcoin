@@ -1,9 +1,9 @@
 package nxt;
 
-import nxt.db.DbClause;
-import nxt.db.DbIterator;
-import nxt.db.DbKey;
-import nxt.db.EntityDbTable;
+import nxt.db.sql.DbClause;
+import nxt.db.sql.DbIterator;
+import nxt.db.sql.DbKey;
+import nxt.db.sql.EntitySqlTable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,7 +16,7 @@ public final class Vote {
 
     private static final DbKey.LongKeyFactory<Vote> voteDbKeyFactory = null;
 
-    private static final EntityDbTable<Vote> voteTable = null;
+    private static final EntitySqlTable<Vote> voteTable = null;
 
     static Vote addVote(Transaction transaction, Attachment.MessagingVoteCasting attachment) {
         Vote vote = new Vote(transaction, attachment);

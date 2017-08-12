@@ -1,4 +1,4 @@
-package nxt.db;
+package nxt.db.sql;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

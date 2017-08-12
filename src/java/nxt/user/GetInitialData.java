@@ -4,7 +4,7 @@ import nxt.Block;
 import nxt.Constants;
 import nxt.Nxt;
 import nxt.Transaction;
-import nxt.db.DbIterator;
+import nxt.db.sql.DbIterator;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
 import nxt.util.Convert;

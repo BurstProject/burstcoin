@@ -1,7 +1,7 @@
 package nxt;
 
 import nxt.crypto.Crypto;
-import nxt.db.DbKey;
+import nxt.db.sql.DbKey;
 import nxt.util.Convert;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;

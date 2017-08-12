@@ -1,7 +1,7 @@
 package nxt;
 
-import nxt.db.DbKey;
-import nxt.db.VersionedEntityDbTable;
+import nxt.db.sql.DbKey;
+import nxt.db.sql.VersionedEntitySqlTable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -38,7 +38,7 @@ public class Hub {
 
     private static final DbKey.LongKeyFactory<Hub> hubDbKeyFactory = null;
 
-    private static final VersionedEntityDbTable<Hub> hubTable = null;
+    private static final VersionedEntitySqlTable<Hub> hubTable = null;
 
     static void addOrUpdateHub(Transaction transaction, Attachment.MessagingHubAnnouncement attachment) {
         hubTable.insert(new Hub(transaction, attachment));
