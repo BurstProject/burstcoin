@@ -224,28 +224,33 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 			}
 		}
 	};
-
-    private void blacklistClean(BlockImpl block, Exception e) {
-        block.getPeer().blacklist(e);
-        long removeId = block.getId();
-        synchronized (BlockchainProcessorImpl.blockCache) {
+	private void blacklistClean(BlockImpl block, Exception e) {
+		Logger.logDebugMessage("Blacklisting peer and cleaning queue");
+		if (block == null)
+			return;
+		Peer peer = block.getPeer();
+		if (peer != null)
+			peer.blacklist(e);
+		long removeId = block.getId();
+		synchronized (BlockchainProcessorImpl.blockCache) {
 			if(blockCache.containsKey(block.getId())) {
 				blockCacheSize -= block.getByteLength();
 				reverseCache.remove(block.getPreviousBlockId());
 			}
-            blockCache.remove(block.getId());
-            while(reverseCache.containsKey(removeId)) {
-                long id = reverseCache.get(removeId);
-                reverseCache.remove(removeId);
-                blockCacheSize -= ((BlockImpl)blockCache.get(id)).getByteLength();
-                blockCache.remove(id);
-                removeId = id;
-            }
+			blockCache.remove(block.getId());
+			while(reverseCache.containsKey(removeId)) {
+				long id = reverseCache.get(removeId);
+				reverseCache.remove(removeId);
+				blockCacheSize -= ((BlockImpl)blockCache.get(id)).getByteLength();
+				blockCache.remove(id);
+				removeId = id;
+			}
 			Block lastBlock = blockchain.getLastBlock();
 			lastDownloaded = lastBlock.getHeight() >= block.getHeight() ? lastBlock.getId() : block.getPreviousBlockId();
 			blockCache.notify();
-        }
-    }
+		}
+		Logger.logDebugMessage("Blacklisted peer and cleaned queue");
+	}
 
 	private final Runnable getMoreBlocksThread = new Runnable() {
 		private final JSONStreamAware getCumulativeDifficultyRequest;
