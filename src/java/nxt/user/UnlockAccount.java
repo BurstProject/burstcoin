@@ -4,6 +4,7 @@ import nxt.Account;
 import nxt.Block;
 import nxt.Nxt;
 import nxt.Transaction;
+import nxt.db.NxtIterator;
 import nxt.db.sql.DbIterator;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
@@ -79,7 +80,7 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
 
             JSONArray myTransactions = new JSONArray();
             byte[] accountPublicKey = account.getPublicKey();
-            try (DbIterator<? extends Transaction> transactions = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+            try (NxtIterator<? extends Transaction> transactions = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
                 while (transactions.hasNext()) {
                     Transaction transaction = transactions.next();
                     if (Arrays.equals(transaction.getSenderPublicKey(), accountPublicKey)) {

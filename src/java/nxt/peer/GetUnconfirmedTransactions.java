@@ -2,6 +2,7 @@ package nxt.peer;
 
 import nxt.Nxt;
 import nxt.Transaction;
+import nxt.db.NxtIterator;
 import nxt.db.sql.DbIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -20,7 +21,7 @@ final class GetUnconfirmedTransactions extends PeerServlet.PeerRequestHandler {
         JSONObject response = new JSONObject();
 
         JSONArray transactionsData = new JSONArray();
-        try (DbIterator<? extends Transaction> transacitons = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+        try (NxtIterator<? extends Transaction> transacitons = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
             while (transacitons.hasNext()) {
                 Transaction transaction = transacitons.next();
                 transactionsData.add(transaction.getJSONObject());

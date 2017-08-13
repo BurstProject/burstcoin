@@ -1,6 +1,7 @@
 package nxt.http;
 
 import nxt.*;
+import nxt.db.NxtIterator;
 import nxt.db.sql.DbIterator;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
@@ -30,7 +31,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
 
         
         long totalEffectiveBalance = 0;
-        try (DbIterator<Account> accounts = Account.getAllAccounts(0, -1)) {
+        try (NxtIterator<Account> accounts = Account.getAllAccounts(0, -1)) {
             for (Account account : accounts) {
                 long effectiveBalanceNXT = account.getBalanceNQT();
                 if (effectiveBalanceNXT > 0) {

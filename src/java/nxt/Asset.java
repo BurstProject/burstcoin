@@ -1,5 +1,6 @@
 package nxt;
 
+import nxt.db.NxtIterator;
 import nxt.db.sql.DbClause;
 import nxt.db.sql.DbIterator;
 import nxt.db.sql.DbKey;
@@ -125,11 +126,11 @@ public final class Asset {
         return decimals;
     }
 
-    public DbIterator<Account.AccountAsset> getAccounts(int from, int to) {
+    public NxtIterator<Account.AccountAsset> getAccounts(int from, int to) {
         return Account.getAssetAccounts(this.assetId, from, to);
     }
 
-    public DbIterator<Account.AccountAsset> getAccounts(int height, int from, int to) {
+    public NxtIterator<Account.AccountAsset> getAccounts(int height, int from, int to) {
         if (height < 0) {
             return getAccounts(from, to);
         }

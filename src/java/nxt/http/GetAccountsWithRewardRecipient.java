@@ -3,6 +3,7 @@ package nxt.http;
 import nxt.Account;
 import nxt.Nxt;
 import nxt.NxtException;
+import nxt.db.NxtIterator;
 import nxt.db.sql.DbIterator;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
@@ -40,7 +41,7 @@ public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestH
 				accounts.add(Convert.toUnsignedLong(account.getId()));
 			}
 		}*/
-		DbIterator<Account.RewardRecipientAssignment> assignments = Account.getAccountsWithRewardRecipient(targetAccount.getId());
+		NxtIterator<Account.RewardRecipientAssignment> assignments = Account.getAccountsWithRewardRecipient(targetAccount.getId());
 		while(assignments.hasNext()) {
 			Account.RewardRecipientAssignment assignment = assignments.next();
 			accounts.add(Convert.toUnsignedLong(assignment.accountId));
