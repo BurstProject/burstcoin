@@ -109,6 +109,9 @@ public interface Appendix {
             }
             this.message = new byte[messageLength];
             buffer.get(this.message);
+            if (isText && !Arrays.equals(message, Convert.toBytes(Convert.toString(message)))) {
+                throw new NxtException.NotValidException("Message is not UTF-8 text");
+            }
         }
 
         Message(JSONObject attachmentData) {

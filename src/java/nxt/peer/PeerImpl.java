@@ -327,6 +327,7 @@ final class PeerImpl implements Peer {
             connection.setConnectTimeout(Peers.connectTimeout);
             connection.setReadTimeout(Peers.readTimeout);
             connection.setRequestProperty("Accept-Encoding", "gzip");
+            connection.setRequestProperty("Content-Type", "text/plain; charset=UTF-8");
 
             CountingOutputStream cos = new CountingOutputStream(connection.getOutputStream());
             try (Writer writer = new BufferedWriter(new OutputStreamWriter(cos, "UTF-8"))) {
