@@ -4,6 +4,7 @@ import nxt.Block;
 import nxt.Constants;
 import nxt.Nxt;
 import nxt.Transaction;
+import nxt.db.NxtIterator;
 import nxt.db.sql.DbIterator;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
@@ -29,7 +30,7 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
         JSONArray activePeers = new JSONArray(), knownPeers = new JSONArray(), blacklistedPeers = new JSONArray();
         JSONArray recentBlocks = new JSONArray();
 
-        try (DbIterator<? extends Transaction> transactions = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+        try (NxtIterator<? extends Transaction> transactions = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
             while (transactions.hasNext()) {
                 Transaction transaction = transactions.next();
 
