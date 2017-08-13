@@ -36,6 +36,9 @@ public abstract class AccountStore {
     public abstract NxtIterator<Account.AccountAsset> getAssetAccounts(long assetId, int from, int to);
 
     public abstract NxtIterator<Account.AccountAsset> getAssetAccounts(long assetId, int height, int from, int to);
-
-
+    // returns true iff:
+    // this.publicKey is set to null (in which case this.publicKey also gets set to key)
+    // or
+    // this.publicKey is already set to an array equal to key
+    public abstract boolean setOrVerify(Account acc, byte[] key, int height);
 }

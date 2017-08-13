@@ -6,12 +6,14 @@ import nxt.db.NxtIterator;
 import nxt.db.VersionedBatchEntityTable;
 import nxt.db.VersionedEntityTable;
 import nxt.db.store.AccountStore;
+import nxt.util.Convert;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 /**
  * Created by jens on 10.08.2017.
@@ -246,6 +248,38 @@ public class SqlAccountStore extends AccountStore {
         }
         return accountAssetTable.getManyBy(new DbClause.LongClause("asset_id", assetId),
                 height, from, to, " ORDER BY quantity DESC, account_id ");
+    }
+@Override
+    public boolean setOrVerify(Account acc, byte[] key, int height) {
+        if (acc.publicKey == null) {
+            if (Db.isInTransaction()) {
+                acc.publicKey = key;
+                acc.keyHeight = -1;
+                getAccountTable().insert(acc);
+            }
+            return true;
+        } else if (Arrays.equals(acc.publicKey, key)) {
+            return true;
+        } else if (acc.keyHeight == -1) {
+            logger.info("DUPLICATE KEY!!!");
+            logger.info("Account key for " + Convert.toUnsignedLong(acc.id) + " was already set to a different one at the same height "
+                    + ", current height is " + height + ", rejecting new key");
+            return false;
+        } else if (acc.keyHeight >= height) {
+            logger.info("DUPLICATE KEY!!!");
+            if (Db.isInTransaction()) {
+                logger.info("Changing key for account " + Convert.toUnsignedLong(acc.id) + " at height " + height
+                        + ", was previously set to a different one at height " + acc.keyHeight);
+                acc.publicKey = key;
+                acc.keyHeight = height;
+                getAccountTable().insert(acc);
+            }
+            return true;
+        }
+        logger.info("DUPLICATE KEY!!!");
+        logger.info("Invalid key for account " + Convert.toUnsignedLong(acc.id) + " at height " + height
+                + ", was already set to a different one at height " + acc.keyHeight);
+        return false;
     }
 
 

@@ -5,7 +5,7 @@ import nxt.crypto.EncryptedData;
 import nxt.db.NxtIterator;
 import nxt.db.VersionedBatchEntityTable;
 import nxt.db.VersionedEntityTable;
-import nxt.db.sql.Db;
+
 import nxt.db.sql.DbKey;
 import nxt.util.Convert;
 import nxt.util.Listener;
@@ -244,11 +244,11 @@ public  class Account {
     static void init() {}
 
 
-    protected final long id;
+    public final long id;
     public final DbKey dbKey;
     protected final int creationHeight;
-    protected byte[] publicKey;
-    protected int keyHeight;
+    public byte[] publicKey;
+    public int keyHeight;
     protected long balanceNQT;
     protected long unconfirmedBalanceNQT;
     protected long forgedBalanceNQT;
@@ -396,35 +396,7 @@ public  class Account {
     // or
     // this.publicKey is already set to an array equal to key
     boolean setOrVerify(byte[] key, int height) {
-        if (this.publicKey == null) {
-        	if (Db.isInTransaction()) {
-        		this.publicKey = key;
-                this.keyHeight = -1;
-                accountTable.insert(this);
-        	}
-            return true;
-        } else if (Arrays.equals(this.publicKey, key)) {
-            return true;
-        } else if (this.keyHeight == -1) {
-            logger.info("DUPLICATE KEY!!!");
-            logger.info("Account key for " + Convert.toUnsignedLong(id) + " was already set to a different one at the same height "
-                    + ", current height is " + height + ", rejecting new key");
-            return false;
-        } else if (this.keyHeight >= height) {
-            logger.info("DUPLICATE KEY!!!");
-            if (Db.isInTransaction()) {
-            	logger.info("Changing key for account " + Convert.toUnsignedLong(id) + " at height " + height
-                        + ", was previously set to a different one at height " + keyHeight);
-                this.publicKey = key;
-                this.keyHeight = height;
-                accountTable.insert(this);
-            }
-            return true;
-        }
-        logger.info("DUPLICATE KEY!!!");
-        logger.info("Invalid key for account " + Convert.toUnsignedLong(id) + " at height " + height
-                + ", was already set to a different one at height " + keyHeight);
-        return false;
+       return Nxt.getStores().getAccountStore().setOrVerify(this, key, height);
     }
 
     void apply(byte[] key, int height) {
