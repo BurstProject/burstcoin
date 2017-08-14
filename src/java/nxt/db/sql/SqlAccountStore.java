@@ -18,7 +18,7 @@ import java.util.Arrays;
 /**
  * Created by jens on 10.08.2017.
  */
-public class SqlAccountStore extends AccountStore {
+public class SqlAccountStore implements AccountStore {
 
     protected static final DbKey.LongKeyFactory<Account> accountDbKeyFactory = new DbKey.LongKeyFactory<Account>("id") {
         @Override
