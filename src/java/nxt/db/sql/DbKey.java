@@ -4,9 +4,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public interface DbKey {
+public interface DbKey extends NxtKey {
 
-    public static abstract class Factory<T> {
+    public static abstract class Factory<T> implements NxtKey.Factory<T> {
 
         private final String pkClause;
         private final String pkColumns;
@@ -42,7 +42,7 @@ public interface DbKey {
     int setPK(PreparedStatement pstmt, int index) throws SQLException;
 
 
-    public static abstract class LongKeyFactory<T> extends Factory<T> {
+    public static abstract class LongKeyFactory<T> extends Factory<T> implements NxtKey.LongKeyFactory<T> {
 
         private final String idColumn;
 
@@ -54,8 +54,12 @@ public interface DbKey {
         }
 
         @Override
-        public DbKey newKey(ResultSet rs) throws SQLException {
-            return new LongKey(rs.getLong(idColumn));
+        public DbKey newKey(ResultSet rs) {
+            try {
+                return new LongKey(rs.getLong(idColumn));
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         public DbKey newKey(long id) {
@@ -64,7 +68,7 @@ public interface DbKey {
 
     }
 
-    public static abstract class LinkKeyFactory<T> extends Factory<T> {
+    public static abstract class LinkKeyFactory<T> extends Factory<T> implements NxtKey.LinkKeyFactory<T> {
 
         private final String idColumnA;
         private final String idColumnB;
@@ -78,8 +82,12 @@ public interface DbKey {
         }
 
         @Override
-        public DbKey newKey(ResultSet rs) throws SQLException {
-            return new LinkKey(rs.getLong(idColumnA), rs.getLong(idColumnB));
+        public DbKey newKey(ResultSet rs) {
+            try {
+                return new LinkKey(rs.getLong(idColumnA), rs.getLong(idColumnB));
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         public DbKey newKey(long idA, long idB) {
@@ -109,12 +117,12 @@ public interface DbKey {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof LongKey && ((LongKey)o).id == id;
+            return o instanceof LongKey && ((LongKey) o).id == id;
         }
 
         @Override
         public int hashCode() {
-            return (int)(id ^ (id >>> 32));
+            return (int) (id ^ (id >>> 32));
         }
 
     }
@@ -148,7 +156,7 @@ public interface DbKey {
 
         @Override
         public int hashCode() {
-            return (int)(idA ^ (idA >>> 32)) ^ (int)(idB ^ (idB >>> 32));
+            return (int) (idA ^ (idA >>> 32)) ^ (int) (idB ^ (idB >>> 32));
         }
 
     }

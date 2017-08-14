@@ -9,7 +9,7 @@ import java.sql.SQLException;
 /**
  * Created by jens on 10.08.2017.
  */
-public class MariadbAccountStore extends SqlAccountStore
+class MariadbAccountStore extends SqlAccountStore
 {
 
 

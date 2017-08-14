@@ -1,6 +1,5 @@
 package nxt;
 
-import nxt.db.mariadb.MariadbAccountStore;
 import nxt.db.mariadb.MariadbStores;
 import nxt.db.sql.Db;
 import nxt.db.store.Stores;

@@ -3,6 +3,7 @@ package nxt.db;
 import nxt.db.sql.DbClause;
 import nxt.db.sql.DbIterator;
 import nxt.db.sql.DbKey;
+import nxt.db.sql.NxtKey;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,9 +15,9 @@ public interface EntityTable<T> extends DerivedTable
 {
     void checkAvailable(int height);
 
-    T get(DbKey dbKey);
+    T get(NxtKey dbKey);
 
-    T get(DbKey dbKey, int height);
+    T get(NxtKey dbKey, int height);
 
     T getBy(DbClause dbClause);
 

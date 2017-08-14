@@ -43,7 +43,8 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     }
 
     @Override
-    public T get(DbKey dbKey) {
+    public T get(NxtKey nxtKey) {
+        DbKey dbKey = (DbKey) nxtKey;
         if (Db.isInTransaction()) {
             T t = (T)Db.getCache(table).get(dbKey);
             if (t != null) {
@@ -61,7 +62,8 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     }
 
     @Override
-    public T get(DbKey dbKey, int height) {
+    public T get(NxtKey nxtKey, int height) {
+        DbKey dbKey = (DbKey) nxtKey;
         checkAvailable(height);
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + dbKeyFactory.getPKClause()

@@ -5,6 +5,7 @@ import nxt.db.NxtIterator;
 import nxt.db.VersionedBatchEntityTable;
 import nxt.db.VersionedEntityTable;
 import nxt.db.sql.DbKey;
+import nxt.db.sql.NxtKey;
 
 /**
  * Interface for Database operations related to Accounts
@@ -16,15 +17,15 @@ public interface AccountStore {
 
     VersionedEntityTable<Account.RewardRecipientAssignment> getRewardRecipientAssignmentTable();
 
-    DbKey.LongKeyFactory<Account.RewardRecipientAssignment> getRewardRecipientAssignmentDbKeyFactory();
+    NxtKey.LongKeyFactory<Account.RewardRecipientAssignment> getRewardRecipientAssignmentKeyFactory();
 
-    DbKey.LinkKeyFactory<Account.AccountAsset> getAccountAssetDbKeyFactory();
+    NxtKey.LinkKeyFactory<Account.AccountAsset> getAccountAssetKeyFactory();
 
     VersionedEntityTable<Account.AccountAsset> getAccountAssetTable();
 
     int getAssetAccountsCount(long assetId);
 
-    DbKey.LongKeyFactory<Account> getAccountDbKeyFactory();
+    NxtKey.LongKeyFactory<Account> getAccountKeyFactory();
 
     NxtIterator<Account.RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId);
 
