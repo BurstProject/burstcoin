@@ -70,17 +70,17 @@ final class DbVersion {
                 case 163:
                 	apply("ALTER TABLE alias ALTER COLUMN alias_name_LOWER SET DEFAULT '';");
                 case 164:
-                	apply("ALTER DATABASE burstwallet CHARACTER SET utf8 COLLATE utf8_general_ci;");
+                	apply("ALTER DATABASE burstwallet CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
                 case 165:
-                	apply("ALTER TABLE alias CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;");
+                	apply("ALTER TABLE alias CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
                 case 166:
-                	apply("ALTER TABLE account CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;");
+                	apply("ALTER TABLE account CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
                 case 167:
-                	apply("ALTER TABLE asset CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;");
+                	apply("ALTER TABLE asset CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
                 case 168:
-                	apply("ALTER TABLE goods CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;");
+                	apply("ALTER TABLE goods CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
                 case 169:
-                	apply("ALTER TABLE at CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;");	
+                	apply("ALTER TABLE at CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
                 case 170:
                 	return;
                 default:
