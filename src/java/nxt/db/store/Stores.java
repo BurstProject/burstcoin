@@ -3,6 +3,6 @@ package nxt.db.store;
 
 public interface Stores {
 
+    AccountStore getAccountStore();
 
-    public AccountStore getAccountStore();
 }

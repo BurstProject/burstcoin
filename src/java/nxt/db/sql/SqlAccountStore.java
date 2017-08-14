@@ -18,25 +18,25 @@ import java.util.Arrays;
 /**
  * Created by jens on 10.08.2017.
  */
-public class SqlAccountStore implements AccountStore {
+public abstract class SqlAccountStore implements AccountStore {
 
     protected static final DbKey.LongKeyFactory<Account> accountDbKeyFactory = new DbKey.LongKeyFactory<Account>("id") {
         @Override
         public DbKey newKey(Account account) {
-            return account.dbKey;
+            return (DbKey) account.nxtKey;
         }
     };
     protected static final DbKey.LongKeyFactory<Account.RewardRecipientAssignment> rewardRecipientAssignmentDbKeyFactory = new DbKey.LongKeyFactory<Account.RewardRecipientAssignment>("account_id") {
         @Override
         public DbKey newKey(Account.RewardRecipientAssignment assignment) {
-            return assignment.dbKey;
+            return (DbKey) assignment.nxtKey;
         }
     };
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SqlAccountStore.class);
     private static final DbKey.LinkKeyFactory<Account.AccountAsset> accountAssetDbKeyFactory = new DbKey.LinkKeyFactory<Account.AccountAsset>("account_id", "asset_id") {
         @Override
         public DbKey newKey(Account.AccountAsset accountAsset) {
-            return accountAsset.dbKey;
+            return (DbKey) accountAsset.nxtKey;
         }
 
     };
@@ -140,12 +140,12 @@ public class SqlAccountStore implements AccountStore {
     }
 
     @Override
-    public DbKey.LongKeyFactory<Account.RewardRecipientAssignment> getRewardRecipientAssignmentDbKeyFactory() {
+    public DbKey.LongKeyFactory<Account.RewardRecipientAssignment> getRewardRecipientAssignmentKeyFactory() {
         return rewardRecipientAssignmentDbKeyFactory;
     }
 
     @Override
-    public DbKey.LinkKeyFactory<Account.AccountAsset> getAccountAssetDbKeyFactory() {
+    public DbKey.LinkKeyFactory<Account.AccountAsset> getAccountAssetKeyFactory() {
         return accountAssetDbKeyFactory;
     }
 
@@ -210,7 +210,7 @@ public class SqlAccountStore implements AccountStore {
     }
 
     @Override
-    public DbKey.LongKeyFactory<Account> getAccountDbKeyFactory() {
+    public DbKey.LongKeyFactory<Account> getAccountKeyFactory() {
         return accountDbKeyFactory;
     }
 

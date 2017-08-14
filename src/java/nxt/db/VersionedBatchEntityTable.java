@@ -3,6 +3,7 @@ package nxt.db;
 import nxt.db.sql.DbClause;
 import nxt.db.sql.DbIterator;
 import nxt.db.sql.DbKey;
+import nxt.db.sql.NxtKey;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,7 +16,7 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
     boolean delete(T t);
 
     @Override
-    T get(DbKey dbKey);
+    T get(NxtKey dbKey);
 
     @Override
     void insert(T t);
@@ -24,7 +25,7 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
     void finish();
 
     @Override
-    T get(DbKey dbKey, int height);
+    T get(NxtKey dbKey, int height);
 
     @Override
     T getBy(DbClause dbClause);

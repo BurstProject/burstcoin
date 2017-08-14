@@ -6,7 +6,7 @@ import nxt.db.NxtIterator;
 import nxt.db.VersionedBatchEntityTable;
 import nxt.db.VersionedEntityTable;
 
-import nxt.db.sql.DbKey;
+import nxt.db.sql.NxtKey;
 import nxt.util.Convert;
 import nxt.util.Listener;
 import nxt.util.Listeners;
@@ -27,22 +27,22 @@ public  class Account {
 
         public final long accountId;
         public final long assetId;
-        public final DbKey dbKey;
+        public final NxtKey nxtKey;
         public long quantityQNT;
         public long unconfirmedQuantityQNT;
 
-        protected AccountAsset(long accountId, long assetId, long quantityQNT, long unconfirmedQuantityQNT, DbKey dbKey) {
+        protected AccountAsset(long accountId, long assetId, long quantityQNT, long unconfirmedQuantityQNT, NxtKey NxtKey) {
             this.accountId = accountId;
             this.assetId = assetId;
             this.quantityQNT = quantityQNT;
             this.unconfirmedQuantityQNT = unconfirmedQuantityQNT;
-            this.dbKey = dbKey;
+            this.nxtKey = NxtKey;
         }
 
         protected AccountAsset(long accountId, long assetId, long quantityQNT, long unconfirmedQuantityQNT) {
             this.accountId = accountId;
             this.assetId = assetId;
-            this.dbKey = Nxt.getStores().getAccountStore().getAccountAssetDbKeyFactory().newKey(this.accountId, this.assetId);
+            this.nxtKey = Nxt.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.accountId, this.assetId);
             this.quantityQNT = quantityQNT;
             this.unconfirmedQuantityQNT = unconfirmedQuantityQNT;
         }
@@ -102,15 +102,15 @@ public  class Account {
     	public Long prevRecipientId;
     	public Long recipientId;
     	public int fromHeight;
-    	public final DbKey dbKey;
+    	public final NxtKey nxtKey;
 
 
-    	protected RewardRecipientAssignment(Long accountId, Long prevRecipientId, Long recipientId, int fromHeight, DbKey dbKey) {
+    	protected RewardRecipientAssignment(Long accountId, Long prevRecipientId, Long recipientId, int fromHeight, NxtKey NxtKey) {
     		this.accountId = accountId;
     		this.prevRecipientId = prevRecipientId;
     		this.recipientId = recipientId;
     		this.fromHeight = fromHeight;
-    		this.dbKey = dbKey;
+    		this.nxtKey = NxtKey;
     	}
 
 
@@ -148,7 +148,7 @@ public  class Account {
     static {
     }
 
-    protected static final DbKey.LongKeyFactory<Account> accountDbKeyFactory =  Nxt.getStores().getAccountStore().getAccountDbKeyFactory();
+    protected static final NxtKey.LongKeyFactory<Account> accountNxtKeyFactory =  Nxt.getStores().getAccountStore().getAccountKeyFactory();
 
     private static final VersionedBatchEntityTable<Account> accountTable = Nxt.getStores().getAccountStore().getAccountTable();
 
@@ -197,15 +197,15 @@ public  class Account {
     }
 
     public static Account getAccount(long id) {
-        return id == 0 ? null : accountTable.get(accountDbKeyFactory.newKey(id));
+        return id == 0 ? null : accountTable.get(accountNxtKeyFactory.newKey(id));
     }
 
     public static Account getAccount(long id, int height) {
-        return id == 0 ? null : accountTable.get(accountDbKeyFactory.newKey(id), height);
+        return id == 0 ? null : accountTable.get(accountNxtKeyFactory.newKey(id), height);
     }
 
     public static Account getAccount(byte[] publicKey) {
-        Account account = accountTable.get(accountDbKeyFactory.newKey(getId(publicKey)));
+        Account account = accountTable.get(accountNxtKeyFactory.newKey(getId(publicKey)));
         if (account == null) {
             return null;
         }
@@ -222,7 +222,7 @@ public  class Account {
     }
 
     static Account addOrGetAccount(long id) {
-        Account account = accountTable.get(accountDbKeyFactory.newKey(id));
+        Account account = accountTable.get(accountNxtKeyFactory.newKey(id));
         if (account == null) {
             account = new Account(id);
             accountTable.insert(account);
@@ -245,7 +245,7 @@ public  class Account {
 
 
     public final long id;
-    public final DbKey dbKey;
+    public final NxtKey nxtKey;
     protected final int creationHeight;
     public byte[] publicKey;
     public int keyHeight;
@@ -262,16 +262,16 @@ public  class Account {
             logger.info("CRITICAL ERROR: Reed-Solomon encoding fails for " + id);
         }
         this.id = id;
-        this.dbKey = accountDbKeyFactory.newKey(this.id);
+        this.nxtKey = accountNxtKeyFactory.newKey(this.id);
         this.creationHeight = Nxt.getBlockchain().getHeight();
     }
 
-    protected Account(long id, DbKey dbKey, int creationHeight) {
+    protected Account(long id, NxtKey NxtKey, int creationHeight) {
         if (id != Crypto.rsDecode(Crypto.rsEncode(id))) {
             logger.info("CRITICAL ERROR: Reed-Solomon encoding fails for " + id);
         }
         this.id = id;
-        this.dbKey = dbKey;
+        this.nxtKey = NxtKey;
         this.creationHeight = creationHeight;
     }
 
@@ -347,14 +347,14 @@ public  class Account {
     }
 
     public long getAssetBalanceQNT(long assetId) {
-        DbKey dbKey =  Nxt.getStores().getAccountStore().getAccountAssetDbKeyFactory().newKey(this.id, assetId);
-        AccountAsset accountAsset = accountAssetTable.get(dbKey);
+        NxtKey nxtKey =  Nxt.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+        AccountAsset accountAsset = accountAssetTable.get(nxtKey);
         return accountAsset == null ? 0 : accountAsset.quantityQNT;
     }
 
     public long getUnconfirmedAssetBalanceQNT(long assetId) {
-        DbKey dbKey =  Nxt.getStores().getAccountStore().getAccountAssetDbKeyFactory().newKey(this.id, assetId);
-        AccountAsset accountAsset = accountAssetTable.get(dbKey);
+        NxtKey nxtKey =  Nxt.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+        AccountAsset accountAsset = accountAssetTable.get(nxtKey);
         return accountAsset == null ? 0 : accountAsset.unconfirmedQuantityQNT;
     }
 
@@ -364,7 +364,7 @@ public  class Account {
 
     public static RewardRecipientAssignment getRewardRecipientAssignment(Long id) {
     	return rewardRecipientAssignmentTable.get(
-    	        Nxt.getStores().getAccountStore().getRewardRecipientAssignmentDbKeyFactory().newKey(id)
+    	        Nxt.getStores().getAccountStore().getRewardRecipientAssignmentKeyFactory().newKey(id)
         );
     }
 
@@ -376,8 +376,8 @@ public  class Account {
     	int currentHeight = Nxt.getBlockchain().getLastBlock().getHeight();
     	RewardRecipientAssignment assignment = getRewardRecipientAssignment(id);
     	if(assignment == null) {
-    		DbKey dbKey =     Nxt.getStores().getAccountStore().getRewardRecipientAssignmentDbKeyFactory().newKey(id);
-    	    assignment = new RewardRecipientAssignment(id, id, recipient, (int) (currentHeight + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME), dbKey);
+    		NxtKey NxtKey =     Nxt.getStores().getAccountStore().getRewardRecipientAssignmentKeyFactory().newKey(id);
+    	    assignment = new RewardRecipientAssignment(id, id, recipient, (int) (currentHeight + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME), NxtKey);
     	}
     	else {
     		assignment.setRecipient(recipient, (int) (currentHeight + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME));
@@ -419,8 +419,8 @@ public  class Account {
         }
         AccountAsset accountAsset;
 
-        DbKey dbKey =  Nxt.getStores().getAccountStore().getAccountAssetDbKeyFactory().newKey(this.id, assetId);
-        accountAsset = accountAssetTable.get(dbKey);
+        NxtKey nxtKey =  Nxt.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+        accountAsset = accountAssetTable.get(nxtKey);
         long assetBalance = accountAsset == null ? 0 : accountAsset.quantityQNT;
         assetBalance = Convert.safeAdd(assetBalance, quantityQNT);
         if (accountAsset == null) {
@@ -438,8 +438,8 @@ public  class Account {
             return;
         }
         AccountAsset accountAsset;
-        DbKey dbKey =  Nxt.getStores().getAccountStore().getAccountAssetDbKeyFactory().newKey(this.id, assetId);
-        accountAsset = accountAssetTable.get(dbKey);
+        NxtKey nxtKey =  Nxt.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+        accountAsset = accountAssetTable.get(nxtKey);
         long unconfirmedAssetBalance = accountAsset == null ? 0 : accountAsset.unconfirmedQuantityQNT;
         unconfirmedAssetBalance = Convert.safeAdd(unconfirmedAssetBalance, quantityQNT);
         if (accountAsset == null) {
@@ -457,8 +457,8 @@ public  class Account {
             return;
         }
         AccountAsset accountAsset;
-        DbKey dbKey =  Nxt.getStores().getAccountStore().getAccountAssetDbKeyFactory().newKey(this.id, assetId);
-        accountAsset = accountAssetTable.get(dbKey);
+        NxtKey nxtKey =  Nxt.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+        accountAsset = accountAssetTable.get(nxtKey);
         long assetBalance = accountAsset == null ? 0 : accountAsset.quantityQNT;
         assetBalance = Convert.safeAdd(assetBalance, quantityQNT);
         long unconfirmedAssetBalance = accountAsset == null ? 0 : accountAsset.unconfirmedQuantityQNT;

@@ -30,7 +30,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     }
 
     @Override
-    public T get(DbKey dbKey) {
+    public T get(NxtKey dbKey) {
         if(Db.isInTransaction()) {
             if(Db.getBatch(table).containsKey(dbKey)) {
                 return (T)Db.getBatch(table).get(dbKey);
@@ -87,7 +87,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     }
 
     @Override
-    public T get(DbKey dbKey, int height) {
+    public T get(NxtKey dbKey, int height) {
         if(Db.isInTransaction()) {
             throw new IllegalStateException("Cannot use in batch table transaction");
         }
