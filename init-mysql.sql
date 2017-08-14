@@ -1,17 +1,18 @@
 drop database burstwallet;
-create database burstwallet;
+create database burstwallet
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 use burstwallet;
 CREATE TABLE version(
     next_update INT NOT NULL
 );
-INSERT INTO version (next_update) VALUES (163);
+INSERT INTO version (next_update) VALUES (170);
 
 CREATE TABLE alias(
     db_id BIGINT AUTO_INCREMENT,
     id BIGINT NOT NULL,
     account_id BIGINT NOT NULL,
     alias_name VARCHAR(100) NOT NULL,
-    alias_name_LOWER VARCHAR(100) NOT NULL,
+    alias_name_LOWER VARCHAR(100) NOT NULL DEFAULT '',
     alias_uri TEXT NOT NULL,
     timestamp INT NOT NULL,
     height INT NOT NULL,
