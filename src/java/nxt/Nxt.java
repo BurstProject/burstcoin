@@ -1,6 +1,7 @@
 package nxt;
 
 import nxt.db.mariadb.MariadbAccountStore;
+import nxt.db.mariadb.MariadbStores;
 import nxt.db.sql.Db;
 import nxt.db.store.Stores;
 import nxt.http.API;
@@ -217,7 +218,7 @@ public final class Nxt {
                     Db.init();
                     DbVersion.init();
 
-                    stores = new Stores(new MariadbAccountStore());
+                    stores = new MariadbStores();
 
                 }
                 TransactionProcessorImpl.getInstance();
