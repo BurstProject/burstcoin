@@ -9,3 +9,5 @@ nxt.log
 /conf/nxt.properties
 nxt.log.lck
 
+target
+nxt.log.1
