@@ -109,6 +109,8 @@ public final class Db {
             config.addDataSourceProperty("cachePrepStmts", "true");
             config.addDataSourceProperty("prepStmtCacheSize", "250");
             config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+            config.addDataSourceProperty("characterEncoding","utf8mb4");
+            config.addDataSourceProperty("useUnicode","true");
 
             cp = new HikariDataSource(config);
         } catch (Exception e) {

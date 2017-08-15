@@ -58,6 +58,7 @@ nxt.dbPassword=yourpassword
 
 ## Version History
 
+- 2017/08/11 New version release Burst 1.3.2cg (MariaDB Backend)
 - 2017/07/25 New version release Burst 1.2.9
 - 2017/02/19 New version release Burst 1.2.8
 - 2016/11/16 New version release Burst 1.2.7
