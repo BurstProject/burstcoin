@@ -10,4 +10,6 @@ public interface Stores {
     AliasStore getAliasStore();
 
     SqlAssetStore getAssetStore();
+
+    AssetTransferStore getAssetTransferStore();
 }
