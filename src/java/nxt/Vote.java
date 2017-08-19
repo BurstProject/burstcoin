@@ -54,7 +54,7 @@ public final class Vote {
 
     private Vote(Transaction transaction, Attachment.MessagingVoteCasting attachment) {
         this.id = transaction.getId();
-        this.dbKey = voteDbKeyFactory.newKey(this.id);
+        this.dbKey = (DbKey)voteDbKeyFactory.newKey(this.id);
         this.pollId = attachment.getPollId();
         this.voterId = transaction.getSenderId();
         this.voteBytes = attachment.getPollVote();
@@ -62,7 +62,7 @@ public final class Vote {
 
     private Vote(ResultSet rs) throws SQLException {
         this.id = rs.getLong("id");
-        this.dbKey = voteDbKeyFactory.newKey(this.id);
+        this.dbKey = (DbKey)voteDbKeyFactory.newKey(this.id);
         this.pollId = rs.getLong("poll_id");
         this.voterId = rs.getLong("voter_id");
         this.voteBytes = rs.getBytes("vote_bytes");

@@ -150,7 +150,7 @@ public final class Trade {
         this.bidOrderHeight = bidOrder.getHeight();
         this.sellerId = askOrder.getAccountId();
         this.buyerId = bidOrder.getAccountId();
-        this.dbKey = tradeDbKeyFactory.newKey(this.askOrderId, this.bidOrderId);
+        this.dbKey = (DbKey)tradeDbKeyFactory.newKey(this.askOrderId, this.bidOrderId);
         this.quantityQNT = Math.min(askOrder.getQuantityQNT(), bidOrder.getQuantityQNT());
         this.isBuy = askOrderHeight < bidOrderHeight || (askOrderHeight == bidOrderHeight && askOrderId < bidOrderId);
         this.priceNQT = isBuy ? askOrder.getPriceNQT() : bidOrder.getPriceNQT();
@@ -165,7 +165,7 @@ public final class Trade {
         this.bidOrderHeight = rs.getInt("bid_order_height");
         this.sellerId = rs.getLong("seller_id");
         this.buyerId = rs.getLong("buyer_id");
-        this.dbKey = tradeDbKeyFactory.newKey(this.askOrderId, this.bidOrderId);
+        this.dbKey = (DbKey)tradeDbKeyFactory.newKey(this.askOrderId, this.bidOrderId);
         this.quantityQNT = rs.getLong("quantity");
         this.priceNQT = rs.getLong("price");
         this.timestamp = rs.getInt("timestamp");

@@ -2,8 +2,6 @@ package nxt.db;
 
 import nxt.db.sql.DbClause;
 import nxt.db.sql.DbIterator;
-import nxt.db.sql.DbKey;
-import nxt.db.sql.NxtKey;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

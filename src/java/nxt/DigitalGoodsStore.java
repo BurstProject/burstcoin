@@ -107,7 +107,7 @@ public final class DigitalGoodsStore {
 
         private Goods(Transaction transaction, Attachment.DigitalGoodsListing attachment) {
             this.id = transaction.getId();
-            this.dbKey = goodsDbKeyFactory.newKey(this.id);
+            this.dbKey = (DbKey)goodsDbKeyFactory.newKey(this.id);
             this.sellerId = transaction.getSenderId();
             this.name = attachment.getName();
             this.description = attachment.getDescription();
@@ -120,7 +120,7 @@ public final class DigitalGoodsStore {
 
         private Goods(ResultSet rs) throws SQLException {
             this.id = rs.getLong("id");
-            this.dbKey = goodsDbKeyFactory.newKey(this.id);
+            this.dbKey = (DbKey)goodsDbKeyFactory.newKey(this.id);
             this.sellerId = rs.getLong("seller_id");
             this.name = rs.getString("name");
             this.description = rs.getString("description");
@@ -342,7 +342,7 @@ public final class DigitalGoodsStore {
 
         private Purchase(Transaction transaction, Attachment.DigitalGoodsPurchase attachment, long sellerId) {
             this.id = transaction.getId();
-            this.dbKey = purchaseDbKeyFactory.newKey(this.id);
+            this.dbKey = (DbKey)purchaseDbKeyFactory.newKey(this.id);
             this.buyerId = transaction.getSenderId();
             this.goodsId = attachment.getGoodsId();
             this.sellerId = sellerId;
@@ -356,7 +356,7 @@ public final class DigitalGoodsStore {
 
         private Purchase(ResultSet rs) throws SQLException {
             this.id = rs.getLong("id");
-            this.dbKey = purchaseDbKeyFactory.newKey(this.id);
+            this.dbKey =(DbKey) purchaseDbKeyFactory.newKey(this.id);
             this.buyerId = rs.getLong("buyer_id");
             this.goodsId = rs.getLong("goods_id");
             this.sellerId = rs.getLong("seller_id");
@@ -478,7 +478,7 @@ public final class DigitalGoodsStore {
             if (!hasFeedbackNotes) {
                 return null;
             }
-            feedbackNotes = feedbackTable.get(feedbackDbKeyFactory.newKey(this));
+            feedbackNotes = feedbackTable.get((DbKey)feedbackDbKeyFactory.newKey(this));
             return feedbackNotes;
         }
 
@@ -496,7 +496,7 @@ public final class DigitalGoodsStore {
             if (!hasPublicFeedbacks) {
                 return null;
             }
-            publicFeedbacks = publicFeedbackTable.get(publicFeedbackDbKeyFactory.newKey(this));
+            publicFeedbacks =  publicFeedbackTable.get((DbKey)publicFeedbackDbKeyFactory.newKey(this));
             return publicFeedbacks;
         }
 

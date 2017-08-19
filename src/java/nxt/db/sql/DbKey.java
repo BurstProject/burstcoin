@@ -1,5 +1,7 @@
 package nxt.db.sql;
 
+import nxt.db.NxtKey;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,9 +20,9 @@ public interface DbKey extends NxtKey {
             this.selfJoinClause = selfJoinClause;
         }
 
-        public abstract DbKey newKey(T t);
+        public abstract NxtKey newKey(T t);
 
-        public abstract DbKey newKey(ResultSet rs) throws SQLException;
+        public abstract NxtKey newKey(ResultSet rs) throws SQLException;
 
         public final String getPKClause() {
             return pkClause;
@@ -54,7 +56,7 @@ public interface DbKey extends NxtKey {
         }
 
         @Override
-        public DbKey newKey(ResultSet rs) {
+        public NxtKey newKey(ResultSet rs) {
             try {
                 return new LongKey(rs.getLong(idColumn));
             } catch (SQLException e) {
@@ -62,7 +64,7 @@ public interface DbKey extends NxtKey {
             }
         }
 
-        public DbKey newKey(long id) {
+        public NxtKey newKey(long id) {
             return new LongKey(id);
         }
 
@@ -82,7 +84,7 @@ public interface DbKey extends NxtKey {
         }
 
         @Override
-        public DbKey newKey(ResultSet rs) {
+        public NxtKey newKey(ResultSet rs) {
             try {
                 return new LinkKey(rs.getLong(idColumnA), rs.getLong(idColumnB));
             } catch (SQLException e) {
@@ -90,7 +92,7 @@ public interface DbKey extends NxtKey {
             }
         }
 
-        public DbKey newKey(long idA, long idB) {
+        public NxtKey newKey(long idA, long idB) {
             return new LinkKey(idA, idB);
         }
 

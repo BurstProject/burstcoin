@@ -29,7 +29,7 @@ public final class Poll {
 
     private Poll(long id, Attachment.MessagingPollCreation attachment) {
         this.id = id;
-        this.dbKey = pollDbKeyFactory.newKey(this.id);
+        this.dbKey =(DbKey) pollDbKeyFactory.newKey(this.id);
         this.name = attachment.getPollName();
         this.description = attachment.getPollDescription();
         this.options = attachment.getPollOptions();
@@ -40,7 +40,7 @@ public final class Poll {
 
     private Poll(ResultSet rs) throws SQLException {
         this.id = rs.getLong("id");
-        this.dbKey = pollDbKeyFactory.newKey(this.id);
+        this.dbKey =(DbKey) pollDbKeyFactory.newKey(this.id);
         this.name = rs.getString("name");
         this.description = rs.getString("description");
         this.options = (String[])rs.getArray("options").getArray();
