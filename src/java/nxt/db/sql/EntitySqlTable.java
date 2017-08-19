@@ -14,7 +14,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     protected final DbKey.Factory<T> dbKeyFactory;
     private final String defaultSort;
 
-    protected EntitySqlTable(String table, DbKey.Factory<T> dbKeyFactory) {
+    protected EntitySqlTable(String table, NxtKey.Factory<T> dbKeyFactory) {
         this(table, dbKeyFactory, false);
     }
 
