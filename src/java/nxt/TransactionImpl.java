@@ -438,7 +438,7 @@ final class TransactionImpl implements Transaction {
 
     DbKey getDbKey() {
         if (dbKey == null) {
-            dbKey = TransactionProcessorImpl.getInstance().unconfirmedTransactionDbKeyFactory.newKey(getId());
+            dbKey = (DbKey)TransactionProcessorImpl.getInstance().unconfirmedTransactionDbKeyFactory.newKey(getId());
         }
         return dbKey;
     }

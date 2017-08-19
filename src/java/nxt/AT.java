@@ -132,7 +132,7 @@ public final class AT extends AT_Machine_State {
 
 		private ATState(long atId, byte[] state , int prevHeight , int nextHeight, int sleepBetween, long prevBalance, boolean freezeWhenSameBalance, long minActivationAmount) {
 			this.atId = atId;
-			this.dbKey = atStateDbKeyFactory.newKey(this.atId);
+			this.dbKey = (DbKey)atStateDbKeyFactory.newKey(this.atId);
 			this.state = state;
 			this.nextHeight = nextHeight;
 			this.sleepBetween = sleepBetween;
@@ -143,7 +143,7 @@ public final class AT extends AT_Machine_State {
 
 		private ATState(ResultSet rs) throws SQLException {
 			this.atId = rs.getLong("at_id");
-			this.dbKey = atStateDbKeyFactory.newKey(this.atId);
+			this.dbKey = (DbKey)atStateDbKeyFactory.newKey(this.atId);
 			this.state = rs.getBytes("state");
 			this.prevHeight = rs.getInt("prev_height");
 			this.nextHeight = rs.getInt("next_height");
@@ -562,7 +562,7 @@ public final class AT extends AT_Machine_State {
 		super( atId , creator , creationBytes , height );
 		this.name = name;
 		this.description = description;
-		dbKey = atDbKeyFactory.newKey(AT_API_Helper.getLong(atId));
+		dbKey = (DbKey)atDbKeyFactory.newKey(AT_API_Helper.getLong(atId));
 		this.nextHeight = Nxt.getBlockchain().getHeight();
 	}
 
@@ -577,7 +577,7 @@ public final class AT extends AT_Machine_State {
 				freezeWhenSameBalance , minActivationAmount , apCode );
 		this.name = name;
 		this.description = description;
-		dbKey = atDbKeyFactory.newKey(AT_API_Helper.getLong(atId));
+		dbKey = (DbKey)atDbKeyFactory.newKey(AT_API_Helper.getLong(atId));
 		this.nextHeight = nextHeight;
 	}
 

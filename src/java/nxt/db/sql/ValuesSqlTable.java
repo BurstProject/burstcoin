@@ -71,7 +71,7 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
         if (!Db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
-        DbKey dbKey = dbKeyFactory.newKey(t);
+        DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
         Db.getCache(table).put(dbKey, values);
         try (Connection con = Db.getConnection()) {
             if (multiversion) {

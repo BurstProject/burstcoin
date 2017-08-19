@@ -134,7 +134,7 @@ public final class AssetTransfer {
 
     private AssetTransfer(Transaction transaction, Attachment.ColoredCoinsAssetTransfer attachment) {
         this.id = transaction.getId();
-        this.dbKey = transferDbKeyFactory.newKey(this.id);
+        this.dbKey =(DbKey) transferDbKeyFactory.newKey(this.id);
         this.height = transaction.getHeight();
         this.assetId = attachment.getAssetId();
         this.senderId = transaction.getSenderId();
@@ -145,7 +145,7 @@ public final class AssetTransfer {
 
     private AssetTransfer(ResultSet rs) throws SQLException {
         this.id = rs.getLong("id");
-        this.dbKey = transferDbKeyFactory.newKey(this.id);
+        this.dbKey = (DbKey)transferDbKeyFactory.newKey(this.id);
         this.assetId = rs.getLong("asset_id");
         this.senderId = rs.getLong("sender_id");
         this.recipientId = rs.getLong("recipient_id");

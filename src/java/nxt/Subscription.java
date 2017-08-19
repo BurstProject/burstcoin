@@ -215,7 +215,7 @@ public class Subscription {
 		this.senderId = senderId;
 		this.recipientId = recipientId;
 		this.id = id;
-		this.dbKey = subscriptionDbKeyFactory.newKey(this.id);
+		this.dbKey =(DbKey) subscriptionDbKeyFactory.newKey(this.id);
 		this.amountNQT = amountNQT;
 		this.frequency  = frequency;
 		this.timeNext = timeStart + frequency;
@@ -223,7 +223,7 @@ public class Subscription {
 
 	private Subscription(ResultSet rs) throws SQLException {
 		this.id = rs.getLong("id");
-		this.dbKey = subscriptionDbKeyFactory.newKey(this.id);
+		this.dbKey = (DbKey)subscriptionDbKeyFactory.newKey(this.id);
 		this.senderId = rs.getLong("sender_id");
 		this.recipientId = rs.getLong("recipient_id");
 		this.amountNQT = rs.getLong("amount");

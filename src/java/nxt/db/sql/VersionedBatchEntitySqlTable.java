@@ -1,5 +1,6 @@
 package nxt.db.sql;
 
+import nxt.db.NxtKey;
 import nxt.db.VersionedBatchEntityTable;
 
 import java.sql.Connection;
@@ -22,7 +23,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
         if(!Db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
-        DbKey dbKey = dbKeyFactory.newKey(t);
+        DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
         Db.getBatch(table).put(dbKey, null);
         Db.getCache(table).remove(dbKey);
 
@@ -44,7 +45,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
         if(!Db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
-        DbKey dbKey = dbKeyFactory.newKey(t);
+        DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
         Db.getBatch(table).put(dbKey, t);
         Db.getCache(table).put(dbKey, t);
     }

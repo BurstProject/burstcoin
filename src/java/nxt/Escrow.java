@@ -103,14 +103,14 @@ public class Escrow {
 		private Decision(Long escrowId, Long accountId, DecisionType decision) {
 			this.escrowId = escrowId;
 			this.accountId = accountId;
-			this.dbKey = decisionDbKeyFactory.newKey(this.escrowId, this.accountId);
+			this.dbKey = (DbKey)decisionDbKeyFactory.newKey(this.escrowId, this.accountId);
 			this.decision = decision;
 		}
 
 		private Decision(ResultSet rs) throws SQLException {
 			this.escrowId = rs.getLong("escrow_id");
 			this.accountId = rs.getLong("account_id");
-			this.dbKey = decisionDbKeyFactory.newKey(this.escrowId, this.accountId);
+			this.dbKey = (DbKey)decisionDbKeyFactory.newKey(this.escrowId, this.accountId);
 			this.decision = byteToDecision((byte)rs.getInt("decision"));
 		}
 
@@ -322,7 +322,7 @@ public class Escrow {
 		this.senderId = sender.getId();
 		this.recipientId = recipient.getId();
 		this.id = id;
-		this.dbKey = escrowDbKeyFactory.newKey(this.id);
+		this.dbKey =(DbKey) escrowDbKeyFactory.newKey(this.id);
 		this.amountNQT = amountNQT;
 		this.requiredSigners = requiredSigners;
 		this.deadline = deadline;
@@ -331,7 +331,7 @@ public class Escrow {
 
 	private Escrow(ResultSet rs) throws SQLException {
 		this.id = rs.getLong("id");
-		this.dbKey = escrowDbKeyFactory.newKey(this.id);
+		this.dbKey =(DbKey) escrowDbKeyFactory.newKey(this.id);
 		this.senderId = rs.getLong("sender_id");
 		this.recipientId = rs.getLong("recipient_id");
 		this.amountNQT = rs.getLong("amount");

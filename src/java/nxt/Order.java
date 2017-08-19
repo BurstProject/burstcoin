@@ -237,12 +237,12 @@ public abstract class Order {
 
         private Ask(Transaction transaction, Attachment.ColoredCoinsAskOrderPlacement attachment) {
             super(transaction, attachment);
-            this.dbKey = askOrderDbKeyFactory.newKey(super.id);
+            this.dbKey = (DbKey)askOrderDbKeyFactory.newKey(super.id);
         }
 
         private Ask(ResultSet rs) throws SQLException {
             super(rs);
-            this.dbKey = askOrderDbKeyFactory.newKey(super.id);
+            this.dbKey =(DbKey) askOrderDbKeyFactory.newKey(super.id);
         }
 
         private void save(Connection con, String table) throws SQLException {
@@ -373,12 +373,12 @@ public abstract class Order {
 
         private Bid(Transaction transaction, Attachment.ColoredCoinsBidOrderPlacement attachment) {
             super(transaction, attachment);
-            this.dbKey = bidOrderDbKeyFactory.newKey(super.id);
+            this.dbKey =(DbKey) bidOrderDbKeyFactory.newKey(super.id);
         }
 
         private Bid(ResultSet rs) throws SQLException {
             super(rs);
-            this.dbKey = bidOrderDbKeyFactory.newKey(super.id);
+            this.dbKey = (DbKey)bidOrderDbKeyFactory.newKey(super.id);
         }
 
         private void save(Connection con, String table) throws SQLException {

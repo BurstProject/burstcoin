@@ -8,8 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T>
-{
+public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T> {
 
     private final boolean multiversion;
     protected final DbKey.Factory<T> dbKeyFactory;
@@ -19,11 +18,11 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
         this(table, dbKeyFactory, false);
     }
 
-    EntitySqlTable(String table, DbKey.Factory<T> dbKeyFactory, boolean multiversion) {
+    EntitySqlTable(String table, NxtKey.Factory<T> dbKeyFactory, boolean multiversion) {
         super(table);
-        this.dbKeyFactory = dbKeyFactory;
+        this.dbKeyFactory = (DbKey.Factory<T>) dbKeyFactory;
         this.multiversion = multiversion;
-        this.defaultSort = " ORDER BY " + (multiversion ? dbKeyFactory.getPKColumns() : " height DESC ");
+        this.defaultSort = " ORDER BY " + (multiversion ? this.dbKeyFactory.getPKColumns() : " height DESC ");
     }
 
     protected abstract T load(Connection con, ResultSet rs) throws SQLException;
@@ -38,7 +37,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     @Override
     public final void checkAvailable(int height) {
         if (multiversion && height < Nxt.getBlockchainProcessor().getMinRollbackHeight()) {
-            throw new IllegalArgumentException("Historical data as of height " + height +" not available, set nxt.trimDerivedTables=false and re-scan");
+            throw new IllegalArgumentException("Historical data as of height " + height + " not available, set nxt.trimDerivedTables=false and re-scan");
         }
     }
 
@@ -46,14 +45,14 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     public T get(NxtKey nxtKey) {
         DbKey dbKey = (DbKey) nxtKey;
         if (Db.isInTransaction()) {
-            T t = (T)Db.getCache(table).get(dbKey);
+            T t = (T) Db.getCache(table).get(dbKey);
             if (t != null) {
                 return t;
             }
         }
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + dbKeyFactory.getPKClause()
-             + (multiversion ? " AND latest = TRUE LIMIT 1" : ""))) {
+                     + (multiversion ? " AND latest = TRUE LIMIT 1" : ""))) {
             dbKey.setPK(pstmt);
             return get(con, pstmt, true);
         } catch (SQLException e) {
@@ -122,7 +121,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
             T t = null;
             DbKey dbKey = null;
             if (doCache) {
-                dbKey = dbKeyFactory.newKey(rs);
+                dbKey = (DbKey) dbKeyFactory.newKey(rs);
                 t = (T) Db.getCache(table).get(dbKey);
             }
             if (t == null) {
@@ -203,7 +202,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
                 T t = null;
                 DbKey dbKey = null;
                 if (doCache) {
-                    dbKey = dbKeyFactory.newKey(rs);
+                    dbKey = (DbKey) dbKeyFactory.newKey(rs);
                     t = (T) Db.getCache(table).get(dbKey);
                 }
                 if (t == null) {
@@ -228,7 +227,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
         try {
             con = Db.getConnection();
             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table
-                     + (multiversion ? " WHERE latest = TRUE " : " ") + sort
+                    + (multiversion ? " WHERE latest = TRUE " : " ") + sort
                     + DbUtils.limitsClause(from, to));
             DbUtils.setLimits(1, pstmt, from, to);
             return getManyBy(con, pstmt, true);
@@ -299,8 +298,8 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
         if (!Db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
-        DbKey dbKey = dbKeyFactory.newKey(t);
-        T cachedT = (T)Db.getCache(table).get(dbKey);
+        DbKey dbKey = (DbKey) dbKeyFactory.newKey(t);
+        T cachedT = (T) Db.getCache(table).get(dbKey);
         if (cachedT == null) {
             Db.getCache(table).put(dbKey, t);
         } else if (t != cachedT) { // not a bug

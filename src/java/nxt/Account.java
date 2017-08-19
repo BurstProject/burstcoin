@@ -6,7 +6,7 @@ import nxt.db.NxtIterator;
 import nxt.db.VersionedBatchEntityTable;
 import nxt.db.VersionedEntityTable;
 
-import nxt.db.sql.NxtKey;
+import nxt.db.NxtKey;
 import nxt.util.Convert;
 import nxt.util.Listener;
 import nxt.util.Listeners;

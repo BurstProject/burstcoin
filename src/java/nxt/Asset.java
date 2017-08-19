@@ -69,7 +69,7 @@ public final class Asset {
 
     private Asset(Transaction transaction, Attachment.ColoredCoinsAssetIssuance attachment) {
         this.assetId = transaction.getId();
-        this.dbKey = assetDbKeyFactory.newKey(this.assetId);
+        this.dbKey =(DbKey) assetDbKeyFactory.newKey(this.assetId);
         this.accountId = transaction.getSenderId();
         this.name = attachment.getName();
         this.description = attachment.getDescription();
@@ -79,7 +79,7 @@ public final class Asset {
 
     private Asset(ResultSet rs) throws SQLException {
         this.assetId = rs.getLong("id");
-        this.dbKey = assetDbKeyFactory.newKey(this.assetId);
+        this.dbKey = (DbKey)assetDbKeyFactory.newKey(this.assetId);
         this.accountId = rs.getLong("account_id");
         this.name = rs.getString("name");
         this.description = rs.getString("description");

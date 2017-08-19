@@ -92,14 +92,14 @@ public class Hub {
 
     private Hub(Transaction transaction, Attachment.MessagingHubAnnouncement attachment) {
         this.accountId = transaction.getSenderId();
-        this.dbKey = hubDbKeyFactory.newKey(this.accountId);
+        this.dbKey = (DbKey)hubDbKeyFactory.newKey(this.accountId);
         this.minFeePerByteNQT = attachment.getMinFeePerByteNQT();
         this.uris = Collections.unmodifiableList(Arrays.asList(attachment.getUris()));
     }
 
     private Hub(ResultSet rs) throws SQLException {
         this.accountId = rs.getLong("account_id");
-        this.dbKey = hubDbKeyFactory.newKey(this.accountId);
+        this.dbKey = (DbKey)hubDbKeyFactory.newKey(this.accountId);
         this.minFeePerByteNQT = rs.getLong("min_fee_per_byte");
         this.uris = Collections.unmodifiableList(Arrays.asList((String[])rs.getObject("uris")));
     }

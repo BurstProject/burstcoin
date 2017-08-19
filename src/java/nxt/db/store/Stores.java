@@ -5,4 +5,5 @@ public interface Stores {
 
     AccountStore getAccountStore();
 
+    AliasStore getAliasStore();
 }
