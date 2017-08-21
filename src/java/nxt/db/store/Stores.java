@@ -1,8 +1,6 @@
 package nxt.db.store;
 
 
-import nxt.db.BlockDb;
-
 public interface Stores {
 
     AccountStore getAccountStore();
@@ -14,4 +12,6 @@ public interface Stores {
     AssetTransferStore getAssetTransferStore();
 
     ATStore getAtStore();
+
+    BlockchainStore getBlockchainStore();
 }

@@ -1,6 +1,6 @@
 package nxt;
 
-import nxt.db.sql.DbIterator;
+import nxt.db.NxtIterator;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,15 +20,15 @@ public interface Blockchain {
 
     boolean hasBlock(long blockId);
 
-    DbIterator<? extends Block> getAllBlocks();
+    NxtIterator<BlockImpl> getAllBlocks();
     
-    DbIterator<? extends Block> getBlocks(int from, int to);
+    NxtIterator<BlockImpl> getBlocks(int from, int to);
 
-    DbIterator<? extends Block> getBlocks(Account account, int timestamp);
+    NxtIterator<BlockImpl> getBlocks(Account account, int timestamp);
     
-    DbIterator<? extends Block> getBlocks(Account account, int timestamp, int from, int to);
+    NxtIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to);
 
-    DbIterator<? extends Block> getBlocks(Connection con, PreparedStatement pstmt);
+//    NxtIterator<BlockImpl> getBlocks(Connection con, PreparedStatement pstmt);
 
     List<Long> getBlockIdsAfter(long blockId, int limit);
 
@@ -46,12 +46,12 @@ public interface Blockchain {
 
     int getTransactionCount();
 
-    DbIterator<? extends Transaction> getAllTransactions();
+    NxtIterator<TransactionImpl> getAllTransactions();
 
-    DbIterator<? extends Transaction> getTransactions(Account account, byte type, byte subtype, int blockTimestamp);
+    NxtIterator<TransactionImpl> getTransactions(Account account, byte type, byte subtype, int blockTimestamp);
 
-    DbIterator<? extends Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to);
+    NxtIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to);
 
-    DbIterator<? extends Transaction> getTransactions(Connection con, PreparedStatement pstmt);
+//    NxtIterator<TransactionImpl> getTransactions(Connection con, PreparedStatement pstmt);
 
 }

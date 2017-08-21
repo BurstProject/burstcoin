@@ -1,6 +1,5 @@
 package nxt.db.mariadb;
 
-import nxt.db.BlockDb;
 import nxt.db.store.*;
 
 public class MariadbStores implements Stores {
@@ -9,7 +8,7 @@ public class MariadbStores implements Stores {
     private final AssetTransferStore assetTransferStore;
     private final AssetStore assetStore;
     private final ATStore atStore;
-
+    private final BlockchainStore blockchainStore;
 
     public MariadbStores() {
 
@@ -18,6 +17,7 @@ public class MariadbStores implements Stores {
         this.assetStore = new MariadbAssetStore();
         this.assetTransferStore = new MariadbAssetTransferStore();
         this.atStore = new MariadbATStore();
+        this.blockchainStore = new MariadbBlockchainStore();
     }
 
     @Override
@@ -45,4 +45,8 @@ public class MariadbStores implements Stores {
         return atStore;
     }
 
+    @Override
+    public BlockchainStore getBlockchainStore() {
+        return blockchainStore;
+    }
 }

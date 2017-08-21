@@ -3,6 +3,7 @@ package nxt.peer;
 import nxt.Account;
 import nxt.Nxt;
 import nxt.Transaction;
+import nxt.db.NxtIterator;
 import nxt.db.sql.DbIterator;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
@@ -25,7 +26,7 @@ public class GetAccountRecentTransactions extends PeerServlet.PeerRequestHandler
 			Account account = Account.getAccount(accountId);
 			JSONArray transactions = new JSONArray();
 			if(account != null) {
-				DbIterator<? extends Transaction> iterator = Nxt.getBlockchain().getTransactions(account, 0, (byte)-1, (byte)0, 0, 0, 9);
+				NxtIterator<? extends Transaction> iterator = Nxt.getBlockchain().getTransactions(account, 0, (byte)-1, (byte)0, 0, 0, 9);
 				while(iterator.hasNext()) {
 					Transaction transaction = iterator.next();
 					transactions.add(nxt.http.JSONData.transaction(transaction));
