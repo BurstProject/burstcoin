@@ -1,22 +1,20 @@
 package nxt.db.mariadb;
 
-import nxt.db.sql.SqlAssetStore;
-import nxt.db.store.AccountStore;
-import nxt.db.store.AliasStore;
-import nxt.db.store.AssetTransferStore;
-import nxt.db.store.Stores;
+import nxt.db.store.*;
 
 public class MariadbStores implements Stores {
     private final AccountStore accountStore;
     private final AliasStore aliasStore;
     private final AssetTransferStore assetTransferStore;
-    private final SqlAssetStore assetStore;
+    private final AssetStore assetStore;
+    private final ATStore atStore;
 
     public MariadbStores() {
         this.accountStore = new MariadbAccountStore();
         this.aliasStore = new MariadbAliasStore();
         this.assetStore = new MariadbAssetStore();
         this.assetTransferStore = new MariadbAssetTransferStore();
+        this.atStore = new MariadbATStore();
     }
 
     @Override
@@ -30,12 +28,17 @@ public class MariadbStores implements Stores {
     }
 
     @Override
-    public SqlAssetStore getAssetStore() {
+    public AssetStore getAssetStore() {
         return assetStore;
     }
 
     @Override
     public AssetTransferStore getAssetTransferStore() {
         return assetTransferStore;
+    }
+
+    @Override
+    public ATStore getAtStore() {
+        return atStore;
     }
 }
