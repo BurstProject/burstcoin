@@ -1,6 +1,8 @@
 package nxt.db.store;
 
 
+import nxt.db.BlockDb;
+
 public interface Stores {
 
     AccountStore getAccountStore();

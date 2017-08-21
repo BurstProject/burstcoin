@@ -3,6 +3,7 @@ package nxt;
 import nxt.db.sql.Db;
 import nxt.db.sql.DbIterator;
 import nxt.db.sql.DbUtils;
+import nxt.db.BlockDb;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,6 +16,9 @@ import java.util.concurrent.atomic.AtomicReference;
 final class BlockchainImpl implements Blockchain {
 
     private static final BlockchainImpl instance = new BlockchainImpl();
+
+    private final BlockDb blockDb =  Nxt.getDbs().getBlockDb();;
+
 
     static BlockchainImpl getInstance() {
         return instance;
@@ -51,7 +55,7 @@ final class BlockchainImpl implements Blockchain {
         if (timestamp >= block.getTimestamp()) {
             return block;
         }
-        return BlockDb.findLastBlock(timestamp);
+        return blockDb.findLastBlock(timestamp);
     }
 
     @Override
@@ -60,12 +64,12 @@ final class BlockchainImpl implements Blockchain {
         if (block.getId() == blockId) {
             return block;
         }
-        return BlockDb.findBlock(blockId);
+        return blockDb.findBlock(blockId);
     }
 
     @Override
     public boolean hasBlock(long blockId) {
-        return lastBlock.get().getId() == blockId || BlockDb.hasBlock(blockId);
+        return lastBlock.get().getId() == blockId || blockDb.hasBlock(blockId);
     }
 
     @Override
@@ -128,7 +132,7 @@ final class BlockchainImpl implements Blockchain {
         return new DbIterator<>(con, pstmt, new DbIterator.ResultSetReader<BlockImpl>() {
             @Override
             public BlockImpl get(Connection con, ResultSet rs) throws NxtException.ValidationException {
-                return BlockDb.loadBlock(con, rs);
+                return blockDb.loadBlock(con, rs);
             }
         });
     }
@@ -166,7 +170,7 @@ final class BlockchainImpl implements Blockchain {
             pstmt.setInt(2, limit);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    result.add(BlockDb.loadBlock(con, rs));
+                    result.add(blockDb.loadBlock(con, rs));
                 }
             }
             return result;
@@ -184,7 +188,7 @@ final class BlockchainImpl implements Blockchain {
         if (height == block.getHeight()) {
             return block.getId();
         }
-        return BlockDb.findBlockIdAtHeight(height);
+        return blockDb.findBlockIdAtHeight(height);
     }
 
     @Override
@@ -196,7 +200,7 @@ final class BlockchainImpl implements Blockchain {
         if (height == block.getHeight()) {
             return block;
         }
-        return BlockDb.findBlockAtHeight(height);
+        return blockDb.findBlockAtHeight(height);
     }
 
     @Override

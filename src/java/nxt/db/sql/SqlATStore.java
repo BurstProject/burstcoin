@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class SqlATStore implements ATStore {
+public abstract class SqlATStore implements ATStore {
 
 
     private final NxtKey.LongKeyFactory<AT> atDbKeyFactory = new DbKey.LongKeyFactory<AT>("id") {

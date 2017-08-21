@@ -1,7 +1,9 @@
 package nxt;
 
+import nxt.db.mariadb.MariadbDbs;
 import nxt.db.mariadb.MariadbStores;
 import nxt.db.sql.Db;
+import nxt.db.store.Dbs;
 import nxt.db.store.Stores;
 import nxt.http.API;
 import nxt.peer.Peers;
@@ -31,6 +33,8 @@ public final class Nxt {
     private static volatile Time time = new Time.EpochTime();
 
     private static Stores stores;
+
+    private static Dbs dbs;
 
     private static final Properties defaultProperties = new Properties();
 
@@ -216,7 +220,7 @@ public final class Nxt {
                     logger.info("Using mariadb Backend");
                     Db.init();
                     DbVersion.init();
-
+                    dbs = new MariadbDbs();
                     stores = new MariadbStores();
 
                 }
@@ -283,5 +287,9 @@ public final class Nxt {
 
     public static Stores getStores() {
         return stores;
+    }
+
+    public static Dbs getDbs() {
+        return dbs;
     }
 }
