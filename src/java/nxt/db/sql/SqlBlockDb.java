@@ -1,18 +1,21 @@
-package nxt;
+package nxt.db.sql;
 
-import nxt.db.sql.Db;
-import nxt.db.sql.DbUtils;
+import nxt.BlockImpl;
+import nxt.NxtException;
+import nxt.TransactionDb;
+import nxt.db.BlockDb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.sql.*;
 
-final class BlockDb {
+public abstract class SqlBlockDb implements BlockDb {
 
     private static final Logger logger = LoggerFactory.getLogger(BlockDb.class);
 
-    static BlockImpl findBlock(long blockId) {
+    @Override
+    public BlockImpl findBlock(long blockId) {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE id = ?")) {
             pstmt.setLong(1, blockId);
@@ -30,7 +33,8 @@ final class BlockDb {
         }
     }
 
-    static boolean hasBlock(long blockId) {
+    @Override
+    public boolean hasBlock(long blockId) {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT 1 FROM block WHERE id = ?")) {
             pstmt.setLong(1, blockId);
@@ -42,7 +46,8 @@ final class BlockDb {
         }
     }
 
-    static long findBlockIdAtHeight(int height) {
+    @Override
+    public long findBlockIdAtHeight(int height) {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT id FROM block WHERE height = ?")) {
             pstmt.setInt(1, height);
@@ -57,7 +62,8 @@ final class BlockDb {
         }
     }
 
-    static BlockImpl findBlockAtHeight(int height) {
+    @Override
+    public BlockImpl findBlockAtHeight(int height) {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE height = ?")) {
             pstmt.setInt(1, height);
@@ -77,7 +83,8 @@ final class BlockDb {
         }
     }
 
-    static BlockImpl findLastBlock() {
+    @Override
+    public BlockImpl findLastBlock() {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block ORDER BY db_id DESC LIMIT 1")) {
             BlockImpl block = null;
@@ -94,7 +101,8 @@ final class BlockDb {
         }
     }
 
-    static BlockImpl findLastBlock(int timestamp) {
+    @Override
+    public BlockImpl findLastBlock(int timestamp) {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE timestamp <= ? ORDER BY timestamp DESC LIMIT 1")) {
             pstmt.setInt(1, timestamp);
@@ -112,7 +120,8 @@ final class BlockDb {
         }
     }
 
-    static BlockImpl loadBlock(Connection con, ResultSet rs) throws NxtException.ValidationException {
+    @Override
+    public BlockImpl loadBlock(Connection con, ResultSet rs) throws NxtException.ValidationException {
         try {
             int version = rs.getInt("version");
             int timestamp = rs.getInt("timestamp");
@@ -143,7 +152,8 @@ final class BlockDb {
         }
     }
 
-    static void saveBlock(Connection con, BlockImpl block) {
+    @Override
+    public void saveBlock(Connection con, BlockImpl block) {
         try {
             try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO block (id, version, timestamp, previous_block_id, "
                     + "total_amount, total_fee, payload_length, generator_public_key, previous_block_hash, cumulative_difficulty, "
@@ -184,8 +194,9 @@ final class BlockDb {
     }
 
     // relying on cascade triggers in the database to delete the transactions for all deleted blocks
-    static void deleteBlocksFrom(long blockId) {
-        if (! Db.isInTransaction()) {
+    @Override
+    public void deleteBlocksFrom(long blockId) {
+        if (!Db.isInTransaction()) {
             try {
                 Db.beginTransaction();
                 deleteBlocksFrom(blockId);
@@ -205,13 +216,13 @@ final class BlockDb {
             try {
                 pstmtSelect.setLong(1, blockId);
                 try (ResultSet rs = pstmtSelect.executeQuery()) {
-	                Db.commitTransaction();
-    	            while (rs.next()) {
-        	            pstmtDelete.setInt(1, rs.getInt("db_id"));
-            	        pstmtDelete.executeUpdate();
-                	    Db.commitTransaction();
-	                }
-	            }
+                    Db.commitTransaction();
+                    while (rs.next()) {
+                        pstmtDelete.setInt(1, rs.getInt("db_id"));
+                        pstmtDelete.executeUpdate();
+                        Db.commitTransaction();
+                    }
+                }
             } catch (SQLException e) {
                 Db.rollbackTransaction();
                 throw e;
@@ -221,8 +232,9 @@ final class BlockDb {
         }
     }
 
-    static void deleteAll() {
-        if (! Db.isInTransaction()) {
+    @Override
+    public void deleteAll() {
+        if (!Db.isInTransaction()) {
             try {
                 Db.beginTransaction();
                 deleteAll();

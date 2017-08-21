@@ -7,6 +7,7 @@ import nxt.crypto.Crypto;
 import nxt.db.sql.Db;
 import nxt.db.DerivedTable;
 import nxt.db.sql.FilteringIterator;
+import nxt.db.BlockDb;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
 import nxt.util.*;
@@ -33,7 +34,7 @@ import java.util.concurrent.Semaphore;
 final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 	private static final Logger logger = LoggerFactory.getLogger(BlockchainProcessorImpl.class);
-
+	private final BlockDb blockDb = Nxt.getDbs().getBlockDb();
 	public static final int BLOCKCACHEMB = Nxt.getIntProperty("burst.blockCacheMB") == 0 ? 40 : Nxt.getIntProperty("blockCacheMB");
     public static final int MAX_TIMESTAMP_DIFFERENCE = 15;
 	public static boolean oclVerify = Nxt.getBooleanProperty("burst.oclVerify");
@@ -318,7 +319,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 						return;
 					}
 
-					final Block commonBlock = BlockDb.findBlock(commonBlockId);
+					final Block commonBlock = blockDb.findBlock(commonBlockId);
 					if (commonBlock == null || blockchain.getHeight() - commonBlock.getHeight() >= 720) {
 						return;
 					}
@@ -366,7 +367,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 										}
 										currentBlockId = block.getId();
 
-										if(blockCache.containsKey(block.getId()) || BlockDb.hasBlock(block.getId())) {
+										if(blockCache.containsKey(block.getId()) || blockDb.hasBlock(block.getId())) {
 											lastDownloaded = currentBlockId;
 											continue;
 										}
@@ -407,7 +408,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 											Long altBlockId = null;
 											if(forkBlocks.size() == 0) {
 												try {
-													altBlockId = BlockDb.findBlockIdAtHeight(prevBlock.getHeight() + 1);
+													altBlockId = blockDb.findBlockIdAtHeight(prevBlock.getHeight() + 1);
 												} catch (Exception e) {}
 												if(altBlockId != null) {
 													if(altBlockId.longValue() != block.getId()) {
@@ -500,7 +501,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				}
 				for (Object milestoneBlockId : milestoneBlockIds) {
 					long blockId = Convert.parseUnsignedLong((String) milestoneBlockId);
-					if (BlockDb.hasBlock(blockId)) {
+					if (blockDb.hasBlock(blockId)) {
 						if (lastMilestoneBlockId == null && milestoneBlockIds.size() > 1) {
 							peerHasMore = false;
 						}
@@ -535,7 +536,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 				for (Object nextBlockId : nextBlockIds) {
 					long blockId = Convert.parseUnsignedLong((String) nextBlockId);
-					if (! BlockDb.hasBlock(blockId)) {
+					if (! blockDb.hasBlock(blockId)) {
 						return commonBlockId;
 					}
 					commonBlockId = blockId;
@@ -774,8 +775,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 	@Override
 	public void fullReset() {
 		synchronized (blockchain) {
-			//BlockDb.deleteBlock(Genesis.GENESIS_BLOCK_ID); // fails with stack overflow in H2
-			BlockDb.deleteAll();
+			//blockDb.deleteBlock(Genesis.GENESIS_BLOCK_ID); // fails with stack overflow in H2
+			blockDb.deleteAll();
 			addGenesisBlock();
 			scan(0);
 		}
@@ -797,7 +798,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 	private void addBlock(BlockImpl block) {
 		try (Connection con = Db.getConnection()) {
-			BlockDb.saveBlock(con, block);
+			blockDb.saveBlock(con, block);
 			blockchain.setLastBlock(block);
 		} catch (SQLException e) {
 			throw new RuntimeException(e.toString(), e);
@@ -805,9 +806,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 	}
 
 	private void addGenesisBlock() {
-		if (BlockDb.hasBlock(Genesis.GENESIS_BLOCK_ID)) {
+		if (blockDb.hasBlock(Genesis.GENESIS_BLOCK_ID)) {
 			logger.info("Genesis block already in database");
-			BlockImpl lastBlock = BlockDb.findLastBlock();
+			BlockImpl lastBlock = blockDb.findLastBlock();
 			blockchain.setLastBlock(lastBlock);
 			logger.info("Last block height: " + lastBlock.getHeight());
 			return;
@@ -859,7 +860,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 					throw new BlockOutOfOrderException("Invalid timestamp: " + block.getTimestamp()
 							+ " current time is " + curTime + ", previous block timestamp is " + previousLastBlock.getTimestamp());
 				}
-				if (block.getId() == 0L || BlockDb.hasBlock(block.getId())) {
+				if (block.getId() == 0L || blockDb.hasBlock(block.getId())) {
 					throw new BlockNotAcceptedException("Duplicate block or invalid id");
 				}
 				if (!block.verifyGenerationSignature()) {
@@ -1066,12 +1067,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		if (block.getId() == Genesis.GENESIS_BLOCK_ID) {
 			throw new RuntimeException("Cannot pop off genesis block");
 		}
-		BlockImpl previousBlock = BlockDb.findBlock(block.getPreviousBlockId());
+		BlockImpl previousBlock = blockDb.findBlock(block.getPreviousBlockId());
 		blockchain.setLastBlock(block, previousBlock);
 		for (TransactionImpl transaction : block.getTransactions()) {
 			transaction.unsetBlock();
 		}
-		BlockDb.deleteBlocksFrom(block.getId());
+		blockDb.deleteBlocksFrom(block.getId());
 		blockListeners.notify(block, Event.BLOCK_POPPED);
 		return previousBlock;
 	}
@@ -1303,18 +1304,18 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				}
 				pstmt.setInt(1, height);
 				try (ResultSet rs = pstmt.executeQuery()) {
-					BlockImpl currentBlock = BlockDb.findBlockAtHeight(height);
+					BlockImpl currentBlock = blockDb.findBlockAtHeight(height);
 					blockListeners.notify(currentBlock, Event.RESCAN_BEGIN);
 					long currentBlockId = currentBlock.getId();
 					if (height == 0) {
 						blockchain.setLastBlock(currentBlock); // special case to avoid no last block
 						//Account.addOrGetAccount(Genesis.CREATOR_ID).apply(Genesis.CREATOR_PUBLIC_KEY, 0);
 					} else {
-						blockchain.setLastBlock(BlockDb.findBlockAtHeight(height - 1));
+						blockchain.setLastBlock(blockDb.findBlockAtHeight(height - 1));
 					}
 					while (rs.next()) {
 						try {
-							currentBlock = BlockDb.loadBlock(con, rs);
+							currentBlock = blockDb.loadBlock(con, rs);
 							if (currentBlock.getId() != currentBlockId) {
 								if(currentBlockId == Genesis.GENESIS_BLOCK_ID) {
 									logger.debug("Wrong genesis block id set. Should be: " + Convert.toUnsignedLong(currentBlock.getId()));
@@ -1381,13 +1382,13 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 							}
 							while (rs.next()) {
 								try {
-									currentBlock = BlockDb.loadBlock(con, rs);
+									currentBlock = blockDb.loadBlock(con, rs);
 									transactionProcessor.processLater(currentBlock.getTransactions());
 								} catch (NxtException.ValidationException ignore) {
 								}
 							}
-							BlockDb.deleteBlocksFrom(currentBlockId);
-							blockchain.setLastBlock(BlockDb.findLastBlock());
+							blockDb.deleteBlocksFrom(currentBlockId);
+							blockchain.setLastBlock(blockDb.findLastBlock());
 						}
 						blockListeners.notify(currentBlock, Event.BLOCK_SCANNED);
 					}

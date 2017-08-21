@@ -1,5 +1,6 @@
 package nxt.db.mariadb;
 
+import nxt.db.BlockDb;
 import nxt.db.store.*;
 
 public class MariadbStores implements Stores {
@@ -9,7 +10,9 @@ public class MariadbStores implements Stores {
     private final AssetStore assetStore;
     private final ATStore atStore;
 
+
     public MariadbStores() {
+
         this.accountStore = new MariadbAccountStore();
         this.aliasStore = new MariadbAliasStore();
         this.assetStore = new MariadbAssetStore();
@@ -41,4 +44,5 @@ public class MariadbStores implements Stores {
     public ATStore getAtStore() {
         return atStore;
     }
+
 }

@@ -10,7 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class SqlAssetTransferStore implements AssetTransferStore {
+public abstract class SqlAssetTransferStore implements AssetTransferStore {
 
     private static final NxtKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = new DbKey.LongKeyFactory<AssetTransfer>("id") {
 

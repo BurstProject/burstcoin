@@ -10,7 +10,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-final class TransactionDb {
+public final class TransactionDb {
 
     static Transaction findTransaction(long transactionId) {
         try (Connection con = Db.getConnection();
@@ -160,7 +160,7 @@ final class TransactionDb {
         }
     }
 
-    static void saveTransactions(Connection con, List<TransactionImpl> transactions) {
+    public static void saveTransactions(Connection con, List<TransactionImpl> transactions) {
         try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO transaction (id, deadline, sender_public_key, "
                 + "recipient_id, amount, fee, referenced_transaction_full_hash, height, "
                 + "block_id, signature, timestamp, type, subtype, sender_id, attachment_bytes, "
