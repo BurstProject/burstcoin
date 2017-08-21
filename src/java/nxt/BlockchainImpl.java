@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
 final class BlockchainImpl implements Blockchain {
 
     private static final BlockchainImpl instance = new BlockchainImpl();
-
+    private final TransactionDb transactionDb = Nxt.getDbs().getTransactionDb();
     private final BlockDb blockDb =  Nxt.getDbs().getBlockDb();;
 
 
@@ -205,22 +205,22 @@ final class BlockchainImpl implements Blockchain {
 
     @Override
     public Transaction getTransaction(long transactionId) {
-        return TransactionDb.findTransaction(transactionId);
+        return transactionDb.findTransaction(transactionId);
     }
 
     @Override
     public Transaction getTransactionByFullHash(String fullHash) {
-        return TransactionDb.findTransactionByFullHash(fullHash);
+        return transactionDb.findTransactionByFullHash(fullHash);
     }
 
     @Override
     public boolean hasTransaction(long transactionId) {
-        return TransactionDb.hasTransaction(transactionId);
+        return transactionDb.hasTransaction(transactionId);
     }
 
     @Override
     public boolean hasTransactionByFullHash(String fullHash) {
-        return TransactionDb.hasTransactionByFullHash(fullHash);
+        return transactionDb.hasTransactionByFullHash(fullHash);
     }
 
     @Override
@@ -335,7 +335,7 @@ final class BlockchainImpl implements Blockchain {
         return new DbIterator<>(con, pstmt, new DbIterator.ResultSetReader<TransactionImpl>() {
             @Override
             public TransactionImpl get(Connection con, ResultSet rs) throws NxtException.ValidationException {
-                return TransactionDb.loadTransaction(con, rs);
+                return transactionDb.loadTransaction(con, rs);
             }
         });
     }

@@ -35,6 +35,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 	private static final Logger logger = LoggerFactory.getLogger(BlockchainProcessorImpl.class);
 	private final BlockDb blockDb = Nxt.getDbs().getBlockDb();
+	private final TransactionDb transactionDb = Nxt.getDbs().getTransactionDb();
+
 	public static final int BLOCKCACHEMB = Nxt.getIntProperty("burst.blockCacheMB") == 0 ? 40 : Nxt.getIntProperty("blockCacheMB");
     public static final int MAX_TIMESTAMP_DIFFERENCE = 15;
 	public static boolean oclVerify = Nxt.getBooleanProperty("burst.oclVerify");
@@ -887,13 +889,13 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 								+ " for transaction " + transaction.getStringId() + ", current time is " + curTime
 								+ ", block timestamp is " + block.getTimestamp(), transaction);
 					}
-					if (TransactionDb.hasTransaction(transaction.getId())) {
+					if (transactionDb.hasTransaction(transaction.getId())) {
 						throw new TransactionNotAcceptedException("Transaction " + transaction.getStringId()
 								+ " is already in the blockchain", transaction);
 					}
 					if (transaction.getReferencedTransactionFullHash() != null) {
 						if ((previousLastBlock.getHeight() < Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK
-								&& !TransactionDb.hasTransaction(Convert.fullHashToId(transaction.getReferencedTransactionFullHash())))
+								&& !transactionDb.hasTransaction(Convert.fullHashToId(transaction.getReferencedTransactionFullHash())))
 								|| (previousLastBlock.getHeight() >= Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK
 								&& !hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0))) {
 							throw new TransactionNotAcceptedException("Missing or invalid referenced transaction "
@@ -1262,7 +1264,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		if (transaction.getReferencedTransactionFullHash() == null) {
 			return timestamp - transaction.getTimestamp() < 60 * 1440 * 60 && count < 10;
 		}
-		transaction = TransactionDb.findTransactionByFullHash(transaction.getReferencedTransactionFullHash());
+		transaction = transactionDb.findTransactionByFullHash(transaction.getReferencedTransactionFullHash());
 		if(!Subscription.isEnabled()) {
 			if(transaction != null && transaction.getSignature() == null) {
 				transaction = null;

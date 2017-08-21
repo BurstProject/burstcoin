@@ -16,6 +16,8 @@ import java.util.Set;
 
 public class Subscription {
 
+	// WATCH
+	private   final TransactionDb transactionDb = Nxt.getDbs().getTransactionDb();
 	public static boolean isEnabled() {
 		if(Nxt.getBlockchain().getLastBlock().getHeight() >= Constants.BURST_SUBSCRIPTION_START_BLOCK) {
 			return true;
@@ -187,7 +189,7 @@ public class Subscription {
 		}
 		if(paymentTransactions.size() > 0) {
 			try (Connection con = Db.getConnection()) {
-				TransactionDb.saveTransactions(con, paymentTransactions);
+				Nxt.getDbs().getTransactionDb().saveTransactions(con, paymentTransactions);
 			}
 			catch(SQLException e) {
 				throw new RuntimeException(e.toString(), e);
@@ -315,7 +317,7 @@ public class Subscription {
 			   .ecBlockHeight(0)
 			   .ecBlockId(0L);
 			TransactionImpl transaction = builder.build();
-			if(!TransactionDb.hasTransaction(transaction.getId())) {
+			if(!transactionDb.hasTransaction(transaction.getId())) {
 				paymentTransactions.add(transaction);
 			}
 		} catch (NotValidException e) {

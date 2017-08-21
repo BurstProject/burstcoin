@@ -13,11 +13,11 @@ import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.util.*;
 
-final class TransactionImpl implements Transaction {
+public final class TransactionImpl implements Transaction {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionImpl.class);
 
-    static final class BuilderImpl implements Builder {
+    public static final class BuilderImpl implements Builder {
 
         private final short deadline;
         private final byte[] senderPublicKey;
@@ -44,8 +44,8 @@ final class TransactionImpl implements Transaction {
         private int ecBlockHeight;
         private long ecBlockId;
 
-        BuilderImpl(byte version, byte[] senderPublicKey, long amountNQT, long feeNQT, int timestamp, short deadline,
-                    Attachment.AbstractAttachment attachment) {
+        public BuilderImpl(byte version, byte[] senderPublicKey, long amountNQT, long feeNQT, int timestamp, short deadline,
+                           Attachment.AbstractAttachment attachment) {
             this.version = version;
             this.timestamp = timestamp;
             this.deadline = deadline;
@@ -73,7 +73,7 @@ final class TransactionImpl implements Transaction {
             return this;
         }
 
-        BuilderImpl referencedTransactionFullHash(byte[] referencedTransactionFullHash) {
+        public  BuilderImpl referencedTransactionFullHash(byte[] referencedTransactionFullHash) {
             if (referencedTransactionFullHash != null) {
                 this.referencedTransactionFullHash = Convert.toHexString(referencedTransactionFullHash);
             }
@@ -104,27 +104,27 @@ final class TransactionImpl implements Transaction {
             return this;
         }
 
-        BuilderImpl id(long id) {
+        public BuilderImpl id(long id) {
             this.id = id;
             return this;
         }
 
-        BuilderImpl signature(byte[] signature) {
+        public BuilderImpl signature(byte[] signature) {
             this.signature = signature;
             return this;
         }
 
-        BuilderImpl blockId(long blockId) {
+        public BuilderImpl blockId(long blockId) {
             this.blockId = blockId;
             return this;
         }
 
-        BuilderImpl height(int height) {
+        public BuilderImpl height(int height) {
             this.height = height;
             return this;
         }
 
-        BuilderImpl senderId(long senderId) {
+        public BuilderImpl senderId(long senderId) {
             this.senderId = senderId;
             return this;
         }
@@ -134,24 +134,24 @@ final class TransactionImpl implements Transaction {
             return this;
         }
 
-        BuilderImpl fullHash(byte[] fullHash) {
+        public BuilderImpl fullHash(byte[] fullHash) {
             if (fullHash != null) {
                 this.fullHash = Convert.toHexString(fullHash);
             }
             return this;
         }
 
-        BuilderImpl blockTimestamp(int blockTimestamp) {
+        public BuilderImpl blockTimestamp(int blockTimestamp) {
             this.blockTimestamp = blockTimestamp;
             return this;
         }
 
-        BuilderImpl ecBlockHeight(int height) {
+        public BuilderImpl ecBlockHeight(int height) {
             this.ecBlockHeight = height;
             return this;
         }
 
-        BuilderImpl ecBlockId(long blockId) {
+        public BuilderImpl ecBlockId(long blockId) {
             this.ecBlockId = blockId;
             return this;
         }
@@ -458,7 +458,7 @@ final class TransactionImpl implements Transaction {
         return encryptToSelfMessage;
     }
 
-    Appendix.PublicKeyAnnouncement getPublicKeyAnnouncement() {
+    public Appendix.PublicKeyAnnouncement getPublicKeyAnnouncement() {
         return publicKeyAnnouncement;
     }
 

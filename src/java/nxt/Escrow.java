@@ -293,7 +293,7 @@ public class Escrow {
 			}
 			if(resultTransactions.size() > 0) {
 				try (Connection con = Db.getConnection()) {
-					TransactionDb.saveTransactions(con, resultTransactions);
+                    Nxt.getDbs().getTransactionDb().saveTransactions(con, resultTransactions);
 				}
 				catch(SQLException e) {
 					throw new RuntimeException(e.toString(), e);
@@ -510,7 +510,7 @@ public class Escrow {
 			throw new RuntimeException(e.toString(), e);
 		}
 
-		if(!TransactionDb.hasTransaction(transaction.getId())) {
+		if(!Nxt.getDbs().getTransactionDb().hasTransaction(transaction.getId())) {
 			resultTransactions.add(transaction);
 		}
 	}

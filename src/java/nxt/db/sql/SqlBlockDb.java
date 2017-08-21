@@ -1,6 +1,7 @@
 package nxt.db.sql;
 
 import nxt.BlockImpl;
+import nxt.Nxt;
 import nxt.NxtException;
 import nxt.TransactionDb;
 import nxt.db.BlockDb;
@@ -179,7 +180,7 @@ public abstract class SqlBlockDb implements BlockDb {
                 pstmt.setLong(++i, block.getNonce());
                 DbUtils.setBytes(pstmt, ++i, block.getBlockATs());
                 pstmt.executeUpdate();
-                TransactionDb.saveTransactions(con, block.getTransactions());
+                Nxt.getDbs().getTransactionDb().saveTransactions(con, block.getTransactions());
             }
             if (block.getPreviousBlockId() != 0) {
                 try (PreparedStatement pstmt = con.prepareStatement("UPDATE block SET next_block_id = ? WHERE id = ?")) {

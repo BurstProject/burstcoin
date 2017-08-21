@@ -168,7 +168,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                     List<Transaction> transactionList = new ArrayList<>();
                     int curTime = Nxt.getEpochTime();
                     for (TransactionImpl transaction : nonBroadcastedTransactions) {
-                        if (TransactionDb.hasTransaction(transaction.getId()) || transaction.getExpiration() < curTime) {
+                        if (Nxt.getDbs().getTransactionDb().hasTransaction(transaction.getId()) || transaction.getExpiration() < curTime) {
                             nonBroadcastedTransactions.remove(transaction);
                         } else if (transaction.getTimestamp() < curTime - 30) {
                             transactionList.add(transaction);
@@ -333,7 +333,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
         }
         List<Transaction> processedTransactions;
         synchronized (BlockchainImpl.getInstance()) {
-            if (TransactionDb.hasTransaction(transaction.getId())) {
+            if (Nxt.getDbs().getTransactionDb().hasTransaction(transaction.getId())) {
                 logger.info("Transaction " + transaction.getStringId() + " already in blockchain, will not broadcast again");
                 return;
             }
@@ -516,7 +516,7 @@ final class TransactionProcessorImpl implements TransactionProcessor {
                             break; // not ready to process transactions
                         }
 
-                        if (TransactionDb.hasTransaction(transaction.getId()) || unconfirmedTransactionTable.get(transaction.getDbKey()) != null) {
+                        if (Nxt.getDbs().getTransactionDb().hasTransaction(transaction.getId()) || unconfirmedTransactionTable.get(transaction.getDbKey()) != null) {
                             continue;
                         }
 
