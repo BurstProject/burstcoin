@@ -94,7 +94,7 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
             }
         }
 
-        try (DbIterator<? extends Block> lastBlocks = Nxt.getBlockchain().getBlocks(0, 59)) {
+        try (NxtIterator<? extends Block> lastBlocks = Nxt.getBlockchain().getBlocks(0, 59)) {
             for (Block block : lastBlocks) {
                 JSONObject recentBlock = new JSONObject();
                 recentBlock.put("index", Users.getIndex(block));

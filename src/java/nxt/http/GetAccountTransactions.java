@@ -4,6 +4,7 @@ import nxt.Account;
 import nxt.Nxt;
 import nxt.NxtException;
 import nxt.Transaction;
+import nxt.db.NxtIterator;
 import nxt.db.sql.DbIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -43,7 +44,7 @@ public final class GetAccountTransactions extends APIServlet.APIRequestHandler {
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray transactions = new JSONArray();
-        try (DbIterator<? extends Transaction> iterator = Nxt.getBlockchain().getTransactions(account, numberOfConfirmations, type, subtype, timestamp,
+        try (NxtIterator<? extends Transaction> iterator = Nxt.getBlockchain().getTransactions(account, numberOfConfirmations, type, subtype, timestamp,
                 firstIndex, lastIndex)) {
             while (iterator.hasNext()) {
                 Transaction transaction = iterator.next();
