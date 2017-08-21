@@ -97,7 +97,7 @@ public interface Appendix {
         private final byte[] message;
         private final boolean isText;
 
-        Message(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Message(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
             super(buffer, transactionVersion);
             int messageLength = buffer.getInt();
             this.isText = messageLength < 0; // ugly hack
@@ -254,11 +254,11 @@ public interface Appendix {
             return new EncryptedMessage(attachmentData);
         }
 
-        EncryptedMessage(ByteBuffer buffer, byte transactionVersion) throws NxtException.ValidationException {
+        public EncryptedMessage(ByteBuffer buffer, byte transactionVersion) throws NxtException.ValidationException {
             super(buffer, transactionVersion);
         }
 
-        EncryptedMessage(JSONObject attachmentData) throws NxtException.NotValidException {
+        public EncryptedMessage(JSONObject attachmentData) throws NxtException.NotValidException {
             super(attachmentData, (JSONObject)attachmentData.get("encryptedMessage"));
         }
 
@@ -300,11 +300,11 @@ public interface Appendix {
             return new EncryptToSelfMessage(attachmentData);
         }
 
-        EncryptToSelfMessage(ByteBuffer buffer, byte transactionVersion) throws NxtException.ValidationException {
+        public  EncryptToSelfMessage(ByteBuffer buffer, byte transactionVersion) throws NxtException.ValidationException {
             super(buffer, transactionVersion);
         }
 
-        EncryptToSelfMessage(JSONObject attachmentData) throws NxtException.NotValidException {
+        public EncryptToSelfMessage(JSONObject attachmentData) throws NxtException.NotValidException {
             super(attachmentData, (JSONObject)attachmentData.get("encryptToSelfMessage"));
         }
 
@@ -345,7 +345,7 @@ public interface Appendix {
 
         private final byte[] publicKey;
 
-        PublicKeyAnnouncement(ByteBuffer buffer, byte transactionVersion) {
+        public PublicKeyAnnouncement(ByteBuffer buffer, byte transactionVersion) {
             super(buffer, transactionVersion);
             this.publicKey = new byte[32];
             buffer.get(this.publicKey);

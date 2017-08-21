@@ -10,9 +10,11 @@ import nxt.db.store.Dbs;
 public class MariadbDbs implements Dbs {
 
     private final BlockDb blockDb;
+    private final TransactionDb transactionDb;
 
     public MariadbDbs() {
         this.blockDb = new MariadbBlockDB();
+        this.transactionDb = new MariadbTransactionDb();
     }
 
     @Override
@@ -22,6 +24,6 @@ public class MariadbDbs implements Dbs {
 
     @Override
     public TransactionDb getTransactionDb() {
-        return null;
+        return transactionDb;
     }
 }

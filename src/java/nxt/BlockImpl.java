@@ -16,7 +16,7 @@ import java.util.*;
 public final class BlockImpl implements Block {
 
     private static final Logger logger = LoggerFactory.getLogger(BlockImpl.class);
-
+    private final TransactionDb transactionDb = Nxt.getDbs().getTransactionDb();
     private final int version;
     private final int timestamp;
     private final long previousBlockId;
@@ -179,7 +179,7 @@ public final class BlockImpl implements Block {
     @Override
     public List<TransactionImpl> getTransactions() {
     	if (blockTransactions == null) {
-            this.blockTransactions = Collections.unmodifiableList(TransactionDb.findBlockTransactions(getId()));
+            this.blockTransactions = Collections.unmodifiableList(transactionDb.findBlockTransactions(getId()));
             for (TransactionImpl transaction : this.blockTransactions) {
                 transaction.setBlock(this);
             }

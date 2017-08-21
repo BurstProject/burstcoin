@@ -62,7 +62,7 @@ public final class AT extends AT_Machine_State {
 
 					try {
 						TransactionImpl transaction = builder.build();
-						if(!TransactionDb.hasTransaction(transaction.getId())) {
+						if(!Nxt.getDbs().getTransactionDb().hasTransaction(transaction.getId())) {
 							transactions.add(transaction);
 						}
 					}
@@ -74,7 +74,7 @@ public final class AT extends AT_Machine_State {
 				if(transactions.size() > 0) {
 					/** WATCH: Replace after transactions are converted! */
 					try (Connection con = Db.getConnection()) {
-						TransactionDb.saveTransactions(con, transactions);
+						Nxt.getDbs().getTransactionDb().saveTransactions(con, transactions);
 					}
 					catch(SQLException e) {
 						throw new RuntimeException(e.toString(), e);
