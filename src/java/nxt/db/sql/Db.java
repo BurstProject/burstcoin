@@ -197,8 +197,8 @@ public final class Db {
             con.setAutoCommit(false);
             con = new DbConnection(con);
             localConnection.set((DbConnection)con);
-            transactionCaches.set(new HashMap<String, Map<DbKey, Object>>());
-            transactionBatches.set(new HashMap<String, Map<DbKey, Object>>());
+            transactionCaches.set(new HashMap<>());
+            transactionBatches.set(new HashMap<>());
             return con;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);

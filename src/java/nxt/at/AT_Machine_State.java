@@ -446,22 +446,22 @@ public class AT_Machine_State
 		return ap_data;
 	}
 
-	protected int getC_call_stack_bytes() 
+	public int getC_call_stack_bytes()
 	{
 		return c_call_stack_bytes;
 	}
 
-	protected int getC_user_stack_bytes() 
+	public int getC_user_stack_bytes()
 	{
 		return c_user_stack_bytes;
 	}
 
-	protected int getCsize() 
+	public int getCsize()
 	{
 		return csize;
 	}
 
-	protected int getDsize() 
+	public int getDsize()
 	{
 		return dsize;
 	}
