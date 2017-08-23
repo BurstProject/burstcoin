@@ -14,13 +14,4 @@ public interface Stores {
     ATStore getAtStore();
 
     BlockchainStore getBlockchainStore();
-
-    void beginTransaction();
-
-    void commitTransaction();
-
-    void rollbackTransaction();
-    
-    void endTransaction();
-
 }

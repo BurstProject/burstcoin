@@ -20,7 +20,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class TransactionProcessorImpl implements TransactionProcessor {
+final class TransactionProcessorImpl implements TransactionProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionProcessorImpl.class);
 
