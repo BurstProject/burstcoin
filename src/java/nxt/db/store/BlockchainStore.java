@@ -36,4 +36,8 @@ public interface BlockchainStore {
                                                  int blockTimestamp, int from, int to);
 
     NxtIterator<TransactionImpl> getTransactions(Connection con, PreparedStatement pstmt);
+
+    boolean addBlock(BlockImpl block);
+
+    void scan(int height);
 }

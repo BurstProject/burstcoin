@@ -26,7 +26,8 @@ final class BlockchainImpl implements Blockchain {
         return lastBlock.get();
     }
 
-    void setLastBlock(BlockImpl block) {
+    @Override
+    public void setLastBlock(BlockImpl block) {
         lastBlock.set(block);
     }
 
