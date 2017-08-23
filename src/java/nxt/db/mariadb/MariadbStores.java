@@ -1,5 +1,6 @@
 package nxt.db.mariadb;
 
+import nxt.db.sql.Db;
 import nxt.db.store.*;
 
 public class MariadbStores implements Stores {
@@ -48,5 +49,25 @@ public class MariadbStores implements Stores {
     @Override
     public BlockchainStore getBlockchainStore() {
         return blockchainStore;
+    }
+
+    @Override
+    public void beginTransaction() {
+        Db.beginTransaction();
+    }
+
+    @Override
+    public void commitTransaction() {
+        Db.commitTransaction();
+    }
+
+    @Override
+    public void rollbackTransaction() {
+        Db.rollbackTransaction();
+    }
+
+    @Override
+    public void endTransaction() {
+        Db.endTransaction();
     }
 }

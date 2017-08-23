@@ -2,7 +2,7 @@ package nxt.http;
 
 import nxt.NxtException;
 import nxt.Trade;
-import nxt.db.sql.FilteringIterator;
+import nxt.util.FilteringIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
