@@ -2,14 +2,19 @@ package nxt.db.sql;
 
 import nxt.*;
 import nxt.db.BlockDb;
+import nxt.db.DerivedTable;
 import nxt.db.NxtIterator;
 import nxt.db.store.BlockchainStore;
+import nxt.util.Convert;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class SqlBlockchainStore implements BlockchainStore {
@@ -236,4 +241,18 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
         });
     }
 
+
+    @Override
+    public boolean addBlock(BlockImpl block) {
+        try (Connection con = Db.getConnection()) {
+            blockDb.saveBlock(con, block);
+            return true;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+
+    public void scan(int height)
+    {
+    }
 }
