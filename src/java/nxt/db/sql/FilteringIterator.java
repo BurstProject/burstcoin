@@ -1,6 +1,7 @@
-package nxt.util;
+package nxt.db.sql;
 
 import nxt.db.NxtIterator;
+import nxt.db.sql.DbIterator;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
