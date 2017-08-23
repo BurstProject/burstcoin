@@ -13,6 +13,7 @@ public class MariadbDbs implements Dbs {
     private final TransactionDb transactionDb;
 
     public MariadbDbs() {
+        MariadbDbVersion.init();
         this.blockDb = new MariadbBlockDB();
         this.transactionDb = new MariadbTransactionDb();
     }
