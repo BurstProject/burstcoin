@@ -1,4 +1,4 @@
-package nxt;
+package nxt.db.mariadb;
 
 import nxt.db.sql.Db;
 import org.slf4j.Logger;
@@ -9,9 +9,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-final class DbVersion {
+final class MariadbDbVersion {
 
-    private static final Logger logger = LoggerFactory.getLogger(DbVersion.class);
+    private static final Logger logger = LoggerFactory.getLogger(MariadbDbVersion.class);
 
     static void init() {
         try (Connection con = Db.beginTransaction(); Statement stmt = con.createStatement()) {
@@ -89,5 +89,5 @@ final class DbVersion {
         }
     }
 
-    private DbVersion() {} //never
+    private MariadbDbVersion() {} //never
 }
