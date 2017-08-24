@@ -319,7 +319,7 @@ public class Subscription {
 				paymentTransactions.add(transaction);
 			}
 		} catch (NotValidException e) {
-			throw new RuntimeException("Failed to build subscription payment transaction");
+			throw new RuntimeException("Failed to build subscription payment transaction", e);
 		}
 
 		timeNext += frequency;
