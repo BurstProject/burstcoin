@@ -23,6 +23,8 @@ public interface Stores {
 
     PollStore getPollStore();
 
+    TradeStore getTradeStore();
+
     void beginTransaction();
 
     void commitTransaction();
