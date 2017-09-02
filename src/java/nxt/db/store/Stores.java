@@ -25,6 +25,8 @@ public interface Stores {
 
     TradeStore getTradeStore();
 
+    VoteStore getVoteStore();
+
     void beginTransaction();
 
     void commitTransaction();
