@@ -15,6 +15,8 @@ public interface Stores {
 
     BlockchainStore getBlockchainStore();
 
+    DigitalGoodsStoreStore getDigitalGoodsStoreStore();
+
     void beginTransaction();
 
     void commitTransaction();

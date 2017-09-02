@@ -10,6 +10,8 @@ public class MariadbStores implements Stores {
     private final AssetStore assetStore;
     private final ATStore atStore;
     private final BlockchainStore blockchainStore;
+    private final DigitalGoodsStoreStore digitalGoodsStoreStore;
+
 
     public MariadbStores() {
 
@@ -19,6 +21,7 @@ public class MariadbStores implements Stores {
         this.assetTransferStore = new MariadbAssetTransferStore();
         this.atStore = new MariadbATStore();
         this.blockchainStore = new MariadbBlockchainStore();
+        this.digitalGoodsStoreStore = new MariadbDigitalGoodsStoreStore();
     }
 
     @Override
@@ -49,6 +52,11 @@ public class MariadbStores implements Stores {
     @Override
     public BlockchainStore getBlockchainStore() {
         return blockchainStore;
+    }
+
+    @Override
+    public DigitalGoodsStoreStore getDigitalGoodsStoreStore() {
+        return digitalGoodsStoreStore;
     }
 
     @Override
