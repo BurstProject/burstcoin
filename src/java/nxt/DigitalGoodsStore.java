@@ -1,16 +1,21 @@
 package nxt;
 
 import nxt.crypto.EncryptedData;
+import nxt.db.NxtIterator;
+import nxt.db.NxtKey;
 import nxt.db.VersionedEntityTable;
 import nxt.db.VersionedValuesTable;
-import nxt.db.sql.*;
+//import nxt.db.sql.*;
 import nxt.util.Convert;
 import nxt.util.Listener;
 import nxt.util.Listeners;
 
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+//
+//import java.sql.*;
+//import java.util.ArrayList;
+//import java.util.List;
 
 public final class DigitalGoodsStore {
 
@@ -23,7 +28,7 @@ public final class DigitalGoodsStore {
         Nxt.getBlockchainProcessor().addListener(new Listener<Block>() {
             @Override
             public void notify(Block block) {
-                try (DbIterator<Purchase> purchases = getExpiredPendingPurchases(block.getTimestamp())) {
+                try (NxtIterator<Purchase> purchases = getExpiredPendingPurchases(block.getTimestamp())) {
                     while (purchases.hasNext()) {
                         Purchase purchase = purchases.next();
                         Account buyer = Account.getAccount(purchase.getBuyerId());
@@ -61,41 +66,18 @@ public final class DigitalGoodsStore {
         Purchase.init();
     }
 
-    public static final class Goods {
+    public static   class Goods {
 
-        private static final DbKey.LongKeyFactory<Goods> goodsDbKeyFactory = new DbKey.LongKeyFactory<Goods>("id") {
+        private static final NxtKey.LongKeyFactory<Goods> goodsDbKeyFactory = Nxt.getStores().getDigitalGoodsStoreStore().getGoodsDbKeyFactory();
 
-            @Override
-            public DbKey newKey(Goods goods) {
-                return goods.dbKey;
-            }
 
-        };
-
-        private static final VersionedEntityTable<Goods> goodsTable = new VersionedEntitySqlTable<Goods>("goods", goodsDbKeyFactory) {
-
-            @Override
-            protected Goods load(Connection con, ResultSet rs) throws SQLException {
-                return new Goods(rs);
-            }
-
-            @Override
-            protected void save(Connection con, Goods goods) throws SQLException {
-                goods.save(con);
-            }
-
-            @Override
-            protected String defaultSort() {
-                return " ORDER BY timestamp DESC, id ASC ";
-            }
-
-        };
+        private static final VersionedEntityTable<Goods> goodsTable = Nxt.getStores().getDigitalGoodsStoreStore().getGoodsTable();
 
         static void init() {}
 
 
         private final long id;
-        private final DbKey dbKey;
+        public final NxtKey dbKey;
         private final long sellerId;
         private final String name;
         private final String description;
@@ -105,9 +87,23 @@ public final class DigitalGoodsStore {
         private long priceNQT;
         private boolean delisted;
 
+        protected Goods(long id, NxtKey dbKey, long sellerId, String name, String description, String tags, int timestamp,
+                     int quantity, long priceNQT, boolean delisted) {
+            this.id = id;
+            this.dbKey = dbKey;
+            this.sellerId = sellerId;
+            this.name = name;
+            this.description = description;
+            this.tags = tags;
+            this.timestamp = timestamp;
+            this.quantity = quantity;
+            this.priceNQT = priceNQT;
+            this.delisted = delisted;
+        }
+
         private Goods(Transaction transaction, Attachment.DigitalGoodsListing attachment) {
             this.id = transaction.getId();
-            this.dbKey = (DbKey)goodsDbKeyFactory.newKey(this.id);
+            this.dbKey = goodsDbKeyFactory.newKey(this.id);
             this.sellerId = transaction.getSenderId();
             this.name = attachment.getName();
             this.description = attachment.getDescription();
@@ -118,37 +114,7 @@ public final class DigitalGoodsStore {
             this.timestamp = transaction.getTimestamp();
         }
 
-        private Goods(ResultSet rs) throws SQLException {
-            this.id = rs.getLong("id");
-            this.dbKey = (DbKey)goodsDbKeyFactory.newKey(this.id);
-            this.sellerId = rs.getLong("seller_id");
-            this.name = rs.getString("name");
-            this.description = rs.getString("description");
-            this.tags = rs.getString("tags");
-            this.quantity = rs.getInt("quantity");
-            this.priceNQT = rs.getLong("price");
-            this.delisted = rs.getBoolean("delisted");
-            this.timestamp = rs.getInt("timestamp");
-        }
 
-        private void save(Connection con) throws SQLException {
-            try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO goods (id, seller_id, name, "
-                    + "description, tags, timestamp, quantity, price, delisted, height, latest) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
-                int i = 0;
-                pstmt.setLong(++i, this.getId());
-                pstmt.setLong(++i, this.getSellerId());
-                pstmt.setString(++i, this.getName());
-                pstmt.setString(++i, this.getDescription());
-                pstmt.setString(++i, this.getTags());
-                pstmt.setInt(++i, this.getTimestamp());
-                pstmt.setInt(++i, this.getQuantity());
-                pstmt.setLong(++i, this.getPriceNQT());
-                pstmt.setBoolean(++i, this.isDelisted());
-                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-                pstmt.executeUpdate();
-            }
-        }
 
         public long getId() {
             return id;
@@ -221,106 +187,36 @@ public final class DigitalGoodsStore {
 
     }
 
-    public static final class Purchase {
+    public static  class Purchase {
 
-        private static final DbKey.LongKeyFactory<Purchase> purchaseDbKeyFactory = new DbKey.LongKeyFactory<Purchase>("id") {
+        private static final NxtKey.LongKeyFactory<Purchase> purchaseDbKeyFactory =
+                Nxt.getStores().getDigitalGoodsStoreStore().getPurchaseDbKeyFactory();
 
-            @Override
-            public DbKey newKey(Purchase purchase) {
-                return purchase.dbKey;
-            }
+        private static final VersionedEntityTable<Purchase> purchaseTable=
+                Nxt.getStores().getDigitalGoodsStoreStore().getPurchaseTable();
 
-        };
 
-        private static final VersionedEntityTable<Purchase> purchaseTable = new VersionedEntitySqlTable<Purchase>("purchase", purchaseDbKeyFactory) {
+        private static final NxtKey.LongKeyFactory<Purchase> feedbackDbKeyFactory =
+                Nxt.getStores().getDigitalGoodsStoreStore().getFeedbackDbKeyFactory();
 
-            @Override
-            protected Purchase load(Connection con, ResultSet rs) throws SQLException {
-                return new Purchase(rs);
-            }
-
-            @Override
-            protected void save(Connection con, Purchase purchase) throws SQLException {
-                purchase.save(con);
-            }
-
-            @Override
-            protected String defaultSort() {
-                return " ORDER BY timestamp DESC, id ASC ";
-            }
-
-        };
-
-        private static final DbKey.LongKeyFactory<Purchase> feedbackDbKeyFactory = new DbKey.LongKeyFactory<Purchase>("id") {
-
-            @Override
-            public DbKey newKey(Purchase purchase) {
-                return purchase.dbKey;
-            }
-
-        };
 
         @Deprecated
-        private static final VersionedValuesTable<Purchase, EncryptedData> feedbackTable = new VersionedValuesSqlTable<Purchase, EncryptedData>("purchase_feedback", feedbackDbKeyFactory) {
+        private static final VersionedValuesTable<Purchase, EncryptedData> feedbackTable =
+                Nxt.getStores().getDigitalGoodsStoreStore().getFeedbackTable();
 
-            @Override
-            protected EncryptedData load(Connection con, ResultSet rs) throws SQLException {
-                byte[] data = rs.getBytes("feedback_data");
-                byte[] nonce = rs.getBytes("feedback_nonce");
-                return new EncryptedData(data, nonce);
-            }
 
-            @Override
-            protected void save(Connection con, Purchase purchase, EncryptedData encryptedData) throws SQLException {
-                try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO purchase_feedback (id, feedback_data, feedback_nonce, "
-                        + "height, latest) VALUES (?, ?, ?, ?, TRUE)")) {
-                    int i = 0;
-                    pstmt.setLong(++i, purchase.getId());
-                    setEncryptedData(pstmt, encryptedData, ++i);
-                    ++i;
-                    pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-                    pstmt.executeUpdate();
-                }
-            }
+        private static final NxtKey.LongKeyFactory<Purchase> publicFeedbackDbKeyFactory =
+                Nxt.getStores().getDigitalGoodsStoreStore().getPublicFeedbackDbKeyFactory();
 
-        };
-
-        private static final DbKey.LongKeyFactory<Purchase> publicFeedbackDbKeyFactory = new DbKey.LongKeyFactory<Purchase>("id") {
-
-            @Override
-            public DbKey newKey(Purchase purchase) {
-                return purchase.dbKey;
-            }
-
-        };
 
         private static final VersionedValuesTable<Purchase, String> publicFeedbackTable =
-                new VersionedValuesSqlTable<Purchase, String>("purchase_public_feedback", publicFeedbackDbKeyFactory) {
-
-            @Override
-            protected String load(Connection con, ResultSet rs) throws SQLException {
-                return rs.getString("public_feedback");
-            }
-
-            @Override
-            protected void save(Connection con, Purchase purchase, String publicFeedback) throws SQLException {
-                try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO purchase_public_feedback (id, public_feedback, "
-                        + "height, latest) VALUES (?, ?, ?, TRUE)")) {
-                    int i = 0;
-                    pstmt.setLong(++i, purchase.getId());
-                    pstmt.setString(++i, publicFeedback);
-                    pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-                    pstmt.executeUpdate();
-                }
-            }
-
-        };
+                Nxt.getStores().getDigitalGoodsStoreStore().getPublicFeedbackTable();
 
         static void init() {}
 
 
         private final long id;
-        private final DbKey dbKey;
+        public final NxtKey dbKey;
         private final long buyerId;
         private final long goodsId;
         private final long sellerId;
@@ -342,7 +238,7 @@ public final class DigitalGoodsStore {
 
         private Purchase(Transaction transaction, Attachment.DigitalGoodsPurchase attachment, long sellerId) {
             this.id = transaction.getId();
-            this.dbKey = (DbKey)purchaseDbKeyFactory.newKey(this.id);
+            this.dbKey = purchaseDbKeyFactory.newKey(this.id);
             this.buyerId = transaction.getSenderId();
             this.goodsId = attachment.getGoodsId();
             this.sellerId = sellerId;
@@ -354,54 +250,29 @@ public final class DigitalGoodsStore {
             this.isPending = true;
         }
 
-        private Purchase(ResultSet rs) throws SQLException {
-            this.id = rs.getLong("id");
-            this.dbKey =(DbKey) purchaseDbKeyFactory.newKey(this.id);
-            this.buyerId = rs.getLong("buyer_id");
-            this.goodsId = rs.getLong("goods_id");
-            this.sellerId = rs.getLong("seller_id");
-            this.quantity = rs.getInt("quantity");
-            this.priceNQT = rs.getLong("price");
-            this.deadline = rs.getInt("deadline");
-            this.note = loadEncryptedData(rs, "note", "nonce");
-            this.timestamp = rs.getInt("timestamp");
-            this.isPending = rs.getBoolean("pending");
-            this.encryptedGoods = loadEncryptedData(rs, "goods", "goods_nonce");
-            this.refundNote = loadEncryptedData(rs, "refund_note", "refund_nonce");
-            this.hasFeedbackNotes = rs.getBoolean("has_feedback_notes");
-            this.hasPublicFeedbacks = rs.getBoolean("has_public_feedbacks");
-            this.discountNQT = rs.getLong("discount");
-            this.refundNQT = rs.getLong("refund");
-        }
-
-        private void save(Connection con) throws SQLException {
-            try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO purchase (id, buyer_id, goods_id, seller_id, "
-                    + "quantity, price, deadline, note, nonce, timestamp, pending, goods, goods_nonce, refund_note, "
-                    + "refund_nonce, has_feedback_notes, has_public_feedbacks, discount, refund, height, latest) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
-                int i = 0;
-                pstmt.setLong(++i, this.getId());
-                pstmt.setLong(++i, this.getBuyerId());
-                pstmt.setLong(++i, this.getGoodsId());
-                pstmt.setLong(++i, this.getSellerId());
-                pstmt.setInt(++i, this.getQuantity());
-                pstmt.setLong(++i, this.getPriceNQT());
-                pstmt.setInt(++i, this.getDeliveryDeadlineTimestamp());
-                setEncryptedData(pstmt, this.getNote(), ++i);
-                ++i;
-                pstmt.setInt(++i, this.getTimestamp());
-                pstmt.setBoolean(++i, this.isPending());
-                setEncryptedData(pstmt, this.getEncryptedGoods(), ++i);
-                ++i;
-                setEncryptedData(pstmt, this.getRefundNote(), ++i);
-                ++i;
-                pstmt.setBoolean(++i, this.getFeedbackNotes() != null && this.getFeedbackNotes().size() > 0);
-                pstmt.setBoolean(++i, this.getPublicFeedback() != null && this.getPublicFeedback().size() > 0);
-                pstmt.setLong(++i, this.getDiscountNQT());
-                pstmt.setLong(++i, this.getRefundNQT());
-                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-                pstmt.executeUpdate();
-            }
+        protected Purchase(long id, NxtKey dbKey, long buyerId, long goodsId, long sellerId, int quantity,
+                        long priceNQT, int deadline, EncryptedData note, int timestamp, boolean isPending,
+                        EncryptedData encryptedGoods,EncryptedData refundNote,
+                        boolean hasFeedbackNotes, boolean hasPublicFeedbacks,
+                         long discountNQT, long refundNQT) {
+            this.id = id;
+            this.dbKey = dbKey;
+            this.buyerId = buyerId;
+            this.goodsId = goodsId;
+            this.sellerId = sellerId;
+            this.quantity = quantity;
+            this.priceNQT = priceNQT;
+            this.deadline = deadline;
+            this.note = note;
+            this.timestamp = timestamp;
+            this.isPending = isPending;
+            this.encryptedGoods = encryptedGoods;
+            this.refundNote = refundNote;
+            this.hasFeedbackNotes = hasFeedbackNotes;
+            this.feedbackNotes = feedbackNotes;
+            this.hasPublicFeedbacks = hasPublicFeedbacks;
+            this.discountNQT = discountNQT;
+            this.refundNQT = refundNQT;
         }
 
         public long getId() {
@@ -478,7 +349,7 @@ public final class DigitalGoodsStore {
             if (!hasFeedbackNotes) {
                 return null;
             }
-            feedbackNotes = feedbackTable.get((DbKey)feedbackDbKeyFactory.newKey(this));
+            feedbackNotes = feedbackTable.get(feedbackDbKeyFactory.newKey(this));
             return feedbackNotes;
         }
 
@@ -496,7 +367,7 @@ public final class DigitalGoodsStore {
             if (!hasPublicFeedbacks) {
                 return null;
             }
-            publicFeedbacks =  publicFeedbackTable.get((DbKey)publicFeedbackDbKeyFactory.newKey(this));
+            publicFeedbacks =  publicFeedbackTable.get(publicFeedbackDbKeyFactory.newKey(this));
             return publicFeedbacks;
         }
 
@@ -547,68 +418,41 @@ public final class DigitalGoodsStore {
         return Goods.goodsTable.get(Goods.goodsDbKeyFactory.newKey(goodsId));
     }
 
-    public static DbIterator<Goods> getAllGoods(int from, int to) {
+    public static NxtIterator<Goods> getAllGoods(int from, int to) {
         return Goods.goodsTable.getAll(from, to);
     }
 
-    public static DbIterator<Goods> getGoodsInStock(int from, int to) {
-        DbClause dbClause = new DbClause(" delisted = FALSE AND quantity > 0 ") {
-            @Override
-            public int set(PreparedStatement pstmt, int index) throws SQLException {
-                return index;
-            }
-        };
-        return Goods.goodsTable.getManyBy(dbClause, from, to);
+    public static NxtIterator<Goods> getGoodsInStock(int from, int to) {
+        return Nxt.getStores().getDigitalGoodsStoreStore().getGoodsInStock(from, to);
+
     }
 
-    public static DbIterator<Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
-        DbClause dbClause = new DbClause(" seller_id = ? " + (inStockOnly ? "AND delisted = FALSE AND quantity > 0" : "")) {
-            @Override
-            public int set(PreparedStatement pstmt, int index) throws SQLException {
-                pstmt.setLong(index++, sellerId);
-                return index;
-            }
-        };
-        return Goods.goodsTable.getManyBy(dbClause, from, to, " ORDER BY name ASC, timestamp DESC, id ASC ");
+    public static NxtIterator<Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
+        return Nxt.getStores().getDigitalGoodsStoreStore().getSellerGoods(sellerId, inStockOnly, from, to);
     }
 
-    public static DbIterator<Purchase> getAllPurchases(int from, int to) {
+    public static NxtIterator<Purchase> getAllPurchases(int from, int to) {
         return Purchase.purchaseTable.getAll(from, to);
     }
 
-    public static DbIterator<Purchase> getSellerPurchases(long sellerId, int from, int to) {
-        return Purchase.purchaseTable.getManyBy(new DbClause.LongClause("seller_id", sellerId), from, to);
+    public static NxtIterator<Purchase> getSellerPurchases(long sellerId, int from, int to) {
+        return Nxt.getStores().getDigitalGoodsStoreStore().getSellerPurchases(sellerId,  from, to);
     }
 
-    public static DbIterator<Purchase> getBuyerPurchases(long buyerId, int from, int to) {
-        return Purchase.purchaseTable.getManyBy(new DbClause.LongClause("buyer_id", buyerId), from, to);
+    public static NxtIterator<Purchase> getBuyerPurchases(long buyerId, int from, int to) {
+        return Nxt.getStores().getDigitalGoodsStoreStore().getBuyerPurchases(buyerId,  from, to);
     }
 
-    public static DbIterator<Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
-        DbClause dbClause = new DbClause(" seller_id = ? AND buyer_id = ? ") {
-            @Override
-            public int set(PreparedStatement pstmt, int index) throws SQLException {
-                pstmt.setLong(index++, sellerId);
-                pstmt.setLong(index++, buyerId);
-                return index;
-            }
-        };
-        return Purchase.purchaseTable.getManyBy(dbClause, from, to);
+    public static NxtIterator<Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
+        return Nxt.getStores().getDigitalGoodsStoreStore().getSellerBuyerPurchases(sellerId, buyerId, from, to);
     }
 
     public static Purchase getPurchase(long purchaseId) {
         return Purchase.purchaseTable.get(Purchase.purchaseDbKeyFactory.newKey(purchaseId));
     }
 
-    public static DbIterator<Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
-        DbClause dbClause = new DbClause(" seller_id = ? AND pending = TRUE ") {
-            @Override
-            public int set(PreparedStatement pstmt, int index) throws SQLException {
-                pstmt.setLong(index++, sellerId);
-                return index;
-            }
-        };
-        return Purchase.purchaseTable.getManyBy(dbClause, from, to);
+    public static NxtIterator<Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
+        return Nxt.getStores().getDigitalGoodsStoreStore().getPendingSellerPurchases(sellerId, from, to);
     }
 
     static Purchase getPendingPurchase(long purchaseId) {
@@ -616,15 +460,8 @@ public final class DigitalGoodsStore {
         return purchase == null || ! purchase.isPending() ? null : purchase;
     }
 
-    private static DbIterator<Purchase> getExpiredPendingPurchases(final int timestamp) {
-        DbClause dbClause = new DbClause(" deadline < ? AND pending = TRUE ") {
-            @Override
-            public int set(PreparedStatement pstmt, int index) throws SQLException {
-                pstmt.setLong(index++, timestamp);
-                return index;
-            }
-        };
-        return Purchase.purchaseTable.getManyBy(dbClause, 0, -1);
+    private static NxtIterator<Purchase> getExpiredPendingPurchases(final int timestamp) {
+        return Nxt.getStores().getDigitalGoodsStoreStore().getExpiredPendingPurchases(timestamp);
 	}
 
     private static void addPurchase(Transaction transaction,  Attachment.DigitalGoodsPurchase attachment, long sellerId) {
@@ -720,22 +557,5 @@ public final class DigitalGoodsStore {
         purchaseListeners.notify(purchase, Event.FEEDBACK);
     }
 
-    private static EncryptedData loadEncryptedData(ResultSet rs, String dataColumn, String nonceColumn) throws SQLException {
-        byte[] data = rs.getBytes(dataColumn);
-        if (data == null) {
-            return null;
-        }
-        return new EncryptedData(data, rs.getBytes(nonceColumn));
-    }
-
-    private static void setEncryptedData(PreparedStatement pstmt, EncryptedData encryptedData, int i) throws SQLException {
-        if (encryptedData == null) {
-            pstmt.setNull(i, Types.VARBINARY);
-            pstmt.setNull(i + 1, Types.VARBINARY);
-        } else {
-            pstmt.setBytes(i, encryptedData.getData());
-            pstmt.setBytes(i + 1, encryptedData.getNonce());
-        }
-    }
 
 }

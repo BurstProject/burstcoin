@@ -2,6 +2,7 @@ package nxt.http;
 
 import nxt.DigitalGoodsStore;
 import nxt.NxtException;
+import nxt.db.NxtIterator;
 import nxt.db.sql.DbIterator;
 import nxt.db.sql.DbUtils;
 import org.json.simple.JSONArray;
@@ -29,7 +30,7 @@ public final class GetDGSGoods extends APIServlet.APIRequestHandler {
         JSONArray goodsJSON = new JSONArray();
         response.put("goods", goodsJSON);
 
-        DbIterator<DigitalGoodsStore.Goods> goods = null;
+        NxtIterator<DigitalGoodsStore.Goods> goods = null;
         try {
             if (sellerId == 0) {
                 if (inStockOnly) {

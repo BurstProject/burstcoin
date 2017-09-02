@@ -1,5 +1,6 @@
 package nxt.db.sql;
 
+import nxt.db.NxtKey;
 import nxt.db.ValuesTable;
 
 import java.sql.Connection;
@@ -30,7 +31,8 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
     protected abstract void save(Connection con, T t, V v) throws SQLException;
 
     @Override
-    public final List<V> get(DbKey dbKey) {
+    public final List<V> get(NxtKey nxtKey) {
+        DbKey dbKey = (DbKey) nxtKey;
         List<V> values;
         if (Db.isInTransaction()) {
             values = (List<V>)Db.getCache(table).get(dbKey);
