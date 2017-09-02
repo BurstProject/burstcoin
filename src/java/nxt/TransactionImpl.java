@@ -1,7 +1,7 @@
 package nxt;
 
 import nxt.crypto.Crypto;
-import nxt.db.sql.DbKey;
+import nxt.db.NxtKey;
 import nxt.util.Convert;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -187,7 +187,7 @@ public final class TransactionImpl implements Transaction {
     private volatile String stringId;
     private volatile long senderId;
     private volatile String fullHash;
-    private volatile DbKey dbKey;
+    private volatile NxtKey dbKey;
 
     private TransactionImpl(BuilderImpl builder) throws NxtException.NotValidException {
 
@@ -436,9 +436,9 @@ public final class TransactionImpl implements Transaction {
         return senderId;
     }
 
-    DbKey getDbKey() {
+    NxtKey getDbKey() {
         if (dbKey == null) {
-            dbKey = (DbKey)TransactionProcessorImpl.getInstance().unconfirmedTransactionDbKeyFactory.newKey(getId());
+            dbKey = TransactionProcessorImpl.getInstance().unconfirmedTransactionDbKeyFactory.newKey(getId());
         }
         return dbKey;
     }
