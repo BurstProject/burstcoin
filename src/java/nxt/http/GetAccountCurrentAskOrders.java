@@ -2,6 +2,7 @@ package nxt.http;
 
 import nxt.NxtException;
 import nxt.Order;
+import nxt.db.NxtIterator;
 import nxt.db.sql.DbIterator;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
@@ -31,7 +32,7 @@ public final class GetAccountCurrentAskOrders extends APIServlet.APIRequestHandl
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
 
-        DbIterator<Order.Ask> askOrders;
+        NxtIterator<Order.Ask> askOrders;
         if (assetId == 0) {
             askOrders = Order.Ask.getAskOrdersByAccount(accountId, firstIndex, lastIndex);
         } else {

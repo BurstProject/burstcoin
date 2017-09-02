@@ -11,7 +11,8 @@ public class MariadbStores implements Stores {
     private final ATStore atStore;
     private final BlockchainStore blockchainStore;
     private final DigitalGoodsStoreStore digitalGoodsStoreStore;
-    private final MariadbEscrowStore escrowStore;
+    private final EscrowStore escrowStore;
+    private final OrderStore orderStore;
 
     public MariadbStores() {
 
@@ -23,6 +24,7 @@ public class MariadbStores implements Stores {
         this.blockchainStore = new MariadbBlockchainStore();
         this.digitalGoodsStoreStore = new MariadbDigitalGoodsStoreStore();
         this.escrowStore = new MariadbEscrowStore();
+        this.orderStore = new MariadbOrderStore();
     }
 
     @Override
@@ -81,7 +83,12 @@ public class MariadbStores implements Stores {
     }
 
     @Override
-    public MariadbEscrowStore getEscrowStore() {
+    public EscrowStore getEscrowStore() {
         return escrowStore;
+    }
+
+    @Override
+    public OrderStore getOrderStore() {
+        return orderStore;
     }
 }

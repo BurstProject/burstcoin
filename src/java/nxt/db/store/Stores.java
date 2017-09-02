@@ -19,6 +19,8 @@ public interface Stores {
 
     EscrowStore getEscrowStore();
 
+    OrderStore getOrderStore();
+
     void beginTransaction();
 
     void commitTransaction();

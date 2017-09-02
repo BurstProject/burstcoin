@@ -2,7 +2,7 @@ package nxt.http;
 
 import nxt.NxtException;
 import nxt.Order;
-import nxt.db.sql.DbIterator;
+import nxt.db.NxtIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -25,7 +25,7 @@ public final class GetBidOrders extends APIServlet.APIRequestHandler {
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray orders = new JSONArray();
-        try (DbIterator<Order.Bid> bidOrders = Order.Bid.getSortedOrders(assetId, firstIndex, lastIndex)) {
+        try (NxtIterator<Order.Bid> bidOrders = Order.Bid.getSortedOrders(assetId, firstIndex, lastIndex)) {
             while (bidOrders.hasNext()) {
                 orders.add(JSONData.bidOrder(bidOrders.next()));
             }
