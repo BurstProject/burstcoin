@@ -1,5 +1,6 @@
 package nxt;
 
+import nxt.db.NxtKey;
 import nxt.db.sql.*;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
@@ -39,7 +40,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     final DbKey.LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory = new DbKey.LongKeyFactory<TransactionImpl>("id") {
 
         @Override
-        public DbKey newKey(TransactionImpl transaction) {
+        public NxtKey newKey(TransactionImpl transaction) {
             return transaction.getDbKey();
         }
 
