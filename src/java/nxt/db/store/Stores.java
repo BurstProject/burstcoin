@@ -21,6 +21,8 @@ public interface Stores {
 
     OrderStore getOrderStore();
 
+    PollStore getPollStore();
+
     void beginTransaction();
 
     void commitTransaction();
