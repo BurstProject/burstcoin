@@ -17,6 +17,8 @@ public interface Stores {
 
     DigitalGoodsStoreStore getDigitalGoodsStoreStore();
 
+    EscrowStore getEscrowStore();
+
     void beginTransaction();
 
     void commitTransaction();

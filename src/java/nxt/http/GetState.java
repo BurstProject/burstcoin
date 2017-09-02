@@ -39,7 +39,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
                 }
             }
         }
-        try(DbIterator<Escrow> escrows = Escrow.getAllEscrowTransactions()) {
+        try(NxtIterator<Escrow> escrows = Escrow.getAllEscrowTransactions()) {
         	for(Escrow escrow : escrows) {
         		totalEffectiveBalance += escrow.getAmountNQT();
         	}
