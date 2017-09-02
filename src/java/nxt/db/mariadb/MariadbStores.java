@@ -13,6 +13,7 @@ public class MariadbStores implements Stores {
     private final DigitalGoodsStoreStore digitalGoodsStoreStore;
     private final EscrowStore escrowStore;
     private final OrderStore orderStore;
+    private final PollStore pollStore;
 
     public MariadbStores() {
 
@@ -25,6 +26,7 @@ public class MariadbStores implements Stores {
         this.digitalGoodsStoreStore = new MariadbDigitalGoodsStoreStore();
         this.escrowStore = new MariadbEscrowStore();
         this.orderStore = new MariadbOrderStore();
+        this.pollStore = new MariadbPollStore();
     }
 
     @Override
@@ -90,5 +92,10 @@ public class MariadbStores implements Stores {
     @Override
     public OrderStore getOrderStore() {
         return orderStore;
+    }
+
+    @Override
+    public PollStore getPollStore() {
+        return pollStore;
     }
 }
