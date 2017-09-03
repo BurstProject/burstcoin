@@ -1,5 +1,7 @@
 package nxt;
 
+import nxt.db.h2.H2Dbs;
+import nxt.db.h2.H2Stores;
 import nxt.db.mariadb.MariadbDbs;
 import nxt.db.mariadb.MariadbStores;
 import nxt.db.sql.Db;
@@ -216,14 +218,22 @@ public final class Nxt {
                 } else {
                     dbUrl = Nxt.getStringProperty("nxt.dbUrl");
                 }
-                if (dbUrl != null && dbUrl.trim().startsWith("jdbc:mariadb")) {
-                    logger.info("Using mariadb Backend");
-                    Db.init();
-                    // Moved to constructor of H2Dbs
-                    //                    DbVersion.init();
-                    dbs = new MariadbDbs();
-                    stores = new MariadbStores();
 
+                Db.init();
+                switch (Db.getDatabaseType())
+                {
+                    case MARIADB:
+                        logger.info("Using mariadb Backend");
+                        dbs = new MariadbDbs();
+                        stores = new MariadbStores();
+                        break;
+                    case H2:
+                        logger.info("Using h2 Backend");
+                        dbs = new H2Dbs();
+                        stores = new H2Stores();
+                        break;
+                        default:
+                            throw new RuntimeException("Error initializing wallet: Unknown database type");
                 }
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();

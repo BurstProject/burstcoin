@@ -67,7 +67,7 @@ class H2AccountStore extends SqlAccountStore {
             protected String updateQuery() {
                 return "MERGE INTO account (id, creation_height, public_key, key_height, balance, unconfirmed_balance, " +
                         "forged_balance, name, description, height, latest) " +
-                        " KEY (account_id, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)";
+                        " KEY (id, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)";
             }
 
             @Override
