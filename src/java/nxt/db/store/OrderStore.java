@@ -2,6 +2,7 @@ package nxt.db.store;
 
 import nxt.Order;
 import nxt.db.NxtIterator;
+import nxt.db.NxtKey;
 import nxt.db.VersionedEntityTable;
 import nxt.db.sql.DbKey;
 
@@ -20,11 +21,11 @@ public interface OrderStore {
 
     NxtIterator<Order.Ask> getAskOrdersByAsset(long assetId, int from, int to);
 
-    DbKey.LongKeyFactory<Order.Ask> getAskOrderDbKeyFactory();
+    NxtKey.LongKeyFactory<Order.Ask> getAskOrderDbKeyFactory();
 
     VersionedEntityTable<Order.Ask> getAskOrderTable();
 
-    DbKey.LongKeyFactory<Order.Bid> getBidOrderDbKeyFactory();
+    NxtKey.LongKeyFactory<Order.Bid> getBidOrderDbKeyFactory();
 
     NxtIterator<Order.Bid> getBidOrdersByAccount(long accountId, int from, int to);
 
