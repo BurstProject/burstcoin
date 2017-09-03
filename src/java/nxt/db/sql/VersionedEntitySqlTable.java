@@ -70,14 +70,31 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
         if (!Db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
+
+        // WATCH: DIRTY HACK :/ Too lazy to rework all store classes to use subclasses of VersionedEntitySqlTable
+        String setLatestSql;
+        switch (Db.getDatabaseType())
+        {
+            case H2:
+                setLatestSql = "DELETE FROM " + table + " WHERE height < ? AND latest = FALSE "    +
+                        " AND (" + dbKeyFactory.getPKColumns() + ") NOT IN (SELECT (" + dbKeyFactory.getPKColumns() +
+                        ") FROM " + table + " WHERE height >= ?)";
+                break;
+            case MARIADB:
+                setLatestSql="UPDATE " + table
+                        + " SET latest = TRUE " + dbKeyFactory.getPKClause() + " AND height IN"
+                        + " ( SELECT * FROM (SELECT MAX(height) FROM " + table + dbKeyFactory.getPKClause() + ") ac0v )";
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown database type");
+        }
+
         try (Connection con = Db.getConnection();
              PreparedStatement pstmtSelectToDelete = con.prepareStatement("SELECT DISTINCT " + dbKeyFactory.getPKColumns()
                      + " FROM " + table + " WHERE height > ?");
              PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + table
                      + " WHERE height > ?");
-             PreparedStatement pstmtSetLatest = con.prepareStatement("UPDATE " + table
-                     + " SET latest = TRUE " + dbKeyFactory.getPKClause() + " AND height IN"
-                     + " ( SELECT * FROM (SELECT MAX(height) FROM " + table + dbKeyFactory.getPKClause() + ") ac0v )")) {
+             PreparedStatement pstmtSetLatest = con.prepareStatement(setLatestSql)) {
             pstmtSelectToDelete.setInt(1, height);
             List<DbKey> dbKeys = new ArrayList<>();
             try (ResultSet rs = pstmtSelectToDelete.executeQuery()) {
