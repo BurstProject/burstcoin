@@ -1,6 +1,6 @@
-package nxt.peer;
+package nxt.db.sql;
 
-import nxt.db.sql.Db;
+import nxt.db.PeerDb;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,9 +10,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-final class PeerDb {
+public abstract class SqlPeerDb implements PeerDb {
 
-    static List<String> loadPeers() {
+     @Override public List<String> loadPeers() {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM peer")) {
             List<String> peers = new ArrayList<>();
@@ -27,7 +27,7 @@ final class PeerDb {
         }
     }
 
-    static void deletePeers(Collection<String> peers) {
+    @Override public void deletePeers(Collection<String> peers) {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("DELETE FROM peer WHERE address = ?")) {
             for (String peer : peers) {
@@ -39,7 +39,7 @@ final class PeerDb {
         }
     }
 
-    static void addPeers(Collection<String> peers) {
+    @Override public void addPeers(Collection<String> peers) {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("INSERT INTO peer (address) values (?)")) {
             for (String peer : peers) {

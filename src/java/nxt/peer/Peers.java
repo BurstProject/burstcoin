@@ -1,6 +1,7 @@
 package nxt.peer;
 
 import nxt.*;
+import nxt.db.PeerDb;
 import nxt.db.sql.Db;
 import nxt.util.*;
 import org.eclipse.jetty.server.Server;
@@ -209,7 +210,7 @@ public final class Peers {
                 }
                 if (usePeersDb) {
                     logger.debug("Loading known peers from the database...");
-                    loadPeers(PeerDb.loadPeers());
+                    loadPeers(Nxt.getDbs().getPeerDb().loadPeers());
                 }
             }
         }, false);
@@ -433,7 +434,7 @@ public final class Peers {
         }
 
         private void updateSavedPeers() {
-            Set<String> oldPeers = new HashSet<>(PeerDb.loadPeers());
+            Set<String> oldPeers = new HashSet<>(Nxt.getDbs().getPeerDb().loadPeers());
             Set<String> currentPeers = new HashSet<>();
             for (Peer peer : Peers.peers.values()) {
                 if (peer.getAnnouncedAddress() != null && ! peer.isBlacklisted()) {
@@ -443,18 +444,18 @@ public final class Peers {
             Set<String> toDelete = new HashSet<>(oldPeers);
             toDelete.removeAll(currentPeers);
             try {
-                Db.beginTransaction();
-                PeerDb.deletePeers(toDelete);
+                Nxt.getStores().beginTransaction();
+                Nxt.getDbs().getPeerDb().deletePeers(toDelete);
 	            //logger.debug("Deleted " + toDelete.size() + " peers from the peers database");
                 currentPeers.removeAll(oldPeers);
-                PeerDb.addPeers(currentPeers);
+                Nxt.getDbs().getPeerDb().addPeers(currentPeers);
 	            //logger.debug("Added " + currentPeers.size() + " peers to the peers database");
-                Db.commitTransaction();
+                Nxt.getStores().commitTransaction();
             } catch (Exception e) {
-                Db.rollbackTransaction();
+                Nxt.getStores().rollbackTransaction();
                 throw e;
             } finally {
-                Db.endTransaction();
+                Nxt.getStores().endTransaction();
             }
         }
 
