@@ -224,7 +224,7 @@ public final class Db {
         DbUtils.close(con);
     }
 
-    private enum TYPE {
+    public enum TYPE {
         H2,
         MARIADB;
 
@@ -289,4 +289,7 @@ public final class Db {
 
     }
 
+    public static TYPE getDatabaseType() {
+        return DATABASE_TYPE;
+    }
 }
