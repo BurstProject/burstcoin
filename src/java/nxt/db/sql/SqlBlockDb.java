@@ -3,13 +3,15 @@ package nxt.db.sql;
 import nxt.BlockImpl;
 import nxt.Nxt;
 import nxt.NxtException;
-import nxt.TransactionDb;
 import nxt.db.BlockDb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public abstract class SqlBlockDb implements BlockDb {
 
@@ -180,7 +182,7 @@ public abstract class SqlBlockDb implements BlockDb {
                 pstmt.setLong(++i, block.getNonce());
                 DbUtils.setBytes(pstmt, ++i, block.getBlockATs());
                 pstmt.executeUpdate();
-                Nxt.getDbs().getTransactionDb().saveTransactions( block.getTransactions());
+                Nxt.getDbs().getTransactionDb().saveTransactions(block.getTransactions());
             }
             if (block.getPreviousBlockId() != 0) {
                 try (PreparedStatement pstmt = con.prepareStatement("UPDATE block SET next_block_id = ? WHERE id = ?")) {
@@ -234,36 +236,6 @@ public abstract class SqlBlockDb implements BlockDb {
     }
 
     @Override
-    public void deleteAll() {
-        if (!Db.isInTransaction()) {
-            try {
-                Db.beginTransaction();
-                deleteAll();
-                Db.commitTransaction();
-            } catch (Exception e) {
-                Db.rollbackTransaction();
-                throw e;
-            } finally {
-                Db.endTransaction();
-            }
-            return;
-        }
-        logger.info("Deleting blockchain...");
-        try (Connection con = Db.getConnection();
-             Statement stmt = con.createStatement()) {
-            try {
-                stmt.executeUpdate("SET foreign_key_checks = 0");
-                stmt.executeUpdate("TRUNCATE TABLE transaction");
-                stmt.executeUpdate("TRUNCATE TABLE block");
-                stmt.executeUpdate("SET foreign_key_checks = 1");
-                Db.commitTransaction();
-            } catch (SQLException e) {
-                Db.rollbackTransaction();
-                throw e;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }
-    }
+    public abstract void deleteAll();
 
 }
