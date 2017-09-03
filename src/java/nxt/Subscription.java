@@ -2,14 +2,11 @@ package nxt;
 
 import nxt.NxtException.NotValidException;
 import nxt.db.NxtIterator;
+import nxt.db.NxtKey;
 import nxt.db.VersionedEntityTable;
-import nxt.db.sql.*;
+
 import nxt.util.Convert;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -32,27 +29,11 @@ public class Subscription {
 		return false;
 	}
 
-	private static final DbKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory = new DbKey.LongKeyFactory<Subscription>("id") {
-		@Override
-		public DbKey newKey(Subscription subscription) {
-			return subscription.dbKey;
-		}
-	};
+	private static final NxtKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory  =
+			Nxt.getStores().getSubscriptionStore().getSubscriptionDbKeyFactory();
 
-	private static final VersionedEntityTable<Subscription> subscriptionTable = new VersionedEntitySqlTable<Subscription>("subscription", subscriptionDbKeyFactory) {
-		@Override
-		protected Subscription load(Connection con, ResultSet rs) throws SQLException {
-			return new Subscription(rs);
-		}
-		@Override
-		protected void save(Connection con, Subscription subscription) throws SQLException {
-			subscription.save(con);
-		}
-		@Override
-		protected String defaultSort() {
-			return " ORDER BY time_next ASC, id ASC ";
-		}
-	};
+	private static final VersionedEntityTable<Subscription> subscriptionTable =
+			Nxt.getStores().getSubscriptionStore().getSubscriptionTable();
 
 	private static final List<TransactionImpl> paymentTransactions = new ArrayList<>();
 	private static final List<Subscription> appliedSubscriptions = new ArrayList<>();
@@ -66,27 +47,18 @@ public class Subscription {
 		return subscriptionTable.getAll(0, -1);
 	}
 
-	private static DbClause getByParticipantClause(final long id) {
-		return new DbClause(" (sender_id = ? OR recipient_id = ?) ") {
-			@Override
-			public int set(PreparedStatement pstmt, int index) throws SQLException {
-				pstmt.setLong(index++, id);
-				pstmt.setLong(index++, id);
-				return index;
-			}
-		};
-	}
+
 
 	public static NxtIterator<Subscription> getSubscriptionsByParticipant(Long accountId) {
-		return subscriptionTable.getManyBy(getByParticipantClause(accountId), 0, -1);
+		return Nxt.getStores().getSubscriptionStore().getSubscriptionsByParticipant(accountId);
 	}
 
 	public static NxtIterator<Subscription> getIdSubscriptions(Long accountId) {
-		return subscriptionTable.getManyBy(new DbClause.LongClause("sender_id", accountId), 0, -1);
+		return Nxt.getStores().getSubscriptionStore().getIdSubscriptions(accountId);
 	}
 
 	public static NxtIterator<Subscription> getSubscriptionsToId(Long accountId) {
-		return subscriptionTable.getManyBy(new DbClause.LongClause("recipient_id", accountId), 0, -1);
+		return Nxt.getStores().getSubscriptionStore().getSubscriptionsToId(accountId);
 	}
 
 	public static Subscription getSubscription(Long id) {
@@ -116,20 +88,13 @@ public class Subscription {
 		}
 	}
 
-	private static DbClause getUpdateOnBlockClause(final int timestamp) {
-		return new DbClause(" time_next <= ? ") {
-			@Override
-			public int set(PreparedStatement pstmt, int index) throws SQLException {
-				pstmt.setInt(index++, timestamp);
-				return index;
-			}
-		};
-	}
+
 
 	@SuppressWarnings("static-access")
 	public static long calculateFees(int timestamp) {
 		long totalFeeNQT = 0;
-		NxtIterator<Subscription> updateSubscriptions = subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
+		NxtIterator<Subscription> updateSubscriptions =
+				Nxt.getStores().getSubscriptionStore().getUpdateSubscriptions(timestamp);
 		List<Subscription> appliedSubscriptions = new ArrayList<>();
 		for(Subscription subscription : updateSubscriptions) {
 			if(removeSubscriptions.contains(subscription.getId())) {
@@ -160,7 +125,8 @@ public class Subscription {
 	public static long applyUnconfirmed(int timestamp) {
 		appliedSubscriptions.clear();
 		long totalFees = 0;
-		NxtIterator<Subscription> updateSubscriptions = subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
+		NxtIterator<Subscription> updateSubscriptions =
+				Nxt.getStores().getSubscriptionStore().getUpdateSubscriptions(timestamp);
 		for(Subscription subscription : updateSubscriptions) {
 			if(removeSubscriptions.contains(subscription.getId())) {
 				continue;
@@ -189,25 +155,20 @@ public class Subscription {
 			subscriptionTable.insert(subscription);
 		}
 		if(paymentTransactions.size() > 0) {
-			try (Connection con = Db.getConnection()) {
-				Nxt.getDbs().getTransactionDb().saveTransactions(con, paymentTransactions);
-			}
-			catch(SQLException e) {
-				throw new RuntimeException(e.toString(), e);
-			}
+			Nxt.getDbs().getTransactionDb().saveTransactions( paymentTransactions);
 		}
 		for(Long subscription : removeSubscriptions) {
 			removeSubscription(subscription);
 		}
 	}
 
-	private final Long senderId;
-	private final Long recipientId;
-	private final Long id;
-	private final DbKey dbKey;
-	private final Long amountNQT;
-	private final int frequency;
-	private volatile int timeNext;
+	public final Long senderId;
+	public final Long recipientId;
+	public final Long id;
+	public final NxtKey dbKey;
+	public final Long amountNQT;
+	public final int frequency;
+	public volatile int timeNext;
 
 	private Subscription(Long senderId,
 						 Long recipientId,
@@ -218,36 +179,26 @@ public class Subscription {
 		this.senderId = senderId;
 		this.recipientId = recipientId;
 		this.id = id;
-		this.dbKey =(DbKey) subscriptionDbKeyFactory.newKey(this.id);
+		this.dbKey = subscriptionDbKeyFactory.newKey(this.id);
 		this.amountNQT = amountNQT;
 		this.frequency  = frequency;
 		this.timeNext = timeStart + frequency;
 	}
-
-	private Subscription(ResultSet rs) throws SQLException {
-		this.id = rs.getLong("id");
-		this.dbKey = (DbKey)subscriptionDbKeyFactory.newKey(this.id);
-		this.senderId = rs.getLong("sender_id");
-		this.recipientId = rs.getLong("recipient_id");
-		this.amountNQT = rs.getLong("amount");
-		this.frequency = rs.getInt("frequency");
-		this.timeNext = rs.getInt("time_next");
-	}
-
-	private void save(Connection con) throws SQLException {
-		try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO subscription (id, "
-				+ "sender_id, recipient_id, amount, frequency, time_next, height, latest) "
-				+ "VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)")) {
-			int i = 0;
-			pstmt.setLong(++i, this.id);
-			pstmt.setLong(++i, this.senderId);
-			pstmt.setLong(++i, this.recipientId);
-			pstmt.setLong(++i, this.amountNQT);
-			pstmt.setInt(++i, this.frequency);
-			pstmt.setInt(++i, this.timeNext);
-			pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-			pstmt.executeUpdate();
-		}
+	protected Subscription(Long senderId,
+						 Long recipientId,
+						 Long id,
+						 Long amountNQT,
+						 int frequency,
+						 int timeNext,
+						 NxtKey dbKey
+						 ) {
+		this.senderId = senderId;
+		this.recipientId = recipientId;
+		this.id = id;
+		this.dbKey = dbKey;
+		this.amountNQT = amountNQT;
+		this.frequency  = frequency;
+		this.timeNext = timeNext;
 	}
 
 	public Long getSenderId() {

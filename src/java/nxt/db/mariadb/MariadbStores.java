@@ -17,6 +17,7 @@ public class MariadbStores implements Stores {
     private final TradeStore tradeStore;
     private final VoteStore voteStore;
     private final TransactionProcessorStore transactionProcessorStore;
+    private final SubscriptionStore subscriptionStore;
 
     public MariadbStores() {
 
@@ -33,6 +34,7 @@ public class MariadbStores implements Stores {
         this.tradeStore = new MariadbTradeStore();
         this.voteStore = new MariadbVoteStore();
         this.transactionProcessorStore = new MariadbTransactionProcessorStore();
+        this.subscriptionStore = new MariadbSubscriptionStore();
     }
 
     @Override
@@ -123,5 +125,10 @@ public class MariadbStores implements Stores {
     @Override
     public TransactionProcessorStore getTransactionProcessorStore() {
         return transactionProcessorStore;
+    }
+
+    @Override
+    public SubscriptionStore getSubscriptionStore() {
+        return subscriptionStore;
     }
 }

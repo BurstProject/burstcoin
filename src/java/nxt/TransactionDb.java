@@ -17,5 +17,6 @@ public interface TransactionDb {
 
     List<TransactionImpl> findBlockTransactions(long blockId);
 
-    void saveTransactions(Connection con, List<TransactionImpl> transactions);
+    void saveTransactions(List<TransactionImpl> transactions);
+
 }

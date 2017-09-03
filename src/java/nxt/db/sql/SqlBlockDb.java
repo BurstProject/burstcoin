@@ -180,7 +180,7 @@ public abstract class SqlBlockDb implements BlockDb {
                 pstmt.setLong(++i, block.getNonce());
                 DbUtils.setBytes(pstmt, ++i, block.getBlockATs());
                 pstmt.executeUpdate();
-                Nxt.getDbs().getTransactionDb().saveTransactions(con, block.getTransactions());
+                Nxt.getDbs().getTransactionDb().saveTransactions( block.getTransactions());
             }
             if (block.getPreviousBlockId() != 0) {
                 try (PreparedStatement pstmt = con.prepareStatement("UPDATE block SET next_block_id = ? WHERE id = ?")) {
