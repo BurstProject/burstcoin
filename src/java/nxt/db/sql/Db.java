@@ -111,6 +111,7 @@ public final class Db {
             config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
             config.addDataSourceProperty("characterEncoding","utf8mb4");
             config.addDataSourceProperty("useUnicode","true");
+            config.setConnectionInitSql("SET NAMES utf8mb4;");
 
             cp = new HikariDataSource(config);
         } catch (Exception e) {
