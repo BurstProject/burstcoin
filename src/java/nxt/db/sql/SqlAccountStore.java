@@ -231,7 +231,7 @@ public abstract class SqlAccountStore implements AccountStore {
     }
 
     @Override
-    public DbIterator<Account.AccountAsset> getAssets(int from, int to, Long id) {
+    public NxtIterator<Account.AccountAsset> getAssets(int from, int to, Long id) {
         return accountAssetTable.getManyBy(new DbClause.LongClause("account_id", id), from, to);
     }
 

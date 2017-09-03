@@ -1,46 +1,24 @@
 package nxt;
 
-import nxt.db.sql.*;
+import nxt.db.EntityTable;
+import nxt.db.NxtIterator;
+import nxt.db.NxtKey;
 import nxt.util.Listener;
 import nxt.util.Listeners;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-public final class AssetTransfer {
+public class AssetTransfer {
 
     public static enum Event {
         ASSET_TRANSFER
     }
 
-    private static final Listeners<AssetTransfer,Event> listeners = new Listeners<>();
+    private static final Listeners<AssetTransfer, Event> listeners = new Listeners<>();
 
-    private static final DbKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = new DbKey.LongKeyFactory<AssetTransfer>("id") {
+    private static final NxtKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = Nxt.getStores().getAssetTransferStore().getTransferDbKeyFactory();
 
-        @Override
-        public DbKey newKey(AssetTransfer assetTransfer) {
-            return assetTransfer.dbKey;
-        }
+    private static final EntityTable<AssetTransfer> assetTransferTable = Nxt.getStores().getAssetTransferStore().getAssetTransferTable();
 
-    };
-
-    private static final EntitySqlTable<AssetTransfer> assetTransferTable = new EntitySqlTable<AssetTransfer>("asset_transfer", transferDbKeyFactory) {
-
-        @Override
-        protected AssetTransfer load(Connection con, ResultSet rs) throws SQLException {
-            return new AssetTransfer(rs);
-        }
-
-        @Override
-        protected void save(Connection con, AssetTransfer assetTransfer) throws SQLException {
-            assetTransfer.save(con);
-        }
-
-    };
-
-    public static DbIterator<AssetTransfer> getAllTransfers(int from, int to) {
+    public static NxtIterator<AssetTransfer> getAllTransfers(int from, int to) {
         return assetTransferTable.getAll(from, to);
     }
 
@@ -56,61 +34,20 @@ public final class AssetTransfer {
         return listeners.removeListener(listener, eventType);
     }
 
-    public static DbIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
-        return assetTransferTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
+    public static NxtIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
+        return Nxt.getStores().getAssetTransferStore().getAssetTransfers(assetId, from, to);
     }
 
-    public static DbIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
-        Connection con = null;
-        try {
-            con = Db.getConnection();
-            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM asset_transfer WHERE sender_id = ?"
-                    + " UNION ALL SELECT * FROM asset_transfer WHERE recipient_id = ? AND sender_id <> ? ORDER BY height DESC"
-                    + DbUtils.limitsClause(from, to));
-            int i = 0;
-            pstmt.setLong(++i, accountId);
-            pstmt.setLong(++i, accountId);
-            pstmt.setLong(++i, accountId);
-            DbUtils.setLimits(++i, pstmt, from, to);
-            return assetTransferTable.getManyBy(con, pstmt, false);
-        } catch (SQLException e) {
-            DbUtils.close(con);
-            throw new RuntimeException(e.toString(), e);
-        }
+    public static NxtIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
+        return Nxt.getStores().getAssetTransferStore().getAccountAssetTransfers(accountId, from, to);
     }
 
-    public static DbIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
-        Connection con = null;
-        try {
-            con = Db.getConnection();
-            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM asset_transfer WHERE sender_id = ? AND asset_id = ?"
-                    + " UNION ALL SELECT * FROM asset_transfer WHERE recipient_id = ? AND sender_id <> ? AND asset_id = ? ORDER BY height DESC"
-                    + DbUtils.limitsClause(from, to));
-            int i = 0;
-            pstmt.setLong(++i, accountId);
-            pstmt.setLong(++i, assetId);
-            pstmt.setLong(++i, accountId);
-            pstmt.setLong(++i, accountId);
-            pstmt.setLong(++i, assetId);
-            DbUtils.setLimits(++i, pstmt, from, to);
-            return assetTransferTable.getManyBy(con, pstmt, false);
-        } catch (SQLException e) {
-            DbUtils.close(con);
-            throw new RuntimeException(e.toString(), e);
-        }
+    public static NxtIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
+        return Nxt.getStores().getAssetTransferStore().getAccountAssetTransfers(accountId, assetId, from, to);
     }
 
     public static int getTransferCount(long assetId) {
-        try (Connection con = Db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM asset_transfer WHERE asset_id = ?")) {
-            pstmt.setLong(1, assetId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                rs.next();
-                return rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }
+        return Nxt.getStores().getAssetTransferStore().getTransferCount(assetId);
     }
 
     static AssetTransfer addAssetTransfer(Transaction transaction, Attachment.ColoredCoinsAssetTransfer attachment) {
@@ -120,11 +57,12 @@ public final class AssetTransfer {
         return assetTransfer;
     }
 
-    static void init() {}
+    static void init() {
+    }
 
 
     private final long id;
-    private final DbKey dbKey;
+    public final NxtKey dbKey;
     private final long assetId;
     private final int height;
     private final long senderId;
@@ -143,38 +81,25 @@ public final class AssetTransfer {
         this.timestamp = transaction.getBlockTimestamp();
     }
 
-    private AssetTransfer(ResultSet rs) throws SQLException {
-        this.id = rs.getLong("id");
-        this.dbKey = transferDbKeyFactory.newKey(this.id);
-        this.assetId = rs.getLong("asset_id");
-        this.senderId = rs.getLong("sender_id");
-        this.recipientId = rs.getLong("recipient_id");
-        this.quantityQNT = rs.getLong("quantity");
-        this.timestamp = rs.getInt("timestamp");
-        this.height = rs.getInt("height");
+    protected AssetTransfer(long id, NxtKey dbKey, long assetId, int height, long senderId, long recipientId, long quantityQNT, int timestamp) {
+        this.id = id;
+        this.dbKey = dbKey;
+        this.assetId = assetId;
+        this.height = height;
+        this.senderId = senderId;
+        this.recipientId = recipientId;
+        this.quantityQNT = quantityQNT;
+        this.timestamp = timestamp;
     }
 
-    private void save(Connection con) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO asset_transfer (id, asset_id, "
-                + "sender_id, recipient_id, quantity, timestamp, height) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-            int i = 0;
-            pstmt.setLong(++i, this.getId());
-            pstmt.setLong(++i, this.getAssetId());
-            pstmt.setLong(++i, this.getSenderId());
-            pstmt.setLong(++i, this.getRecipientId());
-            pstmt.setLong(++i, this.getQuantityQNT());
-            pstmt.setInt(++i, this.getTimestamp());
-            pstmt.setInt(++i, this.getHeight());
-            pstmt.executeUpdate();
-        }
-    }
 
     public long getId() {
         return id;
     }
 
-    public long getAssetId() { return assetId; }
+    public long getAssetId() {
+        return assetId;
+    }
 
     public long getSenderId() {
         return senderId;
@@ -184,7 +109,9 @@ public final class AssetTransfer {
         return recipientId;
     }
 
-    public long getQuantityQNT() { return quantityQNT; }
+    public long getQuantityQNT() {
+        return quantityQNT;
+    }
 
     public int getTimestamp() {
         return timestamp;

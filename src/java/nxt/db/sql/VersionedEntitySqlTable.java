@@ -1,6 +1,7 @@
 package nxt.db.sql;
 
 import nxt.Nxt;
+import nxt.db.NxtKey;
 import nxt.db.VersionedEntityTable;
 
 import java.sql.Connection;
@@ -10,10 +11,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> implements VersionedEntityTable<T>
-{
+public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> implements VersionedEntityTable<T> {
 
-    protected VersionedEntitySqlTable(String table, DbKey.Factory<T> dbKeyFactory) {
+    protected VersionedEntitySqlTable(String table, NxtKey.Factory<T> dbKeyFactory) {
         super(table, dbKeyFactory, true);
     }
 
@@ -30,10 +30,10 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
         if (!Db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
-        DbKey dbKey = dbKeyFactory.newKey(t);
+        DbKey dbKey = (DbKey) dbKeyFactory.newKey(t);
         try (Connection con = Db.getConnection();
              PreparedStatement pstmtCount = con.prepareStatement("SELECT COUNT(*) AS count FROM " + table + dbKeyFactory.getPKClause()
-                + " AND height < ?")) {
+                     + " AND height < ?")) {
             int i = dbKey.setPK(pstmtCount);
             pstmtCount.setInt(i, Nxt.getBlockchain().getHeight());
             try (ResultSet rs = pstmtCount.executeQuery()) {
@@ -82,7 +82,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
             List<DbKey> dbKeys = new ArrayList<>();
             try (ResultSet rs = pstmtSelectToDelete.executeQuery()) {
                 while (rs.next()) {
-                    dbKeys.add(dbKeyFactory.newKey(rs));
+                    dbKeys.add((DbKey) dbKeyFactory.newKey(rs));
                 }
             }
             pstmtDelete.setInt(1, height);
@@ -111,12 +111,12 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
                      + " AND height < ?");
              // logger.info( "DELETE PK columns: ", dbKeyFactory.getPKColumns() );
              PreparedStatement pstmtDeleteDeleted = con.prepareStatement("DELETE FROM " + table + " WHERE height < ? AND latest = FALSE "
-                    + " AND CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") NOT IN ( SELECT * FROM ( SELECT CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") FROM "
-                    + table + " WHERE height >= ?) ac0v )")) {
+                     + " AND CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") NOT IN ( SELECT * FROM ( SELECT CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") FROM "
+                     + table + " WHERE height >= ?) ac0v )")) {
             pstmtSelect.setInt(1, height);
             try (ResultSet rs = pstmtSelect.executeQuery()) {
                 while (rs.next()) {
-                    DbKey dbKey = dbKeyFactory.newKey(rs);
+                    DbKey dbKey = (DbKey) dbKeyFactory.newKey(rs);
                     int maxHeight = rs.getInt("max_height");
                     int i = 1;
                     i = dbKey.setPK(pstmtDelete, i);

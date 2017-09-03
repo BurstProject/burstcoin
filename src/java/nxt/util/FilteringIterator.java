@@ -1,6 +1,6 @@
-package nxt.db.sql;
+package nxt.util;
 
-import nxt.db.sql.DbIterator;
+import nxt.db.NxtIterator;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -11,7 +11,7 @@ public final class FilteringIterator<T> implements Iterator<T>, Iterable<T>, Aut
         boolean ok(T t);
     }
 
-    private final DbIterator<T> dbIterator;
+    private final NxtIterator<T> dbIterator;
     private final Filter<T> filter;
     private final int from;
     private final int to;
@@ -20,11 +20,11 @@ public final class FilteringIterator<T> implements Iterator<T>, Iterable<T>, Aut
     private boolean iterated;
     private int count;
 
-    public FilteringIterator(DbIterator<T> dbIterator, Filter<T> filter) {
+    public FilteringIterator(NxtIterator<T> dbIterator, Filter<T> filter) {
         this(dbIterator, filter, 0, Integer.MAX_VALUE);
     }
 
-    public FilteringIterator(DbIterator<T> dbIterator, int from, int to) {
+    public FilteringIterator(NxtIterator<T> dbIterator, int from, int to) {
         this(dbIterator, new Filter<T>() {
             @Override
             public boolean ok(T t) {
@@ -33,7 +33,7 @@ public final class FilteringIterator<T> implements Iterator<T>, Iterable<T>, Aut
         }, from, to);
     }
 
-    public FilteringIterator(DbIterator<T> dbIterator, Filter<T> filter, int from, int to) {
+    public FilteringIterator(NxtIterator<T> dbIterator, Filter<T> filter, int from, int to) {
         this.dbIterator = dbIterator;
         this.filter = filter;
         this.from = from;

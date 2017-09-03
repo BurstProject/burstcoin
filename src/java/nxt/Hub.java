@@ -1,13 +1,8 @@
 package nxt;
 
+import nxt.db.NxtKey;
 import nxt.db.VersionedEntityTable;
-import nxt.db.sql.DbKey;
-import nxt.db.sql.VersionedEntitySqlTable;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +32,7 @@ public class Hub {
 
     }
 
-    private static final DbKey.LongKeyFactory<Hub> hubDbKeyFactory = null;
+    private static final NxtKey.LongKeyFactory<Hub> hubDbKeyFactory = null;
 
     private static final VersionedEntityTable<Hub> hubTable = null;
 
@@ -86,7 +81,7 @@ public class Hub {
 
 
     private final long accountId;
-    private final DbKey dbKey;
+    private final NxtKey dbKey;
     private final long minFeePerByteNQT;
     private final List<String> uris;
 
@@ -96,25 +91,7 @@ public class Hub {
         this.minFeePerByteNQT = attachment.getMinFeePerByteNQT();
         this.uris = Collections.unmodifiableList(Arrays.asList(attachment.getUris()));
     }
-
-    private Hub(ResultSet rs) throws SQLException {
-        this.accountId = rs.getLong("account_id");
-        this.dbKey = hubDbKeyFactory.newKey(this.accountId);
-        this.minFeePerByteNQT = rs.getLong("min_fee_per_byte");
-        this.uris = Collections.unmodifiableList(Arrays.asList((String[])rs.getObject("uris")));
-    }
-
-    private void save(Connection con) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO hub (account_id, min_fee_per_byte, "
-                + "uris, height) VALUES (?, ?, ?, ?)")) {
-            int i = 0;
-            pstmt.setLong(++i, this.getAccountId());
-            pstmt.setLong(++i, this.getMinFeePerByteNQT());
-            pstmt.setObject(++i, this.getUris().toArray(new String[this.getUris().size()]));
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-            pstmt.executeUpdate();
-        }
-    }
+//
 
     public long getAccountId() {
         return accountId;

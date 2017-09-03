@@ -2,7 +2,7 @@ package nxt.http;
 
 import nxt.Alias;
 import nxt.NxtException;
-import nxt.db.sql.FilteringIterator;
+import nxt.util.FilteringIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -25,7 +25,7 @@ public final class GetAliases extends APIServlet.APIRequestHandler {
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray aliases = new JSONArray();
-        try (FilteringIterator<Alias> aliasIterator = new FilteringIterator<>(Alias.getAliasesByOwner(accountId, 0, -1),
+        try (FilteringIterator<Alias> aliasIterator = new FilteringIterator<Alias>(Alias.getAliasesByOwner(accountId, 0, -1),
                 new FilteringIterator.Filter<Alias>() {
                     @Override
                     public boolean ok(Alias alias) {

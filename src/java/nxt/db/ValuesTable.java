@@ -9,7 +9,7 @@ import java.util.List;
  */
 public interface ValuesTable<T, V> extends DerivedTable
 {
-    List<V> get(DbKey dbKey);
+    List<V> get(NxtKey dbKey);
 
     void insert(T t, List<V> values);
 

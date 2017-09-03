@@ -1,9 +1,6 @@
 package nxt.db;
 
 import nxt.db.sql.DbClause;
-import nxt.db.sql.DbIterator;
-import nxt.db.sql.DbKey;
-import nxt.db.sql.NxtKey;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -34,28 +31,28 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
     T getBy(DbClause dbClause, int height);
 
     @Override
-    DbIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort);
+    NxtIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort);
 
     @Override
-    DbIterator<T> getManyBy(DbClause dbClause, int height, int from, int to);
+    NxtIterator<T> getManyBy(DbClause dbClause, int height, int from, int to);
 
     @Override
-    DbIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort);
+    NxtIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort);
 
     @Override
-    DbIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache);
+    NxtIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache);
 
     @Override
-    DbIterator<T> getAll(int from, int to);
+    NxtIterator<T> getAll(int from, int to);
 
     @Override
-    DbIterator<T> getAll(int from, int to, String sort);
+    NxtIterator<T> getAll(int from, int to, String sort);
 
     @Override
-    DbIterator<T> getAll(int height, int from, int to);
+    NxtIterator<T> getAll(int height, int from, int to);
 
     @Override
-    DbIterator<T> getAll(int height, int from, int to, String sort);
+    NxtIterator<T> getAll(int height, int from, int to, String sort);
 
     @Override
     int getCount();

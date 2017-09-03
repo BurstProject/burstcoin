@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class DbIterator<T> implements NxtIterator<T>
+class DbIterator<T> implements NxtIterator<T>
 {
 
     private final Connection con;

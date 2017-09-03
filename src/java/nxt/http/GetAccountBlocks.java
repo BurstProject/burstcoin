@@ -4,7 +4,7 @@ import nxt.Account;
 import nxt.Block;
 import nxt.Nxt;
 import nxt.NxtException;
-import nxt.db.sql.DbIterator;
+import nxt.db.NxtIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -30,7 +30,7 @@ public final class GetAccountBlocks extends APIServlet.APIRequestHandler {
         boolean includeTransactions = "true".equalsIgnoreCase(req.getParameter("includeTransactions"));
 
         JSONArray blocks = new JSONArray();
-        try (DbIterator<? extends Block> iterator = Nxt.getBlockchain().getBlocks(account, timestamp, firstIndex, lastIndex)) {
+        try (NxtIterator<? extends Block> iterator = Nxt.getBlockchain().getBlocks(account, timestamp, firstIndex, lastIndex)) {
             while (iterator.hasNext()) {
                 Block block = iterator.next();
                 blocks.add(JSONData.block(block, includeTransactions));

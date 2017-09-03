@@ -5,7 +5,6 @@ import nxt.Asset;
 import nxt.NxtException;
 import nxt.Trade;
 import nxt.db.NxtIterator;
-import nxt.db.sql.DbIterator;
 import nxt.db.sql.DbUtils;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
