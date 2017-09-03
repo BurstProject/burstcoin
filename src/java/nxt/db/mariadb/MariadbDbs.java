@@ -2,6 +2,7 @@ package nxt.db.mariadb;
 
 import nxt.TransactionDb;
 import nxt.db.BlockDb;
+import nxt.db.PeerDb;
 import nxt.db.store.Dbs;
 
 /**
@@ -11,11 +12,14 @@ public class MariadbDbs implements Dbs {
 
     private final BlockDb blockDb;
     private final TransactionDb transactionDb;
+    private final PeerDb peerDb;
+
 
     public MariadbDbs() {
         MariadbDbVersion.init();
         this.blockDb = new MariadbBlockDB();
         this.transactionDb = new MariadbTransactionDb();
+        this.peerDb = new MariadbPeerDb();
     }
 
     @Override
@@ -26,5 +30,10 @@ public class MariadbDbs implements Dbs {
     @Override
     public TransactionDb getTransactionDb() {
         return transactionDb;
+    }
+
+    @Override
+    public PeerDb getPeerDb() {
+        return peerDb;
     }
 }
