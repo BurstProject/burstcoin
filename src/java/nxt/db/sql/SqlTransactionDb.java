@@ -159,7 +159,18 @@ public abstract class SqlTransactionDb implements TransactionDb {
         }
     }
 
-    @Override public void saveTransactions(Connection con, List<TransactionImpl> transactions) {
+    @Override
+    public void saveTransactions(List<TransactionImpl> transactions) {
+        try(Connection con = Db.getConnection())
+        {
+            saveTransactions(con, transactions);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public void saveTransactions(Connection con, List<TransactionImpl> transactions) {
         try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO transaction (id, deadline, sender_public_key, "
                 + "recipient_id, amount, fee, referenced_transaction_full_hash, height, "
                 + "block_id, signature, timestamp, type, subtype, sender_id, attachment_bytes, "

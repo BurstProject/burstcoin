@@ -73,12 +73,7 @@ public final class AT extends AT_Machine_State {
 
 				if(transactions.size() > 0) {
 					/** WATCH: Replace after transactions are converted! */
-					try (Connection con = Db.getConnection()) {
-						Nxt.getDbs().getTransactionDb().saveTransactions(con, transactions);
-					}
-					catch(SQLException e) {
-						throw new RuntimeException(e.toString(), e);
-					}
+					Nxt.getDbs().getTransactionDb().saveTransactions( transactions);
 				}
 
 			}

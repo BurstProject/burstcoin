@@ -29,6 +29,8 @@ public interface Stores {
 
     TransactionProcessorStore getTransactionProcessorStore();
 
+    SubscriptionStore getSubscriptionStore();
+
     void beginTransaction();
 
     void commitTransaction();

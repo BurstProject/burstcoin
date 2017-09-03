@@ -1,13 +1,11 @@
 package nxt.db.sql;
 
-import nxt.Block;
-import nxt.Escrow;
-import nxt.Nxt;
-import nxt.TransactionImpl;
+import nxt.*;
 import nxt.db.NxtIterator;
 import nxt.db.NxtKey;
 import nxt.db.VersionedEntityTable;
 import nxt.db.store.EscrowStore;
+import nxt.db.store.SubscriptionStore;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -148,7 +146,7 @@ public abstract class SqlEscrowStore implements EscrowStore {
             }
             if (resultTransactions.size() > 0) {
                 try (Connection con = Db.getConnection()) {
-                    Nxt.getDbs().getTransactionDb().saveTransactions(con, resultTransactions);
+                    Nxt.getDbs().getTransactionDb().saveTransactions( resultTransactions);
                 } catch (SQLException e) {
                     throw new RuntimeException(e.toString(), e);
                 }
