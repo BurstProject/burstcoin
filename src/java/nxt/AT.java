@@ -15,7 +15,6 @@ import nxt.at.AT_Machine_State;
 import nxt.at.AT_Transaction;
 import nxt.db.NxtKey;
 import nxt.db.VersionedEntityTable;
-import nxt.db.sql.Db;
 import nxt.util.Listener;
 
 import java.io.ByteArrayInputStream;
@@ -23,8 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
