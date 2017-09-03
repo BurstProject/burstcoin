@@ -1,5 +1,7 @@
 package nxt.db.sql;
 
+import nxt.db.NxtIterator;
+import nxt.db.NxtKey;
 import nxt.db.VersionedBatchEntityTable;
 
 import java.sql.Connection;
@@ -22,7 +24,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
         if(!Db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
-        DbKey dbKey = dbKeyFactory.newKey(t);
+        DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
         Db.getBatch(table).put(dbKey, null);
         Db.getCache(table).remove(dbKey);
 
@@ -44,7 +46,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
         if(!Db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
-        DbKey dbKey = dbKeyFactory.newKey(t);
+        DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
         Db.getBatch(table).put(dbKey, t);
         Db.getCache(table).put(dbKey, t);
     }
@@ -111,7 +113,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     }
 
     @Override
-    public DbIterator<T> getManyBy(DbClause dbClause, int from, int to) {
+    public NxtIterator<T> getManyBy(DbClause dbClause, int from, int to) {
         if(Db.isInTransaction()) {
             throw new IllegalStateException("Cannot use in batch table transaction");
         }
@@ -119,7 +121,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     }
 
     @Override
-    public DbIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort) {
+    public NxtIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort) {
         if(Db.isInTransaction()) {
             throw new IllegalStateException("Cannot use in batch table transaction");
         }
@@ -127,7 +129,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     }
 
     @Override
-    public DbIterator<T> getManyBy(DbClause dbClause, int height, int from, int to) {
+    public NxtIterator<T> getManyBy(DbClause dbClause, int height, int from, int to) {
         if(Db.isInTransaction()) {
             throw new IllegalStateException("Cannot use in batch table transaction");
         }
@@ -135,7 +137,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     }
 
     @Override
-    public DbIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort) {
+    public NxtIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort) {
         if(Db.isInTransaction()) {
             throw new IllegalStateException("Cannot use in batch table transaction");
         }
@@ -143,7 +145,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     }
 
     @Override
-    public DbIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache) {
+    public NxtIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache) {
         if(Db.isInTransaction()) {
             throw new IllegalStateException("Cannot use in batch table transaction");
         }
@@ -151,7 +153,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     }
 
     @Override
-    public DbIterator<T> getAll(int from, int to) {
+    public NxtIterator<T> getAll(int from, int to) {
         if(Db.isInTransaction()) {
             throw new IllegalStateException("Cannot use in batch table transaction");
         }
@@ -159,7 +161,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     }
 
     @Override
-    public DbIterator<T> getAll(int from, int to, String sort) {
+    public NxtIterator<T> getAll(int from, int to, String sort) {
         if(Db.isInTransaction()) {
             throw new IllegalStateException("Cannot use in batch table transaction");
         }
@@ -167,7 +169,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     }
 
     @Override
-    public DbIterator<T> getAll(int height, int from, int to) {
+    public NxtIterator<T> getAll(int height, int from, int to) {
         if(Db.isInTransaction()) {
             throw new IllegalStateException("Cannot use in batch table transaction");
         }
@@ -175,7 +177,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     }
 
     @Override
-    public DbIterator<T> getAll(int height, int from, int to, String sort) {
+    public NxtIterator<T> getAll(int height, int from, int to, String sort) {
         if(Db.isInTransaction()) {
             throw new IllegalStateException("Cannot use in batch table transaction");
         }

@@ -2,8 +2,8 @@ package nxt.http;
 
 import nxt.DigitalGoodsStore;
 import nxt.NxtException;
-import nxt.db.sql.DbIterator;
-import nxt.db.sql.FilteringIterator;
+import nxt.db.NxtIterator;
+import nxt.util.FilteringIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -47,7 +47,7 @@ public final class GetDGSPurchases extends APIServlet.APIRequestHandler {
             return response;
         }
 
-        DbIterator<DigitalGoodsStore.Purchase> purchases;
+        NxtIterator<DigitalGoodsStore.Purchase> purchases;
         if (sellerId != 0 && buyerId == 0) {
             purchases = DigitalGoodsStore.getSellerPurchases(sellerId, 0, -1);
         } else if (sellerId == 0) {

@@ -1,7 +1,6 @@
 package nxt;
 
 import nxt.db.NxtIterator;
-import nxt.db.sql.DbIterator;
 import nxt.util.Observable;
 import org.json.simple.JSONObject;
 

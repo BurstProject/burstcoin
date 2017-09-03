@@ -1,26 +1,24 @@
 package nxt;
 
-import nxt.db.sql.DbIterator;
-import nxt.db.sql.DbKey;
-import nxt.db.sql.EntitySqlTable;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
+import nxt.db.EntityTable;
+import nxt.db.NxtIterator;
+import nxt.db.NxtKey;
+
 import java.util.Map;
 
 public final class Poll {
 
-    private static final DbKey.LongKeyFactory<Poll> pollDbKeyFactory = null;
+    private static final NxtKey.LongKeyFactory<Poll> pollDbKeyFactory = null;
 
-    private static final EntitySqlTable<Poll> pollTable = null;
+    private static final EntityTable<Poll> pollTable = null;
 
     static void init() {}
 
 
     private final long id;
-    private final DbKey dbKey;
+    private final NxtKey dbKey;
     private final String name;
     private final String description;
     private final String[] options;
@@ -38,32 +36,7 @@ public final class Poll {
         this.optionsAreBinary = attachment.isOptionsAreBinary();
     }
 
-    private Poll(ResultSet rs) throws SQLException {
-        this.id = rs.getLong("id");
-        this.dbKey = pollDbKeyFactory.newKey(this.id);
-        this.name = rs.getString("name");
-        this.description = rs.getString("description");
-        this.options = (String[])rs.getArray("options").getArray();
-        this.minNumberOfOptions = rs.getByte("min_num_options");
-        this.maxNumberOfOptions = rs.getByte("max_num_options");
-        this.optionsAreBinary = rs.getBoolean("binary_options");
-    }
 
-    private void save(Connection con) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO poll (id, name, description, "
-                + "options, min_num_options, max_num_options, binary_options, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
-            int i = 0;
-            pstmt.setLong(++i, this.getId());
-            pstmt.setString(++i, this.getName());
-            pstmt.setString(++i, this.getDescription());
-            pstmt.setObject(++i, this.getOptions());
-            pstmt.setByte(++i, this.getMinNumberOfOptions());
-            pstmt.setByte(++i, this.getMaxNumberOfOptions());
-            pstmt.setBoolean(++i, this.isOptionsAreBinary());
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-            pstmt.executeUpdate();
-        }
-    }
 
     static void addPoll(Transaction transaction, Attachment.MessagingPollCreation attachment) {
         pollTable.insert(new Poll(transaction.getId(), attachment));
@@ -73,7 +46,7 @@ public final class Poll {
         return pollTable.get(pollDbKeyFactory.newKey(id));
     }
 
-    public static DbIterator<Poll> getAllPolls(int from, int to) {
+    public static NxtIterator<Poll> getAllPolls(int from, int to) {
         return pollTable.getAll(from, to);
     }
 

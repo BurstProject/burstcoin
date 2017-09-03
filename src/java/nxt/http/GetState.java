@@ -2,7 +2,6 @@ package nxt.http;
 
 import nxt.*;
 import nxt.db.NxtIterator;
-import nxt.db.sql.DbIterator;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
 import org.json.simple.JSONObject;
@@ -39,7 +38,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
                 }
             }
         }
-        try(DbIterator<Escrow> escrows = Escrow.getAllEscrowTransactions()) {
+        try(NxtIterator<Escrow> escrows = Escrow.getAllEscrowTransactions()) {
         	for(Escrow escrow : escrows) {
         		totalEffectiveBalance += escrow.getAmountNQT();
         	}

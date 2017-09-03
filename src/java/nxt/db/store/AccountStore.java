@@ -4,8 +4,7 @@ import nxt.Account;
 import nxt.db.NxtIterator;
 import nxt.db.VersionedBatchEntityTable;
 import nxt.db.VersionedEntityTable;
-import nxt.db.sql.DbKey;
-import nxt.db.sql.NxtKey;
+import nxt.db.NxtKey;
 
 /**
  * Interface for Database operations related to Accounts

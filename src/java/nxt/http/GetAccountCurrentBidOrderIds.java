@@ -1,7 +1,7 @@
 package nxt.http;
 
 import nxt.Order;
-import nxt.db.sql.DbIterator;
+import nxt.db.NxtIterator;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -30,7 +30,7 @@ public final class GetAccountCurrentBidOrderIds extends APIServlet.APIRequestHan
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
 
-        DbIterator<Order.Bid> bidOrders;
+        NxtIterator<Order.Bid> bidOrders;
         if (assetId == 0) {
             bidOrders = Order.Bid.getBidOrdersByAccount(accountId, firstIndex, lastIndex);
         } else {
