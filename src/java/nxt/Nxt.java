@@ -219,7 +219,7 @@ public final class Nxt {
                 if (dbUrl != null && dbUrl.trim().startsWith("jdbc:mariadb")) {
                     logger.info("Using mariadb Backend");
                     Db.init();
-                    // Moved to constructor of MariadbDbs
+                    // Moved to constructor of H2Dbs
                     //                    DbVersion.init();
                     dbs = new MariadbDbs();
                     stores = new MariadbStores();
