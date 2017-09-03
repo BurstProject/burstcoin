@@ -27,4 +27,8 @@ public interface ATStore {
     NxtKey.LongKeyFactory<AT.ATState> getAtStateDbKeyFactory();
 
     VersionedEntityTable<AT.ATState> getAtStateTable();
+
+    Long findTransaction(int startHeight, int endHeight, Long atID, int numOfTx, long minAmount);
+
+    int findTransactionHeight(Long transactionId, int height, Long atID, long minAmount);
 }

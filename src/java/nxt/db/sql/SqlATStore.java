@@ -256,6 +256,59 @@ public abstract class SqlATStore implements ATStore {
         return ats;
     }
 
+    @Override
+    public Long findTransaction(int startHeight, int endHeight, Long atID, int numOfTx, long minAmount) {
+        try (Connection con = Db.getConnection();
+             PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
+                     + "WHERE height>= ? AND height < ? and recipient_id = ? AND amount >= ? "
+                     + "ORDER BY height, id "
+                     + "LIMIT 1 OFFSET ?")) {
+            pstmt.setInt(1, startHeight);
+            pstmt.setInt(2, endHeight);
+            pstmt.setLong(3, atID);
+            pstmt.setLong(4, minAmount);
+            pstmt.setInt(5, numOfTx);
+            ResultSet rs = pstmt.executeQuery();
+            Long transactionId = 0L;
+            if (rs.next()) {
+                transactionId = rs.getLong("id");
+            }
+            rs.close();
+            return transactionId;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }
+
+    }
+
+    @Override
+    public int findTransactionHeight(Long transactionId, int height, Long atID, long minAmount) {
+        try (Connection con = Db.getConnection();
+             PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
+                     + "WHERE height= ? and recipient_id = ? AND amount >= ? "
+                     + "ORDER BY height, id")) {
+            pstmt.setInt(1, height);
+            pstmt.setLong(2, atID);
+            pstmt.setLong(3, minAmount);
+            ResultSet rs = pstmt.executeQuery();
+
+            int counter = 0;
+            while (rs.next()) {
+                if (rs.getLong("id") == transactionId) {
+                    counter++;
+                    break;
+                }
+                counter++;
+            }
+            rs.close();
+            return counter;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+
     protected class SqlATState extends AT.ATState {
         private SqlATState(ResultSet rs) throws SQLException {
             super(
