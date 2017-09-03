@@ -33,41 +33,24 @@ public abstract class SqlAccountStore implements AccountStore {
         }
     };
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SqlAccountStore.class);
-    private static final DbKey.LinkKeyFactory<Account.AccountAsset> accountAssetDbKeyFactory = new DbKey.LinkKeyFactory<Account.AccountAsset>("account_id", "asset_id") {
+    protected static final DbKey.LinkKeyFactory<Account.AccountAsset> accountAssetDbKeyFactory = new DbKey.LinkKeyFactory<Account.AccountAsset>("account_id", "asset_id") {
         @Override
         public DbKey newKey(Account.AccountAsset accountAsset) {
             return (DbKey) accountAsset.nxtKey;
         }
 
     };
-    private static final VersionedEntityTable<Account.AccountAsset> accountAssetTable = new VersionedEntitySqlTable<Account.AccountAsset>("account_asset", accountAssetDbKeyFactory) {
 
-        @Override
-        protected Account.AccountAsset load(Connection con, ResultSet rs) throws SQLException {
-            return new SQLAccountAsset(rs);
-        }
-
-        @Override
-        protected void save(Connection con, Account.AccountAsset accountAsset) throws SQLException {
-            try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO account_asset "
-                    + "(account_id, asset_id, quantity, unconfirmed_quantity, height, latest) "
-                    + "VALUES (?, ?, ?, ?, ?, TRUE)")) {
-                int i = 0;
-                pstmt.setLong(++i, accountAsset.accountId);
-                pstmt.setLong(++i, accountAsset.assetId);
-                pstmt.setLong(++i, accountAsset.quantityQNT);
-                pstmt.setLong(++i, accountAsset.unconfirmedQuantityQNT);
-                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-                pstmt.executeUpdate();
+    private static DbClause getAccountsWithRewardRecipientClause(final long id, final int height) {
+        return new DbClause(" recip_id = ? AND from_height <= ? ") {
+            @Override
+            public int set(PreparedStatement pstmt, int index) throws SQLException {
+                pstmt.setLong(index++, id);
+                pstmt.setInt(index++, height);
+                return index;
             }
-        }
-
-        @Override
-        protected String defaultSort() {
-            return " ORDER BY quantity DESC, account_id, asset_id ";
-        }
-
-    };
+        };
+    }
 
     protected void doAccountBatch(PreparedStatement pstmt, Account account) throws SQLException {
         int i = 0;
@@ -85,59 +68,10 @@ public abstract class SqlAccountStore implements AccountStore {
     }
 
     @Override
-    public VersionedBatchEntityTable<Account> getAccountTable() {
-
-
-        return new VersionedBatchEntitySqlTable<Account>("account", accountDbKeyFactory) {
-            @Override
-            protected Account load(Connection con, ResultSet rs) throws SQLException {
-                return new SqlAccount(rs);
-            }
-
-        /*@Override
-        protected void save(Connection con, Account account) throws SQLException {
-            account.save(con);
-        }*/
-
-            @Override
-            protected String updateQuery() {
-                return "REPLACE INTO account (id, creation_height, public_key, key_height, balance, unconfirmed_balance, " +
-                        "forged_balance, name, description, height, latest) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)";
-            }
-
-            @Override
-            protected void batch(PreparedStatement pstmt, Account account) throws SQLException {
-                doAccountBatch(pstmt, account);
-            }
-
-        };
-    }
+    public abstract VersionedBatchEntityTable<Account> getAccountTable();
 
     @Override
-    public VersionedEntityTable<Account.RewardRecipientAssignment> getRewardRecipientAssignmentTable() {
-        return new VersionedEntitySqlTable<Account.RewardRecipientAssignment>("reward_recip_assign", rewardRecipientAssignmentDbKeyFactory) {
-
-            @Override
-            protected Account.RewardRecipientAssignment load(Connection con, ResultSet rs) throws SQLException {
-                return new SqlRewardRecipientAssignment(rs);
-            }
-
-            @Override
-            protected void save(Connection con, Account.RewardRecipientAssignment assignment) throws SQLException {
-                try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO reward_recip_assign "
-                        + "(account_id, prev_recip_id, recip_id, from_height, height, latest) VALUES (?, ?, ?, ?, ?, TRUE)")) {
-                    int i = 0;
-                    pstmt.setLong(++i, assignment.accountId);
-                    pstmt.setLong(++i, assignment.prevRecipientId);
-                    pstmt.setLong(++i, assignment.recipientId);
-                    pstmt.setInt(++i, assignment.fromHeight);
-                    pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-                    pstmt.executeUpdate();
-                }
-            }
-        };
-    }
+    public abstract VersionedEntityTable<Account.RewardRecipientAssignment> getRewardRecipientAssignmentTable();
 
     @Override
     public DbKey.LongKeyFactory<Account.RewardRecipientAssignment> getRewardRecipientAssignmentKeyFactory() {
@@ -150,50 +84,7 @@ public abstract class SqlAccountStore implements AccountStore {
     }
 
     @Override
-    public VersionedEntityTable<Account.AccountAsset> getAccountAssetTable() {
-        return accountAssetTable;
-    }
-
-    private static class SQLAccountAsset extends Account.AccountAsset {
-        public SQLAccountAsset(ResultSet rs) throws SQLException {
-            super(rs.getLong("account_id"),
-                    rs.getLong("asset_id"),
-                    rs.getLong("quantity"),
-                    rs.getLong("unconfirmed_quantity"),
-                    accountAssetDbKeyFactory.newKey(rs.getLong("account_id"), rs.getLong("asset_id"))
-            );
-        }
-    }
-
-    protected class SqlAccount extends Account {
-        SqlAccount(Long id) {
-            super(id);
-        }
-
-        SqlAccount(ResultSet rs) throws SQLException {
-            super(rs.getLong("id"), accountDbKeyFactory.newKey(rs.getLong("id")),
-                    rs.getInt("creation_height"));
-            this.publicKey = rs.getBytes("public_key");
-            this.keyHeight = rs.getInt("key_height");
-            this.balanceNQT = rs.getLong("balance");
-            this.unconfirmedBalanceNQT = rs.getLong("unconfirmed_balance");
-            this.forgedBalanceNQT = rs.getLong("forged_balance");
-            this.name = rs.getString("name");
-            this.description = rs.getString("description");
-        }
-    }
-
-    protected class SqlRewardRecipientAssignment extends Account.RewardRecipientAssignment {
-        protected SqlRewardRecipientAssignment(ResultSet rs) throws SQLException {
-            super(
-                    rs.getLong("account_id"),
-                    rs.getLong("prev_recip_id"),
-                    rs.getLong("recip_id"),
-                    (int) rs.getLong("from_height"),
-                    rewardRecipientAssignmentDbKeyFactory.newKey(rs.getLong("account_id"))
-            );
-        }
-    }
+    public abstract VersionedEntityTable<Account.AccountAsset> getAccountAssetTable();
 
     @Override
     public int getAssetAccountsCount(long assetId) {
@@ -214,17 +105,6 @@ public abstract class SqlAccountStore implements AccountStore {
         return accountDbKeyFactory;
     }
 
-    private static DbClause getAccountsWithRewardRecipientClause(final long id, final int height) {
-        return new DbClause(" recip_id = ? AND from_height <= ? ") {
-            @Override
-            public int set(PreparedStatement pstmt, int index) throws SQLException {
-                pstmt.setLong(index++, id);
-                pstmt.setInt(index++, height);
-                return index;
-            }
-        };
-    }
-
     @Override
     public NxtIterator<Account.RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
         return getRewardRecipientAssignmentTable().getManyBy(getAccountsWithRewardRecipientClause(recipientId, Nxt.getBlockchain().getHeight() + 1), 0, -1);
@@ -232,12 +112,12 @@ public abstract class SqlAccountStore implements AccountStore {
 
     @Override
     public NxtIterator<Account.AccountAsset> getAssets(int from, int to, Long id) {
-        return accountAssetTable.getManyBy(new DbClause.LongClause("account_id", id), from, to);
+        return getAccountAssetTable().getManyBy(new DbClause.LongClause("account_id", id), from, to);
     }
 
     @Override
     public NxtIterator<Account.AccountAsset> getAssetAccounts(long assetId, int from, int to) {
-        return accountAssetTable.getManyBy(new DbClause.LongClause("asset_id", assetId),
+        return getAccountAssetTable().getManyBy(new DbClause.LongClause("asset_id", assetId),
                 from, to, " ORDER BY quantity DESC, account_id ");
     }
 
@@ -246,10 +126,11 @@ public abstract class SqlAccountStore implements AccountStore {
         if (height < 0) {
             return getAssetAccounts(assetId, from, to);
         }
-        return accountAssetTable.getManyBy(new DbClause.LongClause("asset_id", assetId),
+        return getAccountAssetTable().getManyBy(new DbClause.LongClause("asset_id", assetId),
                 height, from, to, " ORDER BY quantity DESC, account_id ");
     }
-@Override
+
+    @Override
     public boolean setOrVerify(Account acc, byte[] key, int height) {
         if (acc.publicKey == null) {
             if (Db.isInTransaction()) {
@@ -280,6 +161,47 @@ public abstract class SqlAccountStore implements AccountStore {
         logger.info("Invalid key for account " + Convert.toUnsignedLong(acc.id) + " at height " + height
                 + ", was already set to a different one at height " + acc.keyHeight);
         return false;
+    }
+
+    protected static class SQLAccountAsset extends Account.AccountAsset {
+        public SQLAccountAsset(ResultSet rs) throws SQLException {
+            super(rs.getLong("account_id"),
+                    rs.getLong("asset_id"),
+                    rs.getLong("quantity"),
+                    rs.getLong("unconfirmed_quantity"),
+                    accountAssetDbKeyFactory.newKey(rs.getLong("account_id"), rs.getLong("asset_id"))
+            );
+        }
+    }
+
+    protected class SqlAccount extends Account {
+        SqlAccount(Long id) {
+            super(id);
+        }
+
+        public SqlAccount(ResultSet rs) throws SQLException {
+            super(rs.getLong("id"), accountDbKeyFactory.newKey(rs.getLong("id")),
+                    rs.getInt("creation_height"));
+            this.publicKey = rs.getBytes("public_key");
+            this.keyHeight = rs.getInt("key_height");
+            this.balanceNQT = rs.getLong("balance");
+            this.unconfirmedBalanceNQT = rs.getLong("unconfirmed_balance");
+            this.forgedBalanceNQT = rs.getLong("forged_balance");
+            this.name = rs.getString("name");
+            this.description = rs.getString("description");
+        }
+    }
+
+    protected class SqlRewardRecipientAssignment extends Account.RewardRecipientAssignment {
+        public SqlRewardRecipientAssignment(ResultSet rs) throws SQLException {
+            super(
+                    rs.getLong("account_id"),
+                    rs.getLong("prev_recip_id"),
+                    rs.getLong("recip_id"),
+                    (int) rs.getLong("from_height"),
+                    rewardRecipientAssignmentDbKeyFactory.newKey(rs.getLong("account_id"))
+            );
+        }
     }
 
 

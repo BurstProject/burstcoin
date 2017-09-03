@@ -66,24 +66,7 @@ public abstract class SqlATStore implements ATStore {
         }
     };
 
-    protected void saveATState(Connection con, AT.ATState atState) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO at_state (at_id, "
-                + "state, prev_height ,next_height, sleep_between, prev_balance, freeze_when_same_balance, min_activate_amount, height, latest) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
-            int i = 0;
-            pstmt.setLong(++i, atState.getATId());
-            //DbUtils.setBytes(pstmt, ++i, state);
-            DbUtils.setBytes(pstmt, ++i, AT.compressState(atState.getState()));
-            pstmt.setInt(++i, atState.getPrevHeight());
-            pstmt.setInt(++i, atState.getNextHeight());
-            pstmt.setInt(++i, atState.getSleepBetween());
-            pstmt.setLong(++i, atState.getPrevBalance());
-            pstmt.setBoolean(++i, atState.getFreezeWhenSameBalance());
-            pstmt.setLong(++i, atState.getMinActivationAmount());
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-            pstmt.executeUpdate();
-        }
-    }
+    protected abstract void saveATState(Connection con, AT.ATState atState) throws SQLException;
 
     protected void saveAT(Connection con, AT at) {
         try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO at "

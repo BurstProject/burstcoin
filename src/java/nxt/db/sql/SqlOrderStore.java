@@ -118,20 +118,7 @@ public abstract class SqlOrderStore implements OrderStore {
         return askOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
     }
 
-    private void saveOrder(Connection con, String table, Order order) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO " + table + " (id, account_id, asset_id, "
-                + "price, quantity, creation_height, height, latest) VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)")) {
-            int i = 0;
-            pstmt.setLong(++i, order.getId());
-            pstmt.setLong(++i, order.getAccountId());
-            pstmt.setLong(++i, order.getAssetId());
-            pstmt.setLong(++i, order.getPriceNQT());
-            pstmt.setLong(++i, order.getQuantityQNT());
-            pstmt.setInt(++i, order.getHeight());
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-            pstmt.executeUpdate();
-        }
-    }
+    protected abstract void saveOrder(Connection con, String table, Order order) throws SQLException;
 
     private void saveAsk(Connection con, String table, Order.Ask ask) throws SQLException {
         saveOrder(con, table, ask);
