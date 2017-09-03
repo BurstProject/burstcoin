@@ -27,6 +27,8 @@ public interface Stores {
 
     VoteStore getVoteStore();
 
+    TransactionProcessorStore getTransactionProcessorStore();
+
     void beginTransaction();
 
     void commitTransaction();
@@ -35,4 +37,5 @@ public interface Stores {
     
     void endTransaction();
 
+    boolean isInTransaction();
 }
