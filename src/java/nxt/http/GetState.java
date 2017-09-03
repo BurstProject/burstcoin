@@ -2,7 +2,6 @@ package nxt.http;
 
 import nxt.*;
 import nxt.db.NxtIterator;
-import nxt.db.sql.DbIterator;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
 import org.json.simple.JSONObject;

@@ -1,6 +1,7 @@
 package nxt.db.sql;
 
 import nxt.Trade;
+import nxt.db.NxtIterator;
 import nxt.db.NxtKey;
 import nxt.db.store.TradeStore;
 
@@ -34,17 +35,17 @@ public abstract class SqlTradeStore implements TradeStore {
     };
 
     @Override
-    public DbIterator<Trade> getAllTrades(int from, int to) {
+    public NxtIterator<Trade> getAllTrades(int from, int to) {
         return tradeTable.getAll(from, to);
     }
 
     @Override
-    public DbIterator<Trade> getAssetTrades(long assetId, int from, int to) {
+    public NxtIterator<Trade> getAssetTrades(long assetId, int from, int to) {
         return tradeTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
     }
 
     @Override
-    public DbIterator<Trade> getAccountTrades(long accountId, int from, int to) {
+    public NxtIterator<Trade> getAccountTrades(long accountId, int from, int to) {
         Connection con = null;
         try {
             con = Db.getConnection();
@@ -64,7 +65,7 @@ public abstract class SqlTradeStore implements TradeStore {
     }
 
     @Override
-    public DbIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
+    public NxtIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
         Connection con = null;
         try {
             con = Db.getConnection();

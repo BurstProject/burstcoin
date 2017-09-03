@@ -113,7 +113,7 @@ public abstract class SqlEscrowStore implements EscrowStore {
     @Override
     public Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId) {
         List<Escrow> filtered = new ArrayList<>();
-        DbIterator<Escrow.Decision> it = decisionTable.getManyBy(new DbClause.LongClause("account_id", accountId), 0, -1);
+        NxtIterator<Escrow.Decision> it = decisionTable.getManyBy(new DbClause.LongClause("account_id", accountId), 0, -1);
         while (it.hasNext()) {
             Escrow.Decision decision = it.next();
             Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(decision.escrowId));
@@ -128,7 +128,7 @@ public abstract class SqlEscrowStore implements EscrowStore {
     public void updateOnBlock(Block block) {
         resultTransactions.clear();
 
-        DbIterator<Escrow> deadlineEscrows = escrowTable.getManyBy(getUpdateOnBlockClause(block.getTimestamp()), 0, -1);
+        NxtIterator<Escrow> deadlineEscrows = escrowTable.getManyBy(getUpdateOnBlockClause(block.getTimestamp()), 0, -1);
         for (Escrow escrow : deadlineEscrows) {
             updatedEscrowIds.add(escrow.getId());
         }
