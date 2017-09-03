@@ -84,7 +84,7 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
     }
 
     @Override
-    public DbIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
+    public NxtIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
         Connection con = null;
         try {
             con = Db.getConnection();

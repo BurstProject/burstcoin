@@ -71,7 +71,7 @@ public abstract class SqlOrderStore implements OrderStore {
     }
 
     @Override
-    public DbIterator<Order.Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
+    public NxtIterator<Order.Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
         DbClause dbClause = new DbClause(" account_id = ? AND asset_id = ? ") {
             @Override
             public int set(PreparedStatement pstmt, int index) throws SQLException {
@@ -84,7 +84,7 @@ public abstract class SqlOrderStore implements OrderStore {
     }
 
     @Override
-    public DbIterator<Order.Ask> getSortedAsks(long assetId, int from, int to) {
+    public NxtIterator<Order.Ask> getSortedAsks(long assetId, int from, int to) {
         return askOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to,
                 " ORDER BY price ASC, creation_height ASC, id ASC ");
     }
@@ -95,7 +95,7 @@ public abstract class SqlOrderStore implements OrderStore {
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM ask_order WHERE asset_id = ? "
                      + "AND latest = TRUE ORDER BY price ASC, creation_height ASC, id ASC LIMIT 1")) {
             pstmt.setLong(1, assetId);
-            try (DbIterator<Order.Ask> askOrders = askOrderTable.getManyBy(con, pstmt, true)) {
+            try (NxtIterator<Order.Ask> askOrders = askOrderTable.getManyBy(con, pstmt, true)) {
                 return askOrders.hasNext() ? askOrders.next() : null;
             }
         } catch (SQLException e) {
@@ -104,17 +104,17 @@ public abstract class SqlOrderStore implements OrderStore {
     }
 
     @Override
-    public DbIterator<Order.Ask> getAll(int from, int to) {
+    public NxtIterator<Order.Ask> getAll(int from, int to) {
         return askOrderTable.getAll(from, to);
     }
 
     @Override
-    public DbIterator<Order.Ask> getAskOrdersByAccount(long accountId, int from, int to) {
+    public NxtIterator<Order.Ask> getAskOrdersByAccount(long accountId, int from, int to) {
         return askOrderTable.getManyBy(new DbClause.LongClause("account_id", accountId), from, to);
     }
 
     @Override
-    public DbIterator<Order.Ask> getAskOrdersByAsset(long assetId, int from, int to) {
+    public NxtIterator<Order.Ask> getAskOrdersByAsset(long assetId, int from, int to) {
         return askOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
     }
 
@@ -158,12 +158,12 @@ public abstract class SqlOrderStore implements OrderStore {
     }
 
     @Override
-    public DbIterator<Order.Bid> getBidOrdersByAsset(long assetId, int from, int to) {
+    public NxtIterator<Order.Bid> getBidOrdersByAsset(long assetId, int from, int to) {
         return bidOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
     }
 
     @Override
-    public DbIterator<Order.Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
+    public NxtIterator<Order.Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
         DbClause dbClause = new DbClause(" account_id = ? AND asset_id = ? ") {
             @Override
             public int set(PreparedStatement pstmt, int index) throws SQLException {
@@ -188,7 +188,7 @@ public abstract class SqlOrderStore implements OrderStore {
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM bid_order WHERE asset_id = ? "
                      + "AND latest = TRUE ORDER BY price DESC, creation_height ASC, id ASC LIMIT 1")) {
             pstmt.setLong(1, assetId);
-            try (DbIterator<Order.Bid> bidOrders = bidOrderTable.getManyBy(con, pstmt, true)) {
+            try (NxtIterator<Order.Bid> bidOrders = bidOrderTable.getManyBy(con, pstmt, true)) {
                 return bidOrders.hasNext() ? bidOrders.next() : null;
             }
         } catch (SQLException e) {

@@ -131,7 +131,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
     };
 
     @Override
-    public DbIterator<DigitalGoodsStore.Purchase> getExpiredPendingPurchases(final int timestamp) {
+    public NxtIterator<DigitalGoodsStore.Purchase> getExpiredPendingPurchases(final int timestamp) {
         DbClause dbClause = new DbClause(" deadline < ? AND pending = TRUE ") {
             @Override
             public int set(PreparedStatement pstmt, int index) throws SQLException {

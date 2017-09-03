@@ -3,7 +3,6 @@ package nxt.peer;
 import nxt.Nxt;
 import nxt.Transaction;
 import nxt.db.NxtIterator;
-import nxt.db.sql.DbIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

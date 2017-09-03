@@ -1,6 +1,7 @@
 package nxt;
 
 import nxt.NxtException.NotValidException;
+import nxt.db.NxtIterator;
 import nxt.db.VersionedEntityTable;
 import nxt.db.sql.*;
 import nxt.util.Convert;
@@ -61,7 +62,7 @@ public class Subscription {
 		return Constants.ONE_NXT;
 	}
 
-	public static DbIterator<Subscription> getAllSubscriptions() {
+	public static NxtIterator<Subscription> getAllSubscriptions() {
 		return subscriptionTable.getAll(0, -1);
 	}
 
@@ -76,15 +77,15 @@ public class Subscription {
 		};
 	}
 
-	public static DbIterator<Subscription> getSubscriptionsByParticipant(Long accountId) {
+	public static NxtIterator<Subscription> getSubscriptionsByParticipant(Long accountId) {
 		return subscriptionTable.getManyBy(getByParticipantClause(accountId), 0, -1);
 	}
 
-	public static DbIterator<Subscription> getIdSubscriptions(Long accountId) {
+	public static NxtIterator<Subscription> getIdSubscriptions(Long accountId) {
 		return subscriptionTable.getManyBy(new DbClause.LongClause("sender_id", accountId), 0, -1);
 	}
 
-	public static DbIterator<Subscription> getSubscriptionsToId(Long accountId) {
+	public static NxtIterator<Subscription> getSubscriptionsToId(Long accountId) {
 		return subscriptionTable.getManyBy(new DbClause.LongClause("recipient_id", accountId), 0, -1);
 	}
 
@@ -128,7 +129,7 @@ public class Subscription {
 	@SuppressWarnings("static-access")
 	public static long calculateFees(int timestamp) {
 		long totalFeeNQT = 0;
-		DbIterator<Subscription> updateSubscriptions = subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
+		NxtIterator<Subscription> updateSubscriptions = subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
 		List<Subscription> appliedSubscriptions = new ArrayList<>();
 		for(Subscription subscription : updateSubscriptions) {
 			if(removeSubscriptions.contains(subscription.getId())) {
@@ -159,7 +160,7 @@ public class Subscription {
 	public static long applyUnconfirmed(int timestamp) {
 		appliedSubscriptions.clear();
 		long totalFees = 0;
-		DbIterator<Subscription> updateSubscriptions = subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
+		NxtIterator<Subscription> updateSubscriptions = subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
 		for(Subscription subscription : updateSubscriptions) {
 			if(removeSubscriptions.contains(subscription.getId())) {
 				continue;

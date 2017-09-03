@@ -5,6 +5,7 @@ import nxt.Poll;
 import nxt.Transaction;
 import nxt.Vote;
 import nxt.db.EntityTable;
+import nxt.db.NxtIterator;
 import nxt.db.store.VoteStore;
 
 import java.util.HashMap;
@@ -17,7 +18,7 @@ public abstract class SqlVoteStore implements VoteStore {
     @Override
     public Map<Long, Long> getVoters(Poll poll) {
         Map<Long, Long> map = new HashMap<>();
-        try (DbIterator<Vote> voteIterator = voteTable.getManyBy(new DbClause.LongClause("poll_id", poll.getId()), 0, -1)) {
+        try (NxtIterator<Vote> voteIterator = voteTable.getManyBy(new DbClause.LongClause("poll_id", poll.getId()), 0, -1)) {
             while (voteIterator.hasNext()) {
                 Vote vote = voteIterator.next();
                 map.put(vote.getVoterId(), vote.getId());

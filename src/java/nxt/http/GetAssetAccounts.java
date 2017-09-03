@@ -4,7 +4,6 @@ import nxt.Account;
 import nxt.Asset;
 import nxt.NxtException;
 import nxt.db.NxtIterator;
-import nxt.db.sql.DbIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
