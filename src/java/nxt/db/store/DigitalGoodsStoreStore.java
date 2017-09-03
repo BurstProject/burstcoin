@@ -6,7 +6,7 @@ import nxt.db.NxtIterator;
 import nxt.db.NxtKey;
 import nxt.db.VersionedEntityTable;
 import nxt.db.VersionedValuesTable;
-import nxt.db.sql.DbKey;
+
 
 public interface DigitalGoodsStoreStore {
 
@@ -18,7 +18,7 @@ public interface DigitalGoodsStoreStore {
 
     VersionedValuesTable<DigitalGoodsStore.Purchase, EncryptedData> getFeedbackTable();
 
-    DbKey.LongKeyFactory<DigitalGoodsStore.Purchase> getPublicFeedbackDbKeyFactory();
+    NxtKey.LongKeyFactory<DigitalGoodsStore.Purchase> getPublicFeedbackDbKeyFactory();
 
     VersionedValuesTable<DigitalGoodsStore.Purchase, String> getPublicFeedbackTable();
 

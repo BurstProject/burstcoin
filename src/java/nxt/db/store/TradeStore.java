@@ -3,7 +3,6 @@ package nxt.db.store;
 import nxt.Trade;
 import nxt.db.NxtIterator;
 import nxt.db.NxtKey;
-import nxt.db.sql.DbKey;
 import nxt.db.sql.EntitySqlTable;
 
 public interface TradeStore {
