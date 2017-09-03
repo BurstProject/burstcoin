@@ -313,7 +313,7 @@ public final class TransactionImpl implements Transaction {
         return height;
     }
 
-    void setHeight(int height) {
+    public void setHeight(int height) {
         this.height = height;
     }
 
@@ -436,7 +436,7 @@ public final class TransactionImpl implements Transaction {
         return senderId;
     }
 
-    NxtKey getDbKey() {
+    public NxtKey getDbKey() {
         if (dbKey == null) {
             dbKey = TransactionProcessorImpl.getInstance().unconfirmedTransactionDbKeyFactory.newKey(getId());
         }
@@ -512,7 +512,7 @@ public final class TransactionImpl implements Transaction {
         }
     }
 
-    static TransactionImpl parseTransaction(byte[] bytes) throws NxtException.ValidationException {
+    public static TransactionImpl parseTransaction(byte[] bytes) throws NxtException.ValidationException {
         try {
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
             buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -722,7 +722,7 @@ public final class TransactionImpl implements Transaction {
         return Crypto.verify(signature, data, senderPublicKey, useNQT());
     }
 
-    int getSize() {
+    public int getSize() {
         return signatureOffset() + 64  + (version > 0 ? 4 + 4 + 8 : 0) + appendagesSize;
     }
 

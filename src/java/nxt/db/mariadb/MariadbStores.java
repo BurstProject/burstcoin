@@ -16,6 +16,7 @@ public class MariadbStores implements Stores {
     private final PollStore pollStore;
     private final TradeStore tradeStore;
     private final VoteStore voteStore;
+    private final TransactionProcessorStore transactionProcessorStore;
 
     public MariadbStores() {
 
@@ -31,6 +32,7 @@ public class MariadbStores implements Stores {
         this.pollStore = new MariadbPollStore();
         this.tradeStore = new MariadbTradeStore();
         this.voteStore = new MariadbVoteStore();
+        this.transactionProcessorStore = new MariadbTransactionProcessorStore();
     }
 
     @Override
@@ -89,6 +91,11 @@ public class MariadbStores implements Stores {
     }
 
     @Override
+    public boolean isInTransaction() {
+        return Db.isInTransaction();
+    }
+
+    @Override
     public EscrowStore getEscrowStore() {
         return escrowStore;
     }
@@ -111,5 +118,10 @@ public class MariadbStores implements Stores {
     @Override
     public VoteStore getVoteStore() {
         return voteStore;
+    }
+
+    @Override
+    public TransactionProcessorStore getTransactionProcessorStore() {
+        return transactionProcessorStore;
     }
 }

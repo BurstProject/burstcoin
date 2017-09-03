@@ -6,14 +6,14 @@ import nxt.db.NxtIterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-final class BlockchainImpl implements Blockchain {
+public final class BlockchainImpl implements Blockchain {
 
     private static final BlockchainImpl instance = new BlockchainImpl();
     private final TransactionDb transactionDb = Nxt.getDbs().getTransactionDb();
     private final BlockDb blockDb =  Nxt.getDbs().getBlockDb();;
 
 
-    static BlockchainImpl getInstance() {
+    public static BlockchainImpl getInstance() {
         return instance;
     }
 
