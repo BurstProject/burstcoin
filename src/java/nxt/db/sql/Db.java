@@ -29,7 +29,8 @@ public final class Db {
         String dbUrl;
         String dbUsername;
         String dbPassword;
-        if (Constants.isTestnet) {
+
+        if ( Constants.isTestnet ) {
             dbUrl = Nxt.getStringProperty("nxt.testDbUrl");
             dbUsername = Nxt.getStringProperty("nxt.testDbUsername");
             dbPassword = Nxt.getStringProperty("nxt.testDbPassword");
@@ -49,6 +50,8 @@ public final class Db {
             if (dbPassword != null)
                 config.setPassword(dbPassword);
 
+            config.setMaximumPoolSize( Nxt.getIntProperty("nxt.dbMaximumPoolSize") );
+	    
             switch (DATABASE_TYPE) {
                 case MARIADB:
                     config.setMaximumPoolSize(10);
@@ -68,7 +71,6 @@ public final class Db {
                     config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
                     break;
             }
-
 
             cp = new HikariDataSource(config);
 
