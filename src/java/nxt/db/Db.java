@@ -84,6 +84,7 @@ public final class Db {
         String dbUrl;
         String dbUsername;
         String dbPassword;
+
         if ( Constants.isTestnet ) {
             dbUrl = Nxt.getStringProperty("nxt.testDbUrl");
             dbUsername = Nxt.getStringProperty("nxt.testDbUsername");
@@ -104,7 +105,7 @@ public final class Db {
             if ( dbPassword != null )
                 config.setPassword(dbPassword);
 
-            config.setMaximumPoolSize(10);
+            config.setMaximumPoolSize( Nxt.getIntProperty("nxt.dbMaximumPoolSize") );
             config.setAutoCommit(false);
             config.addDataSourceProperty("cachePrepStmts", "true");
             config.addDataSourceProperty("prepStmtCacheSize", "250");
