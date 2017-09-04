@@ -9,26 +9,24 @@ Maybe it's also possible to use MySQL - you could give it a try if you like to.
 
 ### Software
 
-#### Debian
+#### Debian and Ubuntu
 
 Please take a look at http://package.cryptoguru.org/ where you could find the burstcoincg package.
 
-#### Ubuntu
+#### Others
 
-```
-apt-get install -yqq default-jre default-jdk mariadb-server
-```
+Please install a mariadb server and Java 8 (JRE 1.8) manually.
 
-### Configuring and Initialize MariaDB
+##### Configuring and Initialize MariaDB
 
-This is just an example of course:
+The Debian and Ubuntu packages provide an automatic configuration of your local mariadb server. If you do not like or can't use the packages, try this examples here:
 
 ```
 echo "CREATE DATABASE burstwallet; CREATE USER 'burstwallet'@'localhost' IDENTIFIED BY 'yourpassword'; GRANT ALL PRIVILEGES ON burstwallet.* TO 'burstwallet'@'localhost';" | mysql -uroot
 mysql -uroot burstwallet < init-mysql.sql
 ```
 
-### Configure your Wallet
+##### Configure your Wallet
 
 Now you need to add the following stuff to your conf/nxt.properties:
 
