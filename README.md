@@ -9,7 +9,11 @@ Maybe it's also possible to use MySQL - you could give it a try if you like to.
 
 ### Software
 
-Debian and Ubuntu:
+#### Debian
+
+Please take a look at http://package.cryptoguru.org/ where you could find the burstcoincg package.
+
+#### Ubuntu
 
 ```
 apt-get install -yqq default-jre default-jdk mariadb-server
@@ -58,6 +62,7 @@ nxt.dbPassword=yourpassword
 
 ## Version History
 
+- 2017/09/04 New version release Burst 1.3.4cg better database deployment, force correct utf8 encoding
 - 2017/08/11 New version release Burst 1.3.2cg (MariaDB Backend)
 - 2017/07/25 New version release Burst 1.2.9
 - 2017/02/19 New version release Burst 1.2.8
