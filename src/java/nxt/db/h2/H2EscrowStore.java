@@ -24,7 +24,7 @@ class H2EscrowStore extends SqlEscrowStore {
 
     @Override
     protected void saveEscrow(Connection con, Escrow escrow) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO escrow (id, sender_id, "
+        try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO escrow (id, sender_id, "
                 + "recipient_id, amount, required_signers, deadline, deadline_action, height, latest) "
                 + "KEY (id, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
             int i = 0;
