@@ -369,7 +369,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 									try {
 										block = BlockImpl.parseBlock(blockData);
-										if(block.getPreviousBlockId() != currentBlockId) { // ensure peer isn't cluttering cache with unrequested stuff
+										if(block.getPreviousBlockId() != currentBlockId && block.getPreviousBlockId() != blockToDownload) { // ensure peer isn't cluttering cache with unrequested stuff
 											logger.info("Peer sent unrequested block. Blacklisting...");
 											peer.blacklist();
 											return;
