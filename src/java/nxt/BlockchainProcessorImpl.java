@@ -35,7 +35,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 	public static boolean oclVerify = Nxt.getBooleanProperty("burst.oclVerify");
 	public static final int oclThreshold = Nxt.getIntProperty("burst.oclThreshold") == 0 ? 50 : Nxt.getIntProperty("burst.oclThreshold");
 	public static final int oclWaitThreshold = Nxt.getIntProperty("burst.oclWaitThreshold") == 0 ? 2000 : Nxt.getIntProperty("burst.oclWaitThreshold");
+	private static final boolean useRiskyCatchupStrategy = Nxt.getBooleanProperty("burst.riskyCatchup", false);
 	private static final Semaphore gpuUsage = new Semaphore(2);
+    /** If we are more than this many blocks behind we can engage "catch-up"-mode if enabled */
+	private static final long BLOCKCHAIN_CATCHUP_THRESHOLD = 2000;
 
 	private static final BlockchainProcessorImpl instance = new BlockchainProcessorImpl();
 
@@ -201,7 +204,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 								BlockchainProcessorImpl.blockCache.remove(currentBlockId);
 								blockCacheSize -= currentBlock.getByteLength();
 							}
-						
+
 						/*if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
 						} else if (!BlockDb.hasBlock(block.getId())) {
 							forkBlocks.add(block);
@@ -335,15 +338,26 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 							}
 						}
 					}
-					
-					List<BlockImpl> forkBlocks = new ArrayList<>();
 
+					List<BlockImpl> forkBlocks = new ArrayList<>();
+                    long peerHeight = 0;
+                    if (useRiskyCatchupStrategy)
+                        peerHeight= getPeerBlockchainHeight(peer);
 					boolean processedAll = true;
 					int requestCount = 0;
 					outer:
 						while (forkBlocks.size() < 1440 && requestCount++ < 10 && ((blockCacheSize < BLOCKCACHEMB * 1024 * 1024) || forkBlocks.size() > 0)) { // fork decision could be wrong if cut off so ignore cache size for forks
 							//logger.info("Downloading " + String.valueOf(currentBlockId));
-							JSONArray nextBlocks = getNextBlocks(peer, currentBlockId);
+							Long blockToDownload = currentBlockId;
+                            if (useRiskyCatchupStrategy && lastDownloaded != 0)
+                            {
+                                long blocksBehind = peerHeight - BlockchainImpl.getInstance().getHeight();
+                                if(blocksBehind > BLOCKCHAIN_CATCHUP_THRESHOLD) {
+                                    blockToDownload = lastDownloaded;
+                                }
+
+                            }
+							JSONArray nextBlocks = getNextBlocks(peer, blockToDownload);
 							if (nextBlocks == null || nextBlocks.size() == 0) {
 								break;
 							}
@@ -351,10 +365,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 							synchronized(BlockchainProcessorImpl.blockCache) {
 								for(Object o : nextBlocks) {
 									BlockImpl block;
-                                                                        JSONObject blockData = (JSONObject) o;
-									
+									JSONObject blockData = (JSONObject) o;
+
 									try {
-                                                                                block = BlockImpl.parseBlock(blockData);
+										block = BlockImpl.parseBlock(blockData);
 										if(block.getPreviousBlockId() != currentBlockId) { // ensure peer isn't cluttering cache with unrequested stuff
 											logger.info("Peer sent unrequested block. Blacklisting...");
 											peer.blacklist();
@@ -378,7 +392,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 										block.setPeer(peer);
 										int blockSize = blockData.toString().length();
 										block.setByteLength(blockSize);
-		
+
 										Long prevId = Convert.parseUnsignedLong((String) blockData.get("previousBlock"));
 										// Try to find previous Block:
 										if(BlockchainProcessorImpl.blockCache.containsKey(prevId)) {
@@ -439,10 +453,14 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                                                                                 logger.info("Failed to parse block: " + e.toString(), e);
                                                                                 peer.blacklist(e);
                                                                                 return;
-									} catch (Exception e) {	
+									} catch (Exception e) {
+										logger.warn("Unhandled exception",e);
 									}
 								}
 								blockCache.notify();
+								logger.trace("Unverified blocks: " + String.valueOf(unverified.size()));
+								logger.trace("Blocks in cache: " + String.valueOf(blockCache.size()));
+								logger.trace("Bytes in cache: " + String.valueOf(blockCacheSize));
 							}
 						}
 					if(forkBlocks.size() > 0 && blockchain.getHeight() - commonBlock.getHeight() < 720) {
@@ -458,6 +476,21 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				t.printStackTrace();
 				System.exit(1);
 			}
+
+		}
+
+        /** Returns the current blockchain height for a peer (or the current height of this instance if something goes wrong) */
+		private long getPeerBlockchainHeight(Peer peer)
+		{
+			try{
+			    JSONObject blockchainStatus = peer.sendGetRequest("/burst?requestType=getBlockchainStatus");
+			    Long res = Long.parseLong(blockchainStatus.getOrDefault("numberOfBlocks", String.valueOf(BlockchainImpl.getInstance().getHeight())).toString()) -1;
+			    return res;
+            } catch (Exception e)
+            {
+                logger.warn("unable to get blockchain height from peer", e);
+            }
+            return BlockchainImpl.getInstance().getHeight();
 
 		}
 
@@ -545,6 +578,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 			JSONObject request = new JSONObject();
 			request.put("requestType", "getNextBlocks");
 			request.put("blockId", Convert.toUnsignedLong(curBlockId));
+			logger.debug("Getting next Blocks after "+curBlockId+ " from "+peer.getPeerAddress());
 			JSONObject response = peer.send(JSON.prepareRequest(request));
 			if (response == null) {
 				return null;
@@ -560,7 +594,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				peer.blacklist();
 				return null;
 			}
-
+			logger.debug("Got "+nextBlocks.size()+" Blocks after "+curBlockId+ " from "+peer.getPeerAddress());
 			return nextBlocks;
 
 		}
@@ -813,7 +847,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				digest.update(transaction.getBytes());
 			}
 			ByteBuffer bf = ByteBuffer.allocate( 0 );
-			bf.order( ByteOrder.LITTLE_ENDIAN ); 
+			bf.order( ByteOrder.LITTLE_ENDIAN );
 			byte[] byteATs = bf.array();
 			BlockImpl genesisBlock = new BlockImpl(-1, 0, 0, 0, 0, transactions.size() * 128, digest.digest(),
 					Genesis.CREATOR_PUBLIC_KEY, new byte[32], Genesis.GENESIS_BLOCK_SIGNATURE, null, transactions, 0, byteATs);
@@ -866,7 +900,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				long calculatedTotalAmount = 0;
 				long calculatedTotalFee = 0;
 				MessageDigest digest = Crypto.sha256();
-				
+
 				for (TransactionImpl transaction : block.getTransactions()) {
 
 					if (transaction.getTimestamp() > curTime + MAX_TIMESTAMP_DIFFERENCE) {
@@ -1125,7 +1159,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 				if (transaction.getTimestamp() > blockTimestamp + MAX_TIMESTAMP_DIFFERENCE || transaction.getExpiration() < blockTimestamp) {
 					continue;
 				}
-				
+
 				if (Nxt.getBlockchain().getHeight() >= Constants.AUTOMATED_TRANSACTION_BLOCK) {
                 	if (!EconomicClustering.verifyFork(transaction)) {
                         logger.debug("Including transaction that was generated on a fork: " + transaction.getStringId()
@@ -1178,7 +1212,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		}
 
 		//final byte[] publicKey = Crypto.getPublicKey(secretPhrase);
-		
+
 		//ATs for block
 		AT.clearPendingFees();
 		AT.clearPendingTransactions();
@@ -1197,7 +1231,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		//ATs for block
 
 		MessageDigest digest = Crypto.sha256();
-		
+
 		for (Transaction transaction : blockTransactions) {
 			digest.update(transaction.getBytes());
 		}

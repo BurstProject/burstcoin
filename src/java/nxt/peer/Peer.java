@@ -53,4 +53,8 @@ public interface Peer extends Comparable<Peer> {
 
     JSONObject send(JSONStreamAware request);
 
+    /** Sends a simple GET-Request to the peer and returns the JSON-Object of the response */
+    JSONObject sendGetRequest(String pathAndQuery);
+
+
 }
