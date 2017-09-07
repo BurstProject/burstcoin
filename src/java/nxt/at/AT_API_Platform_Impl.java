@@ -5,17 +5,13 @@ import nxt.Constants;
 import nxt.Nxt;
 import nxt.Transaction;
 import nxt.crypto.Crypto;
-import nxt.db.Db;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
 import java.util.Arrays;
 
 //NXT API IMPLEMENTATION
@@ -435,54 +431,11 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 	}
 
 	protected static Long findTransaction(int startHeight , int endHeight , Long atID, int numOfTx, long minAmount){
-		try (Connection con = Db.getConnection();
-				PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
-						+ "WHERE height>= ? AND height < ? and recipient_id = ? AND amount >= ? "
-						+ "ORDER BY height, id "
-						+ "LIMIT 1 OFFSET ?")){
-			pstmt.setInt(1, startHeight);
-			pstmt.setInt(2, endHeight);
-			pstmt.setLong(3, atID);
-			pstmt.setLong(4, minAmount);
-			pstmt.setInt(5, numOfTx);
-			ResultSet rs = pstmt.executeQuery();
-			Long transactionId = 0L;
-			if(rs.next()) {
-				transactionId = rs.getLong("id");
-			}
-			rs.close();
-			return transactionId;
-
-		} catch (SQLException e) {
-			throw new RuntimeException(e.toString(), e);
-		}
-
+		return Nxt.getStores().getAtStore().findTransaction(startHeight, endHeight, atID, numOfTx, minAmount);
 	}
 
 	protected static int findTransactionHeight(Long transactionId, int height, Long atID, long minAmount){
-		try (Connection con = Db.getConnection();
-				PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
-						+ "WHERE height= ? and recipient_id = ? AND amount >= ? "
-						+ "ORDER BY height, id")){
-			pstmt.setInt( 1, height );
-			pstmt.setLong( 2, atID );
-			pstmt.setLong(3, minAmount);
-			ResultSet rs = pstmt.executeQuery();
-
-			int counter = 0;
-			while ( rs.next() ) {
-				if (rs.getLong( "id" ) == transactionId){
-					counter++;
-					break;
-				}
-				counter++;
-			}
-			rs.close();
-			return counter;
-
-		} catch ( SQLException e ) {
-			throw new RuntimeException(e.toString(), e);
-		}
+		return Nxt.getStores().getAtStore().findTransactionHeight(transactionId, height,atID, minAmount);
 	}
 
 

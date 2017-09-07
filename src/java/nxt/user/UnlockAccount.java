@@ -4,7 +4,7 @@ import nxt.Account;
 import nxt.Block;
 import nxt.Nxt;
 import nxt.Transaction;
-import nxt.db.DbIterator;
+import nxt.db.NxtIterator;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -79,7 +79,7 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
 
             JSONArray myTransactions = new JSONArray();
             byte[] accountPublicKey = account.getPublicKey();
-            try (DbIterator<? extends Transaction> transactions = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+            try (NxtIterator<? extends Transaction> transactions = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
                 while (transactions.hasNext()) {
                     Transaction transaction = transactions.next();
                     if (Arrays.equals(transaction.getSenderPublicKey(), accountPublicKey)) {
@@ -120,7 +120,7 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
             SortedSet<JSONObject> myTransactionsSet = new TreeSet<>(myTransactionsComparator);
 
             int blockchainHeight = Nxt.getBlockchain().getLastBlock().getHeight();
-            try (DbIterator<? extends Block> blockIterator = Nxt.getBlockchain().getBlocks(account, 0)) {
+            try (NxtIterator<? extends Block> blockIterator = Nxt.getBlockchain().getBlocks(account, 0)) {
                 while (blockIterator.hasNext()) {
                     Block block = blockIterator.next();
                     if (block.getTotalFeeNQT() > 0) {
@@ -137,7 +137,7 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
                 }
             }
 
-            try (DbIterator<? extends Transaction> transactionIterator = Nxt.getBlockchain().getTransactions(account, (byte) -1, (byte) -1, 0)) {
+            try (NxtIterator<? extends Transaction> transactionIterator = Nxt.getBlockchain().getTransactions(account, (byte) -1, (byte) -1, 0)) {
                 while (transactionIterator.hasNext()) {
                     Transaction transaction = transactionIterator.next();
                     if (transaction.getSenderId() == accountId) {

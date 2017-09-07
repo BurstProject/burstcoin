@@ -1,7 +1,7 @@
 package nxt.http;
 
 import nxt.Poll;
-import nxt.db.DbIterator;
+import nxt.db.NxtIterator;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -24,7 +24,7 @@ public final class GetPollIds extends APIServlet.APIRequestHandler {
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray pollIds = new JSONArray();
-        try (DbIterator<Poll> polls = Poll.getAllPolls(firstIndex, lastIndex)) {
+        try (NxtIterator<Poll> polls = Poll.getAllPolls(firstIndex, lastIndex)) {
             while (polls.hasNext()) {
                 pollIds.add(Convert.toUnsignedLong(polls.next().getId()));
             }

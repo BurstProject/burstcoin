@@ -1,7 +1,7 @@
 package nxt.http;
 
 import nxt.Order;
-import nxt.db.DbIterator;
+import nxt.db.NxtIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -25,7 +25,7 @@ public final class GetAllOpenAskOrders extends APIServlet.APIRequestHandler {
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
 
-        try (DbIterator<Order.Ask> askOrders = Order.Ask.getAll(firstIndex, lastIndex)) {
+        try (NxtIterator<Order.Ask> askOrders = Order.Ask.getAll(firstIndex, lastIndex)) {
             while (askOrders.hasNext()) {
                 ordersData.add(JSONData.askOrder(askOrders.next()));
             }

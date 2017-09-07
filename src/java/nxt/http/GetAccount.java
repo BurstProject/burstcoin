@@ -2,7 +2,7 @@ package nxt.http;
 
 import nxt.Account;
 import nxt.NxtException;
-import nxt.db.DbIterator;
+import nxt.db.NxtIterator;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -35,31 +35,9 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
         if (account.getDescription() != null) {
             response.put("description", account.getDescription());
         }
-        /*if (account.getCurrentLesseeId() != 0) {
-            JSONData.putAccount(response, "currentLessee", account.getCurrentLesseeId());
-            response.put("currentLeasingHeightFrom", account.getCurrentLeasingHeightFrom());
-            response.put("currentLeasingHeightTo", account.getCurrentLeasingHeightTo());
-            if (account.getNextLesseeId() != 0) {
-                JSONData.putAccount(response, "nextLessee", account.getNextLesseeId());
-                response.put("nextLeasingHeightFrom", account.getNextLeasingHeightFrom());
-                response.put("nextLeasingHeightTo", account.getNextLeasingHeightTo());
-            }
-        }*/
-        /*try (DbIterator<Account> lessors = account.getLessors()) {
-            if (lessors.hasNext()) {
-                JSONArray lessorIds = new JSONArray();
-                JSONArray lessorIdsRS = new JSONArray();
-                while (lessors.hasNext()) {
-                    Account lessor = lessors.next();
-                    lessorIds.add(Convert.toUnsignedLong(lessor.getId()));
-                    lessorIdsRS.add(Convert.rsAccount(lessor.getId()));
-                }
-                response.put("lessors", lessorIds);
-                response.put("lessorsRS", lessorIdsRS);
-            }
-        }*/
 
-        try (DbIterator<Account.AccountAsset> accountAssets = account.getAssets(0, -1)) {
+
+        try (NxtIterator<Account.AccountAsset> accountAssets = account.getAssets(0, -1)) {
             JSONArray assetBalances = new JSONArray();
             JSONArray unconfirmedAssetBalances = new JSONArray();
             while (accountAssets.hasNext()) {

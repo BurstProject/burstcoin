@@ -4,8 +4,8 @@ import nxt.Account;
 import nxt.Asset;
 import nxt.AssetTransfer;
 import nxt.NxtException;
-import nxt.db.DbIterator;
-import nxt.db.DbUtils;
+import nxt.db.NxtIterator;
+import nxt.db.sql.DbUtils;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -33,7 +33,7 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
 
         JSONObject response = new JSONObject();
         JSONArray transfersData = new JSONArray();
-        DbIterator<AssetTransfer> transfers = null;
+        NxtIterator<AssetTransfer> transfers = null;
         try {
             if (accountId == null) {
                 Asset asset = ParameterParser.getAsset(req);
