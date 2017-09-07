@@ -13,10 +13,10 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
 
-final class BlockImpl implements Block {
+public final class BlockImpl implements Block {
 
     private static final Logger logger = LoggerFactory.getLogger(BlockImpl.class);
-
+    private final TransactionDb transactionDb = Nxt.getDbs().getTransactionDb();
     private final int version;
     private final int timestamp;
     private final long previousBlockId;
@@ -83,9 +83,9 @@ final class BlockImpl implements Block {
         this.blockATs = blockATs;
     }
 
-    BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
-              byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature,
-              byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long nextBlockId, int height, Long id, long nonce , byte[] blockATs)
+    public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
+                     byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature,
+                     byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long nextBlockId, int height, Long id, long nonce, byte[] blockATs)
             throws NxtException.ValidationException {
         this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                 generatorPublicKey, generationSignature, blockSignature, previousBlockHash, null, nonce , blockATs);
@@ -179,7 +179,7 @@ final class BlockImpl implements Block {
     @Override
     public List<TransactionImpl> getTransactions() {
     	if (blockTransactions == null) {
-            this.blockTransactions = Collections.unmodifiableList(TransactionDb.findBlockTransactions(getId()));
+            this.blockTransactions = Collections.unmodifiableList(transactionDb.findBlockTransactions(getId()));
             for (TransactionImpl transaction : this.blockTransactions) {
                 transaction.setBlock(this);
             }

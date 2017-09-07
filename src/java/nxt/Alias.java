@@ -1,45 +1,30 @@
 package nxt;
 
-import nxt.db.*;
+import nxt.db.NxtIterator;
+import nxt.db.VersionedEntityTable;
+import nxt.db.NxtKey;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-public final class Alias {
+public class Alias {
 
     public static class Offer {
 
         private long priceNQT;
         private long buyerId;
         private final long aliasId;
-        private final DbKey dbKey;
+        public final NxtKey dbKey;
 
-        private Offer(long aliasId, long priceNQT, long buyerId) {
+        protected Offer(long aliasId, long priceNQT, long buyerId) {
             this.priceNQT = priceNQT;
             this.buyerId = buyerId;
             this.aliasId = aliasId;
             this.dbKey = offerDbKeyFactory.newKey(this.aliasId);
         }
 
-        private Offer(ResultSet rs) throws SQLException {
-            this.aliasId = rs.getLong("id");
-            this.dbKey = offerDbKeyFactory.newKey(this.aliasId);
-            this.priceNQT = rs.getLong("price");
-            this.buyerId  = rs.getLong("buyer_id");
-        }
-
-        private void save(Connection con) throws SQLException {
-            try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO alias_offer (id, price, buyer_id, "
-                    + "height) VALUES (?, ?, ?, ?)")) {
-                int i = 0;
-                pstmt.setLong(++i, this.getId());
-                pstmt.setLong(++i, this.getPriceNQT());
-                DbUtils.setLongZeroToNull(pstmt, ++i, this.getBuyerId());
-                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-                pstmt.executeUpdate();
-            }
+        protected Offer(long aliasId, long priceNQT, long buyerId, NxtKey nxtKey) {
+            this.priceNQT = priceNQT;
+            this.buyerId = buyerId;
+            this.aliasId = aliasId;
+            this.dbKey = nxtKey;
         }
 
         public long getId() {
@@ -56,67 +41,25 @@ public final class Alias {
 
     }
 
-    private static final DbKey.LongKeyFactory<Alias> aliasDbKeyFactory = new DbKey.LongKeyFactory<Alias>("id") {
+    private static final NxtKey.LongKeyFactory<Alias> aliasDbKeyFactory = Nxt.getStores().getAliasStore().getAliasDbKeyFactory();
 
-        @Override
-        public DbKey newKey(Alias alias) {
-            return alias.dbKey;
-        }
+    private static final VersionedEntityTable<Alias> aliasTable = Nxt.getStores().getAliasStore().getAliasTable();
 
-    };
 
-    private static final VersionedEntityDbTable<Alias> aliasTable = new VersionedEntityDbTable<Alias>("alias", aliasDbKeyFactory) {
+    private static final NxtKey.LongKeyFactory<Offer> offerDbKeyFactory = Nxt.getStores().getAliasStore().getOfferDbKeyFactory();
 
-        @Override
-        protected Alias load(Connection con, ResultSet rs) throws SQLException {
-            return new Alias(rs);
-        }
-
-        @Override
-        protected void save(Connection con, Alias alias) throws SQLException {
-            alias.save(con);
-        }
-
-        @Override
-        protected String defaultSort() {
-            return " ORDER BY alias_name_lower ";
-        }
-
-    };
-
-    private static final DbKey.LongKeyFactory<Offer> offerDbKeyFactory = new DbKey.LongKeyFactory<Offer>("id") {
-
-        @Override
-        public DbKey newKey(Offer offer) {
-            return offer.dbKey;
-        }
-
-    };
-
-    private static final VersionedEntityDbTable<Offer> offerTable = new VersionedEntityDbTable<Offer>("alias_offer", offerDbKeyFactory) {
-
-        @Override
-        protected Offer load(Connection con, ResultSet rs) throws SQLException {
-            return new Offer(rs);
-        }
-
-        @Override
-        protected void save(Connection con, Offer offer) throws SQLException {
-            offer.save(con);
-        }
-
-    };
+    private static final VersionedEntityTable<Offer> offerTable = Nxt.getStores().getAliasStore().getOfferTable();
 
     public static int getCount() {
         return aliasTable.getCount();
     }
 
-    public static DbIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
-        return aliasTable.getManyBy(new DbClause.LongClause("account_id", accountId), from, to);
+    public static NxtIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
+        return Nxt.getStores().getAliasStore().getAliasesByOwner(accountId, from, to);
     }
 
     public static Alias getAlias(String aliasName) {
-        return aliasTable.getBy(new DbClause.StringClause("alias_name_lower", aliasName.toLowerCase()));
+        return Nxt.getStores().getAliasStore().getAlias(aliasName);
     }
 
     public static Alias getAlias(long id) {
@@ -168,12 +111,13 @@ public final class Alias {
         offerTable.delete(offer);
     }
 
-    static void init() {}
+    static void init() {
+    }
 
 
     private long accountId;
     private final long id;
-    private final DbKey dbKey;
+    public final NxtKey dbKey;
     private final String aliasName;
     private String aliasURI;
     private int timestamp;
@@ -187,34 +131,21 @@ public final class Alias {
         this.timestamp = timestamp;
     }
 
+    protected Alias(long id, long accountId, String aliasName, String aliasURI, int timestamp, NxtKey dbKey) {
+        this.id = id;
+        this.dbKey = dbKey;
+        this.accountId = accountId;
+        this.aliasName = aliasName;
+        this.aliasURI = aliasURI;
+        this.timestamp = timestamp;
+    }
+
+
     private Alias(long aliasId, Transaction transaction, Attachment.MessagingAliasAssignment attachment) {
         this(aliasId, transaction.getSenderId(), attachment.getAliasName(), attachment.getAliasURI(),
                 transaction.getBlockTimestamp());
     }
 
-    private Alias(ResultSet rs) throws SQLException {
-        this.id = rs.getLong("id");
-        this.dbKey = aliasDbKeyFactory.newKey(this.id);
-        this.accountId = rs.getLong("account_id");
-        this.aliasName = rs.getString("alias_name");
-        this.aliasURI = rs.getString("alias_uri");
-        this.timestamp = rs.getInt("timestamp");
-    }
-
-    private void save(Connection con) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO alias (id, account_id, alias_name, "
-                + "alias_uri, timestamp, height) "
-                + "VALUES (?, ?, ?, ?, ?, ?)")) {
-            int i = 0;
-            pstmt.setLong(++i, this.getId());
-            pstmt.setLong(++i, this.getAccountId());
-            pstmt.setString(++i, this.getAliasName());
-            pstmt.setString(++i, this.getAliasURI());
-            pstmt.setInt(++i, this.getTimestamp());
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-            pstmt.executeUpdate();
-        }
-    }
 
     public long getId() {
         return id;

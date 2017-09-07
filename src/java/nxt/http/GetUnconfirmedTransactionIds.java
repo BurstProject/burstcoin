@@ -2,7 +2,7 @@ package nxt.http;
 
 import nxt.Nxt;
 import nxt.Transaction;
-import nxt.db.DbIterator;
+import nxt.db.NxtIterator;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -35,7 +35,7 @@ public final class GetUnconfirmedTransactionIds extends APIServlet.APIRequestHan
         }
 
         JSONArray transactionIds = new JSONArray();
-        try (DbIterator<? extends Transaction> transactionsIterator = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+        try (NxtIterator<? extends Transaction> transactionsIterator = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
             while (transactionsIterator.hasNext()) {
                 Transaction transaction = transactionsIterator.next();
                 if (accountId != 0 && !(accountId == transaction.getSenderId() || accountId == transaction.getRecipientId())) {

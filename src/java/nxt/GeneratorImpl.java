@@ -101,7 +101,7 @@ public final class GeneratorImpl implements Generator {
 		GeneratorStateImpl generator = new GeneratorStateImpl(secretPhrase, nonce, publicKey, id);
 		GeneratorStateImpl curGen = generators.get(id);
 		if(curGen == null || generator.getBlock() > curGen.getBlock() || generator.getDeadline().compareTo(curGen.getDeadline()) < 0) {
-			generators.put(id, generator);
+		    generators.put(id, generator);
 			listeners.notify(generator, Event.START_FORGING);
 			logger.debug("Account " + Convert.toUnsignedLong(id) + " started mining, deadline "
 			        + generator.getDeadline() + " seconds");

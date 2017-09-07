@@ -2,7 +2,7 @@ package nxt.http;
 
 import nxt.Account;
 import nxt.Asset;
-import nxt.db.DbIterator;
+import nxt.db.NxtIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -29,7 +29,7 @@ public final class GetAssetsByIssuer extends APIServlet.APIRequestHandler {
         response.put("assets", accountsJSONArray);
         for (Account account : accounts) {
             JSONArray assetsJSONArray = new JSONArray();
-            try (DbIterator<Asset> assets = Asset.getAssetsIssuedBy(account.getId(), firstIndex, lastIndex)) {
+            try (NxtIterator<Asset> assets = Asset.getAssetsIssuedBy(account.getId(), firstIndex, lastIndex)) {
                 while (assets.hasNext()) {
                     assetsJSONArray.add(JSONData.asset(assets.next()));
                 }

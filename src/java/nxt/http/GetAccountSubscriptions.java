@@ -3,7 +3,7 @@ package nxt.http;
 import nxt.Account;
 import nxt.NxtException;
 import nxt.Subscription;
-import nxt.db.DbIterator;
+import nxt.db.NxtIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -26,8 +26,8 @@ public final class GetAccountSubscriptions extends APIServlet.APIRequestHandler 
 		JSONObject response = new JSONObject();
 		
 		JSONArray subscriptions = new JSONArray();
-		
-		DbIterator<Subscription> accountSubscriptions = Subscription.getSubscriptionsByParticipant(account.getId());
+
+		NxtIterator<Subscription> accountSubscriptions = Subscription.getSubscriptionsByParticipant(account.getId());
 		
 		for(Subscription subscription : accountSubscriptions) {
 			subscriptions.add(JSONData.subscription(subscription));

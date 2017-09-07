@@ -4,8 +4,8 @@ import nxt.Account;
 import nxt.Asset;
 import nxt.NxtException;
 import nxt.Trade;
-import nxt.db.DbIterator;
-import nxt.db.DbUtils;
+import nxt.db.NxtIterator;
+import nxt.db.sql.DbUtils;
 import nxt.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -33,7 +33,7 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
 
         JSONObject response = new JSONObject();
         JSONArray tradesData = new JSONArray();
-        DbIterator<Trade> trades = null;
+        NxtIterator<Trade> trades = null;
         try {
             if (accountId == null) {
                 Asset asset = ParameterParser.getAsset(req);

@@ -1,6 +1,6 @@
 package nxt;
 
-import nxt.db.DbIterator;
+import nxt.db.NxtIterator;
 import nxt.util.Observable;
 import org.json.simple.JSONObject;
 
@@ -15,7 +15,7 @@ public interface TransactionProcessor extends Observable<List<? extends Transact
         ADDED_DOUBLESPENDING_TRANSACTIONS
     }
 
-    DbIterator<? extends Transaction> getAllUnconfirmedTransactions();
+    NxtIterator<? extends Transaction> getAllUnconfirmedTransactions();
 
     Transaction getUnconfirmedTransaction(long transactionId);
     

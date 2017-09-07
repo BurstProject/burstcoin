@@ -4,7 +4,7 @@ import nxt.Block;
 import nxt.Constants;
 import nxt.Nxt;
 import nxt.Transaction;
-import nxt.db.DbIterator;
+import nxt.db.NxtIterator;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
 import nxt.util.Convert;
@@ -29,7 +29,7 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
         JSONArray activePeers = new JSONArray(), knownPeers = new JSONArray(), blacklistedPeers = new JSONArray();
         JSONArray recentBlocks = new JSONArray();
 
-        try (DbIterator<? extends Transaction> transactions = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+        try (NxtIterator<? extends Transaction> transactions = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
             while (transactions.hasNext()) {
                 Transaction transaction = transactions.next();
 
@@ -93,7 +93,7 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
             }
         }
 
-        try (DbIterator<? extends Block> lastBlocks = Nxt.getBlockchain().getBlocks(0, 59)) {
+        try (NxtIterator<? extends Block> lastBlocks = Nxt.getBlockchain().getBlocks(0, 59)) {
             for (Block block : lastBlocks) {
                 JSONObject recentBlock = new JSONObject();
                 recentBlock.put("index", Users.getIndex(block));

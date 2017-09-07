@@ -1,11 +1,8 @@
 package nxt;
 
-import nxt.db.*;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import nxt.db.NxtIterator;
+import nxt.db.NxtKey;
+import nxt.db.VersionedEntityTable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -94,36 +91,18 @@ public class Escrow {
 
 	public static class Decision {
 
-		private final Long escrowId;
-		private final Long accountId;
-		private final DbKey dbKey;
-		private DecisionType decision;
+		public final Long escrowId;
+		public final Long accountId;
+		public final NxtKey dbKey;
+		public DecisionType decision;
 
-		private Decision(Long escrowId, Long accountId, DecisionType decision) {
+		protected Decision(Long escrowId, Long accountId, DecisionType decision) {
 			this.escrowId = escrowId;
 			this.accountId = accountId;
 			this.dbKey = decisionDbKeyFactory.newKey(this.escrowId, this.accountId);
 			this.decision = decision;
 		}
 
-		private Decision(ResultSet rs) throws SQLException {
-			this.escrowId = rs.getLong("escrow_id");
-			this.accountId = rs.getLong("account_id");
-			this.dbKey = decisionDbKeyFactory.newKey(this.escrowId, this.accountId);
-			this.decision = byteToDecision((byte)rs.getInt("decision"));
-		}
-
-		private void save(Connection con) throws SQLException {
-			try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO escrow_decision (escrow_id, "
-					+ "account_id, decision, height, latest) VALUES (?, ?, ?, ?, TRUE)")) {
-				int i = 0;
-				pstmt.setLong(++i, this.escrowId);
-				pstmt.setLong(++i, this.accountId);
-				pstmt.setInt(++i, decisionToByte(this.decision));
-				pstmt.setInt(++i,  Nxt.getBlockchain().getHeight());
-				pstmt.executeUpdate();
-			}
-		}
 
 		public Long getEscrowId() {
 			return this.escrowId;
@@ -142,71 +121,33 @@ public class Escrow {
 		}
 	}
 
-	private static final DbKey.LongKeyFactory<Escrow> escrowDbKeyFactory = new DbKey.LongKeyFactory<Escrow>("id") {
-		@Override
-		public DbKey newKey(Escrow escrow) {
-			return escrow.dbKey;
-		}
-	};
+	private static final NxtKey.LongKeyFactory<Escrow> escrowDbKeyFactory =
+			Nxt.getStores().getEscrowStore().getEscrowDbKeyFactory();
 
-	private static final VersionedEntityDbTable<Escrow> escrowTable = new VersionedEntityDbTable<Escrow>("escrow", escrowDbKeyFactory) {
-		@Override
-		protected Escrow load(Connection con, ResultSet rs) throws SQLException {
-			return new Escrow(rs);
-		}
-		@Override
-		protected void save(Connection con, Escrow escrow) throws SQLException {
-			escrow.save(con);
-		}
-	};
 
-	private static final DbKey.LinkKeyFactory<Decision> decisionDbKeyFactory = new DbKey.LinkKeyFactory<Decision>("escrow_id", "account_id") {
-		@Override
-		public DbKey newKey(Decision decision) {
-			return decision.dbKey;
-		}
-	};
+	private static final VersionedEntityTable<Escrow> escrowTable =
+			Nxt.getStores().getEscrowStore().getEscrowTable();
 
-	private static final VersionedEntityDbTable<Decision> decisionTable = new VersionedEntityDbTable<Decision>("escrow_decision", decisionDbKeyFactory) {
-		@Override
-		protected Decision load(Connection con, ResultSet rs) throws SQLException {
-			return new Decision(rs);
-		}
-		@Override
-		protected void save(Connection con, Decision decision) throws SQLException {
-			decision.save(con);
-		}
-	};
 
-	private static final ConcurrentSkipListSet<Long> updatedEscrowIds = new ConcurrentSkipListSet<>();
-	private static final List<TransactionImpl> resultTransactions = new ArrayList<>();
+	private static final NxtKey.LinkKeyFactory<Decision> decisionDbKeyFactory =
+			Nxt.getStores().getEscrowStore().getDecisionDbKeyFactory();
 
-	public static DbIterator<Escrow> getAllEscrowTransactions() {
+
+	private static final VersionedEntityTable<Decision> decisionTable =
+			Nxt.getStores().getEscrowStore().getDecisionTable();
+
+	/** WATCH: Thread-Safety?! */
+	private static final ConcurrentSkipListSet<Long> updatedEscrowIds = Nxt.getStores().getEscrowStore().getUpdatedEscrowIds();
+	/** WATCH: Thread-Safety?! */
+	private static final List<TransactionImpl> resultTransactions = Nxt.getStores().getEscrowStore().getResultTransactions();
+
+	public static NxtIterator<Escrow> getAllEscrowTransactions() {
 		return escrowTable.getAll(0, -1);
 	}
 
-	private static DbClause getEscrowParticipentClause(final long accountId) {
-		return new DbClause(" (sender_id = ? OR recipient_id = ?) ") {
-			@Override
-	        public int set(PreparedStatement pstmt, int index) throws SQLException {
-	            pstmt.setLong(index++, accountId);
-	            pstmt.setLong(index++, accountId);
-	            return index;
-	        }
-		};
-	}
 
 	public static Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId) {
-		List<Escrow> filtered = new ArrayList<>();
-		DbIterator<Decision> it = decisionTable.getManyBy(new DbClause.LongClause("account_id", accountId), 0, -1);
-		while(it.hasNext()) {
-			Decision decision = it.next();
-			Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(decision.escrowId));
-			if(escrow != null) {
-				filtered.add(escrow);
-			}
-		}
-		return filtered;
+		return Nxt.getStores().getEscrowStore().getEscrowTransactionsByParticipent(accountId);
 	}
 
 	public static Escrow getEscrowTransaction(Long id) {
@@ -245,7 +186,7 @@ public class Escrow {
 		if(escrow == null) {
 			return;
 		}
-		DbIterator<Decision> decisionIt = escrow.getDecisions();
+		NxtIterator<Decision> decisionIt = escrow.getDecisions();
 
 		List<Decision> decisions = new ArrayList<>();
 		while(decisionIt.hasNext()) {
@@ -259,59 +200,23 @@ public class Escrow {
 		escrowTable.delete(escrow);
 	}
 
-	private static DbClause getUpdateOnBlockClause(final int timestamp) {
-		return new DbClause(" deadline < ? ") {
-			@Override
-			public int set(PreparedStatement pstmt, int index) throws SQLException {
-				pstmt.setInt(index++, timestamp);
-				return index;
-			}
-		};
-	}
+
 
 	public static void updateOnBlock(Block block) {
-		resultTransactions.clear();
+		Nxt.getStores().getEscrowStore().updateOnBlock(block);
 
-		DbIterator<Escrow> deadlineEscrows = escrowTable.getManyBy(getUpdateOnBlockClause(block.getTimestamp()), 0, -1);
-		for(Escrow escrow : deadlineEscrows) {
-			updatedEscrowIds.add(escrow.getId());
-		}
-
-		if(updatedEscrowIds.size() > 0) {
-			for(Long escrowId : updatedEscrowIds) {
-				Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(escrowId));
-				DecisionType result = escrow.checkComplete();
-				if(result != DecisionType.UNDECIDED || escrow.getDeadline() < block.getTimestamp()) {
-					if(result == DecisionType.UNDECIDED) {
-						result = escrow.getDeadlineAction();
-					}
-					escrow.doPayout(result, block);
-
-					removeEscrowTransaction(escrowId);
-				}
-			}
-			if(resultTransactions.size() > 0) {
-				try (Connection con = Db.getConnection()) {
-					TransactionDb.saveTransactions(con, resultTransactions);
-				}
-				catch(SQLException e) {
-					throw new RuntimeException(e.toString(), e);
-				}
-			}
-			updatedEscrowIds.clear();
-		}
 	}
 
-	private final Long senderId;
-	private final Long recipientId;
-	private final Long id;
-	private final DbKey dbKey;
-	private final Long amountNQT;
-	private final int requiredSigners;
-	private final int deadline;
-	private final DecisionType deadlineAction;
+	public final Long senderId;
+	public final Long recipientId;
+	public final Long id;
+	public final NxtKey dbKey;
+	public final Long amountNQT;
+	public final int requiredSigners;
+	public final int deadline;
+	public final DecisionType deadlineAction;
 
-	private Escrow(Account sender,
+	public Escrow(Account sender,
 				   Account recipient,
 				   Long id,
 				   Long amountNQT,
@@ -328,35 +233,19 @@ public class Escrow {
 		this.deadlineAction = deadlineAction;
 	}
 
-	private Escrow(ResultSet rs) throws SQLException {
-		this.id = rs.getLong("id");
-		this.dbKey = escrowDbKeyFactory.newKey(this.id);
-		this.senderId = rs.getLong("sender_id");
-		this.recipientId = rs.getLong("recipient_id");
-		this.amountNQT = rs.getLong("amount");
-		this.requiredSigners = rs.getInt("required_signers");
-		this.deadline = rs.getInt("deadline");
-		this.deadlineAction = byteToDecision((byte)rs.getInt("deadline_action"));
-	}
+    protected Escrow( Long id,Long senderId, Long recipientId, NxtKey dbKey, Long amountNQT,
+                  int requiredSigners, int deadline, DecisionType deadlineAction) {
+        this.senderId = senderId;
+        this.recipientId = recipientId;
+        this.id = id;
+        this.dbKey = dbKey;
+        this.amountNQT = amountNQT;
+        this.requiredSigners = requiredSigners;
+        this.deadline = deadline;
+        this.deadlineAction = deadlineAction;
+    }
 
-	private void save(Connection con) throws SQLException {
-		try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO escrow (id, sender_id, "
-				+ "recipient_id, amount, required_signers, deadline, deadline_action, height, latest) "
-				+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
-			int i = 0;
-			pstmt.setLong(++i, this.id);
-			pstmt.setLong(++i, this.senderId);
-			pstmt.setLong(++i, this.recipientId);
-			pstmt.setLong(++i, this.amountNQT);
-			pstmt.setInt(++i, this.requiredSigners);
-			pstmt.setInt(++i, this.deadline);
-			pstmt.setInt(++i, decisionToByte(this.deadlineAction));
-			pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-			pstmt.executeUpdate();
-		}
-	}
-
-	public Long getSenderId() {
+    public Long getSenderId() {
 		return senderId;
 	}
 
@@ -376,8 +265,8 @@ public class Escrow {
 		return requiredSigners;
 	}
 
-	public DbIterator<Decision> getDecisions() {
-		return decisionTable.getManyBy(new DbClause.LongClause("escrow_id", id), 0, -1);
+	public NxtIterator<Decision> getDecisions() {
+	    return Nxt.getStores().getEscrowStore().getDecisions(id);
 	}
 
 	public int getDeadline() {
@@ -418,7 +307,7 @@ public class Escrow {
 		}
 	}
 
-	private DecisionType checkComplete() {
+	public DecisionType checkComplete() {
 		Decision senderDecision = decisionTable.get(decisionDbKeyFactory.newKey(id, senderId));
 		if(senderDecision.getDecision() == DecisionType.RELEASE) {
 			return DecisionType.RELEASE;
@@ -432,7 +321,7 @@ public class Escrow {
 		int countRefund = 0;
 		int countSplit = 0;
 
-		DbIterator<Decision> decisions = decisionTable.getManyBy(new DbClause.LongClause("escrow_id", id), 0, -1);
+		NxtIterator<Decision> decisions =Nxt.getStores().getEscrowStore().getDecisions(id);
 		while(decisions.hasNext()) {
 			Decision decision = decisions.next();
 			if(decision.getAccountId().equals(senderId) ||
@@ -467,7 +356,7 @@ public class Escrow {
 		return DecisionType.UNDECIDED;
 	}
 
-	private synchronized void doPayout(DecisionType result, Block block) {
+	public synchronized void doPayout(DecisionType result, Block block) {
 		switch(result) {
 		case RELEASE:
 			Account.getAccount(recipientId).addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
@@ -509,7 +398,7 @@ public class Escrow {
 			throw new RuntimeException(e.toString(), e);
 		}
 
-		if(!TransactionDb.hasTransaction(transaction.getId())) {
+		if(!Nxt.getDbs().getTransactionDb().hasTransaction(transaction.getId())) {
 			resultTransactions.add(transaction);
 		}
 	}
