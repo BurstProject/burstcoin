@@ -378,6 +378,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 										if(blockCache.containsKey(block.getId()) || blockDb.hasBlock(block.getId())) {
 											lastDownloaded = currentBlockId;
+											logger.debug ("Skipping "+block.getId());
 											continue;
 										}
 
