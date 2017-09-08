@@ -1,7 +1,6 @@
 package nxt.db.sql;
 
 import nxt.db.NxtKey;
-import org.h2.util.StringUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
