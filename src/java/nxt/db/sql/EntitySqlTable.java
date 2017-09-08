@@ -1,7 +1,9 @@
 package nxt.db.sql;
 
 import nxt.Nxt;
-import nxt.db.*;
+import nxt.db.EntityTable;
+import nxt.db.NxtIterator;
+import nxt.db.NxtKey;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,8 +12,8 @@ import java.sql.SQLException;
 
 public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T> {
 
-    private final boolean multiversion;
     protected final DbKey.Factory<T> dbKeyFactory;
+    private final boolean multiversion;
     private final String defaultSort;
 
     protected EntitySqlTable(String table, NxtKey.Factory<T> dbKeyFactory) {
@@ -52,9 +54,10 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
         }
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + dbKeyFactory.getPKClause()
-                 + (multiversion ? " AND latest = TRUE " + DbUtils.limitsClause(1) : ""))) {
+                     + (multiversion ? " AND latest = TRUE " + DbUtils.limitsClause(1) : ""))) {
             int i = dbKey.setPK(pstmt);
-            DbUtils.setLimits(i++, pstmt, 1);
+            if (multiversion)
+                DbUtils.setLimits(i++, pstmt, 1);
             return get(con, pstmt, true);
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
@@ -313,7 +316,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
         try (Connection con = Db.getConnection()) {
             if (multiversion) {
                 try (PreparedStatement pstmt = con.prepareStatement("UPDATE " + table
-                        + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1) )) {
+                        + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1))) {
                     int i = dbKey.setPK(pstmt);
                     DbUtils.setLimits(i++, pstmt, 1);
                     pstmt.executeUpdate();

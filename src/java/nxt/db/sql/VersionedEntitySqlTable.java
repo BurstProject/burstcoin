@@ -42,7 +42,8 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
                     try (PreparedStatement pstmt = con.prepareStatement("UPDATE " + table
                             + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1))) {
                         dbKey.setPK(pstmt);
-                        DbUtils.setLimits(1, pstmt, 1);
+
+                        DbUtils.setLimits(dbKeyFactory.getPkVariables()+1, pstmt, 1);
                         pstmt.executeUpdate();
                         save(con, t);
                         pstmt.executeUpdate(); // delete after the save
@@ -76,6 +77,8 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
         String setLatestSql;
         switch (Db.getDatabaseType())
         {
+            case FIREBIRD:
+                throw new IllegalArgumentException("FIX MEEEEE!!!");
             case H2:
                 setLatestSql = "DELETE FROM " + table + " WHERE height < ? AND latest = FALSE "    +
                         " AND (" + dbKeyFactory.getPKColumns() + ") NOT IN (SELECT (" + dbKeyFactory.getPKColumns() +

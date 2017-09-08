@@ -172,10 +172,8 @@ public abstract class SqlTransactionDb implements TransactionDb {
 
     public void saveTransactions(Connection con, List<TransactionImpl> transactions) {
         try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO transaction (id, deadline, sender_public_key, "
-// ac0v
-//                + "recipient_id, amount, fee, referenced_transaction_full_hash, height, "
-                + "recipient_id, amount, fee, r_t_f_hash, height, "
-                + "block_id, signature, \"timestamp\", type, subtype, sender_id, attachment_bytes, "
+                + "recipient_id, amount, fee, referenced_transaction_full_hash, height, "
+                + "block_id, signature, timestamp, type, subtype, sender_id, attachment_bytes, "
                 + "block_timestamp, full_hash, version, has_message, has_encrypted_message, has_public_key_announcement, "
                 + "has_encrypttoself_message, ec_block_height, ec_block_id) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {

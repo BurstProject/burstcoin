@@ -17,7 +17,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
     private static final Logger logger = LoggerFactory.getLogger(SqlTransactionProcessorStore.class);
 
-    final DbKey.LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory = new DbKey.LongKeyFactory<TransactionImpl>("id") {
+    protected final DbKey.LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory = new DbKey.LongKeyFactory<TransactionImpl>("id") {
 
         @Override
         public NxtKey newKey(TransactionImpl transaction) {
@@ -27,6 +27,8 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
     };
     private final Set<TransactionImpl> lostTransactions = new HashSet<>();
     private final Map<Long, Integer> lostTransactionHeights = new HashMap<>();
+
+
     private final EntitySqlTable<TransactionImpl> unconfirmedTransactionTable =
             new EntitySqlTable<TransactionImpl>("unconfirmed_transaction", unconfirmedTransactionDbKeyFactory) {
 
@@ -45,7 +47,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
                 @Override
                 protected void save(Connection con, TransactionImpl transaction) throws SQLException {
                     try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO unconfirmed_transaction (id, transaction_height, "
-                            + "fee_per_byte, \"timestamp\", expiration, transaction_bytes, height) "
+                            + "fee_per_byte, timestamp, expiration, transaction_bytes, height) "
                             + "VALUES (?, ?, ?, ?, ?, ?, ?)")) {
                         int i = 0;
                         pstmt.setLong(++i, transaction.getId());
@@ -80,7 +82,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
                 @Override
                 protected String defaultSort() {
-                    return " ORDER BY transaction_height ASC, fee_per_byte DESC, \"timestamp\" ASC, id ASC ";
+                    return " ORDER BY transaction_height ASC, fee_per_byte DESC, timestamp ASC, id ASC ";
                 }
             };
 

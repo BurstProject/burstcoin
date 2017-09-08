@@ -21,7 +21,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
         }
 
     };
-    private final NxtKey.LongKeyFactory<DigitalGoodsStore.Purchase> purchaseDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
+    protected final NxtKey.LongKeyFactory<DigitalGoodsStore.Purchase> purchaseDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
 
         @Override
         public NxtKey newKey(DigitalGoodsStore.Purchase purchase) {
@@ -43,10 +43,11 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
 
         @Override
         protected String defaultSort() {
-            return " ORDER BY \"timestamp\" DESC, id ASC ";
+            return " ORDER BY timestamp DESC, id ASC ";
         }
 
     };
+
     @Deprecated
     private final VersionedValuesTable<DigitalGoodsStore.Purchase, EncryptedData> feedbackTable =
             new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, EncryptedData>("purchase_feedback", feedbackDbKeyFactory) {
@@ -104,7 +105,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
 
         @Override
         protected String defaultSort() {
-            return " ORDER BY \"timestamp\" DESC, id ASC ";
+            return " ORDER BY timestamp DESC, id ASC ";
         }
 
     };
@@ -118,7 +119,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
                 return index;
             }
         };
-        return purchaseTable.getManyBy(dbClause, 0, -1);
+        return getPurchaseTable().getManyBy(dbClause, 0, -1);
     }
 
     protected void setEncryptedData(PreparedStatement pstmt, EncryptedData encryptedData, int i) throws SQLException {
@@ -201,7 +202,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
                 return index;
             }
         };
-        return goodsTable.getManyBy(dbClause, from, to, " ORDER BY name ASC, \"timestamp\" DESC, id ASC ");
+        return getGoodsTable().getManyBy(dbClause, from, to, " ORDER BY name ASC, timestamp DESC, id ASC ");
     }
 
     @Override
@@ -272,9 +273,9 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
 
 
 
-    private class SQLPurchase extends DigitalGoodsStore.Purchase {
+    protected class SQLPurchase extends DigitalGoodsStore.Purchase {
 
-        private SQLPurchase(ResultSet rs) throws SQLException {
+        public SQLPurchase(ResultSet rs) throws SQLException {
             super(
                     rs.getLong("id"),
                     purchaseDbKeyFactory.newKey(rs.getLong("id")),

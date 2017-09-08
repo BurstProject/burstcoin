@@ -99,9 +99,9 @@ public abstract class SqlAliasStore implements AliasStore {
 
     }
 
-    private void saveAlias(Alias alias, Connection con) throws SQLException {
+    protected void saveAlias(Alias alias, Connection con) throws SQLException {
         try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO alias (id, account_id, alias_name, "
-                + "alias_uri, \"timestamp\", height) "
+                + "alias_uri, timestamp, height) "
                 + "VALUES (?, ?, ?, ?, ?, ?)")) {
             int i = 0;
             pstmt.setLong(++i, alias.getId());
