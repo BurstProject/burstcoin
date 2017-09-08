@@ -42,7 +42,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
                     try (PreparedStatement pstmt = con.prepareStatement("UPDATE " + table
                             + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1))) {
                         dbKey.setPK(pstmt);
-                        DbUtils.setLimits(1, pstmt, 1);
+                        DbUtils.setLimits(2, pstmt, 1);
                         pstmt.executeUpdate();
                         save(con, t);
                         pstmt.executeUpdate(); // delete after the save
