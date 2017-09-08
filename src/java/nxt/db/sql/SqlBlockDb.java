@@ -89,8 +89,9 @@ public abstract class SqlBlockDb implements BlockDb {
     @Override
     public BlockImpl findLastBlock() {
         try (Connection con = Db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block ORDER BY db_id DESC LIMIT 1")) {
+            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block ORDER BY db_id DESC" + DbUtils.limitsClause(1) )) {
             BlockImpl block = null;
+            DbUtils.setLimits(1, pstmt, 1);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     block = loadBlock(con, rs);
@@ -107,8 +108,9 @@ public abstract class SqlBlockDb implements BlockDb {
     @Override
     public BlockImpl findLastBlock(int timestamp) {
         try (Connection con = Db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE timestamp <= ? ORDER BY timestamp DESC LIMIT 1")) {
+             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE \"timestamp\" <= ? ORDER BY \"timestamp\" DESC" + DbUtils.limitsClause(1) )) {
             pstmt.setInt(1, timestamp);
+            DbUtils.setLimits(2, pstmt, 1);
             BlockImpl block = null;
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -158,7 +160,7 @@ public abstract class SqlBlockDb implements BlockDb {
     @Override
     public void saveBlock(Connection con, BlockImpl block) {
         try {
-            try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO block (id, version, timestamp, previous_block_id, "
+            try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO block (id, version, \"timestamp\", previous_block_id, "
                     + "total_amount, total_fee, payload_length, generator_public_key, previous_block_hash, cumulative_difficulty, "
                     + "base_target, height, generation_signature, block_signature, payload_hash, generator_id, nonce , ats) "
                     + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {

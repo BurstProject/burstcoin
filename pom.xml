@@ -22,7 +22,8 @@
     <mariadb.version>1.1.7</mariadb.version>
     <hikaricp.version>2.6.3</hikaricp.version>
     <h2.version>1.4.196</h2.version>
-
+    <jaybird.version>3.0.2</jaybird.version>
+    <jna.version>4.4.0</jna.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -107,6 +108,18 @@
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <version>${h2.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.firebirdsql.jdbc</groupId>
+      <artifactId>jaybird-jdk18</artifactId>
+      <version>${jaybird.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>{jna.version}</version>
     </dependency>
 
   </dependencies>

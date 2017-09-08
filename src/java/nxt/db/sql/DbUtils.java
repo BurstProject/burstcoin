@@ -48,17 +48,26 @@ public final class DbUtils {
         }
     }
 
+    public static String limitsClause(int limit) {
+        return " ROWS ? ";
+    }
+
     public static String limitsClause(int from, int to) {
         int limit = to >=0 && to >= from && to < Integer.MAX_VALUE ? to - from + 1 : 0;
         if (limit > 0 && from > 0) {
-            return " LIMIT ? OFFSET ? ";
+            return " ROWS ? TO ? ";
         } else if (limit > 0) {
-            return " LIMIT ? ";
+            return " ROWS ? ";
         } else if (from > 0) {
-            return " OFFSET ? ";
+            return " ROWS -1 TO ? ";
         } else {
             return "";
         }
+    }
+
+    public static int setLimits(int index, PreparedStatement pstmt, int limit) throws SQLException {
+        pstmt.setInt(index++, limit);
+        return index;
     }
 
     public static int setLimits(int index, PreparedStatement pstmt, int from, int to) throws SQLException {

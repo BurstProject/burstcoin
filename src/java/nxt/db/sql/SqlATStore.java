@@ -244,13 +244,14 @@ public abstract class SqlATStore implements ATStore {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
                      + "WHERE height>= ? AND height < ? and recipient_id = ? AND amount >= ? "
-                     + "ORDER BY height, id "
-                     + "LIMIT 1 OFFSET ?")) {
-            pstmt.setInt(1, startHeight);
-            pstmt.setInt(2, endHeight);
-            pstmt.setLong(3, atID);
-            pstmt.setLong(4, minAmount);
-            pstmt.setInt(5, numOfTx);
+                     + "ORDER BY height, id"
+                     + DbUtils.limitsClause(numOfTx, numOfTx + 1) ) ) {
+            int i = 1;
+            pstmt.setInt(i++, startHeight);
+            pstmt.setInt(i++, endHeight);
+            pstmt.setLong(i++, atID);
+            pstmt.setLong(i++, minAmount);
+            i = DbUtils.setLimits(i++, pstmt, numOfTx, numOfTx + 1);
             ResultSet rs = pstmt.executeQuery();
             Long transactionId = 0L;
             if (rs.next()) {
