@@ -10,8 +10,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T> {
+import org.slf4j.LoggerFactory;
 
+public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T> {    
     protected final DbKey.Factory<T> dbKeyFactory;
     private final boolean multiversion;
     private final String defaultSort;
@@ -324,6 +325,13 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
             }
             save(con, t);
         } catch (SQLException e) {
+	    LoggerFactory.getLogger(EntitySqlTable.class).info(
+							       ">>>>>>>>>>>>>>>>>>>>>>>>>>>\n" +
+							       "UPDATE " + table + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1)
+							       + 							       "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+							       );
+
+	    
             throw new RuntimeException(e.toString(), e);
         }
     }

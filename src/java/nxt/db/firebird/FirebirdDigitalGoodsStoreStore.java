@@ -26,8 +26,8 @@ class FirebirdDigitalGoodsStoreStore extends SqlDigitalGoodsStoreStore {
 
                 @Override
                 protected void save(Connection con, DigitalGoodsStore.Purchase purchase, String publicFeedback) throws SQLException {
-                    try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO purchase_public_feedback (id, public_feedback, "
-                            + "height, latest) KEY (id, height) VALUES (?, ?, ?, TRUE)")) {
+                    try (PreparedStatement pstmt = con.prepareStatement("UPDATE OR INSERT INTO purchase_public_feedback (id, public_feedback, "
+                            + "height, latest) VALUES (?, ?, ?, TRUE) MATCHING (id, height)")) {
                         int i = 0;
                         pstmt.setLong(++i, purchase.getId());
                         pstmt.setString(++i, publicFeedback);
@@ -63,9 +63,9 @@ class FirebirdDigitalGoodsStoreStore extends SqlDigitalGoodsStoreStore {
 
     @Override
     protected void saveGoods(Connection con, DigitalGoodsStore.Goods goods) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO goods (id, seller_id, name, "
+        try (PreparedStatement pstmt = con.prepareStatement("UPDATE OR INSERT INTO goods (id, seller_id, name, "
                 + "description, tags, timestamp, quantity, price, delisted, height, latest) "
-                + " KEY (id, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
+                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE) MATCHING (id, height)")) {
             int i = 0;
             pstmt.setLong(++i, goods.getId());
             pstmt.setLong(++i, goods.getSellerId());
@@ -83,10 +83,10 @@ class FirebirdDigitalGoodsStoreStore extends SqlDigitalGoodsStoreStore {
 
     @Override
     protected void savePurchase(Connection con, DigitalGoodsStore.Purchase purchase) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO purchase (id, buyer_id, goods_id, seller_id, "
+        try (PreparedStatement pstmt = con.prepareStatement("UPDATE OR INSERT INTO purchase (id, buyer_id, goods_id, seller_id, "
                 + "quantity, price, deadline, note, nonce, timestamp, pending, goods, goods_nonce, refund_note, "
                 + "refund_nonce, has_feedback_notes, has_public_feedbacks, discount, refund, height, latest) "
-                + "KEY (id, height)  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE) MATCHING (id, height)")) {
             int i = 0;
             pstmt.setLong(++i, purchase.getId());
             pstmt.setLong(++i, purchase.getBuyerId());

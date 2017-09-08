@@ -2,6 +2,7 @@ package nxt.db.mariadb;
 
 import nxt.AT;
 import nxt.Nxt;
+import nxt.at.AT_API_Helper;
 import nxt.db.sql.DbUtils;
 import nxt.db.sql.SqlATStore;
 
@@ -27,6 +28,32 @@ class MariadbATStore extends SqlATStore {
           pstmt.setLong(++i, atState.getMinActivationAmount());
           pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
           pstmt.executeUpdate();
+      }
+  }
+
+  @Override
+  protected void saveAT(Connection con, AT at) throws SQLException {
+      try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO at "
+              + "(id , creator_id , name , description , version , "
+              + "csize , dsize , c_user_stack_bytes , c_call_stack_bytes , "
+              + "creation_height , "
+              + "ap_code , height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+	  int i = 0;
+	  pstmt.setLong(++i, AT_API_Helper.getLong(at.getId()));
+	  pstmt.setLong(++i, AT_API_Helper.getLong(at.getCreator()));
+	  DbUtils.setString(pstmt, ++i, at.getName());
+	  DbUtils.setString(pstmt, ++i, at.getDescription());
+	  pstmt.setShort(++i, at.getVersion());
+	  pstmt.setInt(++i, at.getCsize());
+	  pstmt.setInt(++i, at.getDsize());
+	  pstmt.setInt(++i, at.getC_user_stack_bytes());
+	  pstmt.setInt(++i, at.getC_call_stack_bytes());
+	  pstmt.setInt(++i, at.getCreationBlockHeight());
+	  //DbUtils.setBytes( pstmt , ++i , this.getApCode() );
+	  DbUtils.setBytes(pstmt, ++i, AT.compressState(at.getApCode()));
+	  pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+
+	  pstmt.executeUpdate();
       }
   }
 }
