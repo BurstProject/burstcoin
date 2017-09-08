@@ -1,6 +1,7 @@
 package nxt.db.sql;
 
 import nxt.db.NxtKey;
+import org.h2.util.StringUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,11 +14,13 @@ public interface DbKey extends NxtKey {
         private final String pkClause;
         private final String pkColumns;
         private final String selfJoinClause;
+        private final int pkVariables;
 
         protected Factory(String pkClause, String pkColumns, String selfJoinClause) {
             this.pkClause = pkClause;
             this.pkColumns = pkColumns;
             this.selfJoinClause = selfJoinClause;
+            this.pkVariables = org.apache.commons.lang.StringUtils.countMatches(pkClause, "?");
         }
 
         public abstract NxtKey newKey(T t);
@@ -37,6 +40,10 @@ public interface DbKey extends NxtKey {
             return selfJoinClause;
         }
 
+        /** The number of variables in PKClause */
+        public int getPkVariables() {
+            return pkVariables;
+        }
     }
 
     int setPK(PreparedStatement pstmt) throws SQLException;

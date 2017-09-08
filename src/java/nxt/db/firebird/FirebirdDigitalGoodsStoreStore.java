@@ -2,8 +2,12 @@ package nxt.db.firebird;
 
 import nxt.DigitalGoodsStore;
 import nxt.Nxt;
+import nxt.db.NxtIterator;
+import nxt.db.VersionedEntityTable;
 import nxt.db.VersionedValuesTable;
+import nxt.db.sql.DbClause;
 import nxt.db.sql.SqlDigitalGoodsStoreStore;
+import nxt.db.sql.VersionedEntitySqlTable;
 import nxt.db.sql.VersionedValuesSqlTable;
 
 import java.sql.Connection;
@@ -33,6 +37,24 @@ class FirebirdDigitalGoodsStoreStore extends SqlDigitalGoodsStoreStore {
                 }
 
             };
+    private final VersionedEntityTable<DigitalGoodsStore.Purchase> purchaseTable = new VersionedEntitySqlTable<DigitalGoodsStore.Purchase>("purchase", purchaseDbKeyFactory) {
+
+        @Override
+        protected DigitalGoodsStore.Purchase load(Connection con, ResultSet rs) throws SQLException {
+            return new SQLPurchase(rs);
+        }
+
+        @Override
+        protected void save(Connection con, DigitalGoodsStore.Purchase purchase) throws SQLException {
+            savePurchase(con, purchase);
+        }
+
+        @Override
+        protected String defaultSort() {
+            return " ORDER BY \"timestamp\" DESC, id ASC ";
+        }
+
+    };
 
     @Override
     public VersionedValuesTable<DigitalGoodsStore.Purchase, String> getPublicFeedbackTable() {
@@ -88,5 +110,22 @@ class FirebirdDigitalGoodsStoreStore extends SqlDigitalGoodsStoreStore {
             pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
+    }
+
+    @Override
+    public VersionedEntityTable<DigitalGoodsStore.Purchase> getPurchaseTable() {
+        return purchaseTable;
+    }
+
+    @Override
+    public NxtIterator<DigitalGoodsStore.Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
+        DbClause dbClause = new DbClause(" seller_id = ? " + (inStockOnly ? "AND delisted = FALSE AND quantity > 0" : "")) {
+            @Override
+            public int set(PreparedStatement pstmt, int index) throws SQLException {
+                pstmt.setLong(index++, sellerId);
+                return index;
+            }
+        };
+        return getGoodsTable().getManyBy(dbClause, from, to, " ORDER BY name ASC, timestamp DESC, id ASC ");
     }
 }
