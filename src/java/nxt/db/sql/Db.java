@@ -13,6 +13,9 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.io.File;
+import org.firebirdsql.management.FBManager;
+import org.firebirdsql.gds.impl.GDSType;
 
 public final class Db {
 
@@ -51,10 +54,9 @@ public final class Db {
                 config.setPassword(dbPassword);
 
             config.setMaximumPoolSize( Nxt.getIntProperty("nxt.dbMaximumPoolSize") );
-	    
+
             switch (DATABASE_TYPE) {
                 case MARIADB:
-                    config.setMaximumPoolSize(10);
                     config.setAutoCommit(false);
                     config.addDataSourceProperty("cachePrepStmts", "true");
                     config.addDataSourceProperty("prepStmtCacheSize", "250");
@@ -63,8 +65,25 @@ public final class Db {
                     config.addDataSourceProperty("useUnicode", "true");
                     config.setConnectionInitSql("SET NAMES utf8mb4;");
                     break;
+                case FIREBIRD:
+                    config.setAutoCommit(false);
+                    config.addDataSourceProperty("cachePrepStmts", "true");
+                    config.addDataSourceProperty("prepStmtCacheSize", "250");
+                    config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+
+                    if ( dbUrl.startsWith("jdbc:firebirdsql:embedded:") ) {
+                        String firebirdDb = dbUrl.replaceFirst("^jdbc:firebirdsql:embedded:", "").replaceFirst("\\?.*$", "");
+
+                        if ( ! new File(firebirdDb).isFile() ) {
+                            FBManager manager = new FBManager(GDSType.getType("EMBEDDED"));
+                            manager.start();
+                            manager.createDatabase(firebirdDb, "", "");
+                            manager.stop();
+                        }
+                    }
+
+                    break;
                 case H2:
-                    config.setMaximumPoolSize(10);
                     config.setAutoCommit(false);
                     config.addDataSourceProperty("cachePrepStmts", "true");
                     config.addDataSourceProperty("prepStmtCacheSize", "250");
@@ -228,11 +247,14 @@ public final class Db {
 
     public enum TYPE {
         H2,
-        MARIADB;
+        MARIADB,
+        FIREBIRD;
 
         public static TYPE getTypeFromJdbcUrl(String jdbcUrl) {
             if (jdbcUrl.contains("jdbc:mysql") || jdbcUrl.contains("jdbc:mariadb"))
                 return MARIADB;
+            if (jdbcUrl.contains("jdbc:firebirdsql"))
+                return FIREBIRD;
             if (jdbcUrl.contains("jdbc:h2"))
                 return H2;
             throw new IllegalArgumentException("Unable to determine database type from this: '" + jdbcUrl + "'");

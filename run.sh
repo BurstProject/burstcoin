@@ -1,1 +1,1 @@
-java -cp burst.jar:lib/*:conf nxt.Nxt
+java -Djna.library.path=firebird -cp burst.jar:lib/*:conf nxt.Nxt

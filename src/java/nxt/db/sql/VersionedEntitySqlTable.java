@@ -40,8 +40,9 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
                 rs.next();
                 if (rs.getInt("count") > 0) {
                     try (PreparedStatement pstmt = con.prepareStatement("UPDATE " + table
-                            + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE LIMIT 1")) {
+                            + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1))) {
                         dbKey.setPK(pstmt);
+                        DbUtils.setLimits(1, pstmt, 1);
                         pstmt.executeUpdate();
                         save(con, t);
                         pstmt.executeUpdate(); // delete after the save

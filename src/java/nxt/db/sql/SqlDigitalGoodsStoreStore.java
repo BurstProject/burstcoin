@@ -43,7 +43,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
 
         @Override
         protected String defaultSort() {
-            return " ORDER BY timestamp DESC, id ASC ";
+            return " ORDER BY \"timestamp\" DESC, id ASC ";
         }
 
     };
@@ -104,7 +104,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
 
         @Override
         protected String defaultSort() {
-            return " ORDER BY timestamp DESC, id ASC ";
+            return " ORDER BY \"timestamp\" DESC, id ASC ";
         }
 
     };
@@ -201,7 +201,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
                 return index;
             }
         };
-        return goodsTable.getManyBy(dbClause, from, to, " ORDER BY name ASC, timestamp DESC, id ASC ");
+        return goodsTable.getManyBy(dbClause, from, to, " ORDER BY name ASC, \"timestamp\" DESC, id ASC ");
     }
 
     @Override

@@ -91,10 +91,10 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
             throw new IllegalArgumentException("Can't get more than 1440 blocks at a time");
         }
         try (Connection con = Db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT id FROM block WHERE db_id > (SELECT db_id FROM block WHERE id = ?) ORDER BY db_id ASC LIMIT ?")) {
+             PreparedStatement pstmt = con.prepareStatement("SELECT id FROM block WHERE db_id > (SELECT db_id FROM block WHERE id = ?) ORDER BY db_id ASC" + DbUtils.limitsClause(limit) )) {
             List<Long> result = new ArrayList<>();
             pstmt.setLong(1, blockId);
-            pstmt.setInt(2, limit);
+            DbUtils.setLimits(2, pstmt, limit);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     result.add(rs.getLong("id"));
@@ -112,10 +112,10 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
             throw new IllegalArgumentException("Can't get more than 1440 blocks at a time");
         }
         try (Connection con = Db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE db_id > (SELECT db_id FROM block WHERE id = ?) ORDER BY db_id ASC LIMIT ?")) {
+             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE db_id > (SELECT db_id FROM block WHERE id = ?) ORDER BY db_id ASC" + DbUtils.limitsClause(limit) )) {
             List<BlockImpl> result = new ArrayList<>();
             pstmt.setLong(1, blockId);
-            pstmt.setInt(2, limit);
+            DbUtils.setLimits(2, pstmt, limit);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     result.add(blockDb.loadBlock(con, rs));
