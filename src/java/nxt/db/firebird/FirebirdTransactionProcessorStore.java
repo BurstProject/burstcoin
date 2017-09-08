@@ -70,7 +70,7 @@ class FirebirdTransactionProcessorStore extends SqlTransactionProcessorStore {
 
                 @Override
                 protected String defaultSort() {
-                    return " ORDER BY transaction_height ASC, fee_per_byte DESC, timestamp ASC, id ASC ";
+                    return " ORDER BY transaction_height ASC, fee_per_byte DESC, \"timestamp\" ASC, id ASC ";
                 }
             };
 

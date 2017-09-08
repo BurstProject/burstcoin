@@ -67,6 +67,7 @@ final class FirebirdDbVersion {
     }
 
     private static void update(int nextUpdate) {
+        logger.debug("Next update is "+nextUpdate);
         switch (nextUpdate) {
             case 1:
                 apply("CREATE TABLE alias("
@@ -541,6 +542,7 @@ final class FirebirdDbVersion {
                 apply("UPDATE version set next_update = '162';");
             case 163:
                	apply("ALTER TABLE alias ALTER COLUMN alias_name_LOWER SET DEFAULT '';");
+            case 164:
 		/*
             case 164:
                	apply("ALTER DATABASE burstwallet CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
