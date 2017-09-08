@@ -11,8 +11,8 @@ import java.sql.SQLException;
 class FirebirdEscrowStore extends SqlEscrowStore {
     @Override
     protected void saveDecision(Connection con, Escrow.Decision decision) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO escrow_decision (escrow_id, "
-                + "account_id, decision, height, latest) KEY (escrow_id, account_id, height) VALUES (?, ?, ?, ?, TRUE)")) {
+        try (PreparedStatement pstmt = con.prepareStatement("UPDATE OR INSERT INTO escrow_decision (escrow_id, "
+                + "account_id, decision, height, latest) VALUES (?, ?, ?, ?, TRUE) MATCHING (escrow_id, account_id, height)")) {
             int i = 0;
             pstmt.setLong(++i, decision.escrowId);
             pstmt.setLong(++i, decision.accountId);
@@ -24,9 +24,9 @@ class FirebirdEscrowStore extends SqlEscrowStore {
 
     @Override
     protected void saveEscrow(Connection con, Escrow escrow) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO escrow (id, sender_id, "
+        try (PreparedStatement pstmt = con.prepareStatement("UPDATE OR INSTER INTO escrow (id, sender_id, "
                 + "recipient_id, amount, required_signers, deadline, deadline_action, height, latest) "
-                + "KEY (id, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE) MATCHING (id, height)")) {
             int i = 0;
             pstmt.setLong(++i, escrow.id);
             pstmt.setLong(++i, escrow.senderId);
