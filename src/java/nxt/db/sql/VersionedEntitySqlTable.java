@@ -125,20 +125,22 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
         if (!Db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
+	String validTableName = ( Db.getDatabaseType() == Db.TYPE.FIREBIRD && table == "at" ) ? "\"" + table.toUpperCase() + "\"" : table;
+
         try (Connection con = Db.getConnection();
              PreparedStatement pstmtSelect = con.prepareStatement("SELECT " + dbKeyFactory.getPKColumns() + ", MAX(height) AS max_height"
-                     + " FROM " + table + " WHERE height < ? GROUP BY " + dbKeyFactory.getPKColumns() + " HAVING COUNT(DISTINCT height) > 1");
-             PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + table + dbKeyFactory.getPKClause()
+                     + " FROM " + validTableName + " WHERE height < ? GROUP BY " + dbKeyFactory.getPKColumns() + " HAVING COUNT(DISTINCT height) > 1");
+             PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + validTableName + dbKeyFactory.getPKClause()
                      + " AND height < ?");
 
              PreparedStatement pstmtDeleteDeleted = con.prepareStatement(
                  Db.getDatabaseType() == Db.TYPE.FIREBIRD
-                     ? "DELETE FROM " + table + " WHERE height < ? AND latest = FALSE "
+                     ? "DELETE FROM " + validTableName + " WHERE height < ? AND latest = FALSE "
                          + " AND (" + String.join(" || '\\0' || ", dbKeyFactory.getPKColumns().split(",")) + ") NOT IN ( SELECT * FROM ( SELECT (" + String.join(" || '\\0' || ", dbKeyFactory.getPKColumns().split(",")) + ") AS ac1v FROM "
-                         + table + " WHERE height >= ?) ac0v )"
-                     : "DELETE FROM " + table + " WHERE height < ? AND latest = FALSE "
+                         + validTableName + " WHERE height >= ?) ac0v )"
+                     : "DELETE FROM " + validTableName + " WHERE height < ? AND latest = FALSE "
                          + " AND CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") NOT IN ( SELECT * FROM ( SELECT CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") FROM "
-                         + table + " WHERE height >= ?) ac0v )"
+                         + validTableName + " WHERE height >= ?) ac0v )"
              )) {
 
              // logger.info( "DELETE PK columns: ", dbKeyFactory.getPKColumns() );
