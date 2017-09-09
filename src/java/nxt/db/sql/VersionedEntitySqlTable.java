@@ -80,9 +80,9 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
             case FIREBIRD:
                 throw new IllegalArgumentException("FIX MEEEEE!!!");
             case H2:
-                setLatestSql = "DELETE FROM " + table + " WHERE height < ? AND latest = FALSE "    +
-                        " AND (" + dbKeyFactory.getPKColumns() + ") NOT IN (SELECT (" + dbKeyFactory.getPKColumns() +
-                        ") FROM " + table + " WHERE height >= ?)";
+                setLatestSql = "UPDATE " + table
+                        + " SET latest = TRUE " + dbKeyFactory.getPKClause() + " AND height ="
+                        + " (SELECT MAX(height) FROM " + table + dbKeyFactory.getPKClause() + ")";
                 break;
             case MARIADB:
                 setLatestSql="UPDATE " + table
