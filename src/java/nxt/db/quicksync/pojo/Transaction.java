@@ -7,7 +7,7 @@ public class Transaction {
     private long id;
     private long deadline;
     private byte[] sender_Public_Key;
-    private long recipient_Id;
+    private Long recipient_Id;
     private long amount;
     private long fee;
     private long height;
