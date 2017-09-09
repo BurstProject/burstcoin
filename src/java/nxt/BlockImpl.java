@@ -135,7 +135,7 @@ public final class BlockImpl implements Block {
     public byte[] getGeneratorPublicKey() {
         return generatorPublicKey;
     }
-    
+
     @Override
     public byte[] getBlockHash() {
     	return Crypto.sha256().digest(getBytes());
@@ -243,12 +243,12 @@ public final class BlockImpl implements Block {
         }
         return generatorId;
     }
-    
+
     @Override
     public Long getNonce() {
     	return nonce;
     }
-    
+
     @Override
     public int getScoopNum() {
 		return Nxt.getGenerator().calculateScoop(generationSignature, getHeight());
@@ -304,7 +304,7 @@ public final class BlockImpl implements Block {
             byte[] blockSignature = Convert.parseHexString((String) blockData.get("blockSignature"));
             byte[] previousBlockHash = version == 1 ? null : Convert.parseHexString((String) blockData.get("previousBlockHash"));
             Long nonce = Convert.parseUnsignedLong((String)blockData.get("nonce"));
-            
+
             SortedMap<Long, TransactionImpl> blockTransactions = new TreeMap<>();
             JSONArray transactionsData = (JSONArray)blockData.get("transactions");
             for (Object transactionData : transactionsData) {
@@ -323,7 +323,8 @@ public final class BlockImpl implements Block {
     }
 
     byte[] getBytes() {
-        ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + 8 + 4 + (version < 3 ? (4 + 4) : (8 + 8)) + 4 + 32 + 32 + (32 + 32) + 8 + (blockATs != null ? blockATs.length : 0) + 64);
+        ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + 8 + 4 + (version < 3 ? (4 + 4) : (8 + 8)) + 4 + 32 + 32 + (32 + 32)
+                + 8 + (blockATs != null ? blockATs.length : 0) + 64);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putInt(version);
         buffer.putInt(timestamp);
@@ -346,6 +347,10 @@ public final class BlockImpl implements Block {
         buffer.putLong(nonce);
         if(blockATs != null)
         	buffer.put(blockATs);
+        if (logger.isTraceEnabled())
+            logger.trace(buffer.position()+" + "+blockSignature.length+ " = "+buffer.limit()+"?");
+        if ( buffer.limit() - buffer.position() < blockSignature.length)
+            logger.error("Something is too large here - buffer should have "+blockSignature.length+" bytes left but only has "+(buffer.limit()-buffer.position()));
         buffer.put(blockSignature);
         return buffer.array();
     }
@@ -364,16 +369,16 @@ public final class BlockImpl implements Block {
     boolean verifyBlockSignature() throws BlockchainProcessor.BlockOutOfOrderException {
 
     	try {
-    		
+
     		BlockImpl previousBlock = (BlockImpl)Nxt.getBlockchain().getBlock(this.previousBlockId);
     		if (previousBlock == null) {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing");
             }
-    		
+
     		byte[] data = getBytes();
             byte[] data2 = new byte[data.length - 64];
             System.arraycopy(data, 0, data2, 0, data2.length);
-            
+
             byte[] publicKey;
             Account genAccount = Account.getAccount(generatorPublicKey);
             Account.RewardRecipientAssignment rewardAssignment;
@@ -393,7 +398,7 @@ public final class BlockImpl implements Block {
             }
 
             return Crypto.verify(blockSignature, data2, publicKey, version >= 3);
-    		
+
     	} catch (RuntimeException e) {
 
     		logger.info("Error verifying block signature", e);
@@ -493,7 +498,7 @@ public final class BlockImpl implements Block {
             transaction.apply();
         }
     }
-    
+
     @Override
     public long getBlockReward() {
     	if(this.height == 0 || this.height >= 1944000) {
@@ -503,7 +508,7 @@ public final class BlockImpl implements Block {
     	long reward = BigInteger.valueOf(10000)
     			.multiply(BigInteger.valueOf(95).pow(month))
     			.divide(BigInteger.valueOf(100).pow(month)).longValue() * Constants.ONE_NXT;
-    	
+
     	return reward;
     }
 
@@ -540,7 +545,7 @@ public final class BlockImpl implements Block {
         	} while(itBlock.getHeight() > this.height - 4);
         	avgBaseTarget = avgBaseTarget.divide(BigInteger.valueOf(4));
         	long difTime = this.timestamp - itBlock.getTimestamp();
-        	
+
             long curBaseTarget = avgBaseTarget.longValue();
             long newBaseTarget = BigInteger.valueOf(curBaseTarget)
                     .multiply(BigInteger.valueOf(difTime))
@@ -577,41 +582,41 @@ public final class BlockImpl implements Block {
         	} while(blockCounter < 24);
         	long difTime = this.timestamp - itBlock.getTimestamp();
         	long targetTimespan = 24 * 4 * 60;
-        	
+
         	if(difTime < targetTimespan /2) {
         		difTime = targetTimespan /2;
         	}
-        	
+
         	if(difTime > targetTimespan * 2) {
         		difTime = targetTimespan * 2;
         	}
-        	
+
         	long curBaseTarget = previousBlock.getBaseTarget();
             long newBaseTarget = avgBaseTarget
                     .multiply(BigInteger.valueOf(difTime))
                     .divide(BigInteger.valueOf(targetTimespan)).longValue();
-            
+
             if (newBaseTarget < 0 || newBaseTarget > Constants.MAX_BASE_TARGET) {
                 newBaseTarget = Constants.MAX_BASE_TARGET;
             }
-            
+
             if (newBaseTarget == 0) {
                 newBaseTarget = 1;
             }
-            
+
             if(newBaseTarget < curBaseTarget * 8 / 10) {
             	newBaseTarget = curBaseTarget * 8 / 10;
             }
-            
+
             if(newBaseTarget > curBaseTarget * 12 / 10) {
             	newBaseTarget = curBaseTarget * 12 / 10;
             }
-            
+
             baseTarget = newBaseTarget;
             cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
         }
     }
-    
+
     @Override
 	public byte[] getBlockATs() {
 		return blockATs;

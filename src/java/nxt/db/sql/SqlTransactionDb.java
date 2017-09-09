@@ -69,7 +69,8 @@ public abstract class SqlTransactionDb implements TransactionDb {
         }
     }
 
-    @Override public TransactionImpl loadTransaction(Connection con, ResultSet rs) throws NxtException.ValidationException {
+    @Override
+    public TransactionImpl loadTransaction(Connection con, ResultSet rs) throws NxtException.ValidationException {
         try {
 
             byte type = rs.getByte("type");

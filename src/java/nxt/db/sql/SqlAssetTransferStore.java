@@ -12,7 +12,7 @@ import java.sql.SQLException;
 
 public abstract class SqlAssetTransferStore implements AssetTransferStore {
 
-    private static final NxtKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = new DbKey.LongKeyFactory<AssetTransfer>("id") {
+    protected static final NxtKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = new DbKey.LongKeyFactory<AssetTransfer>("id") {
 
         @Override
         public NxtKey newKey(AssetTransfer assetTransfer) {
@@ -48,10 +48,6 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
         }
     }
 
-    @Override
-    public NxtKey.LongKeyFactory<AssetTransfer> getTransferDbKeyFactory() {
-        return transferDbKeyFactory;
-    }
 
     @Override
     public EntitySqlTable<AssetTransfer> getAssetTransferTable() {
@@ -59,8 +55,12 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
     }
 
     @Override
+    public NxtKey.LongKeyFactory<AssetTransfer> getTransferDbKeyFactory() {
+        return transferDbKeyFactory;
+    }
+    @Override
     public NxtIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
-        return assetTransferTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
+        return getAssetTransferTable().getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
     }
 
     @Override
@@ -76,7 +76,7 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
             pstmt.setLong(++i, accountId);
             pstmt.setLong(++i, accountId);
             DbUtils.setLimits(++i, pstmt, from, to);
-            return assetTransferTable.getManyBy(con, pstmt, false);
+            return getAssetTransferTable().getManyBy(con, pstmt, false);
         } catch (SQLException e) {
             DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
@@ -98,7 +98,7 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
             pstmt.setLong(++i, accountId);
             pstmt.setLong(++i, assetId);
             DbUtils.setLimits(++i, pstmt, from, to);
-            return assetTransferTable.getManyBy(con, pstmt, false);
+            return getAssetTransferTable().getManyBy(con, pstmt, false);
         } catch (SQLException e) {
             DbUtils.close(con);
             throw new RuntimeException(e.toString(), e);
@@ -119,9 +119,9 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
         }
     }
 
-    private class SqlAssetTransfer extends AssetTransfer {
+    protected class SqlAssetTransfer extends AssetTransfer {
 
-        private SqlAssetTransfer(ResultSet rs) throws SQLException {
+        public SqlAssetTransfer(ResultSet rs) throws SQLException {
             super(rs.getLong("id"),
                     transferDbKeyFactory.newKey(rs.getLong("id")),
                     rs.getLong("asset_id"),

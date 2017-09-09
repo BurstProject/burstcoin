@@ -32,13 +32,13 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
         }
         DbKey dbKey = (DbKey) dbKeyFactory.newKey(t);
         try (Connection con = Db.getConnection();
-             PreparedStatement pstmtCount = con.prepareStatement("SELECT COUNT(*) AS count FROM " + table + dbKeyFactory.getPKClause()
+             PreparedStatement pstmtCount = con.prepareStatement("SELECT COUNT(*) AS ct FROM " + table + dbKeyFactory.getPKClause()
                      + " AND height < ?")) {
             int i = dbKey.setPK(pstmtCount);
             pstmtCount.setInt(i, Nxt.getBlockchain().getHeight());
             try (ResultSet rs = pstmtCount.executeQuery()) {
                 rs.next();
-                if (rs.getInt("count") > 0) {
+                if (rs.getInt("ct") > 0) {
                     try (PreparedStatement pstmt = con.prepareStatement("UPDATE " + table
                             + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1))) {
                         dbKey.setPK(pstmt);
