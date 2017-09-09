@@ -535,7 +535,7 @@ final class MariadbDbVersion {
             case 163:
                	apply("ALTER TABLE alias ALTER COLUMN alias_name_LOWER SET DEFAULT '';");
             case 164:
-               	apply("ALTER DATABASE burstwallet CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+               	apply("ALTER DATABASE bc CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
             case 165:
               	apply("ALTER TABLE alias CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
             case 166:
