@@ -1,14 +1,14 @@
 package nxt.db.quicksync.pojo;
 
 
-import java.sql.Blob;
+
 
 public class Account {
 
   private long db_Id;
   private long id;
   private long creation_Height;
-  private Blob public_Key;
+  private byte[] public_Key;
   private long key_Height;
   private long balance;
   private long unconfirmed_Balance;
@@ -45,11 +45,11 @@ public class Account {
     this.creation_Height = creation_Height;
   }
 
-  public Blob getPublic_Key() {
+  public byte[] getPublic_Key() {
     return public_Key;
   }
 
-  public void setPublic_Key(Blob public_Key) {
+  public void setPublic_Key(byte[] public_Key) {
     this.public_Key = public_Key;
   }
 
