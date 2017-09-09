@@ -1,17 +1,21 @@
 package nxt.db.quicksync;
 
 import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.io.Input;
 import nxt.Constants;
 import nxt.Nxt;
+import nxt.db.h2.H2Dbs;
+import nxt.db.mariadb.MariadbDbs;
 import nxt.db.sql.Db;
+import nxt.db.store.Dbs;
 import nxt.util.LoggerConfigurator;
+import org.apache.commons.lang.StringUtils;
 import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -20,18 +24,19 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.zip.GZIPOutputStream;
+import java.util.zip.GZIPInputStream;
 
 
-public class MariadbDump {
-    private static final Logger logger = LoggerFactory.getLogger(MariadbDump.class.getSimpleName());
+public class MariadbLoad {
+    private static final Logger logger = LoggerFactory.getLogger(MariadbLoad.class.getSimpleName());
+    private static Dbs dbs;
 
     public static void main(String[] args) {
         try {
@@ -47,94 +52,104 @@ public class MariadbDump {
             }
 
             Db.init();
-            dump(args[0]);
+            switch (Db.getDatabaseType()) {
+                case MARIADB:
+                    logger.info("Using mariadb Backend");
+                    dbs = new MariadbDbs();
+                    break;
+                case H2:
+                    logger.info("Using h2 Backend");
+                    dbs = new H2Dbs();
+                    break;
+                default:
+                    throw new RuntimeException("Error initializing wallet: Unknown database type");
+            }
+            load(args[0]);
         } catch (Exception e) {
             logger.error("Error", e);
         }
     }
 
-    public static void dump(String filename) throws IOException, URISyntaxException, ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException {
+    public static void load(String filename) throws
+            IOException, URISyntaxException, ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException {
 
         Kryo kryo = new Kryo();
 
-        try (Output output = new Output(new GZIPOutputStream(new FileOutputStream(filename)))) {
+        try (Input input = new Input(new GZIPInputStream(new FileInputStream(filename)))) {
             try (Connection con = Db.getConnection()) {
                 Db.beginTransaction();
-                List<String> classes = getClassNamesFromPackage("nxt.db.quicksync.pojo");
-                for (String classname : classes) {
-                    Class clazz = Class.forName("nxt.db.quicksync.pojo." + classname);
-                    StringBuilder sb = new StringBuilder("select ");
+                dbs.disableForeignKeyChecks(con);
+
+                Object o = null;
+                Class clazz = null;
+                Statement stmt = con.createStatement();
+
+                while (!input.eof() && (clazz = kryo.readClass(input).getType()) != null) {
+                    long rows = input.readLong();
+                    stmt.executeUpdate("truncate table " + clazz.getSimpleName().toLowerCase() + ";");
+
+
+                    StringBuilder sb = new StringBuilder("insert into ");
+                    sb.append(clazz.getSimpleName().toLowerCase());
+                    sb.append(" (");
                     List<Field> fields = new ArrayList<>();
+
                     for (Field field : ReflectionUtils.getAllFields(clazz)) {
                         fields.add(field);
                         sb.append(field.getName()).append(",");
+
                     }
                     // Remove last ,
                     sb.deleteCharAt(sb.lastIndexOf(","));
-                    sb.append(" from ");
-                    sb.append(clazz.getSimpleName().toLowerCase());
-                    sb.append(" limit :from,50000;");
+                    sb.append(") VALUES ( ");
+                    sb.append(StringUtils.repeat("?", ",", fields.size()));
+                    sb.append(")");
                     String sql = sb.toString();
                     System.out.println(sql);
-                    kryo.writeClass(output,clazz);
-                    ResultSet rs = con.createStatement().executeQuery("select count(1) from " + classname);
-                    rs.next();
-                    long rows = rs.getLong(1);
-                    output.writeLong(rows);
-                    long records = 0;
-                    while (records < rows) {
-                        String sqlToExecute = sql.replaceAll(":from", String.valueOf(records));
-                        PreparedStatement ps = con.prepareStatement(sqlToExecute);
-                        rs = ps.executeQuery();
-                        Object data = clazz.newInstance();
-                        while (rs.next()) {
-                            records++;
-                            if (records % 1000 == 0)
-                                System.err.println(classname + ": " + records + " / " + rows);
-                            int i = 1;
+                    PreparedStatement ps = con.prepareStatement(sql);
 
+                    for (long l = 0; l < rows; l++) {
+                        o = kryo.readObject(input, clazz);
+                        int i = 0;
+                        for (Field field : fields) {
+                            i++;
+                            Class fieldType = field.getType();
+                            field.setAccessible(true);
 
-                            for (Field field : fields) {
-                                Class fieldType = field.getType();
-                                field.setAccessible(true);
-                                Object value;
+                            if (fieldType.equals(String.class)) {
+                                ps.setString(i, (String) field.get(o));
 
-
-                                if (fieldType.equals(String.class)) {
-                                    value = rs.getString(i);
-                                } else if (fieldType.equals(Long.class) || fieldType.equals(long.class)) {
-                                    value = rs.getLong(i);
-                                } else if (fieldType.isArray()) {
-                                    // Byte array?
-                                    if (fieldType.getComponentType().equals(byte.class)) {
-                                        // Not sure if this works across drivers
-                                        value = rs.getBytes(i);
-                                    } else {
-                                        System.err.println(field.getName() + ": " + fieldType);
-                                        value = rs.getObject(i);
-                                    }
+                            } else if (fieldType.equals(Long.class)) {
+                                ps.setLong(i, (Long) field.get(o));
+                            } else if (fieldType.equals(long.class)) {
+                                ps.setLong(i, field.getLong(o));
+                            } else if (fieldType.isArray()) {
+                                // Byte array?
+                                if (fieldType.getComponentType().equals(byte.class)) {
+                                    ps.setBytes(i, (byte[]) field.get(o));
 
                                 } else {
                                     System.err.println(field.getName() + ": " + fieldType);
-                                    value = rs.getObject(i);
                                 }
-                                field.set(data, value);
-                                i++;
+
+                            } else {
+                                System.err.println(field.getName() + ": " + fieldType);
                             }
-
-                            kryo.writeObject(output, data);
                         }
-                        rs.close();
-                        ps.close();
-                        output.flush();
+                        if (ps.executeUpdate() != 1)
+                            throw new RuntimeException("Statement failed :( ");
+                        if (l % 1000 == 0)
+                            System.err.println(l + " / " + rows);
                     }
-
-
+                    System.err.println(rows + " / " + rows);
                 }
+                dbs.enableForeignKeyChecks(con);
+                Db.commitTransaction();
                 Db.endTransaction();
             }
 
         }
+
     }
 
 
