@@ -130,10 +130,18 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
                      + " FROM " + table + " WHERE height < ? GROUP BY " + dbKeyFactory.getPKColumns() + " HAVING COUNT(DISTINCT height) > 1");
              PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + table + dbKeyFactory.getPKClause()
                      + " AND height < ?");
+
+             PreparedStatement pstmtDeleteDeleted = con.prepareStatement(
+                 Db.getDatabaseType() == Db.TYPE.FIREBIRD
+                     ? "DELETE FROM " + table + " WHERE height < ? AND latest = FALSE "
+                         + " AND (" + String.join(" || '\\0' || ", dbKeyFactory.getPKColumns().split(",")) + ") NOT IN ( SELECT * FROM ( SELECT (" + String.join(" || '\\0' || ", dbKeyFactory.getPKColumns().split(",")) + ") AS ac1v FROM "
+                         + table + " WHERE height >= ?) ac0v )"
+                     : "DELETE FROM " + table + " WHERE height < ? AND latest = FALSE "
+                         + " AND CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") NOT IN ( SELECT * FROM ( SELECT CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") FROM "
+                         + table + " WHERE height >= ?) ac0v )"
+             )) {
+
              // logger.info( "DELETE PK columns: ", dbKeyFactory.getPKColumns() );
-             PreparedStatement pstmtDeleteDeleted = con.prepareStatement("DELETE FROM " + table + " WHERE height < ? AND latest = FALSE "
-                     + " AND CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") NOT IN ( SELECT * FROM ( SELECT CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") FROM "
-                     + table + " WHERE height >= ?) ac0v )")) {
             pstmtSelect.setInt(1, height);
             try (ResultSet rs = pstmtSelect.executeQuery()) {
                 while (rs.next()) {
