@@ -19,7 +19,7 @@
     <json-simple.version>1.1.1</json-simple.version>
     <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
     <slf4j.version>1.7.25</slf4j.version>
-    <mariadb.version>1.1.7</mariadb.version>
+    <mariadb.version>2.0.3</mariadb.version>
     <hikaricp.version>2.6.3</hikaricp.version>
     <h2.version>1.4.196</h2.version>
 

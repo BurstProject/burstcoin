@@ -34,22 +34,13 @@ import java.util.jar.JarFile;
 import java.util.zip.GZIPInputStream;
 
 
-public class MariadbLoad {
-    private static final Logger logger = LoggerFactory.getLogger(MariadbLoad.class.getSimpleName());
+public class LoadBinDump {
+    private static final Logger logger = LoggerFactory.getLogger(LoadBinDump.class.getSimpleName());
     private static Dbs dbs;
 
     public static void main(String[] args) {
         try {
-            long startTime = System.currentTimeMillis();
-
             LoggerConfigurator.init();
-
-            String dbUrl;
-            if (Constants.isTestnet) {
-                dbUrl = Nxt.getStringProperty("nxt.testDbUrl");
-            } else {
-                dbUrl = Nxt.getStringProperty("nxt.dbUrl");
-            }
 
             Db.init();
             switch (Db.getDatabaseType()) {
@@ -74,7 +65,7 @@ public class MariadbLoad {
             IOException, URISyntaxException, ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException {
 
         Kryo kryo = new Kryo();
-
+        long start = System.currentTimeMillis();
         try (Input input = new Input(new GZIPInputStream(new FileInputStream(filename)))) {
             try (Connection con = Db.getConnection()) {
                 Db.beginTransaction();
@@ -105,7 +96,7 @@ public class MariadbLoad {
                     sb.append(StringUtils.repeat("?", ",", fields.size()));
                     sb.append(")");
                     String sql = sb.toString();
-                    System.out.println(sql);
+                    logger.debug(sql);
                     PreparedStatement ps = con.prepareStatement(sql);
 
                     for (long l = 0; l < rows; l++) {
@@ -125,27 +116,33 @@ public class MariadbLoad {
                                 ps.setLong(i, field.getLong(o));
                             } else if (fieldType.isArray()) {
                                 // Byte array?
+
                                 if (fieldType.getComponentType().equals(byte.class)) {
                                     ps.setBytes(i, (byte[]) field.get(o));
 
                                 } else {
-                                    System.err.println(field.getName() + ": " + fieldType);
+                                    logger.error("Unhandled field type for"+field.getName() + ": " + fieldType);
                                 }
 
                             } else {
-                                System.err.println(field.getName() + ": " + fieldType);
+                                logger.error("Unhandled field type for"+field.getName() + ": " + fieldType);
                             }
                         }
-                        if (ps.executeUpdate() != 1)
-                            throw new RuntimeException("Statement failed :( ");
-                        if (l % 1000 == 0)
-                            System.err.println(l + " / " + rows);
+                        ps.addBatch();
+                        ps.clearParameters();
+                        if (l % 100 == 0) {
+                           logger.info(clazz.getSimpleName()+": "+l + " / " + rows );
+                            ps.executeBatch();
+                        }
                     }
-                    System.err.println(rows + " / " + rows);
+                    ps.executeBatch();
+                    logger.info(clazz.getSimpleName()+": "+rows + " / " + rows );
                 }
+
                 dbs.enableForeignKeyChecks(con);
                 Db.commitTransaction();
                 Db.endTransaction();
+                logger.info("Dump loaded in " + ((System.currentTimeMillis() - start) / 1000) + "seconds");
             }
 
         }

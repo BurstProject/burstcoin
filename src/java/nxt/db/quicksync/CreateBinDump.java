@@ -30,8 +30,8 @@ import java.util.jar.JarFile;
 import java.util.zip.GZIPOutputStream;
 
 
-public class MariadbDump {
-    private static final Logger logger = LoggerFactory.getLogger(MariadbDump.class.getSimpleName());
+public class CreateBinDump {
+    private static final Logger logger = LoggerFactory.getLogger(CreateBinDump.class.getSimpleName());
 
     public static void main(String[] args) {
         try {
@@ -54,7 +54,7 @@ public class MariadbDump {
     }
 
     public static void dump(String filename) throws IOException, URISyntaxException, ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException {
-
+        long start = System.currentTimeMillis();
         Kryo kryo = new Kryo();
 
         try (Output output = new Output(new GZIPOutputStream(new FileOutputStream(filename)))) {
@@ -65,18 +65,26 @@ public class MariadbDump {
                     Class clazz = Class.forName("nxt.db.quicksync.pojo." + classname);
                     StringBuilder sb = new StringBuilder("select ");
                     List<Field> fields = new ArrayList<>();
+                    boolean hasDbId = false;
                     for (Field field : ReflectionUtils.getAllFields(clazz)) {
                         fields.add(field);
-                        sb.append(field.getName()).append(",");
+                        String fieldname = field.getName();
+                        sb.append(fieldname).append(",");
+                        if ("db_Id".equals(fieldname))
+                            hasDbId=true;
                     }
                     // Remove last ,
                     sb.deleteCharAt(sb.lastIndexOf(","));
                     sb.append(" from ");
                     sb.append(clazz.getSimpleName().toLowerCase());
+                    if (hasDbId)
+                        sb.append(" order by db_id");
                     sb.append(" limit :from,50000;");
+
+
                     String sql = sb.toString();
-                    System.out.println(sql);
-                    kryo.writeClass(output,clazz);
+                    logger.debug(sql);
+                    kryo.writeClass(output, clazz);
                     ResultSet rs = con.createStatement().executeQuery("select count(1) from " + classname);
                     rs.next();
                     long rows = rs.getLong(1);
@@ -90,7 +98,7 @@ public class MariadbDump {
                         while (rs.next()) {
                             records++;
                             if (records % 1000 == 0)
-                                System.err.println(classname + ": " + records + " / " + rows);
+                                logger.info(classname + ": " + records + " / " + rows);
                             int i = 1;
 
 
@@ -110,12 +118,12 @@ public class MariadbDump {
                                         // Not sure if this works across drivers
                                         value = rs.getBytes(i);
                                     } else {
-                                        System.err.println(field.getName() + ": " + fieldType);
+                                        logger.error("Unhandled array type for"+field.getName() + ": " + fieldType);
                                         value = rs.getObject(i);
                                     }
 
                                 } else {
-                                    System.err.println(field.getName() + ": " + fieldType);
+                                    logger.error("Unhandled field type for"+field.getName() + ": " + fieldType);
                                     value = rs.getObject(i);
                                 }
                                 field.set(data, value);
@@ -124,17 +132,20 @@ public class MariadbDump {
 
                             kryo.writeObject(output, data);
                         }
+
                         rs.close();
                         ps.close();
-                        output.flush();
-                    }
 
+                    }
+                    output.flush();
+                    logger.info(classname + ": " + rows + " / " + rows);
 
                 }
                 Db.endTransaction();
             }
 
         }
+        logger.info("Dump created in " + ((System.currentTimeMillis() - start) / 1000) + "seconds");
     }
 
 
