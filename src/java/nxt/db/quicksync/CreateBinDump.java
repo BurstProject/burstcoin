@@ -71,7 +71,7 @@ public class CreateBinDump {
                         String fieldname = field.getName();
                         sb.append(fieldname).append(",");
                         if ("db_Id".equals(fieldname))
-                            hasDbId=true;
+                            hasDbId = true;
                     }
                     // Remove last ,
                     sb.deleteCharAt(sb.lastIndexOf(","));
@@ -110,7 +110,12 @@ public class CreateBinDump {
 
                                 if (fieldType.equals(String.class)) {
                                     value = rs.getString(i);
-                                } else if (fieldType.equals(Long.class) || fieldType.equals(long.class)) {
+                                } else if (fieldType.equals(Long.class)) {
+                                    if (rs.getObject(i) == null)
+                                        value = null;
+                                    else
+                                        value = rs.getLong(i);
+                                } else if (fieldType.equals(long.class)) {
                                     value = rs.getLong(i);
                                 } else if (fieldType.isArray()) {
                                     // Byte array?
@@ -118,12 +123,12 @@ public class CreateBinDump {
                                         // Not sure if this works across drivers
                                         value = rs.getBytes(i);
                                     } else {
-                                        logger.error("Unhandled array type for"+field.getName() + ": " + fieldType);
+                                        logger.error("Unhandled array type for" + field.getName() + ": " + fieldType);
                                         value = rs.getObject(i);
                                     }
 
                                 } else {
-                                    logger.error("Unhandled field type for"+field.getName() + ": " + fieldType);
+                                    logger.error("Unhandled field type for" + field.getName() + ": " + fieldType);
                                     value = rs.getObject(i);
                                 }
                                 field.set(data, value);

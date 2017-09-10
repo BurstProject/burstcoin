@@ -16,10 +16,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
@@ -102,7 +99,11 @@ public class LoadBinDump {
                                 ps.setString(i, (String) field.get(o));
 
                             } else if (fieldType.equals(Long.class)) {
-                                ps.setLong(i, (Long) field.get(o));
+                                Object val = field.get(o);
+                                if (val == null)
+                                    ps.setNull(i, Types.NUMERIC);
+                                else
+                                    ps.setLong(i, (Long) val);
                             } else if (fieldType.equals(long.class)) {
                                 ps.setLong(i, field.getLong(o));
                             } else if (fieldType.isArray()) {
