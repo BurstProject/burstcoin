@@ -2,6 +2,7 @@ package nxt.db.quicksync;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
+import nxt.Nxt;
 import nxt.db.h2.H2Dbs;
 import nxt.db.mariadb.MariadbDbs;
 import nxt.db.sql.Db;
@@ -146,6 +147,23 @@ public class LoadBinDump {
         Kryo kryo = new Kryo();
         long start = System.currentTimeMillis();
         try (Input input = new Input(new GZIPInputStream(new FileInputStream(path.toFile())))) {
+            if (!BinDumps.MAGIC.equals(input.readString()))
+            {
+                logger.error("Input file does not seem to be a blockchain dump");
+                logger.error("Import aborted - no data has been changed");
+                System.exit(666);
+            }
+            int version = input.read();
+            if (version != BinDumps.VERSION)
+            {
+                logger.error("Unsupported version in source file: Expected "+BinDumps.VERSION+" but got "+version);
+                logger.error("Import aborted - no data has been changed");
+                System.exit(666);
+            }
+            logger.debug("Format version is "+version);
+            logger.info("Dump was created with version "+input.readString());
+            logger.trace("Blockchain height is "+input.read());
+
             try (Connection con = Db.getConnection()) {
                 Db.beginTransaction();
                 dbs.disableForeignKeyChecks(con);
@@ -213,7 +231,7 @@ public class LoadBinDump {
                         }
                         ps.addBatch();
                         ps.clearParameters();
-                        if (l % 1000 == 0) {
+                        if (l % 10000 == 0) {
                             logger.info(clazz.getSimpleName() + ": " + l + " / " + rows);
                             ps.executeBatch();
                         }

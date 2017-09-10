@@ -4,7 +4,10 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
 import nxt.Constants;
 import nxt.Nxt;
+import nxt.db.h2.H2Dbs;
+import nxt.db.mariadb.MariadbDbs;
 import nxt.db.sql.Db;
+import nxt.db.store.Dbs;
 import nxt.util.LoggerConfigurator;
 import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
@@ -18,10 +21,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -40,6 +40,7 @@ import java.util.zip.GZIPOutputStream;
  */
 public class CreateBinDump {
     private static final Logger logger = LoggerFactory.getLogger(CreateBinDump.class.getSimpleName());
+    private static Dbs dbs;
 
     public static void main(String[] args) {
         try {
@@ -59,7 +60,18 @@ public class CreateBinDump {
                         " Consider switching to mariadb for much better performance");
                 Thread.sleep(20000);
             }
-
+            switch (Db.getDatabaseType()) {
+                case MARIADB:
+                    logger.info("Using mariadb Backend");
+                    dbs = new MariadbDbs();
+                    break;
+                case H2:
+                    logger.info("Using h2 Backend");
+                    dbs = new H2Dbs();
+                    break;
+                default:
+                    throw new RuntimeException("Error initializing wallet: Unknown database type");
+            }
             Db.init();
             dump(args[0]);
         } catch (Exception e) {
@@ -70,10 +82,35 @@ public class CreateBinDump {
     public static void dump(String filename) throws IOException, URISyntaxException, ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException {
         long start = System.currentTimeMillis();
         Kryo kryo = new Kryo();
-
         try (Output output = new Output(new GZIPOutputStream(new FileOutputStream(filename)))) {
+
+            output.writeString(BinDumps.MAGIC);
+            output.write(BinDumps.VERSION);
+            output.writeString(Nxt.VERSION);
+
+            int fetchSize;
+            switch (Db.getDatabaseType()) {
+                case H2:
+                    // h2 works best with a ridiculous fetch size
+                    fetchSize = 1000000;
+                    break;
+
+                default:
+                case MARIADB:
+                    fetchSize = 100000;
+            }
+
+
             try (Connection con = Db.getConnection()) {
                 Db.beginTransaction();
+
+                Statement stmt = con.createStatement();
+                ResultSet rs = stmt.executeQuery("select max(height) from block;");
+                rs.next();
+                int height = rs.getInt(1);
+                output.write(height);
+                rs.close();
+
                 List<String> classes = getClassNamesFromPackage("nxt.db.quicksync.pojo");
 
                 for (String classname : classes) {
@@ -94,20 +131,22 @@ public class CreateBinDump {
                     sb.append(clazz.getSimpleName().toLowerCase());
                     if (hasDbId)
                         sb.append(" order by db_id");
-                    sb.append(" limit :from,50000;");
+                    sb.append(" limit ?,").append(fetchSize).append(";");
 
 
                     String sql = sb.toString();
                     logger.debug(sql);
                     kryo.writeClass(output, clazz);
-                    ResultSet rs = con.createStatement().executeQuery("select count(1) from " + classname);
+                    rs = con.createStatement().executeQuery("select count(1) from " + classname);
                     rs.next();
                     long rows = rs.getLong(1);
                     output.writeLong(rows);
                     long records = 0;
+                    PreparedStatement ps = con.prepareStatement(sql);
+
                     while (records < rows) {
-                        String sqlToExecute = sql.replaceAll(":from", String.valueOf(records));
-                        PreparedStatement ps = con.prepareStatement(sqlToExecute);
+                        ps.setLong(1, records);
+
                         rs = ps.executeQuery();
                         Object data = clazz.newInstance();
                         while (rs.next()) {
@@ -154,9 +193,10 @@ public class CreateBinDump {
                         }
 
                         rs.close();
-                        ps.close();
+
 
                     }
+                    ps.close();
                     output.flush();
                     logger.info(classname + ": " + rows + " / " + rows);
 
@@ -173,7 +213,6 @@ public class CreateBinDump {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         URL packageURL;
         ArrayList<String> names = new ArrayList<String>();
-
         packageName = packageName.replace(".", "/");
         packageURL = classLoader.getResource(packageName);
         if (packageURL.getProtocol().equals("jar")) {
