@@ -64,7 +64,7 @@ class FirebirdDigitalGoodsStoreStore extends SqlDigitalGoodsStoreStore {
     @Override
     protected void saveGoods(Connection con, DigitalGoodsStore.Goods goods) throws SQLException {
         try (PreparedStatement pstmt = con.prepareStatement("UPDATE OR INSERT INTO goods (id, seller_id, name, "
-                + "description, tags, timestamp, quantity, price, delisted, height, latest) "
+                + "description, tags, \"timestamp\", quantity, price, delisted, height, latest) "
                 + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE) MATCHING (id, height)")) {
             int i = 0;
             pstmt.setLong(++i, goods.getId());
@@ -84,7 +84,7 @@ class FirebirdDigitalGoodsStoreStore extends SqlDigitalGoodsStoreStore {
     @Override
     protected void savePurchase(Connection con, DigitalGoodsStore.Purchase purchase) throws SQLException {
         try (PreparedStatement pstmt = con.prepareStatement("UPDATE OR INSERT INTO purchase (id, buyer_id, goods_id, seller_id, "
-                + "quantity, price, deadline, note, nonce, timestamp, pending, goods, goods_nonce, refund_note, "
+                + "quantity, price, deadline, note, nonce, \"timestamp\", pending, goods, goods_nonce, refund_note, "
                 + "refund_nonce, has_feedback_notes, has_public_feedbacks, discount, refund, height, latest) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE) MATCHING (id, height)")) {
             int i = 0;
@@ -126,6 +126,6 @@ class FirebirdDigitalGoodsStoreStore extends SqlDigitalGoodsStoreStore {
                 return index;
             }
         };
-        return getGoodsTable().getManyBy(dbClause, from, to, " ORDER BY name ASC, timestamp DESC, id ASC ");
+        return getGoodsTable().getManyBy(dbClause, from, to, " ORDER BY name ASC, \"timestamp\" DESC, id ASC ");
     }
 }
