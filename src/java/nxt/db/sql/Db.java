@@ -111,6 +111,7 @@ public final class Db {
         try {
             Connection con = cp.getConnection();
             if (DATABASE_TYPE == TYPE.H2) {
+                logger.info("Compacting database - this may take a while");
                 Statement stmt = con.createStatement();
                 stmt.execute("SHUTDOWN COMPACT");
             }
