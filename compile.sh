@@ -1,3 +1,5 @@
+echo This build method is prone to breaking - please install maven and use mvn package instead
+
 CP=conf/:classes/:lib/*
 SP=src/java/
 

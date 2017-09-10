@@ -1,32 +1,20 @@
-package nxt.db.sql;
+package nxt.db.firebird;
 
-import nxt.*;
-import nxt.db.NxtIterator;
-import nxt.db.NxtKey;
-import nxt.db.store.TransactionProcessorStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import nxt.Nxt;
+import nxt.NxtException;
+import nxt.TransactionImpl;
+import nxt.db.sql.Db;
+import nxt.db.sql.EntitySqlTable;
+import nxt.db.sql.SqlTransactionProcessorStore;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-public class SqlTransactionProcessorStore implements TransactionProcessorStore {
-
-    private static final Logger logger = LoggerFactory.getLogger(SqlTransactionProcessorStore.class);
-
-    protected final DbKey.LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory = new DbKey.LongKeyFactory<TransactionImpl>("id") {
-
-        @Override
-        public NxtKey newKey(TransactionImpl transaction) {
-            return transaction.getDbKey();
-        }
-
-    };
-    private final Set<TransactionImpl> lostTransactions = new HashSet<>();
-    private final Map<Long, Integer> lostTransactionHeights = new HashMap<>();
+class FirebirdTransactionProcessorStore extends SqlTransactionProcessorStore {
 
 
     private final EntitySqlTable<TransactionImpl> unconfirmedTransactionTable =
@@ -47,7 +35,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
                 @Override
                 protected void save(Connection con, TransactionImpl transaction) throws SQLException {
                     try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO unconfirmed_transaction (id, transaction_height, "
-                            + "fee_per_byte, timestamp, expiration, transaction_bytes, height) "
+                            + "fee_per_byte, \"timestamp\", expiration, transaction_bytes, height) "
                             + "VALUES (?, ?, ?, ?, ?, ?, ?)")) {
                         int i = 0;
                         pstmt.setLong(++i, transaction.getId());
@@ -82,63 +70,13 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
                 @Override
                 protected String defaultSort() {
-                    return " ORDER BY transaction_height ASC, fee_per_byte DESC, timestamp ASC, id ASC ";
+                    return " ORDER BY transaction_height ASC, fee_per_byte DESC, \"timestamp\" ASC, id ASC ";
                 }
             };
 
-    private final DbClause expiredClause = new DbClause(" expiration < ? ") {
-        @Override
-        protected int set(PreparedStatement pstmt, int index) throws SQLException {
-            pstmt.setInt(index, Nxt.getEpochTime());
-            return index + 1;
-        }
-    };
-
-    // WATCH: BUSINESS-LOGIC
-    @Override
-    public void processLater(Collection<TransactionImpl> transactions) {
-        synchronized (BlockchainImpl.getInstance()) {
-            for (TransactionImpl transaction : transactions) {
-                lostTransactions.add(transaction);
-            }
-        }
-    }
-
-    @Override
-    public DbKey.LongKeyFactory<TransactionImpl> getUnconfirmedTransactionDbKeyFactory() {
-        return unconfirmedTransactionDbKeyFactory;
-    }
-
-    @Override
-    public Set<TransactionImpl> getLostTransactions() {
-        return lostTransactions;
-    }
-
-    @Override
-    public Map<Long, Integer> getLostTransactionHeights() {
-        return lostTransactionHeights;
-    }
 
     @Override
     public EntitySqlTable<TransactionImpl> getUnconfirmedTransactionTable() {
         return unconfirmedTransactionTable;
-    }
-
-    @Override
-    public NxtIterator<TransactionImpl> getExpiredTransactions() {
-        return unconfirmedTransactionTable.getManyBy(expiredClause, 0, -1, "");
-    }
-
-    @Override
-    public int deleteTransaction(Transaction transaction) {
-        try (Connection con = Db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("DELETE FROM unconfirmed_transaction WHERE id = ?")) {
-            pstmt.setLong(1, transaction.getId());
-            int deleted = pstmt.executeUpdate();
-            return deleted;
-        } catch (SQLException e) {
-            logger.error(e.toString(), e);
-            throw new RuntimeException(e.toString(), e);
-        }
     }
 }
