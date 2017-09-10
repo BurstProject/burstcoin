@@ -226,6 +226,8 @@
                     <include name="Readme.txt"/>
                     <include name="run(legacy).bat"/>
                     <include name="run.bat"/>
+                    <include name="createBinDump.bat"/>
+                    <include name="loadBinDump.bat"/>
                   </fileset>
                 </copy>
 
