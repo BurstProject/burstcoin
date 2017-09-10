@@ -69,6 +69,7 @@ public final class Db {
                     break;
                 case FIREBIRD:
                     config.setAutoCommit(false);
+                    config.addDataSourceProperty("encoding", "UTF8");
                     config.addDataSourceProperty("cachePrepStmts", "true");
                     config.addDataSourceProperty("prepStmtCacheSize", "250");
                     config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
