@@ -29,7 +29,15 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.GZIPOutputStream;
 
-
+/**
+ * Creates a binary dump from a sql database. The resulting dump is database-agnostic and should work with any
+ * driver.
+ * The files on the pojo-package reflect the database structure of h2 and mysql. Reflection is used to read the
+ * attributes of those objects which are named just like the database columns.
+ * With this information select statements are created which are then used to create instances of the classes in pojo
+ * which are then written to the dump.
+ * by BraindeadOne (BURST-BJSX-4C6A-UH35-F4Q3A)
+ */
 public class CreateBinDump {
     private static final Logger logger = LoggerFactory.getLogger(CreateBinDump.class.getSimpleName());
 
@@ -44,6 +52,12 @@ public class CreateBinDump {
                 dbUrl = Nxt.getStringProperty("nxt.testDbUrl");
             } else {
                 dbUrl = Nxt.getStringProperty("nxt.dbUrl");
+            }
+
+            if (Db.getDatabaseType() == Db.TYPE.H2) {
+                logger.warn("Creating a dump from a h2 database will probably take multiple hours." +
+                        " Consider switching to mariadb for much better performance");
+                Thread.sleep(20000);
             }
 
             Db.init();
@@ -61,6 +75,7 @@ public class CreateBinDump {
             try (Connection con = Db.getConnection()) {
                 Db.beginTransaction();
                 List<String> classes = getClassNamesFromPackage("nxt.db.quicksync.pojo");
+
                 for (String classname : classes) {
                     Class clazz = Class.forName("nxt.db.quicksync.pojo." + classname);
                     StringBuilder sb = new StringBuilder("select ");
@@ -159,16 +174,13 @@ public class CreateBinDump {
         URL packageURL;
         ArrayList<String> names = new ArrayList<String>();
 
-
         packageName = packageName.replace(".", "/");
         packageURL = classLoader.getResource(packageName);
-
         if (packageURL.getProtocol().equals("jar")) {
             String jarFileName;
             JarFile jf;
             Enumeration<JarEntry> jarEntries;
             String entryName;
-
             // build jar file name, then loop through zipped entries
             jarFileName = URLDecoder.decode(packageURL.getFile(), "UTF-8");
             jarFileName = jarFileName.substring(5, jarFileName.indexOf("!"));
@@ -188,9 +200,9 @@ public class CreateBinDump {
             File folder = new File(uri.getPath());
             // won't work with path which contains blank (%20)
             // File folder = new File(packageURL.getFile());
-            File[] contenuti = folder.listFiles();
+            File[] folderfiles = folder.listFiles();
             String entryName;
-            for (File actual : contenuti) {
+            for (File actual : folderfiles) {
                 entryName = actual.getName();
                 if (entryName.contains(".")) {
                     entryName = entryName.substring(0, entryName.lastIndexOf('.'));
