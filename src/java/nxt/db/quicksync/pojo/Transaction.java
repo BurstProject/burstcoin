@@ -26,7 +26,7 @@ public class Transaction {
     private long has_Encrypted_Message;
     private long has_Public_Key_Announcement;
     private long ec_Block_Height;
-    private long ec_Block_Id;
+    private Long ec_Block_Id;
     private long has_Encrypttoself_Message;
 
 
