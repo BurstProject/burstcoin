@@ -1,4 +1,4 @@
-package nxt.db.h2;
+package nxt.db.firebird;
 
 import nxt.AT;
 import nxt.Nxt;
@@ -10,12 +10,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-class H2ATStore extends SqlATStore {
+class FirebirdATStore extends SqlATStore {
     @Override
     protected void saveATState(Connection con, AT.ATState atState) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("MERGE  INTO at_state (at_id, "
+        try (PreparedStatement pstmt = con.prepareStatement("UPDATE OR INSERT INTO at_state (at_id, "
                 + "state, prev_height ,next_height, sleep_between, prev_balance, freeze_when_same_balance, min_activate_amount, height, latest) "
-                + "KEY (at_id, height)  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE) MATCHING (at_id, height)")) {
             int i = 0;
             pstmt.setLong(++i, atState.getATId());
             //DbUtils.setBytes(pstmt, ++i, state);
@@ -33,7 +33,7 @@ class H2ATStore extends SqlATStore {
 
     @Override
     protected void saveAT(Connection con, AT at) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO at "
+        try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO \"at\" "
                 + "(id , creator_id , name , description , version , "
                 + "csize , dsize , c_user_stack_bytes , c_call_stack_bytes , "
                 + "creation_height , "

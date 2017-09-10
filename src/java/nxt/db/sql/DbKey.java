@@ -13,11 +13,13 @@ public interface DbKey extends NxtKey {
         private final String pkClause;
         private final String pkColumns;
         private final String selfJoinClause;
+        private final int pkVariables;
 
         protected Factory(String pkClause, String pkColumns, String selfJoinClause) {
             this.pkClause = pkClause;
             this.pkColumns = pkColumns;
             this.selfJoinClause = selfJoinClause;
+            this.pkVariables = org.apache.commons.lang.StringUtils.countMatches(pkClause, "?");
         }
 
         public abstract NxtKey newKey(T t);
@@ -37,6 +39,10 @@ public interface DbKey extends NxtKey {
             return selfJoinClause;
         }
 
+        /** The number of variables in PKClause */
+        public int getPkVariables() {
+            return pkVariables;
+        }
     }
 
     int setPK(PreparedStatement pstmt) throws SQLException;

@@ -59,11 +59,12 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
 
         try(Connection con = Db.getConnection();
             PreparedStatement pstmt = con.prepareStatement("UPDATE " + table
-                + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE LIMIT 1")) {
+                + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1))) {
             Iterator<DbKey> it = Db.getBatch(table).keySet().iterator();
             while(it.hasNext()) {
                 DbKey key = it.next();
                 key.setPK(pstmt);
+                DbUtils.setLimits(2, pstmt, 1);
                 pstmt.addBatch();
             }
             pstmt.executeBatch();

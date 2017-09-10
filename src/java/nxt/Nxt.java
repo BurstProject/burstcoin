@@ -2,6 +2,8 @@ package nxt;
 
 import nxt.db.h2.H2Dbs;
 import nxt.db.h2.H2Stores;
+import nxt.db.firebird.FirebirdDbs;
+import nxt.db.firebird.FirebirdStores;
 import nxt.db.mariadb.MariadbDbs;
 import nxt.db.mariadb.MariadbStores;
 import nxt.db.sql.Db;
@@ -28,7 +30,7 @@ public final class Nxt {
 
     private static final Logger logger = LoggerFactory.getLogger(Nxt.class);
 
-    public static final String VERSION = "1.3.0cg";
+    public static final String VERSION = "1.3.5cg";
 
     public static final String APPLICATION = "NRS";
 
@@ -227,13 +229,18 @@ public final class Nxt {
                         dbs = new MariadbDbs();
                         stores = new MariadbStores();
                         break;
+                    case FIREBIRD:
+                        logger.info("Using Firebird Backend");
+                        dbs = new FirebirdDbs();
+                        stores = new FirebirdStores();
+                        break;
                     case H2:
                         logger.info("Using h2 Backend");
                         dbs = new H2Dbs();
                         stores = new H2Stores();
                         break;
-                        default:
-                            throw new RuntimeException("Error initializing wallet: Unknown database type");
+                    default:
+                        throw new RuntimeException("Error initializing wallet: Unknown database type");
                 }
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();

@@ -1,17 +1,20 @@
 package nxt.db.sql;
 
 import nxt.Nxt;
-import nxt.db.*;
+import nxt.db.EntityTable;
+import nxt.db.NxtIterator;
+import nxt.db.NxtKey;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T> {
+import org.slf4j.LoggerFactory;
 
-    private final boolean multiversion;
+public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T> {    
     protected final DbKey.Factory<T> dbKeyFactory;
+    private final boolean multiversion;
     private final String defaultSort;
 
     protected EntitySqlTable(String table, NxtKey.Factory<T> dbKeyFactory) {
@@ -52,8 +55,10 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
         }
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + dbKeyFactory.getPKClause()
-                     + (multiversion ? " AND latest = TRUE LIMIT 1" : ""))) {
-            dbKey.setPK(pstmt);
+                     + (multiversion ? " AND latest = TRUE " + DbUtils.limitsClause(1) : ""))) {
+            int i = dbKey.setPK(pstmt);
+            if (multiversion)
+                DbUtils.setLimits(i++, pstmt, 1);
             return get(con, pstmt, true);
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
@@ -67,13 +72,14 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + dbKeyFactory.getPKClause()
                      + " AND height <= ?" + (multiversion ? " AND (latest = TRUE OR EXISTS ("
-                     + "SELECT 1 FROM " + table + dbKeyFactory.getPKClause() + " AND height > ?)) ORDER BY height DESC LIMIT 1" : ""))) {
+                     + "SELECT 1 FROM " + table + dbKeyFactory.getPKClause() + " AND height > ?)) ORDER BY height DESC" + DbUtils.limitsClause(1) : ""))) {
             int i = dbKey.setPK(pstmt);
             pstmt.setInt(i, height);
             if (multiversion) {
                 i = dbKey.setPK(pstmt, ++i);
-                pstmt.setInt(i, height);
+                pstmt.setInt(i++, height);
             }
+            i = DbUtils.setLimits(i++, pstmt, 1);
             return get(con, pstmt, false);
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
@@ -84,8 +90,9 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     public T getBy(DbClause dbClause) {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table
-                     + " WHERE " + dbClause.getClause() + (multiversion ? " AND latest = TRUE LIMIT 1" : ""))) {
-            dbClause.set(pstmt, 1);
+                     + " WHERE " + dbClause.getClause() + (multiversion ? " AND latest = TRUE" + DbUtils.limitsClause(1) : ""))) {
+            int i = dbClause.set(pstmt, 1);
+            DbUtils.setLimits(i, pstmt, 1);
             return get(con, pstmt, true);
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
@@ -99,10 +106,11 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + " AS a WHERE " + dbClause.getClause()
                      + " AND height <= ?" + (multiversion ? " AND (latest = TRUE OR EXISTS ("
                      + "SELECT 1 FROM " + table + " AS b WHERE " + dbKeyFactory.getSelfJoinClause()
-                     + " AND b.height > ?)) ORDER BY height DESC LIMIT 1" : ""))) {
+                     + " AND b.height > ?)) ORDER BY height DESC" + DbUtils.limitsClause(1) : ""))) {
             int i = 0;
             i = dbClause.set(pstmt, ++i);
             pstmt.setInt(i, height);
+            i = DbUtils.setLimits(i++, pstmt, 1);
             if (multiversion) {
                 pstmt.setInt(++i, height);
             }
@@ -152,7 +160,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
                     + DbUtils.limitsClause(from, to));
             int i = 0;
             i = dbClause.set(pstmt, ++i);
-            i = DbUtils.setLimits(i, pstmt, from, to);
+            i = DbUtils.setLimits(i++, pstmt, from, to);
             return getManyBy(con, pstmt, true);
         } catch (SQLException e) {
             DbUtils.close(con);
@@ -309,13 +317,21 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
         try (Connection con = Db.getConnection()) {
             if (multiversion) {
                 try (PreparedStatement pstmt = con.prepareStatement("UPDATE " + table
-                        + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE LIMIT 1")) {
-                    dbKey.setPK(pstmt);
+                        + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1))) {
+                    int i = dbKey.setPK(pstmt);
+                    DbUtils.setLimits(i++, pstmt, 1);
                     pstmt.executeUpdate();
                 }
             }
             save(con, t);
         } catch (SQLException e) {
+	    LoggerFactory.getLogger(EntitySqlTable.class).info(
+							       ">>>>>>>>>>>>>>>>>>>>>>>>>>>\n" +
+							       "UPDATE " + table + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1)
+							       + 							       "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+							       );
+
+	    
             throw new RuntimeException(e.toString(), e);
         }
     }
