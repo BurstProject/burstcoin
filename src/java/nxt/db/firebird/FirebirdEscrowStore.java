@@ -24,7 +24,7 @@ class FirebirdEscrowStore extends SqlEscrowStore {
 
     @Override
     protected void saveEscrow(Connection con, Escrow escrow) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("UPDATE OR INSTER INTO escrow (id, sender_id, "
+        try (PreparedStatement pstmt = con.prepareStatement("UPDATE OR INSERT INTO escrow (id, sender_id, "
                 + "recipient_id, amount, required_signers, deadline, deadline_action, height, latest) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE) MATCHING (id, height)")) {
             int i = 0;
