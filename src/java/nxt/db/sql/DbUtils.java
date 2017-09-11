@@ -59,7 +59,7 @@ public final class DbUtils {
     public static String quoteTableName(String table) {
 	 switch (Db.getDatabaseType()) {
             case FIREBIRD:
-                return table == "at" ? "\"" + table.toUpperCase() + "\"" : table;
+                return table.equalsIgnoreCase("at") ? "\"" + table.toUpperCase() + "\"" : table;
             default:
                 return table;
         }

@@ -2,10 +2,12 @@ package nxt.db.quicksync;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
-import nxt.Nxt;
+import nxt.db.firebird.FirebirdDbs;
 import nxt.db.h2.H2Dbs;
 import nxt.db.mariadb.MariadbDbs;
+import nxt.db.quicksync.pojo.Transaction;
 import nxt.db.sql.Db;
+import nxt.db.sql.DbUtils;
 import nxt.db.store.Dbs;
 import nxt.util.LoggerConfigurator;
 import org.apache.commons.lang.StringUtils;
@@ -26,26 +28,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
-/** Loads a binary dump created with @see({@link LoadBinDump}.
+/**
+ * Loads a binary dump created with @see({@link LoadBinDump}.
  * The source can either be a file on the local filesystem or a http-url to a remote file.
  * The latter is then downloaded into the temp directory and deleted afterwards.
- *
+ * <p>
  * The method used here is basically the reverse of what is described in {@link LoadBinDump}.
  * Reflection is used to analyze the pojos in the pojos-package, insert-statements are created from
  * the gathered information and the pojos are read from the dump.
- *
+ * <p>
  * Then jdbc-batch-statements are used to insert the data into the database.
  * Contents of the db are truncated before inserting (table by table).
  * Everything takes place in a transaction.
- *
+ * <p>
  * by BraindeadOne (BURST-BJSX-4C6A-UH35-F4Q3A)
  */
 
 public class LoadBinDump {
     private static final Logger logger = LoggerFactory.getLogger(LoadBinDump.class.getSimpleName());
-    private static Dbs dbs;
     private static final int VERSION = 1;
-
+    private static Dbs dbs;
 
     public static void main(String[] args) {
         Path temp = null;
@@ -64,7 +66,7 @@ public class LoadBinDump {
                     "\n" +
                     "ALL EXISTING DATA IN YOUR DATABASE WILL BE DELETED\n" +
                     "==================================================\n" +
-                    "Make sure no wallet is accessing the database\n\n"+
+                    "Make sure no wallet is accessing the database\n\n" +
                     "Do you want to continue? "
             );
             int c = System.in.read();
@@ -122,6 +124,10 @@ public class LoadBinDump {
                     logger.info("Using h2 Backend");
                     dbs = new H2Dbs();
                     break;
+                case FIREBIRD:
+                    logger.info("Using firebird Backend");
+                    dbs = new FirebirdDbs();
+                    break;
                 default:
                     throw new RuntimeException("Error initializing wallet: Unknown database type");
             }
@@ -135,10 +141,29 @@ public class LoadBinDump {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                if (Db.getDatabaseType() == Db.TYPE.H2)
-                    logger.warn("Compacting the h2 database may take a small eternity - sorry");
-                Db.shutdown();
+            if (Db.getDatabaseType() == Db.TYPE.H2)
+                logger.warn("Compacting the h2 database may take a small eternity - sorry");
+            Db.shutdown();
         }
+    }
+
+    private static String getTableName(Class clazz) {
+        return DbUtils.quoteTableName(clazz.getSimpleName().toLowerCase());
+    }
+
+    private static String getFieldName(Field field) {
+        String name = field.getName();
+        if (Db.getDatabaseType() == Db.TYPE.FIREBIRD) {
+            name = name.toLowerCase();
+            switch (name) {
+                case "timestamp":
+                    return "\"timestamp\"";
+                case "referenced_transaction_full_hash":
+                    return FirebirdDbs.maybeToShortIdentifier("referenced_transaction_full_hash");
+
+            }
+        }
+        return name;
     }
 
     public static void load(Path path) throws
@@ -147,22 +172,20 @@ public class LoadBinDump {
         Kryo kryo = new Kryo();
         long start = System.currentTimeMillis();
         try (Input input = new Input(new GZIPInputStream(new FileInputStream(path.toFile())))) {
-            if (!BinDumps.MAGIC.equals(input.readString()))
-            {
+            if (!BinDumps.MAGIC.equals(input.readString())) {
                 logger.error("Input file does not seem to be a blockchain dump");
                 logger.error("Import aborted - no data has been changed");
                 System.exit(666);
             }
             int version = input.read();
-            if (version != BinDumps.VERSION)
-            {
-                logger.error("Unsupported version in source file: Expected "+BinDumps.VERSION+" but got "+version);
+            if (version != BinDumps.VERSION) {
+                logger.error("Unsupported version in source file: Expected " + BinDumps.VERSION + " but got " + version);
                 logger.error("Import aborted - no data has been changed");
                 System.exit(666);
             }
-            logger.debug("Format version is "+version);
-            logger.info("Dump was created with version "+input.readString());
-            logger.trace("Blockchain height is "+input.read());
+            logger.debug("Format version is " + version);
+            logger.info("Dump was created with version " + input.readString());
+            logger.trace("Blockchain height is " + input.read());
 
             try (Connection con = Db.getConnection()) {
                 Db.beginTransaction();
@@ -174,17 +197,21 @@ public class LoadBinDump {
 
                 while (!input.eof() && (clazz = kryo.readClass(input).getType()) != null) {
                     long rows = input.readLong();
-                    stmt.executeUpdate("truncate table " + clazz.getSimpleName().toLowerCase() + ";");
+                    String sql = "truncate table " + getTableName(clazz) + ";";
+                    if (Db.getDatabaseType() == Db.TYPE.FIREBIRD)
+                        sql = "delete from " + getTableName(clazz) + ";";
+                    logger.debug(sql);
+                    stmt.executeUpdate(sql);
 
 
                     StringBuilder sb = new StringBuilder("insert into ");
-                    sb.append(clazz.getSimpleName().toLowerCase());
+                    sb.append(getTableName(clazz));
                     sb.append(" (");
                     List<Field> fields = new ArrayList<>();
 
                     for (Field field : ReflectionUtils.getAllFields(clazz)) {
                         fields.add(field);
-                        sb.append(field.getName()).append(",");
+                        sb.append(getFieldName(field)).append(",");
 
                     }
                     // Remove last ,
@@ -192,7 +219,7 @@ public class LoadBinDump {
                     sb.append(") VALUES ( ");
                     sb.append(StringUtils.repeat("?", ",", fields.size()));
                     sb.append(")");
-                    String sql = sb.toString();
+                    sql = sb.toString();
                     logger.debug(sql);
                     PreparedStatement ps = con.prepareStatement(sql);
 
