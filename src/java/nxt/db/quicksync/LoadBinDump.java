@@ -5,9 +5,7 @@ import com.esotericsoftware.kryo.io.Input;
 import nxt.db.firebird.FirebirdDbs;
 import nxt.db.h2.H2Dbs;
 import nxt.db.mariadb.MariadbDbs;
-import nxt.db.quicksync.pojo.Transaction;
 import nxt.db.sql.Db;
-import nxt.db.sql.DbUtils;
 import nxt.db.store.Dbs;
 import nxt.util.LoggerConfigurator;
 import org.apache.commons.lang.StringUtils;
@@ -147,25 +145,6 @@ public class LoadBinDump {
         }
     }
 
-    private static String getTableName(Class clazz) {
-        return DbUtils.quoteTableName(clazz.getSimpleName().toLowerCase());
-    }
-
-    private static String getFieldName(Field field) {
-        String name = field.getName();
-        if (Db.getDatabaseType() == Db.TYPE.FIREBIRD) {
-            name = name.toLowerCase();
-            switch (name) {
-                case "timestamp":
-                    return "\"timestamp\"";
-                case "referenced_transaction_full_hash":
-                    return FirebirdDbs.maybeToShortIdentifier("referenced_transaction_full_hash");
-
-            }
-        }
-        return name;
-    }
-
     public static void load(Path path) throws
             IOException, URISyntaxException, ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException {
 
@@ -197,21 +176,21 @@ public class LoadBinDump {
 
                 while (!input.eof() && (clazz = kryo.readClass(input).getType()) != null) {
                     long rows = input.readLong();
-                    String sql = "truncate table " + getTableName(clazz) + ";";
+                    String sql = "truncate table " + BinDumps.getTableName(clazz) + ";";
                     if (Db.getDatabaseType() == Db.TYPE.FIREBIRD)
-                        sql = "delete from " + getTableName(clazz) + ";";
+                        sql = "delete from " + BinDumps.getTableName(clazz) + ";";
                     logger.debug(sql);
                     stmt.executeUpdate(sql);
 
 
                     StringBuilder sb = new StringBuilder("insert into ");
-                    sb.append(getTableName(clazz));
+                    sb.append(BinDumps.getTableName(clazz));
                     sb.append(" (");
                     List<Field> fields = new ArrayList<>();
 
                     for (Field field : ReflectionUtils.getAllFields(clazz)) {
                         fields.add(field);
-                        sb.append(getFieldName(field)).append(",");
+                        sb.append(BinDumps.getColumnName(field)).append(",");
 
                     }
                     // Remove last ,

@@ -4,11 +4,14 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
 import nxt.Constants;
 import nxt.Nxt;
+import nxt.db.firebird.FirebirdDbs;
 import nxt.db.h2.H2Dbs;
 import nxt.db.mariadb.MariadbDbs;
 import nxt.db.sql.Db;
+import nxt.db.sql.DbUtils;
 import nxt.db.store.Dbs;
 import nxt.util.LoggerConfigurator;
+import org.apache.commons.lang.StringUtils;
 import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +25,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.GZIPOutputStream;
@@ -69,6 +70,10 @@ public class CreateBinDump {
                     logger.info("Using h2 Backend");
                     dbs = new H2Dbs();
                     break;
+                case FIREBIRD:
+                    logger.info("Using firebird Backend");
+                    dbs = new FirebirdDbs();
+                    break;
                 default:
                     throw new RuntimeException("Error initializing wallet: Unknown database type");
             }
@@ -94,9 +99,9 @@ public class CreateBinDump {
                     // h2 works best with a ridiculous fetch size
                     fetchSize = 1000000;
                     break;
-
                 default:
                 case MARIADB:
+                case FIREBIRD:
                     fetchSize = 100000;
             }
 
@@ -110,42 +115,56 @@ public class CreateBinDump {
                 int height = rs.getInt(1);
                 output.write(height);
                 rs.close();
-
                 List<String> classes = getClassNamesFromPackage("nxt.db.quicksync.pojo");
 
                 for (String classname : classes) {
                     Class clazz = Class.forName("nxt.db.quicksync.pojo." + classname);
+//                    if (clazz.equals(At.class))
+//                        continue;
                     StringBuilder sb = new StringBuilder("select ");
                     List<Field> fields = new ArrayList<>();
+                    List<String> columns = new ArrayList<>();
                     boolean hasDbId = false;
+
                     for (Field field : ReflectionUtils.getAllFields(clazz)) {
                         fields.add(field);
-                        String fieldname = field.getName();
-                        sb.append(fieldname).append(",");
-                        if ("db_Id".equals(fieldname))
+                    }
+                    Collections.sort(fields, Comparator.comparing(Field::getName));
+                    for (Field field : fields) {
+                        String columnName = BinDumps.getColumnName(field);
+                        columns.add(columnName);
+                        if ("db_Id".equals(columnName))
                             hasDbId = true;
                     }
-                    // Remove last ,
-                    sb.deleteCharAt(sb.lastIndexOf(","));
+                    sb.append(StringUtils.join(columns, ","));
                     sb.append(" from ");
-                    sb.append(clazz.getSimpleName().toLowerCase());
+                    sb.append(BinDumps.getTableName(clazz));
                     if (hasDbId)
                         sb.append(" order by db_id");
-                    sb.append(" limit ?,").append(fetchSize).append(";");
+                    sb.append(" ").append(DbUtils.limitsClause(10, 10))
+                            .append(";");
 
 
                     String sql = sb.toString();
                     logger.debug(sql);
                     kryo.writeClass(output, clazz);
-                    rs = con.createStatement().executeQuery("select count(1) from " + classname);
+                    rs = con.createStatement().executeQuery("select count(1) from " + BinDumps.getTableName(clazz));
                     rs.next();
                     long rows = rs.getLong(1);
                     output.writeLong(rows);
                     long records = 0;
                     PreparedStatement ps = con.prepareStatement(sql);
-
+                    ps.setLong(2, fetchSize);
                     while (records < rows) {
-                        ps.setLong(1, records);
+                        switch (Db.getDatabaseType()) {
+                            case FIREBIRD:
+                                ps.setLong(1, records + 1);
+                                ps.setLong(2, records + fetchSize);
+                                break;
+                            default:
+                                ps.setLong(1, records);
+                        }
+
 
                         rs = ps.executeQuery();
                         Object data = clazz.newInstance();
@@ -198,7 +217,7 @@ public class CreateBinDump {
                     }
                     ps.close();
                     output.flush();
-                    logger.info(classname + ": " + rows + " / " + rows);
+                    logger.info(classname + ": " + records + " / " + rows);
 
                 }
                 Db.endTransaction();

@@ -4,18 +4,17 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import nxt.Constants;
 import nxt.Nxt;
+import org.firebirdsql.gds.impl.GDSType;
+import org.firebirdsql.management.FBManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-
-import java.io.File;
-import org.firebirdsql.management.FBManager;
-import org.firebirdsql.gds.impl.GDSType;
 
 public final class Db {
 
@@ -33,7 +32,7 @@ public final class Db {
         String dbUsername;
         String dbPassword;
 
-        if ( Constants.isTestnet ) {
+        if (Constants.isTestnet) {
             dbUrl = Nxt.getStringProperty("nxt.testDbUrl");
             dbUsername = Nxt.getStringProperty("nxt.testDbUsername");
             dbPassword = Nxt.getStringProperty("nxt.testDbPassword");
@@ -53,7 +52,7 @@ public final class Db {
             if (dbPassword != null)
                 config.setPassword(dbPassword);
 
-            config.setMaximumPoolSize( Nxt.getIntProperty("nxt.dbMaximumPoolSize") );
+            config.setMaximumPoolSize(Nxt.getIntProperty("nxt.dbMaximumPoolSize"));
 
             switch (DATABASE_TYPE) {
                 case MARIADB:
@@ -74,10 +73,10 @@ public final class Db {
                     config.addDataSourceProperty("prepStmtCacheSize", "250");
                     config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
 
-                    if ( dbUrl.startsWith("jdbc:firebirdsql:embedded:") ) {
+                    if (dbUrl.startsWith("jdbc:firebirdsql:embedded:")) {
                         String firebirdDb = dbUrl.replaceFirst("^jdbc:firebirdsql:embedded:", "").replaceFirst("\\?.*$", "");
 
-                        if ( ! new File(firebirdDb).isFile() ) {
+                        if (!new File(firebirdDb).isFile()) {
                             FBManager manager = new FBManager(GDSType.getType("EMBEDDED"));
                             manager.start();
                             manager.createDatabase(firebirdDb, "", "");
@@ -145,13 +144,6 @@ public final class Db {
 
     private static Connection getPooledConnection() throws SQLException {
         Connection con = cp.getConnection();
-        /*
-        int activeConnections = cp.getActiveConnections();
-        if (activeConnections > maxActiveConnections) {
-            maxActiveConnections = activeConnections;
-            logger.debug("Database connection pool current size: " + activeConnections);
-        }
-        */
         return con;
     }
 
@@ -163,6 +155,12 @@ public final class Db {
         con = getPooledConnection();
         con.setAutoCommit(true);
         return new DbConnection(con);
+    }
+
+    public static Connection getRawConnection() throws SQLException {
+
+        Connection con = getPooledConnection();
+        return con;
     }
 
     static Map<DbKey, Object> getCache(String tableName) {
@@ -249,6 +247,10 @@ public final class Db {
         DbUtils.close(con);
     }
 
+    public static TYPE getDatabaseType() {
+        return DATABASE_TYPE;
+    }
+
     public enum TYPE {
         H2,
         MARIADB,
@@ -315,9 +317,5 @@ public final class Db {
             }
         }
 
-    }
-
-    public static TYPE getDatabaseType() {
-        return DATABASE_TYPE;
     }
 }
