@@ -1,5 +1,5 @@
 echo This build method is prone to breaking - please install maven and use mvn package instead
-
+echo When using maven you will find the build result as zip file in dist and the contents in dist/tmp/
 CP=conf/:classes/:lib/*
 SP=src/java/
 
