@@ -48,6 +48,7 @@ public class FirebirdDbs implements Dbs {
         apply("ALTER TABLE transaction DROP CONSTRAINT constraint_ff;");
         apply("ALTER TABLE block DROP CONSTRAINT constraint_3c5;");
         apply("ALTER TABLE block DROP CONSTRAINT constraint_3c;");
+
     }
 
     @Override
