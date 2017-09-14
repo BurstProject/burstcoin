@@ -316,7 +316,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
         }
         try (Connection con = Db.getConnection()) {
             if (multiversion) {
-                try (PreparedStatement pstmt = con.prepareStatement("UPDATE " + table
+                try (PreparedStatement pstmt = con.prepareStatement("UPDATE " + DbUtils.quoteTableName(table)
                         + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1))) {
                     int i = dbKey.setPK(pstmt);
                     DbUtils.setLimits(i++, pstmt, 1);
@@ -325,13 +325,6 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
             }
             save(con, t);
         } catch (SQLException e) {
-	    LoggerFactory.getLogger(EntitySqlTable.class).info(
-							       ">>>>>>>>>>>>>>>>>>>>>>>>>>>\n" +
-							       "UPDATE " + table + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1)
-							       + 							       "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
-							       );
-
-	    
             throw new RuntimeException(e.toString(), e);
         }
     }
