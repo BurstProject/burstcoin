@@ -11,9 +11,10 @@ import java.sql.SQLException;
 class FirebirdSubscriptionStore extends SqlSubscriptionStore {
     @Override
     protected void saveSubscription(Connection con, Subscription subscription) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO subscription (id, "
-                + "sender_id, recipient_id, amount, frequency, time_next, height, latest) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)")) {
+        try (PreparedStatement pstmt = con.prepareStatement("UPDATE OR INSERT INTO subscription "
+                + "(id, sender_id, recipient_id, amount, frequency, time_next, height, latest) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, TRUE) "
+                + "MATCHING(id, sender_id, recipient_id, amount, frequency, time_next, height, latest)")) {
             int i = 0;
             pstmt.setLong(++i, subscription.id);
             pstmt.setLong(++i, subscription.senderId);
