@@ -32,23 +32,25 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
         }
         DbKey dbKey = (DbKey) dbKeyFactory.newKey(t);
         try (Connection con = Db.getConnection();
-             PreparedStatement pstmtCount = con.prepareStatement("SELECT COUNT(*) AS count FROM " + table + dbKeyFactory.getPKClause()
+             PreparedStatement pstmtCount = con.prepareStatement("SELECT COUNT(*) AS ct FROM " + DbUtils.quoteTableName(table) + dbKeyFactory.getPKClause()
                      + " AND height < ?")) {
             int i = dbKey.setPK(pstmtCount);
             pstmtCount.setInt(i, Nxt.getBlockchain().getHeight());
             try (ResultSet rs = pstmtCount.executeQuery()) {
                 rs.next();
-                if (rs.getInt("count") > 0) {
-                    try (PreparedStatement pstmt = con.prepareStatement("UPDATE " + table
-                            + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE LIMIT 1")) {
+                if (rs.getInt("ct") > 0) {
+                    try (PreparedStatement pstmt = con.prepareStatement("UPDATE " + DbUtils.quoteTableName(table)
+                            + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1))) {
                         dbKey.setPK(pstmt);
+
+                        DbUtils.setLimits(dbKeyFactory.getPkVariables()+1, pstmt, 1);
                         pstmt.executeUpdate();
                         save(con, t);
                         pstmt.executeUpdate(); // delete after the save
                     }
                     return true;
                 } else {
-                    try (PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + table + dbKeyFactory.getPKClause())) {
+                    try (PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + DbUtils.quoteTableName(table) + dbKeyFactory.getPKClause())) {
                         dbKey.setPK(pstmtDelete);
                         return pstmtDelete.executeUpdate() > 0;
                     }
@@ -75,15 +77,17 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
         String setLatestSql;
         switch (Db.getDatabaseType())
         {
+            case FIREBIRD:
+                throw new IllegalArgumentException("FIX MEEEEE!!!");
             case H2:
-                setLatestSql = "DELETE FROM " + table + " WHERE height < ? AND latest = FALSE "    +
-                        " AND (" + dbKeyFactory.getPKColumns() + ") NOT IN (SELECT (" + dbKeyFactory.getPKColumns() +
-                        ") FROM " + table + " WHERE height >= ?)";
+                setLatestSql = "UPDATE " + DbUtils.quoteTableName(table)
+                        + " SET latest = TRUE " + dbKeyFactory.getPKClause() + " AND height ="
+                        + " (SELECT MAX(height) FROM " + DbUtils.quoteTableName(table) + dbKeyFactory.getPKClause() + ")";
                 break;
             case MARIADB:
-                setLatestSql="UPDATE " + table
+                setLatestSql="UPDATE " + DbUtils.quoteTableName(table)
                         + " SET latest = TRUE " + dbKeyFactory.getPKClause() + " AND height IN"
-                        + " ( SELECT * FROM (SELECT MAX(height) FROM " + table + dbKeyFactory.getPKClause() + ") ac0v )";
+                        + " ( SELECT * FROM (SELECT MAX(height) FROM " + DbUtils.quoteTableName(table) + dbKeyFactory.getPKClause() + ") ac0v )";
                 break;
             default:
                 throw new IllegalArgumentException("Unknown database type");
@@ -91,8 +95,8 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
 
         try (Connection con = Db.getConnection();
              PreparedStatement pstmtSelectToDelete = con.prepareStatement("SELECT DISTINCT " + dbKeyFactory.getPKColumns()
-                     + " FROM " + table + " WHERE height > ?");
-             PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + table
+                     + " FROM " + DbUtils.quoteTableName(table) + " WHERE height > ?");
+             PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + DbUtils.quoteTableName(table)
                      + " WHERE height > ?");
              PreparedStatement pstmtSetLatest = con.prepareStatement(setLatestSql)) {
             pstmtSelectToDelete.setInt(1, height);
@@ -123,13 +127,21 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
         }
         try (Connection con = Db.getConnection();
              PreparedStatement pstmtSelect = con.prepareStatement("SELECT " + dbKeyFactory.getPKColumns() + ", MAX(height) AS max_height"
-                     + " FROM " + table + " WHERE height < ? GROUP BY " + dbKeyFactory.getPKColumns() + " HAVING COUNT(DISTINCT height) > 1");
-             PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + table + dbKeyFactory.getPKClause()
+                     + " FROM " + DbUtils.quoteTableName(table) + " WHERE height < ? GROUP BY " + dbKeyFactory.getPKColumns() + " HAVING COUNT(DISTINCT height) > 1");
+             PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + DbUtils.quoteTableName(table) + dbKeyFactory.getPKClause()
                      + " AND height < ?");
+
+             PreparedStatement pstmtDeleteDeleted = con.prepareStatement(
+                 Db.getDatabaseType() == Db.TYPE.FIREBIRD
+                     ? "DELETE FROM " + DbUtils.quoteTableName(table) + " WHERE height < ? AND latest = FALSE "
+                         + " AND (" + String.join(" || '\\0' || ", dbKeyFactory.getPKColumns().split(",")) + ") NOT IN ( SELECT * FROM ( SELECT (" + String.join(" || '\\0' || ", dbKeyFactory.getPKColumns().split(",")) + ") AS ac1v FROM "
+                         + DbUtils.quoteTableName(table) + " WHERE height >= ?) ac0v )"
+                     : "DELETE FROM " + DbUtils.quoteTableName(table) + " WHERE height < ? AND latest = FALSE "
+                         + " AND CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") NOT IN ( SELECT * FROM ( SELECT CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") FROM "
+                         + DbUtils.quoteTableName(table) + " WHERE height >= ?) ac0v )"
+             )) {
+
              // logger.info( "DELETE PK columns: ", dbKeyFactory.getPKColumns() );
-             PreparedStatement pstmtDeleteDeleted = con.prepareStatement("DELETE FROM " + table + " WHERE height < ? AND latest = FALSE "
-                     + " AND CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") NOT IN ( SELECT * FROM ( SELECT CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") FROM "
-                     + table + " WHERE height >= ?) ac0v )")) {
             pstmtSelect.setInt(1, height);
             try (ResultSet rs = pstmtSelect.executeQuery()) {
                 while (rs.next()) {

@@ -33,7 +33,7 @@ final class MariadbDbVersion {
                 stmt.executeUpdate("INSERT INTO version VALUES (1)");
                 Db.commitTransaction();
             }
-            update(nextUpdate);
+            update(nextUpdate, con.getCatalog());
         } catch (SQLException e) {
             Db.rollbackTransaction();
             throw new RuntimeException(e.toString(), e);
@@ -61,7 +61,7 @@ final class MariadbDbVersion {
         }
     }
 
-    private static void update(int nextUpdate) {
+    private static void update(int nextUpdate, String catalog) {
         switch (nextUpdate) {
             case 1:
                 apply("CREATE TABLE alias("
@@ -535,7 +535,7 @@ final class MariadbDbVersion {
             case 163:
                	apply("ALTER TABLE alias ALTER COLUMN alias_name_LOWER SET DEFAULT '';");
             case 164:
-               	apply("ALTER DATABASE burstwallet CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+               	apply("ALTER DATABASE "+catalog+" CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
             case 165:
               	apply("ALTER TABLE alias CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
             case 166:

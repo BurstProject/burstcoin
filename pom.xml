@@ -6,7 +6,7 @@
 
   <groupId>burstcoin</groupId>
   <artifactId>burstcoin</artifactId>
-  <version>1.3.0cg</version>
+  <version>1.3.5cg</version>
 
   <packaging>jar</packaging>
 
@@ -19,10 +19,11 @@
     <json-simple.version>1.1.1</json-simple.version>
     <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
     <slf4j.version>1.7.25</slf4j.version>
-    <mariadb.version>1.1.7</mariadb.version>
+    <mariadb.version>2.0.3</mariadb.version>
     <hikaricp.version>2.6.3</hikaricp.version>
     <h2.version>1.4.196</h2.version>
-
+    <jaybird.version>3.0.2</jaybird.version>
+    <jna.version>4.4.0</jna.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -107,6 +108,36 @@
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <version>${h2.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.firebirdsql.jdbc</groupId>
+      <artifactId>jaybird-jdk18</artifactId>
+      <version>${jaybird.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>${jna.version}</version>
+   </dependency>
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+      <version>0.9.11</version>
+    </dependency>
+    <dependency>
+      <groupId>com.esotericsoftware</groupId>
+      <artifactId>kryo</artifactId>
+      <version>4.0.1</version>
+
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/commons-lang/commons-lang -->
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
     </dependency>
 
   </dependencies>
@@ -195,6 +226,8 @@
                     <include name="Readme.txt"/>
                     <include name="run(legacy).bat"/>
                     <include name="run.bat"/>
+                    <include name="createBinDump.bat"/>
+                    <include name="loadBinDump.bat"/>
                   </fileset>
                 </copy>
 

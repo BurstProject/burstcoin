@@ -68,38 +68,12 @@ public abstract class SqlATStore implements ATStore {
 
     protected abstract void saveATState(Connection con, AT.ATState atState) throws SQLException;
 
-    protected void saveAT(Connection con, AT at) {
-        try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO at "
-                + "(id , creator_id , name , description , version , "
-                + "csize , dsize , c_user_stack_bytes , c_call_stack_bytes , "
-                + "creation_height , "
-                + "ap_code , height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-            int i = 0;
-            pstmt.setLong(++i, AT_API_Helper.getLong(at.getId()));
-            pstmt.setLong(++i, AT_API_Helper.getLong(at.getCreator()));
-            DbUtils.setString(pstmt, ++i, at.getName());
-            DbUtils.setString(pstmt, ++i, at.getDescription());
-            pstmt.setShort(++i, at.getVersion());
-            pstmt.setInt(++i, at.getCsize());
-            pstmt.setInt(++i, at.getDsize());
-            pstmt.setInt(++i, at.getC_user_stack_bytes());
-            pstmt.setInt(++i, at.getC_call_stack_bytes());
-            pstmt.setInt(++i, at.getCreationBlockHeight());
-            //DbUtils.setBytes( pstmt , ++i , this.getApCode() );
-            DbUtils.setBytes(pstmt, ++i, AT.compressState(at.getApCode()));
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }
-
-    }
+    protected abstract void saveAT(Connection con, AT at) throws SQLException;
 
     @Override
     public boolean isATAccountId(Long id) {
         try (Connection con = Db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT id FROM at WHERE id = ? AND latest = TRUE")) {
+            PreparedStatement pstmt = con.prepareStatement("SELECT id FROM " + DbUtils.quoteTableName("at") + " WHERE id = ? AND latest = TRUE")) {
             pstmt.setLong(1, id);
             ResultSet result = pstmt.executeQuery();
             return result.next();
@@ -112,7 +86,7 @@ public abstract class SqlATStore implements ATStore {
     public List<Long> getOrderedATs() {
         List<Long> orderedATs = new ArrayList<>();
         try (Connection con = Db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT at.id FROM at "
+            PreparedStatement pstmt = con.prepareStatement("SELECT at.id FROM " + DbUtils.quoteTableName("at") + " "
                      + "INNER JOIN at_state ON at.id = at_state.at_id INNER JOIN account ON at.id = account.id "
                      + "WHERE at.latest = TRUE AND at_state.latest = TRUE AND account.latest = TRUE "
                      + "AND at_state.next_height <= ? AND account.balance >= ? "
@@ -135,13 +109,13 @@ public abstract class SqlATStore implements ATStore {
     @Override
     public AT getAT(Long id) {
         try (Connection con = Db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT at.id, at.creator_id, at.name, at.description, at.version, "
-                     + "at_state.state, at.csize, at.dsize, at.c_user_stack_bytes, at.c_call_stack_bytes, "
-                     + "at.creation_height, at_state.sleep_between, at_state.next_height, at_state.freeze_when_same_balance, at_state.min_activate_amount, "
-                     + "at.ap_code "
-                     + "FROM at INNER JOIN at_state ON at.id = at_state.at_id "
-                     + "WHERE at.latest = TRUE AND at_state.latest = TRUE "
-                     + "AND at.id = ?")) {
+            PreparedStatement pstmt = con.prepareStatement("SELECT t_at.id, t_at.creator_id, t_at.name, t_at.description, t_at.version, "
+                     + "at_state.state, t_at.csize, t_at.dsize, t_at.c_user_stack_bytes, t_at.c_call_stack_bytes, "
+                     + "t_at.creation_height, at_state.sleep_between, at_state.next_height, at_state.freeze_when_same_balance, at_state.min_activate_amount, "
+                     + "t_at.ap_code "
+                     + "FROM " +  DbUtils.quoteTableName("at") + " AS t_at INNER JOIN at_state ON t_at.id = at_state.at_id "
+                     + "WHERE t_at.latest = TRUE AND at_state.latest = TRUE "
+                     + "AND t_at.id = ?")) {
             int i = 0;
             pstmt.setLong(++i, id);
             ResultSet result = pstmt.executeQuery();
@@ -158,8 +132,8 @@ public abstract class SqlATStore implements ATStore {
     @Override
     public List<Long> getATsIssuedBy(Long accountId) {
         try (Connection con = Db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT id "
-                     + "FROM at "
+            PreparedStatement pstmt = con.prepareStatement("SELECT id "
+                     + "FROM " + DbUtils.quoteTableName("at") + " "
                      + "WHERE latest = TRUE AND creator_id = ? "
                      + "ORDER BY creation_height DESC, id")) {
             pstmt.setLong(1, accountId);
@@ -177,7 +151,7 @@ public abstract class SqlATStore implements ATStore {
     @Override
     public Collection<Long> getAllATIds() {
         try (Connection con = Db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT id FROM at WHERE latest = TRUE")) {
+            PreparedStatement pstmt = con.prepareStatement("SELECT id FROM " + DbUtils.quoteTableName("at") + " WHERE latest = TRUE")) {
             ResultSet result = pstmt.executeQuery();
             List<Long> ids = new ArrayList<>();
             while (result.next()) {
@@ -242,15 +216,16 @@ public abstract class SqlATStore implements ATStore {
     @Override
     public Long findTransaction(int startHeight, int endHeight, Long atID, int numOfTx, long minAmount) {
         try (Connection con = Db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
+            PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
                      + "WHERE height>= ? AND height < ? and recipient_id = ? AND amount >= ? "
-                     + "ORDER BY height, id "
-                     + "LIMIT 1 OFFSET ?")) {
-            pstmt.setInt(1, startHeight);
-            pstmt.setInt(2, endHeight);
-            pstmt.setLong(3, atID);
-            pstmt.setLong(4, minAmount);
-            pstmt.setInt(5, numOfTx);
+                     + "ORDER BY height, id"
+                     + DbUtils.limitsClause(numOfTx, numOfTx + 1) ) ) {
+            int i = 1;
+            pstmt.setInt(i++, startHeight);
+            pstmt.setInt(i++, endHeight);
+            pstmt.setLong(i++, atID);
+            pstmt.setLong(i++, minAmount);
+            i = DbUtils.setLimits(i++, pstmt, numOfTx, numOfTx + 1);
             ResultSet rs = pstmt.executeQuery();
             Long transactionId = 0L;
             if (rs.next()) {
@@ -268,7 +243,7 @@ public abstract class SqlATStore implements ATStore {
     @Override
     public int findTransactionHeight(Long transactionId, int height, Long atID, long minAmount) {
         try (Connection con = Db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
+            PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
                      + "WHERE height= ? and recipient_id = ? AND amount >= ? "
                      + "ORDER BY height, id")) {
             pstmt.setInt(1, height);

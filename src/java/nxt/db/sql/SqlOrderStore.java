@@ -93,8 +93,9 @@ public abstract class SqlOrderStore implements OrderStore {
     public Order.Ask getNextOrder(long assetId) {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM ask_order WHERE asset_id = ? "
-                     + "AND latest = TRUE ORDER BY price ASC, creation_height ASC, id ASC LIMIT 1")) {
+                     + "AND latest = TRUE ORDER BY price ASC, creation_height ASC, id ASC" + DbUtils.limitsClause(1))) {
             pstmt.setLong(1, assetId);
+            DbUtils.setLimits(2, pstmt, 1);
             try (NxtIterator<Order.Ask> askOrders = askOrderTable.getManyBy(con, pstmt, true)) {
                 return askOrders.hasNext() ? askOrders.next() : null;
             }
@@ -173,8 +174,9 @@ public abstract class SqlOrderStore implements OrderStore {
     public Order.Bid getNextBid(long assetId) {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT * FROM bid_order WHERE asset_id = ? "
-                     + "AND latest = TRUE ORDER BY price DESC, creation_height ASC, id ASC LIMIT 1")) {
+                     + "AND latest = TRUE ORDER BY price DESC, creation_height ASC, id ASC" + DbUtils.limitsClause(1) )) {
             pstmt.setLong(1, assetId);
+            DbUtils.setLimits(2, pstmt, 1);
             try (NxtIterator<Order.Bid> bidOrders = bidOrderTable.getManyBy(con, pstmt, true)) {
                 return bidOrders.hasNext() ? bidOrders.next() : null;
             }
