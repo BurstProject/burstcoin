@@ -17,7 +17,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
     private static final Logger logger = LoggerFactory.getLogger(SqlTransactionProcessorStore.class);
 
-    final DbKey.LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory = new DbKey.LongKeyFactory<TransactionImpl>("id") {
+    protected final DbKey.LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory = new DbKey.LongKeyFactory<TransactionImpl>("id") {
 
         @Override
         public NxtKey newKey(TransactionImpl transaction) {
@@ -27,6 +27,8 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
     };
     private final Set<TransactionImpl> lostTransactions = new HashSet<>();
     private final Map<Long, Integer> lostTransactionHeights = new HashMap<>();
+
+
     private final EntitySqlTable<TransactionImpl> unconfirmedTransactionTable =
             new EntitySqlTable<TransactionImpl>("unconfirmed_transaction", unconfirmedTransactionDbKeyFactory) {
 
