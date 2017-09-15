@@ -1,17 +1,25 @@
 package nxt.db.sql;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 
 public final class DbUtils {
 
+    private static final Logger logger = LoggerFactory.getLogger(DbUtils.class);
+    private DbUtils() {
+    } // never
+
     public static void close(AutoCloseable... closeables) {
         for (AutoCloseable closeable : closeables) {
             if (closeable != null) {
                 try {
                     closeable.close();
-                } catch (Exception ignore) {}
+                } catch (Exception ignore) {
+                }
             }
         }
     }
@@ -48,21 +56,63 @@ public final class DbUtils {
         }
     }
 
-    public static String limitsClause(int from, int to) {
-        int limit = to >=0 && to >= from && to < Integer.MAX_VALUE ? to - from + 1 : 0;
-        if (limit > 0 && from > 0) {
-            return " LIMIT ? OFFSET ? ";
-        } else if (limit > 0) {
-            return " LIMIT ? ";
-        } else if (from > 0) {
-            return " OFFSET ? ";
-        } else {
-            return "";
+    public static String quoteTableName(String table) {
+	 switch (Db.getDatabaseType()) {
+            case FIREBIRD:
+                return table.equalsIgnoreCase("at") ? "\"" + table.toUpperCase() + "\"" : table;
+            default:
+                return table;
         }
     }
 
+    public static String limitsClause(int limit) {
+        switch (Db.getDatabaseType()) {
+            case FIREBIRD:
+                return " ROWS ? ";
+            default:
+                return " LIMIT ?";
+        }
+    }
+
+    public static String limitsClause(int from, int to) {
+        int limit = to >= 0 && to >= from && to < Integer.MAX_VALUE ? to - from + 1 : 0;
+        switch (Db.getDatabaseType()) {
+            case FIREBIRD: {
+                if (limit > 0 && from > 0) {
+                    return " ROWS ? TO ? ";
+                } else if (limit > 0) {
+                    return " ROWS ? ";
+                } else if (from > 0) {
+                    return " ROWS -1 TO ? ";
+                } else {
+                    return "";
+                }
+            }
+            default: {
+                if (limit > 0 && from > 0) {
+                    return " LIMIT ? OFFSET ? ";
+                } else if (limit > 0) {
+                    return " LIMIT ? ";
+                } else if (from > 0) {
+                    return " OFFSET ? ";
+                } else {
+                    return "";
+                }
+            }
+        }
+
+
+    }
+
+    public static int setLimits(int index, PreparedStatement pstmt, int limit) throws SQLException {
+//        logger.debug("Limits: "+index+" "+limit);
+//        logger.debug(pstmt.toString());
+        pstmt.setInt(index++, limit);
+        return index;
+    }
+
     public static int setLimits(int index, PreparedStatement pstmt, int from, int to) throws SQLException {
-        int limit = to >=0 && to >= from && to < Integer.MAX_VALUE ? to - from + 1 : 0;
+        int limit = to >= 0 && to >= from && to < Integer.MAX_VALUE ? to - from + 1 : 0;
         if (limit > 0) {
             pstmt.setInt(index++, limit);
         }
@@ -71,7 +121,5 @@ public final class DbUtils {
         }
         return index;
     }
-
-    private DbUtils() {} // never
 
 }

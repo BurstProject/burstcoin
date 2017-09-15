@@ -4,15 +4,17 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import nxt.Constants;
 import nxt.Nxt;
+import org.firebirdsql.gds.impl.GDSType;
+import org.firebirdsql.management.FBManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-
 
 public final class Db {
 
@@ -29,6 +31,7 @@ public final class Db {
         String dbUrl;
         String dbUsername;
         String dbPassword;
+
         if (Constants.isTestnet) {
             dbUrl = Nxt.getStringProperty("nxt.testDbUrl");
             dbUsername = Nxt.getStringProperty("nxt.testDbUsername");
@@ -49,26 +52,46 @@ public final class Db {
             if (dbPassword != null)
                 config.setPassword(dbPassword);
 
+            config.setMaximumPoolSize(Nxt.getIntProperty("nxt.dbMaximumPoolSize"));
+
             switch (DATABASE_TYPE) {
                 case MARIADB:
-                    config.setMaximumPoolSize(10);
                     config.setAutoCommit(false);
                     config.addDataSourceProperty("cachePrepStmts", "true");
                     config.addDataSourceProperty("prepStmtCacheSize", "250");
                     config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
                     config.addDataSourceProperty("characterEncoding", "utf8mb4");
                     config.addDataSourceProperty("useUnicode", "true");
+                    config.addDataSourceProperty("useServerPrepStmts", "false");
+                    config.addDataSourceProperty("rewriteBatchedStatements", "true");
                     config.setConnectionInitSql("SET NAMES utf8mb4;");
                     break;
+                case FIREBIRD:
+                    config.setAutoCommit(false);
+                    config.addDataSourceProperty("encoding", "UTF8");
+                    config.addDataSourceProperty("cachePrepStmts", "true");
+                    config.addDataSourceProperty("prepStmtCacheSize", "250");
+                    config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+
+                    if (dbUrl.startsWith("jdbc:firebirdsql:embedded:")) {
+                        String firebirdDb = dbUrl.replaceFirst("^jdbc:firebirdsql:embedded:", "").replaceFirst("\\?.*$", "");
+
+                        if (!new File(firebirdDb).isFile()) {
+                            FBManager manager = new FBManager(GDSType.getType("EMBEDDED"));
+                            manager.start();
+                            manager.createDatabase(firebirdDb, "", "");
+                            manager.stop();
+                        }
+                    }
+
+                    break;
                 case H2:
-                    config.setMaximumPoolSize(10);
                     config.setAutoCommit(false);
                     config.addDataSourceProperty("cachePrepStmts", "true");
                     config.addDataSourceProperty("prepStmtCacheSize", "250");
                     config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
                     break;
             }
-
 
             cp = new HikariDataSource(config);
 
@@ -109,6 +132,7 @@ public final class Db {
         try {
             Connection con = cp.getConnection();
             if (DATABASE_TYPE == TYPE.H2) {
+                logger.info("Compacting database - this may take a while");
                 Statement stmt = con.createStatement();
                 stmt.execute("SHUTDOWN COMPACT");
             }
@@ -120,13 +144,6 @@ public final class Db {
 
     private static Connection getPooledConnection() throws SQLException {
         Connection con = cp.getConnection();
-        /*
-        int activeConnections = cp.getActiveConnections();
-        if (activeConnections > maxActiveConnections) {
-            maxActiveConnections = activeConnections;
-            logger.debug("Database connection pool current size: " + activeConnections);
-        }
-        */
         return con;
     }
 
@@ -138,6 +155,12 @@ public final class Db {
         con = getPooledConnection();
         con.setAutoCommit(true);
         return new DbConnection(con);
+    }
+
+    public static Connection getRawConnection() throws SQLException {
+
+        Connection con = getPooledConnection();
+        return con;
     }
 
     static Map<DbKey, Object> getCache(String tableName) {
@@ -224,13 +247,20 @@ public final class Db {
         DbUtils.close(con);
     }
 
+    public static TYPE getDatabaseType() {
+        return DATABASE_TYPE;
+    }
+
     public enum TYPE {
         H2,
-        MARIADB;
+        MARIADB,
+        FIREBIRD;
 
         public static TYPE getTypeFromJdbcUrl(String jdbcUrl) {
             if (jdbcUrl.contains("jdbc:mysql") || jdbcUrl.contains("jdbc:mariadb"))
                 return MARIADB;
+            if (jdbcUrl.contains("jdbc:firebirdsql"))
+                return FIREBIRD;
             if (jdbcUrl.contains("jdbc:h2"))
                 return H2;
             throw new IllegalArgumentException("Unable to determine database type from this: '" + jdbcUrl + "'");
@@ -287,9 +317,5 @@ public final class Db {
             }
         }
 
-    }
-
-    public static TYPE getDatabaseType() {
-        return DATABASE_TYPE;
     }
 }
