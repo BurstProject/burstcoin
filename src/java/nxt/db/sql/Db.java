@@ -1,12 +1,21 @@
 package nxt.db.sql;
 
+import com.google.common.base.Predicate;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.HikariProxyConnection;
+import com.zaxxer.hikari.pool.ProxyConnection;
 import nxt.Constants;
 import nxt.Nxt;
+import org.firebirdsql.gds.TransactionParameterBuffer;
+import org.firebirdsql.gds.impl.GDSType;
+import org.firebirdsql.jdbc.FBConnection;
+import org.firebirdsql.management.FBManager;
+import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -174,13 +183,27 @@ public final class Db {
         }
         try {
             Connection con = getPooledConnection();
+            // Now for the interesting part
+//            if (DATABASE_TYPE == TYPE.FIREBIRD)
+//            {
+//                Field field = ReflectionUtils.getFields(ProxyConnection.class, (Predicate<Field>) input -> input.getName().equals("delegate")).iterator().next();
+//                field.setAccessible(true);
+//                try {
+//                    FBConnection fbConnection = (FBConnection) field.get((HikariProxyConnection)con);
+//                    fbConnection.getTransactionParameters(Connection.TRANSACTION_READ_COMMITTED)
+//                            .addArgument(TransactionParameterBuffer.NO_AUTO_UNDO);
+//                } catch (IllegalAccessException e) {
+//                    e.printStackTrace();
+//                }
+//            }
             con.setAutoCommit(false);
             con = new DbConnection(con);
+
             localConnection.set((DbConnection) con);
             transactionCaches.set(new HashMap<>());
             transactionBatches.set(new HashMap<>());
             return con;
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e.toString(), e);
         }
     }
