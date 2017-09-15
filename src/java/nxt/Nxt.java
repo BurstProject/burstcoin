@@ -1,5 +1,7 @@
 package nxt;
 
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
 import nxt.db.h2.H2Dbs;
 import nxt.db.h2.H2Stores;
 import nxt.db.firebird.FirebirdDbs;
@@ -41,6 +43,8 @@ public final class Nxt {
     private static Dbs dbs;
 
     private static final Properties defaultProperties = new Properties();
+
+    public static final MetricRegistry metrics = new MetricRegistry();
 
     static {
         System.out.println("Initializing Burst server version " + Nxt.VERSION);
@@ -210,6 +214,9 @@ public final class Nxt {
 
         static {
             try {
+                final JmxReporter reporter = JmxReporter.forRegistry(metrics).build();
+                reporter.start();
+
                 long startTime = System.currentTimeMillis();
 
                 LoggerConfigurator.init();
