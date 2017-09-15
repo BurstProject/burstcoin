@@ -68,33 +68,7 @@ public abstract class SqlATStore implements ATStore {
 
     protected abstract void saveATState(Connection con, AT.ATState atState) throws SQLException;
 
-    protected void saveAT(Connection con, AT at) {
-        try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO at "
-                + "(id , creator_id , name , description , version , "
-                + "csize , dsize , c_user_stack_bytes , c_call_stack_bytes , "
-                + "creation_height , "
-                + "ap_code , height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-            int i = 0;
-            pstmt.setLong(++i, AT_API_Helper.getLong(at.getId()));
-            pstmt.setLong(++i, AT_API_Helper.getLong(at.getCreator()));
-            DbUtils.setString(pstmt, ++i, at.getName());
-            DbUtils.setString(pstmt, ++i, at.getDescription());
-            pstmt.setShort(++i, at.getVersion());
-            pstmt.setInt(++i, at.getCsize());
-            pstmt.setInt(++i, at.getDsize());
-            pstmt.setInt(++i, at.getC_user_stack_bytes());
-            pstmt.setInt(++i, at.getC_call_stack_bytes());
-            pstmt.setInt(++i, at.getCreationBlockHeight());
-            //DbUtils.setBytes( pstmt , ++i , this.getApCode() );
-            DbUtils.setBytes(pstmt, ++i, AT.compressState(at.getApCode()));
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-        }
-
-    }
+    protected abstract void saveAT(Connection con, AT at) throws SQLException;
 
     @Override
     public boolean isATAccountId(Long id) {
@@ -244,13 +218,14 @@ public abstract class SqlATStore implements ATStore {
         try (Connection con = Db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
                      + "WHERE height>= ? AND height < ? and recipient_id = ? AND amount >= ? "
-                     + "ORDER BY height, id "
-                     + "LIMIT 1 OFFSET ?")) {
-            pstmt.setInt(1, startHeight);
-            pstmt.setInt(2, endHeight);
-            pstmt.setLong(3, atID);
-            pstmt.setLong(4, minAmount);
-            pstmt.setInt(5, numOfTx);
+                     + "ORDER BY height, id"
+                     + DbUtils.limitsClause(numOfTx, numOfTx + 1) ) ) {
+            int i = 1;
+            pstmt.setInt(i++, startHeight);
+            pstmt.setInt(i++, endHeight);
+            pstmt.setLong(i++, atID);
+            pstmt.setLong(i++, minAmount);
+            i = DbUtils.setLimits(i++, pstmt, numOfTx, numOfTx + 1);
             ResultSet rs = pstmt.executeQuery();
             Long transactionId = 0L;
             if (rs.next()) {

@@ -69,7 +69,8 @@ public abstract class SqlTransactionDb implements TransactionDb {
         }
     }
 
-    @Override public TransactionImpl loadTransaction(Connection con, ResultSet rs) throws NxtException.ValidationException {
+    @Override
+    public TransactionImpl loadTransaction(Connection con, ResultSet rs) throws NxtException.ValidationException {
         try {
 
             byte type = rs.getByte("type");
@@ -230,104 +231,104 @@ public abstract class SqlTransactionDb implements TransactionDb {
 
     /*public void saveTransactions(Connection con, AT at, Block block) {
         try {
-			for ( AT_Transaction transaction : at.getTransactions() ) {
-				try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO transaction (id, deadline, sender_public_key, "
-						+ "recipient_id, amount, fee, referenced_transaction_full_hash, height, "
-						+ "block_id, signature, timestamp, type, subtype, sender_id, attachment_bytes, "
-						+ "block_timestamp, full_hash, version, has_message, has_encrypted_message, has_public_key_announcement, "
-						+ "has_encrypttoself_message, ec_block_height, ec_block_id) "
-						+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-					int i = 0;
+                        for ( AT_Transaction transaction : at.getTransactions() ) {
+                                try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO transaction (id, deadline, sender_public_key, "
+                                                + "recipient_id, amount, fee, referenced_transaction_full_hash, height, "
+                                                + "block_id, signature, \"timestamp\", type, subtype, sender_id, attachment_bytes, "
+                                                + "block_timestamp, full_hash, version, has_message, has_encrypted_message, has_public_key_announcement, "
+                                                + "has_encrypttoself_message, ec_block_height, ec_block_id) "
+                                                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                                        int i = 0;
 
-					byte[] signature = new byte[ 64 ];
-					byte[] hash;
+                                        byte[] signature = new byte[ 64 ];
+                                        byte[] hash;
 
-					Account senderAccount = Account.getAccount( AT_API_Helper.getLong( at.getId() ) );
-					Account recipientAccount = Account.getAccount( AT_API_Helper.getLong( transaction.getRecipientId() ) ); 
+                                        Account senderAccount = Account.getAccount( AT_API_Helper.getLong( at.getId() ) );
+                                        Account recipientAccount = Account.getAccount( AT_API_Helper.getLong( transaction.getRecipientId() ) ); 
 
-					Long totalAmount = transaction.getAmount();
+                                        Long totalAmount = transaction.getAmount();
 
-					if ( !( senderAccount.getUnconfirmedBalanceNQT() < totalAmount ) )
-					{
-						senderAccount.addToUnconfirmedBalanceNQT( -totalAmount );
-						senderAccount.addToBalanceNQT( -totalAmount );
+                                        if ( !( senderAccount.getUnconfirmedBalanceNQT() < totalAmount ) )
+                                        {
+                                                senderAccount.addToUnconfirmedBalanceNQT( -totalAmount );
+                                                senderAccount.addToBalanceNQT( -totalAmount );
 
-			            recipientAccount.addToBalanceAndUnconfirmedBalanceNQT( totalAmount );
-
-
-						ByteBuffer b = ByteBuffer.allocate( ( 8 + 8 ) );
-						b.order( ByteOrder.LITTLE_ENDIAN );
-						b.put( transaction.getRecipientId() );
-						b.putLong( transaction.getAmount() );
-						//if (useNQT()) {
-							byte[] data = at.getBytes();
-							//byte[] data = zeroSignature(getBytes());
-							byte[] signatureHash = Crypto.sha256().digest(signature);
-							MessageDigest digest = Crypto.sha256();
-							digest.update(data);
-							digest.update(b.array());
-							digest.update(block.getBlockSignature());
-							hash = digest.digest(signatureHash);
-							BigInteger bigInteger = new BigInteger(1, new byte[] {hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
-							Long id = bigInteger.longValue();
-							//String stringId = bigInteger.toString();
-							String fullHash = Convert.toHexString(hash);
+                                    recipientAccount.addToBalanceAndUnconfirmedBalanceNQT( totalAmount );
 
 
-							pstmt.setLong(++i, id);
-							pstmt.setShort(++i, (short) 1440 );
-							pstmt.setBytes(++i, new byte[ 32 ]);
-							if ( transaction.getRecipientId() != null ) {
-								pstmt.setLong(++i, AT_API_Helper.getLong( transaction.getRecipientId() ));
-							} else {
-								pstmt.setNull(++i, Types.BIGINT);
-							}
-							pstmt.setLong(++i, transaction.getAmount() );
-							pstmt.setLong(++i, 0L );
-							//if (transaction.getReferencedTransactionFullHash() != null) {
-								//    pstmt.setBytes(++i, Convert.parseHexString(transaction.getReferencedTransactionFullHash()));
-							//} else {
-							pstmt.setNull(++i, Types.BINARY);
-							//}
-							pstmt.setInt(++i, block.getHeight() );
-							pstmt.setLong(++i, block.getId() );
-							pstmt.setBytes(++i, new byte[ 64 ]);
-							pstmt.setInt(++i, block.getTimestamp());
-							pstmt.setByte(++i, (byte)5);
-							pstmt.setByte(++i, (byte)1);
-							pstmt.setLong(++i, AT_API_Helper.getLong( at.getId() ) );
-							int bytesLength = 0;
+                                                ByteBuffer b = ByteBuffer.allocate( ( 8 + 8 ) );
+                                                b.order( ByteOrder.LITTLE_ENDIAN );
+                                                b.put( transaction.getRecipientId() );
+                                                b.putLong( transaction.getAmount() );
+                                                //if (useNQT()) {
+                                                        byte[] data = at.getBytes();
+                                                        //byte[] data = zeroSignature(getBytes());
+                                                        byte[] signatureHash = Crypto.sha256().digest(signature);
+                                                        MessageDigest digest = Crypto.sha256();
+                                                        digest.update(data);
+                                                        digest.update(b.array());
+                                                        digest.update(block.getBlockSignature());
+                                                        hash = digest.digest(signatureHash);
+                                                        BigInteger bigInteger = new BigInteger(1, new byte[] {hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
+                                                        Long id = bigInteger.longValue();
+                                                        //String stringId = bigInteger.toString();
+                                                        String fullHash = Convert.toHexString(hash);
 
-							Attachment appendage = Attachment.AT_PAYMENT;
-							bytesLength += appendage.getSize();
-							if (bytesLength == 0) {
-								pstmt.setNull(++i, Types.VARBINARY);
-							} else {
-								ByteBuffer buffer = ByteBuffer.allocate(bytesLength);
-								buffer.order(ByteOrder.LITTLE_ENDIAN);
-								appendage.putBytes(buffer);
-								pstmt.setBytes(++i, buffer.array());
-							}
-							pstmt.setInt(++i, block.getTimestamp());
-							pstmt.setBytes(++i, Convert.parseHexString(fullHash));
-							pstmt.setByte(++i, (byte)1);
-							pstmt.setBoolean(++i, false );
-							pstmt.setBoolean(++i, false );
-							pstmt.setBoolean(++i, false );
-							pstmt.setBoolean(++i, false );
-							Block ecBlock = EconomicClustering.getECBlock(block.getTimestamp());
-							pstmt.setInt(++i, ecBlock.getHeight());
-							if (block.getId() != 0L) {
-								pstmt.setLong(++i, ecBlock.getId());
-							} else {
-								pstmt.setNull(++i, Types.BIGINT);
-							}
-							pstmt.executeUpdate();
-					}
-				}
-			}
-		} catch (SQLException e) {
-			throw new RuntimeException(e.toString(), e);
-		}
-	}*/
+
+                                                        pstmt.setLong(++i, id);
+                                                        pstmt.setShort(++i, (short) 1440 );
+                                                        pstmt.setBytes(++i, new byte[ 32 ]);
+                                                        if ( transaction.getRecipientId() != null ) {
+                                                                pstmt.setLong(++i, AT_API_Helper.getLong( transaction.getRecipientId() ));
+                                                        } else {
+                                                                pstmt.setNull(++i, Types.BIGINT);
+                                                        }
+                                                        pstmt.setLong(++i, transaction.getAmount() );
+                                                        pstmt.setLong(++i, 0L );
+                                                        //if (transaction.getReferencedTransactionFullHash() != null) {
+                                                                //    pstmt.setBytes(++i, Convert.parseHexString(transaction.getReferencedTransactionFullHash()));
+                                                        //} else {
+                                                        pstmt.setNull(++i, Types.BINARY);
+                                                        //}
+                                                        pstmt.setInt(++i, block.getHeight() );
+                                                        pstmt.setLong(++i, block.getId() );
+                                                        pstmt.setBytes(++i, new byte[ 64 ]);
+                                                        pstmt.setInt(++i, block.getTimestamp());
+                                                        pstmt.setByte(++i, (byte)5);
+                                                        pstmt.setByte(++i, (byte)1);
+                                                        pstmt.setLong(++i, AT_API_Helper.getLong( at.getId() ) );
+                                                        int bytesLength = 0;
+
+                                                        Attachment appendage = Attachment.AT_PAYMENT;
+                                                        bytesLength += appendage.getSize();
+                                                        if (bytesLength == 0) {
+                                                                pstmt.setNull(++i, Types.VARBINARY);
+                                                        } else {
+                                                                ByteBuffer buffer = ByteBuffer.allocate(bytesLength);
+                                                                buffer.order(ByteOrder.LITTLE_ENDIAN);
+                                                                appendage.putBytes(buffer);
+                                                                pstmt.setBytes(++i, buffer.array());
+                                                        }
+                                                        pstmt.setInt(++i, block.getTimestamp());
+                                                        pstmt.setBytes(++i, Convert.parseHexString(fullHash));
+                                                        pstmt.setByte(++i, (byte)1);
+                                                        pstmt.setBoolean(++i, false );
+                                                        pstmt.setBoolean(++i, false );
+                                                        pstmt.setBoolean(++i, false );
+                                                        pstmt.setBoolean(++i, false );
+                                                        Block ecBlock = EconomicClustering.getECBlock(block.getTimestamp());
+                                                        pstmt.setInt(++i, ecBlock.getHeight());
+                                                        if (block.getId() != 0L) {
+                                                                pstmt.setLong(++i, ecBlock.getId());
+                                                        } else {
+                                                                pstmt.setNull(++i, Types.BIGINT);
+                                                        }
+                                                        pstmt.executeUpdate();
+                                        }
+                                }
+                        }
+                } catch (SQLException e) {
+                        throw new RuntimeException(e.toString(), e);
+                }
+        }*/
 }

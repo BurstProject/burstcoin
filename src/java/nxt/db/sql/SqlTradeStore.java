@@ -100,7 +100,7 @@ public abstract class SqlTradeStore implements TradeStore {
         }
     }
 
-    private void saveTrade(Connection con, Trade trade) throws SQLException {
+    protected void saveTrade(Connection con, Trade trade) throws SQLException {
         try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO trade (asset_id, block_id, "
                 + "ask_order_id, bid_order_id, ask_order_height, bid_order_height, seller_id, buyer_id, quantity, price, timestamp, height) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
