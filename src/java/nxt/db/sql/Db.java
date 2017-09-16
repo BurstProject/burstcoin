@@ -1,22 +1,19 @@
 package nxt.db.sql;
 
-import com.google.common.base.Predicate;
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
+import com.github.gquintana.metrics.sql.MetricsSql;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import com.zaxxer.hikari.pool.HikariProxyConnection;
-import com.zaxxer.hikari.pool.ProxyConnection;
 import nxt.Constants;
 import nxt.Nxt;
-import org.firebirdsql.gds.TransactionParameterBuffer;
 import org.firebirdsql.gds.impl.GDSType;
-import org.firebirdsql.jdbc.FBConnection;
 import org.firebirdsql.management.FBManager;
-import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -29,9 +26,13 @@ public final class Db {
 
     private static final HikariDataSource cp;
     private static final ThreadLocal<DbConnection> localConnection = new ThreadLocal<>();
+    private static final ThreadLocal<Timer.Context> localTimerContext = new ThreadLocal<>();
     private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionCaches = new ThreadLocal<>();
     private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionBatches = new ThreadLocal<>();
     private static final TYPE DATABASE_TYPE;
+    private static final Timer transactionTimer = Nxt.metrics.timer(MetricRegistry.name(Db.class, "transaction"));
+    private static final Counter commitCounter = Nxt.metrics.counter(MetricRegistry.name(Db.class, "commits"));
+    private static final Counter rollbackCounter = Nxt.metrics.counter(MetricRegistry.name(Db.class, "rollbacks"));
     private static volatile int maxActiveConnections;
 
     static {
@@ -224,6 +225,7 @@ public final class Db {
             localConnection.set((DbConnection) con);
             transactionCaches.set(new HashMap<>());
             transactionBatches.set(new HashMap<>());
+            localTimerContext.set(transactionTimer.time());
             return con;
         } catch (Exception e) {
             throw new RuntimeException(e.toString(), e);
@@ -261,6 +263,7 @@ public final class Db {
         if (con == null) {
             throw new IllegalStateException("Not in transaction");
         }
+        localTimerContext.get().stop();
         localConnection.set(null);
         transactionCaches.get().clear();
         transactionCaches.set(null);
@@ -292,7 +295,7 @@ public final class Db {
     private static final class DbConnection extends FilteredConnection {
 
         private DbConnection(Connection con) {
-            super(con);
+            super(MetricsSql.forRegistry(Nxt.metrics).wrap(con));
         }
 
         @Override
@@ -304,6 +307,7 @@ public final class Db {
         public void commit() throws SQLException {
             if (localConnection.get() == null) {
                 super.commit();
+                commitCounter.inc();
             } else if (!this.equals(localConnection.get())) {
                 throw new IllegalStateException("Previous connection not committed");
             } else {
@@ -319,6 +323,7 @@ public final class Db {
         public void rollback() throws SQLException {
             if (localConnection.get() == null) {
                 super.rollback();
+                rollbackCounter.inc();
             } else if (!this.equals(localConnection.get())) {
                 throw new IllegalStateException("Previous connection not committed");
             } else {
