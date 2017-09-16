@@ -16,12 +16,11 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
 {
     protected VersionedBatchEntitySqlTable(String table, DbKey.Factory<T> dbKeyFactory) {
         super(table, dbKeyFactory);
-        batchSizes= Nxt.metrics.histogram(MetricRegistry.name(VersionedBatchEntitySqlTable.class, table,"batchSizes"));
     }
 
     protected abstract String updateQuery();
     protected abstract void batch(PreparedStatement pstmt, T t) throws SQLException;
-    private  Histogram batchSizes ;
+
 
     @Override
     public boolean delete(T t) {
@@ -73,7 +72,6 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
                 pstmt.addBatch();
             }
             pstmt.executeBatch();
-            batchSizes.update(keySet.size());
         }
         catch(SQLException e) {
             throw new RuntimeException(e.toString(), e);
