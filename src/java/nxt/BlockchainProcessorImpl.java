@@ -767,6 +767,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 	@Override
 	public void registerDerivedTable(DerivedTable table) {
+		logger.info("Registering derived table "+table.getClass());
 		derivedTables.add(table);
 	}
 
@@ -894,6 +895,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 		}
 	}
     private final Timer pushBlockTimer = Nxt.metrics.timer(MetricRegistry.name(BlockchainImpl.class, "pushBlock"));
+	private final Timer finishTimer = Nxt.metrics.timer(MetricRegistry.name(BlockchainImpl.class, "pushBlockFinishTables"));
+	private final Timer commitTimer = Nxt.metrics.timer(MetricRegistry.name(BlockchainImpl.class, "pushBlockCommit"));
 	private void pushBlock(final BlockImpl block) throws BlockNotAcceptedException {
         final Timer.Context context = pushBlockTimer.time();
 	    try {
@@ -1020,12 +1023,14 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                     Account.flushAccountTable();
                     addBlock(block);
                     accept(block, remainingAmount, remainingFee);
-
+					Timer.Context finishContext = finishTimer.time();
                     for (DerivedTable table : derivedTables) {
                         table.finish();
                     }
-
+					finishContext.stop();
+					Timer.Context commitContext = commitTimer.time();
                     Nxt.getStores().commitTransaction();
+                    commitContext.stop();
                 } catch (Exception e) {
                     Nxt.getStores().rollbackTransaction();
                     blockchain.setLastBlock(previousLastBlock);

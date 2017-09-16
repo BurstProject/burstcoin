@@ -4,6 +4,7 @@ import nxt.Account;
 import nxt.Nxt;
 import nxt.db.VersionedBatchEntityTable;
 import nxt.db.VersionedEntityTable;
+import nxt.db.sql.DbUtils;
 import nxt.db.sql.SqlAccountStore;
 import nxt.db.sql.VersionedBatchEntitySqlTable;
 import nxt.db.sql.VersionedEntitySqlTable;
@@ -47,6 +48,52 @@ class MariadbAccountStore extends SqlAccountStore {
         }
 
     };
+    VersionedBatchEntityTable<Account> accountTable = new VersionedBatchEntitySqlTable<Account>("account", accountDbKeyFactory) {
+        @Override
+        protected Account load(Connection con, ResultSet rs) throws SQLException {
+            return new SqlAccount(rs);
+        }
+
+        @Override
+        protected String updateQuery() {
+            return "INSERT   INTO account (creation_height, public_key, key_height, balance, unconfirmed_balance, " +
+                    "forged_balance, name, description, id, height, latest) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE) ON DUPLICATE KEY UPDATE " +
+                    "creation_height=?, public_key=?, key_height=?, balance=?, unconfirmed_balance=?, " +
+                    "forged_balance=?, name=?, description=?, latest=TRUE";
+        }
+
+        @Override
+        protected void batch(PreparedStatement pstmt, Account account) throws SQLException {
+            doMariadbAccountBatch(pstmt, account);
+        }
+
+        void doMariadbAccountBatch(PreparedStatement pstmt, Account account) throws SQLException {
+            int i = 0;
+            pstmt.setInt(++i, account.getCreationHeight());
+            DbUtils.setBytes(pstmt, ++i, account.getPublicKey());
+            pstmt.setInt(++i, account.getKeyHeight());
+            pstmt.setLong(++i, account.getBalanceNQT());
+            pstmt.setLong(++i, account.getUnconfirmedBalanceNQT());
+            pstmt.setLong(++i, account.getForgedBalanceNQT());
+            DbUtils.setString(pstmt, ++i, account.getName());
+            DbUtils.setString(pstmt, ++i, account.getDescription());
+            pstmt.setLong(++i, account.getId());
+            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+
+            // UPDATE-Part
+            pstmt.setInt(++i, account.getCreationHeight());
+            DbUtils.setBytes(pstmt, ++i, account.getPublicKey());
+            pstmt.setInt(++i, account.getKeyHeight());
+            pstmt.setLong(++i, account.getBalanceNQT());
+            pstmt.setLong(++i, account.getUnconfirmedBalanceNQT());
+            pstmt.setLong(++i, account.getForgedBalanceNQT());
+            DbUtils.setString(pstmt, ++i, account.getName());
+            DbUtils.setString(pstmt, ++i, account.getDescription());
+
+            pstmt.addBatch();
+        }
+    };
 
     @Override
     public VersionedEntityTable<Account.AccountAsset> getAccountAssetTable() {
@@ -55,51 +102,33 @@ class MariadbAccountStore extends SqlAccountStore {
 
     @Override
     public VersionedBatchEntityTable<Account> getAccountTable() {
-
-
-        return new VersionedBatchEntitySqlTable<Account>("account", accountDbKeyFactory) {
-            @Override
-            protected Account load(Connection con, ResultSet rs) throws SQLException {
-                return new SqlAccount(rs);
-            }
-
-            @Override
-            protected String updateQuery() {
-                return "REPLACE INTO account (id, creation_height, public_key, key_height, balance, unconfirmed_balance, " +
-                        "forged_balance, name, description, height, latest) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)";
-            }
-
-            @Override
-            protected void batch(PreparedStatement pstmt, Account account) throws SQLException {
-                doAccountBatch(pstmt, account);
-            }
-
-        };
+        return accountTable;
     }
+
+    private  VersionedEntitySqlTable<Account.RewardRecipientAssignment> rewardRecipientAssignmentVersionedEntitySqlTable =  new VersionedEntitySqlTable<Account.RewardRecipientAssignment>("reward_recip_assign", rewardRecipientAssignmentDbKeyFactory) {
+
+        @Override
+        protected Account.RewardRecipientAssignment load(Connection con, ResultSet rs) throws SQLException {
+            return new SqlRewardRecipientAssignment(rs);
+        }
+
+        @Override
+        protected void save(Connection con, Account.RewardRecipientAssignment assignment) throws SQLException {
+            try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO reward_recip_assign "
+                    + "(account_id, prev_recip_id, recip_id, from_height, height, latest) VALUES (?, ?, ?, ?, ?, TRUE)")) {
+                int i = 0;
+                pstmt.setLong(++i, assignment.accountId);
+                pstmt.setLong(++i, assignment.prevRecipientId);
+                pstmt.setLong(++i, assignment.recipientId);
+                pstmt.setInt(++i, assignment.fromHeight);
+                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+                pstmt.executeUpdate();
+            }
+        }
+    };
 
     @Override
     public VersionedEntityTable<Account.RewardRecipientAssignment> getRewardRecipientAssignmentTable() {
-        return new VersionedEntitySqlTable<Account.RewardRecipientAssignment>("reward_recip_assign", rewardRecipientAssignmentDbKeyFactory) {
-
-            @Override
-            protected Account.RewardRecipientAssignment load(Connection con, ResultSet rs) throws SQLException {
-                return new SqlRewardRecipientAssignment(rs);
-            }
-
-            @Override
-            protected void save(Connection con, Account.RewardRecipientAssignment assignment) throws SQLException {
-                try (PreparedStatement pstmt = con.prepareStatement("REPLACE INTO reward_recip_assign "
-                        + "(account_id, prev_recip_id, recip_id, from_height, height, latest) VALUES (?, ?, ?, ?, ?, TRUE)")) {
-                    int i = 0;
-                    pstmt.setLong(++i, assignment.accountId);
-                    pstmt.setLong(++i, assignment.prevRecipientId);
-                    pstmt.setLong(++i, assignment.recipientId);
-                    pstmt.setInt(++i, assignment.fromHeight);
-                    pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
-                    pstmt.executeUpdate();
-                }
-            }
-        };
+      return rewardRecipientAssignmentVersionedEntitySqlTable;
     }
 }
