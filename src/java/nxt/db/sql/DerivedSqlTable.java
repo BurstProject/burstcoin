@@ -5,6 +5,8 @@ import com.codahale.metrics.Timer;
 import nxt.BlockchainImpl;
 import nxt.Nxt;
 import nxt.db.DerivedTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,13 +17,12 @@ public abstract class DerivedSqlTable implements DerivedTable
 {
 //    private final Timer rollbackTimer;
 //    private final Timer truncateTimer;
-
+    private static final Logger logger = LoggerFactory.getLogger(DerivedSqlTable.class);
     protected final String table;
 
     protected DerivedSqlTable(String table) {
         this.table = table;
-//        rollbackTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"rollback"));
-//        truncateTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"truncate"));
+        logger.trace("Creating derived table for "+table);
         Nxt.getBlockchainProcessor().registerDerivedTable(this);
     }
 

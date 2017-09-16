@@ -54,7 +54,7 @@ public abstract class SqlAccountStore implements AccountStore {
 
     protected void doAccountBatch(PreparedStatement pstmt, Account account) throws SQLException {
         int i = 0;
-        pstmt.setLong(++i, account.getId());
+
         pstmt.setInt(++i, account.getCreationHeight());
         DbUtils.setBytes(pstmt, ++i, account.getPublicKey());
         pstmt.setInt(++i, account.getKeyHeight());
@@ -63,6 +63,7 @@ public abstract class SqlAccountStore implements AccountStore {
         pstmt.setLong(++i, account.getForgedBalanceNQT());
         DbUtils.setString(pstmt, ++i, account.getName());
         DbUtils.setString(pstmt, ++i, account.getDescription());
+        pstmt.setLong(++i, account.getId());
         pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
         pstmt.addBatch();
     }
