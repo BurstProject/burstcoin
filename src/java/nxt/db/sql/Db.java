@@ -74,7 +74,6 @@ public final class Db {
                     config.addDataSourceProperty("cachePrepStmts", "true");
                     config.addDataSourceProperty("prepStmtCacheSize", "250");
                     config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-                    config.addDataSourceProperty("encoding", "UTF8");
 
                     if (dbUrl.startsWith("jdbc:firebirdsql:embedded:")) {
                         String firebirdDb = dbUrl.replaceFirst("^jdbc:firebirdsql:embedded:", "").replaceFirst("\\?.*$", "");
