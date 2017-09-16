@@ -101,11 +101,11 @@
             <version>${mariadb.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.mchange/c3p0 -->
+      <!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
         <dependency>
-            <groupId>com.mchange</groupId>
-            <artifactId>c3p0</artifactId>
-            <version>0.9.5.2</version>
+          <groupId>com.zaxxer</groupId>
+          <artifactId>HikariCP</artifactId>
+          <version>${hikaricp.version}</version>
         </dependency>
 
 
@@ -144,13 +144,6 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-core</artifactId>
-            <version>${metrics.version}</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-graphite</artifactId>
             <version>${metrics.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.github.gquintana.metrics/metrics-sql -->
