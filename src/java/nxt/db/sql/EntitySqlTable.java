@@ -19,11 +19,11 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     private final boolean multiversion;
     private final String defaultSort;
 
-    private final Timer getByKeyTimer;
-    private final Timer getByKeyAndHeightTimer;
-    private final Timer getByClauseTimer;
-    private final Timer getByClauseAndHeightTimer;
-    private final Timer insertTimer;
+//    private final Timer getByKeyTimer;
+//    private final Timer getByKeyAndHeightTimer;
+//    private final Timer getByClauseTimer;
+//    private final Timer getByClauseAndHeightTimer;
+//    private final Timer insertTimer;
     protected EntitySqlTable(String table, NxtKey.Factory<T> dbKeyFactory) {
         this(table, dbKeyFactory, false);
     }
@@ -34,11 +34,11 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
         this.multiversion = multiversion;
         this.defaultSort = " ORDER BY " + (multiversion ? this.dbKeyFactory.getPKColumns() : " height DESC ");
 
-        getByKeyTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByKey"));
-        getByKeyAndHeightTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByKeyAndHeight"));
-        getByClauseTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByClause"));
-        getByClauseAndHeightTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByClauseAndHeight"));
-        insertTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"insert"));
+//        getByKeyTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByKey"));
+//        getByKeyAndHeightTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByKeyAndHeight"));
+//        getByClauseTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByClause"));
+//        getByClauseAndHeightTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByClauseAndHeight"));
+//        insertTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"insert"));
     }
 
     protected abstract T load(Connection con, ResultSet rs) throws SQLException;
