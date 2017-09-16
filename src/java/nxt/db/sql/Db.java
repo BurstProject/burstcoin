@@ -1,10 +1,7 @@
 package nxt.db.sql;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Timer;
-import com.github.gquintana.metrics.sql.MetricsSql;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import nxt.Constants;
 import nxt.Nxt;
 import org.firebirdsql.gds.impl.GDSType;
@@ -18,21 +15,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 public final class Db {
 
     private static final Logger logger = LoggerFactory.getLogger(Db.class);
 
-    private static final ComboPooledDataSource cpds;
+    private static final HikariDataSource cp;
     private static final ThreadLocal<DbConnection> localConnection = new ThreadLocal<>();
-    private static final ThreadLocal<Timer.Context> localTimerContext = new ThreadLocal<>();
     private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionCaches = new ThreadLocal<>();
     private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionBatches = new ThreadLocal<>();
     private static final TYPE DATABASE_TYPE;
-    private static final Timer transactionTimer = Nxt.metrics.timer(MetricRegistry.name(Db.class, "transaction"));
-    private static final Counter commitCounter = Nxt.metrics.counter(MetricRegistry.name(Db.class, "commits"));
-    private static final Counter rollbackCounter = Nxt.metrics.counter(MetricRegistry.name(Db.class, "rollbacks"));
     private static volatile int maxActiveConnections;
 
     static {
@@ -53,36 +45,34 @@ public final class Db {
         logger.debug("Database jdbc url set to: " + dbUrl);
         try {
             DATABASE_TYPE = TYPE.getTypeFromJdbcUrl(dbUrl);
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(dbUrl);
+            if (dbUsername != null)
+                config.setUsername(dbUsername);
+            if (dbPassword != null)
+                config.setPassword(dbPassword);
 
-            cpds = new ComboPooledDataSource();
+            config.setMaximumPoolSize(Nxt.getIntProperty("nxt.dbMaximumPoolSize"));
 
-            cpds.setJdbcUrl(dbUrl);
-
-            cpds.setMaxPoolSize(Nxt.getIntProperty("nxt.dbMaximumPoolSize"));
-            cpds.setAutoCommitOnClose(false);
-            cpds.setMaxStatements(1024);
-            cpds.setMaxStatementsPerConnection(128);
-            cpds.setMaxConnectionAge(120);
-
-            Properties config = new Properties();
             switch (DATABASE_TYPE) {
                 case MARIADB:
-
-                    config.put("cachePrepStmts", "true");
-                    config.put("prepStmtCacheSize", "250");
-                    config.put("prepStmtCacheSqlLimit", "2048");
-                    config.put("characterEncoding", "utf8mb4");
-                    config.put("useUnicode", "true");
-                    config.put("useServerPrepStmts", "false");
-                    config.put("rewriteBatchedStatements", "true");
+                    config.setAutoCommit(false);
+                    config.addDataSourceProperty("cachePrepStmts", "true");
+                    config.addDataSourceProperty("prepStmtCacheSize", "250");
+                    config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+                    config.addDataSourceProperty("characterEncoding", "utf8mb4");
+                    config.addDataSourceProperty("useUnicode", "true");
+                    config.addDataSourceProperty("useServerPrepStmts", "false");
+                    config.addDataSourceProperty("rewriteBatchedStatements", "true");
+                    config.setConnectionInitSql("SET NAMES utf8mb4;");
                     break;
                 case FIREBIRD:
-
-                    config.put("encoding", "UTF8");
-                    config.put("cachePrepStmts", "true");
-                    config.put("prepStmtCacheSize", "250");
-                    config.put("prepStmtCacheSqlLimit", "2048");
-                    config.put("encoding", "UTF8");
+                    config.setAutoCommit(false);
+                    config.addDataSourceProperty("encoding", "UTF8");
+                    config.addDataSourceProperty("cachePrepStmts", "true");
+                    config.addDataSourceProperty("prepStmtCacheSize", "250");
+                    config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+                    config.addDataSourceProperty("encoding", "UTF8");
 
                     if (dbUrl.startsWith("jdbc:firebirdsql:embedded:")) {
                         String firebirdDb = dbUrl.replaceFirst("^jdbc:firebirdsql:embedded:", "").replaceFirst("\\?.*$", "");
@@ -97,21 +87,18 @@ public final class Db {
 
                     break;
                 case H2:
-                    config.put("cachePrepStmts", "true");
-                    config.put("prepStmtCacheSize", "250");
-                    config.put("prepStmtCacheSqlLimit", "2048");
+                    config.setAutoCommit(false);
+                    config.addDataSourceProperty("cachePrepStmts", "true");
+                    config.addDataSourceProperty("prepStmtCacheSize", "250");
+                    config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
                     break;
             }
-            if (dbUsername != null)
-                cpds.setUser(dbUsername);
-            if (dbPassword != null)
-                cpds.setPassword(dbPassword);
 
-//            cp = new HikariDataSource(config);
+            cp = new HikariDataSource(config);
 
             if (DATABASE_TYPE == TYPE.H2) {
                 int defaultLockTimeout = Nxt.getIntProperty("nxt.dbDefaultLockTimeout") * 1000;
-                try (Connection con = cpds.getConnection();
+                try (Connection con = cp.getConnection();
                      Statement stmt = con.createStatement()) {
                     stmt.executeUpdate("SET DEFAULT_LOCK_TIMEOUT " + defaultLockTimeout);
                 } catch (SQLException e) {
@@ -133,7 +120,7 @@ public final class Db {
 
     public static void analyzeTables() {
         if (DATABASE_TYPE == TYPE.H2) {
-            try (Connection con = cpds.getConnection();
+            try (Connection con = cp.getConnection();
                  Statement stmt = con.createStatement()) {
                 stmt.execute("ANALYZE SAMPLE_SIZE 0");
             } catch (SQLException e) {
@@ -144,7 +131,7 @@ public final class Db {
 
     public static void shutdown() {
         try {
-            Connection con = cpds.getConnection();
+            Connection con = cp.getConnection();
             if (DATABASE_TYPE == TYPE.H2) {
                 logger.info("Compacting database - this may take a while");
                 Statement stmt = con.createStatement();
@@ -157,7 +144,7 @@ public final class Db {
     }
 
     private static Connection getPooledConnection() throws SQLException {
-        Connection con = cpds.getConnection();
+        Connection con = cp.getConnection();
         return con;
     }
 
@@ -230,7 +217,6 @@ public final class Db {
             localConnection.set((DbConnection) con);
             transactionCaches.set(new HashMap<>());
             transactionBatches.set(new HashMap<>());
-            localTimerContext.set(transactionTimer.time());
             return con;
         } catch (Exception e) {
             throw new RuntimeException(e.toString(), e);
@@ -268,7 +254,6 @@ public final class Db {
         if (con == null) {
             throw new IllegalStateException("Not in transaction");
         }
-        localTimerContext.get().stop();
         localConnection.set(null);
         transactionCaches.get().clear();
         transactionCaches.set(null);
@@ -300,7 +285,7 @@ public final class Db {
     private static final class DbConnection extends FilteredConnection {
 
         private DbConnection(Connection con) {
-            super(MetricsSql.forRegistry(Nxt.metrics).wrap(con));
+            super(con);
         }
 
         @Override
@@ -312,7 +297,6 @@ public final class Db {
         public void commit() throws SQLException {
             if (localConnection.get() == null) {
                 super.commit();
-                commitCounter.inc();
             } else if (!this.equals(localConnection.get())) {
                 throw new IllegalStateException("Previous connection not committed");
             } else {
@@ -328,7 +312,6 @@ public final class Db {
         public void rollback() throws SQLException {
             if (localConnection.get() == null) {
                 super.rollback();
-                rollbackCounter.inc();
             } else if (!this.equals(localConnection.get())) {
                 throw new IllegalStateException("Previous connection not committed");
             } else {
