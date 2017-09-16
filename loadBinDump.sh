@@ -13,4 +13,4 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-java -cp burst.jar nxt.db.quicksync.LoadBinDump $1
+java -cp burst.jar;conf nxt.db.quicksync.LoadBinDump $1
