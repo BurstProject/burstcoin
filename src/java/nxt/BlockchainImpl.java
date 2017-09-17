@@ -1,5 +1,7 @@
 package nxt;
 
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
 import nxt.db.BlockDb;
 import nxt.db.NxtIterator;
 
@@ -12,12 +14,14 @@ public final class BlockchainImpl implements Blockchain {
     private final TransactionDb transactionDb = Nxt.getDbs().getTransactionDb();
     private final BlockDb blockDb =  Nxt.getDbs().getBlockDb();;
 
-
     public static BlockchainImpl getInstance() {
         return instance;
     }
 
-    private BlockchainImpl() {}
+    private BlockchainImpl() {
+        Nxt.metrics.register(MetricRegistry.name(BlockchainProcessorImpl.class, "BlockChain", "height"),
+                (Gauge<Integer>) () -> getHeight());
+    }
 
     private final AtomicReference<BlockImpl> lastBlock = new AtomicReference<>();
 

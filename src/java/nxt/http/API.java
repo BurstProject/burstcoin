@@ -1,5 +1,6 @@
 package nxt.http;
 
+import com.codahale.metrics.jetty9.InstrumentedHandler;
 import nxt.Constants;
 import nxt.Nxt;
 import nxt.util.Subnet;
@@ -15,10 +16,13 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.servlets.GzipFilter;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.ServletContext;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.HashSet;
@@ -27,28 +31,22 @@ import java.util.Set;
 
 public final class API {
 
-    private static final Logger logger = LoggerFactory.getLogger(API.class);
-
-    private static final int TESTNET_API_PORT = 6876;
-
     static final Set<Subnet> allowedBotHosts;
     static final boolean enableDebugAPI = Nxt.getBooleanProperty("nxt.enableDebugAPI");
-
+    private static final Logger logger = LoggerFactory.getLogger(API.class);
+    private static final int TESTNET_API_PORT = 6876;
     private static final Server apiServer;
 
     static {
         List<String> allowedBotHostsList = Nxt.getStringListProperty("nxt.allowedBotHosts");
-        if (! allowedBotHostsList.contains("*")) {
+        if (!allowedBotHostsList.contains("*")) {
             // Temp hashset to store allowed subnets
             Set<Subnet> allowedSubnets = new HashSet<>();
 
-            for (String allowedHost : allowedBotHostsList)
-            {
-                try
-                {
+            for (String allowedHost : allowedBotHostsList) {
+                try {
                     allowedSubnets.add(Subnet.createInstance(allowedHost));
-                } catch (UnknownHostException e)
-                {
+                } catch (UnknownHostException e) {
                     logger.error("Error adding allowed bot host '" + allowedHost + "'", e);
                 }
             }
@@ -131,7 +129,9 @@ public final class API {
                 filterHolder.setAsyncSupported(true);
             }
 
-            apiHandlers.addHandler(apiHandler);
+            InstrumentedHandler instrumentedApiHandler = new InstrumentedHandler(Nxt.metrics, "api-handler");
+            instrumentedApiHandler.setHandler(apiHandler);
+            apiHandlers.addHandler(instrumentedApiHandler);
             apiHandlers.addHandler(new DefaultHandler());
 
             apiServer.setHandler(apiHandlers);
@@ -158,7 +158,11 @@ public final class API {
 
     }
 
-    public static void init() {}
+    private API() {
+    } // never
+
+    public static void init() {
+    }
 
     public static void shutdown() {
         if (apiServer != null) {
@@ -169,7 +173,5 @@ public final class API {
             }
         }
     }
-
-    private API() {} // never
 
 }
