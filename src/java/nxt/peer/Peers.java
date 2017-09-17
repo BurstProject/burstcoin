@@ -1,5 +1,8 @@
 package nxt.peer;
 
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.jetty9.InstrumentedHandler;
 import nxt.*;
 import nxt.db.PeerDb;
 import nxt.db.sql.Db;
@@ -12,12 +15,15 @@ import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.DoSFilter;
 import org.eclipse.jetty.servlets.GzipFilter;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.ServletContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -272,7 +278,10 @@ public final class Peers {
                     gzipFilterHolder.setAsyncSupported(true);
                 }
 
-                peerServer.setHandler(peerHandler);
+                InstrumentedHandler instrumentedPeerHandler = new InstrumentedHandler(Nxt.metrics, "peer-handler");
+                instrumentedPeerHandler.setHandler(peerHandler);
+
+                peerServer.setHandler(instrumentedPeerHandler);
                 peerServer.setStopAtShutdown(true);
                 ThreadPool.runBeforeStart(new Runnable() {
                     @Override
@@ -290,6 +299,12 @@ public final class Peers {
                 peerServer = null;
                 logger.info("shareMyAddress is disabled, will not start peer networking server");
             }
+
+            Nxt.metrics.register(MetricRegistry.name(Peers.class, "peers", "total"),
+                    (Gauge<Integer>) () -> peers.size());
+            Nxt.metrics.register(MetricRegistry.name(Peers.class, "peers", "active"),
+                    (Gauge<Integer>) () -> getActivePeers().size());
+
         }
 
         private static void init() {}
