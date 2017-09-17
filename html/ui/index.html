@@ -349,7 +349,6 @@
                 <div class="navbar-right">
                     <ul class="nav navbar-nav">
                         <li class="dropdown" id="new-project" style="display: none;"><a href="#deployCrowd" data-toggle="modal" data-target="#deployCrowd" title="New Project"><i class="glyphicon glyphicon-plus"></i> New Project</a></li>
-                        <li class="dropdown"><a href="#" data-toggle="modal" data-target="#show_current_price" data-i18n="show_current_price"> Show current price</a></li>
                         <li class="dropdown"><a href="#" data-toggle="modal" data-target="#send_money_modal" data-i18n="send_nxt"> Send BURST</a></li>
                         <li class="dropdown"><a href="#" data-toggle="modal" data-target="#send_message_modal" data-i18n="send_message"> Send Message</a></li>
                         <li class="dropdown show-dropdown-settings">
@@ -1699,40 +1698,6 @@
                                             <select name="console_log" id="settings_console_log" class="form-control" style="width:150px">
                                                 <option value="1" data-i18n="yes">Yes</option>
                                                 <option value="0" data-i18n="no">No</option>
-                                            </select>
-                                        </div>
-
-                                        <div class="form-group" id="settings_currency_div">
-                                            <label for="settings_currency" data-i18n="select_currency">Select Currency</label>
-                                            <select name="currency" id="settings_currency" class="form-control" style="width:150px">
-                                                    <option value="btc">BTC</option>
-                                                    <option value="usd">USD</option>
-                                                    <option value="gbp">GBP</option>
-                                                    <option value="eur">EUR</option>
-                                                    <option value="chf">CHF</option>
-                                                    <option value="cny">CNY</option>
-                                                    <option value="jpy">JPY</option>
-                                                    <option value="cad">CAD</option>
-                                                    <option value="aud">AUD</option>
-                                                    <option value="rub">RUB</option>
-                                                    <option value="sek">SEK</option>
-                                                    <option value="hkd">HKD</option>
-                                                    <option value="sgd">SGD</option>
-                                                    <option value="twd">TWD</option>
-                                                    <option value="krw">KRW</option>
-                                                    <option value="zar">ZAR</option>
-                                                    <option value="inr">INR</option>
-                                                    <option value="myr">MYR</option>
-                                                    <option value="idr">IDR</option>
-                                                    <option value="brl">BRL</option>
-                                                    <option value="nzd">NZD</option>
-                                                    <option value="mxn">MXN</option>
-                                                    <option value="php">PHP</option>
-                                                    <option value="dkk">DKK</option>
-                                                    <option value="pln">PLN</option>
-                                                    <option value="xau">XAU</option>
-                                                    <option value="xag">XAG</option>
-                                                    <option value="xdr">XDR</option>
                                             </select>
                                         </div>
                                     </div>
@@ -4196,29 +4161,7 @@
 				</div>
 			</div>
 		</div>
-
-
         <!--end Dividends+ code-->
-        <div class="modal fade" id="show_current_price" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-700">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" data-i18n="current_price">Current price</h4>
-                    </div>
-                    <div class="modal-body">
-                        <iframe  src='//www.coingecko.com/en/widget_component/ticker/burst/eur?id=burst' style='border:none; height:125px; width: 275px;' scrolling='no' frameborder='0' allowTransparency='true'></iframe>
-                        <iframe  src='//www.coingecko.com/en/widget_component/ticker/burst/btc?id=burst' style='border:none; height:125px; width: 275px;' scrolling='no' frameborder='0' allowTransparency='true'></iframe>
-                    </div>
-                    <div class="modal-footer" style="margin-top:0;">
-                        <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Ok</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-
 
             <div class="modal fade" id="send_money_modal" tabindex="-1" role="dialog" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-700">
