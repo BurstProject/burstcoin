@@ -2,247 +2,276 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>burstcoin</groupId>
-  <artifactId>burstcoin</artifactId>
-  <version>1.3.5cg</version>
+    <groupId>burstcoin</groupId>
+    <artifactId>burstcoin</artifactId>
+    <version>1.3.5cg</version>
 
-  <packaging>jar</packaging>
+    <packaging>jar</packaging>
 
-  <properties>
+    <properties>
 
-    <java.version>1.8</java.version>
-    <jocl.version>0.1.9</jocl.version>
-    <bcprov-jdk15on.version>1.57</bcprov-jdk15on.version>
-    <jetty.version>9.2.22.v20170606</jetty.version>
-    <json-simple.version>1.1.1</json-simple.version>
-    <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
-    <slf4j.version>1.7.25</slf4j.version>
-    <mariadb.version>2.0.3</mariadb.version>
-    <hikaricp.version>2.6.3</hikaricp.version>
-    <h2.version>1.4.196</h2.version>
-    <jaybird.version>3.0.2</jaybird.version>
-    <jna.version>4.4.0</jna.version>
+        <java.version>1.8</java.version>
+        <jocl.version>0.1.9</jocl.version>
+        <bcprov-jdk15on.version>1.57</bcprov-jdk15on.version>
+        <jetty.version>9.2.22.v20170606</jetty.version>
+        <json-simple.version>1.1.1</json-simple.version>
+        <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+        <slf4j.version>1.7.25</slf4j.version>
+        <mariadb.version>2.0.3</mariadb.version>
+        <hikaricp.version>2.6.3</hikaricp.version>
+        <h2.version>1.4.196</h2.version>
+        <jaybird.version>3.0.2</jaybird.version>
+        <jna.version>4.4.0</jna.version>
+        <reflections.version>0.9.11</reflections.version>
+        <kryo.version>4.0.1</kryo.version>
+        <commons-lang.version>2.6</commons-lang.version>
+        <metrics.version>3.2.3</metrics.version>
 
-    <maven.compiler.source>${java.version}</maven.compiler.source>
-    <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
 
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-  </properties>
+    </properties>
 
-  <dependencies>
+    <dependencies>
 
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-      <version>${javax.servlet-api.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>${javax.servlet-api.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>org.jocl</groupId>
-      <artifactId>jocl</artifactId>
-      <version>${jocl.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>org.jocl</groupId>
+            <artifactId>jocl</artifactId>
+            <version>${jocl.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>org.bouncycastle</groupId>
-      <artifactId>bcprov-jdk15on</artifactId>
-      <version>${bcprov-jdk15on.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>${bcprov-jdk15on.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>com.googlecode.json-simple</groupId>
-      <artifactId>json-simple</artifactId>
-      <version>${json-simple.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>${json-simple.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-server</artifactId>
-      <version>${jetty.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
-      <version>${jetty.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlet</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlets</artifactId>
-      <version>${jetty.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlets</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-      <scope>compile</scope>
-    </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>compile</scope>
+        </dependency>
 
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jdk14</artifactId>
-      <version>${slf4j.version}</version>
-      <scope>compile</scope>
-    </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>compile</scope>
+        </dependency>
 
-      <!-- https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client -->
-      <dependency>
-          <groupId>org.mariadb.jdbc</groupId>
-          <artifactId>mariadb-java-client</artifactId>
-          <version>${mariadb.version}</version>
-      </dependency>
+        <!-- https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client -->
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>${mariadb.version}</version>
+        </dependency>
 
       <!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
-      <dependency>
+        <dependency>
           <groupId>com.zaxxer</groupId>
           <artifactId>HikariCP</artifactId>
           <version>${hikaricp.version}</version>
-      </dependency>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>${h2.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <version>${h2.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>org.firebirdsql.jdbc</groupId>
+            <artifactId>jaybird-jdk18</artifactId>
+            <version>${jaybird.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>org.firebirdsql.jdbc</groupId>
-      <artifactId>jaybird-jdk18</artifactId>
-      <version>${jaybird.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>${jna.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>${reflections.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>${kryo.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>${commons-lang.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>${metrics.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-jetty9</artifactId>
+            <version>${metrics.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-jvm</artifactId>
+            <version>${metrics.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-servlet</artifactId>
+            <version>${metrics.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>net.java.dev.jna</groupId>
-      <artifactId>jna</artifactId>
-      <version>${jna.version}</version>
-   </dependency>
-    <dependency>
-      <groupId>org.reflections</groupId>
-      <artifactId>reflections</artifactId>
-      <version>0.9.11</version>
-    </dependency>
-    <dependency>
-      <groupId>com.esotericsoftware</groupId>
-      <artifactId>kryo</artifactId>
-      <version>4.0.1</version>
+        <!-- https://mvnrepository.com/artifact/com.github.gquintana.metrics/metrics-sql -->
+        <dependency>
+            <groupId>com.github.gquintana.metrics</groupId>
+            <artifactId>metrics-sql</artifactId>
+            <version>3.2.1</version>
+        </dependency>
 
-    </dependency>
+    </dependencies>
 
-    <!-- https://mvnrepository.com/artifact/commons-lang/commons-lang -->
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.6</version>
-    </dependency>
+    <build>
+        <sourceDirectory>src/java</sourceDirectory>
 
-  </dependencies>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.6</version>
 
-  <build>
-    <sourceDirectory>src/java</sourceDirectory>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>nxt.Nxt</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
 
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-        <configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-          <archive>
-            <manifest>
-              <mainClass>nxt.Nxt</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>ant-clear</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <!-- clear dist dir -->
+                                <delete dir="${project.basedir}/dist"/>
+                                <mkdir dir="${project.basedir}/dist"/>
+                                <mkdir dir="${project.basedir}/dist/tmp"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>ant-zip</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <!-- copy jar -->
+                                <move file="${project.basedir}/target/${project.build.finalName}-jar-with-dependencies.jar"
+                                      tofile="${project.basedir}/dist/tmp/burst.jar"/>
 
-        <executions>
-          <execution>
-            <id>make-assembly</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+                                <!-- copy html dir -->
+                                <copy todir="${project.basedir}/dist/tmp/html">
+                                    <fileset dir="${project.basedir}/html">
+                                    </fileset>
+                                </copy>
+                                <!-- copy properties from conf dir -->
+                                <copy todir="${project.basedir}/dist/tmp/conf">
+                                    <fileset dir="${project.basedir}/conf">
+                                        <include name="logging-default.properties"/>
+                                        <include name="nxt-default.properties"/>
+                                    </fileset>
+                                </copy>
+                                <!-- copy remaining files from root dir -->
+                                <copy todir="${project.basedir}/dist/tmp">
+                                    <fileset dir="${project.basedir}">
+                                        <include name="Burst_Wallet.url"/>
+                                        <include name="genscoop.cl"/>
+                                        <include name="MIT-license.txt"/>
+                                        <include name="Readme.txt"/>
+                                        <include name="run(legacy).bat"/>
+                                        <include name="run.bat"/>
+                                        <include name="createBinDump.bat"/>
+                                        <include name="loadBinDump.bat"/>
+                                    </fileset>
+                                </copy>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.8</version>
-        <executions>
-          <execution>
-            <id>ant-clear</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <!-- clear dist dir -->
-                <delete dir="${project.basedir}/dist"/>
-                <mkdir dir="${project.basedir}/dist"/>
-                <mkdir dir="${project.basedir}/dist/tmp"/>
-              </target>
-            </configuration>
-          </execution>
-          <execution>
-            <id>ant-zip</id>
-            <phase>package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <!-- copy jar -->
-                <move file="${project.basedir}/target/${project.build.finalName}-jar-with-dependencies.jar"
-                      tofile="${project.basedir}/dist/tmp/burst.jar" />
+                                <!-- workaround to keep org. run.sh working, if build with compile scripts -->
+                                <copy file="${project.basedir}/run-mvn-build.sh"
+                                      tofile="${project.basedir}/dist/tmp/run.sh"/>
 
-                <!-- copy html dir -->
-                <copy todir="${project.basedir}/dist/tmp/html">
-                  <fileset dir="${project.basedir}/html">
-                  </fileset>
-                </copy>
-                <!-- copy properties from conf dir -->
-                <copy todir="${project.basedir}/dist/tmp/conf">
-                  <fileset dir="${project.basedir}/conf">
-                    <include name="logging-default.properties"/>
-                    <include name="nxt-default.properties"/>
-                  </fileset>
-                </copy>
-                <!-- copy remaining files from root dir -->
-                <copy todir="${project.basedir}/dist/tmp">
-                  <fileset dir="${project.basedir}">
-                    <include name="Burst_Wallet.url"/>
-                    <include name="genscoop.cl"/>
-                    <include name="MIT-license.txt"/>
-                    <include name="Readme.txt"/>
-                    <include name="run(legacy).bat"/>
-                    <include name="run.bat"/>
-                    <include name="createBinDump.bat"/>
-                    <include name="loadBinDump.bat"/>
-                  </fileset>
-                </copy>
+                                <!-- create zip file -->
+                                <zip destfile="${project.basedir}/dist/${project.build.finalName}.zip"
+                                     basedir="${project.basedir}/dist/tmp"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-                <!-- workaround to keep org. run.sh working, if build with compile scripts -->
-                <copy file="${project.basedir}/run-mvn-build.sh" tofile="${project.basedir}/dist/tmp/run.sh" />
-
-                <!-- create zip file -->
-                <zip destfile="${project.basedir}/dist/${project.build.finalName}.zip" basedir="${project.basedir}/dist/tmp"/>
-              </target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-    </plugins>
-  </build>
+        </plugins>
+    </build>
 
 </project>

@@ -1,5 +1,8 @@
 package nxt.db.sql;
 
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.MetricRegistry;
+import nxt.Nxt;
 import nxt.db.NxtIterator;
 import nxt.db.NxtKey;
 import nxt.db.VersionedBatchEntityTable;
@@ -7,8 +10,7 @@ import nxt.db.VersionedBatchEntityTable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySqlTable<T> implements VersionedBatchEntityTable<T>
 {
@@ -18,6 +20,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
 
     protected abstract String updateQuery();
     protected abstract void batch(PreparedStatement pstmt, T t) throws SQLException;
+
 
     @Override
     public boolean delete(T t) {
@@ -60,7 +63,8 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
         try(Connection con = Db.getConnection();
             PreparedStatement pstmt = con.prepareStatement("UPDATE " + table
                 + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1))) {
-            Iterator<DbKey> it = Db.getBatch(table).keySet().iterator();
+            Set keySet = Db.getBatch(table).keySet();
+            Iterator<DbKey> it = keySet.iterator();
             while(it.hasNext()) {
                 DbKey key = it.next();
                 key.setPK(pstmt);
@@ -75,14 +79,16 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
 
         try(Connection con =Db.getConnection();
             PreparedStatement pstmt = con.prepareStatement(updateQuery())) {
-            Iterator<Map.Entry<DbKey,Object>> it = Db.getBatch(table).entrySet().iterator();
-            while(it.hasNext()) {
-                Map.Entry<DbKey,Object> entry = it.next();
+
+            List<Map.Entry<DbKey,Object>> entries = new ArrayList<>(Db.getBatch(table).entrySet());
+            for ( Map.Entry<DbKey,Object> entry: entries)
+            {
                 if(entry.getValue() != null) {
                     batch(pstmt, (T)entry.getValue());
                 }
             }
             pstmt.executeBatch();
+
         }
         catch(SQLException e) {
             throw new RuntimeException(e.toString(), e);

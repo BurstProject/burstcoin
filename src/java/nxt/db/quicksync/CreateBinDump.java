@@ -162,7 +162,8 @@ public class CreateBinDump {
                                 ps.setLong(2, records + fetchSize);
                                 break;
                             default:
-                                ps.setLong(1, records);
+                                ps.setLong(1, fetchSize);
+                                ps.setLong(2, records );
                         }
 
 
@@ -248,6 +249,9 @@ public class CreateBinDump {
                 entryName = jarEntries.nextElement().getName();
                 if (entryName.startsWith(packageName) && entryName.length() > packageName.length() + 5) {
                     entryName = entryName.substring(packageName.length(), entryName.lastIndexOf('.'));
+                    entryName = entryName.replace("\\","");
+                    entryName = entryName.replace("/","");
+                    logger.trace("Found class: "+entryName);
                     names.add(entryName);
                 }
             }
@@ -264,6 +268,9 @@ public class CreateBinDump {
                 entryName = actual.getName();
                 if (entryName.contains(".")) {
                     entryName = entryName.substring(0, entryName.lastIndexOf('.'));
+                    entryName = entryName.replace("\\","");
+                    entryName = entryName.replace("/","");
+                    logger.trace("Found class: "+entryName);
                     names.add(entryName);
                 }
             }
