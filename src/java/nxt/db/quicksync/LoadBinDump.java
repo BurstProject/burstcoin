@@ -240,6 +240,8 @@ public class LoadBinDump {
                         if (l % 10000 == 0) {
                             logger.info(clazz.getSimpleName() + ": " + l + " / " + rows);
                             ps.executeBatch();
+                            if (l % 50000 == 0 && Db.getDatabaseType() == Db.TYPE.FIREBIRD)
+                                Db.commitTransaction();
                         }
                     }
                     ps.executeBatch();

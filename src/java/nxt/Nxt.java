@@ -1,9 +1,12 @@
 package nxt;
 
-import nxt.db.h2.H2Dbs;
-import nxt.db.h2.H2Stores;
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
+import com.github.gquintana.metrics.util.SqlObjectNameFactory;
 import nxt.db.firebird.FirebirdDbs;
 import nxt.db.firebird.FirebirdStores;
+import nxt.db.h2.H2Dbs;
+import nxt.db.h2.H2Stores;
 import nxt.db.mariadb.MariadbDbs;
 import nxt.db.mariadb.MariadbStores;
 import nxt.db.sql.Db;
@@ -28,19 +31,16 @@ import java.util.Properties;
 
 public final class Nxt {
 
-    private static final Logger logger = LoggerFactory.getLogger(Nxt.class);
-
     public static final String VERSION = "1.3.5cg";
-
     public static final String APPLICATION = "NRS";
-
-    private static volatile Time time = new Time.EpochTime();
-
-    private static Stores stores;
-
-    private static Dbs dbs;
-
+    public static final MetricRegistry metrics = new MetricRegistry();
+    private static final Logger logger = LoggerFactory.getLogger(Nxt.class);
     private static final Properties defaultProperties = new Properties();
+    private static final Properties properties = new Properties(defaultProperties);
+    private static volatile Time time = new Time.EpochTime();
+    private static Stores stores;
+    private static Dbs dbs;
+    private static Generator generator = new GeneratorImpl();
 
     static {
         System.out.println("Initializing Burst server version " + Nxt.VERSION);
@@ -64,8 +64,6 @@ public final class Nxt {
         }
     }
 
-    private static final Properties properties = new Properties(defaultProperties);
-
     static {
         try (InputStream is = ClassLoader.getSystemResourceAsStream("nxt.properties")) {
             if (is != null) {
@@ -75,6 +73,9 @@ public final class Nxt {
             throw new RuntimeException("Error loading nxt.properties", e);
         }
     }
+
+    private Nxt() {
+    } // never
 
     public static int getIntProperty(String name) {
         try {
@@ -155,8 +156,6 @@ public final class Nxt {
         return TransactionProcessorImpl.getInstance();
     }
 
-    private static Generator generator = new GeneratorImpl();
-
     public static Generator getGenerator() {
         return generator;
     }
@@ -206,10 +205,21 @@ public final class Nxt {
         LoggerConfigurator.shutdown();
     }
 
+    public static Stores getStores() {
+        return stores;
+    }
+
+    public static Dbs getDbs() {
+        return dbs;
+    }
+
     private static class Init {
 
         static {
             try {
+                final JmxReporter reporter = JmxReporter.forRegistry(metrics).createsObjectNamesWith(new SqlObjectNameFactory()).build();
+                reporter.start();
+
                 long startTime = System.currentTimeMillis();
 
                 LoggerConfigurator.init();
@@ -222,8 +232,7 @@ public final class Nxt {
                 }
 
                 Db.init();
-                switch (Db.getDatabaseType())
-                {
+                switch (Db.getDatabaseType()) {
                     case MARIADB:
                         logger.info("Using mariadb Backend");
                         dbs = new MariadbDbs();
@@ -292,22 +301,11 @@ public final class Nxt {
             }
         }
 
-        private static void init() {
-        }
-
         private Init() {
         } // never
 
-    }
+        private static void init() {
+        }
 
-    private Nxt() {
-    } // never
-
-    public static Stores getStores() {
-        return stores;
-    }
-
-    public static Dbs getDbs() {
-        return dbs;
     }
 }

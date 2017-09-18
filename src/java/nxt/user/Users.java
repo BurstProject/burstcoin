@@ -1,5 +1,6 @@
 package nxt.user;
 
+import com.codahale.metrics.jetty9.InstrumentedHandler;
 import nxt.*;
 import nxt.peer.Peer;
 import nxt.peer.Peers;
@@ -17,6 +18,8 @@ import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -24,6 +27,7 @@ import org.json.simple.JSONStreamAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.ServletContext;
 import java.math.BigInteger;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -143,9 +147,31 @@ public final class Users {
                 filterHolder.setAsyncSupported(true);
             }
 
-            userHandlers.addHandler(userHandler);
+
+            FilterHolder instrumentedFilterHolder = userHandler.addFilter("com.codahale.metrics.servlet.InstrumentedFilter", "/*", null);
+            instrumentedFilterHolder.setInitParameter("name-prefix", "user-servlet");
+
+            userHandler.addLifeCycleListener(new AbstractLifeCycle.AbstractLifeCycleListener() {
+                @Override
+                public void lifeCycleStarting(LifeCycle event) {
+                    try {
+
+                        ServletContext ctx = userHandler.getServletContext();
+                        ctx.setAttribute("com.codahale.metrics.servlet.InstrumentedFilter.registry", Nxt.metrics);
+                    } catch (Exception ex) {
+                        logger.warn("",ex);
+                    }
+                }
+            });
+
+            InstrumentedHandler intrumentedUserHandler = new InstrumentedHandler(Nxt.metrics, "user-handler");
+            intrumentedUserHandler.setHandler(userHandler);
+            userHandlers.addHandler(intrumentedUserHandler);
 
             userHandlers.addHandler(new DefaultHandler());
+
+
+
 
             userServer.setHandler(userHandlers);
             userServer.setStopAtShutdown(true);

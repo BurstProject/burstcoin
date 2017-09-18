@@ -1,5 +1,6 @@
 package nxt.db.sql;
 
+import com.github.gquintana.metrics.sql.MetricsSql;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import nxt.Constants;
@@ -25,7 +26,8 @@ public final class Db {
     private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionCaches = new ThreadLocal<>();
     private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionBatches = new ThreadLocal<>();
     private static final TYPE DATABASE_TYPE;
-    private static volatile int maxActiveConnections;
+    private static final boolean enableSqlMetrics = Nxt.getBooleanProperty("burst.enableSqlMetrics", false);
+
 
     static {
         String dbUrl;
@@ -155,7 +157,10 @@ public final class Db {
         }
         con = getPooledConnection();
         con.setAutoCommit(true);
-        return new DbConnection(con);
+        if (enableSqlMetrics)
+            return new MeteredDbConnection(con);
+        else
+            return new DbConnection(con);
     }
 
     public static Connection getRawConnection() throws SQLException {
@@ -198,13 +203,30 @@ public final class Db {
         }
         try {
             Connection con = getPooledConnection();
+            // Now for the interesting part
+//            if (DATABASE_TYPE == TYPE.FIREBIRD)
+//            {
+//                Field field = ReflectionUtils.getFields(ProxyConnection.class, (Predicate<Field>) input -> input.getName().equals("delegate")).iterator().next();
+//                field.setAccessible(true);
+//                try {
+//                    FBConnection fbConnection = (FBConnection) field.get((HikariProxyConnection)con);
+//                    fbConnection.getTransactionParameters(Connection.TRANSACTION_READ_COMMITTED)
+//                            .addArgument(TransactionParameterBuffer.NO_AUTO_UNDO);
+//                } catch (IllegalAccessException e) {
+//                    e.printStackTrace();
+//                }
+//            }
             con.setAutoCommit(false);
-            con = new DbConnection(con);
+            if (enableSqlMetrics)
+                con = new MeteredDbConnection(con);
+            else
+                con = new DbConnection(con);
+
             localConnection.set((DbConnection) con);
             transactionCaches.set(new HashMap<>());
             transactionBatches.set(new HashMap<>());
             return con;
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e.toString(), e);
         }
     }
@@ -268,7 +290,14 @@ public final class Db {
         }
     }
 
-    private static final class DbConnection extends FilteredConnection {
+    private static class MeteredDbConnection extends DbConnection {
+
+        private MeteredDbConnection(Connection con) {
+            super(MetricsSql.forRegistry(Nxt.metrics).wrap(con));
+        }
+    }
+
+    private static class DbConnection extends FilteredConnection {
 
         private DbConnection(Connection con) {
             super(con);
