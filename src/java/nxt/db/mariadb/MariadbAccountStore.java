@@ -56,11 +56,9 @@ class MariadbAccountStore extends SqlAccountStore {
 
         @Override
         protected String updateQuery() {
-            return "INSERT   INTO account (creation_height, public_key, key_height, balance, unconfirmed_balance, " +
+            return "REPLACE INTO account (creation_height, public_key, key_height, balance, unconfirmed_balance, " +
                     "forged_balance, name, description, id, height, latest) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE) ON DUPLICATE KEY UPDATE " +
-                    "creation_height=?, public_key=?, key_height=?, balance=?, unconfirmed_balance=?, " +
-                    "forged_balance=?, name=?, description=?, latest=TRUE";
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)";
         }
 
         @Override
@@ -81,15 +79,15 @@ class MariadbAccountStore extends SqlAccountStore {
             pstmt.setLong(++i, account.getId());
             pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
 
-            // UPDATE-Part
-            pstmt.setInt(++i, account.getCreationHeight());
-            DbUtils.setBytes(pstmt, ++i, account.getPublicKey());
-            pstmt.setInt(++i, account.getKeyHeight());
-            pstmt.setLong(++i, account.getBalanceNQT());
-            pstmt.setLong(++i, account.getUnconfirmedBalanceNQT());
-            pstmt.setLong(++i, account.getForgedBalanceNQT());
-            DbUtils.setString(pstmt, ++i, account.getName());
-            DbUtils.setString(pstmt, ++i, account.getDescription());
+//            // UPDATE-Part
+//            pstmt.setInt(++i, account.getCreationHeight());
+//            DbUtils.setBytes(pstmt, ++i, account.getPublicKey());
+//            pstmt.setInt(++i, account.getKeyHeight());
+//            pstmt.setLong(++i, account.getBalanceNQT());
+//            pstmt.setLong(++i, account.getUnconfirmedBalanceNQT());
+//            pstmt.setLong(++i, account.getForgedBalanceNQT());
+//            DbUtils.setString(pstmt, ++i, account.getName());
+//            DbUtils.setString(pstmt, ++i, account.getDescription());
 
             pstmt.addBatch();
         }
@@ -129,6 +127,6 @@ class MariadbAccountStore extends SqlAccountStore {
 
     @Override
     public VersionedEntityTable<Account.RewardRecipientAssignment> getRewardRecipientAssignmentTable() {
-      return rewardRecipientAssignmentVersionedEntitySqlTable;
+        return rewardRecipientAssignmentVersionedEntitySqlTable;
     }
 }
