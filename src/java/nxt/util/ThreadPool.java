@@ -74,7 +74,12 @@ public final class ThreadPool {
         runAll(lastBeforeStartJobs);
         lastBeforeStartJobs = null;
 
-	int cores = Runtime.getRuntime().availableProcessors();
+	int cores =Nxt.getIntProperty("Nxt.cpuCores", Runtime.getRuntime().availableProcessors());
+    if (cores <=0)
+    {
+        logger.warn("Cannot use 0 cores - defaulting to all available");
+        cores = Runtime.getRuntime().availableProcessors();
+    }
 	int totalThreads = backgroundJobs.size() + backgroundJobsCores.size() * cores;
         logger.debug("Starting " + String.valueOf(totalThreads) + " background jobs");
         scheduledThreadPool = Executors.newScheduledThreadPool(totalThreads);
