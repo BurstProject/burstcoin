@@ -87,6 +87,17 @@ public final class Nxt {
             return 0;
         }
     }
+    public static int getIntProperty(String name, int defaultValue) {
+        try {
+            int result = Integer.parseInt(properties.getProperty(name));
+            logger.info(name + " = \"" + result + "\"");
+            return result;
+        } catch (NumberFormatException e) {
+            logger.info(name + " not defined, assuming "+defaultValue);
+            return defaultValue;
+        }
+    }
+
 
     public static String getStringProperty(String name) {
         return getStringProperty(name, null);
