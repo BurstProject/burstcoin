@@ -55,24 +55,26 @@ public class LoadBinDump {
                 System.exit(-2);
             }
 
-            System.out.println("" +
-                    "==================================================\n" +
-                    "This (re)builds your database from a binary dump.\n" +
-                    "Since the contained transactions are not checked\n" +
-                    "for validity you should only use a dump from a \n" +
-                    "trusted source.\n" +
-                    "\n" +
-                    "ALL EXISTING DATA IN YOUR DATABASE WILL BE DELETED\n" +
-                    "==================================================\n" +
-                    "Make sure no wallet is accessing the database\n\n" +
-                    "Do you want to continue? "
-            );
-            int c = System.in.read();
-            if (c != 'y' && c != 'Y' && c != 'j' && c != 'J') {
-                System.out.println("Ok then");
-                System.exit(-1);
+            boolean automatic = args.length > 1 && args[1].equals("-y");
+            if (!automatic) {
+                System.out.println("" +
+                        "==================================================\n" +
+                        "This (re)builds your database from a binary dump.\n" +
+                        "Since the contained transactions are not checked\n" +
+                        "for validity you should only use a dump from a \n" +
+                        "trusted source.\n" +
+                        "\n" +
+                        "ALL EXISTING DATA IN YOUR DATABASE WILL BE DELETED\n" +
+                        "==================================================\n" +
+                        "Make sure no wallet is accessing the database\n\n" +
+                        "Do you want to continue? "
+                );
+                int c = System.in.read();
+                if (c != 'y' && c != 'Y' && c != 'j' && c != 'J') {
+                    System.out.println("Ok then");
+                    System.exit(-1);
+                }
             }
-
             Path source = null;
 
             if (args[0].startsWith("http://") || args[0].startsWith("https://")) {
