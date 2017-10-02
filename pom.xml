@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>burstcoin</groupId>
+  <artifactId>burstcoin</artifactId>
+  <version>1.2.9</version>
+
+  <packaging>jar</packaging>
+
+  <properties>
+
+    <java.version>1.8</java.version>
+    <jocl.version>0.1.9</jocl.version>
+    <bcprov-jdk15on.version>1.57</bcprov-jdk15on.version>
+    <h2.version>1.4.196</h2.version>
+    <jetty.version>9.2.22.v20170606</jetty.version>
+    <json-simple.version>1.1.1</json-simple.version>
+    <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+    <slf4j.version>1.7.25</slf4j.version>
+
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>${javax.servlet-api.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>${h2.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jocl</groupId>
+      <artifactId>jocl</artifactId>
+      <version>${jocl.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>${bcprov-jdk15on.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>${json-simple.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlet</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlets</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <sourceDirectory>src/java</sourceDirectory>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.6</version>
+
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>nxt.Nxt</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>ant-clear</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <!-- clear dist dir -->
+                <delete dir="${project.basedir}/dist"/>
+                <mkdir dir="${project.basedir}/dist"/>
+                <mkdir dir="${project.basedir}/dist/tmp"/>
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>ant-zip</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <!-- copy jar -->
+                <move file="${project.basedir}/target/${project.build.finalName}-jar-with-dependencies.jar"
+                      tofile="${project.basedir}/dist/tmp/burst.jar" />
+
+                <!-- copy html dir -->
+                <copy todir="${project.basedir}/dist/tmp/html">
+                  <fileset dir="${project.basedir}/html">
+                  </fileset>
+                </copy>
+                <!-- copy properties from conf dir -->
+                <copy todir="${project.basedir}/dist/tmp/conf">
+                  <fileset dir="${project.basedir}/conf">
+                    <include name="logging-default.properties"/>
+                    <include name="nxt-default.properties"/>
+                  </fileset>
+                </copy>
+                <!-- copy remaining files from root dir -->
+                <copy todir="${project.basedir}/dist/tmp">
+                  <fileset dir="${project.basedir}">
+                    <include name="Burst_Wallet.url"/>
+                    <include name="genscoop.cl"/>
+                    <include name="MIT-license.txt"/>
+                    <include name="Readme.txt"/>
+                    <include name="run(legacy).bat"/>
+                    <include name="run.bat"/>
+                  </fileset>
+                </copy>
+
+                <!-- workaround to keep org. run.sh working, if build with compile scripts -->
+                <copy file="${project.basedir}/run-mvn-build.sh" tofile="${project.basedir}/dist/tmp/run.sh" />
+
+                <!-- create zip file -->
+                <zip destfile="${project.basedir}/dist/${project.build.finalName}.zip" basedir="${project.basedir}/dist/tmp"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>

@@ -18,6 +18,7 @@ public final class Db {
 
     private static final ThreadLocal<DbConnection> localConnection = new ThreadLocal<>();
     private static final ThreadLocal<Map<String,Map<DbKey,Object>>> transactionCaches = new ThreadLocal<>();
+    private static final ThreadLocal<Map<String,Map<DbKey,Object>>> transactionBatches = new ThreadLocal<>();
 
     private static final class DbConnection extends FilteredConnection {
 
@@ -82,6 +83,12 @@ public final class Db {
         if (! dbUrl.contains("CACHE_SIZE=")) {
             dbUrl += ";CACHE_SIZE=" + maxCacheSize;
         }
+	// Replace old DB-Url if needed:
+	if ( dbUrl.startsWith("jdbc:h2:burst_db")) {
+	    dbUrl = "jdbc:h2:./burst_db" + dbUrl.substring(16);
+	    Logger.logMessage(dbUrl);
+	}
+
         Logger.logDebugMessage("Database jdbc url set to: " + dbUrl);
         cp = JdbcConnectionPool.create(dbUrl, "sa", "sa");
         cp.setMaxConnections(Nxt.getIntProperty("nxt.maxDbConnections"));
@@ -147,6 +154,18 @@ public final class Db {
         return cacheMap;
     }
 
+    static Map<DbKey,Object> getBatch(String tableName) {
+        if(!isInTransaction()) {
+            throw new IllegalStateException("Not in transaction");
+        }
+        Map<DbKey,Object> batchMap = transactionBatches.get().get(tableName);
+        if(batchMap == null) {
+            batchMap = new HashMap<>();
+            transactionBatches.get().put(tableName, batchMap);
+        }
+        return batchMap;
+    }
+
     public static boolean isInTransaction() {
         return localConnection.get() != null;
     }
@@ -161,6 +180,7 @@ public final class Db {
             con = new DbConnection(con);
             localConnection.set((DbConnection)con);
             transactionCaches.set(new HashMap<String, Map<DbKey, Object>>());
+            transactionBatches.set(new HashMap<String, Map<DbKey, Object>>());
             return con;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
@@ -190,6 +210,7 @@ public final class Db {
             throw new RuntimeException(e.toString(), e);
         }
         transactionCaches.get().clear();
+        transactionBatches.get().clear();
     }
 
     public static void endTransaction() {
@@ -200,6 +221,8 @@ public final class Db {
         localConnection.set(null);
         transactionCaches.get().clear();
         transactionCaches.set(null);
+        transactionBatches.get().clear();
+        transactionBatches.set(null);
         DbUtils.close(con);
     }
 

@@ -66,7 +66,7 @@
     "error_invalid_balance_leasing_no_public_key": "Грешка при изнајмљивању ефективног салда. Налог примаоца није пронађен или јавни кључ не постоји.",
     "error_invalid_balance_leasing": "Грешка при изнајмљивању ефективног салда.",
     "error_wrong_buyer_for_alias": "Погрешан купац алиас-а.",
-    "status_new_account": "Добродошли у ваш нови BURST налог. ИД вашег налога је <strong>__account_id__<\/strong> - Када пошаљете BURST новчиће свом налогу по први пут, треба да огласите свој јавни кључ. Ваш јавни кључ је __public_key__",
+    "status_new_account": "Добродошли у ваш нови BURST налог. ИД вашег налога је <strong>__account_id__<\/strong>",
     "error_public_key_already_announced": "Јавни кључ за овај налог је оглашен.",
     "error_public_key_announcement_no_recipient": "Оглашавање јавног кључа не може бити повезано са трансакцијом без примаоца.",
     "error_public_key_different_account_id": "Оглашени јавни кључ се не слаже са ИД-ом налога примаоца.",

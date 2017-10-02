@@ -3,6 +3,7 @@
  */
 var NRS = (function(NRS, $, undefined) {
 	var _messages = {};
+	var _latestMessages = {};
 
 	NRS.pages.messages = function(callback) {
 		_messages = {};
@@ -112,8 +113,26 @@ var NRS = (function(NRS, $, undefined) {
 			} else {
 				activeAccount = -1;
 			}
+			if (transactions.length) {
+				for (var i=0; i<transactions.length; i++) {
+					var trans = transactions[i];
+					if (trans.confirmed && trans.type == 1 && trans.subtype == 0 && trans.senderRS != NRS.accountRS) {
+						if (trans.height >= NRS.lastBlockHeight - 3 && !_latestMessages[trans.transaction]) {
+							_latestMessages[trans.transaction] = trans;
+							$.growl($.t("you_received_message", {
+								"account": NRS.getAccountFormatted(trans, "sender"),
+								"name": NRS.getAccountTitle(trans, "sender")
+							}), {
+								"type": "success"
+							});
+						}
+					}
+				}
+			}
 
-			NRS.loadPage("messages");
+			if (NRS.currentPage == "messages") {
+				NRS.loadPage("messages");
+			}
 		}
 	}
 
@@ -265,6 +284,7 @@ var NRS = (function(NRS, $, undefined) {
 		output += "</dl>";
 
 		$("#message_details").empty().append(output);
+		$('#messages_page .content-splitter-right-inner').scrollTop($('#messages_page .content-splitter-right-inner')[0].scrollHeight);
 	});
 
 	$("#messages_sidebar_context").on("click", "a", function(e) {
@@ -301,6 +321,15 @@ var NRS = (function(NRS, $, undefined) {
 			$("#send_money_modal").modal("show");
 		}
 
+	});
+
+	$("body").on("click", "a[data-goto-messages-account]", function(e) {
+		e.preventDefault();
+		
+		var account = $(this).data("goto-messages-account");
+		
+
+		NRS.goToPage("messages", function(){ $('#message_sidebar a[data-account=' + account + ']').trigger('click'); });
 	});
 
 	NRS.forms.sendMessage = function($modal) {
@@ -395,6 +424,7 @@ var NRS = (function(NRS, $, undefined) {
 				NRS.addUnconfirmedTransaction(response.transaction, function(alreadyProcessed) {
 					if (!alreadyProcessed) {
 						$("#message_details dl.chat").append("<dd class='to tentative" + (data.encryptedMessageData ? " decrypted" : "") + "'><p>" + (data.encryptedMessageData ? "<i class='fa fa-lock'></i> " : "") + (!data["_extra"].message ? $.t("message_empty") : String(data["_extra"].message).escapeHTML()) + "</p></dd>");
+						$('#messages_page .content-splitter-right-inner').scrollTop($('#messages_page .content-splitter-right-inner')[0].scrollHeight);					
 					}
 				});
 
@@ -461,6 +491,7 @@ var NRS = (function(NRS, $, undefined) {
 				var listGroupItem = "<a href='#' class='list-group-item' data-account='" + NRS.getAccountFormatted(data, "recipient") + "'" + extra + "><h4 class='list-group-item-heading'>" + accountTitle + "</h4><p class='list-group-item-text'>" + NRS.formatTimestamp(now) + "</p></a>";
 				$("#messages_sidebar").prepend(listGroupItem);
 			}
+			$('#messages_page .content-splitter-right-inner').scrollTop($('#messages_page .content-splitter-right-inner')[0].scrollHeight);
 		}
 	}
 

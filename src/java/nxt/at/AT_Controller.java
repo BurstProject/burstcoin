@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 import nxt.AT;
 import nxt.Account;
+import nxt.Constants;
 import nxt.Nxt;
 import nxt.util.Convert;
 import nxt.util.Logger;
@@ -270,6 +271,7 @@ public abstract class AT_Controller {
 		int costOfOneAT = getCostOfOneAT();
 		int payload = 0;
 		long totalFee = 0;
+		long totalAmount = 0;
 		while ( payload <= freePayload - costOfOneAT && keys.hasNext() )
 		{
 				Long id = keys.next();
@@ -302,12 +304,21 @@ public abstract class AT_Controller {
 							fee += at.getG_balance();
 							at.setG_balance(0L);
 						}
+						at.setP_balance( at.getG_balance() );
+
+						long amount = makeTransactions( at );
+						if(blockHeight < Constants.AT_FIX_BLOCK_4) {
+							totalAmount = amount;
+						}
+						else {
+							totalAmount += amount;
+						}
+
 						totalFee += fee;
 						AT.addPendingFee(id, fee);
 
 						payload += costOfOneAT;
 
-						at.setP_balance( at.getG_balance() );
 						processedATs.add( at );
 
 						//at.saveState();
@@ -317,12 +328,6 @@ public abstract class AT_Controller {
 						e.printStackTrace(System.out);
 					}
 				}
-		}
-
-		long totalAmount = 0;
-		for ( AT at : processedATs )
-		{
-			totalAmount = makeTransactions( at );
 		}
 
 		byte[] bytesForBlock = null;
@@ -357,6 +362,7 @@ public abstract class AT_Controller {
 		long totalFee = 0;
 		MessageDigest digest = MessageDigest.getInstance( "MD5" );
 		byte[] md5 = null;
+		long totalAmount = 0;
 		for ( ByteBuffer atIdBuffer : ats.keySet() )
 		{
 			byte[] atId = atIdBuffer.array();
@@ -396,10 +402,18 @@ public abstract class AT_Controller {
 					fee += at.getG_balance();
 					at.setG_balance(0L);
 				}
+				at.setP_balance( at.getG_balance() );
+
+				if(blockHeight < Constants.AT_FIX_BLOCK_4) {
+					totalAmount = makeTransactions( at );
+				}
+				else {
+					totalAmount += makeTransactions(at);
+				}
+
 				totalFee += fee;
 				AT.addPendingFee(atId, fee);
 
-				at.setP_balance( at.getG_balance() );
 				processedATs.add( at );
 
 				md5 = digest.digest( at.getBytes() );
@@ -415,11 +429,9 @@ public abstract class AT_Controller {
 			}
 		}
 
-		long totalAmount = 0;
 		for ( AT at : processedATs )
 		{
 			at.saveState();
-			totalAmount = makeTransactions( at );
 		}
 		AT_Block atBlock = new AT_Block( totalFee , totalAmount , new byte[ 1 ] , validated );
 
@@ -492,8 +504,15 @@ public abstract class AT_Controller {
 
 	//platform based implementations
 	//platform based 
-	private static long makeTransactions( AT at ) {
+	private static long makeTransactions( AT at ) throws AT_Exception {
 		long totalAmount = 0;
+		if( at.getHeight() < Constants.AT_FIX_BLOCK_4 ) {
+			for(AT_Transaction tx : at.getTransactions()) {
+				if(AT.findPendingTransaction(tx.getRecipientId())) {
+					throw new AT_Exception("Conflicting transaction found");
+				}
+			}
+		}
 		for (AT_Transaction tx : at.getTransactions() )
 		{
 			totalAmount += tx.getAmount();

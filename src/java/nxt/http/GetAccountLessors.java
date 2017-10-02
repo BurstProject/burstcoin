@@ -32,7 +32,7 @@ public final class GetAccountLessors extends APIServlet.APIRequestHandler {
         response.put("height", height);
         JSONArray lessorsJSON = new JSONArray();
 
-        try (DbIterator<Account> lessors = account.getLessors(height)) {
+        /*try (DbIterator<Account> lessors = account.getLessors(height)) {
             if (lessors.hasNext()) {
                 while (lessors.hasNext()) {
                     Account lessor = lessors.next();
@@ -42,7 +42,7 @@ public final class GetAccountLessors extends APIServlet.APIRequestHandler {
                     lessorsJSON.add(lessorJSON);
                 }
             }
-        }
+        }*/
         response.put("lessors", lessorsJSON);
         return response;
 

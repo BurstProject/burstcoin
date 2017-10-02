@@ -66,7 +66,7 @@
     "error_invalid_balance_leasing_no_public_key": "Neplatný prenájom efektívneho zostatku: Účet príjemcu nenájdený alebo žiadny verejný kľúč nebol zverejnený.",
     "error_invalid_balance_leasing": "Neplatný prenájom efektívneho zostatku.",
     "error_wrong_buyer_for_alias": "Nesprávny kupujúci aliasu.",
-    "status_new_account": "Vitajte vo vašom novom účte BURST. Vaše číslo účtu je <strong>__account_id__<\/strong> - pri prvom financovaní vášho účtu, musíte tiež oznámiť váš verejný kľúč, ktorý je __public_key__",
+    "status_new_account": "Vitajte vo vašom novom účte BURST. Vaše číslo účtu je <strong>__account_id__<\/strong>",
     "error_public_key_already_announced": "Verejný kľúč pre tento účet už bol oznámený.",
     "error_public_key_announcement_no_recipient": "Oznámenie verejného kľúča nemôže byť pripojené k transakcii bez príjemcu.",
     "error_public_key_different_account_id": "Oznámený verejný kľúč nesúhlasí s ID účtu príjemcu.",

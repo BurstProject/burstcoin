@@ -26,14 +26,14 @@ public final class StartForging extends APIServlet.APIRequestHandler {
             return MISSING_SECRET_PHRASE;
         }
 
-        Generator generator = Generator.startForging(secretPhrase);
-        if (generator == null) {
+        //Generator generator = Generator.startForging(secretPhrase);
+        //if (generator == null) {
             return UNKNOWN_ACCOUNT;
-        }
+        //}
 
-        JSONObject response = new JSONObject();
-        response.put("deadline", generator.getDeadline());
-        return response;
+        //JSONObject response = new JSONObject();
+        //response.put("deadline", generator.getDeadline());
+        //return response;
 
     }
 

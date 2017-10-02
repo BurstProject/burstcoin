@@ -20,7 +20,7 @@ var NRS = (function(NRS, $, undefined) {
 
 		//Get latest version nr+hash of normal version
 		NRS.sendRequest("getAlias", {
-			"aliasName": "nrsversion"
+			"aliasName": "nrsversioninfo"
 		}, function(response) {
 			if (response.aliasURI && (response = response.aliasURI.split(" "))) {
 				NRS.normalVersion.versionNr = response[0];
@@ -69,12 +69,11 @@ var NRS = (function(NRS, $, undefined) {
 				});
 			} else {
 				//user uses an old version which does not supply the platform / version
-				var noticeDate = new Date(2014, 8, 20);
+				var noticeDate = new Date(2016, 6, 30);
 
 				if (new Date() > noticeDate) {
-					var isMac = navigator.platform.match(/Mac/i);
 
-					var downloadUrl = "https://bitbucket.org/wesleyh/nxt-wallet-" + (isMac ? "mac" : "win") + "/downloads";
+					var downloadUrl = "https://github.com/burst-team/burstcoin/releases";
 
 					$("#secondary_dashboard_message").removeClass("alert-success").addClass("alert-danger").html($.t("old_nxt_wallet_update", {
 						"link": downloadUrl
@@ -272,7 +271,7 @@ var NRS = (function(NRS, $, undefined) {
 			}, "*");
 			$("#nrs_modal").modal("hide");
 		} else {
-			$("#nrs_update_iframe").attr("src", "https://bitbucket.org/JeanLucPicard/nxt/downloads/nxt-client-" + NRS.downloadedVersion.versionNr + ".zip");
+			$("#nrs_update_iframe").attr("src", "https://github.com/burst-team/burstcoin/releases/download/" + NRS.downloadedVersion.versionNr + "/burstcoin-" + NRS.downloadedVersion.versionNr + ".zip");
 			$("#nrs_update_explanation").hide();
 			$("#nrs_update_drop_zone").show();
 
