@@ -15,7 +15,7 @@ class FirebirdATStore extends SqlATStore {
     protected void saveATState(Connection con, AT.ATState atState) throws SQLException {
         try (PreparedStatement pstmt = con.prepareStatement("UPDATE OR INSERT INTO at_state (at_id, "
                 + "state, prev_height ,next_height, sleep_between, prev_balance, freeze_when_same_balance, min_activate_amount, height, latest) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)")) {
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE) MATCHING(at_id, height)")) {
             int i = 0;
             pstmt.setLong(++i, atState.getATId());
             //DbUtils.setBytes(pstmt, ++i, state);
