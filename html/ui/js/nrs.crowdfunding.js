@@ -23,7 +23,7 @@ $('#buy-ticket').on('click', function(e) {
 		deadline: 100
 	}
 	$.ajax({
-		url: 'http://' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
 		type: 'POST',
 		dataType: "json",
 		data: jsonRequest,
@@ -80,7 +80,7 @@ $('#deploy-at-btn').on('click', function(e) {
 		minActivationAmountNQT: minA
 	}
 	$.ajax({
-		url: 'http://' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
 		type: 'POST',
 		dataType: "json",
 		data: jsonRequest,
@@ -146,7 +146,7 @@ $(document).ready(function() {
 		});
 	});
 	$.ajax({
-		url: 'http://' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
 		type: 'POST',
 		dataType: "json",
 		data: "requestType=getATIds",
@@ -200,7 +200,7 @@ function getAT(atId) {
 		at: atId
 	}
 	$.ajax({
-		url: 'http://' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
 		type: 'POST',
 		dataType: "json",
 		data: jsonRequest,
@@ -215,7 +215,7 @@ function getBlockHeight(atData) {
 		requestType: "getBlockchainStatus"
 	}
 	$.ajax({
-		url: 'http://' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
 		type: 'POST',
 		dataType: "json",
 		data: jsonRequest,
@@ -231,7 +231,7 @@ function getTransaction(blockHeight, atData) {
 		hexString: atData.machineData.substring(1 * 8, 1 * 8 + 8)
 	}
 	$.ajax({
-		url: 'http://' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
 		type: 'POST',
 		dataType: "json",
 		data: jsonRequest,
@@ -247,7 +247,7 @@ function getDecision(transaction, blockHeight, atData) {
 		hexString: atData.machineData.substring(1 * 16, 1 * 16 + 16)
 	}
 	$.ajax({
-		url: 'http://' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
 		type: 'POST',
 		dataType: "json",
 		data: jsonRequest,
@@ -263,7 +263,7 @@ function getTargetAmount(decision, transaction, blockHeight, atData) {
 		hexString: atData.machineData.substring(3 * 16, 3 * 16 + 16)
 	}
 	$.ajax({
-		url: 'http://' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
 		type: 'POST',
 		dataType: "json",
 		data: jsonRequest,
@@ -279,7 +279,7 @@ function getGatheredAmount(targetAmount, decision, transaction, blockHeight, atD
 		hexString: atData.machineData.substring(2 * 16, 2 * 16 + 16)
 	}
 	$.ajax({
-		url: 'http://' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
 		type: 'POST',
 		dataType: "json",
 		data: jsonRequest,
@@ -295,7 +295,7 @@ function getFunded(gatheredAmount, targetAmount, decision, transaction, blockHei
 		hexString: atData.machineData.substring(7 * 16, 7 * 16 + 16)
 	}
 	$.ajax({
-		url: 'http://' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
 		type: 'POST',
 		dataType: "json",
 		data: jsonRequest,
