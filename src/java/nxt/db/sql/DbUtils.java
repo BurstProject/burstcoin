@@ -83,7 +83,7 @@ public final class DbUtils {
                 } else if (limit > 0) {
                     return " ROWS ? ";
                 } else if (from > 0) {
-                    return " ROWS -1 TO ? ";
+                    return " ROWS ? TO ? ";
                 } else {
                     return "";
                 }
@@ -113,12 +113,34 @@ public final class DbUtils {
 
     public static int setLimits(int index, PreparedStatement pstmt, int from, int to) throws SQLException {
         int limit = to >= 0 && to >= from && to < Integer.MAX_VALUE ? to - from + 1 : 0;
-        if (limit > 0) {
-            pstmt.setInt(index++, limit);
+
+        switch (Db.getDatabaseType()) {
+            case FIREBIRD: {
+                if (limit > 0 && from > 0) {
+                    pstmt.setInt(index++, limit);
+	            pstmt.setInt(index++, from + limit);
+                }
+		else if (from > 0) {
+		    pstmt.setInt(index++, from);
+		    // emulate offset function without knowing the amount of rows available
+		    // by using the biggest bigint
+		    pstmt.setLong(index++, 9223372036854775807L);
+                }
+		else if (limit > 0) {
+		    pstmt.setInt(index++, limit);
+                }
+		break;
+            }
+            default: {
+                if (limit > 0) {
+                    pstmt.setInt(index++, limit);
+                }
+                if (from > 0) {
+                    pstmt.setInt(index++, from);
+                }
+            }
         }
-        if (from > 0) {
-            pstmt.setInt(index++, from);
-        }
+
         return index;
     }
 
