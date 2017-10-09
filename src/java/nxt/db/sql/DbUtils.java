@@ -57,7 +57,7 @@ public final class DbUtils {
     }
 
     public static String quoteTableName(String table) {
-	 switch (Db.getDatabaseType()) {
+         switch (Db.getDatabaseType()) {
             case FIREBIRD:
                 return table.equalsIgnoreCase("at") ? "\"" + table.toUpperCase() + "\"" : table;
             default:
@@ -113,23 +113,24 @@ public final class DbUtils {
 
     public static int setLimits(int index, PreparedStatement pstmt, int from, int to) throws SQLException {
         int limit = to >= 0 && to >= from && to < Integer.MAX_VALUE ? to - from + 1 : 0;
-
+        logger.debug("setLimits( index: " + index + ", pstmt: ?, from: " + from + ", to: " + to + ", limit: " + limit + ")");
         switch (Db.getDatabaseType()) {
             case FIREBIRD: {
                 if (limit > 0 && from > 0) {
+                    pstmt.setInt(index++, from + 1);
+                    pstmt.setInt(index++, from + limit);
+                    logger.debug("setLimits for Firebird ROWS " + ( from + 1 ) + " TO " + ( from + limit ));
+                }
+                else if (from > 0) {
+                    pstmt.setInt(index++, from);
+                    // emulate offset function without knowing the amount of rows available
+                    // by using the biggest bigint
+                    pstmt.setLong(index++, 9223372036854775807L);
+                }
+                else if (limit > 0) {
                     pstmt.setInt(index++, limit);
-	            pstmt.setInt(index++, from + limit);
                 }
-		else if (from > 0) {
-		    pstmt.setInt(index++, from);
-		    // emulate offset function without knowing the amount of rows available
-		    // by using the biggest bigint
-		    pstmt.setLong(index++, 9223372036854775807L);
-                }
-		else if (limit > 0) {
-		    pstmt.setInt(index++, limit);
-                }
-		break;
+                break;
             }
             default: {
                 if (limit > 0) {
