@@ -93,10 +93,6 @@ var NRS = (function(NRS, $, undefined) {
 			NRS.hasLocalStorage = false;
 		}
 
-		if (NRS.getCookie("remember_passphrase")) {
-			$("#remember_password").prop("checked", true);
-		}
-
 		NRS.createDatabase(function() {
 			NRS.getSettings();
 		});
@@ -108,6 +104,20 @@ var NRS = (function(NRS, $, undefined) {
 		});
 
 		NRS.showLockscreen();
+
+                if ( NRS.getCookie("remember_passphrase") ) {
+		    $("#remember_password").prop("checked", true);
+                    if ( NRS.hasLocalStorage ) {
+			$("#remember_password_container").show();
+			var passphrase = localStorage.getItem("burst.passphrase");
+			if ( passphrase != null && passphrase.length) {
+				$("#login_password").val(passphrase);
+			}
+                    }
+                    else {
+			$("#remember_password_container").hide();
+                    }
+		}
 
 		if (window.parent) {
 			var match = window.location.href.match(/\?app=?(win|mac|lin)?\-?([\d\.]+)?/i);
