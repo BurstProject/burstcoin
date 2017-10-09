@@ -13,140 +13,140 @@ import java.util.*;
 public class APITestServlet extends HttpServlet {
 
     private static final String header1 =
-            "<!DOCTYPE html>\n" +
-            "<html>\n" +
-            "<head>\n" +
-            "    <meta charset=\"UTF-8\"/>\n" +
-            "    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">" +
-            "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" + 
-            "    <title>Burst http API</title>\n" +
-            "    <link href=\"css/bootstrap.min.css\" rel=\"stylesheet\" type=\"text/css\" />" +
-            "    <style type=\"text/css\">\n" +
-            "        table {border-collapse: collapse;}\n" +
-            "        td {padding: 10px;}\n" +
-            "        .result {white-space: pre; font-family: monospace; overflow: auto;}\n" +
-            "    </style>\n" +
-            "    <script type=\"text/javascript\">\n" +
-            "        var apiCalls;\n" +
-            "        function performSearch(searchStr) {\n" +
-            "            if (searchStr == '') {\n" +
-            "              $('.api-call-All').show();\n" +
-            "            } else {\n" +
-            "              $('.api-call-All').hide();\n" +
-            "              $('.topic-link').css('font-weight', 'normal');\n" +
-            "              for(var i=0; i<apiCalls.length; i++) {\n" +
-            "                var apiCall = apiCalls[i];\n" +
-            "                if (new RegExp(searchStr.toLowerCase()).test(apiCall.toLowerCase())) {\n" +
-            "                  $('#api-call-' + apiCall).show();\n" +
-            "                }\n" +
-            "              }\n" +
-            "            }\n" +
-            "        }\n" +
-            "        function submitForm(form) {\n" +
-            "            var url = '/burst';\n" +
-            "            var params = {};\n" +
-            "            for (i = 0; i < form.elements.length; i++) {\n" +
-            "                if (form.elements[i].type != 'button' && form.elements[i].value && form.elements[i].value != 'submit') {\n" +
-            "                    params[form.elements[i].name] = form.elements[i].value;\n" +
-            "                }\n" +
-            "            }\n" +
-            "            $.ajax({\n" +
-            "                url: url,\n" +
-            "                type: 'POST',\n" +
-            "                data: params\n" +
-            "            })\n" +
-            "            .done(function(result) {\n" +
-            "                var resultStr = JSON.stringify(JSON.parse(result), null, 4);\n" +
-            "                form.getElementsByClassName(\"result\")[0].textContent = resultStr;\n" +
-            "            })\n" +
-            "            .error(function() {\n" +
-            "                alert('API not available, check if Burst Server is running!');\n" +
-            "            });\n" +
-            "            if ($(form).has('.uri-link').length > 0) {\n" + 
-            "                  var uri = '/burst?' + jQuery.param(params);\n" +
-            "                  var html = '<a href=\"' + uri + '\" target=\"_blank\" style=\"font-size:12px;font-weight:normal;\">Open GET URL</a>';" +
-            "                  form.getElementsByClassName(\"uri-link\")[0].innerHTML = html;\n" +
-            "            }" +
-            "            return false;\n" +
-            "        }\n" +
-            "    </script>\n" +
-            "</head>\n" +
-            "<body>\n" +
-            "<div class=\"navbar navbar-default\" role=\"navigation\">" +
-            "   <div class=\"container\" style=\"min-width: 90%;\">" +
-            "       <div class=\"navbar-header\">" +
-            "           <a class=\"navbar-brand\" href=\"/test\">Burst http API</a>" + 
-            "       </div>" +
-            "       <div class=\"navbar-collapse collapse\">" +
-            "           <ul class=\"nav navbar-nav navbar-right\">" +
-            "               <li><input type=\"text\" class=\"form-control\" id=\"search\" " + 
-            "                    placeholder=\"Search\" style=\"margin-top:8px;\"></li>\n" +
-            "               <li><a href=\"https://burstwiki.org/wiki/The_Burst_API\" target=\"_blank\" style=\"margin-left:20px;\">Wiki Docs</a></li>" +
-            "           </ul>" +
-            "       </div>" +
-            "   </div>" + 
-            "</div>" +
-            "<div class=\"container\" style=\"min-width: 90%;\">" +
-            "<div class=\"row\">" + 
-            "  <div class=\"col-xs-12\" style=\"margin-bottom:15px;\">" +
-            "    <div class=\"pull-right\">" +
-            "      <a href=\"#\" id=\"navi-show-open\">Show Open</a>" +
-            "       | " +
-            "      <a href=\"#\" id=\"navi-show-all\" style=\"font-weight:bold;\">Show All</a>" +
-            "    </div>" +
-            "  </div>" +
-            "</div>" +
-            "<div class=\"row\" style=\"margin-bottom:15px;\">" +
-            "  <div class=\"col-xs-4 col-sm-3 col-md-2\">" +
-            "    <ul class=\"nav nav-pills nav-stacked\">";
+          "<!DOCTYPE html>\n"
+        + "<html>\n"
+        + "<head>\n"
+        + "    <meta charset=\"UTF-8\"/>\n"
+        + "    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">"
+        + "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+        + "    <title>Burst http API</title>\n"
+        + "    <link href=\"css/bootstrap.min.css\" rel=\"stylesheet\" type=\"text/css\" />"
+        + "    <style type=\"text/css\">\n"
+        + "        table {border-collapse: collapse;}\n"
+        + "        td {padding: 10px;}\n"
+        + "        .result {white-space: pre; font-family: monospace; overflow: auto;}\n"
+        + "    </style>\n"
+        + "    <script type=\"text/javascript\">\n"
+        + "        var apiCalls;\n"
+        + "        function performSearch(searchStr) {\n"
+        + "            if (searchStr == '') {\n"
+        + "              $('.api-call-All').show();\n"
+        + "            } else {\n"
+        + "              $('.api-call-All').hide();\n"
+        + "              $('.topic-link').css('font-weight', 'normal');\n"
+        + "              for(var i=0; i<apiCalls.length; i++) {\n"
+        + "                var apiCall = apiCalls[i];\n"
+        + "                if (new RegExp(searchStr.toLowerCase()).test(apiCall.toLowerCase())) {\n"
+        + "                  $('#api-call-' + apiCall).show();\n"
+        + "                }\n"
+        + "              }\n"
+        + "            }\n"
+        + "        }\n"
+        + "        function submitForm(form) {\n"
+        + "            var url = '/burst';\n"
+        + "            var params = {};\n"
+        + "            for (i = 0; i < form.elements.length; i++) {\n"
+        + "                if (form.elements[i].type != 'button' && form.elements[i].value && form.elements[i].value != 'submit') {\n"
+        + "                    params[form.elements[i].name] = form.elements[i].value;\n"
+        + "                }\n"
+        + "            }\n"
+        + "            $.ajax({\n"
+        + "                url: url,\n"
+        + "                type: 'POST',\n"
+        + "                data: params\n"
+        + "            })\n"
+        + "            .done(function(result) {\n"
+        + "                var resultStr = JSON.stringify(JSON.parse(result), null, 4);\n"
+        + "                form.getElementsByClassName(\"result\")[0].textContent = resultStr;\n"
+        + "            })\n"
+        + "            .error(function() {\n"
+        + "                alert('API not available, check if Burst Server is running!');\n"
+        + "            });\n"
+        + "            if ($(form).has('.uri-link').length > 0) {\n"
+        + "                  var uri = '/burst?' + jQuery.param(params);\n"
+        + "                  var html = '<a href=\"' + uri + '\" target=\"_blank\" style=\"font-size:12px;font-weight:normal;\">Open GET URL</a>';"
+        + "                  form.getElementsByClassName(\"uri-link\")[0].innerHTML = html;\n"
+        + "            }"
+        + "            return false;\n"
+        + "        }\n"
+        + "    </script>\n"
+        + "</head>\n"
+        + "<body>\n"
+        + "<div class=\"navbar navbar-default\" role=\"navigation\">"
+        + "   <div class=\"container\" style=\"min-width: 90%;\">"
+        + "       <div class=\"navbar-header\">"
+        + "           <a class=\"navbar-brand\" href=\"/test\">Burst http API</a>"
+        + "       </div>"
+        + "       <div class=\"navbar-collapse collapse\">"
+        + "           <ul class=\"nav navbar-nav navbar-right\">"
+        + "               <li><input type=\"text\" class=\"form-control\" id=\"search\" "
+        + "                    placeholder=\"Search\" style=\"margin-top:8px;\"></li>\n"
+        + "               <li><a href=\"https://burstwiki.org/wiki/The_Burst_API\" target=\"_blank\" style=\"margin-left:20px;\">Wiki Docs</a></li>"
+        + "           </ul>"
+        + "       </div>"
+        + "   </div>"
+        + "</div>"
+        + "<div class=\"container\" style=\"min-width: 90%;\">"
+        + "<div class=\"row\">"
+        + "  <div class=\"col-xs-12\" style=\"margin-bottom:15px;\">"
+        + "    <div class=\"pull-right\">"
+        + "      <a href=\"#\" id=\"navi-show-open\">Show Open</a>"
+        + "       | "
+        + "      <a href=\"#\" id=\"navi-show-all\" style=\"font-weight:bold;\">Show All</a>"
+        + "    </div>"
+        + "  </div>"
+        + "</div>"
+        + "<div class=\"row\" style=\"margin-bottom:15px;\">"
+        + "  <div class=\"col-xs-4 col-sm-3 col-md-2\">"
+        + "    <ul class=\"nav nav-pills nav-stacked\">";
     private static final String header2 =
-            "    </ul>" +
-            "  </div> <!-- col -->" +
-            "  <div  class=\"col-xs-8 col-sm-9 col-md-10\">" +
-            "    <div class=\"panel-group\" id=\"accordion\">";
+          "    </ul>"
+        + "  </div> <!-- col -->"
+        + "  <div  class=\"col-xs-8 col-sm-9 col-md-10\">"
+        + "    <div class=\"panel-group\" id=\"accordion\">";
 
     private static final String footer1 =
-            "    </div> <!-- panel-group -->" +
-            "  </div> <!-- col -->" +
-            "</div> <!-- row -->" +
-            "</div> <!-- container -->" +
-            "<script src=\"js/3rdparty/jquery.js\"></script>" +
-            "<script src=\"js/3rdparty/bootstrap.js\" type=\"text/javascript\"></script>" +
-            "<script>" + 
-            "  $(document).ready(function() {" +
-            "    apiCalls = [];\n";
+         "    </div> <!-- panel-group -->"
+       + "  </div> <!-- col -->"
+       + "</div> <!-- row -->"
+       + "</div> <!-- container -->"
+       + "<script src=\"js/3rdparty/jquery.js\"></script>"
+       + "<script src=\"js/3rdparty/bootstrap.js\" type=\"text/javascript\"></script>"
+       + "<script>"
+       + "  $(document).ready(function() {"
+       + "    apiCalls = [];\n";
 
     private static final String footer2 =
-            "    $(\".collapse-link\").click(function(event) {" +
-            "       event.preventDefault();" +    
-            "    });" +
-            "    $('#search').keyup(function(e) {\n" +
-            "      if (e.keyCode == 13) {\n" +
-            "        performSearch($(this).val());\n" +
-            "      }\n" +
-            "    });\n" +
-            "    $('#navi-show-open').click(function(e) {" +
-            "      $('.api-call-All').each(function() {" +
-            "        if($(this).find('.panel-collapse.in').length != 0) {" +
-            "          $(this).show();" +
-            "        } else {" +
-            "          $(this).hide();" +
-            "        }" +
-            "      });" +
-            "      $('#navi-show-all').css('font-weight', 'normal');" +
-            "      $(this).css('font-weight', 'bold');" +
-            "      e.preventDefault();" +
-            "    });" +
-            "    $('#navi-show-all').click(function(e) {" +
-            "      $('.api-call-All').show();" +
-            "      $('#navi-show-open').css('font-weight', 'normal');" +
-            "      $(this).css('font-weight', 'bold');" +
-            "      e.preventDefault();" +
-            "    });" +
-            "  });" + 
-            "</script>" +
-            "</body>\n" +
-            "</html>\n";
+         "    $(\".collapse-link\").click(function(event) {"
+       + "       event.preventDefault();"
+       + "    });"
+       + "    $('#search').keyup(function(e) {\n"
+       + "      if (e.keyCode == 13) {\n"
+       + "        performSearch($(this).val());\n"
+       + "      }\n"
+       + "    });\n"
+       + "    $('#navi-show-open').click(function(e) {"
+       + "      $('.api-call-All').each(function() {"
+       + "        if($(this).find('.panel-collapse.in').length != 0) {"
+       + "          $(this).show();"
+       + "        } else {"
+       + "          $(this).hide();"
+       + "        }"
+       + "      });"
+       + "      $('#navi-show-all').css('font-weight', 'normal');"
+       + "      $(this).css('font-weight', 'bold');"
+       + "      e.preventDefault();"
+       + "    });"
+       + "    $('#navi-show-all').click(function(e) {"
+       + "      $('.api-call-All').show();"
+       + "      $('#navi-show-open').css('font-weight', 'normal');"
+       + "      $(this).css('font-weight', 'bold');"
+       + "      e.preventDefault();"
+       + "    });"
+       + "  });"
+       + "</script>"
+       + "</body>\n"
+       + "</html>\n";
 
     private static final List<String> allRequestTypes = new ArrayList<>(APIServlet.apiRequestHandlers.keySet());
     static {
@@ -246,6 +246,7 @@ public class APITestServlet extends HttpServlet {
         }
         buf.append("<a style=\"font-weight:normal;font-size:14px;color:#777;\" href=\"/doc/");
         buf.append(className.replace('.','/')).append(".html\" target=\"_blank\">javadoc</a>");
+        // not yet buf.append(className.replaceAll("nxt","burst").replace('.','/')).append(".html\" target=\"_blank\">javadoc</a>");
         buf.append("</span>");
         buf.append("</h4>");
         buf.append("</div> <!-- panel-heading -->");
