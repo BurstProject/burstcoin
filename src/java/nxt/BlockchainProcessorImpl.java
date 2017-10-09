@@ -1075,7 +1075,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 //should never reach that point
                 throw new BlockNotAcceptedException("md5 does not exist");
             } catch (AT_Exception e) {
-                throw new BlockNotAcceptedException("ats are not matching at block height " + Nxt.getBlockchain().getHeight());
+                throw new BlockNotAcceptedException("ats are not matching at block height " + Nxt.getBlockchain().getHeight() + " (" + e + ")");
             }
             calculatedRemainingAmount += atBlock.getTotalAmount();
             calculatedRemainingFee += atBlock.getTotalFees();
