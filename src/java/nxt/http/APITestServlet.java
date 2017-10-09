@@ -19,7 +19,7 @@ public class APITestServlet extends HttpServlet {
             "    <meta charset=\"UTF-8\"/>\n" +
             "    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">" +
             "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" + 
-            "    <title>Nxt http API</title>\n" +
+            "    <title>Burst http API</title>\n" +
             "    <link href=\"css/bootstrap.min.css\" rel=\"stylesheet\" type=\"text/css\" />" +
             "    <style type=\"text/css\">\n" +
             "        table {border-collapse: collapse;}\n" +
@@ -60,7 +60,7 @@ public class APITestServlet extends HttpServlet {
             "                form.getElementsByClassName(\"result\")[0].textContent = resultStr;\n" +
             "            })\n" +
             "            .error(function() {\n" +
-            "                alert('API not available, check if Nxt Server is running!');\n" +
+            "                alert('API not available, check if Burst Server is running!');\n" +
             "            });\n" +
             "            if ($(form).has('.uri-link').length > 0) {\n" + 
             "                  var uri = '/burst?' + jQuery.param(params);\n" +
@@ -75,13 +75,13 @@ public class APITestServlet extends HttpServlet {
             "<div class=\"navbar navbar-default\" role=\"navigation\">" +
             "   <div class=\"container\" style=\"min-width: 90%;\">" +
             "       <div class=\"navbar-header\">" +
-            "           <a class=\"navbar-brand\" href=\"/test\">Nxt http API</a>" + 
+            "           <a class=\"navbar-brand\" href=\"/test\">Burst http API</a>" + 
             "       </div>" +
             "       <div class=\"navbar-collapse collapse\">" +
             "           <ul class=\"nav navbar-nav navbar-right\">" +
             "               <li><input type=\"text\" class=\"form-control\" id=\"search\" " + 
             "                    placeholder=\"Search\" style=\"margin-top:8px;\"></li>\n" +
-            "               <li><a href=\"https://wiki.nxtcrypto.org/wiki/Nxt_API\" target=\"_blank\" style=\"margin-left:20px;\">Wiki Docs</a></li>" +
+            "               <li><a href=\"https://burstwiki.org/wiki/The_Burst_API\" target=\"_blank\" style=\"margin-left:20px;\">Wiki Docs</a></li>" +
             "           </ul>" +
             "       </div>" +
             "   </div>" + 
