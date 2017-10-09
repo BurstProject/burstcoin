@@ -1,14 +1,29 @@
-echo This build method is prone to breaking - please install maven and use mvn package instead
-echo When using maven you will find the build result as zip file in dist and the contents in dist/tmp/
-CP=conf/:classes/:lib/*
-SP=src/java/
+#!/bin/bash
+## Do we have a local copy?
+if [ -d "maven/apache-maven-3.5.0" ]; then
+    export PATH=maven/apache-maven-3.5.0/bin:$PATH
+fi
 
-/bin/mkdir -p classes/
+## check if command exists
+  if hash mvn 2>/dev/null; then
+        mvn clean package
+        echo You can find the results in the zip files in dist/ and in dist/tmp
+    else
+        echo This build method is no longer supported. Please install maven.
+        echo https://maven.apache.org/install.html
+        if hash wget 2>/dev/null; then
+	    read -p "Do you want me to install a local copy of maven in this directory? " -n 1 -r
+	    echo
+	    if [[ $REPLY =~ ^[Yy]$ ]]
+		then
+		    mkdir maven
+		    cd maven
+		    ## This is an official mirror
+		    wget http://mirror.23media.de/apache/maven/maven-3/3.5.0/binaries/apache-maven-3.5.0-bin.tar.gz
+		    tar -xvzf apache-maven-3.5.0-bin.tar.gz
+		    rm -f apache-maven-3.5.0-bin.tar.gz
+		    echo Please try again, it should work now. You might want to check if the environment variable JAVA_HOME points to a valid JDK.
+		fi
 
-javac -sourcepath $SP -classpath $CP -d classes/ src/java/nxt/*.java src/java/nxt/*/*.java src/java/fr/cryptohash/*.java || exit 1
-
-/bin/rm -f burst.jar 
-jar cf burst.jar -C classes . || exit 1
-/bin/rm -rf classes
-
-echo "burst.jar generated successfully"
+        fi
+    fi
