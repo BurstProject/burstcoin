@@ -7,6 +7,8 @@ fi
 ## check if command exists
   if hash mvn 2>/dev/null; then
         mvn package
+        mvn javadoc:javadoc-no-fork
+	cp -r target/site/apidocs html/ui/doc
         cp dist/tmp/burst.jar .
         echo a .zip file has been built for distribution in dist/, its contents are in dist/tmp
         echo Nevertheless, now you can start the wallet with ./run.sh
