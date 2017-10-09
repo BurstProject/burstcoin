@@ -221,12 +221,11 @@ public abstract class SqlBlockDb implements BlockDb {
             try {
                 pstmtSelect.setLong(1, blockId);
                 try (ResultSet rs = pstmtSelect.executeQuery()) {
-                    Db.commitTransaction();
                     while (rs.next()) {
                         pstmtDelete.setInt(1, rs.getInt("db_id"));
                         pstmtDelete.executeUpdate();
-                        Db.commitTransaction();
                     }
+                    Db.commitTransaction();
                 }
             } catch (SQLException e) {
                 Db.rollbackTransaction();
