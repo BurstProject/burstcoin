@@ -514,7 +514,7 @@ final class FirebirdDbVersion {
                     + "    base_target BIGINT NOT NULL,"
                     + "    next_block_id BIGINT,"
                     + "    height INT NOT NULL,"
-                    + "    generation_signature CHAR(64) NOT NULL,"
+                    + "    generation_signature CHAR(32) NOT NULL,"
                     + "    block_signature CHAR(64) NOT NULL,"
                     + "    payload_hash CHAR(32) NOT NULL,"
                     + "    generator_id BIGINT NOT NULL,"
