@@ -16,8 +16,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public abstract class SqlATStore implements ATStore {
 
+    private static final Logger logger = LoggerFactory.getLogger(DbUtils.class);
 
     private final NxtKey.LongKeyFactory<AT> atDbKeyFactory = new DbKey.LongKeyFactory<AT>("id") {
         @Override
@@ -215,9 +219,22 @@ public abstract class SqlATStore implements ATStore {
 
     @Override
     public Long findTransaction(int startHeight, int endHeight, Long atID, int numOfTx, long minAmount) {
+        logger.debug(
+            "findTransaction: "
+            + "SELECT id FROM transaction WHERE"
+            + " height >= "          + startHeight
+            + " AND height < "       + endHeight
+            + " AND recipient_id = " + atID
+            + " AND amount >=  "     + minAmount
+            + " ORDER BY height, id"
+            + DbUtils.limitsClause(numOfTx, numOfTx + 1)
+            + " -- ? = " + numOfTx
+            + ", ? = "   + ( numOfTx + 1 )
+        );
+
         try (Connection con = Db.getConnection();
             PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
-                     + "WHERE height>= ? AND height < ? and recipient_id = ? AND amount >= ? "
+                     + "WHERE height >= ? AND height < ? AND recipient_id = ? AND amount >= ? "
                      + "ORDER BY height, id"
                      + DbUtils.limitsClause(numOfTx, numOfTx + 1) ) ) {
             int i = 1;
