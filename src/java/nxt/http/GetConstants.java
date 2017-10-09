@@ -9,6 +9,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 public final class GetConstants extends APIServlet.APIRequestHandler {
@@ -169,6 +171,14 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
         peerStates.add(peerState);
         response.put("peerStates", peerStates);
 
+        JSONObject requestTypes = new JSONObject();
+        // for (Map.Entry<String, APIServlet.APIRequestHandler> handlerEntry : APIServlet.apiRequestHandlers.entrySet()) {
+        //     JSONObject handlerJSON = JSONData.apiRequestHandler(handlerEntry.getValue());
+        //     handlerJSON.put("enabled", true);
+        //     requestTypes.put(handlerEntry.getKey(), handlerJSON);
+        // }
+        response.put("requestTypes", requestTypes);
+        
         CONSTANTS = JSON.prepare(response);
 
     }
