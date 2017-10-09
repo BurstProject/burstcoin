@@ -251,7 +251,6 @@
                                         <include name="genscoop.cl"/>
                                         <include name="MIT-license.txt"/>
                                         <include name="Readme.txt"/>
-                                        <include name="run(legacy).bat"/>
                                         <include name="run.bat"/>
                                         <include name="createBinDump.bat"/>
                                         <include name="loadBinDump.bat"/>
@@ -259,7 +258,7 @@
                                 </copy>
 
                                 <!-- workaround to keep org. run.sh working, if build with compile scripts -->
-                                <copy file="${project.basedir}/run-mvn-build.sh"
+                                <copy file="${project.basedir}/run.sh"
                                       tofile="${project.basedir}/dist/tmp/run.sh"/>
 
                                 <!-- create zip file -->
