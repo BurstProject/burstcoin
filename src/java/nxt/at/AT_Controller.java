@@ -419,7 +419,7 @@ public abstract class AT_Controller {
 			catch ( Exception e )
 			{
 				//e.printStackTrace(System.out);
-				throw new AT_Exception( "ATs error. Block rejected" );
+				throw new AT_Exception( "ATs error. Block rejected (" + e + ")");
 			}
 		}
 
