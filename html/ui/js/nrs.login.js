@@ -131,6 +131,18 @@ var NRS = (function(NRS, $, undefined) {
 			$("#login_error").show();
 			return;
 		}
+		else {
+			NRS.settings["remember_passphrase"] = $("#remember_password").is(":checked");
+			NRS.applySettings("remember_passphrase");
+			if ( NRS.hasLocalStorage ) {
+				if ( NRS.settings["remember_passphrase"] ) {
+					localStorage.setItem("burst.passphrase", $("#login_password").val());
+				}
+				else {
+					localStorage.removeItem("burst.passphrase");
+				}
+                    }
+		}
 
 		$("#login_password, #registration_password, #registration_password_repeat").val("");
 		$("#login_check_password_length").val(1);
@@ -182,13 +194,13 @@ var NRS = (function(NRS, $, undefined) {
 						return;
 					}
 
-					if ($("#remember_password").is(":checked")) {
-						NRS.rememberPassword = true;
+				        if ($("#remember_password").is(":checked")) {
+					        NRS.rememberPassword = true;
 						$("#remember_password").prop("checked", false);
 						NRS.setPassword(password);
 						$(".secret_phrase, .show_secret_phrase").hide();
 						$(".hide_secret_phrase").show();
-					}
+				        }
 
 					$("#account_id").html(String(NRS.accountRS).escapeHTML()).css("font-size", "12px");
 
