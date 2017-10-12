@@ -287,9 +287,9 @@ public interface AT_API {
 	public void A_to_Tx_after_Timestamp( long val , AT_Machine_State state );
 	
 	/**
-	 * bool if A is a valid tx with @addr to tx type
-	 * 0 -> normal tx
-	 * 1 -> message tx
+	 * @return bool if A is a valid tx with @addr to tx type
+	 * 0: normal tx
+	 * 1: message tx
 	 */
 	public long get_Type_for_Tx_in_A( AT_Machine_State state );
 	
