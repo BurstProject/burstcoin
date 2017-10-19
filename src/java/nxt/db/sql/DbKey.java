@@ -39,7 +39,7 @@ public interface DbKey extends NxtKey {
             return selfJoinClause;
         }
 
-        /** The number of variables in PKClause */
+        /** @return The number of variables in PKClause */
         public int getPkVariables() {
             return pkVariables;
         }

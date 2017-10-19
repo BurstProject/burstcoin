@@ -16,6 +16,8 @@ public class Subnet
 
     /**
      * For use via format "192.168.0.0/24" or "2001:db8:85a3:880:0:0:0:0/57"
+     * @param subnetAddress java.net.InetAddress (IP address)
+     * @param bits          subnet mask in /bits notation
      */
     public Subnet(final InetAddress subnetAddress, final int bits)
     {
@@ -26,6 +28,8 @@ public class Subnet
 
     /**
      * For use via format "192.168.0.0/255.255.255.0" or single address
+     * @param subnetAddress java.net.InetAddress (IP address)
+     * @param mask          java.net.InetAddress (IP address, here used as network mask)
      */
     public Subnet(final InetAddress subnetAddress, final InetAddress mask)
     {
