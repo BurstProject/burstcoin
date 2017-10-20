@@ -450,6 +450,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                         }
 
                         if (Nxt.getDbs().getTransactionDb().hasTransaction(transaction.getId()) || unconfirmedTransactionTable.get(transaction.getDbKey()) != null) {
+                            Nxt.getStores().commitTransaction();
                             continue;
                         }
 
@@ -457,6 +458,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                             if (Account.getAccount(transaction.getSenderId()) != null) {
                                 logger.debug("Transaction " + transaction.getJSONObject().toJSONString() + " failed to verify");
                             }
+                            Nxt.getStores().commitTransaction();
                             continue;
                         }
 
