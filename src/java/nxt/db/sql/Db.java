@@ -3,13 +3,27 @@ package nxt.db.sql;
 import com.github.gquintana.metrics.sql.MetricsSql;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.HikariProxyConnection;
+import com.zaxxer.hikari.pool.ProxyConnection;
+
 import nxt.Constants;
 import nxt.Nxt;
-import org.firebirdsql.gds.impl.GDSType;
+
+import com.google.common.base.Predicate;
+import org.reflections.ReflectionUtils;
+import java.lang.reflect.Field;
+
+import org.firebirdsql.jdbc.FBConnection;
 import org.firebirdsql.management.FBManager;
+import org.firebirdsql.gds.TransactionParameterBuffer;
+import org.firebirdsql.gds.impl.GDSType;
+import org.firebirdsql.gds.impl.jni.EmbeddedGDSFactoryPlugin;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -69,11 +83,24 @@ public final class Db {
                     config.setConnectionInitSql("SET NAMES utf8mb4;");
                     break;
                 case FIREBIRD:
+                    String jnaPath = System.getProperty("jna.library.path");
+                    if ( jnaPath == null || jnaPath.isEmpty() ) {
+                        Path path = Paths.get(
+                            "lib/firebird/"
+			    + ( System.getProperty("sun.arch.data.model") == "32" ? "32" : "64" )
+			    + "/"
+                        ).toAbsolutePath();
+                        System.setProperty("jna.library.path", path.toString());
+                        logger.info("Set jna.library.path to: " + path.toString());
+                    }
+                    Class.forName("org.firebirdsql.jdbc.FBDriver");
+
                     config.setAutoCommit(false);
                     config.addDataSourceProperty("encoding", "UTF8");
                     config.addDataSourceProperty("cachePrepStmts", "true");
                     config.addDataSourceProperty("prepStmtCacheSize", "250");
                     config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+                    config.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
 
                     if (dbUrl.startsWith("jdbc:firebirdsql:embedded:")) {
                         String firebirdDb = dbUrl.replaceFirst("^jdbc:firebirdsql:embedded:", "").replaceFirst("\\?.*$", "");
@@ -203,18 +230,17 @@ public final class Db {
         try {
             Connection con = getPooledConnection();
             // Now for the interesting part
-//            if (DATABASE_TYPE == TYPE.FIREBIRD)
-//            {
-//                Field field = ReflectionUtils.getFields(ProxyConnection.class, (Predicate<Field>) input -> input.getName().equals("delegate")).iterator().next();
-//                field.setAccessible(true);
-//                try {
-//                    FBConnection fbConnection = (FBConnection) field.get((HikariProxyConnection)con);
-//                    fbConnection.getTransactionParameters(Connection.TRANSACTION_READ_COMMITTED)
-//                            .addArgument(TransactionParameterBuffer.NO_AUTO_UNDO);
-//                } catch (IllegalAccessException e) {
-//                    e.printStackTrace();
-//                }
-//            }
+            if (DATABASE_TYPE == TYPE.FIREBIRD) {
+                Field field = ReflectionUtils.getFields(ProxyConnection.class, (Predicate<Field>) input -> input.getName().equals("delegate")).iterator().next();
+                field.setAccessible(true);
+                try {
+                    FBConnection fbConnection = (FBConnection) field.get((HikariProxyConnection)con);
+                    fbConnection.getTransactionParameters(Connection.TRANSACTION_READ_COMMITTED)
+                            .addArgument(TransactionParameterBuffer.NO_AUTO_UNDO);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
             con.setAutoCommit(false);
             if (enableSqlMetrics)
                 con = new MeteredDbConnection(con);
