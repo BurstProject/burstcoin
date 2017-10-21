@@ -20,14 +20,15 @@
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
         <slf4j.version>1.7.25</slf4j.version>
         <mariadb.version>2.0.3</mariadb.version>
-        <hikaricp.version>2.6.3</hikaricp.version>
+        <hikaricp.version>2.7.2</hikaricp.version>
         <h2.version>1.4.196</h2.version>
         <jaybird.version>3.0.2</jaybird.version>
-        <jna.version>4.4.0</jna.version>
+        <jna.version>4.5.0</jna.version>
         <reflections.version>0.9.11</reflections.version>
         <kryo.version>4.0.1</kryo.version>
         <commons-lang.version>2.6</commons-lang.version>
         <metrics.version>3.2.3</metrics.version>
+        <metrics-sql.version>3.2.1</metrics-sql.version>
 
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -164,7 +165,7 @@
         <dependency>
             <groupId>com.github.gquintana.metrics</groupId>
             <artifactId>metrics-sql</artifactId>
-            <version>3.2.1</version>
+            <version>${metrics-sql.version}</version>
         </dependency>
 
     </dependencies>
