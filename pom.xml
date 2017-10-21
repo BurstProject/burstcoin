@@ -238,6 +238,11 @@
                                     <fileset dir="${project.basedir}/html">
                                     </fileset>
                                 </copy>
+				<!-- copy lib dir -->
+                                <copy todir="${project.basedir}/dist/tmp/lib">
+                                    <fileset dir="${project.basedir}/lib">
+                                    </fileset>
+                                </copy>
                                 <!-- copy properties from conf dir -->
                                 <copy todir="${project.basedir}/dist/tmp/conf">
                                     <fileset dir="${project.basedir}/conf">
@@ -276,6 +281,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.0.0-M1</version>
                 <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam>
                     <show>private</show>
                     <nohelp>true</nohelp>
                 </configuration>
