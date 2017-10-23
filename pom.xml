@@ -264,8 +264,8 @@
                                 </copy>
 
                                 <!-- workaround to keep org. run.sh working, if build with compile scripts -->
-                                <copy file="${project.basedir}/run.sh"
-                                      tofile="${project.basedir}/dist/tmp/run.sh"/>
+                                <copy file="${project.basedir}/burst.sh"
+                                      tofile="${project.basedir}/dist/tmp/burst.sh"/>
 
                                 <!-- create zip file -->
                                 <zip destfile="${project.basedir}/dist/${project.build.finalName}.zip"
