@@ -218,6 +218,7 @@
                                 <delete dir="${project.basedir}/dist"/>
                                 <mkdir dir="${project.basedir}/dist"/>
                                 <mkdir dir="${project.basedir}/dist/tmp"/>
+                                <mkdir dir="${project.basedir}/dist/tmp/burst_db"/>
                             </target>
                         </configuration>
                     </execution>
@@ -257,13 +258,12 @@
                                         <include name="genscoop.cl"/>
                                         <include name="MIT-license.txt"/>
                                         <include name="Readme.txt"/>
-                                        <include name="run.bat"/>
-                                        <include name="createBinDump.bat"/>
-                                        <include name="loadBinDump.bat"/>
+                                        <include name="burst.cmd"/>
+                                        <include name="burst.sh"/>
                                     </fileset>
                                 </copy>
 
-                                <!-- workaround to keep org. run.sh working, if build with compile scripts -->
+                                <!-- workaround to keep org. burst.(sh|cmd) working, if build with compile scripts -->
                                 <copy file="${project.basedir}/burst.sh"
                                       tofile="${project.basedir}/dist/tmp/burst.sh"/>
                                 <copy file="${project.basedir}/burst.cmd"
