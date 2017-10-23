@@ -31,7 +31,7 @@ You can get all additional commands available by running `burst.cmd help`
 
 #### macOS
 
-coming soon
+Firebird (embedded) needs some more work on macOS at the moment. All other supported databases should work as expected.
 
 #### Other Unix-like systems
 
