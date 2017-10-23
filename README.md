@@ -1,49 +1,52 @@
-# Burstcoin
+# Burstcoin CG-Wallet
 
-The world's first HDD-mined cryptocurrency using the new algorithm, Proof-of-Capacity.
+The world's first HDD-mined cryptocurrency using an energy efficient
+and fair Proof-of-Capacity (PoC) consensus algorithm.
 
 ## Installation and Requirements
 
-This version is using MariaDB instead of H2 as database backend. This aproach is much more reliable.
-Maybe it's also possible to use MySQL - you could give it a try if you like to.
+This version is developed and maintained by the PoC consortium (PoCC) and supports several database backends:
+- MariaDB (recommended, but complex installation)
+- Firebird (2nd best choice)
+- H2 (for compatibility/migration purposes)
+
 
 ### Software
 
-#### Debian and Ubuntu
+#### Linux (Debian, Ubuntu)
 
-Please take a look at http://package.cryptoguru.org/ where you could find the burstcoincg package.
+Please take a look at http://package.cryptoguru.org/ where you can find the burstcoincg package. This will take care of the MariaDB installation for you.
 
 #### Windows
 
-If you are not familiar with MySQL or MariaDB we recommend you to go for Firebird.
-
-To go for firebird the following data needs to be added to conf/nxt.properties
+If you are not familiar with MariaDB we recommend you to go for Firebird, in which case the following data needs to be added to `conf/nxt.properties`
 ```
 nxt.dbUrl=jdbc:firebirdsql:embedded:burst.firebird.db
 nxt.dbUsername=sysdba
 nxt.dbPassword=
 ```
+After that you can simply run `burst.cmd` and that should start your wallet.
 
-After that you should be able to run your wallet using
-```
-burst.cmd
-```
+You can get all additional commands available by running `burst.cmd help`
 
-You can get all additional commands available by running
-```
-burst.cmd help
-```
+#### macOS
 
-#### Others
+coming soon
+
+#### Other Unix-like systems
+
 Please install Java 8 (JRE 1.8) manually and run it by using burst.sh
-You can get further information using "burst.sh help"
+You can get further information calling `burst.sh help`
 
-##### Configuring and Initialize MariaDB
+##### Configure and Initialize MariaDB
 
-The Debian and Ubuntu packages provide an automatic configuration of your local mariadb server. If you do not like or can't use the packages, try this examples here:
+The Debian and Ubuntu packages provide an automatic configuration of
+your local mariadb server. If you can't use the packages, you have to initialize your database with these statements:
 
 ```
-echo "CREATE DATABASE burstwallet; CREATE USER 'burstwallet'@'localhost' IDENTIFIED BY 'yourpassword'; GRANT ALL PRIVILEGES ON burstwallet.* TO 'burstwallet'@'localhost';" | mysql -uroot
+echo "CREATE DATABASE burstwallet; 
+      CREATE USER 'burstwallet'@'localhost' IDENTIFIED BY 'yourpassword';
+      GRANT ALL PRIVILEGES ON burstwallet.* TO 'burstwallet'@'localhost';" | mysql -uroot
 mysql -uroot burstwallet < init-mysql.sql
 ```
 
@@ -59,21 +62,18 @@ nxt.dbPassword=yourpassword
 
 ## Striking Features
 
-- Proof of Capacity - ASIC Proof / Energy efficient mining
+- Proof of Capacity - ASIC proof / Energy efficient mining
 - Fast sync. with multithread CPU or OpenCL/GPU (optional)
 - "Turing complete" smart contracts, via Automated Transactions (AT) https://ciyam.org/at/at.html
 - Decentralized Crowdfunding and Lottery via AT
 - Asset Exchange and Digital Goods Store
 - Advanced transactions: Escrow and Subscription
 - Encrypted Messaging
+- No ICO
+- No Premine
 
 ## Specification
 
-- NXT based
-- Proof of Stake Removed
-- Proof of Capacity implemented
-- No IPO
-- No Premine
 - 4 minute block time
 - 2,158,812,800 coins total
 - Block reward starts at 10,000/block
@@ -81,52 +81,56 @@ nxt.dbPassword=yourpassword
 
 ## Version History
 
-- 2017/09/04 New version release Burst 1.3.4cg better database deployment, force correct utf8 encoding
-- 2017/08/11 New version release Burst 1.3.2cg (MariaDB Backend)
-- 2017/07/25 New version release Burst 1.2.9
-- 2017/02/19 New version release Burst 1.2.8
-- 2016/11/16 New version release Burst 1.2.7
-- 2016/07/27 New version release Burst 1.2.6
-- 2016/07/19 New version release Burst 1.2.5
-- 2016/06/07 New version release Burst 1.2.4
+- 2017/10/24 1.3.6cg multi-DB support: added Firebird, re-added H2) 
+- 2017/09/04 1.3.4cg improved database deployment; bugfix: utf8 encoding
+- 2017/08/11 1.3.2cg 1st official PoCC release: MariaDB backend
+
+- 2017/07/25 1.2.9
+- 2017/02/19 1.2.8
+- 2016/11/16 1.2.7
+- 2016/07/27 1.2.6
+- 2016/07/19 1.2.5
+- 2016/06/07 1.2.4
 - 2016/01/11 Community takeover
-- 2015/04/20 New version release Burst 1.2.3
-- 2015/02/05 New version release Burst 1.2.2
-- 2015/01/20 New version release Burst 1.2.1
-- 2014/12/22 New version release Burst 1.2.0
-- 2014/11/04 New version release 1.1.5
-- 2014/10/18 New version release 1.1.4
+- 2015/04/20 1.2.3
+- 2015/02/05 1.2.2
+- 2015/01/20 1.2.1
+- 2014/12/22 1.2.0
+- 2014/11/04 1.1.5
+- 2014/10/18 1.1.4
 - 2014/10/04 Escrow transactions enabled
-- 2014/09/27 New version release 1.1.3
-- 2014/09/14 New version release 1.1.2
+- 2014/09/27 1.1.3
+- 2014/09/14 1.1.2
 - 2014/09/13 Stuck transactions statement
-- 2014/09/13 New version release 1.1.1
-- 2014/09/09 New version release 1.1.0
+- 2014/09/13 1.1.1
+- 2014/09/09 1.1.0
 - 2014/08/31 V2 mining pool now up
-- 2014/08/27 New version release 1.0.3
+- 2014/08/27 1.0.3
 - 2014/08/20 First pool (v1) now up
-- 2014/08/17 New version release 1.0.2
+- 2014/08/17 1.0.2
 - 2014/08/16 Statement regarding the difficulty adjustment
 - 2014/08/11 Statement regarding The pool situation
 
 ## Build
 
-Burstcoin can be build using maven or the compile scripts within this repository.
+Burstcoin can be build from source using maven or - preferably - via the provided `burst.sh compile` script within this repository.
 
 ## Links
 
 For further information, please visit the following pages.
 
-### Home
-https://web.burst-team.us
+Info: https://www.burst-coin.org/
 
-### Block-Explorer
-http://burstcoin.biz
+Wiki: https://burstwiki.org
 
-### Forum
-https://forums.burst-team.us
+Explorer: https://explore.burst.cryptoguru.org
+
+Forum1: http://burst-team.us/
+
+Forum2: https://forums.getburst.net/
 
 ### Bitcointalk
+
 https://bitcointalk.org/index.php?topic=1541310 *(New unmoderated)*
 
 https://bitcointalk.org/index.php?topic=1323657 *(Alternative moderated)*
@@ -134,11 +138,6 @@ https://bitcointalk.org/index.php?topic=1323657 *(Alternative moderated)*
 https://bitcointalk.org/index.php?topic=731923 *(Original unmoderated)*
 
 ### Related repositories
-https://github.com/BurstProject *Original/Forked Burstcoin, ATDebugger, ATAssembler, POCMiner (Proof of concept plotter/miner), etc.*
-
-https://github.com/IceBurst/Burst *Burst for Android*
-
-https://github.com/dawallet/ *Burstcoin Win Client, Android App*
 
 https://github.com/Blagodarenko  *Blago's XPlotter, Windows Miner, PlotsChecker, etc.*
 

@@ -314,8 +314,7 @@ our $reqtypes = [ # we want to define a sequence of tests
     # }}}
     # {{{ getUnconfirmedTransactions
     {
-        name => 'getUnconfirmedTransactions',
-        debug => 1,
+        name     => 'getUnconfirmedTransactions',
         required => {
             unconfirmedTransactions => {
                 type => '//arr',
