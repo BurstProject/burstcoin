@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FIREBIRD=$(dirname $0)/lib/firebird/$(getconf LONG_BIT)
+export FIREBIRD=$(dirname $0)/lib/firebird/$(getconf LONG_BIT)
 
 MY_MAVEN_VERSION=3.5.0
 
