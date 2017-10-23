@@ -23,6 +23,10 @@ IF NOT "%MY_CMD%" == "" (
         %MY_JAVA% -cp burst.jar;conf nxt.db.quicksync.LoadBinDump "$MY_OPT"
         goto DONE
     )
+    IF "%MY_CMD%" == "loadsilent" (
+        %MY_JAVA% -cp burst.jar;conf nxt.db.quicksync.LoadBinDump "$MY_OPT" -y
+        goto DONE
+    )
     IF "%MY_CMD%" == "dump" (
         %MY_JAVA% -cp burst.jar;conf nxt.db.quicksync.CreateBinDump "$MY_OPT"
         goto DONE
@@ -36,8 +40,9 @@ goto DONE
 :USAGE
 
 echo usage: %MY_SELF% [command] [arguments]
-echo   load [filename or url]  quick import by loading a binary dump
-echo   dump [filename]         create a binary dump usable for doing a quick import
-echo   help                    shows the help you just read
+echo   load       [filename or url]  quick import by loading a binary dump
+echo   loadsilent [filename or url]  ATTENTION .. same as load, but runs directly without asking for a confirmation
+echo   dump       [filename]         create a binary dump usable for doing a quick import
+echo   help                          shows the help you just read
 
 :DONE
