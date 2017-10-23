@@ -20,7 +20,7 @@ EOF
 }
 
 function maybe_load_dump_usage () {
-    if [ -z "$OPTB" ]; then
+    if [ -z "$MY_ARG" ]; then
         usage
         exit 1
     fi
@@ -36,12 +36,10 @@ if [[ $# -gt 0 ]] ; then
         "load")
             maybe_load_dump_usage
             java -cp burst.jar:conf nxt.db.quicksync.LoadBinDump "$MY_ARG"
-            break
             ;;
         "dump")
             maybe_load_dump_usage
             java -cp burst.jar:conf nxt.db.quicksync.CreateBinDump "$MY_ARG"
-            break
             ;;
         "compile")
             if [ -d "maven/apache-maven-${MY_MAVEN_VERSION}" ]; then
@@ -73,7 +71,6 @@ if [[ $# -gt 0 ]] ; then
                     fi
                 fi
             fi
-	    break
             ;;
         *)
             usage
