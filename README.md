@@ -13,9 +13,30 @@ Maybe it's also possible to use MySQL - you could give it a try if you like to.
 
 Please take a look at http://package.cryptoguru.org/ where you could find the burstcoincg package.
 
-#### Others
+#### Windows
 
-Please install a mariadb server and Java 8 (JRE 1.8) manually.
+If you are not familiar with MySQL or MariaDB we recommend you to go for Firebird.
+
+To go for firebird the following data needs to be added to conf/nxt.properties
+```
+nxt.dbUrl=jdbc:firebirdsql:embedded:burst.firebird.db
+nxt.dbUsername=sysdba
+nxt.dbPassword=
+```
+
+After that you should be able to run your wallet using
+```
+burst.cmd
+```
+
+You can get all additional commands available by running
+```
+burst.cmd help
+```
+
+#### Others
+Please install Java 8 (JRE 1.8) manually and run it by using burst.sh
+You can get further information using "burst.sh help"
 
 ##### Configuring and Initialize MariaDB
 
