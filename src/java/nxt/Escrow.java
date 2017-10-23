@@ -378,10 +378,10 @@ public class Escrow {
 		}
 	}
 
-	private static void saveResultTransaction(Block block, Long escrowId, Long recipientId, Long amountNQT, DecisionType decision) {
-		Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentEscrowResult(escrowId, decision);
-		TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte)1, Genesis.CREATOR_PUBLIC_KEY,
-																	  amountNQT, 0L, block.getTimestamp(), (short)1440, attachment);
+    private static void saveResultTransaction(Block block, Long escrowId, Long recipientId, Long amountNQT, DecisionType decision) {
+        Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentEscrowResult(escrowId, decision);
+        TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte)1, Genesis.CREATOR_PUBLIC_KEY,
+                                                                              amountNQT, 0L, block.getTimestamp(), (short)1440, attachment);
 		builder.senderId(0L)
 		   .recipientId(recipientId)
 		   .blockId(block.getId())
