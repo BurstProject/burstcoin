@@ -108,7 +108,11 @@ public final class Db {
                         if (!new File(firebirdDb).isFile()) {
                             FBManager manager = new FBManager(GDSType.getType("EMBEDDED"));
                             manager.start();
-                            manager.createDatabase(firebirdDb, "", "");
+                            manager.createDatabase(
+                                firebirdDb,
+                                ( dbUsername != null ? dbUsername : "" ),
+                                ( dbPassword != null ? dbPassword : "" )
+                            );
                             manager.stop();
                         }
                     }
