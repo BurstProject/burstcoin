@@ -3,23 +3,26 @@
 The world's first HDD-mined cryptocurrency using an energy efficient
 and fair Proof-of-Capacity (PoC) consensus algorithm.
 
-## Installation and Requirements
-
-This version is developed and maintained by the PoC consortium (PoCC) and supports several database backends:
+This wallet version is developed and maintained by the PoC consortium (PoCC) and supports several database backends:
 - MariaDB (recommended, but complex installation)
 - Firebird (2nd best choice)
 - H2 (for compatibility/migration purposes)
 
 
-### Software
+### Software Installation
 
 #### Linux (Debian, Ubuntu)
 
-Please take a look at http://package.cryptoguru.org/ where you can find the burstcoincg package. This will take care of the MariaDB installation for you.
+Please take a look at http://package.cryptoguru.org/ where you can
+find the burstcoincg package. This will take care of the MariaDB
+installation for you.
 
 #### Windows
 
-If you are not familiar with MariaDB we recommend you to go for Firebird, in which case the following data needs to be added to `conf/nxt.properties`
+If you are not familiar with MariaDB we recommend you to go for
+Firebird, in which case the following data needs to be added to
+`conf/nxt.properties`
+
 ```
 nxt.dbUrl=jdbc:firebirdsql:embedded:burst.firebird.db
 nxt.dbUsername=sysdba
@@ -31,7 +34,8 @@ You can get all additional commands available by running `burst.cmd help`
 
 #### macOS
 
-Firebird (embedded) needs some more work on macOS at the moment. All other supported databases should work as expected.
+Firebird (embedded) needs some more work on macOS at the moment. All
+other supported databases should work as expected.
 
 #### Other Unix-like systems
 
@@ -41,7 +45,8 @@ You can get further information calling `burst.sh help`
 ##### Configure and Initialize MariaDB
 
 The Debian and Ubuntu packages provide an automatic configuration of
-your local mariadb server. If you can't use the packages, you have to initialize your database with these statements:
+your local mariadb server. If you can't use the packages, you have to
+initialize your database with these statements:
 
 ```
 echo "CREATE DATABASE burstwallet; 
@@ -64,8 +69,8 @@ nxt.dbPassword=yourpassword
 
 - Proof of Capacity - ASIC proof / Energy efficient mining
 - Fast sync. with multithread CPU or OpenCL/GPU (optional)
-- "Turing complete" smart contracts, via Automated Transactions (AT) https://ciyam.org/at/at.html
-- Decentralized Crowdfunding and Lottery via AT
+- Even faster "Quicksync" (load/store DB dumps)
+- Turing-complete smart contracts, via Automated Transactions (AT) https://ciyam.org/at/at.html
 - Asset Exchange and Digital Goods Store
 - Advanced transactions: Escrow and Subscription
 - Encrypted Messaging
@@ -75,45 +80,25 @@ nxt.dbPassword=yourpassword
 ## Specification
 
 - 4 minute block time
-- 2,158,812,800 coins total
+- 2,158,812,800 coins total (see https://burstwiki.org/wiki/Block_Reward)
 - Block reward starts at 10,000/block
 - Block Reward Decreases at 5% each month
 
 ## Version History
 
-- 2017/10/24 1.3.6cg multi-DB support: added Firebird, re-added H2) 
-- 2017/09/04 1.3.4cg improved database deployment; bugfix: utf8 encoding
-- 2017/08/11 1.3.2cg 1st official PoCC release: MariaDB backend
+For a general overview of Burst history see https://burstwiki.org/wiki/History_of_Burst
 
-- 2017/07/25 1.2.9
-- 2017/02/19 1.2.8
-- 2016/11/16 1.2.7
-- 2016/07/27 1.2.6
-- 2016/07/19 1.2.5
-- 2016/06/07 1.2.4
-- 2016/01/11 Community takeover
-- 2015/04/20 1.2.3
-- 2015/02/05 1.2.2
-- 2015/01/20 1.2.1
-- 2014/12/22 1.2.0
-- 2014/11/04 1.1.5
-- 2014/10/18 1.1.4
-- 2014/10/04 Escrow transactions enabled
-- 2014/09/27 1.1.3
-- 2014/09/14 1.1.2
-- 2014/09/13 Stuck transactions statement
-- 2014/09/13 1.1.1
-- 2014/09/09 1.1.0
-- 2014/08/31 V2 mining pool now up
-- 2014/08/27 1.0.3
-- 2014/08/20 First pool (v1) now up
-- 2014/08/17 1.0.2
-- 2014/08/16 Statement regarding the difficulty adjustment
-- 2014/08/11 Statement regarding The pool situation
+```
+2017/10/24 1.3.6cg multi-DB support: added Firebird, re-added H2
+2017/09/04 1.3.4cg improved database deployment; bugfix: utf8 encoding
+2017/08/11 1.3.2cg 1st official PoCC release: MariaDB backend based on 1.2.9
+```
+For a detailed version history of wallets up to 1.2.9 see https://github.com/burst-team/burstcoin/releases
 
 ## Build
 
-Burstcoin can be build from source using maven or - preferably - via the provided `burst.sh compile` script within this repository.
+Burstcoin can be build from source using maven or - preferably - via
+the provided `burst.sh compile` script within this repository.
 
 ## Links
 
@@ -139,6 +124,8 @@ https://bitcointalk.org/index.php?topic=731923 *(Original unmoderated)*
 
 ### Related repositories
 
+https://github.com/rico666/cg_obup *CryptoGuru Optimized BURSTcoin Unix Plotter (Linux)*
+
 https://github.com/Blagodarenko  *Blago's XPlotter, Windows Miner, PlotsChecker, etc.*
 
 https://github.com/de-luxe *GPU assisted jMiner, Faucet Software, Observer, AddressGenerator*
@@ -149,13 +136,11 @@ https://github.com/BurstTools/BurstSoftware *Windows Plot Generator for SEE4/AVX
 
 https://github.com/bhamon *gpuPlotGenerator, BurstMine (graphical plotter/miner)*
 
-https://github.com/kartojal *GUI for Dcct Tools, GUI for gpuPlotGenerator (linux)*
+https://github.com/kartojal *GUI for Dcct Tools, GUI for gpuPlotGenerator (Linux)*
 
 https://github.com/Kurairaito *Burst Plot Generator by Kurairaito*
 
-https://github.com/Mirkic7 *Improved Linux Burst Plotter / optimizer / miner (linux)*
-
-https://github.com/uraymeiviar *C Miner, Pool, Block Explorer, Plot Composer (linux)*
+https://github.com/uraymeiviar *C Miner, Pool, Block Explorer, Plot Composer (Linux)*
 
 https://github.com/mrpsion/burst-mining-system *Web interface for Plotting and Mining*
 
