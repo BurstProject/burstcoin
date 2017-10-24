@@ -119,6 +119,7 @@ public final class Db {
 
                     break;
                 case H2:
+                    Class.forName("org.h2.Driver");
                     config.setAutoCommit(false);
                     config.addDataSourceProperty("cachePrepStmts", "true");
                     config.addDataSourceProperty("prepStmtCacheSize", "250");
