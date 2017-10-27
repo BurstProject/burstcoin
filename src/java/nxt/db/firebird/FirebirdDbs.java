@@ -10,6 +10,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import java.util.Arrays;
+import java.util.List;
+
+import java.sql.ResultSet;
+
 /**
  * Db-Classes are necessary for the instanciation of some stores and have to be handled separately. In the original version these were static
  */
@@ -57,6 +62,34 @@ public class FirebirdDbs implements Dbs {
         apply("ALTER TABLE block ADD CONSTRAINT constraint_3c5 FOREIGN KEY(next_block_id) REFERENCES block(id) ON DELETE SET NULL;");
         apply("ALTER TABLE block ADD CONSTRAINT constraint_3c FOREIGN KEY(previous_block_id) REFERENCES block(id) ON DELETE CASCADE;");
 
+        // convert array to list
+        List<String> lTables = Arrays.asList(
+            (
+                new String[] {
+                        "block", "transaction", "alias", "alias_offer", "asset", "trade", "ask_order",
+                        "bid_order", "goods", "purchase", "account", "account_asset", "purchase_feedback",
+                        "purchase_public_feedback", "unconfirmed_transaction", "asset_transfer",
+                        "reward_recip_assign", "escrow", "escrow_decision", "subscription", "\"AT\"", "at_state"
+                }
+            )
+        );
+
+        for (String table : lTables) {
+            Long maxValue = (long) 0;
+            try ( Statement stmt = con.createStatement() ) {
+                try ( ResultSet rs = stmt.executeQuery("SELECT MAX(db_id) FROM " + table) ) {
+                    rs.next();
+                    maxValue = rs.getLong(1);
+                    Db.commitTransaction();
+                }
+                catch (SQLException e) {
+                    throw new RuntimeException("Database error executing", e);
+                }
+                if ( maxValue > 0 ) {
+                    apply("ALTER TABLE " + table + " ALTER COLUMN db_id RESTART WITH " + maxValue);
+                }
+            }
+        }
     }
 
     private static void apply(String sql) {
