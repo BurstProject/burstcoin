@@ -31,7 +31,7 @@ import java.util.Properties;
 
 public final class Nxt {
 
-    public static final String VERSION = "1.3.5cg";
+    public static final String VERSION = "1.3.6cg";
     public static final String APPLICATION = "NRS";
     public static final MetricRegistry metrics = new MetricRegistry();
     private static final Logger logger = LoggerFactory.getLogger(Nxt.class);
