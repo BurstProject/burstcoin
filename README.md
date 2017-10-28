@@ -32,15 +32,13 @@ After that you can simply run `burst.cmd` and that should start your wallet.
 
 You can get all additional commands available by running `burst.cmd help`
 
-#### macOS
-
-Firebird (embedded) needs some more work on macOS at the moment. All
-other supported databases should work as expected.
-
-#### Other Unix-like systems
+#### Unix-like systems
 
 Please install Java 8 (JRE 1.8) manually and run it by using burst.sh
 You can get further information calling `burst.sh help`
+
+Please note: Firebird (embedded) needs some more work on macOS at the moment.
+All other supported databases should work as expected.
 
 ##### Configure and Initialize MariaDB
 
@@ -89,7 +87,7 @@ nxt.dbPassword=yourpassword
 For a general overview of Burst history see https://burstwiki.org/wiki/History_of_Burst
 
 ```
-2017/10/24 1.3.6cg multi-DB support: added Firebird, re-added H2
+2017/10/28 1.3.6cg multi-DB support: added Firebird, re-added H2; support for quick binary dump and load
 2017/09/04 1.3.4cg improved database deployment; bugfix: utf8 encoding
 2017/08/11 1.3.2cg 1st official PoCC release: MariaDB backend based on 1.2.9
 ```
