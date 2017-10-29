@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 /**
- * Loads a binary dump created with @see({@link LoadBinDump}.
+ * Loads a binary dump created with @see({@link CreateBinDump}.
  * The source can either be a file on the local filesystem or a http-url to a remote file.
  * The latter is then downloaded into the temp directory and deleted afterwards.
  * <p>
@@ -85,7 +85,8 @@ public class LoadBinDump {
                 if (httpURLConnection.getResponseCode() == 200) {
                     temp = Files.createTempFile("BuRST", ".dump.gz");
                     source = temp;
-                    try (InputStream inputStream = httpURLConnection.getInputStream(); OutputStream outputStream = new FileOutputStream(temp.toFile())) {
+                    try (InputStream  inputStream  = httpURLConnection.getInputStream();
+                         OutputStream outputStream = new FileOutputStream(temp.toFile())) {
                         byte buf[] = new byte[1024 * 1024 * 50];
                         int read = 0;
                         long totalRead = 0;
@@ -101,11 +102,14 @@ public class LoadBinDump {
                         System.out.println(String.format("%d MB read\nDone", totalRead / 1024 / 1024));
                     }
                     System.err.println("");
-                } else {
-                    System.err.println("Error downloading file (RC " + httpURLConnection.getResponseCode() + " - " + httpURLConnection.getResponseMessage() + ")");
+                }
+                else {
+                    System.err.println("Error downloading file (RC " + httpURLConnection.getResponseCode()
+                                       + " - " + httpURLConnection.getResponseMessage() + ")");
                     System.exit(6);
                 }
-            } else {
+            }
+            else {
                 source = Paths.get(args[0]);
                 if (!Files.exists(source) || !Files.isReadable(source)) {
                     System.err.println("Source file " + source.toAbsolutePath().toString() + " does not exist or is not readable.");
@@ -215,25 +219,30 @@ public class LoadBinDump {
                             if (fieldType.equals(String.class)) {
                                 ps.setString(i, (String) field.get(o));
 
-                            } else if (fieldType.equals(Long.class)) {
+                            }
+                            else if (fieldType.equals(Long.class)) {
                                 Object val = field.get(o);
                                 if (val == null)
                                     ps.setNull(i, Types.NUMERIC);
                                 else
                                     ps.setLong(i, (Long) val);
-                            } else if (fieldType.equals(long.class)) {
+                            }
+                            else if (fieldType.equals(long.class)) {
                                 ps.setLong(i, field.getLong(o));
-                            } else if (fieldType.isArray()) {
+                            }
+                            else if (fieldType.isArray()) {
                                 // Byte array?
 
                                 if (fieldType.getComponentType().equals(byte.class)) {
                                     ps.setBytes(i, (byte[]) field.get(o));
 
-                                } else {
+                                }
+                                else {
                                     logger.error("Unhandled field type for" + field.getName() + ": " + fieldType);
                                 }
 
-                            } else {
+                            }
+                            else {
                                 logger.error("Unhandled field type for" + field.getName() + ": " + fieldType);
                             }
                         }
