@@ -12,10 +12,11 @@ function usage() {
     cat << EOF
 usage: $0 [command] [arguments]
 
-  load [filename or url]  quick import by loading a binary dump
-  dump [filename]         create a binary dump usable for doing a quick import
-  help                    shows the help you just read
-  compile                 compile jar and create docs using maven
+  load       [filename or url]  quick import by loading a binary dump
+  loadsilent [filename or url]  quick import by loading a binary dump without interaction
+  dump       [filename]         create a binary dump usable for doing a quick import
+  help                          shows the help you just read
+  compile                       compile jar and create docs using maven
 EOF
 }
 
@@ -36,6 +37,10 @@ if [[ $# -gt 0 ]] ; then
         "load")
             maybe_load_dump_usage
             java -cp burst.jar:conf nxt.db.quicksync.LoadBinDump "$MY_ARG"
+            ;;
+        "loadsilent")
+            maybe_load_dump_usage
+            java -cp burst.jar:conf nxt.db.quicksync.LoadBinDump "$MY_ARG" -y
             ;;
         "dump")
             maybe_load_dump_usage
