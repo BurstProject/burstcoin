@@ -36,15 +36,15 @@ if [[ $# -gt 0 ]] ; then
     case "$MY_CMD" in
         "load")
             maybe_load_dump_usage
-            java -cp burst.jar:conf nxt.db.quicksync.LoadBinDump "$MY_ARG"
+            java -cp burst.jar:conf brs.db.quicksync.LoadBinDump "$MY_ARG"
             ;;
         "loadsilent")
             maybe_load_dump_usage
-            java -cp burst.jar:conf nxt.db.quicksync.LoadBinDump "$MY_ARG" -y
+            java -cp burst.jar:conf brs.db.quicksync.LoadBinDump "$MY_ARG" -y
             ;;
         "dump")
             maybe_load_dump_usage
-            java -cp burst.jar:conf nxt.db.quicksync.CreateBinDump "$MY_ARG"
+            java -cp burst.jar:conf brs.db.quicksync.CreateBinDump "$MY_ARG"
             ;;
         "compile")
             if [ -d "maven/apache-maven-${MY_MAVEN_VERSION}" ]; then
@@ -82,5 +82,5 @@ if [[ $# -gt 0 ]] ; then
             ;;
     esac
 else
-    java -cp burst.jar:conf nxt.Nxt
+    java -cp burst.jar:conf brs.Nxt
 fi
