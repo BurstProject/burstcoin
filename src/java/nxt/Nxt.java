@@ -32,7 +32,7 @@ import java.util.Properties;
 public final class Nxt {
 
     public static final String VERSION = "1.3.6cg";
-    public static final String APPLICATION = "NRS";
+    public static final String APPLICATION = "BRS";
     public static final MetricRegistry metrics = new MetricRegistry();
     private static final Logger logger = LoggerFactory.getLogger(Nxt.class);
     private static final Properties defaultProperties = new Properties();
@@ -44,33 +44,33 @@ public final class Nxt {
 
     static {
         System.out.println("Initializing Burst server version " + Nxt.VERSION);
-        try (InputStream is = ClassLoader.getSystemResourceAsStream("nxt-default.properties")) {
+        try (InputStream is = ClassLoader.getSystemResourceAsStream("brs-default.properties")) {
             if (is != null) {
                 Nxt.defaultProperties.load(is);
             } else {
-                String configFile = System.getProperty("nxt-default.properties");
+                String configFile = System.getProperty("brs-default.properties");
                 if (configFile != null) {
                     try (InputStream fis = new FileInputStream(configFile)) {
                         Nxt.defaultProperties.load(fis);
                     } catch (IOException e) {
-                        throw new RuntimeException("Error loading nxt-default.properties from " + configFile);
+                        throw new RuntimeException("Error loading brs-default.properties from " + configFile);
                     }
                 } else {
-                    throw new RuntimeException("nxt-default.properties not in classpath and system property nxt-default.properties not defined either");
+                    throw new RuntimeException("brs-default.properties not in classpath and system property brs-default.properties not defined either");
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("Error loading nxt-default.properties", e);
+            throw new RuntimeException("Error loading brs-default.properties", e);
         }
     }
 
     static {
-        try (InputStream is = ClassLoader.getSystemResourceAsStream("nxt.properties")) {
+        try (InputStream is = ClassLoader.getSystemResourceAsStream("brs.properties")) {
             if (is != null) {
                 Nxt.properties.load(is);
             } // ignore if missing
         } catch (IOException e) {
-            throw new RuntimeException("Error loading nxt.properties", e);
+            throw new RuntimeException("Error loading brs.properties", e);
         }
     }
 
