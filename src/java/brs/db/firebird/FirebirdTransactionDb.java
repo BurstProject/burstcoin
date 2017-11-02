@@ -1,7 +1,7 @@
 package brs.db.firebird;
 
 import brs.Appendix;
-import brs.NxtException;
+import brs.BurstException;
 import brs.TransactionImpl;
 import brs.TransactionType;
 import brs.db.sql.DbUtils;
@@ -75,7 +75,7 @@ class FirebirdTransactionDb extends SqlTransactionDb {
             throw new RuntimeException(e.toString(), e);
         }
     }
-    public TransactionImpl loadTransaction(Connection con, ResultSet rs) throws NxtException.ValidationException {
+    public TransactionImpl loadTransaction(Connection con, ResultSet rs) throws BurstException.ValidationException {
         try {
 
             byte type = rs.getByte("type");

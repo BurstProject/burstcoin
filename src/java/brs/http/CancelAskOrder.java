@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.Account;
 import brs.Attachment;
-import brs.NxtException;
+import brs.BurstException;
 import brs.Order;
 import org.json.simple.JSONStreamAware;
 
@@ -19,7 +19,7 @@ public final class CancelAskOrder extends CreateTransaction {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
         long orderId = ParameterParser.getOrderId(req);
         Account account = ParameterParser.getSenderAccount(req);
         Order.Ask orderData = Order.Ask.getAskOrder(orderId);

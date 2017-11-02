@@ -13,7 +13,7 @@ public interface TransactionDb {
 
   boolean hasTransactionByFullHash(String fullHash);
 
-  TransactionImpl loadTransaction(Connection con, ResultSet rs) throws NxtException.ValidationException;
+  TransactionImpl loadTransaction(Connection con, ResultSet rs) throws BurstException.ValidationException;
 
   List<TransactionImpl> findBlockTransactions(long blockId);
 

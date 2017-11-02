@@ -1,7 +1,7 @@
 package brs.http;
 
 import brs.Burst;
-import brs.NxtException;
+import brs.BurstException;
 import brs.Transaction;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
@@ -22,7 +22,7 @@ public final class BroadcastTransaction extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
     String transactionBytes = Convert.emptyToNull(req.getParameter("transactionBytes"));
     String transactionJSON = Convert.emptyToNull(req.getParameter("transactionJSON"));
@@ -33,7 +33,7 @@ public final class BroadcastTransaction extends APIServlet.APIRequestHandler {
       Burst.getTransactionProcessor().broadcast(transaction);
       response.put("transaction", transaction.getStringId());
       response.put("fullHash", transaction.getFullHash());
-    } catch (NxtException.ValidationException|RuntimeException e) {
+    } catch (BurstException.ValidationException|RuntimeException e) {
       logger.log(Level.INFO,e.getMessage(), e);
       response.put("errorCode", 4);
       response.put("errorDescription", "Incorrect transaction: " + e.toString());

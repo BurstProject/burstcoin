@@ -5,7 +5,7 @@ import brs.Poll;
 import brs.Transaction;
 import brs.Vote;
 import brs.db.EntityTable;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.db.store.VoteStore;
 
 import java.util.HashMap;
@@ -18,7 +18,7 @@ public abstract class SqlVoteStore implements VoteStore {
     @Override
     public Map<Long, Long> getVoters(Poll poll) {
         Map<Long, Long> map = new HashMap<>();
-        try (NxtIterator<Vote> voteIterator = voteTable.getManyBy(new DbClause.LongClause("poll_id", poll.getId()), 0, -1)) {
+        try (BurstIterator<Vote> voteIterator = voteTable.getManyBy(new DbClause.LongClause("poll_id", poll.getId()), 0, -1)) {
             while (voteIterator.hasNext()) {
                 Vote vote = voteIterator.next();
                 map.put(vote.getVoterId(), vote.getId());

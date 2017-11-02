@@ -3,7 +3,7 @@ package brs.db.sql;
 import brs.*;
 import brs.db.BlockDb;
 import brs.db.DerivedTable;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.db.store.BlockchainStore;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
@@ -24,7 +24,7 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
 
 
     @Override
-    public NxtIterator<BlockImpl> getAllBlocks() {
+    public BurstIterator<BlockImpl> getAllBlocks() {
         Connection con = null;
         try {
             con = Db.getConnection();
@@ -37,7 +37,7 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
     }
 
     @Override
-    public NxtIterator<BlockImpl> getBlocks(int from, int to) {
+    public BurstIterator<BlockImpl> getBlocks(int from, int to) {
         Connection con = null;
         try {
             con = Db.getConnection();
@@ -55,7 +55,7 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
 
 
     @Override
-    public NxtIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to) {
+    public BurstIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to) {
         Connection con = null;
         try {
             con = Db.getConnection();
@@ -76,10 +76,10 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
     }
 
     @Override
-    public NxtIterator<BlockImpl> getBlocks(Connection con, PreparedStatement pstmt) {
+    public BurstIterator<BlockImpl> getBlocks(Connection con, PreparedStatement pstmt) {
         return new DbIterator<>(con, pstmt, new DbIterator.ResultSetReader<BlockImpl>() {
             @Override
-            public BlockImpl get(Connection con, ResultSet rs) throws NxtException.ValidationException {
+            public BlockImpl get(Connection con, ResultSet rs) throws BurstException.ValidationException {
                 return blockDb.loadBlock(con, rs);
             }
         });
@@ -122,7 +122,7 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
                 }
             }
             return result;
-        } catch (NxtException.ValidationException | SQLException e) {
+        } catch (BurstException.ValidationException | SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }
     }
@@ -140,7 +140,7 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
     }
 
     @Override
-    public NxtIterator<TransactionImpl> getAllTransactions() {
+    public BurstIterator<TransactionImpl> getAllTransactions() {
         Connection con = null;
         try {
             con = Db.getConnection();
@@ -154,7 +154,7 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
 
 
     @Override
-    public NxtIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
+    public BurstIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                         int blockTimestamp, int from, int to) {
         int height = numberOfConfirmations > 0 ? Burst.getBlockchain().getHeight() - numberOfConfirmations : Integer.MAX_VALUE;
         if (height < 0) {
@@ -232,10 +232,10 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
     }
 
     @Override
-    public NxtIterator<TransactionImpl> getTransactions(Connection con, PreparedStatement pstmt) {
+    public BurstIterator<TransactionImpl> getTransactions(Connection con, PreparedStatement pstmt) {
         return new DbIterator<>(con, pstmt, new DbIterator.ResultSetReader<TransactionImpl>() {
             @Override
-            public TransactionImpl get(Connection con, ResultSet rs) throws NxtException.ValidationException {
+            public TransactionImpl get(Connection con, ResultSet rs) throws BurstException.ValidationException {
                 return transactionDb.loadTransaction(con, rs);
             }
         });

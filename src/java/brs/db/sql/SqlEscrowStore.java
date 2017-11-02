@@ -1,8 +1,8 @@
 package brs.db.sql;
 
 import brs.*;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.EscrowStore;
 import brs.db.store.SubscriptionStore;
@@ -17,9 +17,9 @@ import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 public abstract class SqlEscrowStore implements EscrowStore {
-    private final NxtKey.LongKeyFactory<Escrow> escrowDbKeyFactory = new DbKey.LongKeyFactory<Escrow>("id") {
+    private final BurstKey.LongKeyFactory<Escrow> escrowDbKeyFactory = new DbKey.LongKeyFactory<Escrow>("id") {
         @Override
-        public NxtKey newKey(Escrow escrow) {
+        public BurstKey newKey(Escrow escrow) {
             return escrow.dbKey;
         }
     };
@@ -37,7 +37,7 @@ public abstract class SqlEscrowStore implements EscrowStore {
     private final DbKey.LinkKeyFactory<Escrow.Decision> decisionDbKeyFactory =
             new DbKey.LinkKeyFactory<Escrow.Decision>("escrow_id", "account_id") {
                 @Override
-                public NxtKey newKey(Escrow.Decision decision) {
+                public BurstKey newKey(Escrow.Decision decision) {
                     return decision.dbKey;
                 }
             };
@@ -68,7 +68,7 @@ public abstract class SqlEscrowStore implements EscrowStore {
     protected abstract void saveDecision(Connection con, Escrow.Decision decision) throws SQLException;
 
     @Override
-    public NxtKey.LongKeyFactory<Escrow> getEscrowDbKeyFactory() {
+    public BurstKey.LongKeyFactory<Escrow> getEscrowDbKeyFactory() {
         return escrowDbKeyFactory;
     }
 
@@ -101,7 +101,7 @@ public abstract class SqlEscrowStore implements EscrowStore {
     @Override
     public Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId) {
         List<Escrow> filtered = new ArrayList<>();
-        NxtIterator<Escrow.Decision> it = decisionTable.getManyBy(new DbClause.LongClause("account_id", accountId), 0, -1);
+        BurstIterator<Escrow.Decision> it = decisionTable.getManyBy(new DbClause.LongClause("account_id", accountId), 0, -1);
         while (it.hasNext()) {
             Escrow.Decision decision = it.next();
             Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(decision.escrowId));
@@ -116,7 +116,7 @@ public abstract class SqlEscrowStore implements EscrowStore {
     public void updateOnBlock(Block block) {
         resultTransactions.clear();
 
-        NxtIterator<Escrow> deadlineEscrows = escrowTable.getManyBy(getUpdateOnBlockClause(block.getTimestamp()), 0, -1);
+        BurstIterator<Escrow> deadlineEscrows = escrowTable.getManyBy(getUpdateOnBlockClause(block.getTimestamp()), 0, -1);
         for (Escrow escrow : deadlineEscrows) {
             updatedEscrowIds.add(escrow.getId());
         }
@@ -160,7 +160,7 @@ public abstract class SqlEscrowStore implements EscrowStore {
         if (escrow == null) {
             return;
         }
-        NxtIterator<Escrow.Decision> decisionIt = escrow.getDecisions();
+        BurstIterator<Escrow.Decision> decisionIt = escrow.getDecisions();
 
         List<Escrow.Decision> decisions = new ArrayList<>();
         while (decisionIt.hasNext()) {
@@ -199,7 +199,7 @@ public abstract class SqlEscrowStore implements EscrowStore {
     }
 
     @Override
-    public 	NxtIterator<Escrow.Decision> getDecisions(Long id)
+    public 	BurstIterator<Escrow.Decision> getDecisions(Long id)
     {
         return  decisionTable.getManyBy(new DbClause.LongClause("escrow_id", id), 0, -1);
     }

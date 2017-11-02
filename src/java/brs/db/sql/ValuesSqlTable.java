@@ -1,6 +1,6 @@
 package brs.db.sql;
 
-import brs.db.NxtKey;
+import brs.db.BurstKey;
 import brs.db.ValuesTable;
 
 import java.sql.Connection;
@@ -31,7 +31,7 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
     protected abstract void save(Connection con, T t, V v) throws SQLException;
 
     @Override
-    public final List<V> get(NxtKey nxtKey) {
+    public final List<V> get(BurstKey nxtKey) {
         DbKey dbKey = (DbKey) nxtKey;
         List<V> values;
         if (Db.isInTransaction()) {

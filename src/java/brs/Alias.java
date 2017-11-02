@@ -1,8 +1,8 @@
 package brs;
 
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.db.VersionedEntityTable;
-import brs.db.NxtKey;
+import brs.db.BurstKey;
 
 public class Alias {
 
@@ -11,7 +11,7 @@ public class Alias {
     private long priceNQT;
     private long buyerId;
     private final long aliasId;
-    public final NxtKey dbKey;
+    public final BurstKey dbKey;
 
     protected Offer(long aliasId, long priceNQT, long buyerId) {
       this.priceNQT = priceNQT;
@@ -20,7 +20,7 @@ public class Alias {
       this.dbKey = offerDbKeyFactory.newKey(this.aliasId);
     }
 
-    protected Offer(long aliasId, long priceNQT, long buyerId, NxtKey nxtKey) {
+    protected Offer(long aliasId, long priceNQT, long buyerId, BurstKey nxtKey) {
       this.priceNQT = priceNQT;
       this.buyerId = buyerId;
       this.aliasId = aliasId;
@@ -41,12 +41,12 @@ public class Alias {
 
   }
 
-  private static final NxtKey.LongKeyFactory<Alias> aliasDbKeyFactory = Burst.getStores().getAliasStore().getAliasDbKeyFactory();
+  private static final BurstKey.LongKeyFactory<Alias> aliasDbKeyFactory = Burst.getStores().getAliasStore().getAliasDbKeyFactory();
 
   private static final VersionedEntityTable<Alias> aliasTable = Burst.getStores().getAliasStore().getAliasTable();
 
 
-  private static final NxtKey.LongKeyFactory<Offer> offerDbKeyFactory = Burst.getStores().getAliasStore().getOfferDbKeyFactory();
+  private static final BurstKey.LongKeyFactory<Offer> offerDbKeyFactory = Burst.getStores().getAliasStore().getOfferDbKeyFactory();
 
   private static final VersionedEntityTable<Offer> offerTable = Burst.getStores().getAliasStore().getOfferTable();
 
@@ -54,7 +54,7 @@ public class Alias {
     return aliasTable.getCount();
   }
 
-  public static NxtIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
+  public static BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
     return Burst.getStores().getAliasStore().getAliasesByOwner(accountId, from, to);
   }
 
@@ -117,7 +117,7 @@ public class Alias {
 
   private long accountId;
   private final long id;
-  public final NxtKey dbKey;
+  public final BurstKey dbKey;
   private final String aliasName;
   private String aliasURI;
   private int timestamp;
@@ -131,7 +131,7 @@ public class Alias {
     this.timestamp = timestamp;
   }
 
-  protected Alias(long id, long accountId, String aliasName, String aliasURI, int timestamp, NxtKey dbKey) {
+  protected Alias(long id, long accountId, String aliasName, String aliasURI, int timestamp, BurstKey dbKey) {
     this.id = id;
     this.dbKey = dbKey;
     this.accountId = accountId;

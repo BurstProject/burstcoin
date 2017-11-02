@@ -3,7 +3,7 @@ package brs.db.store;
 import brs.Account;
 import brs.BlockImpl;
 import brs.TransactionImpl;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,13 +16,13 @@ import java.util.List;
 public interface BlockchainStore {
 
 
-    NxtIterator<BlockImpl> getAllBlocks();
+    BurstIterator<BlockImpl> getAllBlocks();
 
-    NxtIterator<BlockImpl> getBlocks(int from, int to);
+    BurstIterator<BlockImpl> getBlocks(int from, int to);
 
-    NxtIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to);
+    BurstIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to);
 
-    NxtIterator<BlockImpl> getBlocks(Connection con, PreparedStatement pstmt);
+    BurstIterator<BlockImpl> getBlocks(Connection con, PreparedStatement pstmt);
 
     List<Long> getBlockIdsAfter(long blockId, int limit);
 
@@ -30,12 +30,12 @@ public interface BlockchainStore {
 
     int getTransactionCount();
 
-    NxtIterator<TransactionImpl> getAllTransactions();
+    BurstIterator<TransactionImpl> getAllTransactions();
 
-    NxtIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
+    BurstIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                  int blockTimestamp, int from, int to);
 
-    NxtIterator<TransactionImpl> getTransactions(Connection con, PreparedStatement pstmt);
+    BurstIterator<TransactionImpl> getTransactions(Connection con, PreparedStatement pstmt);
 
     boolean addBlock(BlockImpl block);
 

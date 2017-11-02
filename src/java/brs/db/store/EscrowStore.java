@@ -3,8 +3,8 @@ package brs.db.store;
 import brs.Block;
 import brs.Escrow;
 import brs.TransactionImpl;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.sql.DbKey;
 
@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 public interface EscrowStore {
 
-    NxtKey.LongKeyFactory<Escrow> getEscrowDbKeyFactory();
+    BurstKey.LongKeyFactory<Escrow> getEscrowDbKeyFactory();
 
     VersionedEntityTable<Escrow> getEscrowTable();
 
@@ -30,5 +30,5 @@ public interface EscrowStore {
 
     ConcurrentSkipListSet<Long> getUpdatedEscrowIds();
 
-    NxtIterator<Escrow.Decision> getDecisions(Long id);
+    BurstIterator<Escrow.Decision> getDecisions(Long id);
 }

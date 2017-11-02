@@ -1,8 +1,8 @@
 package brs;
 
 import brs.db.EntityTable;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.util.Convert;
 import brs.util.Listener;
 import brs.util.Listeners;
@@ -16,13 +16,13 @@ public class Trade {
 
   private static final Listeners<Trade,Event> listeners = new Listeners<>();
 
-  private static final NxtKey.LinkKeyFactory<Trade> tradeDbKeyFactory =
+  private static final BurstKey.LinkKeyFactory<Trade> tradeDbKeyFactory =
       Burst.getStores().getTradeStore().getTradeDbKeyFactory();
 
   private static final EntityTable<Trade> tradeTable = Burst.getStores().getTradeStore().getTradeTable();
 
 
-  public static NxtIterator<Trade> getAllTrades(int from, int to) {
+  public static BurstIterator<Trade> getAllTrades(int from, int to) {
     return tradeTable.getAll(from, to);
   }
 
@@ -38,15 +38,15 @@ public class Trade {
     return listeners.removeListener(listener, eventType);
   }
 
-  public static NxtIterator<Trade> getAssetTrades(long assetId, int from, int to) {
+  public static BurstIterator<Trade> getAssetTrades(long assetId, int from, int to) {
     return Burst.getStores().getTradeStore().getAssetTrades(assetId, from, to);
   }
 
-  public static NxtIterator<Trade> getAccountTrades(long accountId, int from, int to) {
+  public static BurstIterator<Trade> getAccountTrades(long accountId, int from, int to) {
     return Burst.getStores().getTradeStore().getAssetTrades(accountId, from, to);
   }
 
-  public static NxtIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
+  public static BurstIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
     return Burst.getStores().getTradeStore().getAccountAssetTrades(accountId, assetId, from, to);
 
   }
@@ -75,14 +75,14 @@ public class Trade {
   private final int bidOrderHeight;
   private final long sellerId;
   private final long buyerId;
-  public final NxtKey dbKey;
+  public final BurstKey dbKey;
   private final long quantityQNT;
   private final long priceNQT;
   private final boolean isBuy;
 
   public Trade(int timestamp, long assetId, long blockId, int height,
                long askOrderId, long bidOrderId, int askOrderHeight, int bidOrderHeight,
-               long sellerId, long buyerId, NxtKey dbKey, long quantityQNT, long priceNQT) {
+               long sellerId, long buyerId, BurstKey dbKey, long quantityQNT, long priceNQT) {
     this.timestamp = timestamp;
     this.assetId = assetId;
     this.blockId = blockId;

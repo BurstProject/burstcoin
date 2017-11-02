@@ -33,7 +33,7 @@ IF NOT "%MY_CMD%" == "" (
     )
     goto USAGE
 )
-%MY_JAVA% -cp burst.jar;conf brs.Nxt
+%MY_JAVA% -cp burst.jar;conf brs.Burst
 
 goto DONE
 

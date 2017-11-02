@@ -13,7 +13,7 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
     boolean delete(T t);
 
     @Override
-    T get(NxtKey dbKey);
+    T get(BurstKey dbKey);
 
     @Override
     void insert(T t);
@@ -22,7 +22,7 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
     void finish();
 
     @Override
-    T get(NxtKey dbKey, int height);
+    T get(BurstKey dbKey, int height);
 
     @Override
     T getBy(DbClause dbClause);
@@ -31,28 +31,28 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
     T getBy(DbClause dbClause, int height);
 
     @Override
-    NxtIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort);
+    BurstIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort);
 
     @Override
-    NxtIterator<T> getManyBy(DbClause dbClause, int height, int from, int to);
+    BurstIterator<T> getManyBy(DbClause dbClause, int height, int from, int to);
 
     @Override
-    NxtIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort);
+    BurstIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort);
 
     @Override
-    NxtIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache);
+    BurstIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache);
 
     @Override
-    NxtIterator<T> getAll(int from, int to);
+    BurstIterator<T> getAll(int from, int to);
 
     @Override
-    NxtIterator<T> getAll(int from, int to, String sort);
+    BurstIterator<T> getAll(int from, int to, String sort);
 
     @Override
-    NxtIterator<T> getAll(int height, int from, int to);
+    BurstIterator<T> getAll(int height, int from, int to);
 
     @Override
-    NxtIterator<T> getAll(int height, int from, int to, String sort);
+    BurstIterator<T> getAll(int height, int from, int to, String sort);
 
     @Override
     int getCount();

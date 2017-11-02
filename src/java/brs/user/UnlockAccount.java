@@ -4,7 +4,7 @@ import brs.Account;
 import brs.Block;
 import brs.Burst;
 import brs.Transaction;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -79,7 +79,7 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
 
       JSONArray myTransactions = new JSONArray();
       byte[] accountPublicKey = account.getPublicKey();
-      try (NxtIterator<? extends Transaction> transactions = Burst.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+      try (BurstIterator<? extends Transaction> transactions = Burst.getTransactionProcessor().getAllUnconfirmedTransactions()) {
         while (transactions.hasNext()) {
           Transaction transaction = transactions.next();
           if (Arrays.equals(transaction.getSenderPublicKey(), accountPublicKey)) {
@@ -120,7 +120,7 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
       SortedSet<JSONObject> myTransactionsSet = new TreeSet<>(myTransactionsComparator);
 
       int blockchainHeight = Burst.getBlockchain().getLastBlock().getHeight();
-      try (NxtIterator<? extends Block> blockIterator = Burst.getBlockchain().getBlocks(account, 0)) {
+      try (BurstIterator<? extends Block> blockIterator = Burst.getBlockchain().getBlocks(account, 0)) {
         while (blockIterator.hasNext()) {
           Block block = blockIterator.next();
           if (block.getTotalFeeNQT() > 0) {
@@ -137,7 +137,7 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
         }
       }
 
-      try (NxtIterator<? extends Transaction> transactionIterator = Burst.getBlockchain().getTransactions(account, (byte) -1, (byte) -1, 0)) {
+      try (BurstIterator<? extends Transaction> transactionIterator = Burst.getBlockchain().getTransactions(account, (byte) -1, (byte) -1, 0)) {
         while (transactionIterator.hasNext()) {
           Transaction transaction = transactionIterator.next();
           if (transaction.getSenderId() == accountId) {

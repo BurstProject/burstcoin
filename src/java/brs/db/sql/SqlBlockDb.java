@@ -2,7 +2,7 @@ package brs.db.sql;
 
 import brs.BlockImpl;
 import brs.Burst;
-import brs.NxtException;
+import brs.BurstException;
 import brs.db.BlockDb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,7 @@ public abstract class SqlBlockDb implements BlockDb {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
-        } catch (NxtException.ValidationException e) {
+        } catch (BurstException.ValidationException e) {
             throw new RuntimeException("Block already in database, id = " + blockId + ", does not pass validation!", e);
         }
     }
@@ -81,7 +81,7 @@ public abstract class SqlBlockDb implements BlockDb {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
-        } catch (NxtException.ValidationException e) {
+        } catch (BurstException.ValidationException e) {
             throw new RuntimeException("Block already in database at height " + height + ", does not pass validation!", e);
         }
     }
@@ -100,7 +100,7 @@ public abstract class SqlBlockDb implements BlockDb {
             return block;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
-        } catch (NxtException.ValidationException e) {
+        } catch (BurstException.ValidationException e) {
             throw new RuntimeException("Last block already in database does not pass validation!", e);
         }
     }
@@ -120,13 +120,13 @@ public abstract class SqlBlockDb implements BlockDb {
             return block;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
-        } catch (NxtException.ValidationException e) {
+        } catch (BurstException.ValidationException e) {
             throw new RuntimeException("Block already in database at timestamp " + timestamp + " does not pass validation!", e);
         }
     }
 
     @Override
-    public BlockImpl loadBlock(Connection con, ResultSet rs) throws NxtException.ValidationException {
+    public BlockImpl loadBlock(Connection con, ResultSet rs) throws BurstException.ValidationException {
         try {
             int version = rs.getInt("version");
             int timestamp = rs.getInt("timestamp");

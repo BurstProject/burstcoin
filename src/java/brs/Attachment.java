@@ -1,6 +1,6 @@
 package brs;
 
-import brs.NxtException.NotValidException;
+import brs.BurstException.NotValidException;
 import brs.crypto.EncryptedData;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
@@ -33,7 +33,7 @@ public interface Attachment extends Appendix {
     private AbstractAttachment() {}
 
     @Override
-    final void validate(Transaction transaction) throws NxtException.ValidationException {
+    final void validate(Transaction transaction) throws BurstException.ValidationException {
       getTransactionType().validateAttachment(transaction);
     }
 
@@ -119,7 +119,7 @@ public interface Attachment extends Appendix {
     private final String aliasName;
     private final String aliasURI;
 
-    MessagingAliasAssignment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+    MessagingAliasAssignment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
       aliasName = Convert.readString(buffer, buffer.get(), Constants.MAX_ALIAS_LENGTH).trim();
       aliasURI = Convert.readString(buffer, buffer.getShort(), Constants.MAX_ALIAS_URI_LENGTH).trim();
@@ -181,7 +181,7 @@ public interface Attachment extends Appendix {
     private final String aliasName;
     private final long priceNQT;
 
-    MessagingAliasSell(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+    MessagingAliasSell(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
       this.aliasName = Convert.readString(buffer, buffer.get(), Constants.MAX_ALIAS_LENGTH);
       this.priceNQT = buffer.getLong();
@@ -240,7 +240,7 @@ public interface Attachment extends Appendix {
 
     private final String aliasName;
 
-    MessagingAliasBuy(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+    MessagingAliasBuy(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
       this.aliasName = Convert.readString(buffer, buffer.get(), Constants.MAX_ALIAS_LENGTH);
     }
@@ -294,13 +294,13 @@ public interface Attachment extends Appendix {
     private final byte minNumberOfOptions, maxNumberOfOptions;
     private final boolean optionsAreBinary;
 
-    MessagingPollCreation(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+    MessagingPollCreation(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
       this.pollName = Convert.readString(buffer, buffer.getShort(), Constants.MAX_POLL_NAME_LENGTH);
       this.pollDescription = Convert.readString(buffer, buffer.getShort(), Constants.MAX_POLL_DESCRIPTION_LENGTH);
       int numberOfOptions = buffer.get();
       if (numberOfOptions > Constants.MAX_POLL_OPTION_COUNT) {
-        throw new NxtException.NotValidException("Invalid number of poll options: " + numberOfOptions);
+        throw new BurstException.NotValidException("Invalid number of poll options: " + numberOfOptions);
       }
       this.pollOptions = new String[numberOfOptions];
       for (int i = 0; i < numberOfOptions; i++) {
@@ -410,12 +410,12 @@ public interface Attachment extends Appendix {
     private final long pollId;
     private final byte[] pollVote;
 
-    MessagingVoteCasting(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+    MessagingVoteCasting(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
       this.pollId = buffer.getLong();
       int numberOfOptions = buffer.get();
       if (numberOfOptions > Constants.MAX_POLL_OPTION_COUNT) {
-        throw new NxtException.NotValidException("Error parsing vote casting parameters");
+        throw new BurstException.NotValidException("Error parsing vote casting parameters");
       }
       this.pollVote = new byte[numberOfOptions];
       buffer.get(pollVote);
@@ -481,12 +481,12 @@ public interface Attachment extends Appendix {
     private final long minFeePerByteNQT;
     private final String[] uris;
 
-    MessagingHubAnnouncement(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+    MessagingHubAnnouncement(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
       this.minFeePerByteNQT = buffer.getLong();
       int numberOfUris = buffer.get();
       if (numberOfUris > Constants.MAX_HUB_ANNOUNCEMENT_URIS) {
-        throw new NxtException.NotValidException("Invalid number of URIs: " + numberOfUris);
+        throw new BurstException.NotValidException("Invalid number of URIs: " + numberOfUris);
       }
       this.uris = new String[numberOfUris];
       for (int i = 0; i < uris.length; i++) {
@@ -494,7 +494,7 @@ public interface Attachment extends Appendix {
       }
     }
 
-    MessagingHubAnnouncement(JSONObject attachmentData) throws NxtException.NotValidException {
+    MessagingHubAnnouncement(JSONObject attachmentData) throws BurstException.NotValidException {
       super(attachmentData);
       this.minFeePerByteNQT = (Long) attachmentData.get("minFeePerByte");
       try {
@@ -504,7 +504,7 @@ public interface Attachment extends Appendix {
           uris[i] = (String) urisData.get(i);
         }
       } catch (RuntimeException e) {
-        throw new NxtException.NotValidException("Error parsing hub terminal announcement parameters", e);
+        throw new BurstException.NotValidException("Error parsing hub terminal announcement parameters", e);
       }
     }
 
@@ -566,7 +566,7 @@ public interface Attachment extends Appendix {
     private final String name;
     private final String description;
 
-    MessagingAccountInfo(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+    MessagingAccountInfo(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
       this.name = Convert.readString(buffer, buffer.get(), Constants.MAX_ACCOUNT_NAME_LENGTH);
       this.description = Convert.readString(buffer, buffer.getShort(), Constants.MAX_ACCOUNT_DESCRIPTION_LENGTH);
@@ -631,7 +631,7 @@ public interface Attachment extends Appendix {
     private final long quantityQNT;
     private final byte decimals;
 
-    ColoredCoinsAssetIssuance(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+    ColoredCoinsAssetIssuance(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
       this.name = Convert.readString(buffer, buffer.get(), Constants.MAX_ASSET_NAME_LENGTH);
       this.description = Convert.readString(buffer, buffer.getShort(), Constants.MAX_ASSET_DESCRIPTION_LENGTH);
@@ -712,7 +712,7 @@ public interface Attachment extends Appendix {
     private final long quantityQNT;
     private final String comment;
 
-    ColoredCoinsAssetTransfer(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+    ColoredCoinsAssetTransfer(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
       this.assetId = buffer.getLong();
       this.quantityQNT = buffer.getLong();
@@ -989,7 +989,7 @@ public interface Attachment extends Appendix {
     private final int quantity;
     private final long priceNQT;
 
-    DigitalGoodsListing(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+    DigitalGoodsListing(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
       this.name = Convert.readString(buffer, buffer.getShort(), Constants.MAX_DGS_LISTING_NAME_LENGTH);
       this.description = Convert.readString(buffer, buffer.getShort(), Constants.MAX_DGS_LISTING_DESCRIPTION_LENGTH);
@@ -1302,7 +1302,7 @@ public interface Attachment extends Appendix {
     private final long discountNQT;
     private final boolean goodsIsText;
 
-    DigitalGoodsDelivery(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+    DigitalGoodsDelivery(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
       this.purchaseId = buffer.getLong();
       int length = buffer.getInt();
@@ -1570,7 +1570,7 @@ public interface Attachment extends Appendix {
     private final int deadline;
     private final Escrow.DecisionType deadlineAction;
     	
-    AdvancedPaymentEscrowCreation(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+    AdvancedPaymentEscrowCreation(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
       this.amountNQT = buffer.getLong();
       this.deadline = buffer.getInt();
@@ -1578,16 +1578,16 @@ public interface Attachment extends Appendix {
       this.requiredSigners = buffer.get();
       byte totalSigners = buffer.get();
       if(totalSigners > 10 || totalSigners <= 0) {
-        throw new NxtException.NotValidException("Invalid number of signers listed on create escrow transaction");
+        throw new BurstException.NotValidException("Invalid number of signers listed on create escrow transaction");
       }
       for(int i = 0; i < totalSigners; i++) {
         if(!this.signers.add(buffer.getLong())) {
-          throw new NxtException.NotValidException("Duplicate signer on escrow creation");
+          throw new BurstException.NotValidException("Duplicate signer on escrow creation");
         }
       }
     }
     	
-    AdvancedPaymentEscrowCreation(JSONObject attachmentData) throws NxtException.NotValidException {
+    AdvancedPaymentEscrowCreation(JSONObject attachmentData) throws BurstException.NotValidException {
       super(attachmentData);
       this.amountNQT = Convert.parseUnsignedLong((String)attachmentData.get("amountNQT"));
       this.deadline = ((Long)attachmentData.get("deadline")).intValue();
@@ -1595,7 +1595,7 @@ public interface Attachment extends Appendix {
       this.requiredSigners = ((Long)attachmentData.get("requiredSigners")).byteValue();
       int totalSigners = ((JSONArray)attachmentData.get("signers")).size();
       if(totalSigners > 10 || totalSigners <= 0) {
-        throw new NxtException.NotValidException("Invalid number of signers listed on create escrow transaction");
+        throw new BurstException.NotValidException("Invalid number of signers listed on create escrow transaction");
       }
       //this.signers.addAll((JSONArray)attachmentData.get("signers"));
       JSONArray signersJson = (JSONArray)attachmentData.get("signers");
@@ -1603,22 +1603,22 @@ public interface Attachment extends Appendix {
         this.signers.add(Convert.parseUnsignedLong((String)signersJson.get(i)));
       }
       if(this.signers.size() != ((JSONArray)attachmentData.get("signers")).size()) {
-        throw new NxtException.NotValidException("Duplicate signer on escrow creation");
+        throw new BurstException.NotValidException("Duplicate signer on escrow creation");
       }
     }
     	
     public AdvancedPaymentEscrowCreation(Long amountNQT, int deadline, Escrow.DecisionType deadlineAction,
-                                         int requiredSigners, Collection<Long> signers) throws NxtException.NotValidException {
+                                         int requiredSigners, Collection<Long> signers) throws BurstException.NotValidException {
       this.amountNQT = amountNQT;
       this.deadline = deadline;
       this.deadlineAction = deadlineAction;
       this.requiredSigners = (byte)requiredSigners;
       if(signers.size() > 10 || signers.size() == 0) {
-        throw new NxtException.NotValidException("Invalid number of signers listed on create escrow transaction");
+        throw new BurstException.NotValidException("Invalid number of signers listed on create escrow transaction");
       }
       this.signers.addAll(signers);
       if(this.signers.size() != signers.size()) {
-        throw new NxtException.NotValidException("Duplicate signer on escrow creation");
+        throw new BurstException.NotValidException("Duplicate signer on escrow creation");
       }
     }
     	
@@ -1927,7 +1927,7 @@ public interface Attachment extends Appendix {
     	
     	
     AutomatedTransactionsCreation(ByteBuffer buffer,
-                                  byte transactionVersion) throws NxtException.NotValidException {
+                                  byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
 			
       this.name = Convert.readString( buffer , buffer.get() , Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH );
@@ -1939,7 +1939,7 @@ public interface Attachment extends Appendix {
 			
     }
 
-    AutomatedTransactionsCreation(JSONObject attachmentData) throws NxtException.NotValidException {
+    AutomatedTransactionsCreation(JSONObject attachmentData) throws BurstException.NotValidException {
       super(attachmentData);
 			
       this.name = ( String ) attachmentData.get( "name" );
@@ -2004,11 +2004,11 @@ public interface Attachment extends Appendix {
   /*public final static class AutomatedTransactionsPayment extends AbstractAttachment{
 
     AutomatedTransactionsPayment(ByteBuffer buffer,
-    byte transactionVersion) throws NxtException.NotValidException {
+    byte transactionVersion) throws BurstException.NotValidException {
     super(buffer, transactionVersion);
     }
 
-    AutomatedTransactionsPayment(JSONObject attachmentData) throws NxtException.NotValidException {
+    AutomatedTransactionsPayment(JSONObject attachmentData) throws BurstException.NotValidException {
     super(attachmentData);
     }
 		

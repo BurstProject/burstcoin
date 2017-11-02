@@ -1,6 +1,6 @@
 package brs;
 
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.util.Observable;
 import org.json.simple.JSONObject;
 
@@ -15,19 +15,19 @@ public interface TransactionProcessor extends Observable<List<? extends Transact
     ADDED_DOUBLESPENDING_TRANSACTIONS
   }
 
-  NxtIterator<? extends Transaction> getAllUnconfirmedTransactions();
+  BurstIterator<? extends Transaction> getAllUnconfirmedTransactions();
 
   Transaction getUnconfirmedTransaction(long transactionId);
     
   void clearUnconfirmedTransactions();
 
-  void broadcast(Transaction transaction) throws NxtException.ValidationException;
+  void broadcast(Transaction transaction) throws BurstException.ValidationException;
 
-  void processPeerTransactions(JSONObject request) throws NxtException.ValidationException;
+  void processPeerTransactions(JSONObject request) throws BurstException.ValidationException;
 
-  Transaction parseTransaction(byte[] bytes) throws NxtException.ValidationException;
+  Transaction parseTransaction(byte[] bytes) throws BurstException.ValidationException;
 
-  Transaction parseTransaction(JSONObject json) throws NxtException.ValidationException;
+  Transaction parseTransaction(JSONObject json) throws BurstException.ValidationException;
 
   Transaction.Builder newTransactionBuilder(byte[] senderPublicKey, long amountNQT, long feeNQT, short deadline, Attachment attachment);
 

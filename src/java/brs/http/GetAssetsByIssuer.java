@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.Account;
 import brs.Asset;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -29,7 +29,7 @@ public final class GetAssetsByIssuer extends APIServlet.APIRequestHandler {
         response.put("assets", accountsJSONArray);
         for (Account account : accounts) {
             JSONArray assetsJSONArray = new JSONArray();
-            try (NxtIterator<Asset> assets = Asset.getAssetsIssuedBy(account.getId(), firstIndex, lastIndex)) {
+            try (BurstIterator<Asset> assets = Asset.getAssetsIssuedBy(account.getId(), firstIndex, lastIndex)) {
                 while (assets.hasNext()) {
                     assetsJSONArray.add(JSONData.asset(assets.next()));
                 }

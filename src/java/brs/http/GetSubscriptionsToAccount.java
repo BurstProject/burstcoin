@@ -1,9 +1,9 @@
 package brs.http;
 
 import brs.Account;
-import brs.NxtException;
+import brs.BurstException;
 import brs.Subscription;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -19,7 +19,7 @@ public final class GetSubscriptionsToAccount extends APIServlet.APIRequestHandle
 	}
 	
 	@Override
-	JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+	JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 		
 		Account account = ParameterParser.getAccount(req);
 		
@@ -27,7 +27,7 @@ public final class GetSubscriptionsToAccount extends APIServlet.APIRequestHandle
 		
 		JSONArray subscriptions = new JSONArray();
 
-		NxtIterator<Subscription> accountSubscriptions = Subscription.getSubscriptionsToId(account.getId());
+		BurstIterator<Subscription> accountSubscriptions = Subscription.getSubscriptionsToId(account.getId());
 		
 		for(Subscription subscription : accountSubscriptions) {
 			subscriptions.add(JSONData.subscription(subscription));

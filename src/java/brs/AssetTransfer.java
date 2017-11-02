@@ -1,8 +1,8 @@
 package brs;
 
 import brs.db.EntityTable;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.util.Listener;
 import brs.util.Listeners;
 
@@ -14,11 +14,11 @@ public class AssetTransfer {
 
   private static final Listeners<AssetTransfer, Event> listeners = new Listeners<>();
 
-  private static final NxtKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = Burst.getStores().getAssetTransferStore().getTransferDbKeyFactory();
+  private static final BurstKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = Burst.getStores().getAssetTransferStore().getTransferDbKeyFactory();
 
   private static final EntityTable<AssetTransfer> assetTransferTable = Burst.getStores().getAssetTransferStore().getAssetTransferTable();
 
-  public static NxtIterator<AssetTransfer> getAllTransfers(int from, int to) {
+  public static BurstIterator<AssetTransfer> getAllTransfers(int from, int to) {
     return assetTransferTable.getAll(from, to);
   }
 
@@ -34,15 +34,15 @@ public class AssetTransfer {
     return listeners.removeListener(listener, eventType);
   }
 
-  public static NxtIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
+  public static BurstIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
     return Burst.getStores().getAssetTransferStore().getAssetTransfers(assetId, from, to);
   }
 
-  public static NxtIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
+  public static BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
     return Burst.getStores().getAssetTransferStore().getAccountAssetTransfers(accountId, from, to);
   }
 
-  public static NxtIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
+  public static BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
     return Burst.getStores().getAssetTransferStore().getAccountAssetTransfers(accountId, assetId, from, to);
   }
 
@@ -62,7 +62,7 @@ public class AssetTransfer {
 
 
   private final long id;
-  public final NxtKey dbKey;
+  public final BurstKey dbKey;
   private final long assetId;
   private final int height;
   private final long senderId;
@@ -81,7 +81,7 @@ public class AssetTransfer {
     this.timestamp = transaction.getBlockTimestamp();
   }
 
-  protected AssetTransfer(long id, NxtKey dbKey, long assetId, int height, long senderId, long recipientId, long quantityQNT, int timestamp) {
+  protected AssetTransfer(long id, BurstKey dbKey, long assetId, int height, long senderId, long recipientId, long quantityQNT, int timestamp) {
     this.id = id;
     this.dbKey = dbKey;
     this.assetId = assetId;

@@ -3,7 +3,7 @@ package brs.http;
 import brs.Account;
 import brs.Attachment;
 import brs.Constants;
-import brs.NxtException;
+import brs.BurstException;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
 
@@ -20,7 +20,7 @@ public final class IssueAsset extends CreateTransaction {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         String name = req.getParameter("name");
         String description = req.getParameter("description");

@@ -1,7 +1,7 @@
 package brs.http;
 
 import brs.Account;
-import brs.NxtException;
+import brs.BurstException;
 import brs.util.Convert;
 import brs.util.JSON;
 import org.json.simple.JSONObject;
@@ -18,7 +18,7 @@ public final class GetAccountPublicKey extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         Account account = ParameterParser.getAccount(req);
 

@@ -2,8 +2,8 @@ package brs.http;
 
 import brs.Account;
 import brs.Asset;
-import brs.NxtException;
-import brs.db.NxtIterator;
+import brs.BurstException;
+import brs.db.BurstIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -19,7 +19,7 @@ public final class GetAssetAccounts extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         Asset asset = ParameterParser.getAsset(req);
         int firstIndex = ParameterParser.getFirstIndex(req);
@@ -27,7 +27,7 @@ public final class GetAssetAccounts extends APIServlet.APIRequestHandler {
         int height = ParameterParser.getHeight(req);
 
         JSONArray accountAssets = new JSONArray();
-        try (NxtIterator<Account.AccountAsset> iterator = asset.getAccounts(height, firstIndex, lastIndex)) {
+        try (BurstIterator<Account.AccountAsset> iterator = asset.getAccounts(height, firstIndex, lastIndex)) {
             while (iterator.hasNext()) {
                 Account.AccountAsset accountAsset = iterator.next();
                 accountAssets.add(JSONData.accountAsset(accountAsset));

@@ -19,7 +19,7 @@ public final class SetAlias extends CreateTransaction {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
         String aliasName = Convert.emptyToNull(req.getParameter("aliasName"));
         String aliasURI = Convert.nullToEmpty(req.getParameter("aliasURI"));
 

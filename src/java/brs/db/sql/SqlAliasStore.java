@@ -2,8 +2,8 @@ package brs.db.sql;
 
 import brs.Alias;
 import brs.Burst;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.AliasStore;
 
@@ -17,26 +17,26 @@ public abstract class SqlAliasStore implements AliasStore {
 
     private static final DbKey.LongKeyFactory<Alias.Offer> offerDbKeyFactory = new DbKey.LongKeyFactory<Alias.Offer>("id") {
         @Override
-        public NxtKey newKey(Alias.Offer offer) {
+        public BurstKey newKey(Alias.Offer offer) {
             return offer.dbKey;
         }
     };
 
     @Override
-    public NxtKey.LongKeyFactory<Alias.Offer> getOfferDbKeyFactory() {
+    public BurstKey.LongKeyFactory<Alias.Offer> getOfferDbKeyFactory() {
         return offerDbKeyFactory;
     }
 
-    private static final NxtKey.LongKeyFactory<Alias> aliasDbKeyFactory = new DbKey.LongKeyFactory<Alias>("id") {
+    private static final BurstKey.LongKeyFactory<Alias> aliasDbKeyFactory = new DbKey.LongKeyFactory<Alias>("id") {
 
         @Override
-        public NxtKey newKey(Alias alias) {
+        public BurstKey newKey(Alias alias) {
             return alias.dbKey;
         }
     };
 
     @Override
-    public NxtKey.LongKeyFactory<Alias> getAliasDbKeyFactory() {
+    public BurstKey.LongKeyFactory<Alias> getAliasDbKeyFactory() {
         return aliasDbKeyFactory;
     }
 
@@ -134,7 +134,7 @@ public abstract class SqlAliasStore implements AliasStore {
     };
 
     @Override
-    public NxtIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
+    public BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
         return aliasTable.getManyBy(new DbClause.LongClause("account_id", accountId), from, to);
     }
 

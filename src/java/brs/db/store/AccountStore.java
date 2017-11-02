@@ -1,10 +1,10 @@
 package brs.db.store;
 
 import brs.Account;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.VersionedEntityTable;
-import brs.db.NxtKey;
+import brs.db.BurstKey;
 
 /**
  * Interface for Database operations related to Accounts
@@ -16,23 +16,23 @@ public interface AccountStore {
 
     VersionedEntityTable<Account.RewardRecipientAssignment> getRewardRecipientAssignmentTable();
 
-    NxtKey.LongKeyFactory<Account.RewardRecipientAssignment> getRewardRecipientAssignmentKeyFactory();
+    BurstKey.LongKeyFactory<Account.RewardRecipientAssignment> getRewardRecipientAssignmentKeyFactory();
 
-    NxtKey.LinkKeyFactory<Account.AccountAsset> getAccountAssetKeyFactory();
+    BurstKey.LinkKeyFactory<Account.AccountAsset> getAccountAssetKeyFactory();
 
     VersionedEntityTable<Account.AccountAsset> getAccountAssetTable();
 
     int getAssetAccountsCount(long assetId);
 
-    NxtKey.LongKeyFactory<Account> getAccountKeyFactory();
+    BurstKey.LongKeyFactory<Account> getAccountKeyFactory();
 
-    NxtIterator<Account.RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId);
+    BurstIterator<Account.RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId);
 
-    NxtIterator<Account.AccountAsset> getAssets(int from, int to, Long id);
+    BurstIterator<Account.AccountAsset> getAssets(int from, int to, Long id);
 
-    NxtIterator<Account.AccountAsset> getAssetAccounts(long assetId, int from, int to);
+    BurstIterator<Account.AccountAsset> getAssetAccounts(long assetId, int from, int to);
 
-    NxtIterator<Account.AccountAsset> getAssetAccounts(long assetId, int height, int from, int to);
+    BurstIterator<Account.AccountAsset> getAssetAccounts(long assetId, int height, int from, int to);
     // returns true iff:
     // this.publicKey is set to null (in which case this.publicKey also gets set to key)
     // or

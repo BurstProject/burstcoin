@@ -1,6 +1,6 @@
 package brs.util;
 
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -11,7 +11,7 @@ public final class FilteringIterator<T> implements Iterator<T>, Iterable<T>, Aut
         boolean ok(T t);
     }
 
-    private final NxtIterator<T> dbIterator;
+    private final BurstIterator<T> dbIterator;
     private final Filter<T> filter;
     private final int from;
     private final int to;
@@ -20,11 +20,11 @@ public final class FilteringIterator<T> implements Iterator<T>, Iterable<T>, Aut
     private boolean iterated;
     private int count;
 
-    public FilteringIterator(NxtIterator<T> dbIterator, Filter<T> filter) {
+    public FilteringIterator(BurstIterator<T> dbIterator, Filter<T> filter) {
         this(dbIterator, filter, 0, Integer.MAX_VALUE);
     }
 
-    public FilteringIterator(NxtIterator<T> dbIterator, int from, int to) {
+    public FilteringIterator(BurstIterator<T> dbIterator, int from, int to) {
         this(dbIterator, new Filter<T>() {
             @Override
             public boolean ok(T t) {
@@ -33,7 +33,7 @@ public final class FilteringIterator<T> implements Iterator<T>, Iterable<T>, Aut
         }, from, to);
     }
 
-    public FilteringIterator(NxtIterator<T> dbIterator, Filter<T> filter, int from, int to) {
+    public FilteringIterator(BurstIterator<T> dbIterator, Filter<T> filter, int from, int to) {
         this.dbIterator = dbIterator;
         this.filter = filter;
         this.from = from;

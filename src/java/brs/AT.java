@@ -11,7 +11,7 @@ import brs.at.AT_API_Helper;
 import brs.at.AT_Controller;
 import brs.at.AT_Machine_State;
 import brs.at.AT_Transaction;
-import brs.db.NxtKey;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.util.Listener;
 
@@ -61,7 +61,7 @@ public final class AT extends AT_Machine_State {
                 transactions.add(transaction);
               }
             }
-            catch(NxtException.NotValidException e) {
+            catch(BurstException.NotValidException e) {
               throw new RuntimeException("Failed to construct AT payment transaction", e);
             }
           }
@@ -111,7 +111,7 @@ public final class AT extends AT_Machine_State {
   public static class ATState {
 
     private final long atId;
-    public final NxtKey dbKey;
+    public final BurstKey dbKey;
     private byte[] state;
     private int prevHeight;
     private int nextHeight;
@@ -195,12 +195,12 @@ public final class AT extends AT_Machine_State {
     }
   }
 
-  private static final NxtKey.LongKeyFactory<AT> atDbKeyFactory =Burst.getStores().getAtStore().getAtDbKeyFactory();
+  private static final BurstKey.LongKeyFactory<AT> atDbKeyFactory =Burst.getStores().getAtStore().getAtDbKeyFactory();
 
   private static final VersionedEntityTable<AT> atTable = Burst.getStores().getAtStore().getAtTable();
 
 
-  private static final NxtKey.LongKeyFactory<ATState> atStateDbKeyFactory = Burst.getStores().getAtStore().getAtStateDbKeyFactory();
+  private static final BurstKey.LongKeyFactory<ATState> atStateDbKeyFactory = Burst.getStores().getAtStore().getAtStateDbKeyFactory();
 
   private static final VersionedEntityTable<ATState> atStateTable = Burst.getStores().getAtStore().getAtStateTable();
 
@@ -338,7 +338,7 @@ public final class AT extends AT_Machine_State {
 
   private final String name;
   private final String description;
-  public final NxtKey dbKey;
+  public final BurstKey dbKey;
   private final int nextHeight;
 
 

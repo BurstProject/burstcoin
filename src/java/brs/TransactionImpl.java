@@ -1,7 +1,7 @@
 package brs;
 
 import brs.crypto.Crypto;
-import brs.db.NxtKey;
+import brs.db.BurstKey;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -57,7 +57,7 @@ public final class TransactionImpl implements Transaction {
     }
 
     @Override
-    public TransactionImpl build() throws NxtException.NotValidException {
+    public TransactionImpl build() throws BurstException.NotValidException {
       return new TransactionImpl(this);
     }
 
@@ -187,9 +187,9 @@ public final class TransactionImpl implements Transaction {
   private volatile String stringId;
   private volatile long senderId;
   private volatile String fullHash;
-  private volatile NxtKey dbKey;
+  private volatile BurstKey dbKey;
 
-  private TransactionImpl(BuilderImpl builder) throws NxtException.NotValidException {
+  private TransactionImpl(BuilderImpl builder) throws BurstException.NotValidException {
 
     this.timestamp = builder.timestamp;
     this.deadline = builder.deadline;
@@ -235,7 +235,7 @@ public final class TransactionImpl implements Transaction {
     long minimumFeeNQT = type.minimumFeeNQT(effectiveHeight, appendagesSize);
     if(type == null || type.isSigned()) {
       if (builder.feeNQT > 0 && builder.feeNQT < minimumFeeNQT) {
-        throw new NxtException.NotValidException(String.format("Requested fee %d less than the minimum fee %d",
+        throw new BurstException.NotValidException(String.format("Requested fee %d less than the minimum fee %d",
                                                                builder.feeNQT, minimumFeeNQT));
       }
       if (builder.feeNQT <= 0) {
@@ -254,24 +254,24 @@ public final class TransactionImpl implements Transaction {
           || amountNQT < 0
           || amountNQT > Constants.MAX_BALANCE_NQT
           || type == null) {
-        throw new NxtException.NotValidException("Invalid transaction parameters:\n type: " + type + ", timestamp: " + timestamp
+        throw new BurstException.NotValidException("Invalid transaction parameters:\n type: " + type + ", timestamp: " + timestamp
                                                  + ", deadline: " + deadline + ", fee: " + feeNQT + ", amount: " + amountNQT);
       }
     }
 
     if (attachment == null || type != attachment.getTransactionType()) {
-      throw new NxtException.NotValidException("Invalid attachment " + attachment + " for transaction of type " + type);
+      throw new BurstException.NotValidException("Invalid attachment " + attachment + " for transaction of type " + type);
     }
 
     if (! type.hasRecipient()) {
       if (recipientId != 0 || getAmountNQT() != 0) {
-        throw new NxtException.NotValidException("Transactions of this type must have recipient == Genesis, amount == 0");
+        throw new BurstException.NotValidException("Transactions of this type must have recipient == Genesis, amount == 0");
       }
     }
 
     for (Appendix.AbstractAppendix appendage : appendages) {
       if (! appendage.verifyVersion(this.version)) {
-        throw new NxtException.NotValidException("Invalid attachment version " + appendage.getVersion()
+        throw new BurstException.NotValidException("Invalid attachment version " + appendage.getVersion()
                                                  + " for transaction version " + this.version);
       }
     }
@@ -436,7 +436,7 @@ public final class TransactionImpl implements Transaction {
     return senderId;
   }
 
-  public NxtKey getDbKey() {
+  public BurstKey getDbKey() {
     if (dbKey == null) {
       dbKey = TransactionProcessorImpl.getInstance().unconfirmedTransactionDbKeyFactory.newKey(getId());
     }
@@ -512,7 +512,7 @@ public final class TransactionImpl implements Transaction {
     }
   }
 
-  public static TransactionImpl parseTransaction(byte[] bytes) throws NxtException.ValidationException {
+  public static TransactionImpl parseTransaction(byte[] bytes) throws BurstException.ValidationException {
     try {
       ByteBuffer buffer = ByteBuffer.wrap(bytes);
       buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -571,7 +571,7 @@ public final class TransactionImpl implements Transaction {
         builder.encryptToSelfMessage(new Appendix.EncryptToSelfMessage(buffer, version));
       }
       return builder.build();
-    } catch (NxtException.NotValidException|RuntimeException e) {
+    } catch (BurstException.NotValidException|RuntimeException e) {
       logger.debug("Failed to parse transaction bytes: " + Convert.toHexString(bytes));
       throw e;
     }
@@ -624,7 +624,7 @@ public final class TransactionImpl implements Transaction {
     return json;
   }
 
-  static TransactionImpl parseTransaction(JSONObject transactionData) throws NxtException.NotValidException {
+  static TransactionImpl parseTransaction(JSONObject transactionData) throws BurstException.NotValidException {
     try {
       byte type = ((Long) transactionData.get("type")).byteValue();
       byte subtype = ((Long) transactionData.get("subtype")).byteValue();
@@ -644,7 +644,7 @@ public final class TransactionImpl implements Transaction {
 
       TransactionType transactionType = TransactionType.findTransactionType(type, subtype);
       if (transactionType == null) {
-        throw new NxtException.NotValidException("Invalid transaction type: " + type + ", " + subtype);
+        throw new BurstException.NotValidException("Invalid transaction type: " + type + ", " + subtype);
       }
       TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl(version, senderPublicKey,
                                                                             amountNQT, feeNQT, timestamp, deadline,
@@ -666,7 +666,7 @@ public final class TransactionImpl implements Transaction {
         builder.ecBlockId(Convert.parseUnsignedLong((String) transactionData.get("ecBlockId")));
       }
       return builder.build();
-    } catch (NxtException.NotValidException|RuntimeException e) {
+    } catch (BurstException.NotValidException|RuntimeException e) {
       logger.debug("Failed to parse transaction: " + transactionData.toJSONString());
       throw e;
     }
@@ -766,20 +766,20 @@ public final class TransactionImpl implements Transaction {
   }
 
   @Override
-  public void validate() throws NxtException.ValidationException {
+  public void validate() throws BurstException.ValidationException {
     for (Appendix.AbstractAppendix appendage : appendages) {
       appendage.validate(this);
     }
     long minimumFeeNQT = type.minimumFeeNQT(Burst.getBlockchain().getHeight(), appendagesSize);
     if (feeNQT < minimumFeeNQT) {
-      throw new NxtException.NotCurrentlyValidException(String.format("Transaction fee %d less than minimum fee %d at height %d",
+      throw new BurstException.NotCurrentlyValidException(String.format("Transaction fee %d less than minimum fee %d at height %d",
                                                                       feeNQT, minimumFeeNQT, Burst.getBlockchain().getHeight()));
     }
     if (Burst.getBlockchain().getHeight() >= Constants.PUBLIC_KEY_ANNOUNCEMENT_BLOCK) {
       if (type.hasRecipient() && recipientId != 0) {
         Account recipientAccount = Account.getAccount(recipientId);
         if ((recipientAccount == null || recipientAccount.getPublicKey() == null) && publicKeyAnnouncement == null) {
-          throw new NxtException.NotCurrentlyValidException("Recipient account does not have a public key, must attach a public key announcement");
+          throw new BurstException.NotCurrentlyValidException("Recipient account does not have a public key, must attach a public key announcement");
         }
       }
     }

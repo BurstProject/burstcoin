@@ -3,8 +3,8 @@ package brs.db.sql;
 import brs.DigitalGoodsStore;
 import brs.Burst;
 import brs.crypto.EncryptedData;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
 import brs.db.store.DigitalGoodsStoreStore;
@@ -16,15 +16,15 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
   private static final DbKey.LongKeyFactory<DigitalGoodsStore.Purchase> feedbackDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
 
       @Override
-      public NxtKey newKey(DigitalGoodsStore.Purchase purchase) {
+      public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
         return purchase.dbKey;
       }
 
     };
-  protected final NxtKey.LongKeyFactory<DigitalGoodsStore.Purchase> purchaseDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
+  protected final BurstKey.LongKeyFactory<DigitalGoodsStore.Purchase> purchaseDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
 
       @Override
-      public NxtKey newKey(DigitalGoodsStore.Purchase purchase) {
+      public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
         return purchase.dbKey;
       }
 
@@ -77,16 +77,16 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
   protected final DbKey.LongKeyFactory<DigitalGoodsStore.Purchase> publicFeedbackDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
 
       @Override
-      public NxtKey newKey(DigitalGoodsStore.Purchase purchase) {
+      public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
         return purchase.dbKey;
       }
 
     };
 
-  private final NxtKey.LongKeyFactory<DigitalGoodsStore.Goods> goodsDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Goods>("id") {
+  private final BurstKey.LongKeyFactory<DigitalGoodsStore.Goods> goodsDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Goods>("id") {
 
       @Override
-      public NxtKey newKey(DigitalGoodsStore.Goods goods) {
+      public BurstKey newKey(DigitalGoodsStore.Goods goods) {
         return goods.dbKey;
       }
 
@@ -111,7 +111,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
     };
 
   @Override
-  public NxtIterator<DigitalGoodsStore.Purchase> getExpiredPendingPurchases(final int timestamp) {
+  public BurstIterator<DigitalGoodsStore.Purchase> getExpiredPendingPurchases(final int timestamp) {
     DbClause dbClause = new DbClause(" deadline < ? AND pending = TRUE ") {
         @Override
         public int set(PreparedStatement pstmt, int index) throws SQLException {
@@ -141,12 +141,12 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
   }
 
   @Override
-  public NxtKey.LongKeyFactory<DigitalGoodsStore.Purchase> getFeedbackDbKeyFactory() {
+  public BurstKey.LongKeyFactory<DigitalGoodsStore.Purchase> getFeedbackDbKeyFactory() {
     return feedbackDbKeyFactory;
   }
 
   @Override
-  public NxtKey.LongKeyFactory<DigitalGoodsStore.Purchase> getPurchaseDbKeyFactory() {
+  public BurstKey.LongKeyFactory<DigitalGoodsStore.Purchase> getPurchaseDbKeyFactory() {
     return purchaseDbKeyFactory;
   }
 
@@ -169,7 +169,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
   public abstract VersionedValuesTable<DigitalGoodsStore.Purchase, String> getPublicFeedbackTable();
 
   @Override
-  public NxtKey.LongKeyFactory<DigitalGoodsStore.Goods> getGoodsDbKeyFactory() {
+  public BurstKey.LongKeyFactory<DigitalGoodsStore.Goods> getGoodsDbKeyFactory() {
     return goodsDbKeyFactory;
   }
 
@@ -183,7 +183,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
   protected abstract void savePurchase(Connection con, DigitalGoodsStore.Purchase purchase) throws SQLException;
 
   @Override
-  public NxtIterator<DigitalGoodsStore.Goods> getGoodsInStock(int from, int to) {
+  public BurstIterator<DigitalGoodsStore.Goods> getGoodsInStock(int from, int to) {
     DbClause dbClause = new DbClause(" delisted = FALSE AND quantity > 0 ") {
         @Override
         public int set(PreparedStatement pstmt, int index) throws SQLException {
@@ -194,7 +194,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
   }
 
   @Override
-  public NxtIterator<DigitalGoodsStore.Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
+  public BurstIterator<DigitalGoodsStore.Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
     DbClause dbClause = new DbClause(" seller_id = ? " + (inStockOnly ? "AND delisted = FALSE AND quantity > 0" : "")) {
         @Override
         public int set(PreparedStatement pstmt, int index) throws SQLException {
@@ -206,22 +206,22 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
   }
 
   @Override
-  public NxtIterator<DigitalGoodsStore.Purchase> getAllPurchases(int from, int to) {
+  public BurstIterator<DigitalGoodsStore.Purchase> getAllPurchases(int from, int to) {
     return purchaseTable.getAll(from, to);
   }
 
   @Override
-  public NxtIterator<DigitalGoodsStore.Purchase> getSellerPurchases(long sellerId, int from, int to) {
+  public BurstIterator<DigitalGoodsStore.Purchase> getSellerPurchases(long sellerId, int from, int to) {
     return purchaseTable.getManyBy(new DbClause.LongClause("seller_id", sellerId), from, to);
   }
 
   @Override
-  public NxtIterator<DigitalGoodsStore.Purchase> getBuyerPurchases(long buyerId, int from, int to) {
+  public BurstIterator<DigitalGoodsStore.Purchase> getBuyerPurchases(long buyerId, int from, int to) {
     return purchaseTable.getManyBy(new DbClause.LongClause("buyer_id", buyerId), from, to);
   }
 
   @Override
-  public NxtIterator<DigitalGoodsStore.Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
+  public BurstIterator<DigitalGoodsStore.Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
     DbClause dbClause = new DbClause(" seller_id = ? AND buyer_id = ? ") {
         @Override
         public int set(PreparedStatement pstmt, int index) throws SQLException {
@@ -234,7 +234,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
   }
 
   @Override
-  public NxtIterator<DigitalGoodsStore.Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
+  public BurstIterator<DigitalGoodsStore.Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
     DbClause dbClause = new DbClause(" seller_id = ? AND pending = TRUE ") {
         @Override
         public int set(PreparedStatement pstmt, int index) throws SQLException {

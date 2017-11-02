@@ -4,7 +4,7 @@ import brs.Block;
 import brs.Constants;
 import brs.Burst;
 import brs.Transaction;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.util.Convert;
@@ -29,7 +29,7 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
         JSONArray activePeers = new JSONArray(), knownPeers = new JSONArray(), blacklistedPeers = new JSONArray();
         JSONArray recentBlocks = new JSONArray();
 
-        try (NxtIterator<? extends Transaction> transactions = Burst.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+        try (BurstIterator<? extends Transaction> transactions = Burst.getTransactionProcessor().getAllUnconfirmedTransactions()) {
             while (transactions.hasNext()) {
                 Transaction transaction = transactions.next();
 
@@ -93,7 +93,7 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
             }
         }
 
-        try (NxtIterator<? extends Block> lastBlocks = Burst.getBlockchain().getBlocks(0, 59)) {
+        try (BurstIterator<? extends Block> lastBlocks = Burst.getBlockchain().getBlocks(0, 59)) {
             for (Block block : lastBlocks) {
                 JSONObject recentBlock = new JSONObject();
                 recentBlock.put("index", Users.getIndex(block));

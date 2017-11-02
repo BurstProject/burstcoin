@@ -1,13 +1,13 @@
 package brs;
 
 import brs.db.EntityTable;
-import brs.db.NxtKey;
+import brs.db.BurstKey;
 
 import java.util.Map;
 
 public class Vote {
 
-  private static final NxtKey.LongKeyFactory<Vote> voteDbKeyFactory = null;
+  private static final BurstKey.LongKeyFactory<Vote> voteDbKeyFactory = null;
 
   private static final EntityTable<Vote> voteTable = null;
 
@@ -33,7 +33,7 @@ public class Vote {
 
 
   private final long id;
-  private final NxtKey dbKey;
+  private final BurstKey dbKey;
   private final long pollId;
   private final long voterId;
   private final byte[] voteBytes;

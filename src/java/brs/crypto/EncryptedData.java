@@ -1,6 +1,6 @@
 package brs.crypto;
 
-import brs.NxtException;
+import brs.BurstException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -41,12 +41,12 @@ public final class EncryptedData {
     }
 
     public static EncryptedData readEncryptedData(ByteBuffer buffer, int length, int maxLength)
-            throws NxtException.NotValidException {
+            throws BurstException.NotValidException {
         if (length == 0) {
             return EMPTY_DATA;
         }
         if (length > maxLength) {
-            throw new NxtException.NotValidException("Max encrypted data length exceeded: " + length);
+            throw new BurstException.NotValidException("Max encrypted data length exceeded: " + length);
         }
         byte[] noteBytes = new byte[length];
         buffer.get(noteBytes);

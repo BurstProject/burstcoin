@@ -1,7 +1,7 @@
 package brs.peer;
 
 import brs.Burst;
-import brs.NxtException;
+import brs.BurstException;
 import brs.util.JSON;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -19,7 +19,7 @@ final class ProcessTransactions extends PeerServlet.PeerRequestHandler {
     try {
       Burst.getTransactionProcessor().processPeerTransactions(request);
       return JSON.emptyJSON;
-    } catch (RuntimeException | NxtException.ValidationException e) {
+    } catch (RuntimeException | BurstException.ValidationException e) {
       //logger.debug("Failed to parse peer transactions: " + request.toJSONString());
       peer.blacklist(e);
       JSONObject response = new JSONObject();

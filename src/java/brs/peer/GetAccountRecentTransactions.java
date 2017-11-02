@@ -3,7 +3,7 @@ package brs.peer;
 import brs.Account;
 import brs.Burst;
 import brs.Transaction;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -25,7 +25,7 @@ public class GetAccountRecentTransactions extends PeerServlet.PeerRequestHandler
       Account account = Account.getAccount(accountId);
       JSONArray transactions = new JSONArray();
       if(account != null) {
-        NxtIterator<? extends Transaction> iterator = Burst.getBlockchain().getTransactions(account, 0, (byte)-1, (byte)0, 0, 0, 9);
+        BurstIterator<? extends Transaction> iterator = Burst.getBlockchain().getTransactions(account, 0, (byte)-1, (byte)0, 0, 0, 9);
         while(iterator.hasNext()) {
           Transaction transaction = iterator.next();
           transactions.add(brs.http.JSONData.transaction(transaction));

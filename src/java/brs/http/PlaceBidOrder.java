@@ -3,7 +3,7 @@ package brs.http;
 import brs.Account;
 import brs.Asset;
 import brs.Attachment;
-import brs.NxtException;
+import brs.BurstException;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
 
@@ -20,7 +20,7 @@ public final class PlaceBidOrder extends CreateTransaction {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         Asset asset = ParameterParser.getAsset(req);
         long priceNQT = ParameterParser.getPriceNQT(req);

@@ -1,8 +1,8 @@
 package brs.http;
 
-import brs.NxtException;
+import brs.BurstException;
 import brs.Order;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -19,14 +19,14 @@ public final class GetAskOrderIds extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         long assetId = ParameterParser.getAsset(req).getId();
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray orderIds = new JSONArray();
-        try (NxtIterator<Order.Ask> askOrders = Order.Ask.getSortedOrders(assetId, firstIndex, lastIndex)) {
+        try (BurstIterator<Order.Ask> askOrders = Order.Ask.getSortedOrders(assetId, firstIndex, lastIndex)) {
             while (askOrders.hasNext()) {
                 orderIds.add(Convert.toUnsignedLong(askOrders.next().getId()));
             }

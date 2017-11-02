@@ -1,7 +1,7 @@
 package brs.user;
 
 import brs.Burst;
-import brs.NxtException;
+import brs.BurstException;
 import brs.util.Subnet;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -25,7 +25,7 @@ public final class UserServlet extends HttpServlet  {
   private static final Logger logger = LoggerFactory.getLogger(UserServlet.class);
 
   abstract static class UserRequestHandler {
-    abstract JSONStreamAware processRequest(HttpServletRequest request, User user) throws NxtException, IOException;
+    abstract JSONStreamAware processRequest(HttpServletRequest request, User user) throws BurstException, IOException;
     boolean requirePost() {
       return false;
     }
@@ -113,7 +113,7 @@ public final class UserServlet extends HttpServlet  {
         user.enqueue(response);
       }
 
-    } catch (RuntimeException|NxtException e) {
+    } catch (RuntimeException|BurstException e) {
 
       logger.info("Error processing GET request", e);
       if (user != null) {

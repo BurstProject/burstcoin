@@ -1,7 +1,7 @@
 package brs.util;
 
 import brs.Constants;
-import brs.NxtException;
+import brs.BurstException;
 import brs.crypto.Crypto;
 
 import java.io.UnsupportedEncodingException;
@@ -151,9 +151,9 @@ public final class Convert {
         }
     }
 
-    public static String readString(ByteBuffer buffer, int numBytes, int maxLength) throws NxtException.NotValidException {
+    public static String readString(ByteBuffer buffer, int numBytes, int maxLength) throws BurstException.NotValidException {
         if (numBytes > 3 * maxLength) {
-            throw new NxtException.NotValidException("Max parameter length exceeded");
+            throw new BurstException.NotValidException("Max parameter length exceeded");
         }
         byte[] bytes = new byte[numBytes];
         buffer.get(bytes);

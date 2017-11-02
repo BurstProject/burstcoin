@@ -3,7 +3,7 @@ package brs.http;
 import brs.Account;
 import brs.Attachment;
 import brs.DigitalGoodsStore;
-import brs.NxtException;
+import brs.BurstException;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,7 +19,7 @@ public final class DGSDelisting extends CreateTransaction {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
         Account account = ParameterParser.getSenderAccount(req);
         DigitalGoodsStore.Goods goods = ParameterParser.getGoods(req);
         if (goods.isDelisted() || goods.getSellerId() != account.getId()) {

@@ -3,7 +3,7 @@ package brs;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import brs.db.BlockDb;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -71,22 +71,22 @@ public final class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public NxtIterator<BlockImpl> getAllBlocks() {
+  public BurstIterator<BlockImpl> getAllBlocks() {
     return Burst.getStores().getBlockchainStore().getAllBlocks();
   }
     
   @Override
-  public NxtIterator<BlockImpl> getBlocks(int from, int to) {
+  public BurstIterator<BlockImpl> getBlocks(int from, int to) {
     return Burst.getStores().getBlockchainStore().getBlocks(from, to);
   }
 
   @Override
-  public NxtIterator<BlockImpl> getBlocks(Account account, int timestamp) {
+  public BurstIterator<BlockImpl> getBlocks(Account account, int timestamp) {
     return getBlocks(account, timestamp, 0, -1);
   }
 
   @Override
-  public NxtIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to) {
+  public BurstIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to) {
     return Burst.getStores().getBlockchainStore().getBlocks(account, timestamp, from, to);
   }
 
@@ -150,17 +150,17 @@ public final class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public NxtIterator<TransactionImpl> getAllTransactions() {
+  public BurstIterator<TransactionImpl> getAllTransactions() {
     return Burst.getStores().getBlockchainStore().getAllTransactions();
   }
 
   @Override
-  public NxtIterator<TransactionImpl> getTransactions(Account account, byte type, byte subtype, int blockTimestamp) {
+  public BurstIterator<TransactionImpl> getTransactions(Account account, byte type, byte subtype, int blockTimestamp) {
     return getTransactions(account, 0, type, subtype, blockTimestamp, 0, -1);
   }
 
   @Override
-  public NxtIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
+  public BurstIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                       int blockTimestamp, int from, int to) {
     return Burst.getStores().getBlockchainStore().getTransactions(account, numberOfConfirmations, type, subtype, blockTimestamp, from, to);
 

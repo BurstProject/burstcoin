@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.Account;
 import brs.Attachment;
-import brs.NxtException;
+import brs.BurstException;
 import brs.Subscription;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
@@ -20,7 +20,7 @@ public final class SubscriptionCancel extends CreateTransaction {
 	}
 	
 	@Override
-	JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+	JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 		Account sender = ParameterParser.getSenderAccount(req);
 		
 		String subscriptionString = Convert.emptyToNull(req.getParameter("subscription"));

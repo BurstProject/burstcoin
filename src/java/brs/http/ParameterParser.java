@@ -443,7 +443,7 @@ final class ParameterParser {
             try {
                 byte[] bytes = Convert.parseHexString(transactionBytes);
                 return Burst.getTransactionProcessor().parseTransaction(bytes);
-            } catch (NxtException.ValidationException|RuntimeException e) {
+            } catch (BurstException.ValidationException|RuntimeException e) {
                 logger.debug(e.getMessage(), e);
                 JSONObject response = new JSONObject();
                 response.put("errorCode", 4);
@@ -454,7 +454,7 @@ final class ParameterParser {
             try {
                 JSONObject json = (JSONObject) JSONValue.parseWithException(transactionJSON);
                 return Burst.getTransactionProcessor().parseTransaction(json);
-            } catch (NxtException.ValidationException | RuntimeException | ParseException e) {
+            } catch (BurstException.ValidationException | RuntimeException | ParseException e) {
                 logger.debug(e.getMessage(), e);
                 JSONObject response = new JSONObject();
                 response.put("errorCode", 4);

@@ -1,8 +1,8 @@
 package brs.db.sql;
 
 import brs.*;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.store.TransactionProcessorStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
     protected final DbKey.LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory = new DbKey.LongKeyFactory<TransactionImpl>("id") {
 
         @Override
-        public NxtKey newKey(TransactionImpl transaction) {
+        public BurstKey newKey(TransactionImpl transaction) {
             return transaction.getDbKey();
         }
 
@@ -39,7 +39,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
                         TransactionImpl transaction = TransactionImpl.parseTransaction(transactionBytes);
                         transaction.setHeight(rs.getInt("transaction_height"));
                         return transaction;
-                    } catch (NxtException.ValidationException e) {
+                    } catch (BurstException.ValidationException e) {
                         throw new RuntimeException(e.toString(), e);
                     }
                 }
@@ -125,7 +125,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
     }
 
     @Override
-    public NxtIterator<TransactionImpl> getExpiredTransactions() {
+    public BurstIterator<TransactionImpl> getExpiredTransactions() {
         return unconfirmedTransactionTable.getManyBy(expiredClause, 0, -1, "");
     }
 

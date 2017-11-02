@@ -1,7 +1,7 @@
 package brs.http;
 
 import brs.Poll;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -24,7 +24,7 @@ public final class GetPollIds extends APIServlet.APIRequestHandler {
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray pollIds = new JSONArray();
-        try (NxtIterator<Poll> polls = Poll.getAllPolls(firstIndex, lastIndex)) {
+        try (BurstIterator<Poll> polls = Poll.getAllPolls(firstIndex, lastIndex)) {
             while (polls.hasNext()) {
                 pollIds.add(Convert.toUnsignedLong(polls.next().getId()));
             }

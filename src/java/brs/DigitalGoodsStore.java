@@ -1,8 +1,8 @@
 package brs;
 
 import brs.crypto.EncryptedData;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
 //import brs.db.sql.*;
@@ -28,7 +28,7 @@ public final class DigitalGoodsStore {
     Burst.getBlockchainProcessor().addListener(new Listener<Block>() {
         @Override
         public void notify(Block block) {
-          try (NxtIterator<Purchase> purchases = getExpiredPendingPurchases(block.getTimestamp())) {
+          try (BurstIterator<Purchase> purchases = getExpiredPendingPurchases(block.getTimestamp())) {
             while (purchases.hasNext()) {
               Purchase purchase = purchases.next();
               Account buyer = Account.getAccount(purchase.getBuyerId());
@@ -68,7 +68,7 @@ public final class DigitalGoodsStore {
 
   public static   class Goods {
 
-    private static final NxtKey.LongKeyFactory<Goods> goodsDbKeyFactory = Burst.getStores().getDigitalGoodsStoreStore().getGoodsDbKeyFactory();
+    private static final BurstKey.LongKeyFactory<Goods> goodsDbKeyFactory = Burst.getStores().getDigitalGoodsStoreStore().getGoodsDbKeyFactory();
 
 
     private static final VersionedEntityTable<Goods> goodsTable = Burst.getStores().getDigitalGoodsStoreStore().getGoodsTable();
@@ -77,7 +77,7 @@ public final class DigitalGoodsStore {
 
 
     private final long id;
-    public final NxtKey dbKey;
+    public final BurstKey dbKey;
     private final long sellerId;
     private final String name;
     private final String description;
@@ -87,7 +87,7 @@ public final class DigitalGoodsStore {
     private long priceNQT;
     private boolean delisted;
 
-    protected Goods(long id, NxtKey dbKey, long sellerId, String name, String description, String tags, int timestamp,
+    protected Goods(long id, BurstKey dbKey, long sellerId, String name, String description, String tags, int timestamp,
                     int quantity, long priceNQT, boolean delisted) {
       this.id = id;
       this.dbKey = dbKey;
@@ -189,14 +189,14 @@ public final class DigitalGoodsStore {
 
   public static  class Purchase {
 
-    private static final NxtKey.LongKeyFactory<Purchase> purchaseDbKeyFactory =
+    private static final BurstKey.LongKeyFactory<Purchase> purchaseDbKeyFactory =
         Burst.getStores().getDigitalGoodsStoreStore().getPurchaseDbKeyFactory();
 
     private static final VersionedEntityTable<Purchase> purchaseTable=
         Burst.getStores().getDigitalGoodsStoreStore().getPurchaseTable();
 
 
-    private static final NxtKey.LongKeyFactory<Purchase> feedbackDbKeyFactory =
+    private static final BurstKey.LongKeyFactory<Purchase> feedbackDbKeyFactory =
         Burst.getStores().getDigitalGoodsStoreStore().getFeedbackDbKeyFactory();
 
 
@@ -205,7 +205,7 @@ public final class DigitalGoodsStore {
         Burst.getStores().getDigitalGoodsStoreStore().getFeedbackTable();
 
 
-    private static final NxtKey.LongKeyFactory<Purchase> publicFeedbackDbKeyFactory =
+    private static final BurstKey.LongKeyFactory<Purchase> publicFeedbackDbKeyFactory =
         Burst.getStores().getDigitalGoodsStoreStore().getPublicFeedbackDbKeyFactory();
 
 
@@ -216,7 +216,7 @@ public final class DigitalGoodsStore {
 
 
     private final long id;
-    public final NxtKey dbKey;
+    public final BurstKey dbKey;
     private final long buyerId;
     private final long goodsId;
     private final long sellerId;
@@ -250,7 +250,7 @@ public final class DigitalGoodsStore {
       this.isPending = true;
     }
 
-    protected Purchase(long id, NxtKey dbKey, long buyerId, long goodsId, long sellerId, int quantity,
+    protected Purchase(long id, BurstKey dbKey, long buyerId, long goodsId, long sellerId, int quantity,
                        long priceNQT, int deadline, EncryptedData note, int timestamp, boolean isPending,
                        EncryptedData encryptedGoods,EncryptedData refundNote,
                        boolean hasFeedbackNotes, boolean hasPublicFeedbacks,
@@ -418,32 +418,32 @@ public final class DigitalGoodsStore {
     return Goods.goodsTable.get(Goods.goodsDbKeyFactory.newKey(goodsId));
   }
 
-  public static NxtIterator<Goods> getAllGoods(int from, int to) {
+  public static BurstIterator<Goods> getAllGoods(int from, int to) {
     return Goods.goodsTable.getAll(from, to);
   }
 
-  public static NxtIterator<Goods> getGoodsInStock(int from, int to) {
+  public static BurstIterator<Goods> getGoodsInStock(int from, int to) {
     return Burst.getStores().getDigitalGoodsStoreStore().getGoodsInStock(from, to);
 
   }
 
-  public static NxtIterator<Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
+  public static BurstIterator<Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
     return Burst.getStores().getDigitalGoodsStoreStore().getSellerGoods(sellerId, inStockOnly, from, to);
   }
 
-  public static NxtIterator<Purchase> getAllPurchases(int from, int to) {
+  public static BurstIterator<Purchase> getAllPurchases(int from, int to) {
     return Purchase.purchaseTable.getAll(from, to);
   }
 
-  public static NxtIterator<Purchase> getSellerPurchases(long sellerId, int from, int to) {
+  public static BurstIterator<Purchase> getSellerPurchases(long sellerId, int from, int to) {
     return Burst.getStores().getDigitalGoodsStoreStore().getSellerPurchases(sellerId,  from, to);
   }
 
-  public static NxtIterator<Purchase> getBuyerPurchases(long buyerId, int from, int to) {
+  public static BurstIterator<Purchase> getBuyerPurchases(long buyerId, int from, int to) {
     return Burst.getStores().getDigitalGoodsStoreStore().getBuyerPurchases(buyerId,  from, to);
   }
 
-  public static NxtIterator<Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
+  public static BurstIterator<Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
     return Burst.getStores().getDigitalGoodsStoreStore().getSellerBuyerPurchases(sellerId, buyerId, from, to);
   }
 
@@ -451,7 +451,7 @@ public final class DigitalGoodsStore {
     return Purchase.purchaseTable.get(Purchase.purchaseDbKeyFactory.newKey(purchaseId));
   }
 
-  public static NxtIterator<Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
+  public static BurstIterator<Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
     return Burst.getStores().getDigitalGoodsStoreStore().getPendingSellerPurchases(sellerId, from, to);
   }
 
@@ -460,7 +460,7 @@ public final class DigitalGoodsStore {
     return purchase == null || ! purchase.isPending() ? null : purchase;
   }
 
-  private static NxtIterator<Purchase> getExpiredPendingPurchases(final int timestamp) {
+  private static BurstIterator<Purchase> getExpiredPendingPurchases(final int timestamp) {
     return Burst.getStores().getDigitalGoodsStoreStore().getExpiredPendingPurchases(timestamp);
   }
 

@@ -23,7 +23,7 @@ public abstract class SqlTransactionDb implements TransactionDb {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
-        } catch (NxtException.ValidationException e) {
+        } catch (BurstException.ValidationException e) {
             throw new RuntimeException("Transaction already in database, id = " + transactionId + ", does not pass validation!", e);
         }
     }
@@ -40,7 +40,7 @@ public abstract class SqlTransactionDb implements TransactionDb {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
-        } catch (NxtException.ValidationException e) {
+        } catch (BurstException.ValidationException e) {
             throw new RuntimeException("Transaction already in database, full_hash = " + fullHash + ", does not pass validation!", e);
         }
     }
@@ -70,7 +70,7 @@ public abstract class SqlTransactionDb implements TransactionDb {
     }
 
     @Override
-    public TransactionImpl loadTransaction(Connection con, ResultSet rs) throws NxtException.ValidationException {
+    public TransactionImpl loadTransaction(Connection con, ResultSet rs) throws BurstException.ValidationException {
         try {
 
             byte type = rs.getByte("type");
@@ -154,7 +154,7 @@ public abstract class SqlTransactionDb implements TransactionDb {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
-        } catch (NxtException.ValidationException e) {
+        } catch (BurstException.ValidationException e) {
             throw new RuntimeException("Transaction already in database for block_id = " + Convert.toUnsignedLong(blockId)
                     + " does not pass validation!", e);
         }

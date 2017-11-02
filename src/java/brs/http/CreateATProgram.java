@@ -20,7 +20,7 @@ public final class CreateATProgram extends CreateTransaction {
 	}
 	
 	@Override
-	JSONStreamAware processRequest (HttpServletRequest req) throws NxtException {
+	JSONStreamAware processRequest (HttpServletRequest req) throws BurstException {
 		//String atVersion = req.getParameter("atVersion");		
 		String name = req.getParameter("name");
 		String description = req.getParameter("description");

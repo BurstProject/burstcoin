@@ -1,8 +1,8 @@
 package brs.http;
 
 import brs.Account;
-import brs.NxtException;
-import brs.db.NxtIterator;
+import brs.BurstException;
+import brs.db.BurstIterator;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -19,7 +19,7 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         Account account = ParameterParser.getAccount(req);
 
@@ -37,7 +37,7 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
         }
 
 
-        try (NxtIterator<Account.AccountAsset> accountAssets = account.getAssets(0, -1)) {
+        try (BurstIterator<Account.AccountAsset> accountAssets = account.getAssets(0, -1)) {
             JSONArray assetBalances = new JSONArray();
             JSONArray unconfirmedAssetBalances = new JSONArray();
             while (accountAssets.hasNext()) {

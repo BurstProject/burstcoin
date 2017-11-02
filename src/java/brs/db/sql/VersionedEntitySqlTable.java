@@ -1,7 +1,7 @@
 package brs.db.sql;
 
 import brs.Burst;
-import brs.db.NxtKey;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 
 import java.sql.Connection;
@@ -13,7 +13,7 @@ import java.util.List;
 
 public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> implements VersionedEntityTable<T> {
 
-  protected VersionedEntitySqlTable(String table, NxtKey.Factory<T> dbKeyFactory) {
+  protected VersionedEntitySqlTable(String table, BurstKey.Factory<T> dbKeyFactory) {
     super(table, dbKeyFactory, true);
   }
 

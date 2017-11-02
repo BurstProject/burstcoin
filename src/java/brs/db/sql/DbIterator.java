@@ -1,6 +1,6 @@
 package brs.db.sql;
 
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-class DbIterator<T> implements NxtIterator<T>
+class DbIterator<T> implements BurstIterator<T>
 {
 
     private final Connection con;

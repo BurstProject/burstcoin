@@ -2,8 +2,8 @@ package brs.http;
 
 import brs.Account;
 import brs.Burst;
-import brs.NxtException;
-import brs.db.NxtIterator;
+import brs.BurstException;
+import brs.db.BurstIterator;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -20,7 +20,7 @@ public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestH
   }
 	
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     JSONObject response = new JSONObject();
 		
     Account targetAccount = ParameterParser.getAccount(req);
@@ -40,7 +40,7 @@ public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestH
       accounts.add(Convert.toUnsignedLong(account.getId()));
       }
       }*/
-    NxtIterator<Account.RewardRecipientAssignment> assignments = Account.getAccountsWithRewardRecipient(targetAccount.getId());
+    BurstIterator<Account.RewardRecipientAssignment> assignments = Account.getAccountsWithRewardRecipient(targetAccount.getId());
     while(assignments.hasNext()) {
       Account.RewardRecipientAssignment assignment = assignments.next();
       accounts.add(Convert.toUnsignedLong(assignment.accountId));

@@ -2,9 +2,9 @@ package brs.http;
 
 import brs.Account;
 import brs.Asset;
-import brs.NxtException;
+import brs.BurstException;
 import brs.Trade;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.db.sql.DbUtils;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
@@ -22,7 +22,7 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         String assetId = Convert.emptyToNull(req.getParameter("asset"));
         String accountId = Convert.emptyToNull(req.getParameter("account"));
@@ -33,7 +33,7 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
 
         JSONObject response = new JSONObject();
         JSONArray tradesData = new JSONArray();
-        NxtIterator<Trade> trades = null;
+        BurstIterator<Trade> trades = null;
         try {
             if (accountId == null) {
                 Asset asset = ParameterParser.getAsset(req);
