@@ -248,7 +248,7 @@
                                 <copy todir="${project.basedir}/dist/tmp/conf">
                                     <fileset dir="${project.basedir}/conf">
                                         <include name="logging-default.properties"/>
-                                        <include name="nxt-default.properties"/>
+                                        <include name="brs-default.properties"/>
                                     </fileset>
                                 </copy>
                                 <!-- copy remaining files from root dir -->

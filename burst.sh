@@ -58,7 +58,7 @@ if [[ $# -gt 0 ]] ; then
                 cp -r target/site/apidocs html/ui/doc
                 cp dist/tmp/burst.jar .
                 echo a .zip file has been built for distribution in dist/, its contents are in dist/tmp
-                echo Nevertheless, now you can start the wallet with ./run.sh
+                echo Nevertheless, now you can start the wallet with ./burst.sh
             else
                 echo This build method is no longer supported. Please install maven.
                 echo https://maven.apache.org/install.html
