@@ -21,7 +21,7 @@ installation for you.
 
 If you are not familiar with MariaDB we recommend you to go for
 Firebird, in which case the following data needs to be added to
-`conf/nxt.properties`
+`conf/brs.properties`
 
 ```
 nxt.dbUrl=jdbc:firebirdsql:embedded:burst.firebird.db
@@ -55,7 +55,7 @@ mysql -uroot burstwallet < init-mysql.sql
 
 ##### Configure your Wallet
 
-Now you need to add the following stuff to your conf/nxt.properties:
+Now you need to add the following stuff to your conf/brs.properties:
 
 ```
 nxt.dbUrl=jdbc:mariadb://localhost:3306/burstwallet
