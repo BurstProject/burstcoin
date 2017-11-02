@@ -2,11 +2,10 @@
 /dist
 /.idea
 burst.jar
-burst_test_db
-burst_db
-nxt.log
+brs.log
+brs.log.*
 /conf/logging.properties
-/conf/nxt.properties
+/conf/brs.properties
 _config.yml
+/html/ui/doc/*
 target
-nxt.log.*
