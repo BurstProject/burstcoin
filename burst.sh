@@ -36,15 +36,15 @@ if [[ $# -gt 0 ]] ; then
     case "$MY_CMD" in
         "load")
             maybe_load_dump_usage
-            java -cp burst.jar:conf nxt.db.quicksync.LoadBinDump "$MY_ARG"
+            java -cp burst.jar:conf brs.db.quicksync.LoadBinDump "$MY_ARG"
             ;;
         "loadsilent")
             maybe_load_dump_usage
-            java -cp burst.jar:conf nxt.db.quicksync.LoadBinDump "$MY_ARG" -y
+            java -cp burst.jar:conf brs.db.quicksync.LoadBinDump "$MY_ARG" -y
             ;;
         "dump")
             maybe_load_dump_usage
-            java -cp burst.jar:conf nxt.db.quicksync.CreateBinDump "$MY_ARG"
+            java -cp burst.jar:conf brs.db.quicksync.CreateBinDump "$MY_ARG"
             ;;
         "compile")
             if [ -d "maven/apache-maven-${MY_MAVEN_VERSION}" ]; then
@@ -55,10 +55,12 @@ if [[ $# -gt 0 ]] ; then
             if hash mvn 2>/dev/null; then
                 mvn package
                 mvn javadoc:javadoc-no-fork
-                cp -r target/site/apidocs html/ui/doc
+                rm -rf html/ui/doc
+                mkdir -p html/ui/doc
+                cp -r target/site/apidocs/* html/ui/doc
                 cp dist/tmp/burst.jar .
                 echo a .zip file has been built for distribution in dist/, its contents are in dist/tmp
-                echo Nevertheless, now you can start the wallet with ./run.sh
+                echo Nevertheless, now you can start the wallet with ./burst.sh
             else
                 echo This build method is no longer supported. Please install maven.
                 echo https://maven.apache.org/install.html
@@ -82,5 +84,5 @@ if [[ $# -gt 0 ]] ; then
             ;;
     esac
 else
-    java -cp burst.jar:conf nxt.Nxt
+    java -cp burst.jar:conf brs.Burst
 fi
