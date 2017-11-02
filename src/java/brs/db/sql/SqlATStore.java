@@ -1,7 +1,7 @@
 package brs.db.sql;
 
 import brs.AT;
-import brs.Nxt;
+import brs.Burst;
 import brs.at.AT_API_Helper;
 import brs.at.AT_Constants;
 import brs.db.NxtKey;
@@ -96,9 +96,9 @@ public abstract class SqlATStore implements ATStore {
                      + "AND at_state.next_height <= ? AND account.balance >= ? "
                      + "AND (at_state.freeze_when_same_balance = FALSE OR (account.balance - at_state.prev_balance >= at_state.min_activate_amount)) "
                      + "ORDER BY at_state.prev_height, at_state.next_height, at.id")) {
-            pstmt.setInt(1, Nxt.getBlockchain().getHeight() + 1);
-            pstmt.setLong(2, AT_Constants.getInstance().STEP_FEE(Nxt.getBlockchain().getHeight()) *
-                    AT_Constants.getInstance().API_STEP_MULTIPLIER(Nxt.getBlockchain().getHeight()));
+            pstmt.setInt(1, Burst.getBlockchain().getHeight() + 1);
+            pstmt.setLong(2, AT_Constants.getInstance().STEP_FEE(Burst.getBlockchain().getHeight()) *
+                    AT_Constants.getInstance().API_STEP_MULTIPLIER(Burst.getBlockchain().getHeight()));
             ResultSet result = pstmt.executeQuery();
             while (result.next()) {
                 Long id = result.getLong(1);

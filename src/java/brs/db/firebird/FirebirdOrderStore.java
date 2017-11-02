@@ -1,6 +1,6 @@
 package brs.db.firebird;
 
-import brs.Nxt;
+import brs.Burst;
 import brs.Order;
 import brs.db.sql.SqlOrderStore;
 
@@ -20,7 +20,7 @@ class FirebirdOrderStore extends SqlOrderStore {
             pstmt.setLong(++i, order.getPriceNQT());
             pstmt.setLong(++i, order.getQuantityQNT());
             pstmt.setInt(++i, order.getHeight());
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.setInt(++i, Burst.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
     }

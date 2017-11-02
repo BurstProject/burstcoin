@@ -41,25 +41,25 @@ public class Alias {
 
   }
 
-  private static final NxtKey.LongKeyFactory<Alias> aliasDbKeyFactory = Nxt.getStores().getAliasStore().getAliasDbKeyFactory();
+  private static final NxtKey.LongKeyFactory<Alias> aliasDbKeyFactory = Burst.getStores().getAliasStore().getAliasDbKeyFactory();
 
-  private static final VersionedEntityTable<Alias> aliasTable = Nxt.getStores().getAliasStore().getAliasTable();
+  private static final VersionedEntityTable<Alias> aliasTable = Burst.getStores().getAliasStore().getAliasTable();
 
 
-  private static final NxtKey.LongKeyFactory<Offer> offerDbKeyFactory = Nxt.getStores().getAliasStore().getOfferDbKeyFactory();
+  private static final NxtKey.LongKeyFactory<Offer> offerDbKeyFactory = Burst.getStores().getAliasStore().getOfferDbKeyFactory();
 
-  private static final VersionedEntityTable<Offer> offerTable = Nxt.getStores().getAliasStore().getOfferTable();
+  private static final VersionedEntityTable<Offer> offerTable = Burst.getStores().getAliasStore().getOfferTable();
 
   public static int getCount() {
     return aliasTable.getCount();
   }
 
   public static NxtIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
-    return Nxt.getStores().getAliasStore().getAliasesByOwner(accountId, from, to);
+    return Burst.getStores().getAliasStore().getAliasesByOwner(accountId, from, to);
   }
 
   public static Alias getAlias(String aliasName) {
-    return Nxt.getStores().getAliasStore().getAlias(aliasName);
+    return Burst.getStores().getAliasStore().getAlias(aliasName);
   }
 
   public static Alias getAlias(long id) {

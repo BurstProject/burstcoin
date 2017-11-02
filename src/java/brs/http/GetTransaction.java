@@ -1,6 +1,6 @@
 package brs.http;
 
-import brs.Nxt;
+import brs.Burst;
 import brs.Transaction;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
@@ -11,47 +11,47 @@ import static brs.http.JSONResponses.*;
 
 public final class GetTransaction extends APIServlet.APIRequestHandler {
 
-    static final GetTransaction instance = new GetTransaction();
+  static final GetTransaction instance = new GetTransaction();
 
-    private GetTransaction() {
-        super(new APITag[] {APITag.TRANSACTIONS}, "transaction", "fullHash");
+  private GetTransaction() {
+    super(new APITag[] {APITag.TRANSACTIONS}, "transaction", "fullHash");
+  }
+
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req) {
+
+    String transactionIdString = Convert.emptyToNull(req.getParameter("transaction"));
+    String transactionFullHash = Convert.emptyToNull(req.getParameter("fullHash"));
+    if (transactionIdString == null && transactionFullHash == null) {
+      return MISSING_TRANSACTION;
     }
 
-    @Override
-    JSONStreamAware processRequest(HttpServletRequest req) {
-
-        String transactionIdString = Convert.emptyToNull(req.getParameter("transaction"));
-        String transactionFullHash = Convert.emptyToNull(req.getParameter("fullHash"));
-        if (transactionIdString == null && transactionFullHash == null) {
-            return MISSING_TRANSACTION;
-        }
-
-        long transactionId = 0;
-        Transaction transaction;
-        try {
-            if (transactionIdString != null) {
-                transactionId = Convert.parseUnsignedLong(transactionIdString);
-                transaction = Nxt.getBlockchain().getTransaction(transactionId);
-            } else {
-                transaction = Nxt.getBlockchain().getTransactionByFullHash(transactionFullHash);
-                if (transaction == null) {
-                    return UNKNOWN_TRANSACTION;
-                }
-            }
-        } catch (RuntimeException e) {
-            return INCORRECT_TRANSACTION;
-        }
-
+    long transactionId = 0;
+    Transaction transaction;
+    try {
+      if (transactionIdString != null) {
+        transactionId = Convert.parseUnsignedLong(transactionIdString);
+        transaction = Burst.getBlockchain().getTransaction(transactionId);
+      } else {
+        transaction = Burst.getBlockchain().getTransactionByFullHash(transactionFullHash);
         if (transaction == null) {
-            transaction = Nxt.getTransactionProcessor().getUnconfirmedTransaction(transactionId);
-            if (transaction == null) {
-                return UNKNOWN_TRANSACTION;
-            }
-            return JSONData.unconfirmedTransaction(transaction);
-        } else {
-            return JSONData.transaction(transaction);
+          return UNKNOWN_TRANSACTION;
         }
-
+      }
+    } catch (RuntimeException e) {
+      return INCORRECT_TRANSACTION;
     }
+
+    if (transaction == null) {
+      transaction = Burst.getTransactionProcessor().getUnconfirmedTransaction(transactionId);
+      if (transaction == null) {
+        return UNKNOWN_TRANSACTION;
+      }
+      return JSONData.unconfirmedTransaction(transaction);
+    } else {
+      return JSONData.transaction(transaction);
+    }
+
+  }
 
 }

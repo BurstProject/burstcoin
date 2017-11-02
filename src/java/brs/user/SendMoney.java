@@ -119,12 +119,12 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
 
         } else {
 
-            final Transaction transaction = Nxt.getTransactionProcessor().newTransactionBuilder(user.getPublicKey(),
+            final Transaction transaction = Burst.getTransactionProcessor().newTransactionBuilder(user.getPublicKey(),
                     amountNQT, feeNQT, deadline, Attachment.ORDINARY_PAYMENT).recipientId(recipient).build();
             transaction.validate();
             transaction.sign(user.getSecretPhrase());
 
-            Nxt.getTransactionProcessor().broadcast(transaction);
+            Burst.getTransactionProcessor().broadcast(transaction);
 
             return NOTIFY_OF_ACCEPTED_TRANSACTION;
 

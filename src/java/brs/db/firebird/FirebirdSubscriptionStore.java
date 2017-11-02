@@ -1,6 +1,6 @@
 package brs.db.firebird;
 
-import brs.Nxt;
+import brs.Burst;
 import brs.Subscription;
 import brs.db.sql.SqlSubscriptionStore;
 
@@ -22,7 +22,7 @@ class FirebirdSubscriptionStore extends SqlSubscriptionStore {
             pstmt.setLong(++i, subscription.amountNQT);
             pstmt.setInt(++i, subscription.frequency);
             pstmt.setInt(++i, subscription.timeNext);
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.setInt(++i, Burst.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
     }

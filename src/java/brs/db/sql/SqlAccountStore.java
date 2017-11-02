@@ -1,7 +1,7 @@
 package brs.db.sql;
 
 import brs.Account;
-import brs.Nxt;
+import brs.Burst;
 import brs.db.NxtIterator;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.VersionedEntityTable;
@@ -64,7 +64,7 @@ public abstract class SqlAccountStore implements AccountStore {
         DbUtils.setString(pstmt, ++i, account.getName());
         DbUtils.setString(pstmt, ++i, account.getDescription());
         pstmt.setLong(++i, account.getId());
-        pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+        pstmt.setInt(++i, Burst.getBlockchain().getHeight());
         pstmt.addBatch();
     }
 
@@ -108,7 +108,7 @@ public abstract class SqlAccountStore implements AccountStore {
 
     @Override
     public NxtIterator<Account.RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
-        return getRewardRecipientAssignmentTable().getManyBy(getAccountsWithRewardRecipientClause(recipientId, Nxt.getBlockchain().getHeight() + 1), 0, -1);
+        return getRewardRecipientAssignmentTable().getManyBy(getAccountsWithRewardRecipientClause(recipientId, Burst.getBlockchain().getHeight() + 1), 0, -1);
     }
 
     @Override

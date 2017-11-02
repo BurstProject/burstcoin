@@ -24,7 +24,7 @@ public final class Constants {
   public static final long MAX_BALANCE_NQT = MAX_BALANCE_NXT * ONE_NXT;
   public static final long INITIAL_BASE_TARGET = 18325193796L;
   public static final long MAX_BASE_TARGET = 18325193796L;
-  public static final int MAX_ROLLBACK = Nxt.getIntProperty("brs.maxRollback");
+  public static final int MAX_ROLLBACK = Burst.getIntProperty("brs.maxRollback");
   static {
     if (MAX_ROLLBACK < 1440) {
       throw new RuntimeException("brs.maxRollback must be at least 1440");
@@ -62,8 +62,8 @@ public final class Constants {
   public static final int MAX_HUB_ANNOUNCEMENT_URI_LENGTH = 1000;
   public static final long MIN_HUB_EFFECTIVE_BALANCE = 100000;
 
-  public static final boolean isTestnet = Nxt.getBooleanProperty("brs.isTestnet");
-  public static final boolean isOffline = Nxt.getBooleanProperty("brs.isOffline");
+  public static final boolean isTestnet = Burst.getBooleanProperty("brs.isTestnet");
+  public static final boolean isOffline = Burst.getBooleanProperty("brs.isOffline");
 
   public static final int ALIAS_SYSTEM_BLOCK = 0;
   public static final int TRANSPARENT_FORGING_BLOCK = 0;

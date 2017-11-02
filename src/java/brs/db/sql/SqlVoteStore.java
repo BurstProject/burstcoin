@@ -48,7 +48,7 @@ public abstract class SqlVoteStore implements VoteStore {
 //                pstmt.setLong(++i, this.getPollId());
 //                pstmt.setLong(++i, this.getVoterId());
 //                pstmt.setBytes(++i, this.getVote());
-//                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+//                pstmt.setInt(++i, Burst.getBlockchain().getHeight());
 //                pstmt.executeUpdate();
 //            }
 //        }

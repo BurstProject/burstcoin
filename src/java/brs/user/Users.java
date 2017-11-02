@@ -58,7 +58,7 @@ public final class Users {
 
   static {
 
-    List<String> allowedUserHostsList = Nxt.getStringListProperty("brs.allowedUserHosts");
+    List<String> allowedUserHostsList = Burst.getStringListProperty("brs.allowedUserHosts");
     if (! allowedUserHostsList.contains("*")) {
 
       // Temp hashset to store allowed subnets

@@ -136,7 +136,7 @@ public abstract class SqlEscrowStore implements EscrowStore {
             }
             if (resultTransactions.size() > 0) {
                 try (Connection con = Db.getConnection()) {
-                    Nxt.getDbs().getTransactionDb().saveTransactions( resultTransactions);
+                    Burst.getDbs().getTransactionDb().saveTransactions( resultTransactions);
                 } catch (SQLException e) {
                     throw new RuntimeException(e.toString(), e);
                 }

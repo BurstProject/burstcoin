@@ -27,7 +27,7 @@ import java.util.zip.GZIPOutputStream;
 public final class AT extends AT_Machine_State {
 
   static {
-    Nxt.getBlockchainProcessor().addListener(new Listener<Block>() {
+    Burst.getBlockchainProcessor().addListener(new Listener<Block>() {
         @Override
         public void notify(Block block) {
           for(Long id : pendingFees.keySet()) {
@@ -57,7 +57,7 @@ public final class AT extends AT_Machine_State {
 
             try {
               TransactionImpl transaction = builder.build();
-              if(!Nxt.getDbs().getTransactionDb().hasTransaction(transaction.getId())) {
+              if(!Burst.getDbs().getTransactionDb().hasTransaction(transaction.getId())) {
                 transactions.add(transaction);
               }
             }
@@ -68,7 +68,7 @@ public final class AT extends AT_Machine_State {
 
           if(transactions.size() > 0) {
             /** WATCH: Replace after transactions are converted! */
-            Nxt.getDbs().getTransactionDb().saveTransactions( transactions);
+            Burst.getDbs().getTransactionDb().saveTransactions( transactions);
           }
 
         }
@@ -195,18 +195,18 @@ public final class AT extends AT_Machine_State {
     }
   }
 
-  private static final NxtKey.LongKeyFactory<AT> atDbKeyFactory =Nxt.getStores().getAtStore().getAtDbKeyFactory();
+  private static final NxtKey.LongKeyFactory<AT> atDbKeyFactory =Burst.getStores().getAtStore().getAtDbKeyFactory();
 
-  private static final VersionedEntityTable<AT> atTable = Nxt.getStores().getAtStore().getAtTable();
+  private static final VersionedEntityTable<AT> atTable = Burst.getStores().getAtStore().getAtTable();
 
 
-  private static final NxtKey.LongKeyFactory<ATState> atStateDbKeyFactory = Nxt.getStores().getAtStore().getAtStateDbKeyFactory();
+  private static final NxtKey.LongKeyFactory<ATState> atStateDbKeyFactory = Burst.getStores().getAtStore().getAtStateDbKeyFactory();
 
-  private static final VersionedEntityTable<ATState> atStateTable = Nxt.getStores().getAtStore().getAtStateTable();
+  private static final VersionedEntityTable<ATState> atStateTable = Burst.getStores().getAtStore().getAtStateTable();
 
   public static Collection<Long> getAllATIds()
   {
-    return Nxt.getStores().getAtStore().getAllATIds();
+    return Burst.getStores().getAtStore().getAllATIds();
   }
 
   public static AT getAT(byte[] id)
@@ -215,11 +215,11 @@ public final class AT extends AT_Machine_State {
   }
 
   public static AT getAT(Long id) {
-    return Nxt.getStores().getAtStore().getAT(id);
+    return Burst.getStores().getAtStore().getAT(id);
   }
 
   public static List<Long> getATsIssuedBy(Long accountId) {
-    return Nxt.getStores().getAtStore().getATsIssuedBy(accountId);
+    return Burst.getStores().getAtStore().getATsIssuedBy(accountId);
   }
 
   static void addAT(Long atId, Long senderAccountId, String name, String description, byte[] creationBytes , int height) {
@@ -252,7 +252,7 @@ public final class AT extends AT_Machine_State {
 
   public void saveState() {
     ATState state = atStateTable.get(atStateDbKeyFactory.newKey( AT_API_Helper.getLong( this.getId() ) ) );
-    int prevHeight = Nxt.getBlockchain().getHeight();
+    int prevHeight = Burst.getBlockchain().getHeight();
     int nextHeight = prevHeight + getWaitForNumberOfBlocks();
     if(state != null) {
       state.setState(getState());
@@ -290,12 +290,12 @@ public final class AT extends AT_Machine_State {
   }
 
   public static List< Long > getOrderedATs(){
-    return Nxt.getStores().getAtStore().getOrderedATs();
+    return Burst.getStores().getAtStore().getOrderedATs();
   }
 
 
   static boolean isATAccountId(Long id) {
-    return Nxt.getStores().getAtStore().isATAccountId(id);
+    return Burst.getStores().getAtStore().isATAccountId(id);
   }
 
   public static byte[] compressState(byte[] stateBytes) {
@@ -347,7 +347,7 @@ public final class AT extends AT_Machine_State {
     this.name = name;
     this.description = description;
     dbKey = atDbKeyFactory.newKey(AT_API_Helper.getLong(atId));
-    this.nextHeight = Nxt.getBlockchain().getHeight();
+    this.nextHeight = Burst.getBlockchain().getHeight();
   }
 
   public AT ( byte[] atId , byte[] creator , String name , String description , short version ,

@@ -26,7 +26,7 @@ public class Vote {
   }
 
   public static Map<Long,Long> getVoters(Poll poll) {
-    return Nxt.getStores().getVoteStore().getVoters(poll);
+    return Burst.getStores().getVoteStore().getVoters(poll);
   }
 
   static void init() {}

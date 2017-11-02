@@ -1,7 +1,7 @@
 package brs.http;
 
 import brs.Account;
-import brs.Nxt;
+import brs.Burst;
 import brs.NxtException;
 import brs.Transaction;
 import brs.db.NxtIterator;
@@ -13,48 +13,48 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetAccountTransactionIds extends APIServlet.APIRequestHandler {
 
-    static final GetAccountTransactionIds instance = new GetAccountTransactionIds();
+  static final GetAccountTransactionIds instance = new GetAccountTransactionIds();
 
-    private GetAccountTransactionIds() {
-        super(new APITag[] {APITag.ACCOUNTS}, "account", "timestamp", "type", "subtype", "firstIndex", "lastIndex", "numberOfConfirmations");
+  private GetAccountTransactionIds() {
+    super(new APITag[] {APITag.ACCOUNTS}, "account", "timestamp", "type", "subtype", "firstIndex", "lastIndex", "numberOfConfirmations");
+  }
+
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+
+    Account account = ParameterParser.getAccount(req);
+    int timestamp = ParameterParser.getTimestamp(req);
+    int numberOfConfirmations = ParameterParser.getNumberOfConfirmations(req);
+
+    byte type;
+    byte subtype;
+    try {
+      type = Byte.parseByte(req.getParameter("type"));
+    } catch (NumberFormatException e) {
+      type = -1;
+    }
+    try {
+      subtype = Byte.parseByte(req.getParameter("subtype"));
+    } catch (NumberFormatException e) {
+      subtype = -1;
     }
 
-    @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    int firstIndex = ParameterParser.getFirstIndex(req);
+    int lastIndex = ParameterParser.getLastIndex(req);
 
-        Account account = ParameterParser.getAccount(req);
-        int timestamp = ParameterParser.getTimestamp(req);
-        int numberOfConfirmations = ParameterParser.getNumberOfConfirmations(req);
-
-        byte type;
-        byte subtype;
-        try {
-            type = Byte.parseByte(req.getParameter("type"));
-        } catch (NumberFormatException e) {
-            type = -1;
-        }
-        try {
-            subtype = Byte.parseByte(req.getParameter("subtype"));
-        } catch (NumberFormatException e) {
-            subtype = -1;
-        }
-
-        int firstIndex = ParameterParser.getFirstIndex(req);
-        int lastIndex = ParameterParser.getLastIndex(req);
-
-        JSONArray transactionIds = new JSONArray();
-        try (NxtIterator<? extends Transaction> iterator = Nxt.getBlockchain().getTransactions(account, numberOfConfirmations, type, subtype, timestamp,
-                firstIndex, lastIndex)) {
-            while (iterator.hasNext()) {
-                Transaction transaction = iterator.next();
-                transactionIds.add(transaction.getStringId());
-            }
-        }
-
-        JSONObject response = new JSONObject();
-        response.put("transactionIds", transactionIds);
-        return response;
-
+    JSONArray transactionIds = new JSONArray();
+    try (NxtIterator<? extends Transaction> iterator = Burst.getBlockchain().getTransactions(account, numberOfConfirmations, type, subtype, timestamp,
+                                                                                             firstIndex, lastIndex)) {
+      while (iterator.hasNext()) {
+        Transaction transaction = iterator.next();
+        transactionIds.add(transaction.getStringId());
+      }
     }
+
+    JSONObject response = new JSONObject();
+    response.put("transactionIds", transactionIds);
+    return response;
+
+  }
 
 }

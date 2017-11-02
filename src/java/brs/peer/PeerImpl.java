@@ -105,7 +105,7 @@ final class PeerImpl implements Peer {
     void setVersion(String version) {
         this.version = version;
             isOldVersion = false;
-        if (Nxt.APPLICATION.equals(application) && version != null) {
+        if (Burst.APPLICATION.equals(application) && version != null) {
             String[] versions = version.split("\\.");
             if (versions.length < Constants.MIN_VERSION.length) {
                 isOldVersion = true;
@@ -205,11 +205,11 @@ final class PeerImpl implements Peer {
         if (hallmark == null) {
             return 0;
                }
-        if (hallmarkBalance == -1 || hallmarkBalanceHeight < Nxt.getBlockchain().getHeight() - 60) {
+        if (hallmarkBalance == -1 || hallmarkBalanceHeight < Burst.getBlockchain().getHeight() - 60) {
             long accountId = hallmark.getAccountId();
             Account account = Account.getAccount(accountId);
             hallmarkBalance = account == null ? 0 : account.getBalanceNQT();
-            hallmarkBalanceHeight = Nxt.getBlockchain().getHeight();
+            hallmarkBalanceHeight = Burst.getBlockchain().getHeight();
         }
 
         return (int)(adjustedWeight * (hallmarkBalance / Constants.ONE_NXT) / Constants.MAX_BALANCE_NXT);
@@ -512,7 +512,7 @@ final class PeerImpl implements Peer {
             } else {
                 blacklist();
             }
-            lastUpdated = Nxt.getEpochTime();
+            lastUpdated = Burst.getEpochTime();
         } else {
             setState(State.NON_CONNECTED);
         }

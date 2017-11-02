@@ -405,7 +405,7 @@ final class ParameterParser {
         if (numberOfConfirmationsValue != null) {
             try {
                 int numberOfConfirmations = Integer.parseInt(numberOfConfirmationsValue);
-                if (numberOfConfirmations <= Nxt.getBlockchain().getHeight()) {
+                if (numberOfConfirmations <= Burst.getBlockchain().getHeight()) {
                     return numberOfConfirmations;
                 }
                 throw new ParameterException(INCORRECT_NUMBER_OF_CONFIRMATIONS);
@@ -421,10 +421,10 @@ final class ParameterParser {
         if (heightValue != null) {
             try {
                 int height = Integer.parseInt(heightValue);
-                if (height < 0 || height > Nxt.getBlockchain().getHeight()) {
+                if (height < 0 || height > Burst.getBlockchain().getHeight()) {
                     throw new ParameterException(INCORRECT_HEIGHT);
                 }
-                if (height < Nxt.getBlockchainProcessor().getMinRollbackHeight()) {
+                if (height < Burst.getBlockchainProcessor().getMinRollbackHeight()) {
                     throw new ParameterException(HEIGHT_NOT_AVAILABLE);
                 }
                 return height;
@@ -442,7 +442,7 @@ final class ParameterParser {
         if (transactionBytes != null) {
             try {
                 byte[] bytes = Convert.parseHexString(transactionBytes);
-                return Nxt.getTransactionProcessor().parseTransaction(bytes);
+                return Burst.getTransactionProcessor().parseTransaction(bytes);
             } catch (NxtException.ValidationException|RuntimeException e) {
                 logger.debug(e.getMessage(), e);
                 JSONObject response = new JSONObject();
@@ -453,7 +453,7 @@ final class ParameterParser {
         } else {
             try {
                 JSONObject json = (JSONObject) JSONValue.parseWithException(transactionJSON);
-                return Nxt.getTransactionProcessor().parseTransaction(json);
+                return Burst.getTransactionProcessor().parseTransaction(json);
             } catch (NxtException.ValidationException | RuntimeException | ParseException e) {
                 logger.debug(e.getMessage(), e);
                 JSONObject response = new JSONObject();

@@ -1,6 +1,6 @@
 package brs.http;
 
-import brs.Nxt;
+import brs.Burst;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -34,7 +34,7 @@ public final class GetBlockId extends APIServlet.APIRequestHandler {
 
         try {
             JSONObject response = new JSONObject();
-            response.put("block", Convert.toUnsignedLong(Nxt.getBlockchain().getBlockIdAtHeight(height)));
+            response.put("block", Convert.toUnsignedLong(Burst.getBlockchain().getBlockIdAtHeight(height)));
             return response;
         } catch (RuntimeException e) {
             return INCORRECT_HEIGHT;

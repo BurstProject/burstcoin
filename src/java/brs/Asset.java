@@ -6,9 +6,9 @@ import brs.db.NxtKey;
 
 public class Asset {
 
-  private static final NxtKey.LongKeyFactory<Asset> assetDbKeyFactory = Nxt.getStores().getAssetStore().getAssetDbKeyFactory();
+  private static final NxtKey.LongKeyFactory<Asset> assetDbKeyFactory = Burst.getStores().getAssetStore().getAssetDbKeyFactory();
 
-  private static final EntityTable<Asset> assetTable = Nxt.getStores().getAssetStore().getAssetTable();
+  private static final EntityTable<Asset> assetTable = Burst.getStores().getAssetStore().getAssetTable();
 
   public static NxtIterator<Asset> getAllAssets(int from, int to) {
     return assetTable.getAll(from, to);
@@ -23,7 +23,7 @@ public class Asset {
   }
 
   public static NxtIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
-    return Nxt.getStores().getAssetStore().getAssetsIssuedBy(accountId, from, to);
+    return Burst.getStores().getAssetStore().getAssetsIssuedBy(accountId, from, to);
   }
 
   static void addAsset(Transaction transaction, Attachment.ColoredCoinsAssetIssuance attachment) {

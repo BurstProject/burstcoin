@@ -2,7 +2,7 @@ package brs.at;
 
 import brs.Appendix;
 import brs.Constants;
-import brs.Nxt;
+import brs.Burst;
 import brs.Transaction;
 import brs.crypto.Crypto;
 import org.slf4j.Logger;
@@ -60,7 +60,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		ByteBuffer b = ByteBuffer.allocate( state.get_A1().length * 4 );
 		b.order( ByteOrder.LITTLE_ENDIAN );
 
-		b.put( Nxt.getBlockchain().getBlockAtHeight(state.getHeight() - 1).getBlockHash() );
+		b.put( Burst.getBlockchain().getBlockAtHeight(state.getHeight() - 1).getBlockHash() );
 		
 		b.clear();
 
@@ -100,7 +100,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 	public long get_Type_for_Tx_in_A( AT_Machine_State state ) {
 		long txid = AT_API_Helper.getLong( state.get_A1() );
 
-		Transaction tx = Nxt.getBlockchain().getTransaction( txid );
+		Transaction tx = Burst.getBlockchain().getTransaction( txid );
 		
 		if ( tx != null && tx.getHeight() >= state.getHeight() )
 		{
@@ -125,7 +125,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 	public long get_Amount_for_Tx_in_A( AT_Machine_State state ) {
 		long txId = AT_API_Helper.getLong( state.get_A1() );
 
-		Transaction tx = Nxt.getBlockchain().getTransaction( txId );
+		Transaction tx = Burst.getBlockchain().getTransaction( txId );
 		
 		if ( tx != null && tx.getHeight() >= state.getHeight() )
 		{
@@ -151,7 +151,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 	public long get_Timestamp_for_Tx_in_A( AT_Machine_State state ) {
 		long txId = AT_API_Helper.getLong( state.get_A1() );
 		logger.debug("get timestamp for tx with id " + txId + " found");
-		Transaction tx = Nxt.getBlockchain().getTransaction( txId );
+		Transaction tx = Burst.getBlockchain().getTransaction( txId );
 		
 		if ( tx != null && tx.getHeight() >= state.getHeight() )
 		{
@@ -175,7 +175,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 	public long get_Random_Id_for_Tx_in_A( AT_Machine_State state ) {
 		long txId = AT_API_Helper.getLong( state.get_A1() );
 
-		Transaction tx = Nxt.getBlockchain().getTransaction( txId );
+		Transaction tx = Burst.getBlockchain().getTransaction( txId );
 		
 		if ( tx != null && tx.getHeight() >= state.getHeight() )
 		{
@@ -202,7 +202,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 
 			ByteBuffer bf = ByteBuffer.allocate( 32 + Long.SIZE + senderPublicKey.length );
 			bf.order( ByteOrder.LITTLE_ENDIAN );
-			bf.put(Nxt.getBlockchain().getBlockAtHeight(blockHeight - 1).getGenerationSignature());
+			bf.put(Burst.getBlockchain().getBlockAtHeight(blockHeight - 1).getGenerationSignature());
 			bf.putLong( tx.getId() );
 			bf.put( senderPublicKey);
 
@@ -221,7 +221,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 	public void message_from_Tx_in_A_to_B( AT_Machine_State state ) {
 		long txid = AT_API_Helper.getLong( state.get_A1() );
 
-		Transaction tx = Nxt.getBlockchain().getTransaction( txid );
+		Transaction tx = Burst.getBlockchain().getTransaction( txid );
 		if ( tx != null && tx.getHeight() >= state.getHeight() )
 		{
 			tx = null;
@@ -265,7 +265,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		
 		clear_B( state );
 		
-		Transaction tx = Nxt.getBlockchain().getTransaction( txId );
+		Transaction tx = Burst.getBlockchain().getTransaction( txId );
 		if ( tx != null && tx.getHeight() >= state.getHeight() )
 		{
 			tx = null;
@@ -292,7 +292,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 		ByteBuffer b = ByteBuffer.allocate( state.get_A1().length * 4 );
 		b.order( ByteOrder.LITTLE_ENDIAN );
 
-		b.put( Nxt.getBlockchain().getBlockAtHeight(state.getHeight() - 1).getGenerationSignature() );
+		b.put( Burst.getBlockchain().getBlockAtHeight(state.getHeight() - 1).getGenerationSignature() );
 
 		byte[] temp = new byte[ 8 ];
 
@@ -431,11 +431,11 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 	}
 
 	protected static Long findTransaction(int startHeight , int endHeight , Long atID, int numOfTx, long minAmount){
-		return Nxt.getStores().getAtStore().findTransaction(startHeight, endHeight, atID, numOfTx, minAmount);
+		return Burst.getStores().getAtStore().findTransaction(startHeight, endHeight, atID, numOfTx, minAmount);
 	}
 
 	protected static int findTransactionHeight(Long transactionId, int height, Long atID, long minAmount){
-		return Nxt.getStores().getAtStore().findTransactionHeight(transactionId, height,atID, minAmount);
+		return Burst.getStores().getAtStore().findTransactionHeight(transactionId, height,atID, minAmount);
 	}
 
 

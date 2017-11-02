@@ -11,15 +11,15 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class BlockchainImpl implements Blockchain {
 
   private static final BlockchainImpl instance = new BlockchainImpl();
-  private final TransactionDb transactionDb = Nxt.getDbs().getTransactionDb();
-  private final BlockDb blockDb =  Nxt.getDbs().getBlockDb();;
+  private final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
+  private final BlockDb blockDb =  Burst.getDbs().getBlockDb();;
 
   public static BlockchainImpl getInstance() {
     return instance;
   }
 
   private BlockchainImpl() {
-    Nxt.metrics.register(MetricRegistry.name(BlockchainProcessorImpl.class, "BlockChain", "height"),
+    Burst.metrics.register(MetricRegistry.name(BlockchainProcessorImpl.class, "BlockChain", "height"),
                          (Gauge<Integer>) () -> getHeight());
   }
 
@@ -72,12 +72,12 @@ public final class BlockchainImpl implements Blockchain {
 
   @Override
   public NxtIterator<BlockImpl> getAllBlocks() {
-    return Nxt.getStores().getBlockchainStore().getAllBlocks();
+    return Burst.getStores().getBlockchainStore().getAllBlocks();
   }
     
   @Override
   public NxtIterator<BlockImpl> getBlocks(int from, int to) {
-    return Nxt.getStores().getBlockchainStore().getBlocks(from, to);
+    return Burst.getStores().getBlockchainStore().getBlocks(from, to);
   }
 
   @Override
@@ -87,17 +87,17 @@ public final class BlockchainImpl implements Blockchain {
 
   @Override
   public NxtIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to) {
-    return Nxt.getStores().getBlockchainStore().getBlocks(account, timestamp, from, to);
+    return Burst.getStores().getBlockchainStore().getBlocks(account, timestamp, from, to);
   }
 
   @Override
   public List<Long> getBlockIdsAfter(long blockId, int limit) {
-    return Nxt.getStores().getBlockchainStore().getBlockIdsAfter(blockId, limit);
+    return Burst.getStores().getBlockchainStore().getBlockIdsAfter(blockId, limit);
   }
 
   @Override
   public List<BlockImpl> getBlocksAfter(long blockId, int limit) {
-    return Nxt.getStores().getBlockchainStore().getBlocksAfter(blockId, limit);
+    return Burst.getStores().getBlockchainStore().getBlocksAfter(blockId, limit);
   }
 
   @Override
@@ -146,12 +146,12 @@ public final class BlockchainImpl implements Blockchain {
 
   @Override
   public int getTransactionCount() {
-    return Nxt.getStores().getBlockchainStore().getTransactionCount();
+    return Burst.getStores().getBlockchainStore().getTransactionCount();
   }
 
   @Override
   public NxtIterator<TransactionImpl> getAllTransactions() {
-    return Nxt.getStores().getBlockchainStore().getAllTransactions();
+    return Burst.getStores().getBlockchainStore().getAllTransactions();
   }
 
   @Override
@@ -162,7 +162,7 @@ public final class BlockchainImpl implements Blockchain {
   @Override
   public NxtIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                       int blockTimestamp, int from, int to) {
-    return Nxt.getStores().getBlockchainStore().getTransactions(account, numberOfConfirmations, type, subtype, blockTimestamp, from, to);
+    return Burst.getStores().getBlockchainStore().getTransactions(account, numberOfConfirmations, type, subtype, blockTimestamp, from, to);
 
   }
 

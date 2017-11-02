@@ -1,7 +1,7 @@
 package brs.db.firebird;
 
 import brs.Escrow;
-import brs.Nxt;
+import brs.Burst;
 import brs.db.sql.SqlEscrowStore;
 
 import java.sql.Connection;
@@ -17,7 +17,7 @@ class FirebirdEscrowStore extends SqlEscrowStore {
             pstmt.setLong(++i, decision.escrowId);
             pstmt.setLong(++i, decision.accountId);
             pstmt.setInt(++i, Escrow.decisionToByte(decision.decision));
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.setInt(++i, Burst.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
     }
@@ -35,7 +35,7 @@ class FirebirdEscrowStore extends SqlEscrowStore {
             pstmt.setInt(++i, escrow.requiredSigners);
             pstmt.setInt(++i, escrow.deadline);
             pstmt.setInt(++i, Escrow.decisionToByte(escrow.deadlineAction));
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.setInt(++i, Burst.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
     }

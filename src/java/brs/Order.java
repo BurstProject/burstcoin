@@ -21,7 +21,7 @@ public abstract class Order {
       }
 
 
-      Trade trade = Trade.addTrade(assetId, Nxt.getBlockchain().getLastBlock(), askOrder, bidOrder);
+      Trade trade = Trade.addTrade(assetId, Burst.getBlockchain().getLastBlock(), askOrder, bidOrder);
 
       askOrder.updateQuantityQNT(Convert.safeSubtract(askOrder.getQuantityQNT(), trade.getQuantityQNT()));
       Account askAccount = Account.getAccount(askOrder.getAccountId());
@@ -126,10 +126,10 @@ public abstract class Order {
   public static class Ask extends Order {
 
     private static final NxtKey.LongKeyFactory<Ask> askOrderDbKeyFactory =
-        Nxt.getStores().getOrderStore().getAskOrderDbKeyFactory();
+        Burst.getStores().getOrderStore().getAskOrderDbKeyFactory();
 
 
-    private static final VersionedEntityTable<Ask> askOrderTable =Nxt.getStores().getOrderStore().getAskOrderTable();
+    private static final VersionedEntityTable<Ask> askOrderTable =Burst.getStores().getOrderStore().getAskOrderTable();
 
 
     public static int getCount() {
@@ -145,23 +145,23 @@ public abstract class Order {
     }
 
     public static NxtIterator<Ask> getAskOrdersByAccount(long accountId, int from, int to) {
-      return Nxt.getStores().getOrderStore().getAskOrdersByAccount(accountId, from, to);
+      return Burst.getStores().getOrderStore().getAskOrdersByAccount(accountId, from, to);
     }
 
     public static NxtIterator<Ask> getAskOrdersByAsset(long assetId, int from, int to) {
-      return Nxt.getStores().getOrderStore().getAskOrdersByAsset(assetId, from, to);
+      return Burst.getStores().getOrderStore().getAskOrdersByAsset(assetId, from, to);
     }
 
     public static NxtIterator<Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
-      return Nxt.getStores().getOrderStore().getAskOrdersByAccountAsset(accountId, assetId, from, to);
+      return Burst.getStores().getOrderStore().getAskOrdersByAccountAsset(accountId, assetId, from, to);
     }
 
     public static NxtIterator<Ask> getSortedOrders(long assetId, int from, int to) {
-      return Nxt.getStores().getOrderStore().getSortedAsks(assetId, from,to);
+      return Burst.getStores().getOrderStore().getSortedAsks(assetId, from,to);
     }
 
     private static Ask getNextOrder(long assetId) {
-      return Nxt.getStores().getOrderStore().getNextOrder(assetId);
+      return Burst.getStores().getOrderStore().getNextOrder(assetId);
     }
 
     static void addOrder(Transaction transaction, Attachment.ColoredCoinsAskOrderPlacement attachment) {
@@ -221,10 +221,10 @@ public abstract class Order {
   public static class Bid extends Order {
 
     private static final NxtKey.LongKeyFactory<Bid> bidOrderDbKeyFactory =
-        Nxt.getStores().getOrderStore().getBidOrderDbKeyFactory();
+        Burst.getStores().getOrderStore().getBidOrderDbKeyFactory();
 
     private static final VersionedEntityTable<Bid> bidOrderTable =
-        Nxt.getStores().getOrderStore().getBidOrderTable();
+        Burst.getStores().getOrderStore().getBidOrderTable();
 
     public static int getCount() {
       return bidOrderTable.getCount();
@@ -239,24 +239,24 @@ public abstract class Order {
     }
 
     public static NxtIterator<Bid> getBidOrdersByAccount(long accountId, int from, int to) {
-      return Nxt.getStores().getOrderStore().getBidOrdersByAccount(accountId, from,to);
+      return Burst.getStores().getOrderStore().getBidOrdersByAccount(accountId, from,to);
     }
 
     public static NxtIterator<Bid> getBidOrdersByAsset(long assetId, int from, int to) {
-      return Nxt.getStores().getOrderStore().getBidOrdersByAsset(assetId, from, to);
+      return Burst.getStores().getOrderStore().getBidOrdersByAsset(assetId, from, to);
     }
 
     public static NxtIterator<Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
-      return Nxt.getStores().getOrderStore().getBidOrdersByAccountAsset(accountId, assetId, from, to);
+      return Burst.getStores().getOrderStore().getBidOrdersByAccountAsset(accountId, assetId, from, to);
     }
 
     public static NxtIterator<Bid> getSortedOrders(long assetId, int from, int to) {
 
-      return Nxt.getStores().getOrderStore().getSortedBids(assetId, from, to);
+      return Burst.getStores().getOrderStore().getSortedBids(assetId, from, to);
     }
 
     private static Bid getNextOrder(long assetId) {
-      return Nxt.getStores().getOrderStore().getNextBid(assetId);
+      return Burst.getStores().getOrderStore().getNextBid(assetId);
     }
 
     static void addOrder(Transaction transaction, Attachment.ColoredCoinsBidOrderPlacement attachment) {

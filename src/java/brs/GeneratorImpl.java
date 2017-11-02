@@ -31,11 +31,11 @@ public final class GeneratorImpl implements Generator {
       public void run() {
 
         try {
-          if (Nxt.getBlockchainProcessor().isScanning()) {
+          if (Burst.getBlockchainProcessor().isScanning()) {
             return;
           }
           try {
-            long currentBlock = Nxt.getBlockchain().getLastBlock().getHeight();
+            long currentBlock = Burst.getBlockchain().getLastBlock().getHeight();
             Iterator<Entry<Long, GeneratorStateImpl>> it = generators.entrySet().iterator();
             while(it.hasNext()) {
               Entry<Long, GeneratorStateImpl> generator = it.next();
@@ -190,9 +190,9 @@ public final class GeneratorImpl implements Generator {
       // need to store publicKey in addition to accountId, because the account may not have had its publicKey set yet
       this.accountId = account;
       this.nonce = nonce;
-      this.block = Nxt.getBlockchain().getLastBlock().getHeight() + 1;
+      this.block = Burst.getBlockchain().getLastBlock().getHeight() + 1;
 
-      Block lastBlock = Nxt.getBlockchain().getLastBlock();
+      Block lastBlock = Burst.getBlockchain().getLastBlock();
       byte[] lastGenSig = lastBlock.getGenerationSignature();
       Long lastGenerator = lastBlock.getGeneratorId();
 
@@ -224,9 +224,9 @@ public final class GeneratorImpl implements Generator {
     }
 
     private void forge() throws BlockchainProcessor.BlockNotAcceptedException {
-      Block lastBlock = Nxt.getBlockchain().getLastBlock();
+      Block lastBlock = Burst.getBlockchain().getLastBlock();
 
-      int elapsedTime = Nxt.getEpochTime() - lastBlock.getTimestamp();
+      int elapsedTime = Burst.getEpochTime() - lastBlock.getTimestamp();
       if (BigInteger.valueOf(elapsedTime).compareTo(deadline) > 0) {
         BlockchainProcessorImpl.getInstance().generateBlock(secretPhrase, publicKey, nonce);
       }

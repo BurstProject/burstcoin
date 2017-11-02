@@ -78,7 +78,7 @@ public class Escrow {
   }
 
   public static boolean isEnabled() {
-    if(Nxt.getBlockchain().getLastBlock().getHeight() >= Constants.BURST_ESCROW_START_BLOCK) {
+    if(Burst.getBlockchain().getLastBlock().getHeight() >= Constants.BURST_ESCROW_START_BLOCK) {
       return true;
     }
 
@@ -122,24 +122,24 @@ public class Escrow {
   }
 
   private static final NxtKey.LongKeyFactory<Escrow> escrowDbKeyFactory =
-      Nxt.getStores().getEscrowStore().getEscrowDbKeyFactory();
+      Burst.getStores().getEscrowStore().getEscrowDbKeyFactory();
 
 
   private static final VersionedEntityTable<Escrow> escrowTable =
-      Nxt.getStores().getEscrowStore().getEscrowTable();
+      Burst.getStores().getEscrowStore().getEscrowTable();
 
 
   private static final NxtKey.LinkKeyFactory<Decision> decisionDbKeyFactory =
-      Nxt.getStores().getEscrowStore().getDecisionDbKeyFactory();
+      Burst.getStores().getEscrowStore().getDecisionDbKeyFactory();
 
 
   private static final VersionedEntityTable<Decision> decisionTable =
-      Nxt.getStores().getEscrowStore().getDecisionTable();
+      Burst.getStores().getEscrowStore().getDecisionTable();
 
   /** WATCH: Thread-Safety?! */
-  private static final ConcurrentSkipListSet<Long> updatedEscrowIds = Nxt.getStores().getEscrowStore().getUpdatedEscrowIds();
+  private static final ConcurrentSkipListSet<Long> updatedEscrowIds = Burst.getStores().getEscrowStore().getUpdatedEscrowIds();
   /** WATCH: Thread-Safety?! */
-  private static final List<TransactionImpl> resultTransactions = Nxt.getStores().getEscrowStore().getResultTransactions();
+  private static final List<TransactionImpl> resultTransactions = Burst.getStores().getEscrowStore().getResultTransactions();
 
   public static NxtIterator<Escrow> getAllEscrowTransactions() {
     return escrowTable.getAll(0, -1);
@@ -147,7 +147,7 @@ public class Escrow {
 
 
   public static Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId) {
-    return Nxt.getStores().getEscrowStore().getEscrowTransactionsByParticipent(accountId);
+    return Burst.getStores().getEscrowStore().getEscrowTransactionsByParticipent(accountId);
   }
 
   public static Escrow getEscrowTransaction(Long id) {
@@ -203,7 +203,7 @@ public class Escrow {
 
 
   public static void updateOnBlock(Block block) {
-    Nxt.getStores().getEscrowStore().updateOnBlock(block);
+    Burst.getStores().getEscrowStore().updateOnBlock(block);
 
   }
 
@@ -266,7 +266,7 @@ public class Escrow {
   }
 
   public NxtIterator<Decision> getDecisions() {
-    return Nxt.getStores().getEscrowStore().getDecisions(id);
+    return Burst.getStores().getEscrowStore().getDecisions(id);
   }
 
   public int getDeadline() {
@@ -321,7 +321,7 @@ public class Escrow {
     int countRefund = 0;
     int countSplit = 0;
 
-    NxtIterator<Decision> decisions =Nxt.getStores().getEscrowStore().getDecisions(id);
+    NxtIterator<Decision> decisions =Burst.getStores().getEscrowStore().getDecisions(id);
     while(decisions.hasNext()) {
       Decision decision = decisions.next();
       if(decision.getAccountId().equals(senderId) ||
@@ -398,7 +398,7 @@ public class Escrow {
       throw new RuntimeException(e.toString(), e);
     }
 
-    if(!Nxt.getDbs().getTransactionDb().hasTransaction(transaction.getId())) {
+    if(!Burst.getDbs().getTransactionDb().hasTransaction(transaction.getId())) {
       resultTransactions.add(transaction);
     }
   }

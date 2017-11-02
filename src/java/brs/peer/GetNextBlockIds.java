@@ -1,6 +1,6 @@
 package brs.peer;
 
-import brs.Nxt;
+import brs.Burst;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -10,27 +10,27 @@ import java.util.List;
 
 final class GetNextBlockIds extends PeerServlet.PeerRequestHandler {
 
-    static final GetNextBlockIds instance = new GetNextBlockIds();
+  static final GetNextBlockIds instance = new GetNextBlockIds();
 
-    private GetNextBlockIds() {}
+  private GetNextBlockIds() {}
 
 
-    @Override
-    JSONStreamAware processRequest(JSONObject request, Peer peer) {
+  @Override
+  JSONStreamAware processRequest(JSONObject request, Peer peer) {
 
-        JSONObject response = new JSONObject();
+    JSONObject response = new JSONObject();
 
-        JSONArray nextBlockIds = new JSONArray();
-        long blockId = Convert.parseUnsignedLong((String) request.get("blockId"));
-        List<Long> ids = Nxt.getBlockchain().getBlockIdsAfter(blockId, 1440);
+    JSONArray nextBlockIds = new JSONArray();
+    long blockId = Convert.parseUnsignedLong((String) request.get("blockId"));
+    List<Long> ids = Burst.getBlockchain().getBlockIdsAfter(blockId, 1440);
 
-        for (Long id : ids) {
-            nextBlockIds.add(Convert.toUnsignedLong(id));
-        }
-
-        response.put("nextBlockIds", nextBlockIds);
-
-        return response;
+    for (Long id : ids) {
+      nextBlockIds.add(Convert.toUnsignedLong(id));
     }
+
+    response.put("nextBlockIds", nextBlockIds);
+
+    return response;
+  }
 
 }

@@ -1,7 +1,7 @@
 package brs.db.sql;
 
 import brs.Alias;
-import brs.Nxt;
+import brs.Burst;
 import brs.db.NxtIterator;
 import brs.db.NxtKey;
 import brs.db.VersionedEntityTable;
@@ -61,7 +61,7 @@ public abstract class SqlAliasStore implements AliasStore {
             pstmt.setLong(++i, offer.getId());
             pstmt.setLong(++i, offer.getPriceNQT());
             DbUtils.setLongZeroToNull(pstmt, ++i, offer.getBuyerId());
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.setInt(++i, Burst.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
     }
@@ -109,7 +109,7 @@ public abstract class SqlAliasStore implements AliasStore {
             pstmt.setString(++i, alias.getAliasName());
             pstmt.setString(++i, alias.getAliasURI());
             pstmt.setInt(++i, alias.getTimestamp());
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.setInt(++i, Burst.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
     }

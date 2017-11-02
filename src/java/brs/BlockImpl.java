@@ -16,7 +16,7 @@ import java.util.*;
 public final class BlockImpl implements Block {
 
   private static final Logger logger = LoggerFactory.getLogger(BlockImpl.class);
-  private final TransactionDb transactionDb = Nxt.getDbs().getTransactionDb();
+  private final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
   private final int version;
   private final int timestamp;
   private final long previousBlockId;
@@ -251,7 +251,7 @@ public final class BlockImpl implements Block {
 
   @Override
   public int getScoopNum() {
-    return Nxt.getGenerator().calculateScoop(generationSignature, getHeight());
+    return Burst.getGenerator().calculateScoop(generationSignature, getHeight());
   }
 
   @Override
@@ -370,7 +370,7 @@ public final class BlockImpl implements Block {
 
     try {
 
-      BlockImpl previousBlock = (BlockImpl)Nxt.getBlockchain().getBlock(this.previousBlockId);
+      BlockImpl previousBlock = (BlockImpl)Burst.getBlockchain().getBlock(this.previousBlockId);
       if (previousBlock == null) {
         throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing");
       }
@@ -410,7 +410,7 @@ public final class BlockImpl implements Block {
 
   boolean verifyGenerationSignature() throws BlockchainProcessor.BlockNotAcceptedException {
     try {
-      BlockImpl previousBlock = (BlockImpl)Nxt.getBlockchain().getBlock(this.previousBlockId);
+      BlockImpl previousBlock = (BlockImpl)Burst.getBlockchain().getBlock(this.previousBlockId);
 
       if (previousBlock == null) {
         throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify generation signature because previous block is missing");
@@ -422,7 +422,7 @@ public final class BlockImpl implements Block {
           preVerify();
       }
 
-      byte[] correctGenerationSignature = Nxt.getGenerator().calculateGenerationSignature(previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
+      byte[] correctGenerationSignature = Burst.getGenerator().calculateGenerationSignature(previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
       if(!Arrays.equals(generationSignature, correctGenerationSignature)) {
         return false;
       }
@@ -453,10 +453,10 @@ public final class BlockImpl implements Block {
       try {
         // Pre-verify poc:
         if(scoopData == null) {
-          this.pocTime = Nxt.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, getScoopNum());
+          this.pocTime = Burst.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, getScoopNum());
         }
         else {
-          this.pocTime = Nxt.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, scoopData);
+          this.pocTime = Burst.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, scoopData);
         }
       } catch (RuntimeException e) {
         logger.info("Error pre-verifying block generation signature", e);
@@ -540,7 +540,7 @@ public final class BlockImpl implements Block {
       Block itBlock = previousBlock;
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
       do {
-        itBlock = Nxt.getBlockchain().getBlock(itBlock.getPreviousBlockId());
+        itBlock = Burst.getBlockchain().getBlock(itBlock.getPreviousBlockId());
         avgBaseTarget = avgBaseTarget.add(BigInteger.valueOf(itBlock.getBaseTarget()));
       } while(itBlock.getHeight() > this.height - 4);
       avgBaseTarget = avgBaseTarget.divide(BigInteger.valueOf(4));
@@ -574,7 +574,7 @@ public final class BlockImpl implements Block {
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
       int blockCounter = 1;
       do {
-        itBlock = Nxt.getBlockchain().getBlock(itBlock.getPreviousBlockId());
+        itBlock = Burst.getBlockchain().getBlock(itBlock.getPreviousBlockId());
         blockCounter++;
         avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter))
                          .add(BigInteger.valueOf(itBlock.getBaseTarget())))

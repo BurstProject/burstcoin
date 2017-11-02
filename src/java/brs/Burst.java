@@ -29,12 +29,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-public final class Nxt {
+public final class Burst {
 
   public static final String VERSION = "1.3.6cg";
   public static final String APPLICATION = "BRS";
   public static final MetricRegistry metrics = new MetricRegistry();
-  private static final Logger logger = LoggerFactory.getLogger(Nxt.class);
+  private static final Logger logger = LoggerFactory.getLogger(Burst.class);
   private static final Properties defaultProperties = new Properties();
   private static final Properties properties = new Properties(defaultProperties);
   private static volatile Time time = new Time.EpochTime();
@@ -43,15 +43,15 @@ public final class Nxt {
   private static Generator generator = new GeneratorImpl();
 
   static {
-    System.out.println("Initializing Burst server version " + Nxt.VERSION);
+    System.out.println("Initializing Burst server version " + Burst.VERSION);
     try (InputStream is = ClassLoader.getSystemResourceAsStream("brs-default.properties")) {
       if (is != null) {
-        Nxt.defaultProperties.load(is);
+        Burst.defaultProperties.load(is);
       } else {
         String configFile = System.getProperty("brs-default.properties");
         if (configFile != null) {
           try (InputStream fis = new FileInputStream(configFile)) {
-            Nxt.defaultProperties.load(fis);
+            Burst.defaultProperties.load(fis);
           } catch (IOException e) {
             throw new RuntimeException("Error loading brs-default.properties from " + configFile);
           }
@@ -67,14 +67,14 @@ public final class Nxt {
   static {
     try (InputStream is = ClassLoader.getSystemResourceAsStream("brs.properties")) {
       if (is != null) {
-        Nxt.properties.load(is);
+        Burst.properties.load(is);
       } // ignore if missing
     } catch (IOException e) {
       throw new RuntimeException("Error loading brs.properties", e);
     }
   }
 
-  private Nxt() {
+  private Burst() {
   } // never
 
   public static int getIntProperty(String name) {
@@ -180,14 +180,14 @@ public final class Nxt {
   }
 
   static void setTime(Time time) {
-    Nxt.time = time;
+    Burst.time = time;
   }
 
   public static void main(String[] args) {
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
         @Override
         public void run() {
-          Nxt.shutdown();
+          Burst.shutdown();
         }
       }));
     init();
@@ -237,9 +237,9 @@ public final class Nxt {
 
         String dbUrl;
         if (Constants.isTestnet) {
-          dbUrl = Nxt.getStringProperty("brs.testDbUrl");
+          dbUrl = Burst.getStringProperty("brs.testDbUrl");
         } else {
-          dbUrl = Nxt.getStringProperty("brs.dbUrl");
+          dbUrl = Burst.getStringProperty("brs.dbUrl");
         }
 
         Db.init();
@@ -282,10 +282,10 @@ public final class Nxt {
         API.init();
         Users.init();
         DebugTrace.init();
-        int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(Nxt.getIntProperty("brs.timeMultiplier"), 1) : 1;
+        int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(Burst.getIntProperty("brs.timeMultiplier"), 1) : 1;
         ThreadPool.start(timeMultiplier);
         if (timeMultiplier > 1) {
-          setTime(new Time.FasterTime(Math.max(getEpochTime(), Nxt.getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
+          setTime(new Time.FasterTime(Math.max(getEpochTime(), Burst.getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
           logger.info("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
         }
 
@@ -295,7 +295,7 @@ public final class Nxt {
         if (Constants.isTestnet) {
           logger.info("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
         }
-        if (Nxt.getBooleanProperty("burst.mockMining")) {
+        if (Burst.getBooleanProperty("burst.mockMining")) {
           setGenerator(new GeneratorImpl.MockGeneratorImpl());
         }
         if (BlockchainProcessorImpl.oclVerify) {

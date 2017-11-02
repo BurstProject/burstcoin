@@ -1,6 +1,6 @@
 package brs.db.sql;
 
-import brs.Nxt;
+import brs.Burst;
 import brs.Poll;
 import brs.db.store.PollStore;
 
@@ -35,7 +35,7 @@ public abstract class SqlPollStore implements PollStore {
 ////                pstmt.setByte(++i, this.getMinNumberOfOptions());
 ////                pstmt.setByte(++i, this.getMaxNumberOfOptions());
 ////                pstmt.setBoolean(++i, this.isOptionsAreBinary());
-////                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+////                pstmt.setInt(++i, Burst.getBlockchain().getHeight());
 ////                pstmt.executeUpdate();
 ////            }
 ////        }

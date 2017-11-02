@@ -36,7 +36,7 @@ public interface Appendix {
     }
 
     AbstractAppendix() {
-      this.version = (byte)(Nxt.getBlockchain().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK ? 0 : 1);
+      this.version = (byte)(Burst.getBlockchain().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK ? 0 : 1);
     }
 
     abstract String getAppendixName();

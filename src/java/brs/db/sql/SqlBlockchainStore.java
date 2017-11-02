@@ -19,8 +19,8 @@ import java.util.List;
 
 public abstract class SqlBlockchainStore implements BlockchainStore {
 
-    private final TransactionDb transactionDb = Nxt.getDbs().getTransactionDb();
-    private final BlockDb blockDb = Nxt.getDbs().getBlockDb();
+    private final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
+    private final BlockDb blockDb = Burst.getDbs().getBlockDb();
 
 
     @Override
@@ -43,7 +43,7 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
             con = Db.getConnection();
             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE height <= ? AND height >= ? ORDER BY height DESC");
 
-            int blockchainHeight = Nxt.getBlockchain().getHeight();
+            int blockchainHeight = Burst.getBlockchain().getHeight();
             pstmt.setInt(1, blockchainHeight - Math.max(from, 0));
             pstmt.setInt(2, to > 0 ? blockchainHeight - to : 0);
             return getBlocks(con, pstmt);
@@ -156,10 +156,10 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
     @Override
     public NxtIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                         int blockTimestamp, int from, int to) {
-        int height = numberOfConfirmations > 0 ? Nxt.getBlockchain().getHeight() - numberOfConfirmations : Integer.MAX_VALUE;
+        int height = numberOfConfirmations > 0 ? Burst.getBlockchain().getHeight() - numberOfConfirmations : Integer.MAX_VALUE;
         if (height < 0) {
             throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations
-                    + " exceeds current blockchain height " + Nxt.getBlockchain().getHeight());
+                    + " exceeds current blockchain height " + Burst.getBlockchain().getHeight());
         }
         Connection con = null;
         try {

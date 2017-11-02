@@ -231,7 +231,7 @@ public final class TransactionImpl implements Transaction {
       appendagesSize += appendage.getSize();
     }
     this.appendagesSize = appendagesSize;
-    int effectiveHeight = (height < Integer.MAX_VALUE ? height : Nxt.getBlockchain().getHeight());
+    int effectiveHeight = (height < Integer.MAX_VALUE ? height : Burst.getBlockchain().getHeight());
     long minimumFeeNQT = type.minimumFeeNQT(effectiveHeight, appendagesSize);
     if(type == null || type.isSigned()) {
       if (builder.feeNQT > 0 && builder.feeNQT < minimumFeeNQT) {
@@ -340,7 +340,7 @@ public final class TransactionImpl implements Transaction {
   @Override
   public Block getBlock() {
     if (block == null && blockId != 0) {
-      block = Nxt.getBlockchain().getBlock(blockId);
+      block = Burst.getBlockchain().getBlock(blockId);
     }
     return block;
   }
@@ -471,7 +471,7 @@ public final class TransactionImpl implements Transaction {
       buffer.put((byte) ((version << 4) | type.getSubtype()));
       buffer.putInt(timestamp);
       buffer.putShort(deadline);
-      if(type.isSigned() || Nxt.getBlockchain().getHeight() < Constants.AT_FIX_BLOCK_4) {
+      if(type.isSigned() || Burst.getBlockchain().getHeight() < Constants.AT_FIX_BLOCK_4) {
         buffer.put(senderPublicKey);
       }
       else {
@@ -733,7 +733,7 @@ public final class TransactionImpl implements Transaction {
   private boolean useNQT() {
     return this.height > Constants.NQT_BLOCK
         && (this.height < Integer.MAX_VALUE
-            || Nxt.getBlockchain().getHeight() >= Constants.NQT_BLOCK);
+            || Burst.getBlockchain().getHeight() >= Constants.NQT_BLOCK);
   }
 
   private byte[] zeroSignature(byte[] data) {
@@ -770,12 +770,12 @@ public final class TransactionImpl implements Transaction {
     for (Appendix.AbstractAppendix appendage : appendages) {
       appendage.validate(this);
     }
-    long minimumFeeNQT = type.minimumFeeNQT(Nxt.getBlockchain().getHeight(), appendagesSize);
+    long minimumFeeNQT = type.minimumFeeNQT(Burst.getBlockchain().getHeight(), appendagesSize);
     if (feeNQT < minimumFeeNQT) {
       throw new NxtException.NotCurrentlyValidException(String.format("Transaction fee %d less than minimum fee %d at height %d",
-                                                                      feeNQT, minimumFeeNQT, Nxt.getBlockchain().getHeight()));
+                                                                      feeNQT, minimumFeeNQT, Burst.getBlockchain().getHeight()));
     }
-    if (Nxt.getBlockchain().getHeight() >= Constants.PUBLIC_KEY_ANNOUNCEMENT_BLOCK) {
+    if (Burst.getBlockchain().getHeight() >= Constants.PUBLIC_KEY_ANNOUNCEMENT_BLOCK) {
       if (type.hasRecipient() && recipientId != 0) {
         Account recipientAccount = Account.getAccount(recipientId);
         if ((recipientAccount == null || recipientAccount.getPublicKey() == null) && publicKeyAnnouncement == null) {

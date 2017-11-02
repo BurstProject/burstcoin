@@ -1,7 +1,7 @@
 package brs.db.firebird;
 
 import brs.Alias;
-import brs.Nxt;
+import brs.Burst;
 import brs.db.sql.SqlAliasStore;
 
 import java.sql.Connection;
@@ -20,7 +20,7 @@ class FirebirdAliasStore extends SqlAliasStore {
             pstmt.setString(++i, alias.getAliasName());
             pstmt.setString(++i, alias.getAliasURI());
             pstmt.setInt(++i, alias.getTimestamp());
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.setInt(++i, Burst.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
     }

@@ -82,5 +82,5 @@ if [[ $# -gt 0 ]] ; then
             ;;
     esac
 else
-    java -cp burst.jar:conf brs.Nxt
+    java -cp burst.jar:conf brs.Burst
 fi

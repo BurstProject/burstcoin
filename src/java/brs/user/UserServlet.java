@@ -1,6 +1,6 @@
 package brs.user;
 
-import brs.Nxt;
+import brs.Burst;
 import brs.NxtException;
 import brs.util.Subnet;
 import org.json.simple.JSONObject;
