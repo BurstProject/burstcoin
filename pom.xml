@@ -6,7 +6,7 @@
 
     <groupId>burstcoin</groupId>
     <artifactId>burstcoin</artifactId>
-    <version>1.3.5cg</version>
+    <version>1.3.6cg</version>
 
     <packaging>jar</packaging>
 
@@ -248,7 +248,7 @@
                                 <copy todir="${project.basedir}/dist/tmp/conf">
                                     <fileset dir="${project.basedir}/conf">
                                         <include name="logging-default.properties"/>
-                                        <include name="nxt-default.properties"/>
+                                        <include name="brs-default.properties"/>
                                     </fileset>
                                 </copy>
                                 <!-- copy remaining files from root dir -->
