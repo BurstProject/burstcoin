@@ -42,7 +42,7 @@ public final class DGSPurchase extends CreateTransaction {
         int deliveryDeadline;
         try {
             deliveryDeadline = Integer.parseInt(deliveryDeadlineString);
-            if (deliveryDeadline <= Nxt.getEpochTime()) {
+            if (deliveryDeadline <= Burst.getEpochTime()) {
                 return INCORRECT_DELIVERY_DEADLINE_TIMESTAMP;
             }
         } catch (NumberFormatException e) {

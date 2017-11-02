@@ -29,7 +29,7 @@ public abstract class AT_Controller {
 
 		AT_Machine_Processor processor = new AT_Machine_Processor( state );
 
-		//int height = Nxt.getBlockchain().getHeight();
+		//int height = Burst.getBlockchain().getHeight();
 
 		state.setFreeze( false );
 		

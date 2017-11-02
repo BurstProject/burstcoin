@@ -1,7 +1,7 @@
 package brs.db.firebird;
 
 import brs.AT;
-import brs.Nxt;
+import brs.Burst;
 import brs.at.AT_API_Helper;
 import brs.db.sql.DbUtils;
 import brs.db.sql.SqlATStore;
@@ -26,7 +26,7 @@ class FirebirdATStore extends SqlATStore {
             pstmt.setLong(++i, atState.getPrevBalance());
             pstmt.setBoolean(++i, atState.getFreezeWhenSameBalance());
             pstmt.setLong(++i, atState.getMinActivationAmount());
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.setInt(++i, Burst.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
     }
@@ -51,7 +51,7 @@ class FirebirdATStore extends SqlATStore {
             pstmt.setInt(++i, at.getCreationBlockHeight());
             //DbUtils.setBytes( pstmt , ++i , this.getApCode() );
             DbUtils.setBytes(pstmt, ++i, AT.compressState(at.getApCode()));
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.setInt(++i, Burst.getBlockchain().getHeight());
 
             pstmt.executeUpdate();
         }

@@ -1,7 +1,7 @@
 package brs.db.firebird;
 
 import brs.DigitalGoodsStore;
-import brs.Nxt;
+import brs.Burst;
 import brs.db.NxtIterator;
 import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
@@ -31,7 +31,7 @@ class FirebirdDigitalGoodsStoreStore extends SqlDigitalGoodsStoreStore {
                         int i = 0;
                         pstmt.setLong(++i, purchase.getId());
                         pstmt.setString(++i, publicFeedback);
-                        pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+                        pstmt.setInt(++i, Burst.getBlockchain().getHeight());
                         pstmt.executeUpdate();
                     }
                 }
@@ -76,7 +76,7 @@ class FirebirdDigitalGoodsStoreStore extends SqlDigitalGoodsStoreStore {
             pstmt.setInt(++i, goods.getQuantity());
             pstmt.setLong(++i, goods.getPriceNQT());
             pstmt.setBoolean(++i, goods.isDelisted());
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.setInt(++i, Burst.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
     }
@@ -107,7 +107,7 @@ class FirebirdDigitalGoodsStoreStore extends SqlDigitalGoodsStoreStore {
             pstmt.setBoolean(++i, purchase.getPublicFeedback() != null && purchase.getPublicFeedback().size() > 0);
             pstmt.setLong(++i, purchase.getDiscountNQT());
             pstmt.setLong(++i, purchase.getRefundNQT());
-            pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+            pstmt.setInt(++i, Burst.getBlockchain().getHeight());
             pstmt.executeUpdate();
         }
     }

@@ -3,7 +3,7 @@ package brs.db.quicksync;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
 import brs.Constants;
-import brs.Nxt;
+import brs.Burst;
 import brs.db.firebird.FirebirdDbs;
 import brs.db.h2.H2Dbs;
 import brs.db.mariadb.MariadbDbs;
@@ -51,9 +51,9 @@ public class CreateBinDump {
 
             String dbUrl;
             if (Constants.isTestnet) {
-                dbUrl = Nxt.getStringProperty("brs.testDbUrl");
+                dbUrl = Burst.getStringProperty("brs.testDbUrl");
             } else {
-                dbUrl = Nxt.getStringProperty("brs.dbUrl");
+                dbUrl = Burst.getStringProperty("brs.dbUrl");
             }
 
             if (Db.getDatabaseType() == Db.TYPE.H2) {
@@ -91,7 +91,7 @@ public class CreateBinDump {
 
             output.writeString(BinDumps.MAGIC);
             output.write(BinDumps.VERSION);
-            output.writeString(Nxt.VERSION);
+            output.writeString(Burst.VERSION);
 
             int fetchSize;
             switch (Db.getDatabaseType()) {

@@ -1,7 +1,7 @@
 package brs.db.firebird;
 
 import brs.Account;
-import brs.Nxt;
+import brs.Burst;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.VersionedEntityTable;
 import brs.db.sql.SqlAccountStore;
@@ -36,7 +36,7 @@ class FirebirdAccountStore extends SqlAccountStore {
                 pstmt.setLong(++i, accountAsset.assetId);
                 pstmt.setLong(++i, accountAsset.quantityQNT);
                 pstmt.setLong(++i, accountAsset.unconfirmedQuantityQNT);
-                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+                pstmt.setInt(++i, Burst.getBlockchain().getHeight());
                 pstmt.executeUpdate();
             }
         }
@@ -82,7 +82,7 @@ class FirebirdAccountStore extends SqlAccountStore {
                 pstmt.setLong(++i, assignment.prevRecipientId);
                 pstmt.setLong(++i, assignment.recipientId);
                 pstmt.setInt(++i, assignment.fromHeight);
-                pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+                pstmt.setInt(++i, Burst.getBlockchain().getHeight());
                 pstmt.executeUpdate();
             }
         }

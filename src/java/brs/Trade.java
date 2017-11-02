@@ -17,9 +17,9 @@ public class Trade {
   private static final Listeners<Trade,Event> listeners = new Listeners<>();
 
   private static final NxtKey.LinkKeyFactory<Trade> tradeDbKeyFactory =
-      Nxt.getStores().getTradeStore().getTradeDbKeyFactory();
+      Burst.getStores().getTradeStore().getTradeDbKeyFactory();
 
-  private static final EntityTable<Trade> tradeTable = Nxt.getStores().getTradeStore().getTradeTable();
+  private static final EntityTable<Trade> tradeTable = Burst.getStores().getTradeStore().getTradeTable();
 
 
   public static NxtIterator<Trade> getAllTrades(int from, int to) {
@@ -39,20 +39,20 @@ public class Trade {
   }
 
   public static NxtIterator<Trade> getAssetTrades(long assetId, int from, int to) {
-    return Nxt.getStores().getTradeStore().getAssetTrades(assetId, from, to);
+    return Burst.getStores().getTradeStore().getAssetTrades(assetId, from, to);
   }
 
   public static NxtIterator<Trade> getAccountTrades(long accountId, int from, int to) {
-    return Nxt.getStores().getTradeStore().getAssetTrades(accountId, from, to);
+    return Burst.getStores().getTradeStore().getAssetTrades(accountId, from, to);
   }
 
   public static NxtIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
-    return Nxt.getStores().getTradeStore().getAccountAssetTrades(accountId, assetId, from, to);
+    return Burst.getStores().getTradeStore().getAccountAssetTrades(accountId, assetId, from, to);
 
   }
 
   public static int getTradeCount(long assetId) {
-    return Nxt.getStores().getTradeStore().getTradeCount(assetId);
+    return Burst.getStores().getTradeStore().getTradeCount(assetId);
   }
 
   static Trade addTrade(long assetId, Block block, Order.Ask askOrder, Order.Bid bidOrder) {

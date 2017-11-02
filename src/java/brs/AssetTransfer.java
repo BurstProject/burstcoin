@@ -14,9 +14,9 @@ public class AssetTransfer {
 
   private static final Listeners<AssetTransfer, Event> listeners = new Listeners<>();
 
-  private static final NxtKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = Nxt.getStores().getAssetTransferStore().getTransferDbKeyFactory();
+  private static final NxtKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = Burst.getStores().getAssetTransferStore().getTransferDbKeyFactory();
 
-  private static final EntityTable<AssetTransfer> assetTransferTable = Nxt.getStores().getAssetTransferStore().getAssetTransferTable();
+  private static final EntityTable<AssetTransfer> assetTransferTable = Burst.getStores().getAssetTransferStore().getAssetTransferTable();
 
   public static NxtIterator<AssetTransfer> getAllTransfers(int from, int to) {
     return assetTransferTable.getAll(from, to);
@@ -35,19 +35,19 @@ public class AssetTransfer {
   }
 
   public static NxtIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
-    return Nxt.getStores().getAssetTransferStore().getAssetTransfers(assetId, from, to);
+    return Burst.getStores().getAssetTransferStore().getAssetTransfers(assetId, from, to);
   }
 
   public static NxtIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
-    return Nxt.getStores().getAssetTransferStore().getAccountAssetTransfers(accountId, from, to);
+    return Burst.getStores().getAssetTransferStore().getAccountAssetTransfers(accountId, from, to);
   }
 
   public static NxtIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
-    return Nxt.getStores().getAssetTransferStore().getAccountAssetTransfers(accountId, assetId, from, to);
+    return Burst.getStores().getAssetTransferStore().getAccountAssetTransfers(accountId, assetId, from, to);
   }
 
   public static int getTransferCount(long assetId) {
-    return Nxt.getStores().getAssetTransferStore().getTransferCount(assetId);
+    return Burst.getStores().getAssetTransferStore().getTransferCount(assetId);
   }
 
   static AssetTransfer addAssetTransfer(Transaction transaction, Attachment.ColoredCoinsAssetTransfer attachment) {

@@ -22,11 +22,11 @@ public final class GetState extends APIServlet.APIRequestHandler {
 
         JSONObject response = new JSONObject();
 
-        response.put("application", Nxt.APPLICATION);
-        response.put("version", Nxt.VERSION);
-        response.put("time", Nxt.getEpochTime());
-        response.put("lastBlock", Nxt.getBlockchain().getLastBlock().getStringId());
-        response.put("cumulativeDifficulty", Nxt.getBlockchain().getLastBlock().getCumulativeDifficulty().toString());
+        response.put("application", Burst.APPLICATION);
+        response.put("version", Burst.VERSION);
+        response.put("time", Burst.getEpochTime());
+        response.put("lastBlock", Burst.getBlockchain().getLastBlock().getStringId());
+        response.put("cumulativeDifficulty", Burst.getBlockchain().getLastBlock().getCumulativeDifficulty().toString());
 
         
         long totalEffectiveBalance = 0;
@@ -47,8 +47,8 @@ public final class GetState extends APIServlet.APIRequestHandler {
         
 
         if (!"false".equalsIgnoreCase(req.getParameter("includeCounts"))) {
-            response.put("numberOfBlocks", Nxt.getBlockchain().getHeight() + 1);
-            response.put("numberOfTransactions", Nxt.getBlockchain().getTransactionCount());
+            response.put("numberOfBlocks", Burst.getBlockchain().getHeight() + 1);
+            response.put("numberOfTransactions", Burst.getBlockchain().getTransactionCount());
             response.put("numberOfAccounts", Account.getCount());
             response.put("numberOfAssets", Asset.getCount());
             int askCount = Order.Ask.getCount();
@@ -63,11 +63,11 @@ public final class GetState extends APIServlet.APIRequestHandler {
             //response.put("numberOfVotes", Vote.getCount());
         }
         response.put("numberOfPeers", Peers.getAllPeers().size());
-        response.put("numberOfUnlockedAccounts", Nxt.getGenerator().getAllGenerators().size());
-        Peer lastBlockchainFeeder = Nxt.getBlockchainProcessor().getLastBlockchainFeeder();
+        response.put("numberOfUnlockedAccounts", Burst.getGenerator().getAllGenerators().size());
+        Peer lastBlockchainFeeder = Burst.getBlockchainProcessor().getLastBlockchainFeeder();
         response.put("lastBlockchainFeeder", lastBlockchainFeeder == null ? null : lastBlockchainFeeder.getAnnouncedAddress());
-        response.put("lastBlockchainFeederHeight", Nxt.getBlockchainProcessor().getLastBlockchainFeederHeight());
-        response.put("isScanning", Nxt.getBlockchainProcessor().isScanning());
+        response.put("lastBlockchainFeederHeight", Burst.getBlockchainProcessor().getLastBlockchainFeederHeight());
+        response.put("isScanning", Burst.getBlockchainProcessor().isScanning());
         response.put("availableProcessors", Runtime.getRuntime().availableProcessors());
         response.put("maxMemory", Runtime.getRuntime().maxMemory());
         response.put("totalMemory", Runtime.getRuntime().totalMemory());

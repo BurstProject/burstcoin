@@ -381,7 +381,7 @@ public abstract class TransactionType {
           if (transaction.getAmountNQT() != 0) {
             throw new NxtException.NotValidException("Invalid arbitrary message: " + attachment.getJSONObject());
           }
-          if (Nxt.getBlockchain().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK && transaction.getMessage() == null) {
+          if (Burst.getBlockchain().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK && transaction.getMessage() == null) {
             throw new NxtException.NotCurrentlyValidException("Missing message appendix not allowed before DGS block");
           }
         }
@@ -482,8 +482,8 @@ public abstract class TransactionType {
 
         @Override
         void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-          if (Nxt.getBlockchain().getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
-            throw new NxtException.NotYetEnabledException("Alias transfer not yet enabled at height " + Nxt.getBlockchain().getLastBlock().getHeight());
+          if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+            throw new NxtException.NotYetEnabledException("Alias transfer not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
           }
           if (transaction.getAmountNQT() != 0) {
             throw new NxtException.NotValidException("Invalid sell alias transaction: " +
@@ -555,8 +555,8 @@ public abstract class TransactionType {
 
         @Override
         void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-          if (Nxt.getBlockchain().getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
-            throw new NxtException.NotYetEnabledException("Alias transfer not yet enabled at height " + Nxt.getBlockchain().getLastBlock().getHeight());
+          if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+            throw new NxtException.NotYetEnabledException("Alias transfer not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
           }
           final Attachment.MessagingAliasBuy attachment =
               (Attachment.MessagingAliasBuy) transaction.getAttachment();
@@ -615,8 +615,8 @@ public abstract class TransactionType {
 
         @Override
         void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-          if (Nxt.getBlockchain().getLastBlock().getHeight() < Constants.VOTING_SYSTEM_BLOCK) {
-            throw new NxtException.NotYetEnabledException("Voting System not yet enabled at height " + Nxt.getBlockchain().getLastBlock().getHeight());
+          if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.VOTING_SYSTEM_BLOCK) {
+            throw new NxtException.NotYetEnabledException("Voting System not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
           }
           Attachment.MessagingPollCreation attachment = (Attachment.MessagingPollCreation) transaction.getAttachment();
           for (int i = 0; i < attachment.getPollOptions().length; i++) {
@@ -666,8 +666,8 @@ public abstract class TransactionType {
 
         @Override
         void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-          if (Nxt.getBlockchain().getLastBlock().getHeight() < Constants.VOTING_SYSTEM_BLOCK) {
-            throw new NxtException.NotYetEnabledException("Voting System not yet enabled at height " + Nxt.getBlockchain().getLastBlock().getHeight());
+          if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.VOTING_SYSTEM_BLOCK) {
+            throw new NxtException.NotYetEnabledException("Voting System not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
           }
           Attachment.MessagingVoteCasting attachment = (Attachment.MessagingVoteCasting) transaction.getAttachment();
           if (attachment.getPollId() == 0 || attachment.getPollVote() == null
@@ -711,8 +711,8 @@ public abstract class TransactionType {
 
         @Override
         void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-          if (Nxt.getBlockchain().getLastBlock().getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_7) {
-            throw new NxtException.NotYetEnabledException("Hub terminal announcement not yet enabled at height " + Nxt.getBlockchain().getLastBlock().getHeight());
+          if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_7) {
+            throw new NxtException.NotYetEnabledException("Hub terminal announcement not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
           }
           Attachment.MessagingHubAnnouncement attachment = (Attachment.MessagingHubAnnouncement) transaction.getAttachment();
           if (attachment.getMinFeePerByteNQT() < 0 || attachment.getMinFeePerByteNQT() > Constants.MAX_BALANCE_NQT
@@ -1165,8 +1165,8 @@ public abstract class TransactionType {
 
     @Override
     final void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-      if (Nxt.getBlockchain().getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
-        throw new NxtException.NotYetEnabledException("Digital goods listing not yet enabled at height " + Nxt.getBlockchain().getLastBlock().getHeight());
+      if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+        throw new NxtException.NotYetEnabledException("Digital goods listing not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
       }
       if (transaction.getAmountNQT() != 0) {
         throw new NxtException.NotValidException("Invalid digital goods transaction");
@@ -1430,7 +1430,7 @@ public abstract class TransactionType {
           if (attachment.getQuantity() > goods.getQuantity() || attachment.getPriceNQT() != goods.getPriceNQT()) {
             throw new NxtException.NotCurrentlyValidException("Goods price or quantity changed: " + attachment.getJSONObject());
           }
-          if (attachment.getDeliveryDeadlineTimestamp() <= Nxt.getBlockchain().getLastBlock().getTimestamp()) {
+          if (attachment.getDeliveryDeadlineTimestamp() <= Burst.getBlockchain().getLastBlock().getTimestamp()) {
             throw new NxtException.NotCurrentlyValidException("Delivery deadline has already expired: " + attachment.getDeliveryDeadlineTimestamp());
           }
         }
@@ -1740,7 +1740,7 @@ public abstract class TransactionType {
     		
         @Override
         boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
-          if(Nxt.getBlockchain().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+          if(Burst.getBlockchain().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
             return false; // sync fails after 7007 without this
           }
           return isDuplicate(BurstMining.REWARD_RECIPIENT_ASSIGNMENT, Convert.toUnsignedLong(transaction.getSenderId()), duplicates);
@@ -1748,7 +1748,7 @@ public abstract class TransactionType {
     		
         @Override
         void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-          long height = Nxt.getBlockchain().getLastBlock().getHeight() + 1;
+          long height = Burst.getBlockchain().getLastBlock().getHeight() + 1;
           Account sender = Account.getAccount(transaction.getSenderId());
 
           if(sender == null) {
@@ -2266,8 +2266,8 @@ public abstract class TransactionType {
         void doValidateAttachment(Transaction transaction)
           throws ValidationException {
           //System.out.println("validating attachment");
-          if (Nxt.getBlockchain().getLastBlock().getHeight()< Constants.AUTOMATED_TRANSACTION_BLOCK){
-            throw new NxtException.NotYetEnabledException("Automated Transactions not yet enabled at height " + Nxt.getBlockchain().getLastBlock().getHeight());
+          if (Burst.getBlockchain().getLastBlock().getHeight()< Constants.AUTOMATED_TRANSACTION_BLOCK){
+            throw new NxtException.NotYetEnabledException("Automated Transactions not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
           }
           if (transaction.getSignature() != null && Account.getAccount(transaction.getId()) != null) {
             Account existingAccount = Account.getAccount(transaction.getId());
@@ -2277,7 +2277,7 @@ public abstract class TransactionType {
           Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
           long totalPages = 0;
           try {
-            totalPages = AT_Controller.checkCreationBytes(attachment.getCreationBytes(), Nxt.getBlockchain().getHeight());
+            totalPages = AT_Controller.checkCreationBytes(attachment.getCreationBytes(), Burst.getBlockchain().getHeight());
           }
           catch(AT_Exception e) {
             throw new NxtException.NotCurrentlyValidException("Invalid AT creation bytes", e);
@@ -2286,7 +2286,7 @@ public abstract class TransactionType {
           if (transaction.getFeeNQT() <  requiredFee){
             throw new NxtException.NotValidException("Insufficient fee for AT creation. Minimum: " + Convert.toUnsignedLong(requiredFee / Constants.ONE_NXT));
           }
-          if(Nxt.getBlockchain().getHeight() >= Constants.AT_FIX_BLOCK_3) {
+          if(Burst.getBlockchain().getHeight() >= Constants.AT_FIX_BLOCK_3) {
             if(attachment.getName().length() > Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH) {
               throw new NxtException.NotValidException("Name of automated transaction over size limit");
             }

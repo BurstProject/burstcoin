@@ -44,7 +44,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
     final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Long recipientId,
                                             long amountNQT, Attachment attachment)
             throws NxtException {
-    	int blockchainHeight = Nxt.getBlockchain().getHeight();
+    	int blockchainHeight = Burst.getBlockchain().getHeight();
     	String deadlineValue = req.getParameter("deadline");
         String referencedTransactionFullHash = Convert.emptyToNull(req.getParameter("referencedTransactionFullHash"));
         String referencedTransactionId = Convert.emptyToNull(req.getParameter("referencedTransaction"));
@@ -126,7 +126,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         byte[] publicKey = secretPhrase != null ? Crypto.getPublicKey(secretPhrase) : Convert.parseHexString(publicKeyValue);
 
         try {
-            Transaction.Builder builder = Nxt.getTransactionProcessor().newTransactionBuilder(publicKey, amountNQT, feeNQT,
+            Transaction.Builder builder = Burst.getTransactionProcessor().newTransactionBuilder(publicKey, amountNQT, feeNQT,
                     deadline, attachment).referencedTransactionFullHash(referencedTransactionFullHash);
             if (attachment.getTransactionType().hasRecipient()) {
                 builder.recipientId(recipientId);
@@ -154,7 +154,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
                 response.put("transactionBytes", Convert.toHexString(transaction.getBytes()));
                 response.put("signatureHash", Convert.toHexString(Crypto.sha256().digest(transaction.getSignature())));
                 if (broadcast) {
-                    Nxt.getTransactionProcessor().broadcast(transaction);
+                    Burst.getTransactionProcessor().broadcast(transaction);
                     response.put("broadcasted", true);
                 } else {
                     response.put("broadcasted", false);

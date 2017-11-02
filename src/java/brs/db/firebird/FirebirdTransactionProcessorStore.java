@@ -1,6 +1,6 @@
 package brs.db.firebird;
 
-import brs.Nxt;
+import brs.Burst;
 import brs.NxtException;
 import brs.TransactionImpl;
 import brs.db.sql.Db;
@@ -44,7 +44,7 @@ class FirebirdTransactionProcessorStore extends SqlTransactionProcessorStore {
                         pstmt.setInt(++i, transaction.getTimestamp());
                         pstmt.setInt(++i, transaction.getExpiration());
                         pstmt.setBytes(++i, transaction.getBytes());
-                        pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+                        pstmt.setInt(++i, Burst.getBlockchain().getHeight());
                         pstmt.executeUpdate();
                     }
                 }

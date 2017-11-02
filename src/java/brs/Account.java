@@ -42,7 +42,7 @@ public  class Account {
     protected AccountAsset(long accountId, long assetId, long quantityQNT, long unconfirmedQuantityQNT) {
       this.accountId = accountId;
       this.assetId = assetId;
-      this.nxtKey = Nxt.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.accountId, this.assetId);
+      this.nxtKey = Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.accountId, this.assetId);
       this.quantityQNT = quantityQNT;
       this.unconfirmedQuantityQNT = unconfirmedQuantityQNT;
     }
@@ -148,9 +148,9 @@ public  class Account {
   static {
   }
 
-  protected static final NxtKey.LongKeyFactory<Account> accountNxtKeyFactory =  Nxt.getStores().getAccountStore().getAccountKeyFactory();
+  protected static final NxtKey.LongKeyFactory<Account> accountNxtKeyFactory =  Burst.getStores().getAccountStore().getAccountKeyFactory();
 
-  private static final VersionedBatchEntityTable<Account> accountTable = Nxt.getStores().getAccountStore().getAccountTable();
+  private static final VersionedBatchEntityTable<Account> accountTable = Burst.getStores().getAccountStore().getAccountTable();
 
 
   public static void flushAccountTable() {
@@ -159,10 +159,10 @@ public  class Account {
 
 
 
-  private static final VersionedEntityTable<AccountAsset> accountAssetTable =  Nxt.getStores().getAccountStore().getAccountAssetTable();
+  private static final VersionedEntityTable<AccountAsset> accountAssetTable =  Burst.getStores().getAccountStore().getAccountAssetTable();
 
 
-  private static final VersionedEntityTable<RewardRecipientAssignment> rewardRecipientAssignmentTable = Nxt.getStores().getAccountStore().getRewardRecipientAssignmentTable();
+  private static final VersionedEntityTable<RewardRecipientAssignment> rewardRecipientAssignmentTable = Burst.getStores().getAccountStore().getRewardRecipientAssignmentTable();
 
   private static final Listeners<Account,Event> listeners = new Listeners<>();
 
@@ -193,7 +193,7 @@ public  class Account {
   }
 
   public static int getAssetAccountsCount(long assetId) {
-    return Nxt.getStores().getAccountStore().getAssetAccountsCount(assetId);
+    return Burst.getStores().getAccountStore().getAssetAccountsCount(assetId);
   }
 
   public static Account getAccount(long id) {
@@ -231,14 +231,14 @@ public  class Account {
   }
 
   public static NxtIterator<AccountAsset> getAssetAccounts(long assetId, int from, int to) {
-    return Nxt.getStores().getAccountStore().getAssetAccounts(assetId, from, to);
+    return Burst.getStores().getAccountStore().getAssetAccounts(assetId, from, to);
   }
 
   public static NxtIterator<AccountAsset> getAssetAccounts(long assetId, int height, int from, int to) {
     if (height < 0) {
       return getAssetAccounts(assetId, from, to);
     }
-    return Nxt.getStores().getAccountStore().getAssetAccounts(assetId, height, from, to);
+    return Burst.getStores().getAccountStore().getAssetAccounts(assetId, height, from, to);
   }
 
   static void init() {}
@@ -263,7 +263,7 @@ public  class Account {
     }
     this.id = id;
     this.nxtKey = accountNxtKeyFactory.newKey(this.id);
-    this.creationHeight = Nxt.getBlockchain().getHeight();
+    this.creationHeight = Burst.getBlockchain().getHeight();
   }
 
   protected Account(long id, NxtKey NxtKey, int creationHeight) {
@@ -335,7 +335,7 @@ public  class Account {
   }
 
   public NxtIterator<AccountAsset> getAssets(int from, int to) {
-    return Nxt.getStores().getAccountStore().getAssets(from, to, this.id);
+    return Burst.getStores().getAccountStore().getAssets(from, to, this.id);
   }
 
   public NxtIterator<Trade> getTrades(int from, int to) {
@@ -347,13 +347,13 @@ public  class Account {
   }
 
   public long getAssetBalanceQNT(long assetId) {
-    NxtKey nxtKey =  Nxt.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    NxtKey nxtKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
     AccountAsset accountAsset = accountAssetTable.get(nxtKey);
     return accountAsset == null ? 0 : accountAsset.quantityQNT;
   }
 
   public long getUnconfirmedAssetBalanceQNT(long assetId) {
-    NxtKey nxtKey =  Nxt.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    NxtKey nxtKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
     AccountAsset accountAsset = accountAssetTable.get(nxtKey);
     return accountAsset == null ? 0 : accountAsset.unconfirmedQuantityQNT;
   }
@@ -364,7 +364,7 @@ public  class Account {
 
   public static RewardRecipientAssignment getRewardRecipientAssignment(Long id) {
     return rewardRecipientAssignmentTable.get(
-                                              Nxt.getStores().getAccountStore().getRewardRecipientAssignmentKeyFactory().newKey(id)
+                                              Burst.getStores().getAccountStore().getRewardRecipientAssignmentKeyFactory().newKey(id)
                                               );
   }
 
@@ -373,10 +373,10 @@ public  class Account {
   }
 
   public static void setRewardRecipientAssignment(Long id, Long recipient) {
-    int currentHeight = Nxt.getBlockchain().getLastBlock().getHeight();
+    int currentHeight = Burst.getBlockchain().getLastBlock().getHeight();
     RewardRecipientAssignment assignment = getRewardRecipientAssignment(id);
     if(assignment == null) {
-      NxtKey NxtKey =     Nxt.getStores().getAccountStore().getRewardRecipientAssignmentKeyFactory().newKey(id);
+      NxtKey NxtKey =     Burst.getStores().getAccountStore().getRewardRecipientAssignmentKeyFactory().newKey(id);
       assignment = new RewardRecipientAssignment(id, id, recipient, (int) (currentHeight + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME), NxtKey);
     }
     else {
@@ -388,7 +388,7 @@ public  class Account {
 
 
   public static NxtIterator<RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
-    return Nxt.getStores().getAccountStore().getAccountsWithRewardRecipient(recipientId);
+    return Burst.getStores().getAccountStore().getAccountsWithRewardRecipient(recipientId);
   }
 
   // returns true iff:
@@ -396,7 +396,7 @@ public  class Account {
   // or
   // this.publicKey is already set to an array equal to key
   boolean setOrVerify(byte[] key, int height) {
-    return Nxt.getStores().getAccountStore().setOrVerify(this, key, height);
+    return Burst.getStores().getAccountStore().setOrVerify(this, key, height);
   }
 
   void apply(byte[] key, int height) {
@@ -419,7 +419,7 @@ public  class Account {
     }
     AccountAsset accountAsset;
 
-    NxtKey nxtKey =  Nxt.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    NxtKey nxtKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
     accountAsset = accountAssetTable.get(nxtKey);
     long assetBalance = accountAsset == null ? 0 : accountAsset.quantityQNT;
     assetBalance = Convert.safeAdd(assetBalance, quantityQNT);
@@ -438,7 +438,7 @@ public  class Account {
       return;
     }
     AccountAsset accountAsset;
-    NxtKey nxtKey =  Nxt.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    NxtKey nxtKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
     accountAsset = accountAssetTable.get(nxtKey);
     long unconfirmedAssetBalance = accountAsset == null ? 0 : accountAsset.unconfirmedQuantityQNT;
     unconfirmedAssetBalance = Convert.safeAdd(unconfirmedAssetBalance, quantityQNT);
@@ -457,7 +457,7 @@ public  class Account {
       return;
     }
     AccountAsset accountAsset;
-    NxtKey nxtKey =  Nxt.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    NxtKey nxtKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
     accountAsset = accountAssetTable.get(nxtKey);
     long assetBalance = accountAsset == null ? 0 : accountAsset.quantityQNT;
     assetBalance = Convert.safeAdd(assetBalance, quantityQNT);

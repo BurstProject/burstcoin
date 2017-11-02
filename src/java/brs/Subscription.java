@@ -15,9 +15,9 @@ import java.util.Set;
 public class Subscription {
 
   // WATCH
-  private   final TransactionDb transactionDb = Nxt.getDbs().getTransactionDb();
+  private   final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
   public static boolean isEnabled() {
-    if(Nxt.getBlockchain().getLastBlock().getHeight() >= Constants.BURST_SUBSCRIPTION_START_BLOCK) {
+    if(Burst.getBlockchain().getLastBlock().getHeight() >= Constants.BURST_SUBSCRIPTION_START_BLOCK) {
       return true;
     }
 
@@ -30,10 +30,10 @@ public class Subscription {
   }
 
   private static final NxtKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory  =
-      Nxt.getStores().getSubscriptionStore().getSubscriptionDbKeyFactory();
+      Burst.getStores().getSubscriptionStore().getSubscriptionDbKeyFactory();
 
   private static final VersionedEntityTable<Subscription> subscriptionTable =
-      Nxt.getStores().getSubscriptionStore().getSubscriptionTable();
+      Burst.getStores().getSubscriptionStore().getSubscriptionTable();
 
   private static final List<TransactionImpl> paymentTransactions = new ArrayList<>();
   private static final List<Subscription> appliedSubscriptions = new ArrayList<>();
@@ -50,15 +50,15 @@ public class Subscription {
 
 
   public static NxtIterator<Subscription> getSubscriptionsByParticipant(Long accountId) {
-    return Nxt.getStores().getSubscriptionStore().getSubscriptionsByParticipant(accountId);
+    return Burst.getStores().getSubscriptionStore().getSubscriptionsByParticipant(accountId);
   }
 
   public static NxtIterator<Subscription> getIdSubscriptions(Long accountId) {
-    return Nxt.getStores().getSubscriptionStore().getIdSubscriptions(accountId);
+    return Burst.getStores().getSubscriptionStore().getIdSubscriptions(accountId);
   }
 
   public static NxtIterator<Subscription> getSubscriptionsToId(Long accountId) {
-    return Nxt.getStores().getSubscriptionStore().getSubscriptionsToId(accountId);
+    return Burst.getStores().getSubscriptionStore().getSubscriptionsToId(accountId);
   }
 
   public static Subscription getSubscription(Long id) {
@@ -94,7 +94,7 @@ public class Subscription {
   public static long calculateFees(int timestamp) {
     long totalFeeNQT = 0;
     NxtIterator<Subscription> updateSubscriptions =
-        Nxt.getStores().getSubscriptionStore().getUpdateSubscriptions(timestamp);
+        Burst.getStores().getSubscriptionStore().getUpdateSubscriptions(timestamp);
     List<Subscription> appliedSubscriptions = new ArrayList<>();
     for(Subscription subscription : updateSubscriptions) {
       if(removeSubscriptions.contains(subscription.getId())) {
@@ -126,7 +126,7 @@ public class Subscription {
     appliedSubscriptions.clear();
     long totalFees = 0;
     NxtIterator<Subscription> updateSubscriptions =
-        Nxt.getStores().getSubscriptionStore().getUpdateSubscriptions(timestamp);
+        Burst.getStores().getSubscriptionStore().getUpdateSubscriptions(timestamp);
     for(Subscription subscription : updateSubscriptions) {
       if(removeSubscriptions.contains(subscription.getId())) {
         continue;
@@ -155,7 +155,7 @@ public class Subscription {
       subscriptionTable.insert(subscription);
     }
     if(paymentTransactions.size() > 0) {
-      Nxt.getDbs().getTransactionDb().saveTransactions( paymentTransactions);
+      Burst.getDbs().getTransactionDb().saveTransactions( paymentTransactions);
     }
     for(Long subscription : removeSubscriptions) {
       removeSubscription(subscription);

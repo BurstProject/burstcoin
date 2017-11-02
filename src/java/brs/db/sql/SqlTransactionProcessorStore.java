@@ -56,7 +56,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
                         pstmt.setInt(++i, transaction.getTimestamp());
                         pstmt.setInt(++i, transaction.getExpiration());
                         pstmt.setBytes(++i, transaction.getBytes());
-                        pstmt.setInt(++i, Nxt.getBlockchain().getHeight());
+                        pstmt.setInt(++i, Burst.getBlockchain().getHeight());
                         pstmt.executeUpdate();
                     }
                 }
@@ -89,7 +89,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
     private final DbClause expiredClause = new DbClause(" expiration < ? ") {
         @Override
         protected int set(PreparedStatement pstmt, int index) throws SQLException {
-            pstmt.setInt(index, Nxt.getEpochTime());
+            pstmt.setInt(index, Burst.getEpochTime());
             return index + 1;
         }
     };

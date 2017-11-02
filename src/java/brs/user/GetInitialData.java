@@ -2,7 +2,7 @@ package brs.user;
 
 import brs.Block;
 import brs.Constants;
-import brs.Nxt;
+import brs.Burst;
 import brs.Transaction;
 import brs.db.NxtIterator;
 import brs.peer.Peer;
@@ -29,7 +29,7 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
         JSONArray activePeers = new JSONArray(), knownPeers = new JSONArray(), blacklistedPeers = new JSONArray();
         JSONArray recentBlocks = new JSONArray();
 
-        try (NxtIterator<? extends Transaction> transactions = Nxt.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+        try (NxtIterator<? extends Transaction> transactions = Burst.getTransactionProcessor().getAllUnconfirmedTransactions()) {
             while (transactions.hasNext()) {
                 Transaction transaction = transactions.next();
 
@@ -93,7 +93,7 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
             }
         }
 
-        try (NxtIterator<? extends Block> lastBlocks = Nxt.getBlockchain().getBlocks(0, 59)) {
+        try (NxtIterator<? extends Block> lastBlocks = Burst.getBlockchain().getBlocks(0, 59)) {
             for (Block block : lastBlocks) {
                 JSONObject recentBlock = new JSONObject();
                 recentBlock.put("index", Users.getIndex(block));
@@ -115,7 +115,7 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
 
         JSONObject response = new JSONObject();
         response.put("response", "processInitialData");
-        response.put("version", Nxt.VERSION);
+        response.put("version", Burst.VERSION);
         if (unconfirmedTransactions.size() > 0) {
             response.put("unconfirmedTransactions", unconfirmedTransactions);
         }

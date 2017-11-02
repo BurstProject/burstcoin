@@ -1,7 +1,7 @@
 package brs.db.firebird;
 
 import brs.BlockImpl;
-import brs.Nxt;
+import brs.Burst;
 import brs.NxtException;
 import brs.db.sql.Db;
 import brs.db.sql.DbUtils;
@@ -74,7 +74,7 @@ class FirebirdBlockDB extends SqlBlockDb {
                 pstmt.setLong(++i, block.getNonce());
                 DbUtils.setBytes(pstmt, ++i, block.getBlockATs());
                 pstmt.executeUpdate();
-                Nxt.getDbs().getTransactionDb().saveTransactions(block.getTransactions());
+                Burst.getDbs().getTransactionDb().saveTransactions(block.getTransactions());
             }
             if (block.getPreviousBlockId() != 0) {
                 try (PreparedStatement pstmt = con.prepareStatement("UPDATE block SET next_block_id = ? WHERE id = ?")) {

@@ -23,11 +23,11 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
 
   private static final Logger logger = LoggerFactory.getLogger(TransactionProcessorImpl.class);
 
-  private static final boolean enableTransactionRebroadcasting = Nxt.getBooleanProperty("brs.enableTransactionRebroadcasting");
-  private static final boolean testUnconfirmedTransactions = Nxt.getBooleanProperty("brs.testUnconfirmedTransactions");
+  private static final boolean enableTransactionRebroadcasting = Burst.getBooleanProperty("brs.enableTransactionRebroadcasting");
+  private static final boolean testUnconfirmedTransactions = Burst.getBooleanProperty("brs.testUnconfirmedTransactions");
 
-  private static final int rebroadcastAfter = Nxt.getIntProperty("burst.rebroadcastAfter") != 0 ? Nxt.getIntProperty("burst.rebroadcastAfter") : 4;
-  private static final int rebroadcastEvery = Nxt.getIntProperty("burst.rebroadcastEvery") != 0 ? Nxt.getIntProperty("burst.rebroadcastEvery") : 2;
+  private static final int rebroadcastAfter = Burst.getIntProperty("burst.rebroadcastAfter") != 0 ? Burst.getIntProperty("burst.rebroadcastAfter") : 4;
+  private static final int rebroadcastEvery = Burst.getIntProperty("burst.rebroadcastEvery") != 0 ? Burst.getIntProperty("burst.rebroadcastEvery") : 2;
 
   private static final TransactionProcessorImpl instance = new TransactionProcessorImpl();
 
@@ -36,11 +36,11 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   final NxtKey.LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory =
-      Nxt.getStores().getTransactionProcessorStore().getUnconfirmedTransactionDbKeyFactory();
+      Burst.getStores().getTransactionProcessorStore().getUnconfirmedTransactionDbKeyFactory();
 
 
   private final EntityTable<TransactionImpl> unconfirmedTransactionTable =
-      Nxt.getStores().getTransactionProcessorStore().getUnconfirmedTransactionTable();
+      Burst.getStores().getTransactionProcessorStore().getUnconfirmedTransactionTable();
 
   private final Set<TransactionImpl> nonBroadcastedTransactions = Collections.newSetFromMap(new ConcurrentHashMap<TransactionImpl,Boolean>());
   private final Listeners<List<? extends Transaction>,Event> transactionListeners = new Listeners<>();
@@ -55,7 +55,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         try {
           try {
             List<TransactionImpl> expiredTransactions = new ArrayList<>();
-            try (NxtIterator<TransactionImpl> iterator = Nxt.getStores().getTransactionProcessorStore().getExpiredTransactions()) {
+            try (NxtIterator<TransactionImpl> iterator = Burst.getStores().getTransactionProcessorStore().getExpiredTransactions()) {
               while (iterator.hasNext()) {
                 expiredTransactions.add(iterator.next());
               }
@@ -63,20 +63,20 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
             if (expiredTransactions.size() > 0) {
               synchronized (BlockchainImpl.getInstance()) {
                 try {
-                  Nxt.getStores().beginTransaction();
+                  Burst.getStores().beginTransaction();
 
                   for (TransactionImpl transaction : expiredTransactions) {
                     removeUnconfirmedTransaction(transaction);
                   }
                   Account.flushAccountTable();
-                  Nxt.getStores().commitTransaction();
+                  Burst.getStores().commitTransaction();
 
                 } catch (Exception e) {
                   logger.error(e.toString(), e);
-                  Nxt.getStores().rollbackTransaction();
+                  Burst.getStores().rollbackTransaction();
                   throw e;
                 } finally {
-                  Nxt.getStores().endTransaction();
+                  Burst.getStores().endTransaction();
                 }
               } // synchronized
             }
@@ -101,9 +101,9 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         try {
           try {
             List<Transaction> transactionList = new ArrayList<>();
-            int curTime = Nxt.getEpochTime();
+            int curTime = Burst.getEpochTime();
             for (TransactionImpl transaction : nonBroadcastedTransactions) {
-              if (Nxt.getDbs().getTransactionDb().hasTransaction(transaction.getId()) || transaction.getExpiration() < curTime) {
+              if (Burst.getDbs().getTransactionDb().hasTransaction(transaction.getId()) || transaction.getExpiration() < curTime) {
                 nonBroadcastedTransactions.remove(transaction);
               } else if (transaction.getTimestamp() < curTime - 30) {
                 transactionList.add(transaction);
@@ -144,17 +144,17 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
               if(lostTransactions.size() > 0) {
                 List<Transaction> reAdded = processTransactions(lostTransactions, false);
 
-                if(enableTransactionRebroadcasting && Nxt.getEpochTime() - Nxt.getBlockchain().getLastBlock().getTimestamp() < 4 * 60) {
+                if(enableTransactionRebroadcasting && Burst.getEpochTime() - Burst.getBlockchain().getLastBlock().getTimestamp() < 4 * 60) {
                   List<Transaction> rebroadcastLost = new ArrayList<>();
                   for (Transaction lost : reAdded) {
                     if (lostTransactionHeights.containsKey(lost.getId())) {
                       int addedHeight = lostTransactionHeights.get(lost.getId());
-                      if (Nxt.getBlockchain().getHeight() - addedHeight >= rebroadcastAfter
-                          && (Nxt.getBlockchain().getHeight() - addedHeight - rebroadcastAfter) % rebroadcastEvery == 0) {
+                      if (Burst.getBlockchain().getHeight() - addedHeight >= rebroadcastAfter
+                          && (Burst.getBlockchain().getHeight() - addedHeight - rebroadcastAfter) % rebroadcastEvery == 0) {
                         rebroadcastLost.add(lost);
                       }
                     } else {
-                      lostTransactionHeights.put(lost.getId(), Nxt.getBlockchain().getHeight());
+                      lostTransactionHeights.put(lost.getId(), Burst.getBlockchain().getHeight());
                     }
                   }
 
@@ -249,8 +249,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
 
   public Transaction.Builder newTransactionBuilder(byte[] senderPublicKey, long amountNQT, long feeNQT, short deadline,
                                                    Attachment attachment) {
-    byte version = (byte) getTransactionVersion(Nxt.getBlockchain().getHeight());
-    int timestamp = Nxt.getEpochTime();
+    byte version = (byte) getTransactionVersion(Burst.getBlockchain().getHeight());
+    int timestamp = Burst.getEpochTime();
     TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl(version, senderPublicKey, amountNQT, feeNQT, timestamp,
                                                                           deadline, (Attachment.AbstractAttachment)attachment);
     if (version > 0) {
@@ -268,7 +268,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     }
     List<Transaction> processedTransactions;
     synchronized (BlockchainImpl.getInstance()) {
-      if (Nxt.getDbs().getTransactionDb().hasTransaction(transaction.getId())) {
+      if (Burst.getDbs().getTransactionDb().hasTransaction(transaction.getId())) {
         logger.info("Transaction " + transaction.getStringId() + " already in blockchain, will not broadcast again");
         return;
       }
@@ -315,7 +315,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     synchronized (BlockchainImpl.getInstance()) {
       List<Transaction> removed = new ArrayList<>();
       try {
-        Nxt.getStores().beginTransaction();
+        Burst.getStores().beginTransaction();
 
         try (NxtIterator<TransactionImpl> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
           for (TransactionImpl transaction : unconfirmedTransactions) {
@@ -325,14 +325,14 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         }
         unconfirmedTransactionTable.truncate();
         Account.flushAccountTable();
-        Nxt.getStores().commitTransaction();
+        Burst.getStores().commitTransaction();
       } catch (Exception e) {
         logger.error(e.toString(), e);
-        Nxt.getStores().rollbackTransaction();
+        Burst.getStores().rollbackTransaction();
 
         throw e;
       } finally {
-        Nxt.getStores().endTransaction();
+        Burst.getStores().endTransaction();
       }
       lostTransactions.clear();
       transactionListeners.notify(removed, Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
@@ -353,25 +353,25 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   void removeUnconfirmedTransaction(TransactionImpl transaction) {
-    if (!Nxt.getStores().isInTransaction()) {
+    if (!Burst.getStores().isInTransaction()) {
       synchronized (BlockchainImpl.getInstance()) {
         try {
-          Nxt.getStores().beginTransaction();
+          Burst.getStores().beginTransaction();
           removeUnconfirmedTransaction(transaction);
           Account.flushAccountTable();
-          Nxt.getStores().commitTransaction();
+          Burst.getStores().commitTransaction();
         } catch (Exception e) {
           logger.error(e.toString(), e);
-          Nxt.getStores().rollbackTransaction();
+          Burst.getStores().rollbackTransaction();
           throw e;
         } finally {
-          Nxt.getStores().endTransaction();
+          Burst.getStores().endTransaction();
         }
       }
       return;
     }
 
-    int deleted = Nxt.getStores().getTransactionProcessorStore().deleteTransaction(transaction);
+    int deleted = Burst.getStores().getTransactionProcessorStore().deleteTransaction(transaction);
     if (deleted > 0) {
       transaction.undoUnconfirmed();
       transactionListeners.notify(Collections.singletonList(transaction), Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
@@ -384,14 +384,14 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
 
   // Watch: This is not really clean
   void processLater(Collection<TransactionImpl> transactions) {
-    Nxt.getStores().getTransactionProcessorStore().processLater(transactions);
+    Burst.getStores().getTransactionProcessorStore().processLater(transactions);
   }
 
   private void processPeerTransactions(JSONArray transactionsData) throws NxtException.ValidationException {
-    if (Nxt.getBlockchain().getLastBlock().getTimestamp() < Nxt.getEpochTime() - 60 * 1440 && ! testUnconfirmedTransactions) {
+    if (Burst.getBlockchain().getLastBlock().getTimestamp() < Burst.getEpochTime() - 60 * 1440 && ! testUnconfirmedTransactions) {
       return;
     }
-    if (Nxt.getBlockchain().getHeight() <= Constants.NQT_BLOCK) {
+    if (Burst.getBlockchain().getHeight() <= Constants.NQT_BLOCK) {
       return;
     }
     List<TransactionImpl> transactions = new ArrayList<>();
@@ -400,7 +400,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         TransactionImpl transaction = parseTransaction((JSONObject) transactionData);
         transaction.validate();
         if(!EconomicClustering.verifyFork(transaction)) {
-          /*if(Nxt.getBlockchain().getHeight() >= Constants.EC_CHANGE_BLOCK_1) {
+          /*if(Burst.getBlockchain().getHeight() >= Constants.EC_CHANGE_BLOCK_1) {
             throw new NxtException.NotValidException("Transaction from wrong fork");
             }*/
           continue;
@@ -428,7 +428,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
 
       try {
 
-        int curTime = Nxt.getEpochTime();
+        int curTime = Burst.getEpochTime();
         if (transaction.getTimestamp() > curTime + 15 || transaction.getExpiration() < curTime
             || transaction.getDeadline() > 1440) {
           continue;
@@ -439,13 +439,13 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
 
         synchronized (BlockchainImpl.getInstance()) {
           try {
-            Nxt.getStores().beginTransaction();
-            if (Nxt.getBlockchain().getHeight() < Constants.NQT_BLOCK) {
+            Burst.getStores().beginTransaction();
+            if (Burst.getBlockchain().getHeight() < Constants.NQT_BLOCK) {
               break; // not ready to process transactions
             }
 
-            if (Nxt.getDbs().getTransactionDb().hasTransaction(transaction.getId()) || unconfirmedTransactionTable.get(transaction.getDbKey()) != null) {
-              Nxt.getStores().commitTransaction();
+            if (Burst.getDbs().getTransactionDb().hasTransaction(transaction.getId()) || unconfirmedTransactionTable.get(transaction.getDbKey()) != null) {
+              Burst.getStores().commitTransaction();
               continue;
             }
 
@@ -453,7 +453,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
               if (Account.getAccount(transaction.getSenderId()) != null) {
                 logger.debug("Transaction " + transaction.getJSONObject().toJSONString() + " failed to verify");
               }
-              Nxt.getStores().commitTransaction();
+              Burst.getStores().commitTransaction();
               continue;
             }
 
@@ -473,12 +473,12 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
               addedDoubleSpendingTransactions.add(transaction);
             }
             Account.flushAccountTable();
-            Nxt.getStores().commitTransaction();
+            Burst.getStores().commitTransaction();
           } catch (Exception e) {
-            Nxt.getStores().rollbackTransaction();
+            Burst.getStores().rollbackTransaction();
             throw e;
           } finally {
-            Nxt.getStores().endTransaction();
+            Burst.getStores().endTransaction();
           }
         }
       } catch (RuntimeException e) {

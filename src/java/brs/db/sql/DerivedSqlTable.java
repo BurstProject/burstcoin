@@ -3,7 +3,7 @@ package brs.db.sql;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import brs.BlockchainImpl;
-import brs.Nxt;
+import brs.Burst;
 import brs.db.DerivedTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,7 @@ public abstract class DerivedSqlTable implements DerivedTable
     protected DerivedSqlTable(String table) {
         this.table = table;
         logger.trace("Creating derived table for "+table);
-        Nxt.getBlockchainProcessor().registerDerivedTable(this);
+        Burst.getBlockchainProcessor().registerDerivedTable(this);
     }
 
     @Override

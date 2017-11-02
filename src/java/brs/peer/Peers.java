@@ -93,17 +93,17 @@ public final class Peers {
 
     static {
 
-        myPlatform = Nxt.getStringProperty("brs.myPlatform");
-        myAddress = Nxt.getStringProperty("brs.myAddress");
+        myPlatform = Burst.getStringProperty("brs.myPlatform");
+        myAddress = Burst.getStringProperty("brs.myAddress");
         if (myAddress != null && myAddress.endsWith(":" + TESTNET_PEER_PORT) && !Constants.isTestnet) {
             throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
         }
-        myPeerServerPort = Nxt.getIntProperty("brs.peerServerPort");
+        myPeerServerPort = Burst.getIntProperty("brs.peerServerPort");
         if (myPeerServerPort == TESTNET_PEER_PORT && !Constants.isTestnet) {
             throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
         }
-        shareMyAddress = Nxt.getBooleanProperty("brs.shareMyAddress") && ! Constants.isOffline;
-        myHallmark = Nxt.getStringProperty("brs.myHallmark");
+        shareMyAddress = Burst.getBooleanProperty("brs.shareMyAddress") && ! Constants.isOffline;
+        myHallmark = Burst.getStringProperty("brs.myHallmark");
         if (Peers.myHallmark != null && Peers.myHallmark.length() > 0) {
             try {
                 Hallmark hallmark = Hallmark.parseHallmark(Peers.myHallmark);
@@ -143,8 +143,8 @@ public final class Peers {
         if (Peers.myHallmark != null && Peers.myHallmark.length() > 0) {
             json.put("hallmark", Peers.myHallmark);
         }
-        json.put("application", Nxt.APPLICATION);
-        json.put("version", Nxt.VERSION);
+        json.put("application", Burst.APPLICATION);
+        json.put("version", Burst.VERSION);
         json.put("platform", Peers.myPlatform);
         json.put("shareAddress", Peers.shareMyAddress);
         logger.debug("My peer info:\n" + json.toJSONString());
@@ -152,10 +152,10 @@ public final class Peers {
         json.put("requestType", "getInfo");
         myPeerInfoRequest = JSON.prepareRequest(json);
 
-        rebroadcastPeers = Collections.unmodifiableSet(new HashSet<>(Nxt.getStringListProperty("burst.rebroadcastPeers")));
+        rebroadcastPeers = Collections.unmodifiableSet(new HashSet<>(Burst.getStringListProperty("brs.rebroadcastPeers")));
 
-        List<String> wellKnownPeersList = Constants.isTestnet ? Nxt.getStringListProperty("brs.testnetPeers")
-                : Nxt.getStringListProperty("brs.wellKnownPeers");
+        List<String> wellKnownPeersList = Constants.isTestnet ? Burst.getStringListProperty("brs.testnetPeers")
+                : Burst.getStringListProperty("brs.wellKnownPeers");
         for(String rePeer : rebroadcastPeers) {
             if(!wellKnownPeersList.contains(rePeer)) {
                 wellKnownPeersList.add(rePeer);
@@ -167,30 +167,30 @@ public final class Peers {
             wellKnownPeers = Collections.unmodifiableSet(new HashSet<>(wellKnownPeersList));
         }
 
-        connectWellKnownFirst = Nxt.getIntProperty("burst.connectWellKnownFirst");
+        connectWellKnownFirst = Burst.getIntProperty("brs.connectWellKnownFirst");
         connectWellKnownFinished = (connectWellKnownFirst == 0);
 
-        List<String> knownBlacklistedPeersList = Nxt.getStringListProperty("brs.knownBlacklistedPeers");
+        List<String> knownBlacklistedPeersList = Burst.getStringListProperty("brs.knownBlacklistedPeers");
         if (knownBlacklistedPeersList.isEmpty()) {
             knownBlacklistedPeers = Collections.emptySet();
         } else {
             knownBlacklistedPeers = Collections.unmodifiableSet(new HashSet<>(knownBlacklistedPeersList));
         }
 
-        maxNumberOfConnectedPublicPeers = Nxt.getIntProperty("brs.maxNumberOfConnectedPublicPeers");
-        connectTimeout = Nxt.getIntProperty("brs.connectTimeout");
-        readTimeout = Nxt.getIntProperty("brs.readTimeout");
-        enableHallmarkProtection = Nxt.getBooleanProperty("brs.enableHallmarkProtection");
-        pushThreshold = Nxt.getIntProperty("brs.pushThreshold");
-        pullThreshold = Nxt.getIntProperty("brs.pullThreshold");
+        maxNumberOfConnectedPublicPeers = Burst.getIntProperty("brs.maxNumberOfConnectedPublicPeers");
+        connectTimeout = Burst.getIntProperty("brs.connectTimeout");
+        readTimeout = Burst.getIntProperty("brs.readTimeout");
+        enableHallmarkProtection = Burst.getBooleanProperty("brs.enableHallmarkProtection");
+        pushThreshold = Burst.getIntProperty("brs.pushThreshold");
+        pullThreshold = Burst.getIntProperty("brs.pullThreshold");
 
-        blacklistingPeriod = Nxt.getIntProperty("brs.blacklistingPeriod");
-        communicationLoggingMask = Nxt.getIntProperty("brs.communicationLoggingMask");
-        sendToPeersLimit = Nxt.getIntProperty("brs.sendToPeersLimit");
-        usePeersDb = Nxt.getBooleanProperty("brs.usePeersDb") && ! Constants.isOffline;
-        savePeers = usePeersDb && Nxt.getBooleanProperty("brs.savePeers");
-        getMorePeers = Nxt.getBooleanProperty("brs.getMorePeers");
-        dumpPeersVersion = Nxt.getStringProperty("brs.dumpPeersVersion");
+        blacklistingPeriod = Burst.getIntProperty("brs.blacklistingPeriod");
+        communicationLoggingMask = Burst.getIntProperty("brs.communicationLoggingMask");
+        sendToPeersLimit = Burst.getIntProperty("brs.sendToPeersLimit");
+        usePeersDb = Burst.getBooleanProperty("brs.usePeersDb") && ! Constants.isOffline;
+        savePeers = usePeersDb && Burst.getBooleanProperty("brs.savePeers");
+        getMorePeers = Burst.getBooleanProperty("brs.getMorePeers");
+        dumpPeersVersion = Burst.getStringProperty("brs.dumpPeersVersion");
 
         final List<Future<String>> unresolvedPeers = Collections.synchronizedList(new ArrayList<Future<String>>());
 
@@ -216,7 +216,7 @@ public final class Peers {
                 }
                 if (usePeersDb) {
                     logger.debug("Loading known peers from the database...");
-                    loadPeers(Nxt.getDbs().getPeerDb().loadPeers());
+                    loadPeers(Burst.getDbs().getPeerDb().loadPeers());
                 }
             }
         }, false);
@@ -253,22 +253,22 @@ public final class Peers {
                 ServerConnector connector = new ServerConnector(peerServer);
                 final int port = Constants.isTestnet ? TESTNET_PEER_PORT : Peers.myPeerServerPort;
                 connector.setPort(port);
-                final String host = Nxt.getStringProperty("brs.peerServerHost");
+                final String host = Burst.getStringProperty("brs.peerServerHost");
                 connector.setHost(host);
-                connector.setIdleTimeout(Nxt.getIntProperty("brs.peerServerIdleTimeout"));
+                connector.setIdleTimeout(Burst.getIntProperty("brs.peerServerIdleTimeout"));
                 connector.setReuseAddress(true);
                 peerServer.addConnector(connector);
 
                 ServletHolder peerServletHolder = new ServletHolder(new PeerServlet());
-                boolean isGzipEnabled = Nxt.getBooleanProperty("brs.enablePeerServerGZIPFilter");
+                boolean isGzipEnabled = Burst.getBooleanProperty("brs.enablePeerServerGZIPFilter");
                 peerServletHolder.setInitParameter("isGzipEnabled", Boolean.toString(isGzipEnabled));
                 ServletHandler peerHandler = new ServletHandler();
                 peerHandler.addServletWithMapping(peerServletHolder, "/*");
-                if (Nxt.getBooleanProperty("brs.enablePeerServerDoSFilter")) {
+                if (Burst.getBooleanProperty("brs.enablePeerServerDoSFilter")) {
                     FilterHolder dosFilterHolder = peerHandler.addFilterWithMapping(DoSFilter.class, "/*", FilterMapping.DEFAULT);
-                    dosFilterHolder.setInitParameter("maxRequestsPerSec", Nxt.getStringProperty("brs.peerServerDoSFilter.maxRequestsPerSec"));
-                    dosFilterHolder.setInitParameter("delayMs", Nxt.getStringProperty("brs.peerServerDoSFilter.delayMs"));
-                    dosFilterHolder.setInitParameter("maxRequestMs", Nxt.getStringProperty("brs.peerServerDoSFilter.maxRequestMs"));
+                    dosFilterHolder.setInitParameter("maxRequestsPerSec", Burst.getStringProperty("brs.peerServerDoSFilter.maxRequestsPerSec"));
+                    dosFilterHolder.setInitParameter("delayMs", Burst.getStringProperty("brs.peerServerDoSFilter.delayMs"));
+                    dosFilterHolder.setInitParameter("maxRequestMs", Burst.getStringProperty("brs.peerServerDoSFilter.maxRequestMs"));
                     dosFilterHolder.setInitParameter("trackSessions", "false");
                     dosFilterHolder.setAsyncSupported(true);
                 }
@@ -278,7 +278,7 @@ public final class Peers {
                     gzipFilterHolder.setAsyncSupported(true);
                 }
 
-                InstrumentedHandler instrumentedPeerHandler = new InstrumentedHandler(Nxt.metrics, "peer-handler");
+                InstrumentedHandler instrumentedPeerHandler = new InstrumentedHandler(Burst.metrics, "peer-handler");
                 instrumentedPeerHandler.setHandler(peerHandler);
 
                 peerServer.setHandler(instrumentedPeerHandler);
@@ -300,9 +300,9 @@ public final class Peers {
                 logger.info("shareMyAddress is disabled, will not start peer networking server");
             }
 
-            Nxt.metrics.register(MetricRegistry.name(Peers.class, "peers", "total"),
+            Burst.metrics.register(MetricRegistry.name(Peers.class, "peers", "total"),
                     (Gauge<Integer>) () -> peers.size());
-            Nxt.metrics.register(MetricRegistry.name(Peers.class, "peers", "active"),
+            Burst.metrics.register(MetricRegistry.name(Peers.class, "peers", "active"),
                     (Gauge<Integer>) () -> getActivePeers().size());
 
         }
@@ -354,7 +354,7 @@ public final class Peers {
                         }
                     }
 
-                    int now = Nxt.getEpochTime();
+                    int now = Burst.getEpochTime();
                     for (PeerImpl peer : peers.values()) {
                         if (peer.getState() == Peer.State.CONNECTED && now - peer.getLastUpdated() > 3600) {
                             peer.connect();
@@ -449,7 +449,7 @@ public final class Peers {
         }
 
         private void updateSavedPeers() {
-            Set<String> oldPeers = new HashSet<>(Nxt.getDbs().getPeerDb().loadPeers());
+            Set<String> oldPeers = new HashSet<>(Burst.getDbs().getPeerDb().loadPeers());
             Set<String> currentPeers = new HashSet<>();
             for (Peer peer : Peers.peers.values()) {
                 if (peer.getAnnouncedAddress() != null && ! peer.isBlacklisted()) {
@@ -459,18 +459,18 @@ public final class Peers {
             Set<String> toDelete = new HashSet<>(oldPeers);
             toDelete.removeAll(currentPeers);
             try {
-                Nxt.getStores().beginTransaction();
-                Nxt.getDbs().getPeerDb().deletePeers(toDelete);
+                Burst.getStores().beginTransaction();
+                Burst.getDbs().getPeerDb().deletePeers(toDelete);
 	            //logger.debug("Deleted " + toDelete.size() + " peers from the peers database");
                 currentPeers.removeAll(oldPeers);
-                Nxt.getDbs().getPeerDb().addPeers(currentPeers);
+                Burst.getDbs().getPeerDb().addPeers(currentPeers);
 	            //logger.debug("Added " + currentPeers.size() + " peers to the peers database");
-                Nxt.getStores().commitTransaction();
+                Burst.getStores().commitTransaction();
             } catch (Exception e) {
-                Nxt.getStores().rollbackTransaction();
+                Burst.getStores().rollbackTransaction();
                 throw e;
             } finally {
-                Nxt.getStores().endTransaction();
+                Burst.getStores().endTransaction();
             }
         }
 

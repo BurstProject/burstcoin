@@ -2,7 +2,7 @@ package brs.db.sql;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import brs.Nxt;
+import brs.Burst;
 import brs.db.EntityTable;
 import brs.db.NxtIterator;
 import brs.db.NxtKey;
@@ -34,11 +34,11 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
         this.multiversion = multiversion;
         this.defaultSort = " ORDER BY " + (multiversion ? this.dbKeyFactory.getPKColumns() : " height DESC ");
 
-//        getByKeyTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByKey"));
-//        getByKeyAndHeightTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByKeyAndHeight"));
-//        getByClauseTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByClause"));
-//        getByClauseAndHeightTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByClauseAndHeight"));
-//        insertTimer =  Nxt.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"insert"));
+//        getByKeyTimer =  Burst.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByKey"));
+//        getByKeyAndHeightTimer =  Burst.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByKeyAndHeight"));
+//        getByClauseTimer =  Burst.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByClause"));
+//        getByClauseAndHeightTimer =  Burst.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByClauseAndHeight"));
+//        insertTimer =  Burst.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"insert"));
     }
 
     protected abstract T load(Connection con, ResultSet rs) throws SQLException;
@@ -52,7 +52,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
 
     @Override
     public final void checkAvailable(int height) {
-        if (multiversion && height < Nxt.getBlockchainProcessor().getMinRollbackHeight()) {
+        if (multiversion && height < Burst.getBlockchainProcessor().getMinRollbackHeight()) {
             throw new IllegalArgumentException("Historical data as of height " + height + " not available, set brs.trimDerivedTables=false and re-scan");
         }
     }

@@ -1,6 +1,6 @@
 package brs.db.sql;
 
-import brs.Nxt;
+import brs.Burst;
 import brs.Order;
 import brs.db.NxtIterator;
 import brs.db.NxtKey;
