@@ -18,7 +18,7 @@ public final class DGSQuantityChange extends CreateTransaction {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         Account account = ParameterParser.getSenderAccount(req);
         DigitalGoodsStore.Goods goods = ParameterParser.getGoods(req);

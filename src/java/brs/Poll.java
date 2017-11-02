@@ -1,14 +1,14 @@
 package brs;
 
 import brs.db.EntityTable;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 
 import java.util.Map;
 
 public final class Poll {
 
-  private static final NxtKey.LongKeyFactory<Poll> pollDbKeyFactory = null;
+  private static final BurstKey.LongKeyFactory<Poll> pollDbKeyFactory = null;
 
   private static final EntityTable<Poll> pollTable = null;
 
@@ -16,7 +16,7 @@ public final class Poll {
 
 
   private final long id;
-  private final NxtKey dbKey;
+  private final BurstKey dbKey;
   private final String name;
   private final String description;
   private final String[] options;
@@ -44,7 +44,7 @@ public final class Poll {
     return pollTable.get(pollDbKeyFactory.newKey(id));
   }
 
-  public static NxtIterator<Poll> getAllPolls(int from, int to) {
+  public static BurstIterator<Poll> getAllPolls(int from, int to) {
     return pollTable.getAll(from, to);
   }
 

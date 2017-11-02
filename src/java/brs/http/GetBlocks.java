@@ -2,8 +2,8 @@ package brs.http;
 
 import brs.Block;
 import brs.Burst;
-import brs.NxtException;
-import brs.db.NxtIterator;
+import brs.BurstException;
+import brs.db.BurstIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -19,7 +19,7 @@ public final class GetBlocks extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
@@ -30,7 +30,7 @@ public final class GetBlocks extends APIServlet.APIRequestHandler {
     boolean includeTransactions = "true".equalsIgnoreCase(req.getParameter("includeTransactions"));
 
     JSONArray blocks = new JSONArray();
-    try (NxtIterator<? extends Block> iterator = Burst.getBlockchain().getBlocks(firstIndex, lastIndex)) {
+    try (BurstIterator<? extends Block> iterator = Burst.getBlockchain().getBlocks(firstIndex, lastIndex)) {
       while (iterator.hasNext()) {
         Block block = iterator.next();
         blocks.add(JSONData.block(block, includeTransactions));

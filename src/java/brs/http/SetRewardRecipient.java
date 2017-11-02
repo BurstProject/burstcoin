@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.Account;
 import brs.Attachment;
-import brs.NxtException;
+import brs.BurstException;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -17,7 +17,7 @@ public final class SetRewardRecipient extends CreateTransaction {
 	}
 	
 	@Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 		Account account = ParameterParser.getSenderAccount(req);
 		Long recipient = ParameterParser.getRecipientId(req);
 		Account recipientAccount = Account.getAccount(recipient);

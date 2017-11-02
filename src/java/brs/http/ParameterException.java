@@ -1,9 +1,9 @@
 package brs.http;
 
-import brs.NxtException;
+import brs.BurstException;
 import org.json.simple.JSONStreamAware;
 
-final class ParameterException extends NxtException {
+final class ParameterException extends BurstException {
 
     private final JSONStreamAware errorResponse;
 

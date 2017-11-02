@@ -1,6 +1,6 @@
 package brs.http;
 
-import brs.NxtException;
+import brs.BurstException;
 import brs.Transaction;
 import brs.crypto.Crypto;
 import brs.util.Convert;
@@ -25,7 +25,7 @@ public final class SignTransaction extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         String transactionBytes = Convert.emptyToNull(req.getParameter("unsignedTransactionBytes"));
         String transactionJSON = Convert.emptyToNull(req.getParameter("unsignedTransactionJSON"));
@@ -55,7 +55,7 @@ public final class SignTransaction extends APIServlet.APIRequestHandler {
             response.put("transactionBytes", Convert.toHexString(transaction.getBytes()));
             response.put("signatureHash", Convert.toHexString(Crypto.sha256().digest(transaction.getSignature())));
             response.put("verify", transaction.verifySignature() && transaction.verifyPublicKey());
-        } catch (NxtException.ValidationException|RuntimeException e) {
+        } catch (BurstException.ValidationException|RuntimeException e) {
             logger.debug(e.getMessage(), e);
             response.put("errorCode", 4);
             response.put("errorDescription", "Incorrect unsigned transaction: " + e.toString());

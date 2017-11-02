@@ -1,7 +1,7 @@
 package brs.http;
 
 import brs.*;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import org.json.simple.JSONObject;
@@ -30,7 +30,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
 
         
         long totalEffectiveBalance = 0;
-        try (NxtIterator<Account> accounts = Account.getAllAccounts(0, -1)) {
+        try (BurstIterator<Account> accounts = Account.getAllAccounts(0, -1)) {
             for (Account account : accounts) {
                 long effectiveBalanceNXT = account.getBalanceNQT();
                 if (effectiveBalanceNXT > 0) {
@@ -38,7 +38,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
                 }
             }
         }
-        try(NxtIterator<Escrow> escrows = Escrow.getAllEscrowTransactions()) {
+        try(BurstIterator<Escrow> escrows = Escrow.getAllEscrowTransactions()) {
         	for(Escrow escrow : escrows) {
         		totalEffectiveBalance += escrow.getAmountNQT();
         	}

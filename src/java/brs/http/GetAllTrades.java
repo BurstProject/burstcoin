@@ -1,6 +1,6 @@
 package brs.http;
 
-import brs.NxtException;
+import brs.BurstException;
 import brs.Trade;
 import brs.util.FilteringIterator;
 import org.json.simple.JSONArray;
@@ -18,7 +18,7 @@ public final class GetAllTrades extends APIServlet.APIRequestHandler {
     }
     
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
         final int timestamp = ParameterParser.getTimestamp(req);
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);

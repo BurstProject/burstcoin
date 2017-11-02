@@ -23,7 +23,7 @@ public final class SendMoneyEscrow extends CreateTransaction {
 	}
 	
 	@Override
-	JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+	JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 		Account sender = ParameterParser.getSenderAccount(req);
 		Long recipient = ParameterParser.getRecipientId(req);
 		Long amountNQT = ParameterParser.getAmountNQT(req);

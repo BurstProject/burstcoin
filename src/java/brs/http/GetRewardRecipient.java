@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.Account;
 import brs.Burst;
-import brs.NxtException;
+import brs.BurstException;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -18,7 +18,7 @@ public final class GetRewardRecipient extends APIServlet.APIRequestHandler {
   }
 	
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     JSONObject response = new JSONObject();
 		
     Account account = ParameterParser.getAccount(req);

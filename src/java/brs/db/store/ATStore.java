@@ -1,7 +1,7 @@
 package brs.db.store;
 
 import brs.AT;
-import brs.db.NxtKey;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 
 import java.sql.Connection;
@@ -20,11 +20,11 @@ public interface ATStore {
 
     Collection<Long> getAllATIds();
 
-    NxtKey.LongKeyFactory<AT> getAtDbKeyFactory();
+    BurstKey.LongKeyFactory<AT> getAtDbKeyFactory();
 
     VersionedEntityTable<AT> getAtTable();
 
-    NxtKey.LongKeyFactory<AT.ATState> getAtStateDbKeyFactory();
+    BurstKey.LongKeyFactory<AT.ATState> getAtStateDbKeyFactory();
 
     VersionedEntityTable<AT.ATState> getAtStateTable();
 

@@ -2,7 +2,7 @@ package brs.db.sql;
 
 import brs.Account;
 import brs.Burst;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.VersionedEntityTable;
 import brs.db.store.AccountStore;
@@ -107,23 +107,23 @@ public abstract class SqlAccountStore implements AccountStore {
     }
 
     @Override
-    public NxtIterator<Account.RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
+    public BurstIterator<Account.RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
         return getRewardRecipientAssignmentTable().getManyBy(getAccountsWithRewardRecipientClause(recipientId, Burst.getBlockchain().getHeight() + 1), 0, -1);
     }
 
     @Override
-    public NxtIterator<Account.AccountAsset> getAssets(int from, int to, Long id) {
+    public BurstIterator<Account.AccountAsset> getAssets(int from, int to, Long id) {
         return getAccountAssetTable().getManyBy(new DbClause.LongClause("account_id", id), from, to);
     }
 
     @Override
-    public NxtIterator<Account.AccountAsset> getAssetAccounts(long assetId, int from, int to) {
+    public BurstIterator<Account.AccountAsset> getAssetAccounts(long assetId, int from, int to) {
         return getAccountAssetTable().getManyBy(new DbClause.LongClause("asset_id", assetId),
                 from, to, " ORDER BY quantity DESC, account_id ");
     }
 
     @Override
-    public NxtIterator<Account.AccountAsset> getAssetAccounts(long assetId, int height, int from, int to) {
+    public BurstIterator<Account.AccountAsset> getAssetAccounts(long assetId, int height, int from, int to) {
         if (height < 0) {
             return getAssetAccounts(assetId, from, to);
         }

@@ -1,8 +1,8 @@
 package brs;
 
-import brs.NxtException.NotValidException;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.BurstException.NotValidException;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 
 import brs.util.Convert;
@@ -29,7 +29,7 @@ public class Subscription {
     return false;
   }
 
-  private static final NxtKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory  =
+  private static final BurstKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory  =
       Burst.getStores().getSubscriptionStore().getSubscriptionDbKeyFactory();
 
   private static final VersionedEntityTable<Subscription> subscriptionTable =
@@ -43,21 +43,21 @@ public class Subscription {
     return Constants.ONE_NXT;
   }
 
-  public static NxtIterator<Subscription> getAllSubscriptions() {
+  public static BurstIterator<Subscription> getAllSubscriptions() {
     return subscriptionTable.getAll(0, -1);
   }
 
 
 
-  public static NxtIterator<Subscription> getSubscriptionsByParticipant(Long accountId) {
+  public static BurstIterator<Subscription> getSubscriptionsByParticipant(Long accountId) {
     return Burst.getStores().getSubscriptionStore().getSubscriptionsByParticipant(accountId);
   }
 
-  public static NxtIterator<Subscription> getIdSubscriptions(Long accountId) {
+  public static BurstIterator<Subscription> getIdSubscriptions(Long accountId) {
     return Burst.getStores().getSubscriptionStore().getIdSubscriptions(accountId);
   }
 
-  public static NxtIterator<Subscription> getSubscriptionsToId(Long accountId) {
+  public static BurstIterator<Subscription> getSubscriptionsToId(Long accountId) {
     return Burst.getStores().getSubscriptionStore().getSubscriptionsToId(accountId);
   }
 
@@ -93,7 +93,7 @@ public class Subscription {
   @SuppressWarnings("static-access")
   public static long calculateFees(int timestamp) {
     long totalFeeNQT = 0;
-    NxtIterator<Subscription> updateSubscriptions =
+    BurstIterator<Subscription> updateSubscriptions =
         Burst.getStores().getSubscriptionStore().getUpdateSubscriptions(timestamp);
     List<Subscription> appliedSubscriptions = new ArrayList<>();
     for(Subscription subscription : updateSubscriptions) {
@@ -125,7 +125,7 @@ public class Subscription {
   public static long applyUnconfirmed(int timestamp) {
     appliedSubscriptions.clear();
     long totalFees = 0;
-    NxtIterator<Subscription> updateSubscriptions =
+    BurstIterator<Subscription> updateSubscriptions =
         Burst.getStores().getSubscriptionStore().getUpdateSubscriptions(timestamp);
     for(Subscription subscription : updateSubscriptions) {
       if(removeSubscriptions.contains(subscription.getId())) {
@@ -165,7 +165,7 @@ public class Subscription {
   public final Long senderId;
   public final Long recipientId;
   public final Long id;
-  public final NxtKey dbKey;
+  public final BurstKey dbKey;
   public final Long amountNQT;
   public final int frequency;
   public volatile int timeNext;
@@ -190,7 +190,7 @@ public class Subscription {
                          Long amountNQT,
                          int frequency,
                          int timeNext,
-                         NxtKey dbKey
+                         BurstKey dbKey
                          ) {
     this.senderId = senderId;
     this.recipientId = recipientId;

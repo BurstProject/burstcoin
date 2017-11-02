@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.Account;
 import brs.Attachment;
-import brs.NxtException;
+import brs.BurstException;
 import brs.Poll;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
@@ -20,7 +20,7 @@ public final class CastVote extends CreateTransaction {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         String pollValue = req.getParameter("poll");
 

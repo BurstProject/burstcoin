@@ -32,18 +32,18 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
     }
 
     final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment)
-        throws NxtException {
+        throws BurstException {
         return createTransaction(req, senderAccount, null, 0, attachment);
     }
 
     final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Long recipientId, long amountNQT)
-            throws NxtException {
+            throws BurstException {
         return createTransaction(req, senderAccount, recipientId, amountNQT, Attachment.ORDINARY_PAYMENT);
     }
 
     final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Long recipientId,
                                             long amountNQT, Attachment attachment)
-            throws NxtException {
+            throws BurstException {
     	int blockchainHeight = Burst.getBlockchain().getHeight();
     	String deadlineValue = req.getParameter("deadline");
         String referencedTransactionFullHash = Convert.emptyToNull(req.getParameter("referencedTransactionFullHash"));
@@ -165,9 +165,9 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
             response.put("unsignedTransactionBytes", Convert.toHexString(transaction.getUnsignedBytes()));
             response.put("transactionJSON", JSONData.unconfirmedTransaction(transaction));
 
-        } catch (NxtException.NotYetEnabledException e) {
+        } catch (BurstException.NotYetEnabledException e) {
             return FEATURE_NOT_AVAILABLE;
-        } catch (NxtException.ValidationException e) {
+        } catch (BurstException.ValidationException e) {
             response.put("error", e.getMessage());
         }
         return response;

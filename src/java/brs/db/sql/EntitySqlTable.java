@@ -4,8 +4,8 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import brs.Burst;
 import brs.db.EntityTable;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,11 +24,11 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
 //    private final Timer getByClauseTimer;
 //    private final Timer getByClauseAndHeightTimer;
 //    private final Timer insertTimer;
-    protected EntitySqlTable(String table, NxtKey.Factory<T> dbKeyFactory) {
+    protected EntitySqlTable(String table, BurstKey.Factory<T> dbKeyFactory) {
         this(table, dbKeyFactory, false);
     }
 
-    EntitySqlTable(String table, NxtKey.Factory<T> dbKeyFactory, boolean multiversion) {
+    EntitySqlTable(String table, BurstKey.Factory<T> dbKeyFactory, boolean multiversion) {
         super(table);
         this.dbKeyFactory = (DbKey.Factory<T>) dbKeyFactory;
         this.multiversion = multiversion;
@@ -58,7 +58,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     }
 
     @Override
-    public T get(NxtKey nxtKey) {
+    public T get(BurstKey nxtKey) {
         DbKey dbKey = (DbKey) nxtKey;
         if (Db.isInTransaction()) {
             T t = (T) Db.getCache(table).get(dbKey);
@@ -79,7 +79,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     }
 
     @Override
-    public T get(NxtKey nxtKey, int height) {
+    public T get(BurstKey nxtKey, int height) {
         DbKey dbKey = (DbKey) nxtKey;
         checkAvailable(height);
         try (Connection con = Db.getConnection();
@@ -159,12 +159,12 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     }
 
     @Override
-    public NxtIterator<T> getManyBy(DbClause dbClause, int from, int to) {
+    public BurstIterator<T> getManyBy(DbClause dbClause, int from, int to) {
         return getManyBy(dbClause, from, to, defaultSort());
     }
 
     @Override
-    public NxtIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort) {
+    public BurstIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort) {
         Connection con = null;
         try {
             con = Db.getConnection();
@@ -182,12 +182,12 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     }
 
     @Override
-    public NxtIterator<T> getManyBy(DbClause dbClause, int height, int from, int to) {
+    public BurstIterator<T> getManyBy(DbClause dbClause, int height, int from, int to) {
         return getManyBy(dbClause, height, from, to, defaultSort());
     }
 
     @Override
-    public NxtIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort) {
+    public BurstIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort) {
         checkAvailable(height);
         Connection con = null;
         try {
@@ -215,7 +215,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     }
 
     @Override
-    public NxtIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache) {
+    public BurstIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache) {
         final boolean doCache = cache && Db.isInTransaction();
         return new DbIterator<>(con, pstmt, new DbIterator.ResultSetReader<T>() {
             @Override
@@ -238,12 +238,12 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     }
 
     @Override
-    public NxtIterator<T> getAll(int from, int to) {
+    public BurstIterator<T> getAll(int from, int to) {
         return getAll(from, to, defaultSort());
     }
 
     @Override
-    public NxtIterator<T> getAll(int from, int to, String sort) {
+    public BurstIterator<T> getAll(int from, int to, String sort) {
         Connection con = null;
         try {
             con = Db.getConnection();
@@ -259,12 +259,12 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     }
 
     @Override
-    public NxtIterator<T> getAll(int height, int from, int to) {
+    public BurstIterator<T> getAll(int height, int from, int to) {
         return getAll(height, from, to, defaultSort());
     }
 
     @Override
-    public NxtIterator<T> getAll(int height, int from, int to, String sort) {
+    public BurstIterator<T> getAll(int height, int from, int to, String sort) {
         checkAvailable(height);
         Connection con = null;
         try {

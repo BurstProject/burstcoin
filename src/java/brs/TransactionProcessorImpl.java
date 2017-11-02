@@ -1,8 +1,8 @@
 package brs;
 
 import brs.db.EntityTable;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.sql.EntitySqlTable;
 import brs.peer.Peer;
 import brs.peer.Peers;
@@ -35,7 +35,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     return instance;
   }
 
-  final NxtKey.LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory =
+  final BurstKey.LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory =
       Burst.getStores().getTransactionProcessorStore().getUnconfirmedTransactionDbKeyFactory();
 
 
@@ -55,7 +55,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         try {
           try {
             List<TransactionImpl> expiredTransactions = new ArrayList<>();
-            try (NxtIterator<TransactionImpl> iterator = Burst.getStores().getTransactionProcessorStore().getExpiredTransactions()) {
+            try (BurstIterator<TransactionImpl> iterator = Burst.getStores().getTransactionProcessorStore().getExpiredTransactions()) {
               while (iterator.hasNext()) {
                 expiredTransactions.add(iterator.next());
               }
@@ -190,7 +190,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
             }
             try {
               processPeerTransactions(transactionsData);
-            } catch (NxtException.ValidationException|RuntimeException e) {
+            } catch (BurstException.ValidationException|RuntimeException e) {
               peer.blacklist(e);
             }
           } catch (Exception e) {
@@ -213,7 +213,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
       ThreadPool.runAfterStart(new Runnable() {
           @Override
           public void run() {
-            try (NxtIterator<TransactionImpl> oldNonBroadcastedTransactions = getAllUnconfirmedTransactions()) {
+            try (BurstIterator<TransactionImpl> oldNonBroadcastedTransactions = getAllUnconfirmedTransactions()) {
               for (TransactionImpl transaction : oldNonBroadcastedTransactions) {
                 nonBroadcastedTransactions.add(transaction);
               }
@@ -238,7 +238,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   @Override
-  public NxtIterator<TransactionImpl> getAllUnconfirmedTransactions() {
+  public BurstIterator<TransactionImpl> getAllUnconfirmedTransactions() {
     return unconfirmedTransactionTable.getAll(0, -1);
   }
 
@@ -262,9 +262,9 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   @Override
-  public void broadcast(Transaction transaction) throws NxtException.ValidationException {
+  public void broadcast(Transaction transaction) throws BurstException.ValidationException {
     if (! transaction.verifySignature()) {
-      throw new NxtException.NotValidException("Transaction signature verification failed");
+      throw new BurstException.NotValidException("Transaction signature verification failed");
     }
     List<Transaction> processedTransactions;
     synchronized (BlockchainImpl.getInstance()) {
@@ -290,23 +290,23 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
       logger.debug("Accepted new transaction " + transaction.getStringId());
     } else {
       logger.debug("Could not accept new transaction " + transaction.getStringId());
-      throw new NxtException.NotValidException("Invalid transaction " + transaction.getStringId());
+      throw new BurstException.NotValidException("Invalid transaction " + transaction.getStringId());
     }
   }
 
   @Override
-  public void processPeerTransactions(JSONObject request) throws NxtException.ValidationException {
+  public void processPeerTransactions(JSONObject request) throws BurstException.ValidationException {
     JSONArray transactionsData = (JSONArray)request.get("transactions");
     processPeerTransactions(transactionsData);
   }
 
   @Override
-  public Transaction parseTransaction(byte[] bytes) throws NxtException.ValidationException {
+  public Transaction parseTransaction(byte[] bytes) throws BurstException.ValidationException {
     return TransactionImpl.parseTransaction(bytes);
   }
 
   @Override
-  public TransactionImpl parseTransaction(JSONObject transactionData) throws NxtException.NotValidException {
+  public TransactionImpl parseTransaction(JSONObject transactionData) throws BurstException.NotValidException {
     return TransactionImpl.parseTransaction(transactionData);
   }
     
@@ -317,7 +317,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
       try {
         Burst.getStores().beginTransaction();
 
-        try (NxtIterator<TransactionImpl> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
+        try (BurstIterator<TransactionImpl> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
           for (TransactionImpl transaction : unconfirmedTransactions) {
             transaction.undoUnconfirmed();
             removed.add(transaction);
@@ -341,7 +341,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
 
   void requeueAllUnconfirmedTransactions() {
     List<Transaction> removed = new ArrayList<>();
-    try (NxtIterator<TransactionImpl> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
+    try (BurstIterator<TransactionImpl> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
       for (TransactionImpl transaction : unconfirmedTransactions) {
         transaction.undoUnconfirmed();
         removed.add(transaction);
@@ -387,7 +387,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     Burst.getStores().getTransactionProcessorStore().processLater(transactions);
   }
 
-  private void processPeerTransactions(JSONArray transactionsData) throws NxtException.ValidationException {
+  private void processPeerTransactions(JSONArray transactionsData) throws BurstException.ValidationException {
     if (Burst.getBlockchain().getLastBlock().getTimestamp() < Burst.getEpochTime() - 60 * 1440 && ! testUnconfirmedTransactions) {
       return;
     }
@@ -401,13 +401,13 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         transaction.validate();
         if(!EconomicClustering.verifyFork(transaction)) {
           /*if(Burst.getBlockchain().getHeight() >= Constants.EC_CHANGE_BLOCK_1) {
-            throw new NxtException.NotValidException("Transaction from wrong fork");
+            throw new BurstException.NotValidException("Transaction from wrong fork");
             }*/
           continue;
         }
         transactions.add(transaction);
-      } catch (NxtException.NotCurrentlyValidException ignore) {
-      } catch (NxtException.NotValidException e) {
+      } catch (BurstException.NotCurrentlyValidException ignore) {
+      } catch (BurstException.NotValidException e) {
         logger.debug("Invalid transaction from peer: " + ((JSONObject) transactionData).toJSONString());
         throw e;
       }

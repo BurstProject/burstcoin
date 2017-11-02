@@ -1,7 +1,7 @@
 package brs.http;
 
 import brs.Account;
-import brs.NxtException;
+import brs.BurstException;
 import brs.crypto.EncryptedData;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
@@ -25,7 +25,7 @@ public final class DecryptFrom extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         Account account = ParameterParser.getAccount(req);
         if (account.getPublicKey() == null) {

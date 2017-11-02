@@ -1,7 +1,7 @@
 package brs;
 
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,7 +93,7 @@ public class Escrow {
 
     public final Long escrowId;
     public final Long accountId;
-    public final NxtKey dbKey;
+    public final BurstKey dbKey;
     public DecisionType decision;
 
     protected Decision(Long escrowId, Long accountId, DecisionType decision) {
@@ -121,7 +121,7 @@ public class Escrow {
     }
   }
 
-  private static final NxtKey.LongKeyFactory<Escrow> escrowDbKeyFactory =
+  private static final BurstKey.LongKeyFactory<Escrow> escrowDbKeyFactory =
       Burst.getStores().getEscrowStore().getEscrowDbKeyFactory();
 
 
@@ -129,7 +129,7 @@ public class Escrow {
       Burst.getStores().getEscrowStore().getEscrowTable();
 
 
-  private static final NxtKey.LinkKeyFactory<Decision> decisionDbKeyFactory =
+  private static final BurstKey.LinkKeyFactory<Decision> decisionDbKeyFactory =
       Burst.getStores().getEscrowStore().getDecisionDbKeyFactory();
 
 
@@ -141,7 +141,7 @@ public class Escrow {
   /** WATCH: Thread-Safety?! */
   private static final List<TransactionImpl> resultTransactions = Burst.getStores().getEscrowStore().getResultTransactions();
 
-  public static NxtIterator<Escrow> getAllEscrowTransactions() {
+  public static BurstIterator<Escrow> getAllEscrowTransactions() {
     return escrowTable.getAll(0, -1);
   }
 
@@ -186,7 +186,7 @@ public class Escrow {
     if(escrow == null) {
       return;
     }
-    NxtIterator<Decision> decisionIt = escrow.getDecisions();
+    BurstIterator<Decision> decisionIt = escrow.getDecisions();
 
     List<Decision> decisions = new ArrayList<>();
     while(decisionIt.hasNext()) {
@@ -210,7 +210,7 @@ public class Escrow {
   public final Long senderId;
   public final Long recipientId;
   public final Long id;
-  public final NxtKey dbKey;
+  public final BurstKey dbKey;
   public final Long amountNQT;
   public final int requiredSigners;
   public final int deadline;
@@ -233,7 +233,7 @@ public class Escrow {
     this.deadlineAction = deadlineAction;
   }
 
-  protected Escrow( Long id,Long senderId, Long recipientId, NxtKey dbKey, Long amountNQT,
+  protected Escrow( Long id,Long senderId, Long recipientId, BurstKey dbKey, Long amountNQT,
                     int requiredSigners, int deadline, DecisionType deadlineAction) {
     this.senderId = senderId;
     this.recipientId = recipientId;
@@ -265,7 +265,7 @@ public class Escrow {
     return requiredSigners;
   }
 
-  public NxtIterator<Decision> getDecisions() {
+  public BurstIterator<Decision> getDecisions() {
     return Burst.getStores().getEscrowStore().getDecisions(id);
   }
 
@@ -321,7 +321,7 @@ public class Escrow {
     int countRefund = 0;
     int countSplit = 0;
 
-    NxtIterator<Decision> decisions =Burst.getStores().getEscrowStore().getDecisions(id);
+    BurstIterator<Decision> decisions =Burst.getStores().getEscrowStore().getDecisions(id);
     while(decisions.hasNext()) {
       Decision decision = decisions.next();
       if(decision.getAccountId().equals(senderId) ||
@@ -394,7 +394,7 @@ public class Escrow {
     try {
       transaction = builder.build();
     }
-    catch(NxtException.NotValidException e) {
+    catch(BurstException.NotValidException e) {
       throw new RuntimeException(e.toString(), e);
     }
 

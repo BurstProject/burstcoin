@@ -3,8 +3,8 @@ package brs.http;
 import brs.Account;
 import brs.Asset;
 import brs.AssetTransfer;
-import brs.NxtException;
-import brs.db.NxtIterator;
+import brs.BurstException;
+import brs.db.BurstIterator;
 import brs.db.sql.DbUtils;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
@@ -22,7 +22,7 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         String assetId = Convert.emptyToNull(req.getParameter("asset"));
         String accountId = Convert.emptyToNull(req.getParameter("account"));
@@ -33,7 +33,7 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
 
         JSONObject response = new JSONObject();
         JSONArray transfersData = new JSONArray();
-        NxtIterator<AssetTransfer> transfers = null;
+        BurstIterator<AssetTransfer> transfers = null;
         try {
             if (accountId == null) {
                 Asset asset = ParameterParser.getAsset(req);

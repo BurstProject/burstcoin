@@ -3,7 +3,7 @@ package brs.http;
 import brs.Account;
 import brs.Attachment;
 import brs.Escrow;
-import brs.NxtException;
+import brs.BurstException;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -21,7 +21,7 @@ public final class EscrowSign extends CreateTransaction {
 	}
 	
 	@Override
-	JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+	JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 		Long escrowId;
 		try {
 			escrowId = Convert.parseUnsignedLong(Convert.emptyToNull(req.getParameter("escrow")));

@@ -1,16 +1,16 @@
 package brs;
 
 import brs.db.EntityTable;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 
 public class Asset {
 
-  private static final NxtKey.LongKeyFactory<Asset> assetDbKeyFactory = Burst.getStores().getAssetStore().getAssetDbKeyFactory();
+  private static final BurstKey.LongKeyFactory<Asset> assetDbKeyFactory = Burst.getStores().getAssetStore().getAssetDbKeyFactory();
 
   private static final EntityTable<Asset> assetTable = Burst.getStores().getAssetStore().getAssetTable();
 
-  public static NxtIterator<Asset> getAllAssets(int from, int to) {
+  public static BurstIterator<Asset> getAllAssets(int from, int to) {
     return assetTable.getAll(from, to);
   }
 
@@ -22,7 +22,7 @@ public class Asset {
     return assetTable.get(assetDbKeyFactory.newKey(id));
   }
 
-  public static NxtIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
+  public static BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
     return Burst.getStores().getAssetStore().getAssetsIssuedBy(accountId, from, to);
   }
 
@@ -35,14 +35,14 @@ public class Asset {
 
 
   private final long assetId;
-  public final NxtKey dbKey;
+  public final BurstKey dbKey;
   private final long accountId;
   private final String name;
   private final String description;
   private final long quantityQNT;
   private final byte decimals;
 
-  protected Asset(long assetId, NxtKey dbKey, long accountId, String name, String description, long quantityQNT, byte decimals) {
+  protected Asset(long assetId, BurstKey dbKey, long accountId, String name, String description, long quantityQNT, byte decimals) {
     this.assetId = assetId;
     this.dbKey = dbKey;
     this.accountId = accountId;
@@ -86,22 +86,22 @@ public class Asset {
     return decimals;
   }
 
-  public NxtIterator<Account.AccountAsset> getAccounts(int from, int to) {
+  public BurstIterator<Account.AccountAsset> getAccounts(int from, int to) {
     return Account.getAssetAccounts(this.assetId, from, to);
   }
 
-  public NxtIterator<Account.AccountAsset> getAccounts(int height, int from, int to) {
+  public BurstIterator<Account.AccountAsset> getAccounts(int height, int from, int to) {
     if (height < 0) {
       return getAccounts(from, to);
     }
     return Account.getAssetAccounts(this.assetId, height, from, to);
   }
 
-  public NxtIterator<Trade> getTrades(int from, int to) {
+  public BurstIterator<Trade> getTrades(int from, int to) {
     return Trade.getAssetTrades(this.assetId, from, to);
   }
 
-  public NxtIterator<AssetTransfer> getAssetTransfers(int from, int to) {
+  public BurstIterator<AssetTransfer> getAssetTransfers(int from, int to) {
     return AssetTransfer.getAssetTransfers(this.assetId, from, to);
   }
 }

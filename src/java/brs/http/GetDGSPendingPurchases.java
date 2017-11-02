@@ -1,8 +1,8 @@
 package brs.http;
 
 import brs.DigitalGoodsStore;
-import brs.NxtException;
-import brs.db.NxtIterator;
+import brs.BurstException;
+import brs.db.BurstIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -20,7 +20,7 @@ public final class GetDGSPendingPurchases extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         long sellerId = ParameterParser.getSellerId(req);
         if (sellerId == 0) {
@@ -32,7 +32,7 @@ public final class GetDGSPendingPurchases extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         JSONArray purchasesJSON = new JSONArray();
 
-        try (NxtIterator<DigitalGoodsStore.Purchase> purchases = DigitalGoodsStore.getPendingSellerPurchases(sellerId, firstIndex, lastIndex)) {
+        try (BurstIterator<DigitalGoodsStore.Purchase> purchases = DigitalGoodsStore.getPendingSellerPurchases(sellerId, firstIndex, lastIndex)) {
             while (purchases.hasNext()) {
                 purchasesJSON.add(JSONData.purchase(purchases.next()));
             }

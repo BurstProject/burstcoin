@@ -1,24 +1,24 @@
 package brs;
 
-public abstract class NxtException extends Exception {
+public abstract class BurstException extends Exception {
 
-  protected NxtException() {
+  protected BurstException() {
     super();
   }
 
-  protected NxtException(String message) {
+  protected BurstException(String message) {
     super(message);
   }
 
-  protected NxtException(String message, Throwable cause) {
+  protected BurstException(String message, Throwable cause) {
     super(message, cause);
   }
 
-  protected NxtException(Throwable cause) {
+  protected BurstException(Throwable cause) {
     super(cause);
   }
 
-  public static abstract class ValidationException extends NxtException {
+  public static abstract class ValidationException extends BurstException {
 
     private ValidationException(String message) {
       super(message);

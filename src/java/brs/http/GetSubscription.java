@@ -1,6 +1,6 @@
 package brs.http;
 
-import brs.NxtException;
+import brs.BurstException;
 import brs.Subscription;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
@@ -17,7 +17,7 @@ public final class GetSubscription extends APIServlet.APIRequestHandler {
 	}
 	
 	@Override
-	JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+	JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 		Long subscriptionId;
 		try {
 			subscriptionId = Convert.parseUnsignedLong(Convert.emptyToNull(req.getParameter("subscription")));

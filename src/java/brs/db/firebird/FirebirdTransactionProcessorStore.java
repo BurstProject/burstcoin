@@ -1,7 +1,7 @@
 package brs.db.firebird;
 
 import brs.Burst;
-import brs.NxtException;
+import brs.BurstException;
 import brs.TransactionImpl;
 import brs.db.sql.Db;
 import brs.db.sql.EntitySqlTable;
@@ -27,7 +27,7 @@ class FirebirdTransactionProcessorStore extends SqlTransactionProcessorStore {
                         TransactionImpl transaction = TransactionImpl.parseTransaction(transactionBytes);
                         transaction.setHeight(rs.getInt("transaction_height"));
                         return transaction;
-                    } catch (NxtException.ValidationException e) {
+                    } catch (BurstException.ValidationException e) {
                         throw new RuntimeException(e.toString(), e);
                     }
                 }

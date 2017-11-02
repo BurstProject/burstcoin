@@ -2,9 +2,9 @@ package brs.http;
 
 import brs.Account;
 import brs.Burst;
-import brs.NxtException;
+import brs.BurstException;
 import brs.Transaction;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -20,7 +20,7 @@ public final class GetAccountTransactionIds extends APIServlet.APIRequestHandler
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
     Account account = ParameterParser.getAccount(req);
     int timestamp = ParameterParser.getTimestamp(req);
@@ -43,7 +43,7 @@ public final class GetAccountTransactionIds extends APIServlet.APIRequestHandler
     int lastIndex = ParameterParser.getLastIndex(req);
 
     JSONArray transactionIds = new JSONArray();
-    try (NxtIterator<? extends Transaction> iterator = Burst.getBlockchain().getTransactions(account, numberOfConfirmations, type, subtype, timestamp,
+    try (BurstIterator<? extends Transaction> iterator = Burst.getBlockchain().getTransactions(account, numberOfConfirmations, type, subtype, timestamp,
                                                                                              firstIndex, lastIndex)) {
       while (iterator.hasNext()) {
         Transaction transaction = iterator.next();

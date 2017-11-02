@@ -1,7 +1,7 @@
 package brs.http;
 
 import brs.Account;
-import brs.NxtException;
+import brs.BurstException;
 import brs.crypto.EncryptedData;
 import org.json.simple.JSONStreamAware;
 
@@ -18,7 +18,7 @@ public final class EncryptTo extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         long recipientId = ParameterParser.getRecipientId(req);
         Account recipientAccount = Account.getAccount(recipientId);

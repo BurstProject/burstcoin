@@ -4,7 +4,7 @@ import brs.AT;
 import brs.Burst;
 import brs.at.AT_API_Helper;
 import brs.at.AT_Constants;
-import brs.db.NxtKey;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.ATStore;
 
@@ -23,9 +23,9 @@ public abstract class SqlATStore implements ATStore {
 
     private static final Logger logger = LoggerFactory.getLogger(DbUtils.class);
 
-    private final NxtKey.LongKeyFactory<AT> atDbKeyFactory = new DbKey.LongKeyFactory<AT>("id") {
+    private final BurstKey.LongKeyFactory<AT> atDbKeyFactory = new DbKey.LongKeyFactory<AT>("id") {
         @Override
-        public NxtKey newKey(AT at) {
+        public BurstKey newKey(AT at) {
             return at.dbKey;
         }
     };
@@ -46,9 +46,9 @@ public abstract class SqlATStore implements ATStore {
             return " ORDER BY id ";
         }
     };
-    private final NxtKey.LongKeyFactory<AT.ATState> atStateDbKeyFactory = new DbKey.LongKeyFactory<AT.ATState>("at_id") {
+    private final BurstKey.LongKeyFactory<AT.ATState> atStateDbKeyFactory = new DbKey.LongKeyFactory<AT.ATState>("at_id") {
         @Override
-        public NxtKey newKey(AT.ATState atState) {
+        public BurstKey newKey(AT.ATState atState) {
             return atState.dbKey;
         }
     };
@@ -168,7 +168,7 @@ public abstract class SqlATStore implements ATStore {
     }
 
     @Override
-    public NxtKey.LongKeyFactory<AT> getAtDbKeyFactory() {
+    public BurstKey.LongKeyFactory<AT> getAtDbKeyFactory() {
         return atDbKeyFactory;
     }
 
@@ -178,7 +178,7 @@ public abstract class SqlATStore implements ATStore {
     }
 
     @Override
-    public NxtKey.LongKeyFactory<AT.ATState> getAtStateDbKeyFactory() {
+    public BurstKey.LongKeyFactory<AT.ATState> getAtStateDbKeyFactory() {
         return atStateDbKeyFactory;
     }
 

@@ -4,8 +4,8 @@ import brs.Asset;
 import brs.Attachment;
 import brs.Burst;
 import brs.Transaction;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.store.AssetStore;
 
 import java.sql.Connection;
@@ -15,10 +15,10 @@ import java.sql.SQLException;
 
 public abstract  class SqlAssetStore implements AssetStore {
 
-  private final NxtKey.LongKeyFactory<Asset> assetDbKeyFactory = new DbKey.LongKeyFactory<Asset>("id") {
+  private final BurstKey.LongKeyFactory<Asset> assetDbKeyFactory = new DbKey.LongKeyFactory<Asset>("id") {
 
       @Override
-      public NxtKey newKey(Asset asset) {
+      public BurstKey newKey(Asset asset) {
         return asset.dbKey;
       }
 
@@ -52,7 +52,7 @@ public abstract  class SqlAssetStore implements AssetStore {
   }
 
   @Override
-  public NxtKey.LongKeyFactory<Asset> getAssetDbKeyFactory() {
+  public BurstKey.LongKeyFactory<Asset> getAssetDbKeyFactory() {
     return assetDbKeyFactory;
   }
 
@@ -62,7 +62,7 @@ public abstract  class SqlAssetStore implements AssetStore {
   }
 
   @Override
-  public NxtIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
+  public BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
     return assetTable.getManyBy(new DbClause.LongClause("account_id", accountId), from, to);
   }
 

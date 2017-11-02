@@ -1,7 +1,7 @@
 package brs.db;
 
 import brs.BlockImpl;
-import brs.NxtException;
+import brs.BurstException;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -19,7 +19,7 @@ public interface BlockDb {
 
     BlockImpl findLastBlock(int timestamp);
 
-    BlockImpl loadBlock(Connection con, ResultSet rs) throws NxtException.ValidationException;
+    BlockImpl loadBlock(Connection con, ResultSet rs) throws BurstException.ValidationException;
 
     void saveBlock(Connection con, BlockImpl block);
 

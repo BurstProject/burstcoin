@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.Account;
 import brs.Attachment;
-import brs.NxtException;
+import brs.BurstException;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -21,7 +21,7 @@ public final class LeaseBalance extends CreateTransaction {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         String periodString = Convert.emptyToNull(req.getParameter("period"));
         if (periodString == null) {

@@ -1,14 +1,14 @@
 package brs.db.sql;
 
-import brs.db.NxtKey;
+import brs.db.BurstKey;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public interface DbKey extends NxtKey {
+public interface DbKey extends BurstKey {
 
-    public static abstract class Factory<T> implements NxtKey.Factory<T> {
+    public static abstract class Factory<T> implements BurstKey.Factory<T> {
 
         private final String pkClause;
         private final String pkColumns;
@@ -22,9 +22,9 @@ public interface DbKey extends NxtKey {
             this.pkVariables = org.apache.commons.lang.StringUtils.countMatches(pkClause, "?");
         }
 
-        public abstract NxtKey newKey(T t);
+        public abstract BurstKey newKey(T t);
 
-        public abstract NxtKey newKey(ResultSet rs) throws SQLException;
+        public abstract BurstKey newKey(ResultSet rs) throws SQLException;
 
         public final String getPKClause() {
             return pkClause;
@@ -50,7 +50,7 @@ public interface DbKey extends NxtKey {
     int setPK(PreparedStatement pstmt, int index) throws SQLException;
 
 
-    public static abstract class LongKeyFactory<T> extends Factory<T> implements NxtKey.LongKeyFactory<T> {
+    public static abstract class LongKeyFactory<T> extends Factory<T> implements BurstKey.LongKeyFactory<T> {
 
         private final String idColumn;
 
@@ -62,7 +62,7 @@ public interface DbKey extends NxtKey {
         }
 
         @Override
-        public NxtKey newKey(ResultSet rs) {
+        public BurstKey newKey(ResultSet rs) {
             try {
                 return new LongKey(rs.getLong(idColumn));
             } catch (SQLException e) {
@@ -70,13 +70,13 @@ public interface DbKey extends NxtKey {
             }
         }
 
-        public NxtKey newKey(long id) {
+        public BurstKey newKey(long id) {
             return new LongKey(id);
         }
 
     }
 
-    public static abstract class LinkKeyFactory<T> extends Factory<T> implements NxtKey.LinkKeyFactory<T> {
+    public static abstract class LinkKeyFactory<T> extends Factory<T> implements BurstKey.LinkKeyFactory<T> {
 
         private final String idColumnA;
         private final String idColumnB;
@@ -90,7 +90,7 @@ public interface DbKey extends NxtKey {
         }
 
         @Override
-        public NxtKey newKey(ResultSet rs) {
+        public BurstKey newKey(ResultSet rs) {
             try {
                 return new LinkKey(rs.getLong(idColumnA), rs.getLong(idColumnB));
             } catch (SQLException e) {
@@ -98,7 +98,7 @@ public interface DbKey extends NxtKey {
             }
         }
 
-        public NxtKey newKey(long idA, long idB) {
+        public BurstKey newKey(long idA, long idB) {
             return new LinkKey(idA, idB);
         }
 

@@ -1,6 +1,6 @@
 package brs.http;
 
-import brs.NxtException;
+import brs.BurstException;
 import brs.Transaction;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
@@ -21,7 +21,7 @@ public final class ParseTransaction extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         String transactionBytes = Convert.emptyToNull(req.getParameter("transactionBytes"));
         String transactionJSON = Convert.emptyToNull(req.getParameter("transactionJSON"));
@@ -29,7 +29,7 @@ public final class ParseTransaction extends APIServlet.APIRequestHandler {
         JSONObject response = JSONData.unconfirmedTransaction(transaction);
         try {
             transaction.validate();
-        } catch (NxtException.ValidationException|RuntimeException e) {
+        } catch (BurstException.ValidationException|RuntimeException e) {
             logger.debug(e.getMessage(), e);
             response.put("validate", false);
             response.put("errorCode", 4);

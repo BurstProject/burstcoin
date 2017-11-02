@@ -48,10 +48,10 @@ public final class BlockImpl implements Block {
 
   BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
             byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions, long nonce, byte[] blockATs)
-    throws NxtException.ValidationException {
+    throws BurstException.ValidationException {
 
     if (payloadLength > Constants.MAX_PAYLOAD_LENGTH || payloadLength < 0) {
-      throw new NxtException.NotValidException("attempted to create a block with payloadLength " + payloadLength);
+      throw new BurstException.NotValidException("attempted to create a block with payloadLength " + payloadLength);
     }
 
     this.version = version;
@@ -69,12 +69,12 @@ public final class BlockImpl implements Block {
     if (transactions != null) {
       this.blockTransactions = Collections.unmodifiableList(transactions);
       if (blockTransactions.size() > Constants.MAX_NUMBER_OF_TRANSACTIONS) {
-        throw new NxtException.NotValidException("attempted to create a block with " + blockTransactions.size() + " transactions");
+        throw new BurstException.NotValidException("attempted to create a block with " + blockTransactions.size() + " transactions");
       }
       long previousId = 0;
       for (Transaction transaction : this.blockTransactions) {
         if (transaction.getId() <= previousId && previousId != 0) {
-          throw new NxtException.NotValidException("Block transactions are not sorted!");
+          throw new BurstException.NotValidException("Block transactions are not sorted!");
         }
         previousId = transaction.getId();
       }
@@ -86,7 +86,7 @@ public final class BlockImpl implements Block {
   public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
                    byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature,
                    byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long nextBlockId, int height, Long id, long nonce, byte[] blockATs)
-    throws NxtException.ValidationException {
+    throws BurstException.ValidationException {
     this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
          generatorPublicKey, generationSignature, blockSignature, previousBlockHash, null, nonce , blockATs);
     this.cumulativeDifficulty = cumulativeDifficulty;
@@ -290,7 +290,7 @@ public final class BlockImpl implements Block {
     return json;
   }
 
-  static BlockImpl parseBlock(JSONObject blockData) throws NxtException.ValidationException {
+  static BlockImpl parseBlock(JSONObject blockData) throws BurstException.ValidationException {
     try {
       int version = ((Long)blockData.get("version")).intValue();
       int timestamp = ((Long)blockData.get("timestamp")).intValue();
@@ -310,13 +310,13 @@ public final class BlockImpl implements Block {
       for (Object transactionData : transactionsData) {
         TransactionImpl transaction = TransactionImpl.parseTransaction((JSONObject) transactionData);
         if (blockTransactions.put(transaction.getId(), transaction) != null) {
-          throw new NxtException.NotValidException("Block contains duplicate transactions: " + transaction.getStringId());
+          throw new BurstException.NotValidException("Block contains duplicate transactions: " + transaction.getStringId());
         }
       }
       byte[] blockATs = Convert.parseHexString( (String) blockData.get("blockATs") );
       return new BlockImpl(version, timestamp, previousBlock, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash, generatorPublicKey,
                            generationSignature, blockSignature, previousBlockHash, new ArrayList<>(blockTransactions.values()), nonce , blockATs);
-    } catch (NxtException.ValidationException|RuntimeException e) {
+    } catch (BurstException.ValidationException|RuntimeException e) {
       logger.debug("Failed to parse block: " + blockData.toJSONString());
       throw e;
     }

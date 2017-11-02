@@ -1,6 +1,6 @@
 package brs;
 
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,13 +22,13 @@ public interface Blockchain {
 
   boolean hasBlock(long blockId);
 
-  NxtIterator<BlockImpl> getAllBlocks();
+  BurstIterator<BlockImpl> getAllBlocks();
     
-  NxtIterator<BlockImpl> getBlocks(int from, int to);
+  BurstIterator<BlockImpl> getBlocks(int from, int to);
 
-  NxtIterator<BlockImpl> getBlocks(Account account, int timestamp);
+  BurstIterator<BlockImpl> getBlocks(Account account, int timestamp);
     
-  NxtIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to);
+  BurstIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to);
 
   List<Long> getBlockIdsAfter(long blockId, int limit);
 
@@ -46,12 +46,12 @@ public interface Blockchain {
 
   int getTransactionCount();
 
-  NxtIterator<TransactionImpl> getAllTransactions();
+  BurstIterator<TransactionImpl> getAllTransactions();
 
-  NxtIterator<TransactionImpl> getTransactions(Account account, byte type, byte subtype, int blockTimestamp);
+  BurstIterator<TransactionImpl> getTransactions(Account account, byte type, byte subtype, int blockTimestamp);
 
-  NxtIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to);
+  BurstIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to);
 
-  //    NxtIterator<TransactionImpl> getTransactions(Connection con, PreparedStatement pstmt);
+  //    BurstIterator<TransactionImpl> getTransactions(Connection con, PreparedStatement pstmt);
 
 }

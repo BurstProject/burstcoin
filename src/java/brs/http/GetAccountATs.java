@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.AT;
 import brs.Account;
-import brs.NxtException;
+import brs.BurstException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -19,7 +19,7 @@ public final class GetAccountATs extends APIServlet.APIRequestHandler {
 	}
 	
 	@Override
-	JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+	JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 		
 		Account account = ParameterParser.getAccount(req);
 		

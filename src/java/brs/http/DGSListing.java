@@ -3,7 +3,7 @@ package brs.http;
 import brs.Account;
 import brs.Attachment;
 import brs.Constants;
-import brs.NxtException;
+import brs.BurstException;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
 
@@ -21,7 +21,7 @@ public final class DGSListing extends CreateTransaction {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         String name = Convert.emptyToNull(req.getParameter("name"));
         String description = Convert.nullToEmpty(req.getParameter("description"));

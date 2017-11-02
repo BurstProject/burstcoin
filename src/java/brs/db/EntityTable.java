@@ -12,31 +12,31 @@ public interface EntityTable<T> extends DerivedTable
 {
     void checkAvailable(int height);
 
-    T get(NxtKey dbKey);
+    T get(BurstKey dbKey);
 
-    T get(NxtKey dbKey, int height);
+    T get(BurstKey dbKey, int height);
 
     T getBy(DbClause dbClause);
 
     T getBy(DbClause dbClause, int height);
 
-    NxtIterator<T> getManyBy(DbClause dbClause, int from, int to);
+    BurstIterator<T> getManyBy(DbClause dbClause, int from, int to);
 
-    NxtIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort);
+    BurstIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort);
 
-    NxtIterator<T> getManyBy(DbClause dbClause, int height, int from, int to);
+    BurstIterator<T> getManyBy(DbClause dbClause, int height, int from, int to);
 
-    NxtIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort);
+    BurstIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort);
 
-    NxtIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache);
+    BurstIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache);
 
-    NxtIterator<T> getAll(int from, int to);
+    BurstIterator<T> getAll(int from, int to);
 
-    NxtIterator<T> getAll(int from, int to, String sort);
+    BurstIterator<T> getAll(int from, int to, String sort);
 
-    NxtIterator<T> getAll(int height, int from, int to);
+    BurstIterator<T> getAll(int height, int from, int to);
 
-    NxtIterator<T> getAll(int height, int from, int to, String sort);
+    BurstIterator<T> getAll(int height, int from, int to, String sort);
 
     int getCount();
 

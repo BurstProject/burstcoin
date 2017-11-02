@@ -2,8 +2,8 @@ package brs.db.sql;
 
 import brs.Burst;
 import brs.Subscription;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.SubscriptionStore;
 
@@ -14,9 +14,9 @@ import java.sql.SQLException;
 
 public abstract class SqlSubscriptionStore implements SubscriptionStore {
 
-  private final NxtKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory = new DbKey.LongKeyFactory<Subscription>("id") {
+  private final BurstKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory = new DbKey.LongKeyFactory<Subscription>("id") {
       @Override
-      public NxtKey newKey(Subscription subscription) {
+      public BurstKey newKey(Subscription subscription) {
         return subscription.dbKey;
       }
     };
@@ -61,7 +61,7 @@ public abstract class SqlSubscriptionStore implements SubscriptionStore {
   }
 
   @Override
-  public NxtKey.LongKeyFactory<Subscription> getSubscriptionDbKeyFactory() {
+  public BurstKey.LongKeyFactory<Subscription> getSubscriptionDbKeyFactory() {
     return subscriptionDbKeyFactory;
   }
 
@@ -71,22 +71,22 @@ public abstract class SqlSubscriptionStore implements SubscriptionStore {
   }
 
   @Override
-  public NxtIterator<Subscription> getSubscriptionsByParticipant(Long accountId) {
+  public BurstIterator<Subscription> getSubscriptionsByParticipant(Long accountId) {
     return subscriptionTable.getManyBy(getByParticipantClause(accountId), 0, -1);
   }
 
   @Override
-  public NxtIterator<Subscription> getIdSubscriptions(Long accountId) {
+  public BurstIterator<Subscription> getIdSubscriptions(Long accountId) {
     return subscriptionTable.getManyBy(new DbClause.LongClause("sender_id", accountId), 0, -1);
   }
 
   @Override
-  public NxtIterator<Subscription> getSubscriptionsToId(Long accountId) {
+  public BurstIterator<Subscription> getSubscriptionsToId(Long accountId) {
     return subscriptionTable.getManyBy(new DbClause.LongClause("recipient_id", accountId), 0, -1);
   }
 
   @Override
-  public NxtIterator<Subscription> getUpdateSubscriptions(int timestamp) {
+  public BurstIterator<Subscription> getUpdateSubscriptions(int timestamp) {
     return subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
   }
 

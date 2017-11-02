@@ -2,8 +2,8 @@ package brs.db.store;
 
 import brs.Transaction;
 import brs.TransactionImpl;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.sql.EntitySqlTable;
 
 import java.util.Collection;
@@ -14,7 +14,7 @@ public interface TransactionProcessorStore {
     // WATCH: BUSINESS-LOGIC
     void processLater(Collection<TransactionImpl> transactions);
 
-    NxtKey.LongKeyFactory<TransactionImpl> getUnconfirmedTransactionDbKeyFactory();
+    BurstKey.LongKeyFactory<TransactionImpl> getUnconfirmedTransactionDbKeyFactory();
 
     Set<TransactionImpl> getLostTransactions();
 
@@ -22,7 +22,7 @@ public interface TransactionProcessorStore {
 
     EntitySqlTable<TransactionImpl> getUnconfirmedTransactionTable();
 
-    NxtIterator<TransactionImpl> getExpiredTransactions();
+    BurstIterator<TransactionImpl> getExpiredTransactions();
 
     int deleteTransaction (Transaction transaction);
 }

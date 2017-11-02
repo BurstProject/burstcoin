@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.Account;
 import brs.Attachment;
-import brs.NxtException;
+import brs.BurstException;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +16,7 @@ public final class SendMessage extends CreateTransaction {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
         long recipient = ParameterParser.getRecipientId(req);
         Account account = ParameterParser.getSenderAccount(req);
         return createTransaction(req, account, recipient, 0, Attachment.ARBITRARY_MESSAGE);

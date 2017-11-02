@@ -1,7 +1,7 @@
 package brs.http;
 
 import brs.Alias;
-import brs.NxtException;
+import brs.BurstException;
 import brs.util.FilteringIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -18,7 +18,7 @@ public final class GetAliases extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
         final int timestamp = ParameterParser.getTimestamp(req);
         final long accountId = ParameterParser.getAccount(req).getId();
         int firstIndex = ParameterParser.getFirstIndex(req);

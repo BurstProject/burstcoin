@@ -1,7 +1,7 @@
 package brs.http;
 
 import brs.Asset;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -25,7 +25,7 @@ public final class GetAllAssets extends APIServlet.APIRequestHandler {
         JSONObject response = new JSONObject();
         JSONArray assetsJSONArray = new JSONArray();
         response.put("assets", assetsJSONArray);
-        try (NxtIterator<Asset> assets = Asset.getAllAssets(firstIndex, lastIndex)) {
+        try (BurstIterator<Asset> assets = Asset.getAllAssets(firstIndex, lastIndex)) {
             while (assets.hasNext()) {
                 assetsJSONArray.add(JSONData.asset(assets.next()));
             }

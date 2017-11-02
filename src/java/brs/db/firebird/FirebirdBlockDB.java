@@ -2,7 +2,7 @@ package brs.db.firebird;
 
 import brs.BlockImpl;
 import brs.Burst;
-import brs.NxtException;
+import brs.BurstException;
 import brs.db.sql.Db;
 import brs.db.sql.DbUtils;
 import brs.db.sql.SqlBlockDb;
@@ -103,7 +103,7 @@ class FirebirdBlockDB extends SqlBlockDb {
             return block;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
-        } catch (NxtException.ValidationException e) {
+        } catch (BurstException.ValidationException e) {
             throw new RuntimeException("Block already in database at timestamp " + timestamp + " does not pass validation!", e);
         }
     }

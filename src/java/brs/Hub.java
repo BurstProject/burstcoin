@@ -1,6 +1,6 @@
 package brs;
 
-import brs.db.NxtKey;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 
 import java.util.Arrays;
@@ -32,7 +32,7 @@ public class Hub {
 
   }
 
-  private static final NxtKey.LongKeyFactory<Hub> hubDbKeyFactory = null;
+  private static final BurstKey.LongKeyFactory<Hub> hubDbKeyFactory = null;
 
   private static final VersionedEntityTable<Hub> hubTable = null;
 
@@ -81,7 +81,7 @@ public class Hub {
 
 
   private final long accountId;
-  private final NxtKey dbKey;
+  private final BurstKey dbKey;
   private final long minFeePerByteNQT;
   private final List<String> uris;
 

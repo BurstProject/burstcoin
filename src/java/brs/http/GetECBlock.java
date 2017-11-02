@@ -3,7 +3,7 @@ package brs.http;
 import brs.Block;
 import brs.EconomicClustering;
 import brs.Burst;
-import brs.NxtException;
+import brs.BurstException;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -18,7 +18,7 @@ public final class GetECBlock extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     int timestamp = ParameterParser.getTimestamp(req);
     if (timestamp == 0) {
       timestamp = Burst.getEpochTime();

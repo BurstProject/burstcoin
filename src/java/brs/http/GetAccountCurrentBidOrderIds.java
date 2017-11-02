@@ -1,7 +1,7 @@
 package brs.http;
 
 import brs.Order;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -30,7 +30,7 @@ public final class GetAccountCurrentBidOrderIds extends APIServlet.APIRequestHan
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
 
-        NxtIterator<Order.Bid> bidOrders;
+        BurstIterator<Order.Bid> bidOrders;
         if (assetId == 0) {
             bidOrders = Order.Bid.getBidOrdersByAccount(accountId, firstIndex, lastIndex);
         } else {

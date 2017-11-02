@@ -1,8 +1,8 @@
 package brs.http;
 
-import brs.NxtException;
+import brs.BurstException;
 import brs.Order;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -19,7 +19,7 @@ public final class GetAccountCurrentAskOrders extends APIServlet.APIRequestHandl
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         long accountId = ParameterParser.getAccount(req).getId();
         long assetId = 0;
@@ -31,7 +31,7 @@ public final class GetAccountCurrentAskOrders extends APIServlet.APIRequestHandl
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
 
-        NxtIterator<Order.Ask> askOrders;
+        BurstIterator<Order.Ask> askOrders;
         if (assetId == 0) {
             askOrders = Order.Ask.getAskOrdersByAccount(accountId, firstIndex, lastIndex);
         } else {

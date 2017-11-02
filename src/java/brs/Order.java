@@ -1,7 +1,7 @@
 package brs;
 
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.util.Convert;
 
@@ -125,7 +125,7 @@ public abstract class Order {
 
   public static class Ask extends Order {
 
-    private static final NxtKey.LongKeyFactory<Ask> askOrderDbKeyFactory =
+    private static final BurstKey.LongKeyFactory<Ask> askOrderDbKeyFactory =
         Burst.getStores().getOrderStore().getAskOrderDbKeyFactory();
 
 
@@ -140,23 +140,23 @@ public abstract class Order {
       return askOrderTable.get(askOrderDbKeyFactory.newKey(orderId));
     }
 
-    public static NxtIterator<Ask> getAll(int from, int to) {
+    public static BurstIterator<Ask> getAll(int from, int to) {
       return askOrderTable.getAll(from, to);
     }
 
-    public static NxtIterator<Ask> getAskOrdersByAccount(long accountId, int from, int to) {
+    public static BurstIterator<Ask> getAskOrdersByAccount(long accountId, int from, int to) {
       return Burst.getStores().getOrderStore().getAskOrdersByAccount(accountId, from, to);
     }
 
-    public static NxtIterator<Ask> getAskOrdersByAsset(long assetId, int from, int to) {
+    public static BurstIterator<Ask> getAskOrdersByAsset(long assetId, int from, int to) {
       return Burst.getStores().getOrderStore().getAskOrdersByAsset(assetId, from, to);
     }
 
-    public static NxtIterator<Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
+    public static BurstIterator<Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
       return Burst.getStores().getOrderStore().getAskOrdersByAccountAsset(accountId, assetId, from, to);
     }
 
-    public static NxtIterator<Ask> getSortedOrders(long assetId, int from, int to) {
+    public static BurstIterator<Ask> getSortedOrders(long assetId, int from, int to) {
       return Burst.getStores().getOrderStore().getSortedAsks(assetId, from,to);
     }
 
@@ -177,14 +177,14 @@ public abstract class Order {
     static void init() {}
 
 
-    public final NxtKey dbKey;
+    public final BurstKey dbKey;
 
     private Ask(Transaction transaction, Attachment.ColoredCoinsAskOrderPlacement attachment) {
       super(transaction, attachment);
       this.dbKey = askOrderDbKeyFactory.newKey(super.id);
     }
 
-    public Ask(long id, long accountId, long assetId, long priceNQT, int creationHeight, long quantityQNT, NxtKey dbKey) {
+    public Ask(long id, long accountId, long assetId, long priceNQT, int creationHeight, long quantityQNT, BurstKey dbKey) {
       super(id, accountId, assetId, priceNQT, creationHeight, quantityQNT);
       this.dbKey = dbKey;
     }
@@ -220,7 +220,7 @@ public abstract class Order {
 
   public static class Bid extends Order {
 
-    private static final NxtKey.LongKeyFactory<Bid> bidOrderDbKeyFactory =
+    private static final BurstKey.LongKeyFactory<Bid> bidOrderDbKeyFactory =
         Burst.getStores().getOrderStore().getBidOrderDbKeyFactory();
 
     private static final VersionedEntityTable<Bid> bidOrderTable =
@@ -234,23 +234,23 @@ public abstract class Order {
       return bidOrderTable.get(bidOrderDbKeyFactory.newKey(orderId));
     }
 
-    public static NxtIterator<Bid> getAll(int from, int to) {
+    public static BurstIterator<Bid> getAll(int from, int to) {
       return bidOrderTable.getAll(from, to);
     }
 
-    public static NxtIterator<Bid> getBidOrdersByAccount(long accountId, int from, int to) {
+    public static BurstIterator<Bid> getBidOrdersByAccount(long accountId, int from, int to) {
       return Burst.getStores().getOrderStore().getBidOrdersByAccount(accountId, from,to);
     }
 
-    public static NxtIterator<Bid> getBidOrdersByAsset(long assetId, int from, int to) {
+    public static BurstIterator<Bid> getBidOrdersByAsset(long assetId, int from, int to) {
       return Burst.getStores().getOrderStore().getBidOrdersByAsset(assetId, from, to);
     }
 
-    public static NxtIterator<Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
+    public static BurstIterator<Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
       return Burst.getStores().getOrderStore().getBidOrdersByAccountAsset(accountId, assetId, from, to);
     }
 
-    public static NxtIterator<Bid> getSortedOrders(long assetId, int from, int to) {
+    public static BurstIterator<Bid> getSortedOrders(long assetId, int from, int to) {
 
       return Burst.getStores().getOrderStore().getSortedBids(assetId, from, to);
     }
@@ -272,14 +272,14 @@ public abstract class Order {
     static void init() {}
 
 
-    public final NxtKey dbKey;
+    public final BurstKey dbKey;
 
     private Bid(Transaction transaction, Attachment.ColoredCoinsBidOrderPlacement attachment) {
       super(transaction, attachment);
       this.dbKey = bidOrderDbKeyFactory.newKey(super.id);
     }
 
-    public Bid(long id, long accountId, long assetId, long priceNQT, int creationHeight, long quantityQNT, NxtKey dbKey) {
+    public Bid(long id, long accountId, long assetId, long priceNQT, int creationHeight, long quantityQNT, BurstKey dbKey) {
       super(id, accountId, assetId, priceNQT, creationHeight, quantityQNT);
       this.dbKey = dbKey;
     }

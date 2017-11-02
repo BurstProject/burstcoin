@@ -1,8 +1,8 @@
 package brs.db.sql;
 
 import brs.AssetTransfer;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.store.AssetTransferStore;
 
 import java.sql.Connection;
@@ -12,10 +12,10 @@ import java.sql.SQLException;
 
 public abstract class SqlAssetTransferStore implements AssetTransferStore {
 
-    protected static final NxtKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = new DbKey.LongKeyFactory<AssetTransfer>("id") {
+    protected static final BurstKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = new DbKey.LongKeyFactory<AssetTransfer>("id") {
 
         @Override
-        public NxtKey newKey(AssetTransfer assetTransfer) {
+        public BurstKey newKey(AssetTransfer assetTransfer) {
             return assetTransfer.dbKey;
         }
     };
@@ -55,16 +55,16 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
     }
 
     @Override
-    public NxtKey.LongKeyFactory<AssetTransfer> getTransferDbKeyFactory() {
+    public BurstKey.LongKeyFactory<AssetTransfer> getTransferDbKeyFactory() {
         return transferDbKeyFactory;
     }
     @Override
-    public NxtIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
+    public BurstIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
         return getAssetTransferTable().getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
     }
 
     @Override
-    public NxtIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
+    public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
         Connection con = null;
         try {
             con = Db.getConnection();
@@ -84,7 +84,7 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
     }
 
     @Override
-    public NxtIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
+    public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
         Connection con = null;
         try {
             con = Db.getConnection();

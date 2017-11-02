@@ -2,7 +2,7 @@ package brs.db.firebird;
 
 import brs.DigitalGoodsStore;
 import brs.Burst;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
 import brs.db.sql.DbClause;
@@ -118,7 +118,7 @@ class FirebirdDigitalGoodsStoreStore extends SqlDigitalGoodsStoreStore {
     }
 
     @Override
-    public NxtIterator<DigitalGoodsStore.Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
+    public BurstIterator<DigitalGoodsStore.Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
         DbClause dbClause = new DbClause(" seller_id = ? " + (inStockOnly ? "AND delisted = FALSE AND quantity > 0" : "")) {
             @Override
             public int set(PreparedStatement pstmt, int index) throws SQLException {

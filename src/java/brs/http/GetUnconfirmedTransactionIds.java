@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.Burst;
 import brs.Transaction;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -35,7 +35,7 @@ public final class GetUnconfirmedTransactionIds extends APIServlet.APIRequestHan
     }
 
     JSONArray transactionIds = new JSONArray();
-    try (NxtIterator<? extends Transaction> transactionsIterator = Burst.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+    try (BurstIterator<? extends Transaction> transactionsIterator = Burst.getTransactionProcessor().getAllUnconfirmedTransactions()) {
       while (transactionsIterator.hasNext()) {
         Transaction transaction = transactionsIterator.next();
         if (accountId != 0 && !(accountId == transaction.getSenderId() || accountId == transaction.getRecipientId())) {

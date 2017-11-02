@@ -1,7 +1,7 @@
 package brs.http;
 
 import brs.Asset;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -24,7 +24,7 @@ public final class GetAssetIds extends APIServlet.APIRequestHandler {
         int lastIndex = ParameterParser.getLastIndex(req);
 
         JSONArray assetIds = new JSONArray();
-        try (NxtIterator<Asset> assets = Asset.getAllAssets(firstIndex, lastIndex)) {
+        try (BurstIterator<Asset> assets = Asset.getAllAssets(firstIndex, lastIndex)) {
             while (assets.hasNext()) {
                 assetIds.add(Convert.toUnsignedLong(assets.next().getId()));
             }

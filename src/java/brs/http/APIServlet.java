@@ -1,7 +1,7 @@
 package brs.http;
 
 import brs.Burst;
-import brs.NxtException;
+import brs.BurstException;
 import brs.util.JSON;
 import brs.util.Subnet;
 import org.json.simple.JSONObject;
@@ -42,7 +42,7 @@ public final class APIServlet extends HttpServlet {
       return apiTags;
     }
 
-    abstract JSONStreamAware processRequest(HttpServletRequest request) throws NxtException;
+    abstract JSONStreamAware processRequest(HttpServletRequest request) throws BurstException;
 
     boolean requirePost() {
       return false;
@@ -253,7 +253,7 @@ public final class APIServlet extends HttpServlet {
         response = apiRequestHandler.processRequest(req);
       } catch (ParameterException e) {
         response = e.getErrorResponse();
-      } catch (NxtException |RuntimeException e) {
+      } catch (BurstException |RuntimeException e) {
         logger.debug("Error processing API request", e);
         response = ERROR_INCORRECT_REQUEST;
       } finally {

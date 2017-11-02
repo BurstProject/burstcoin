@@ -1,8 +1,8 @@
 package brs.http;
 
 import brs.DigitalGoodsStore;
-import brs.NxtException;
-import brs.db.NxtIterator;
+import brs.BurstException;
+import brs.db.BurstIterator;
 import brs.db.sql.DbUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -19,7 +19,7 @@ public final class GetDGSGoods extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
         long sellerId = ParameterParser.getSellerId(req);
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
@@ -29,7 +29,7 @@ public final class GetDGSGoods extends APIServlet.APIRequestHandler {
         JSONArray goodsJSON = new JSONArray();
         response.put("goods", goodsJSON);
 
-        NxtIterator<DigitalGoodsStore.Goods> goods = null;
+        BurstIterator<DigitalGoodsStore.Goods> goods = null;
         try {
             if (sellerId == 0) {
                 if (inStockOnly) {

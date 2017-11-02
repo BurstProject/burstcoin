@@ -2,8 +2,8 @@ package brs.db.sql;
 
 import brs.Burst;
 import brs.Order;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.OrderStore;
 
@@ -16,7 +16,7 @@ public abstract class SqlOrderStore implements OrderStore {
     protected DbKey.LongKeyFactory<Order.Ask> askOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Ask>("id") {
 
         @Override
-        public NxtKey newKey(Order.Ask ask) {
+        public BurstKey newKey(Order.Ask ask) {
             return ask.dbKey;
         }
 
@@ -41,7 +41,7 @@ public abstract class SqlOrderStore implements OrderStore {
     private DbKey.LongKeyFactory<Order.Bid> bidOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Bid>("id") {
 
         @Override
-        public NxtKey newKey(Order.Bid bid) {
+        public BurstKey newKey(Order.Bid bid) {
             return bid.dbKey;
         }
 
@@ -71,7 +71,7 @@ public abstract class SqlOrderStore implements OrderStore {
     }
 
     @Override
-    public NxtIterator<Order.Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
+    public BurstIterator<Order.Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
         DbClause dbClause = new DbClause(" account_id = ? AND asset_id = ? ") {
             @Override
             public int set(PreparedStatement pstmt, int index) throws SQLException {
@@ -84,7 +84,7 @@ public abstract class SqlOrderStore implements OrderStore {
     }
 
     @Override
-    public NxtIterator<Order.Ask> getSortedAsks(long assetId, int from, int to) {
+    public BurstIterator<Order.Ask> getSortedAsks(long assetId, int from, int to) {
         return askOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to,
                 " ORDER BY price ASC, creation_height ASC, id ASC ");
     }
@@ -96,7 +96,7 @@ public abstract class SqlOrderStore implements OrderStore {
                      + "AND latest = TRUE ORDER BY price ASC, creation_height ASC, id ASC" + DbUtils.limitsClause(1))) {
             pstmt.setLong(1, assetId);
             DbUtils.setLimits(2, pstmt, 1);
-            try (NxtIterator<Order.Ask> askOrders = askOrderTable.getManyBy(con, pstmt, true)) {
+            try (BurstIterator<Order.Ask> askOrders = askOrderTable.getManyBy(con, pstmt, true)) {
                 return askOrders.hasNext() ? askOrders.next() : null;
             }
         } catch (SQLException e) {
@@ -105,17 +105,17 @@ public abstract class SqlOrderStore implements OrderStore {
     }
 
     @Override
-    public NxtIterator<Order.Ask> getAll(int from, int to) {
+    public BurstIterator<Order.Ask> getAll(int from, int to) {
         return askOrderTable.getAll(from, to);
     }
 
     @Override
-    public NxtIterator<Order.Ask> getAskOrdersByAccount(long accountId, int from, int to) {
+    public BurstIterator<Order.Ask> getAskOrdersByAccount(long accountId, int from, int to) {
         return askOrderTable.getManyBy(new DbClause.LongClause("account_id", accountId), from, to);
     }
 
     @Override
-    public NxtIterator<Order.Ask> getAskOrdersByAsset(long assetId, int from, int to) {
+    public BurstIterator<Order.Ask> getAskOrdersByAsset(long assetId, int from, int to) {
         return askOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
     }
 
@@ -141,17 +141,17 @@ public abstract class SqlOrderStore implements OrderStore {
     }
 
     @Override
-    public NxtIterator<Order.Bid> getBidOrdersByAccount(long accountId, int from, int to) {
+    public BurstIterator<Order.Bid> getBidOrdersByAccount(long accountId, int from, int to) {
         return bidOrderTable.getManyBy(new DbClause.LongClause("account_id", accountId), from, to);
     }
 
     @Override
-    public NxtIterator<Order.Bid> getBidOrdersByAsset(long assetId, int from, int to) {
+    public BurstIterator<Order.Bid> getBidOrdersByAsset(long assetId, int from, int to) {
         return bidOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
     }
 
     @Override
-    public NxtIterator<Order.Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
+    public BurstIterator<Order.Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
         DbClause dbClause = new DbClause(" account_id = ? AND asset_id = ? ") {
             @Override
             public int set(PreparedStatement pstmt, int index) throws SQLException {
@@ -164,7 +164,7 @@ public abstract class SqlOrderStore implements OrderStore {
     }
 
     @Override
-    public NxtIterator<Order.Bid> getSortedBids(long assetId, int from, int to) {
+    public BurstIterator<Order.Bid> getSortedBids(long assetId, int from, int to) {
 
         return bidOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to,
                 " ORDER BY price DESC, creation_height ASC, id ASC ");
@@ -177,7 +177,7 @@ public abstract class SqlOrderStore implements OrderStore {
                      + "AND latest = TRUE ORDER BY price DESC, creation_height ASC, id ASC" + DbUtils.limitsClause(1) )) {
             pstmt.setLong(1, assetId);
             DbUtils.setLimits(2, pstmt, 1);
-            try (NxtIterator<Order.Bid> bidOrders = bidOrderTable.getManyBy(con, pstmt, true)) {
+            try (BurstIterator<Order.Bid> bidOrders = bidOrderTable.getManyBy(con, pstmt, true)) {
                 return bidOrders.hasNext() ? bidOrders.next() : null;
             }
         } catch (SQLException e) {

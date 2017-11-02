@@ -18,7 +18,7 @@ public final class DGSPurchase extends CreateTransaction {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
         DigitalGoodsStore.Goods goods = ParameterParser.getGoods(req);
         if (goods.isDelisted()) {

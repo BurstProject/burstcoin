@@ -1,8 +1,8 @@
 package brs.db.sql;
 
 import brs.Trade;
-import brs.db.NxtIterator;
-import brs.db.NxtKey;
+import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.store.TradeStore;
 
 import java.sql.Connection;
@@ -14,7 +14,7 @@ public abstract class SqlTradeStore implements TradeStore {
     private final DbKey.LinkKeyFactory<Trade> tradeDbKeyFactory = new DbKey.LinkKeyFactory<Trade>("ask_order_id", "bid_order_id") {
 
         @Override
-        public NxtKey newKey(Trade trade) {
+        public BurstKey newKey(Trade trade) {
             return trade.dbKey;
         }
 
@@ -35,17 +35,17 @@ public abstract class SqlTradeStore implements TradeStore {
     };
 
     @Override
-    public NxtIterator<Trade> getAllTrades(int from, int to) {
+    public BurstIterator<Trade> getAllTrades(int from, int to) {
         return tradeTable.getAll(from, to);
     }
 
     @Override
-    public NxtIterator<Trade> getAssetTrades(long assetId, int from, int to) {
+    public BurstIterator<Trade> getAssetTrades(long assetId, int from, int to) {
         return tradeTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
     }
 
     @Override
-    public NxtIterator<Trade> getAccountTrades(long accountId, int from, int to) {
+    public BurstIterator<Trade> getAccountTrades(long accountId, int from, int to) {
         Connection con = null;
         try {
             con = Db.getConnection();
@@ -65,7 +65,7 @@ public abstract class SqlTradeStore implements TradeStore {
     }
 
     @Override
-    public NxtIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
+    public BurstIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
         Connection con = null;
         try {
             con = Db.getConnection();

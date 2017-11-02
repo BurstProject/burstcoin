@@ -1,6 +1,6 @@
 package brs.http;
 
-import brs.NxtException;
+import brs.BurstException;
 import brs.Order;
 import org.json.simple.JSONStreamAware;
 
@@ -17,7 +17,7 @@ public final class GetBidOrder extends APIServlet.APIRequestHandler {
     }
 
     @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws NxtException {
+    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
         long orderId = ParameterParser.getOrderId(req);
         Order.Bid bidOrder = Order.Bid.getBidOrder(orderId);
         if (bidOrder == null) {

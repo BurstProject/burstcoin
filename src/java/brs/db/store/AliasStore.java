@@ -1,19 +1,19 @@
 package brs.db.store;
 
 import brs.Alias;
-import brs.db.NxtIterator;
+import brs.db.BurstIterator;
 import brs.db.VersionedEntityTable;
-import brs.db.NxtKey;
+import brs.db.BurstKey;
 
 public interface AliasStore {
-    NxtKey.LongKeyFactory<Alias> getAliasDbKeyFactory();
-    NxtKey.LongKeyFactory<Alias.Offer> getOfferDbKeyFactory();
+    BurstKey.LongKeyFactory<Alias> getAliasDbKeyFactory();
+    BurstKey.LongKeyFactory<Alias.Offer> getOfferDbKeyFactory();
 
     VersionedEntityTable<Alias> getAliasTable();
 
     VersionedEntityTable<Alias.Offer> getOfferTable();
 
-    NxtIterator<Alias> getAliasesByOwner(long accountId, int from, int to);
+    BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to);
 
     Alias getAlias(String aliasName);
 }

@@ -7,7 +7,7 @@ import java.util.Iterator;
 /**
  * Created by jens on 10.08.2017.
  */
-public interface NxtIterator<T> extends Iterator<T>, Iterable<T>, AutoCloseable
+public interface BurstIterator<T> extends Iterator<T>, Iterable<T>, AutoCloseable
 {
     @Override
     boolean hasNext();

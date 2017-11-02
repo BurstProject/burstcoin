@@ -1,7 +1,7 @@
 package brs.peer;
 
 import brs.Burst;
-import brs.NxtException;
+import brs.BurstException;
 import brs.util.JSON;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -39,7 +39,7 @@ final class ProcessBlock extends PeerServlet.PeerRequestHandler {
       Burst.getBlockchainProcessor().processPeerBlock(request);
       return ACCEPTED;
 
-    } catch (NxtException|RuntimeException e) {
+    } catch (BurstException|RuntimeException e) {
       if (peer != null) {
         peer.blacklist(e);
       }

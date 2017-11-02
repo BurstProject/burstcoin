@@ -2,8 +2,8 @@ package brs;
 
 import brs.Attachment.AbstractAttachment;
 import brs.Attachment.AutomatedTransactionsCreation;
-import brs.NxtException.NotValidException;
-import brs.NxtException.ValidationException;
+import brs.BurstException.NotValidException;
+import brs.BurstException.ValidationException;
 import brs.at.AT_Constants;
 import brs.at.AT_Controller;
 import brs.at.AT_Exception;
@@ -194,11 +194,11 @@ public abstract class TransactionType {
 
   public abstract byte getSubtype();
 
-  public abstract Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException;
+  public abstract Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException;
 
-  abstract Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException;
+  abstract Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException;
 
-  abstract void validateAttachment(Transaction transaction) throws NxtException.ValidationException;
+  abstract void validateAttachment(Transaction transaction) throws BurstException.ValidationException;
 
   // return false iff double spending
   final boolean applyUnconfirmed(Transaction transaction, Account senderAccount) {
@@ -315,19 +315,19 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return Attachment.ORDINARY_PAYMENT;
         }
 
         @Override
-        Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return Attachment.ORDINARY_PAYMENT;
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           if (transaction.getAmountNQT() <= 0 || transaction.getAmountNQT() >= Constants.MAX_BALANCE_NQT) {
-            throw new NxtException.NotValidException("Invalid ordinary payment");
+            throw new BurstException.NotValidException("Invalid ordinary payment");
           }
         }
 
@@ -362,12 +362,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return Attachment.ARBITRARY_MESSAGE;
         }
 
         @Override
-        Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return Attachment.ARBITRARY_MESSAGE;
         }
 
@@ -376,13 +376,13 @@ public abstract class TransactionType {
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment attachment = transaction.getAttachment();
           if (transaction.getAmountNQT() != 0) {
-            throw new NxtException.NotValidException("Invalid arbitrary message: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid arbitrary message: " + attachment.getJSONObject());
           }
           if (Burst.getBlockchain().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK && transaction.getMessage() == null) {
-            throw new NxtException.NotCurrentlyValidException("Missing message appendix not allowed before DGS block");
+            throw new BurstException.NotCurrentlyValidException("Missing message appendix not allowed before DGS block");
           }
         }
 
@@ -401,12 +401,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.MessagingAliasAssignment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.MessagingAliasAssignment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.MessagingAliasAssignment(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.MessagingAliasAssignment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.MessagingAliasAssignment parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.MessagingAliasAssignment(attachmentData);
         }
 
@@ -423,22 +423,22 @@ public abstract class TransactionType {
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.MessagingAliasAssignment attachment = (Attachment.MessagingAliasAssignment) transaction.getAttachment();
           if (attachment.getAliasName().length() == 0
               || Convert.toBytes(attachment.getAliasName()).length > Constants.MAX_ALIAS_LENGTH
               || attachment.getAliasURI().length() > Constants.MAX_ALIAS_URI_LENGTH) {
-            throw new NxtException.NotValidException("Invalid alias assignment: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid alias assignment: " + attachment.getJSONObject());
           }
           String normalizedAlias = attachment.getAliasName().toLowerCase();
           for (int i = 0; i < normalizedAlias.length(); i++) {
             if (Constants.ALPHABET.indexOf(normalizedAlias.charAt(i)) < 0) {
-              throw new NxtException.NotValidException("Invalid alias name: " + normalizedAlias);
+              throw new BurstException.NotValidException("Invalid alias name: " + normalizedAlias);
             }
           }
           Alias alias = Alias.getAlias(normalizedAlias);
           if (alias != null && alias.getAccountId() != transaction.getSenderId()) {
-            throw new NxtException.NotCurrentlyValidException("Alias already owned by another account: " + normalizedAlias);
+            throw new BurstException.NotCurrentlyValidException("Alias already owned by another account: " + normalizedAlias);
           }
         }
 
@@ -457,12 +457,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.MessagingAliasSell parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.MessagingAliasSell parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.MessagingAliasSell(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.MessagingAliasSell parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.MessagingAliasSell parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.MessagingAliasSell(attachmentData);
         }
 
@@ -481,36 +481,36 @@ public abstract class TransactionType {
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
-            throw new NxtException.NotYetEnabledException("Alias transfer not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
+            throw new BurstException.NotYetEnabledException("Alias transfer not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
           }
           if (transaction.getAmountNQT() != 0) {
-            throw new NxtException.NotValidException("Invalid sell alias transaction: " +
+            throw new BurstException.NotValidException("Invalid sell alias transaction: " +
                                                      transaction.getJSONObject());
           }
           final Attachment.MessagingAliasSell attachment =
               (Attachment.MessagingAliasSell) transaction.getAttachment();
           final String aliasName = attachment.getAliasName();
           if (aliasName == null || aliasName.length() == 0) {
-            throw new NxtException.NotValidException("Missing alias name");
+            throw new BurstException.NotValidException("Missing alias name");
           }
           long priceNQT = attachment.getPriceNQT();
           if (priceNQT < 0 || priceNQT > Constants.MAX_BALANCE_NQT) {
-            throw new NxtException.NotValidException("Invalid alias sell price: " + priceNQT);
+            throw new BurstException.NotValidException("Invalid alias sell price: " + priceNQT);
           }
           if (priceNQT == 0) {
             if (Genesis.CREATOR_ID == transaction.getRecipientId()) {
-              throw new NxtException.NotValidException("Transferring aliases to Genesis account not allowed");
+              throw new BurstException.NotValidException("Transferring aliases to Genesis account not allowed");
             } else if (transaction.getRecipientId() == 0) {
-              throw new NxtException.NotValidException("Missing alias transfer recipient");
+              throw new BurstException.NotValidException("Missing alias transfer recipient");
             }
           }
           final Alias alias = Alias.getAlias(aliasName);
           if (alias == null) {
-            throw new NxtException.NotCurrentlyValidException("Alias hasn't been registered yet: " + aliasName);
+            throw new BurstException.NotCurrentlyValidException("Alias hasn't been registered yet: " + aliasName);
           } else if (alias.getAccountId() != transaction.getSenderId()) {
-            throw new NxtException.NotCurrentlyValidException("Alias doesn't belong to sender: " + aliasName);
+            throw new BurstException.NotCurrentlyValidException("Alias doesn't belong to sender: " + aliasName);
           }
         }
 
@@ -529,12 +529,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.MessagingAliasBuy parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.MessagingAliasBuy parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.MessagingAliasBuy(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.MessagingAliasBuy parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.MessagingAliasBuy parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.MessagingAliasBuy(attachmentData);
         }
 
@@ -554,31 +554,31 @@ public abstract class TransactionType {
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
-            throw new NxtException.NotYetEnabledException("Alias transfer not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
+            throw new BurstException.NotYetEnabledException("Alias transfer not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
           }
           final Attachment.MessagingAliasBuy attachment =
               (Attachment.MessagingAliasBuy) transaction.getAttachment();
           final String aliasName = attachment.getAliasName();
           final Alias alias = Alias.getAlias(aliasName);
           if (alias == null) {
-            throw new NxtException.NotCurrentlyValidException("Alias hasn't been registered yet: " + aliasName);
+            throw new BurstException.NotCurrentlyValidException("Alias hasn't been registered yet: " + aliasName);
           } else if (alias.getAccountId() != transaction.getRecipientId()) {
-            throw new NxtException.NotCurrentlyValidException("Alias is owned by account other than recipient: "
+            throw new BurstException.NotCurrentlyValidException("Alias is owned by account other than recipient: "
                                                               + Convert.toUnsignedLong(alias.getAccountId()));
           }
           Alias.Offer offer = Alias.getOffer(alias);
           if (offer == null) {
-            throw new NxtException.NotCurrentlyValidException("Alias is not for sale: " + aliasName);
+            throw new BurstException.NotCurrentlyValidException("Alias is not for sale: " + aliasName);
           }
           if (transaction.getAmountNQT() < offer.getPriceNQT()) {
             String msg = "Price is too low for: " + aliasName + " ("
                 + transaction.getAmountNQT() + " < " + offer.getPriceNQT() + ")";
-            throw new NxtException.NotCurrentlyValidException(msg);
+            throw new BurstException.NotCurrentlyValidException(msg);
           }
           if (offer.getBuyerId() != 0 && offer.getBuyerId() != transaction.getSenderId()) {
-            throw new NxtException.NotCurrentlyValidException("Wrong buyer for " + aliasName + ": "
+            throw new BurstException.NotCurrentlyValidException("Wrong buyer for " + aliasName + ": "
                                                               + Convert.toUnsignedLong(transaction.getSenderId()) + " expected: "
                                                               + Convert.toUnsignedLong(offer.getBuyerId()));
           }
@@ -598,12 +598,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.MessagingPollCreation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.MessagingPollCreation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.MessagingPollCreation(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.MessagingPollCreation parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.MessagingPollCreation parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.MessagingPollCreation(attachmentData);
         }
 
@@ -614,20 +614,20 @@ public abstract class TransactionType {
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.VOTING_SYSTEM_BLOCK) {
-            throw new NxtException.NotYetEnabledException("Voting System not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
+            throw new BurstException.NotYetEnabledException("Voting System not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
           }
           Attachment.MessagingPollCreation attachment = (Attachment.MessagingPollCreation) transaction.getAttachment();
           for (int i = 0; i < attachment.getPollOptions().length; i++) {
             if (attachment.getPollOptions()[i].length() > Constants.MAX_POLL_OPTION_LENGTH) {
-              throw new NxtException.NotValidException("Invalid poll options length: " + attachment.getJSONObject());
+              throw new BurstException.NotValidException("Invalid poll options length: " + attachment.getJSONObject());
             }
           }
           if (attachment.getPollName().length() > Constants.MAX_POLL_NAME_LENGTH
               || attachment.getPollDescription().length() > Constants.MAX_POLL_DESCRIPTION_LENGTH
               || attachment.getPollOptions().length > Constants.MAX_POLL_OPTION_COUNT) {
-            throw new NxtException.NotValidException("Invalid poll attachment: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid poll attachment: " + attachment.getJSONObject());
           }
         }
 
@@ -646,12 +646,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.MessagingVoteCasting parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.MessagingVoteCasting parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.MessagingVoteCasting(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.MessagingVoteCasting parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.MessagingVoteCasting parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.MessagingVoteCasting(attachmentData);
         }
 
@@ -665,17 +665,17 @@ public abstract class TransactionType {
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.VOTING_SYSTEM_BLOCK) {
-            throw new NxtException.NotYetEnabledException("Voting System not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
+            throw new BurstException.NotYetEnabledException("Voting System not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
           }
           Attachment.MessagingVoteCasting attachment = (Attachment.MessagingVoteCasting) transaction.getAttachment();
           if (attachment.getPollId() == 0 || attachment.getPollVote() == null
               || attachment.getPollVote().length > Constants.MAX_POLL_OPTION_COUNT) {
-            throw new NxtException.NotValidException("Invalid vote casting attachment: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid vote casting attachment: " + attachment.getJSONObject());
           }
           if (Poll.getPoll(attachment.getPollId()) == null) {
-            throw new NxtException.NotCurrentlyValidException("Invalid poll: " + Convert.toUnsignedLong(attachment.getPollId()));
+            throw new BurstException.NotCurrentlyValidException("Invalid poll: " + Convert.toUnsignedLong(attachment.getPollId()));
           }
         }
 
@@ -694,12 +694,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.MessagingHubAnnouncement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.MessagingHubAnnouncement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.MessagingHubAnnouncement(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.MessagingHubAnnouncement parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.MessagingHubAnnouncement parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.MessagingHubAnnouncement(attachmentData);
         }
 
@@ -710,19 +710,19 @@ public abstract class TransactionType {
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_7) {
-            throw new NxtException.NotYetEnabledException("Hub terminal announcement not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
+            throw new BurstException.NotYetEnabledException("Hub terminal announcement not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
           }
           Attachment.MessagingHubAnnouncement attachment = (Attachment.MessagingHubAnnouncement) transaction.getAttachment();
           if (attachment.getMinFeePerByteNQT() < 0 || attachment.getMinFeePerByteNQT() > Constants.MAX_BALANCE_NQT
               || attachment.getUris().length > Constants.MAX_HUB_ANNOUNCEMENT_URIS) {
             // cfb: "0" is allowed to show that another way to determine the min fee should be used
-            throw new NxtException.NotValidException("Invalid hub terminal announcement: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid hub terminal announcement: " + attachment.getJSONObject());
           }
           for (String uri : attachment.getUris()) {
             if (uri.length() > Constants.MAX_HUB_ANNOUNCEMENT_URI_LENGTH) {
-              throw new NxtException.NotValidException("Invalid URI length: " + uri.length());
+              throw new BurstException.NotValidException("Invalid URI length: " + uri.length());
             }
             //TODO: also check URI validity here?
           }
@@ -743,22 +743,22 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.MessagingAccountInfo parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.MessagingAccountInfo parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.MessagingAccountInfo(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.MessagingAccountInfo parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.MessagingAccountInfo parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.MessagingAccountInfo(attachmentData);
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.MessagingAccountInfo attachment = (Attachment.MessagingAccountInfo)transaction.getAttachment();
           if (Convert.toBytes(attachment.getName()).length > Constants.MAX_ACCOUNT_NAME_LENGTH
               || Convert.toBytes(attachment.getDescription()).length > Constants.MAX_ACCOUNT_DESCRIPTION_LENGTH
               ) {
-            throw new NxtException.NotValidException("Invalid account info issuance: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid account info issuance: " + attachment.getJSONObject());
           }
         }
 
@@ -804,12 +804,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.ColoredCoinsAssetIssuance parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.ColoredCoinsAssetIssuance parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.ColoredCoinsAssetIssuance(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.ColoredCoinsAssetIssuance parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.ColoredCoinsAssetIssuance parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.ColoredCoinsAssetIssuance(attachmentData);
         }
 
@@ -831,7 +831,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.ColoredCoinsAssetIssuance attachment = (Attachment.ColoredCoinsAssetIssuance)transaction.getAttachment();
           if (attachment.getName().length() < Constants.MIN_ASSET_NAME_LENGTH
               || attachment.getName().length() > Constants.MAX_ASSET_NAME_LENGTH
@@ -840,12 +840,12 @@ public abstract class TransactionType {
               || attachment.getQuantityQNT() <= 0
               || attachment.getQuantityQNT() > Constants.MAX_ASSET_QUANTITY_QNT
               ) {
-            throw new NxtException.NotValidException("Invalid asset issuance: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid asset issuance: " + attachment.getJSONObject());
           }
           String normalizedName = attachment.getName().toLowerCase();
           for (int i = 0; i < normalizedName.length(); i++) {
             if (Constants.ALPHABET.indexOf(normalizedName.charAt(i)) < 0) {
-              throw new NxtException.NotValidException("Invalid asset name: " + normalizedName);
+              throw new BurstException.NotValidException("Invalid asset name: " + normalizedName);
             }
           }
         }
@@ -865,12 +865,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.ColoredCoinsAssetTransfer parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.ColoredCoinsAssetTransfer parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.ColoredCoinsAssetTransfer(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.ColoredCoinsAssetTransfer parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.ColoredCoinsAssetTransfer parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.ColoredCoinsAssetTransfer(attachmentData);
         }
 
@@ -900,23 +900,23 @@ public abstract class TransactionType {
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer)transaction.getAttachment();
           if (transaction.getAmountNQT() != 0
               || attachment.getComment() != null && attachment.getComment().length() > Constants.MAX_ASSET_TRANSFER_COMMENT_LENGTH
               || attachment.getAssetId() == 0) {
-            throw new NxtException.NotValidException("Invalid asset transfer amount or comment: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid asset transfer amount or comment: " + attachment.getJSONObject());
           }
           if (transaction.getVersion() > 0 && attachment.getComment() != null) {
-            throw new NxtException.NotValidException("Asset transfer comments no longer allowed, use message " +
+            throw new BurstException.NotValidException("Asset transfer comments no longer allowed, use message " +
                                                      "or encrypted message appendix instead");
           }
           Asset asset = Asset.getAsset(attachment.getAssetId());
           if (attachment.getQuantityQNT() <= 0 || (asset != null && attachment.getQuantityQNT() > asset.getQuantityQNT())) {
-            throw new NxtException.NotValidException("Invalid asset transfer asset or quantity: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid asset transfer asset or quantity: " + attachment.getJSONObject());
           }
           if (asset == null) {
-            throw new NxtException.NotCurrentlyValidException("Asset " + Convert.toUnsignedLong(attachment.getAssetId()) +
+            throw new BurstException.NotCurrentlyValidException("Asset " + Convert.toUnsignedLong(attachment.getAssetId()) +
                                                               " does not exist yet");
           }
         }
@@ -931,18 +931,18 @@ public abstract class TransactionType {
     abstract static class ColoredCoinsOrderPlacement extends ColoredCoins {
 
       @Override
-      final void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+      final void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
         Attachment.ColoredCoinsOrderPlacement attachment = (Attachment.ColoredCoinsOrderPlacement)transaction.getAttachment();
         if (attachment.getPriceNQT() <= 0 || attachment.getPriceNQT() > Constants.MAX_BALANCE_NQT
             || attachment.getAssetId() == 0) {
-          throw new NxtException.NotValidException("Invalid asset order placement: " + attachment.getJSONObject());
+          throw new BurstException.NotValidException("Invalid asset order placement: " + attachment.getJSONObject());
         }
         Asset asset = Asset.getAsset(attachment.getAssetId());
         if (attachment.getQuantityQNT() <= 0 || (asset != null && attachment.getQuantityQNT() > asset.getQuantityQNT())) {
-          throw new NxtException.NotValidException("Invalid asset order placement asset or quantity: " + attachment.getJSONObject());
+          throw new BurstException.NotValidException("Invalid asset order placement asset or quantity: " + attachment.getJSONObject());
         }
         if (asset == null) {
-          throw new NxtException.NotCurrentlyValidException("Asset " + Convert.toUnsignedLong(attachment.getAssetId()) +
+          throw new BurstException.NotCurrentlyValidException("Asset " + Convert.toUnsignedLong(attachment.getAssetId()) +
                                                             " does not exist yet");
         }
       }
@@ -962,12 +962,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.ColoredCoinsAskOrderPlacement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.ColoredCoinsAskOrderPlacement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.ColoredCoinsAskOrderPlacement(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.ColoredCoinsAskOrderPlacement parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.ColoredCoinsAskOrderPlacement parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.ColoredCoinsAskOrderPlacement(attachmentData);
         }
 
@@ -1006,12 +1006,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.ColoredCoinsBidOrderPlacement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.ColoredCoinsBidOrderPlacement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.ColoredCoinsBidOrderPlacement(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.ColoredCoinsBidOrderPlacement parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.ColoredCoinsBidOrderPlacement parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.ColoredCoinsBidOrderPlacement(attachmentData);
         }
 
@@ -1067,12 +1067,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.ColoredCoinsAskOrderCancellation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.ColoredCoinsAskOrderCancellation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.ColoredCoinsAskOrderCancellation(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.ColoredCoinsAskOrderCancellation parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.ColoredCoinsAskOrderCancellation parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.ColoredCoinsAskOrderCancellation(attachmentData);
         }
 
@@ -1087,14 +1087,14 @@ public abstract class TransactionType {
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.ColoredCoinsAskOrderCancellation attachment = (Attachment.ColoredCoinsAskOrderCancellation) transaction.getAttachment();
           Order ask = Order.Ask.getAskOrder(attachment.getOrderId());
           if(ask == null) {
-            throw new NxtException.NotCurrentlyValidException("Invalid ask order: " + Convert.toUnsignedLong(attachment.getOrderId()));
+            throw new BurstException.NotCurrentlyValidException("Invalid ask order: " + Convert.toUnsignedLong(attachment.getOrderId()));
           }
           if(ask.getAccountId() != transaction.getSenderId()) {
-            throw new NxtException.NotValidException("Order " + Convert.toUnsignedLong(attachment.getOrderId()) + " was created by account "
+            throw new BurstException.NotValidException("Order " + Convert.toUnsignedLong(attachment.getOrderId()) + " was created by account "
                                                      + Convert.toUnsignedLong(ask.getAccountId()));
           }
         }
@@ -1109,12 +1109,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.ColoredCoinsBidOrderCancellation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.ColoredCoinsBidOrderCancellation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.ColoredCoinsBidOrderCancellation(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.ColoredCoinsBidOrderCancellation parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.ColoredCoinsBidOrderCancellation parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.ColoredCoinsBidOrderCancellation(attachmentData);
         }
 
@@ -1129,14 +1129,14 @@ public abstract class TransactionType {
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.ColoredCoinsBidOrderCancellation attachment = (Attachment.ColoredCoinsBidOrderCancellation) transaction.getAttachment();
           Order bid = Order.Bid.getBidOrder(attachment.getOrderId());
           if(bid == null) {
-            throw new NxtException.NotCurrentlyValidException("Invalid bid order: " + Convert.toUnsignedLong(attachment.getOrderId()));
+            throw new BurstException.NotCurrentlyValidException("Invalid bid order: " + Convert.toUnsignedLong(attachment.getOrderId()));
           }
           if(bid.getAccountId() != transaction.getSenderId()) {
-            throw new NxtException.NotValidException("Order " + Convert.toUnsignedLong(attachment.getOrderId()) + " was created by account "
+            throw new BurstException.NotValidException("Order " + Convert.toUnsignedLong(attachment.getOrderId()) + " was created by account "
                                                      + Convert.toUnsignedLong(bid.getAccountId()));
           }
         }
@@ -1164,17 +1164,17 @@ public abstract class TransactionType {
     }
 
     @Override
-    final void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+    final void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
       if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
-        throw new NxtException.NotYetEnabledException("Digital goods listing not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
+        throw new BurstException.NotYetEnabledException("Digital goods listing not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
       }
       if (transaction.getAmountNQT() != 0) {
-        throw new NxtException.NotValidException("Invalid digital goods transaction");
+        throw new BurstException.NotValidException("Invalid digital goods transaction");
       }
       doValidateAttachment(transaction);
     }
 
-    abstract void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException;
+    abstract void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException;
 
 
     public static final TransactionType LISTING = new DigitalGoods() {
@@ -1185,12 +1185,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.DigitalGoodsListing parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.DigitalGoodsListing parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsListing(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DigitalGoodsListing parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.DigitalGoodsListing parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsListing(attachmentData);
         }
 
@@ -1201,7 +1201,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.DigitalGoodsListing attachment = (Attachment.DigitalGoodsListing) transaction.getAttachment();
           if (attachment.getName().length() == 0
               || attachment.getName().length() > Constants.MAX_DGS_LISTING_NAME_LENGTH
@@ -1209,7 +1209,7 @@ public abstract class TransactionType {
               || attachment.getTags().length() > Constants.MAX_DGS_LISTING_TAGS_LENGTH
               || attachment.getQuantity() < 0 || attachment.getQuantity() > Constants.MAX_DGS_LISTING_QUANTITY
               || attachment.getPriceNQT() <= 0 || attachment.getPriceNQT() > Constants.MAX_BALANCE_NQT) {
-            throw new NxtException.NotValidException("Invalid digital goods listing: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods listing: " + attachment.getJSONObject());
           }
         }
 
@@ -1228,12 +1228,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.DigitalGoodsDelisting parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.DigitalGoodsDelisting parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsDelisting(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DigitalGoodsDelisting parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.DigitalGoodsDelisting parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsDelisting(attachmentData);
         }
 
@@ -1244,14 +1244,14 @@ public abstract class TransactionType {
         }
 
         @Override
-        void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.DigitalGoodsDelisting attachment = (Attachment.DigitalGoodsDelisting) transaction.getAttachment();
           DigitalGoodsStore.Goods goods = DigitalGoodsStore.getGoods(attachment.getGoodsId());
           if (goods != null && transaction.getSenderId() != goods.getSellerId()) {
-            throw new NxtException.NotValidException("Invalid digital goods delisting - seller is different: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods delisting - seller is different: " + attachment.getJSONObject());
           }
           if (goods == null || goods.isDelisted()) {
-            throw new NxtException.NotCurrentlyValidException("Goods " + Convert.toUnsignedLong(attachment.getGoodsId()) +
+            throw new BurstException.NotCurrentlyValidException("Goods " + Convert.toUnsignedLong(attachment.getGoodsId()) +
                                                               "not yet listed or already delisted");
           }
         }
@@ -1277,12 +1277,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.DigitalGoodsPriceChange parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.DigitalGoodsPriceChange parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsPriceChange(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DigitalGoodsPriceChange parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.DigitalGoodsPriceChange parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsPriceChange(attachmentData);
         }
 
@@ -1293,15 +1293,15 @@ public abstract class TransactionType {
         }
 
         @Override
-        void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.DigitalGoodsPriceChange attachment = (Attachment.DigitalGoodsPriceChange) transaction.getAttachment();
           DigitalGoodsStore.Goods goods = DigitalGoodsStore.getGoods(attachment.getGoodsId());
           if (attachment.getPriceNQT() <= 0 || attachment.getPriceNQT() > Constants.MAX_BALANCE_NQT
               || (goods != null && transaction.getSenderId() != goods.getSellerId())) {
-            throw new NxtException.NotValidException("Invalid digital goods price change: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods price change: " + attachment.getJSONObject());
           }
           if (goods == null || goods.isDelisted()) {
-            throw new NxtException.NotCurrentlyValidException("Goods " + Convert.toUnsignedLong(attachment.getGoodsId()) +
+            throw new BurstException.NotCurrentlyValidException("Goods " + Convert.toUnsignedLong(attachment.getGoodsId()) +
                                                               "not yet listed or already delisted");
           }
         }
@@ -1328,12 +1328,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.DigitalGoodsQuantityChange parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.DigitalGoodsQuantityChange parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsQuantityChange(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DigitalGoodsQuantityChange parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.DigitalGoodsQuantityChange parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsQuantityChange(attachmentData);
         }
 
@@ -1344,16 +1344,16 @@ public abstract class TransactionType {
         }
 
         @Override
-        void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.DigitalGoodsQuantityChange attachment = (Attachment.DigitalGoodsQuantityChange) transaction.getAttachment();
           DigitalGoodsStore.Goods goods = DigitalGoodsStore.getGoods(attachment.getGoodsId());
           if (attachment.getDeltaQuantity() < -Constants.MAX_DGS_LISTING_QUANTITY
               || attachment.getDeltaQuantity() > Constants.MAX_DGS_LISTING_QUANTITY
               || (goods != null && transaction.getSenderId() != goods.getSellerId())) {
-            throw new NxtException.NotValidException("Invalid digital goods quantity change: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods quantity change: " + attachment.getJSONObject());
           }
           if (goods == null || goods.isDelisted()) {
-            throw new NxtException.NotCurrentlyValidException("Goods " + Convert.toUnsignedLong(attachment.getGoodsId()) +
+            throw new BurstException.NotCurrentlyValidException("Goods " + Convert.toUnsignedLong(attachment.getGoodsId()) +
                                                               "not yet listed or already delisted");
           }
         }
@@ -1380,12 +1380,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.DigitalGoodsPurchase parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.DigitalGoodsPurchase parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsPurchase(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DigitalGoodsPurchase parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.DigitalGoodsPurchase parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsPurchase(attachmentData);
         }
 
@@ -1412,26 +1412,26 @@ public abstract class TransactionType {
         }
 
         @Override
-        void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.DigitalGoodsPurchase attachment = (Attachment.DigitalGoodsPurchase) transaction.getAttachment();
           DigitalGoodsStore.Goods goods = DigitalGoodsStore.getGoods(attachment.getGoodsId());
           if (attachment.getQuantity() <= 0 || attachment.getQuantity() > Constants.MAX_DGS_LISTING_QUANTITY
               || attachment.getPriceNQT() <= 0 || attachment.getPriceNQT() > Constants.MAX_BALANCE_NQT
               || (goods != null && goods.getSellerId() != transaction.getRecipientId())) {
-            throw new NxtException.NotValidException("Invalid digital goods purchase: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods purchase: " + attachment.getJSONObject());
           }
           if (transaction.getEncryptedMessage() != null && ! transaction.getEncryptedMessage().isText()) {
-            throw new NxtException.NotValidException("Only text encrypted messages allowed");
+            throw new BurstException.NotValidException("Only text encrypted messages allowed");
           }
           if (goods == null || goods.isDelisted()) {
-            throw new NxtException.NotCurrentlyValidException("Goods " + Convert.toUnsignedLong(attachment.getGoodsId()) +
+            throw new BurstException.NotCurrentlyValidException("Goods " + Convert.toUnsignedLong(attachment.getGoodsId()) +
                                                               "not yet listed or already delisted");
           }
           if (attachment.getQuantity() > goods.getQuantity() || attachment.getPriceNQT() != goods.getPriceNQT()) {
-            throw new NxtException.NotCurrentlyValidException("Goods price or quantity changed: " + attachment.getJSONObject());
+            throw new BurstException.NotCurrentlyValidException("Goods price or quantity changed: " + attachment.getJSONObject());
           }
           if (attachment.getDeliveryDeadlineTimestamp() <= Burst.getBlockchain().getLastBlock().getTimestamp()) {
-            throw new NxtException.NotCurrentlyValidException("Delivery deadline has already expired: " + attachment.getDeliveryDeadlineTimestamp());
+            throw new BurstException.NotCurrentlyValidException("Delivery deadline has already expired: " + attachment.getDeliveryDeadlineTimestamp());
           }
         }
 
@@ -1450,12 +1450,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.DigitalGoodsDelivery parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.DigitalGoodsDelivery parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsDelivery(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DigitalGoodsDelivery parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.DigitalGoodsDelivery parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsDelivery(attachmentData);
         }
 
@@ -1466,7 +1466,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.DigitalGoodsDelivery attachment = (Attachment.DigitalGoodsDelivery) transaction.getAttachment();
           DigitalGoodsStore.Purchase purchase = DigitalGoodsStore.getPendingPurchase(attachment.getPurchaseId());
           if (attachment.getGoods().getData().length > Constants.MAX_DGS_GOODS_LENGTH
@@ -1477,10 +1477,10 @@ public abstract class TransactionType {
                   (purchase.getBuyerId() != transaction.getRecipientId()
                    || transaction.getSenderId() != purchase.getSellerId()
                    || attachment.getDiscountNQT() > Convert.safeMultiply(purchase.getPriceNQT(), purchase.getQuantity())))) {
-            throw new NxtException.NotValidException("Invalid digital goods delivery: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods delivery: " + attachment.getJSONObject());
           }
           if (purchase == null || purchase.getEncryptedGoods() != null) {
-            throw new NxtException.NotCurrentlyValidException("Purchase does not exist yet, or already delivered: "
+            throw new BurstException.NotCurrentlyValidException("Purchase does not exist yet, or already delivered: "
                                                               + attachment.getJSONObject());
           }
         }
@@ -1506,12 +1506,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.DigitalGoodsFeedback parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.DigitalGoodsFeedback parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsFeedback(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DigitalGoodsFeedback parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.DigitalGoodsFeedback parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsFeedback(attachmentData);
         }
 
@@ -1522,25 +1522,25 @@ public abstract class TransactionType {
         }
 
         @Override
-        void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.DigitalGoodsFeedback attachment = (Attachment.DigitalGoodsFeedback) transaction.getAttachment();
           DigitalGoodsStore.Purchase purchase = DigitalGoodsStore.getPurchase(attachment.getPurchaseId());
           if (purchase != null &&
               (purchase.getSellerId() != transaction.getRecipientId()
                || transaction.getSenderId() != purchase.getBuyerId())) {
-            throw new NxtException.NotValidException("Invalid digital goods feedback: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods feedback: " + attachment.getJSONObject());
           }
           if (transaction.getEncryptedMessage() == null && transaction.getMessage() == null) {
-            throw new NxtException.NotValidException("Missing feedback message");
+            throw new BurstException.NotValidException("Missing feedback message");
           }
           if (transaction.getEncryptedMessage() != null && ! transaction.getEncryptedMessage().isText()) {
-            throw new NxtException.NotValidException("Only text encrypted messages allowed");
+            throw new BurstException.NotValidException("Only text encrypted messages allowed");
           }
           if (transaction.getMessage() != null && ! transaction.getMessage().isText()) {
-            throw new NxtException.NotValidException("Only text public messages allowed");
+            throw new BurstException.NotValidException("Only text public messages allowed");
           }
           if (purchase == null || purchase.getEncryptedGoods() == null) {
-            throw new NxtException.NotCurrentlyValidException("Purchase does not exist yet or not yet delivered");
+            throw new BurstException.NotCurrentlyValidException("Purchase does not exist yet or not yet delivered");
           }
         }
 
@@ -1565,12 +1565,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.DigitalGoodsRefund parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.DigitalGoodsRefund parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsRefund(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DigitalGoodsRefund parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.DigitalGoodsRefund parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.DigitalGoodsRefund(attachmentData);
         }
 
@@ -1598,20 +1598,20 @@ public abstract class TransactionType {
         }
 
         @Override
-        void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) transaction.getAttachment();
           DigitalGoodsStore.Purchase purchase = DigitalGoodsStore.getPurchase(attachment.getPurchaseId());
           if (attachment.getRefundNQT() < 0 || attachment.getRefundNQT() > Constants.MAX_BALANCE_NQT
               || (purchase != null &&
                   (purchase.getBuyerId() != transaction.getRecipientId()
                    || transaction.getSenderId() != purchase.getSellerId()))) {
-            throw new NxtException.NotValidException("Invalid digital goods refund: " + attachment.getJSONObject());
+            throw new BurstException.NotValidException("Invalid digital goods refund: " + attachment.getJSONObject());
           }
           if (transaction.getEncryptedMessage() != null && ! transaction.getEncryptedMessage().isText()) {
-            throw new NxtException.NotValidException("Only text encrypted messages allowed");
+            throw new BurstException.NotValidException("Only text encrypted messages allowed");
           }
           if (purchase == null || purchase.getEncryptedGoods() == null || purchase.getRefundNQT() != 0) {
-            throw new NxtException.NotCurrentlyValidException("Purchase does not exist or is not delivered or is already refunded");
+            throw new BurstException.NotCurrentlyValidException("Purchase does not exist or is not delivered or is already refunded");
           }
         }
 
@@ -1657,12 +1657,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.AccountControlEffectiveBalanceLeasing parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.AccountControlEffectiveBalanceLeasing parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.AccountControlEffectiveBalanceLeasing(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.AccountControlEffectiveBalanceLeasing parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.AccountControlEffectiveBalanceLeasing parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.AccountControlEffectiveBalanceLeasing(attachmentData);
         }
 
@@ -1674,18 +1674,18 @@ public abstract class TransactionType {
         }
 
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.AccountControlEffectiveBalanceLeasing attachment = (Attachment.AccountControlEffectiveBalanceLeasing)transaction.getAttachment();
           Account recipientAccount = Account.getAccount(transaction.getRecipientId());
           if (transaction.getSenderId() == transaction.getRecipientId()
               || transaction.getAmountNQT() != 0
               || attachment.getPeriod() < 1440) {
-            throw new NxtException.NotValidException("Invalid effective balance leasing: "
+            throw new BurstException.NotValidException("Invalid effective balance leasing: "
                                                      + transaction.getJSONObject() + " transaction " + transaction.getStringId());
           }
           if (recipientAccount == null
               || (recipientAccount.getPublicKey() == null && ! transaction.getStringId().equals("5081403377391821646"))) {
-            throw new NxtException.NotCurrentlyValidException("Invalid effective balance leasing: "
+            throw new BurstException.NotCurrentlyValidException("Invalid effective balance leasing: "
                                                               + " recipient account " + transaction.getRecipientId() + " not found or no public key published");
           }
         }
@@ -1724,12 +1724,12 @@ public abstract class TransactionType {
         }
     		
         @Override
-        public Attachment.BurstMiningRewardRecipientAssignment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.BurstMiningRewardRecipientAssignment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.BurstMiningRewardRecipientAssignment(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.BurstMiningRewardRecipientAssignment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.BurstMiningRewardRecipientAssignment parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.BurstMiningRewardRecipientAssignment(attachmentData);
         }
     		
@@ -1747,27 +1747,27 @@ public abstract class TransactionType {
         }
     		
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           long height = Burst.getBlockchain().getLastBlock().getHeight() + 1;
           Account sender = Account.getAccount(transaction.getSenderId());
 
           if(sender == null) {
-            throw new NxtException.NotCurrentlyValidException("Sender not yet known ?!");
+            throw new BurstException.NotCurrentlyValidException("Sender not yet known ?!");
           }
 
           Account.RewardRecipientAssignment rewardAssignment = sender.getRewardRecipientAssignment();
           if(rewardAssignment != null && rewardAssignment.getFromHeight() >= height) {
-            throw new NxtException.NotCurrentlyValidException("Cannot reassign reward recipient before previous goes into effect: " + transaction.getJSONObject());
+            throw new BurstException.NotCurrentlyValidException("Cannot reassign reward recipient before previous goes into effect: " + transaction.getJSONObject());
           }
           Account recip = Account.getAccount(transaction.getRecipientId());
           if(recip == null || recip.getPublicKey() == null) {
-            throw new NxtException.NotValidException("Reward recipient must have public key saved in blockchain: " + transaction.getJSONObject());
+            throw new BurstException.NotValidException("Reward recipient must have public key saved in blockchain: " + transaction.getJSONObject());
           }
           if(transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_NXT) {
-            throw new NxtException.NotValidException("Reward recipient assisnment transaction must have 0 send amount and 1 fee: " + transaction.getJSONObject());
+            throw new BurstException.NotValidException("Reward recipient assisnment transaction must have 0 send amount and 1 fee: " + transaction.getJSONObject());
           }
           if(height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
-            throw new NxtException.NotCurrentlyValidException("Reward recipient assignment not allowed before block " + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK);
+            throw new BurstException.NotCurrentlyValidException("Reward recipient assignment not allowed before block " + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK);
           }
         }
     		
@@ -1795,12 +1795,12 @@ public abstract class TransactionType {
         }
 			
         @Override
-        public Attachment.AdvancedPaymentEscrowCreation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.AdvancedPaymentEscrowCreation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.AdvancedPaymentEscrowCreation(buffer, transactionVersion);
         }
 			
         @Override
-        Attachment.AdvancedPaymentEscrowCreation parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.AdvancedPaymentEscrowCreation parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.AdvancedPaymentEscrowCreation(attachmentData);
         }
 			
@@ -1847,45 +1847,45 @@ public abstract class TransactionType {
         }
 			
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
           Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), transaction.getFeeNQT());
           if(transaction.getSenderId() == transaction.getRecipientId()) {
-            throw new NxtException.NotValidException("Escrow must have different sender and recipient");
+            throw new BurstException.NotValidException("Escrow must have different sender and recipient");
           }
           totalAmountNQT = Convert.safeAdd(totalAmountNQT, attachment.getTotalSigners() * Constants.ONE_NXT);
           if(transaction.getAmountNQT() != 0) {
-            throw new NxtException.NotValidException("Transaction sent amount must be 0 for escrow");
+            throw new BurstException.NotValidException("Transaction sent amount must be 0 for escrow");
           }
           if(totalAmountNQT.compareTo(0L) < 0 ||
              totalAmountNQT.compareTo(Constants.MAX_BALANCE_NQT) > 0)
             {
-              throw new NxtException.NotValidException("Invalid escrow creation amount");
+              throw new BurstException.NotValidException("Invalid escrow creation amount");
             }
           if(transaction.getFeeNQT() < Constants.ONE_NXT) {
-            throw new NxtException.NotValidException("Escrow transaction must have a fee at least 1 burst");
+            throw new BurstException.NotValidException("Escrow transaction must have a fee at least 1 burst");
           }
           if(attachment.getRequiredSigners() < 1 || attachment.getRequiredSigners() > 10) {
-            throw new NxtException.NotValidException("Escrow required signers much be 1 - 10");
+            throw new BurstException.NotValidException("Escrow required signers much be 1 - 10");
           }
           if(attachment.getRequiredSigners() > attachment.getTotalSigners()) {
-            throw new NxtException.NotValidException("Cannot have more required than signers on escrow");
+            throw new BurstException.NotValidException("Cannot have more required than signers on escrow");
           }
           if(attachment.getTotalSigners() < 1 || attachment.getTotalSigners() > 10) {
-            throw new NxtException.NotValidException("Escrow transaction requires 1 - 10 signers");
+            throw new BurstException.NotValidException("Escrow transaction requires 1 - 10 signers");
           }
           if(attachment.getDeadline() < 1 || attachment.getDeadline() > 7776000) { // max deadline 3 months
-            throw new NxtException.NotValidException("Escrow deadline must be 1 - 7776000 seconds");
+            throw new BurstException.NotValidException("Escrow deadline must be 1 - 7776000 seconds");
           }
           if(attachment.getDeadlineAction() == null || attachment.getDeadlineAction() == Escrow.DecisionType.UNDECIDED) {
-            throw new NxtException.NotValidException("Invalid deadline action for escrow");
+            throw new BurstException.NotValidException("Invalid deadline action for escrow");
           }
           if(attachment.getSigners().contains(transaction.getSenderId()) ||
              attachment.getSigners().contains(transaction.getRecipientId())) {
-            throw new NxtException.NotValidException("Escrow sender and recipient cannot be signers");
+            throw new BurstException.NotValidException("Escrow sender and recipient cannot be signers");
           }
           if(!Escrow.isEnabled()) {
-            throw new NxtException.NotYetEnabledException("Escrow not yet enabled");
+            throw new BurstException.NotYetEnabledException("Escrow not yet enabled");
           }
         }
 			
@@ -1903,12 +1903,12 @@ public abstract class TransactionType {
         }
 			
         @Override
-        public Attachment.AdvancedPaymentEscrowSign parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.AdvancedPaymentEscrowSign parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.AdvancedPaymentEscrowSign(buffer, transactionVersion);
         }
 			
         @Override
-        Attachment.AdvancedPaymentEscrowSign parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.AdvancedPaymentEscrowSign parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.AdvancedPaymentEscrowSign(attachmentData);
         }
 			
@@ -1937,31 +1937,31 @@ public abstract class TransactionType {
         }
 			
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.AdvancedPaymentEscrowSign attachment = (Attachment.AdvancedPaymentEscrowSign) transaction.getAttachment();
           if(transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_NXT) {
-            throw new NxtException.NotValidException("Escrow signing must have amount 0 and fee of 1");
+            throw new BurstException.NotValidException("Escrow signing must have amount 0 and fee of 1");
           }
           if(attachment.getEscrowId() == null || attachment.getDecision() == null) {
-            throw new NxtException.NotValidException("Escrow signing requires escrow id and decision set");
+            throw new BurstException.NotValidException("Escrow signing requires escrow id and decision set");
           }
           Escrow escrow = Escrow.getEscrowTransaction(attachment.getEscrowId());
           if(escrow == null) {
-            throw new NxtException.NotValidException("Escrow transaction not found");
+            throw new BurstException.NotValidException("Escrow transaction not found");
           }
           if(!escrow.isIdSigner(transaction.getSenderId()) &&
              !escrow.getSenderId().equals(transaction.getSenderId()) &&
              !escrow.getRecipientId().equals(transaction.getSenderId())) {
-            throw new NxtException.NotValidException("Sender is not a participant in specified escrow");
+            throw new BurstException.NotValidException("Sender is not a participant in specified escrow");
           }
           if(escrow.getSenderId().equals(transaction.getSenderId()) && attachment.getDecision() != Escrow.DecisionType.RELEASE) {
-            throw new NxtException.NotValidException("Escrow sender can only release");
+            throw new BurstException.NotValidException("Escrow sender can only release");
           }
           if(escrow.getRecipientId().equals(transaction.getSenderId()) && attachment.getDecision() != Escrow.DecisionType.REFUND) {
-            throw new NxtException.NotValidException("Escrow recipient can only refund");
+            throw new BurstException.NotValidException("Escrow recipient can only refund");
           }
           if(!Escrow.isEnabled()) {
-            throw new NxtException.NotYetEnabledException("Escrow not yet enabled");
+            throw new BurstException.NotYetEnabledException("Escrow not yet enabled");
           }
         }
 			
@@ -1979,12 +1979,12 @@ public abstract class TransactionType {
         }
 			
         @Override
-        public Attachment.AdvancedPaymentEscrowResult parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.AdvancedPaymentEscrowResult parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.AdvancedPaymentEscrowResult(buffer, transactionVersion);
         }
 			
         @Override
-        Attachment.AdvancedPaymentEscrowResult parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.AdvancedPaymentEscrowResult parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.AdvancedPaymentEscrowResult(attachmentData);
         }
 			
@@ -2007,8 +2007,8 @@ public abstract class TransactionType {
         }
 			
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-          throw new NxtException.NotValidException("Escrow result never validates");
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
+          throw new BurstException.NotValidException("Escrow result never validates");
         }
 			
         @Override
@@ -2030,12 +2030,12 @@ public abstract class TransactionType {
         }
 			
         @Override
-        public Attachment.AdvancedPaymentSubscriptionSubscribe parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.AdvancedPaymentSubscriptionSubscribe parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.AdvancedPaymentSubscriptionSubscribe(buffer, transactionVersion);
         }
 			
         @Override
-        Attachment.AdvancedPaymentSubscriptionSubscribe parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.AdvancedPaymentSubscriptionSubscribe parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.AdvancedPaymentSubscriptionSubscribe(attachmentData);
         }
 			
@@ -2060,21 +2060,21 @@ public abstract class TransactionType {
         }
 			
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.AdvancedPaymentSubscriptionSubscribe attachment = (Attachment.AdvancedPaymentSubscriptionSubscribe) transaction.getAttachment();
           if(attachment.getFrequency() == null ||
              attachment.getFrequency().intValue() < Constants.BURST_SUBSCRIPTION_MIN_FREQ ||
              attachment.getFrequency().intValue() > Constants.BURST_SUBSCRIPTION_MAX_FREQ) {
-            throw new NxtException.NotValidException("Invalid subscription frequency");
+            throw new BurstException.NotValidException("Invalid subscription frequency");
           }
           if(transaction.getAmountNQT() < Constants.ONE_NXT || transaction.getAmountNQT() > Constants.MAX_BALANCE_NQT) {
-            throw new NxtException.NotValidException("Subscriptions must be at least one burst");
+            throw new BurstException.NotValidException("Subscriptions must be at least one burst");
           }
           if(transaction.getSenderId() == transaction.getRecipientId()) {
-            throw new NxtException.NotValidException("Cannot create subscription to same address");
+            throw new BurstException.NotValidException("Cannot create subscription to same address");
           }
           if(!Subscription.isEnabled()) {
-            throw new NxtException.NotYetEnabledException("Subscriptions not yet enabled");
+            throw new BurstException.NotYetEnabledException("Subscriptions not yet enabled");
           }
         }
 			
@@ -2092,12 +2092,12 @@ public abstract class TransactionType {
         }
 			
         @Override
-        public Attachment.AdvancedPaymentSubscriptionCancel parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.AdvancedPaymentSubscriptionCancel parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.AdvancedPaymentSubscriptionCancel(buffer, transactionVersion);
         }
 			
         @Override
-        Attachment.AdvancedPaymentSubscriptionCancel parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.AdvancedPaymentSubscriptionCancel parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.AdvancedPaymentSubscriptionCancel(attachmentData);
         }
 			
@@ -2125,24 +2125,24 @@ public abstract class TransactionType {
         }
 			
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
           if(attachment.getSubscriptionId() == null) {
-            throw new NxtException.NotValidException("Subscription cancel must include subscription id");
+            throw new BurstException.NotValidException("Subscription cancel must include subscription id");
           }
 				
           Subscription subscription = Subscription.getSubscription(attachment.getSubscriptionId());
           if(subscription == null) {
-            throw new NxtException.NotValidException("Subscription cancel must contain current subscription id");
+            throw new BurstException.NotValidException("Subscription cancel must contain current subscription id");
           }
 				
           if(!subscription.getSenderId().equals(transaction.getSenderId()) &&
              !subscription.getRecipientId().equals(transaction.getSenderId())) {
-            throw new NxtException.NotValidException("Subscription cancel can only be done by participants");
+            throw new BurstException.NotValidException("Subscription cancel can only be done by participants");
           }
 				
           if(!Subscription.isEnabled()) {
-            throw new NxtException.NotYetEnabledException("Subscription cancel not yet enabled");
+            throw new BurstException.NotYetEnabledException("Subscription cancel not yet enabled");
           }
         }
 			
@@ -2160,12 +2160,12 @@ public abstract class TransactionType {
         }
 			
         @Override
-        public Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.AdvancedPaymentSubscriptionPayment(buffer, transactionVersion);
         }
 			
         @Override
-        Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return new Attachment.AdvancedPaymentSubscriptionPayment(attachmentData);
         }
 			
@@ -2188,8 +2188,8 @@ public abstract class TransactionType {
         }
 			
         @Override
-        void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
-          throw new NxtException.NotValidException("Subscription payment never validates");
+        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
+          throw new BurstException.NotValidException("Subscription payment never validates");
         }
 			
         @Override
@@ -2225,14 +2225,14 @@ public abstract class TransactionType {
     }
 	    	
     @Override
-    final void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
+    final void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
       if (transaction.getAmountNQT() != 0) {
-        throw new NxtException.NotValidException("Invalid automated transaction transaction");
+        throw new BurstException.NotValidException("Invalid automated transaction transaction");
       }
       doValidateAttachment(transaction);
     }
 
-    abstract void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException;
+    abstract void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException;
 
 	    	
     public static final TransactionType AUTOMATED_TRANSACTION_CREATION = new AutomatedTransactions(){
@@ -2267,12 +2267,12 @@ public abstract class TransactionType {
           throws ValidationException {
           //System.out.println("validating attachment");
           if (Burst.getBlockchain().getLastBlock().getHeight()< Constants.AUTOMATED_TRANSACTION_BLOCK){
-            throw new NxtException.NotYetEnabledException("Automated Transactions not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
+            throw new BurstException.NotYetEnabledException("Automated Transactions not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
           }
           if (transaction.getSignature() != null && Account.getAccount(transaction.getId()) != null) {
             Account existingAccount = Account.getAccount(transaction.getId());
             if(existingAccount.getPublicKey() != null && !Arrays.equals(existingAccount.getPublicKey(), new byte[32]))
-              throw new NxtException.NotValidException("Account with id already exists");
+              throw new BurstException.NotValidException("Account with id already exists");
           }
           Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
           long totalPages = 0;
@@ -2280,18 +2280,18 @@ public abstract class TransactionType {
             totalPages = AT_Controller.checkCreationBytes(attachment.getCreationBytes(), Burst.getBlockchain().getHeight());
           }
           catch(AT_Exception e) {
-            throw new NxtException.NotCurrentlyValidException("Invalid AT creation bytes", e);
+            throw new BurstException.NotCurrentlyValidException("Invalid AT creation bytes", e);
           }
           long requiredFee = totalPages * AT_Constants.getInstance().COST_PER_PAGE( transaction.getHeight() );
           if (transaction.getFeeNQT() <  requiredFee){
-            throw new NxtException.NotValidException("Insufficient fee for AT creation. Minimum: " + Convert.toUnsignedLong(requiredFee / Constants.ONE_NXT));
+            throw new BurstException.NotValidException("Insufficient fee for AT creation. Minimum: " + Convert.toUnsignedLong(requiredFee / Constants.ONE_NXT));
           }
           if(Burst.getBlockchain().getHeight() >= Constants.AT_FIX_BLOCK_3) {
             if(attachment.getName().length() > Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH) {
-              throw new NxtException.NotValidException("Name of automated transaction over size limit");
+              throw new BurstException.NotValidException("Name of automated transaction over size limit");
             }
             if(attachment.getDescription().length() > Constants.MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH) {
-              throw new NxtException.NotValidException("Description of automated transaction over size limit");
+              throw new BurstException.NotValidException("Description of automated transaction over size limit");
             }
           }
           //System.out.println("validating success");
@@ -2323,21 +2323,21 @@ public abstract class TransactionType {
         }
 
         @Override
-        public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws NxtException.NotValidException {
+        public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return Attachment.AT_PAYMENT;
         }
 
         @Override
-        AbstractAttachment parseAttachment(JSONObject attachmentData) throws NxtException.NotValidException {
+        AbstractAttachment parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
           return Attachment.AT_PAYMENT;
         }
 
         @Override
-        void doValidateAttachment(Transaction transaction) throws NxtException.ValidationException {
+        void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException {
           /*if (transaction.getAmountNQT() <= 0 || transaction.getAmountNQT() >= Constants.MAX_BALANCE_NQT) {
-            throw new NxtException.NotValidException("Invalid ordinary payment");
+            throw new BurstException.NotValidException("Invalid ordinary payment");
             }*/
-          throw new NxtException.NotValidException("AT payment never validates");
+          throw new BurstException.NotValidException("AT payment never validates");
         }
 
         @Override
