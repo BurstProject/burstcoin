@@ -1,6 +1,6 @@
 package brs;
 
-import fr.cryptohash.Shabal256;
+import brs.crypto.hash.Shabal256;
 import brs.crypto.Crypto;
 import brs.util.*;
 import org.slf4j.Logger;

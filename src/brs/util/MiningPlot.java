@@ -1,6 +1,6 @@
 package brs.util;
 
-import fr.cryptohash.Shabal256;
+import brs.crypto.hash.Shabal256;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;

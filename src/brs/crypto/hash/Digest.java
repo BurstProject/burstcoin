@@ -1,6 +1,4 @@
-// $Id: Digest.java 232 2010-06-17 14:19:24Z tp $
-
-package fr.cryptohash;
+package brs.crypto.hash;
 
 /**
  * <p>This interface documents the API for a hash function. This

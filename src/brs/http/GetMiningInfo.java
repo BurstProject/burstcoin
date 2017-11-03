@@ -1,6 +1,6 @@
 package brs.http;
 
-import fr.cryptohash.Shabal256;
+import brs.crypto.hash.Shabal256;
 import brs.Block;
 import brs.Burst;
 import brs.util.Convert;

@@ -1,10 +1,8 @@
-// $Id: Shabal256.java 213 2010-06-03 02:48:09Z tp $
-
-package fr.cryptohash;
+package brs.crypto.hash;
 
 /**
- * <p>This class implements the Shabal-256 digest algorithm under the
- * {@link Digest} API.</p>
+ * <p>This class implements the SHA-256 digest algorithm under the
+ * {@link Digest} API. SHA-256 is specified by FIPS 180-2.</p>
  *
  * <pre>
  * ==========================(LICENSE BEGIN)============================
@@ -33,23 +31,41 @@ package fr.cryptohash;
  * ===========================(LICENSE END)=============================
  * </pre>
  *
- * @version   $Revision: 213 $
+ * @version   $Revision: 156 $
  * @author    Thomas Pornin &lt;thomas.pornin@cryptolog.com&gt;
  */
 
-public class Shabal256 extends ShabalGeneric {
+public class SHA256 extends SHA2Core {
 
 	/**
 	 * Create the engine.
 	 */
-	public Shabal256()
+	public SHA256()
 	{
-		super(256);
+		super();
 	}
 
-	/** @see ShabalGeneric */
-	ShabalGeneric dup()
+	/** The initial value for SHA-256. */
+	private static final int[] initVal = {
+		0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
+		0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19
+	};
+
+	/** @see SHA2Core */
+	int[] getInitVal()
 	{
-		return new Shabal256();
+		return initVal;
+	}
+
+	/** @see Digest */
+	public int getDigestLength()
+	{
+		return 32;
+	}
+
+	/** @see Digest */
+	public Digest copy()
+	{
+		return copyState(new SHA256());
 	}
 }

@@ -1,6 +1,4 @@
-// $Id: DigestEngine.java 229 2010-06-16 20:22:27Z tp $
-
-package fr.cryptohash;
+package brs.crypto.hash;
 
 /**
  * <p>This class is a template which can be used to implement hash

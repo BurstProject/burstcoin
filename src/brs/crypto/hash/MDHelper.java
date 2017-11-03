@@ -1,6 +1,4 @@
-// $Id: MDHelper.java 157 2010-04-26 19:03:44Z tp $
-
-package fr.cryptohash;
+package brs.crypto.hash;
 
 /**
  * <p>This class implements the padding common to MD4, MD5, the SHA family,
