@@ -4,7 +4,6 @@ import brs.Order;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
-import brs.db.sql.DbKey;
 
 public interface OrderStore {
     VersionedEntityTable<Order.Bid> getBidOrderTable();

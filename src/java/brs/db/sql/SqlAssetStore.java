@@ -1,9 +1,7 @@
 package brs.db.sql;
 
 import brs.Asset;
-import brs.Attachment;
 import brs.Burst;
-import brs.Transaction;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.store.AssetStore;

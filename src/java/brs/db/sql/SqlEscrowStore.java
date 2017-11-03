@@ -5,7 +5,6 @@ import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.EscrowStore;
-import brs.db.store.SubscriptionStore;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

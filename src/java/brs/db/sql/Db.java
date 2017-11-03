@@ -17,7 +17,6 @@ import org.firebirdsql.jdbc.FBConnection;
 import org.firebirdsql.management.FBManager;
 import org.firebirdsql.gds.TransactionParameterBuffer;
 import org.firebirdsql.gds.impl.GDSType;
-import org.firebirdsql.gds.impl.jni.EmbeddedGDSFactoryPlugin;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

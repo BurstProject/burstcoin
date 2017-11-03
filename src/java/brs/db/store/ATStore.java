@@ -4,7 +4,6 @@ import brs.AT;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 
-import java.sql.Connection;
 import java.util.Collection;
 import java.util.List;
 

@@ -1,6 +1,5 @@
 package brs.db.sql;
 
-import brs.Burst;
 import brs.Order;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;

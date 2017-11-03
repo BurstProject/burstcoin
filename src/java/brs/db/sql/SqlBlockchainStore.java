@@ -2,19 +2,14 @@ package brs.db.sql;
 
 import brs.*;
 import brs.db.BlockDb;
-import brs.db.DerivedTable;
 import brs.db.BurstIterator;
 import brs.db.store.BlockchainStore;
-import brs.util.Convert;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public abstract class SqlBlockchainStore implements BlockchainStore {
