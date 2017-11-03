@@ -26,8 +26,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
   private static final boolean enableTransactionRebroadcasting = Burst.getBooleanProperty("brs.enableTransactionRebroadcasting");
   private static final boolean testUnconfirmedTransactions = Burst.getBooleanProperty("brs.testUnconfirmedTransactions");
 
-  private static final int rebroadcastAfter = Burst.getIntProperty("burst.rebroadcastAfter") != 0 ? Burst.getIntProperty("burst.rebroadcastAfter") : 4;
-  private static final int rebroadcastEvery = Burst.getIntProperty("burst.rebroadcastEvery") != 0 ? Burst.getIntProperty("burst.rebroadcastEvery") : 2;
+  private static final int rebroadcastAfter = Burst.getIntProperty("brs.rebroadcastAfter") != 0 ? Burst.getIntProperty("brs.rebroadcastAfter") : 4;
+  private static final int rebroadcastEvery = Burst.getIntProperty("brs.rebroadcastEvery") != 0 ? Burst.getIntProperty("brs.rebroadcastEvery") : 2;
 
   private static final TransactionProcessorImpl instance = new TransactionProcessorImpl();
 
