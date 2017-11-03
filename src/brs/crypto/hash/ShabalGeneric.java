@@ -1,6 +1,4 @@
-// $Id: ShabalGeneric.java 231 2010-06-16 21:46:06Z tp $
-
-package fr.cryptohash;
+package brs.crypto.hash;
 
 /**
  * This class implements Shabal for all output sizes from 32 to 512 bits

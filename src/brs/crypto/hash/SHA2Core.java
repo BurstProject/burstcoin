@@ -1,6 +1,4 @@
-// $Id: SHA2Core.java 214 2010-06-03 17:25:08Z tp $
-
-package fr.cryptohash;
+package brs.crypto.hash;
 
 /**
  * This class implements SHA-224 and SHA-256, which differ only by the IV

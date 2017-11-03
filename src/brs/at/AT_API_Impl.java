@@ -8,7 +8,7 @@
 
 package brs.at;
 
-import fr.cryptohash.RIPEMD160;
+import brs.crypto.hash.RIPEMD160;
 import brs.Constants;
 
 import java.math.BigInteger;

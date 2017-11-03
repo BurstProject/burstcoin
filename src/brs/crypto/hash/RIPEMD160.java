@@ -1,6 +1,4 @@
-// $Id: RIPEMD160.java 214 2010-06-03 17:25:08Z tp $
-
-package fr.cryptohash;
+package brs.crypto.hash;
 
 /**
  * <p>This class implements the RIPEMD-160 digest algorithm under the
