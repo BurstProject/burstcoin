@@ -33,12 +33,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   private final BlockDb blockDb = Burst.getDbs().getBlockDb();
   private final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
 
-  public static final int BLOCKCACHEMB = Burst.getIntProperty("burst.blockCacheMB") == 0 ? 40 : Burst.getIntProperty("blockCacheMB");
+  public static final int BLOCKCACHEMB = Burst.getIntProperty("brs.blockCacheMB") == 0 ? 40 : Burst.getIntProperty("brs.blockCacheMB");
   public static final int MAX_TIMESTAMP_DIFFERENCE = 15;
-  public static boolean oclVerify = Burst.getBooleanProperty("burst.oclVerify");
-  public static final int oclThreshold = Burst.getIntProperty("burst.oclThreshold") == 0 ? 50 : Burst.getIntProperty("burst.oclThreshold");
-  public static final int oclWaitThreshold = Burst.getIntProperty("burst.oclWaitThreshold") == 0 ? 2000 : Burst.getIntProperty("burst.oclWaitThreshold");
-  private static final boolean useRiskyCatchupStrategy = Burst.getBooleanProperty("burst.riskyCatchup", false);
+  public static boolean oclVerify = Burst.getBooleanProperty("brs.oclVerify");
+  public static final int oclThreshold = Burst.getIntProperty("brs.oclThreshold") == 0 ? 50 : Burst.getIntProperty("brs.oclThreshold");
+  public static final int oclWaitThreshold = Burst.getIntProperty("brs.oclWaitThreshold") == 0 ? 2000 : Burst.getIntProperty("brs.oclWaitThreshold");
+  private static final boolean useRiskyCatchupStrategy = Burst.getBooleanProperty("brs.riskyCatchup", false);
   private static final Semaphore gpuUsage = new Semaphore(2);
   /** If we are more than this many blocks behind we can engage "catch-up"-mode if enabled */
   private static final long BLOCKCHAIN_CATCHUP_THRESHOLD = 2000;

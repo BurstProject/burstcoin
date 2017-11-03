@@ -295,7 +295,7 @@ public final class Burst {
         if (Constants.isTestnet) {
           logger.info("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
         }
-        if (Burst.getBooleanProperty("burst.mockMining")) {
+        if (Burst.getBooleanProperty("brs.mockMining")) {
           setGenerator(new GeneratorImpl.MockGeneratorImpl());
         }
         if (BlockchainProcessorImpl.oclVerify) {

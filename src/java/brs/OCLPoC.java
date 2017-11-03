@@ -20,8 +20,8 @@ final class OCLPoC {
 
   private static final int DEFAULT_MEM_PERCENT = 50;
 
-  private static final int hashesPerEnqueue = Burst.getIntProperty("burst.oclHashesPerEnqueue") == 0 ? 1000 : Burst.getIntProperty("burst.oclHashesPerEnqueue");
-  private static final int memPercent = Burst.getIntProperty("burst.oclMemPercent") == 0 ? DEFAULT_MEM_PERCENT : Burst.getIntProperty("burst.oclMemPercent");
+  private static final int hashesPerEnqueue = Burst.getIntProperty("brs.oclHashesPerEnqueue") == 0 ? 1000 : Burst.getIntProperty("brs.oclHashesPerEnqueue");
+  private static final int memPercent = Burst.getIntProperty("brs.oclMemPercent") == 0 ? DEFAULT_MEM_PERCENT : Burst.getIntProperty("brs.oclMemPercent");
 
   private static cl_context ctx;
   private static cl_command_queue queue;
@@ -46,7 +46,7 @@ final class OCLPoC {
 
   static {
     try {
-      boolean autoChoose = Burst.getBooleanProperty("burst.oclAuto", true);
+      boolean autoChoose = Burst.getBooleanProperty("brs.oclAuto", true);
       setExceptionsEnabled(true);
 
       int platformIndex;
@@ -60,8 +60,8 @@ final class OCLPoC {
         deviceIndex = ac.getDevice();
       }
       else {
-        platformIndex = Burst.getIntProperty("burst.oclPlatform");
-        deviceIndex = Burst.getIntProperty("burst.oclDevice");
+        platformIndex = Burst.getIntProperty("brs.oclPlatform");
+        deviceIndex = Burst.getIntProperty("brs.oclDevice");
       }
 
       int[] numPlatforms = new int[1];

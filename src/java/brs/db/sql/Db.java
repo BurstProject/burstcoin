@@ -40,7 +40,7 @@ public final class Db {
   private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionCaches = new ThreadLocal<>();
   private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionBatches = new ThreadLocal<>();
   private static final TYPE DATABASE_TYPE;
-  private static final boolean enableSqlMetrics = Burst.getBooleanProperty("burst.enableSqlMetrics", false);
+  private static final boolean enableSqlMetrics = Burst.getBooleanProperty("brs.enableSqlMetrics", false);
 
 
   static {
