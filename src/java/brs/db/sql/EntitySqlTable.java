@@ -12,7 +12,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.slf4j.LoggerFactory;
 
 public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T> {    
     protected final DbKey.Factory<T> dbKeyFactory;

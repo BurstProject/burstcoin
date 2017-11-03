@@ -1,7 +1,5 @@
 package brs.db.h2;
 
-import brs.BlockchainProcessor;
-import brs.Burst;
 import brs.db.sql.Db;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

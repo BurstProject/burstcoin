@@ -20,8 +20,12 @@ final class OCLPoC {
 
   private static final int DEFAULT_MEM_PERCENT = 50;
 
-  private static final int hashesPerEnqueue = Burst.getIntProperty("brs.oclHashesPerEnqueue") == 0 ? 1000 : Burst.getIntProperty("brs.oclHashesPerEnqueue");
-  private static final int memPercent = Burst.getIntProperty("brs.oclMemPercent") == 0 ? DEFAULT_MEM_PERCENT : Burst.getIntProperty("brs.oclMemPercent");
+  private static final int hashesPerEnqueue = Burst.getIntProperty("brs.oclHashesPerEnqueue") == 0
+                                            ? 1000
+                                            : Burst.getIntProperty("brs.oclHashesPerEnqueue");
+  private static final int memPercent = Burst.getIntProperty("brs.oclMemPercent") == 0
+                                      ? DEFAULT_MEM_PERCENT
+                                      : Burst.getIntProperty("brs.oclMemPercent");
 
   private static cl_context ctx;
   private static cl_command_queue queue;
@@ -34,13 +38,13 @@ final class OCLPoC {
 
   private static final Object oclLock = new Object();
 
-  private static final long memPerItem = 8 // id
-      + 8 // nonce
-      + MiningPlot.PLOT_SIZE + 16 // buffer
-      + 4 // scoop num
-      + MiningPlot.SCOOP_SIZE; // output scoop
-
   private static final long bufferPerItem = MiningPlot.PLOT_SIZE + 16;
+  private static final long memPerItem = 8 // id
+                                       + 8 // nonce
+                                       + bufferPerItem             // buffer
+                                       + 4                         // scoop num
+                                       + MiningPlot.SCOOP_SIZE;    // output scoop
+
 
   static void init() {}
 
@@ -51,9 +55,9 @@ final class OCLPoC {
 
       int platformIndex;
       int deviceIndex;
-      if(autoChoose) {
+      if (autoChoose) {
         AutoChooseResult ac = autoChooseDevice();
-        if(ac == null) {
+        if (ac == null) {
           throw new OCLCheckerException("Autochoose failed to select a GPU");
         }
         platformIndex = ac.getPlatform();
@@ -67,11 +71,11 @@ final class OCLPoC {
       int[] numPlatforms = new int[1];
       clGetPlatformIDs(0, null, numPlatforms);
 
-      if(numPlatforms[0] == 0) {
+      if (numPlatforms[0] == 0) {
         throw new OCLCheckerException("No OpenCL platforms found");
       }
 
-      if(numPlatforms[0] <= platformIndex) {
+      if (numPlatforms[0] <= platformIndex) {
         throw new OCLCheckerException("Invalid OpenCL platform index");
       }
 
@@ -83,11 +87,11 @@ final class OCLPoC {
       int[] numDevices = new int[1];
       clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, null, numDevices);
 
-      if(numDevices[0] == 0) {
+      if (numDevices[0] == 0) {
         throw new OCLCheckerException("No OpenCl Devices found");
       }
 
-      if(numDevices[0] <= deviceIndex) {
+      if (numDevices[0] <= deviceIndex) {
         throw new OCLCheckerException("Invalid OpenCL device index");
       }
 
@@ -96,11 +100,11 @@ final class OCLPoC {
 
       cl_device_id device = devices[deviceIndex];
 
-      if(!checkAvailable(device)) {
+      if (!checkAvailable(device)) {
         throw new OCLCheckerException("Chosen GPU must be available");
       }
 
-      if(!checkLittleEndian(device)) {
+      if (!checkLittleEndian(device)) {
         throw new OCLCheckerException("Chosen GPU must be little endian");
       }
 
@@ -130,7 +134,7 @@ final class OCLPoC {
 
       maxGroupItems = Math.min(genGroupSize[0], getGroupSize[0]);
 
-      if(maxGroupItems <= 0) {
+      if (maxGroupItems <= 0) {
         throw new OCLCheckerException("OpenCL init error. Invalid max group items: " + maxGroupItems);
       }
 
@@ -138,11 +142,11 @@ final class OCLPoC {
 
       maxItems = Math.min(calculateMaxItemsByMem(device), maxItemsByComputeUnits);
 
-      if(maxItems % maxGroupItems != 0) {
+      if (maxItems % maxGroupItems != 0) {
         maxItems -= (maxItems % maxGroupItems);
       }
 
-      if(maxItems <= 0) {
+      if (maxItems <= 0) {
         throw new OCLCheckerException("OpenCL init error. Invalid calculated max items: " + maxItems);
       }
       logger.info("OCL max items: " + maxItems);
@@ -194,7 +198,7 @@ final class OCLPoC {
       //System.out.println("finished preprocessing: " + blocks.size());
 
       synchronized (oclLock) {
-        if(ctx == null) {
+        if (ctx == null) {
           throw new OCLCheckerException("OCL context no longer exists");
         }
 
@@ -242,19 +246,19 @@ final class OCLPoC {
           clEnqueueReadBuffer(queue, scoopOutMem, true, 0, MiningPlot.SCOOP_SIZE * blocks.size(), Pointer.to(scoopsOut), 0, null, null);
         }
         finally {
-          if(idMem != null) {
+          if (idMem != null) {
             clReleaseMemObject(idMem);
           }
-          if(nonceMem != null) {
+          if (nonceMem != null) {
             clReleaseMemObject(nonceMem);
           }
-          if(bufferMem != null) {
+          if (bufferMem != null) {
             clReleaseMemObject(bufferMem);
           }
-          if(scoopNumMem != null) {
+          if (scoopNumMem != null) {
             clReleaseMemObject(scoopNumMem);
           }
-          if(scoopOutMem != null) {
+          if (scoopOutMem != null) {
             clReleaseMemObject(scoopOutMem);
           }
         }
@@ -277,7 +281,8 @@ final class OCLPoC {
       //System.out.println("finished rest: " + blocks.size());
     }
     catch(CLException e) {
-      throw new OCLCheckerException("OpenCL error", e); // intentionally leave out of unverified cache. It won't slow it that much on one failure and avoids infinite looping on repeat failed attempts.
+      // intentionally leave out of unverified cache. It won't slow it that much on one failure and avoids infinite looping on repeat failed attempts.
+      throw new OCLCheckerException("OpenCL error", e);
     }
   }
 
@@ -312,7 +317,8 @@ final class OCLPoC {
     return available[0] == 1;
   }
 
-  static private boolean checkLittleEndian(cl_device_id device) { // idk if the kernel works on big endian, but I'm guessing not and I don't have the hardware to find out
+  // idk if the kernel works on big endian, but I'm guessing not and I don't have the hardware to find out
+  static private boolean checkLittleEndian(cl_device_id device) {
     long[] endianLittle = new long[1];
     clGetDeviceInfo(device, CL_DEVICE_ENDIAN_LITTLE, Sizeof.cl_long, Pointer.to(endianLittle), null);
     return endianLittle[0] == 1;
@@ -338,11 +344,10 @@ final class OCLPoC {
   }
 
   static private AutoChooseResult autoChooseDevice() {
-
     int[] numPlatforms = new int[1];
     clGetPlatformIDs(0, null, numPlatforms);
 
-    if(numPlatforms[0] == 0) {
+    if (numPlatforms[0] == 0) {
       throw new OCLCheckerException("No OpenCL platforms found");
     }
 
@@ -364,23 +369,23 @@ final class OCLPoC {
       int[] numDevices = new int[1];
       clGetDeviceIDs(platforms[pfi], CL_DEVICE_TYPE_GPU, 0, null, numDevices);
 
-      if(numDevices[0] == 0) {
+      if (numDevices[0] == 0) {
         continue;
       }
 
       cl_device_id[] devices = new cl_device_id[numDevices[0]];
       clGetDeviceIDs(platforms[pfi], CL_DEVICE_TYPE_GPU, devices.length, devices, null);
 
-      for(int dvi = 0; dvi < devices.length; dvi++) {
-        if(!checkAvailable(devices[dvi])) {
+      for (int dvi = 0; dvi < devices.length; dvi++) {
+        if (!checkAvailable(devices[dvi])) {
           continue;
         }
 
-        if(!checkLittleEndian(devices[dvi])) {
+        if (!checkLittleEndian(devices[dvi])) {
           continue;
         }
 
-        if(bestResult != null && platformName.toLowerCase().contains("intel")) {
+        if (bestResult != null && platformName.toLowerCase().contains("intel")) {
           continue;
         }
 
@@ -391,10 +396,10 @@ final class OCLPoC {
 
         long score = maxItemsAtOnce * clock[0];
 
-        if(bestResult == null || score > bestScore || intel) {
+        if (bestResult == null || score > bestScore || intel) {
           bestResult = new AutoChooseResult(pfi, dvi);
           bestScore = score;
-          if(platformName.toLowerCase().contains("intel")) {
+          if (platformName.toLowerCase().contains("intel")) {
             intel = true;
           }
         }

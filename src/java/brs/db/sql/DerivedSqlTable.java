@@ -1,8 +1,6 @@
 package brs.db.sql;
 
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import brs.BlockchainImpl;
 import brs.Burst;
 import brs.db.DerivedTable;
 import org.slf4j.Logger;

@@ -1,6 +1,5 @@
 package brs.user;
 
-import brs.Burst;
 import brs.BurstException;
 import brs.util.Subnet;
 import org.json.simple.JSONObject;

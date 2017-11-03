@@ -47,7 +47,8 @@ public final class Burst {
     try (InputStream is = ClassLoader.getSystemResourceAsStream("brs-default.properties")) {
       if (is != null) {
         Burst.defaultProperties.load(is);
-      } else {
+      }
+      else {
         String configFile = System.getProperty("brs-default.properties");
         if (configFile != null) {
           try (InputStream fis = new FileInputStream(configFile)) {
@@ -66,10 +67,11 @@ public final class Burst {
 
   static {
     try (InputStream is = ClassLoader.getSystemResourceAsStream("brs.properties")) {
-      if (is != null) {
+      if (is != null) { // parse if brs.properties was loaded
         Burst.properties.load(is);
-      } // ignore if missing
-    } catch (IOException e) {
+      }
+    }
+    catch (IOException e) {
       throw new RuntimeException("Error loading brs.properties", e);
     }
   }
@@ -82,11 +84,13 @@ public final class Burst {
       int result = Integer.parseInt(properties.getProperty(name));
       logger.info(name + " = \"" + result + "\"");
       return result;
-    } catch (NumberFormatException e) {
+    }
+    catch (NumberFormatException e) {
       logger.info(name + " not defined, assuming 0");
       return 0;
     }
   }
+  
   public static int getIntProperty(String name, int defaultValue) {
     try {
       int result = Integer.parseInt(properties.getProperty(name));
@@ -98,7 +102,6 @@ public final class Burst {
     }
   }
 
-
   public static String getStringProperty(String name) {
     return getStringProperty(name, null);
   }
@@ -108,10 +111,10 @@ public final class Burst {
     if (value != null && !"".equals(value)) {
       logger.info(name + " = \"" + value + "\"");
       return value;
-    } else {
-      logger.info(name + " not defined");
-      return defaultValue;
     }
+
+    logger.info(name + " not defined");
+    return defaultValue;
   }
 
   public static List<String> getStringListProperty(String name) {
@@ -131,13 +134,17 @@ public final class Burst {
 
   public static Boolean getBooleanProperty(String name) {
     String value = properties.getProperty(name);
+
     if (Boolean.TRUE.toString().equals(value)) {
       logger.info(name + " = \"true\"");
       return true;
-    } else if (Boolean.FALSE.toString().equals(value)) {
+    }
+
+    if (Boolean.FALSE.toString().equals(value)) {
       logger.info(name + " = \"false\"");
       return false;
     }
+
     logger.info(name + " not defined, assuming false");
     return false;
   }
@@ -147,7 +154,8 @@ public final class Burst {
     if (Boolean.TRUE.toString().equals(value)) {
       logger.info(name + " = \"true\"");
       return true;
-    } else if (Boolean.FALSE.toString().equals(value)) {
+    }
+    if (Boolean.FALSE.toString().equals(value)) {
       logger.info(name + " = \"false\"");
       return false;
     }
@@ -238,7 +246,8 @@ public final class Burst {
         String dbUrl;
         if (Constants.isTestnet) {
           dbUrl = Burst.getStringProperty("brs.testDbUrl");
-        } else {
+        }
+        else {
           dbUrl = Burst.getStringProperty("brs.dbUrl");
         }
 
@@ -282,7 +291,9 @@ public final class Burst {
         API.init();
         Users.init();
         DebugTrace.init();
+
         int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(Burst.getIntProperty("brs.timeMultiplier"), 1) : 1;
+
         ThreadPool.start(timeMultiplier);
         if (timeMultiplier > 1) {
           setTime(new Time.FasterTime(Math.max(getEpochTime(), Burst.getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
@@ -290,32 +301,38 @@ public final class Burst {
         }
 
         long currentTime = System.currentTimeMillis();
-        logger.info("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
+        logger.info("Initialization took " + (currentTime - startTime) + " ms");
         logger.info("Burst server " + VERSION + " started successfully.");
+
         if (Constants.isTestnet) {
           logger.info("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
         }
         if (Burst.getBooleanProperty("brs.mockMining")) {
           setGenerator(new GeneratorImpl.MockGeneratorImpl());
         }
+
         if (BlockchainProcessorImpl.oclVerify) {
           try {
             OCLPoC.init();
-          } catch (OCLPoC.OCLCheckerException e) {
+          }
+          catch (OCLPoC.OCLCheckerException e) {
             logger.error("Error initializing OpenCL, disabling ocl verify: " + e.getMessage());
             BlockchainProcessorImpl.oclVerify = false;
           }
         }
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         logger.error(e.getMessage(), e);
         System.exit(1);
       }
     }
 
-    private Init() {
-    } // never
+    //    private Init() {
+    //  logger.info("private Init");
+    // } // never
 
     private static void init() {
+      logger.info("private static init");
     }
 
   }

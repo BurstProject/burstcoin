@@ -3,7 +3,6 @@ package brs.db.firebird;
 import brs.AssetTransfer;
 import brs.db.sql.EntitySqlTable;
 import brs.db.sql.SqlAssetTransferStore;
-import brs.db.store.AssetTransferStore;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

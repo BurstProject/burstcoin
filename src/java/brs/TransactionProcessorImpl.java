@@ -3,7 +3,6 @@ package brs;
 import brs.db.EntityTable;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
-import brs.db.sql.EntitySqlTable;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.util.JSON;
