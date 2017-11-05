@@ -7,15 +7,15 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetBalance extends APIServlet.APIRequestHandler {
 
-    static final GetBalance instance = new GetBalance();
+  static final GetBalance instance = new GetBalance();
 
-    private GetBalance() {
-        super(new APITag[] {APITag.ACCOUNTS}, "account");
-    }
+  private GetBalance() {
+    super(new APITag[] {APITag.ACCOUNTS}, "account");
+  }
 
-    @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
-        return JSONData.accountBalance(ParameterParser.getAccount(req));
-    }
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+    return JSONData.accountBalance(ParameterParser.getAccount(req));
+  }
 
 }

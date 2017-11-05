@@ -12,15 +12,14 @@ import java.util.logging.Logger;
  * Handle logging for the Burst node server
  */
 
-public final class LoggerConfigurator
-{
+public final class LoggerConfigurator {
   private static final Logger logger = Logger.getLogger(LoggerConfigurator.class.getSimpleName());
 
   /**
    * No constructor
    */
-  private LoggerConfigurator()
-  {
+  private LoggerConfigurator() {
+  
   }
 
   /**
@@ -32,69 +31,58 @@ public final class LoggerConfigurator
    * files will be used.  Entries in logging.properties will override entries in
    * logging-default.properties.
    */
-  static
-  {
+  static {
+  
     String oldManager = System.getProperty("java.util.logging.manager");
     System.setProperty("java.util.logging.manager", "brs.util.BurstLogManager");
-    if (!(LogManager.getLogManager() instanceof BurstLogManager))
-      {
-        System.setProperty("java.util.logging.manager",
-                           (oldManager != null ? oldManager : "java.util.logging.LogManager"));
-      }
-    if (!Boolean.getBoolean("brs.doNotConfigureLogging"))
-      {
-        try
-          {
-            boolean foundProperties = false;
-            Properties loggingProperties = new Properties();
-            try (InputStream is = ClassLoader.getSystemResourceAsStream("logging-default.properties"))
-              {
-                if (is != null)
-                  {
-                    loggingProperties.load(is);
-                    foundProperties = true;
-                  }
-              }
-            try (InputStream is = ClassLoader.getSystemResourceAsStream("logging.properties"))
-              {
-                if (is != null)
-                  {
-                    loggingProperties.load(is);
-                    foundProperties = true;
-                  }
-              }
-            if (foundProperties)
-              {
-                ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-                loggingProperties.store(outStream, "logging properties");
-                ByteArrayInputStream inStream = new ByteArrayInputStream(outStream.toByteArray());
-                java.util.logging.LogManager.getLogManager().readConfiguration(inStream);
-                inStream.close();
-                outStream.close();
-              }
-            BriefLogFormatter.init();
-          } catch (IOException e)
-          {
-            throw new RuntimeException("Error loading logging properties", e);
+    if (!(LogManager.getLogManager() instanceof BurstLogManager)) {
+      System.setProperty("java.util.logging.manager",
+                         (oldManager != null ? oldManager : "java.util.logging.LogManager"));
+    }
+    if (!Boolean.getBoolean("brs.doNotConfigureLogging")) {
+      try {
+        boolean foundProperties = false;
+        Properties loggingProperties = new Properties();
+        try (InputStream is = ClassLoader.getSystemResourceAsStream("logging-default.properties")) {
+          if (is != null) {
+            loggingProperties.load(is);
+            foundProperties = true;
           }
+        }
+        try (InputStream is = ClassLoader.getSystemResourceAsStream("logging.properties")) {
+          if (is != null) {
+            loggingProperties.load(is);
+            foundProperties = true;
+          }
+        }
+        if (foundProperties) {
+          ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+          loggingProperties.store(outStream, "logging properties");
+          ByteArrayInputStream inStream = new ByteArrayInputStream(outStream.toByteArray());
+          java.util.logging.LogManager.getLogManager().readConfiguration(inStream);
+          inStream.close();
+          outStream.close();
+        }
+        BriefLogFormatter.init();
       }
+      catch (IOException e) {
+        throw new RuntimeException("Error loading logging properties", e);
+      }
+    }
 
     logger.info("logging enabled");
   }
 
-  public static void init()
-  {
+  public static void init() {
   }
 
   /**
    * LoggerConfigurator shutdown
    */
-  public static void shutdown()
-  {
-    if (LogManager.getLogManager() instanceof BurstLogManager)
-      {
-        ((BurstLogManager) LogManager.getLogManager()).burstShutdown();
-      }
+  public static void shutdown() {
+    if (LogManager.getLogManager() instanceof BurstLogManager) {
+      ((BurstLogManager) LogManager.getLogManager()).burstShutdown();
+    }
   }
 
 

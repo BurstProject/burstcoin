@@ -12,28 +12,28 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetBidOrderIds extends APIServlet.APIRequestHandler {
 
-    static final GetBidOrderIds instance = new GetBidOrderIds();
+  static final GetBidOrderIds instance = new GetBidOrderIds();
 
-    private GetBidOrderIds() {
-        super(new APITag[] {APITag.AE}, "asset", "firstIndex", "lastIndex");
+  private GetBidOrderIds() {
+    super(new APITag[] {APITag.AE}, "asset", "firstIndex", "lastIndex");
+  }
+
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+
+    long assetId = ParameterParser.getAsset(req).getId();
+    int firstIndex = ParameterParser.getFirstIndex(req);
+    int lastIndex = ParameterParser.getLastIndex(req);
+
+    JSONArray orderIds = new JSONArray();
+    try (BurstIterator<Order.Bid> bidOrders = Order.Bid.getSortedOrders(assetId, firstIndex, lastIndex)) {
+      while (bidOrders.hasNext()) {
+        orderIds.add(Convert.toUnsignedLong(bidOrders.next().getId()));
+      }
     }
-
-    @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
-
-        long assetId = ParameterParser.getAsset(req).getId();
-        int firstIndex = ParameterParser.getFirstIndex(req);
-        int lastIndex = ParameterParser.getLastIndex(req);
-
-        JSONArray orderIds = new JSONArray();
-        try (BurstIterator<Order.Bid> bidOrders = Order.Bid.getSortedOrders(assetId, firstIndex, lastIndex)) {
-            while (bidOrders.hasNext()) {
-                orderIds.add(Convert.toUnsignedLong(bidOrders.next().getId()));
-            }
-        }
-        JSONObject response = new JSONObject();
-        response.put("bidOrderIds", orderIds);
-        return response;
-    }
+    JSONObject response = new JSONObject();
+    response.put("bidOrderIds", orderIds);
+    return response;
+  }
 
 }

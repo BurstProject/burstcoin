@@ -74,9 +74,8 @@ public final class ThreadPool {
     runAll(lastBeforeStartJobs);
     lastBeforeStartJobs = null;
 
-    int cores =Burst.getIntProperty("Burst.cpuCores", Runtime.getRuntime().availableProcessors());
-    if (cores <=0)
-      {
+    int cores = Burst.getIntProperty("Burst.cpuCores", Runtime.getRuntime().availableProcessors());
+    if (cores <= 0) {
         logger.warn("Cannot use 0 cores - defaulting to all available");
         cores = Runtime.getRuntime().availableProcessors();
       }
@@ -85,22 +84,21 @@ public final class ThreadPool {
     scheduledThreadPool = Executors.newScheduledThreadPool(totalThreads);
     for (Map.Entry<Runnable,Long> entry : backgroundJobs.entrySet()) {
       final Runnable inner = entry.getKey();
-      Runnable toRun = () ->
-          {
-            try{
-              inner.run();
-            } catch (Exception e)
-              {
-                logger.warn("Uncaught exception while running background thread "+inner.getClass().getSimpleName(), e);
-              }
-          };
+      Runnable toRun = () -> {
+        try {
+          inner.run();
+        }
+        catch (Exception e) {
+          logger.warn("Uncaught exception while running background thread "+inner.getClass().getSimpleName(), e);
+        }
+      };
       scheduledThreadPool.scheduleWithFixedDelay(toRun, 0, Math.max(entry.getValue() / timeMultiplier, 1), TimeUnit.MILLISECONDS);
     }
     backgroundJobs = null;
 	
     // Starting multicore-Threads:
     for (Map.Entry<Runnable,Long> entry : backgroundJobsCores.entrySet()) {
-      for(int i=0; i < cores; i++)
+      for (int i=0; i < cores; i++)
         scheduledThreadPool.scheduleWithFixedDelay(entry.getKey(), 0, Math.max(entry.getValue() / timeMultiplier, 1), TimeUnit.MILLISECONDS);
     }
     backgroundJobsCores = null;
@@ -133,7 +131,7 @@ public final class ThreadPool {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
-    if (! executor.isTerminated()) {
+    if (!executor.isTerminated()) {
       logger.info("some threads didn't terminate, forcing shutdown");
       executor.shutdownNow();
     }
@@ -171,5 +169,4 @@ public final class ThreadPool {
   }
 
   private ThreadPool() {} //never
-
 }

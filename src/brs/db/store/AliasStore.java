@@ -6,14 +6,14 @@ import brs.db.VersionedEntityTable;
 import brs.db.BurstKey;
 
 public interface AliasStore {
-    BurstKey.LongKeyFactory<Alias> getAliasDbKeyFactory();
-    BurstKey.LongKeyFactory<Alias.Offer> getOfferDbKeyFactory();
+  BurstKey.LongKeyFactory<Alias> getAliasDbKeyFactory();
+  BurstKey.LongKeyFactory<Alias.Offer> getOfferDbKeyFactory();
 
-    VersionedEntityTable<Alias> getAliasTable();
+  VersionedEntityTable<Alias> getAliasTable();
 
-    VersionedEntityTable<Alias.Offer> getOfferTable();
+  VersionedEntityTable<Alias.Offer> getOfferTable();
 
-    BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to);
+  BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to);
 
-    Alias getAlias(String aliasName);
+  Alias getAlias(String aliasName);
 }

@@ -11,18 +11,18 @@ import java.util.Map;
 import java.util.Set;
 
 public interface TransactionProcessorStore {
-    // WATCH: BUSINESS-LOGIC
-    void processLater(Collection<TransactionImpl> transactions);
+  // WATCH: BUSINESS-LOGIC
+  void processLater(Collection<TransactionImpl> transactions);
 
-    BurstKey.LongKeyFactory<TransactionImpl> getUnconfirmedTransactionDbKeyFactory();
+  BurstKey.LongKeyFactory<TransactionImpl> getUnconfirmedTransactionDbKeyFactory();
 
-    Set<TransactionImpl> getLostTransactions();
+  Set<TransactionImpl> getLostTransactions();
 
-    Map<Long, Integer> getLostTransactionHeights();
+  Map<Long, Integer> getLostTransactionHeights();
 
-    EntitySqlTable<TransactionImpl> getUnconfirmedTransactionTable();
+  EntitySqlTable<TransactionImpl> getUnconfirmedTransactionTable();
 
-    BurstIterator<TransactionImpl> getExpiredTransactions();
+  BurstIterator<TransactionImpl> getExpiredTransactions();
 
-    int deleteTransaction (Transaction transaction);
+  int deleteTransaction (Transaction transaction);
 }

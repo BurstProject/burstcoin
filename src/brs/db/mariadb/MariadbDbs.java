@@ -14,46 +14,46 @@ import java.sql.Statement;
  */
 public class MariadbDbs implements Dbs {
 
-    private final BlockDb blockDb;
-    private final TransactionDb transactionDb;
-    private final PeerDb peerDb;
+  private final BlockDb blockDb;
+  private final TransactionDb transactionDb;
+  private final PeerDb peerDb;
 
 
-    public MariadbDbs() {
-        MariadbDbVersion.init();
-        this.blockDb = new MariadbBlockDB();
-        this.transactionDb = new MariadbTransactionDb();
-        this.peerDb = new MariadbPeerDb();
-    }
+  public MariadbDbs() {
+    MariadbDbVersion.init();
+    this.blockDb = new MariadbBlockDB();
+    this.transactionDb = new MariadbTransactionDb();
+    this.peerDb = new MariadbPeerDb();
+  }
 
-    @Override
-    public BlockDb getBlockDb() {
-        return blockDb;
-    }
+  @Override
+  public BlockDb getBlockDb() {
+    return blockDb;
+  }
 
-    @Override
-    public TransactionDb getTransactionDb() {
-        return transactionDb;
-    }
+  @Override
+  public TransactionDb getTransactionDb() {
+    return transactionDb;
+  }
 
-    @Override
-    public PeerDb getPeerDb() {
-        return peerDb;
-    }
+  @Override
+  public PeerDb getPeerDb() {
+    return peerDb;
+  }
 
-    @Override
-    public void disableForeignKeyChecks(Connection con) throws SQLException {
-        Statement stmt = con.createStatement();
-        stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=0;");
-        stmt.executeUpdate("SET unique_checks=0;");
+  @Override
+  public void disableForeignKeyChecks(Connection con) throws SQLException {
+    Statement stmt = con.createStatement();
+    stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=0;");
+    stmt.executeUpdate("SET unique_checks=0;");
 
 
-    }
+  }
 
-    @Override
-    public void enableForeignKeyChecks(Connection con) throws SQLException {
-        Statement stmt = con.createStatement();
-        stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=1;");
-        stmt.executeUpdate("SET unique_checks=1;");
-    }
+  @Override
+  public void enableForeignKeyChecks(Connection con) throws SQLException {
+    Statement stmt = con.createStatement();
+    stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=1;");
+    stmt.executeUpdate("SET unique_checks=1;");
+  }
 }

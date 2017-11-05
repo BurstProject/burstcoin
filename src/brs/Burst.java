@@ -332,8 +332,6 @@ public final class Burst {
     // } // never
 
     private static void init() {
-      logger.info("private static init");
     }
-
   }
 }

@@ -10,29 +10,29 @@ import static brs.http.JSONResponses.MISSING_HALLMARK;
 
 public final class DecodeHallmark extends APIServlet.APIRequestHandler {
 
-    static final DecodeHallmark instance = new DecodeHallmark();
+  static final DecodeHallmark instance = new DecodeHallmark();
 
-    private DecodeHallmark() {
-        super(new APITag[] {APITag.TOKENS}, "hallmark");
+  private DecodeHallmark() {
+    super(new APITag[] {APITag.TOKENS}, "hallmark");
+  }
+
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req) {
+
+    String hallmarkValue = req.getParameter("hallmark");
+    if (hallmarkValue == null) {
+      return MISSING_HALLMARK;
     }
 
-    @Override
-    JSONStreamAware processRequest(HttpServletRequest req) {
+    try {
 
-        String hallmarkValue = req.getParameter("hallmark");
-        if (hallmarkValue == null) {
-            return MISSING_HALLMARK;
-        }
+      Hallmark hallmark = Hallmark.parseHallmark(hallmarkValue);
 
-        try {
+      return JSONData.hallmark(hallmark);
 
-            Hallmark hallmark = Hallmark.parseHallmark(hallmarkValue);
-
-            return JSONData.hallmark(hallmark);
-
-        } catch (RuntimeException e) {
-            return INCORRECT_HALLMARK;
-        }
+    } catch (RuntimeException e) {
+      return INCORRECT_HALLMARK;
     }
+  }
 
 }

@@ -10,27 +10,27 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetAllAssets extends APIServlet.APIRequestHandler {
 
-    static final GetAllAssets instance = new GetAllAssets();
+  static final GetAllAssets instance = new GetAllAssets();
 
-    private GetAllAssets() {
-        super(new APITag[] {APITag.AE}, "firstIndex", "lastIndex");
+  private GetAllAssets() {
+    super(new APITag[] {APITag.AE}, "firstIndex", "lastIndex");
+  }
+
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req) {
+
+    int firstIndex = ParameterParser.getFirstIndex(req);
+    int lastIndex = ParameterParser.getLastIndex(req);
+
+    JSONObject response = new JSONObject();
+    JSONArray assetsJSONArray = new JSONArray();
+    response.put("assets", assetsJSONArray);
+    try (BurstIterator<Asset> assets = Asset.getAllAssets(firstIndex, lastIndex)) {
+      while (assets.hasNext()) {
+        assetsJSONArray.add(JSONData.asset(assets.next()));
+      }
     }
-
-    @Override
-    JSONStreamAware processRequest(HttpServletRequest req) {
-
-        int firstIndex = ParameterParser.getFirstIndex(req);
-        int lastIndex = ParameterParser.getLastIndex(req);
-
-        JSONObject response = new JSONObject();
-        JSONArray assetsJSONArray = new JSONArray();
-        response.put("assets", assetsJSONArray);
-        try (BurstIterator<Asset> assets = Asset.getAllAssets(firstIndex, lastIndex)) {
-            while (assets.hasNext()) {
-                assetsJSONArray.add(JSONData.asset(assets.next()));
-            }
-        }
-        return response;
-    }
+    return response;
+  }
 
 }

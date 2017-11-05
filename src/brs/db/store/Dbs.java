@@ -8,12 +8,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 public interface Dbs {
-    BlockDb getBlockDb();
-    TransactionDb getTransactionDb();
+  BlockDb getBlockDb();
+  TransactionDb getTransactionDb();
 
-    PeerDb getPeerDb();
+  PeerDb getPeerDb();
 
-    void disableForeignKeyChecks(Connection con) throws SQLException;
+  void disableForeignKeyChecks(Connection con) throws SQLException;
 
-    void enableForeignKeyChecks(Connection con) throws SQLException;
+  void enableForeignKeyChecks(Connection con) throws SQLException;
 }

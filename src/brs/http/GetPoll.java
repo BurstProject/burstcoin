@@ -10,32 +10,32 @@ import static brs.http.JSONResponses.*;
 
 public final class GetPoll extends APIServlet.APIRequestHandler {
 
-    static final GetPoll instance = new GetPoll();
+  static final GetPoll instance = new GetPoll();
 
-    private GetPoll() {
-        super(new APITag[] {APITag.VS}, "poll");
+  private GetPoll() {
+    super(new APITag[] {APITag.VS}, "poll");
+  }
+
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req) {
+
+    String poll = req.getParameter("poll");
+    if (poll == null) {
+      return MISSING_POLL;
     }
 
-    @Override
-    JSONStreamAware processRequest(HttpServletRequest req) {
-
-        String poll = req.getParameter("poll");
-        if (poll == null) {
-            return MISSING_POLL;
-        }
-
-        Poll pollData;
-        try {
-            pollData = Poll.getPoll(Convert.parseUnsignedLong(poll));
-            if (pollData == null) {
-                return UNKNOWN_POLL;
-            }
-        } catch (RuntimeException e) {
-            return INCORRECT_POLL;
-        }
-
-        return JSONData.poll(pollData);
-
+    Poll pollData;
+    try {
+      pollData = Poll.getPoll(Convert.parseUnsignedLong(poll));
+      if (pollData == null) {
+        return UNKNOWN_POLL;
+      }
+    } catch (RuntimeException e) {
+      return INCORRECT_POLL;
     }
+
+    return JSONData.poll(pollData);
+
+  }
 
 }

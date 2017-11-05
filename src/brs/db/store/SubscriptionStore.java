@@ -7,15 +7,15 @@ import brs.db.VersionedEntityTable;
 
 public interface SubscriptionStore {
 
-    BurstKey.LongKeyFactory<Subscription> getSubscriptionDbKeyFactory();
+  BurstKey.LongKeyFactory<Subscription> getSubscriptionDbKeyFactory();
 
-    VersionedEntityTable<Subscription> getSubscriptionTable();
+  VersionedEntityTable<Subscription> getSubscriptionTable();
 
-    BurstIterator<Subscription> getSubscriptionsByParticipant(Long accountId);
+  BurstIterator<Subscription> getSubscriptionsByParticipant(Long accountId);
 
-    BurstIterator<Subscription> getIdSubscriptions(Long accountId);
+  BurstIterator<Subscription> getIdSubscriptions(Long accountId);
 
-    BurstIterator<Subscription> getSubscriptionsToId(Long accountId);
+  BurstIterator<Subscription> getSubscriptionsToId(Long accountId);
 
-    BurstIterator<Subscription> getUpdateSubscriptions(int timestamp);
+  BurstIterator<Subscription> getUpdateSubscriptions(int timestamp);
 }

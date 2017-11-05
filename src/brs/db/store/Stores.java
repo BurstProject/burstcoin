@@ -3,41 +3,41 @@ package brs.db.store;
 
 public interface Stores {
 
-    AccountStore getAccountStore();
+  AccountStore getAccountStore();
 
-    AliasStore getAliasStore();
+  AliasStore getAliasStore();
 
-    AssetStore getAssetStore();
+  AssetStore getAssetStore();
 
-    AssetTransferStore getAssetTransferStore();
+  AssetTransferStore getAssetTransferStore();
 
-    ATStore getAtStore();
+  ATStore getAtStore();
 
-    BlockchainStore getBlockchainStore();
+  BlockchainStore getBlockchainStore();
 
-    DigitalGoodsStoreStore getDigitalGoodsStoreStore();
+  DigitalGoodsStoreStore getDigitalGoodsStoreStore();
 
-    EscrowStore getEscrowStore();
+  EscrowStore getEscrowStore();
 
-    OrderStore getOrderStore();
+  OrderStore getOrderStore();
 
-    PollStore getPollStore();
+  PollStore getPollStore();
 
-    TradeStore getTradeStore();
+  TradeStore getTradeStore();
 
-    VoteStore getVoteStore();
+  VoteStore getVoteStore();
 
-    TransactionProcessorStore getTransactionProcessorStore();
+  TransactionProcessorStore getTransactionProcessorStore();
 
-    SubscriptionStore getSubscriptionStore();
+  SubscriptionStore getSubscriptionStore();
 
-    void beginTransaction();
+  void beginTransaction();
 
-    void commitTransaction();
+  void commitTransaction();
 
-    void rollbackTransaction();
+  void rollbackTransaction();
     
-    void endTransaction();
+  void endTransaction();
 
-    boolean isInTransaction();
+  boolean isInTransaction();
 }
