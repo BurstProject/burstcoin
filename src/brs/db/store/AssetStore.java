@@ -6,9 +6,9 @@ import brs.db.BurstKey;
 import brs.db.sql.EntitySqlTable;
 
 public interface AssetStore {
-    BurstKey.LongKeyFactory<Asset> getAssetDbKeyFactory();
+  BurstKey.LongKeyFactory<Asset> getAssetDbKeyFactory();
 
-    EntitySqlTable<Asset> getAssetTable();
+  EntitySqlTable<Asset> getAssetTable();
 
-    BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to);
+  BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to);
 }

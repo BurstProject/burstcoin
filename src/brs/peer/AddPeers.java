@@ -7,19 +7,19 @@ import org.json.simple.JSONStreamAware;
 
 final class AddPeers extends PeerServlet.PeerRequestHandler {
 
-    static final AddPeers instance = new AddPeers();
+  static final AddPeers instance = new AddPeers();
 
-    private AddPeers() {}
+  private AddPeers() {}
 
-    @Override
-    JSONStreamAware processRequest(JSONObject request, Peer peer) {
-        JSONArray peers = (JSONArray)request.get("peers");
-        if (peers != null && Peers.getMorePeers) {
-            for (Object announcedAddress : peers) {
-                Peers.addPeer((String) announcedAddress);
-            }
-        }
-        return JSON.emptyJSON;
+  @Override
+  JSONStreamAware processRequest(JSONObject request, Peer peer) {
+    JSONArray peers = (JSONArray)request.get("peers");
+    if (peers != null && Peers.getMorePeers) {
+      for (Object announcedAddress : peers) {
+        Peers.addPeer((String) announcedAddress);
+      }
     }
+    return JSON.emptyJSON;
+  }
 
 }

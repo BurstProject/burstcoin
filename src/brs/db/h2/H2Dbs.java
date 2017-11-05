@@ -14,42 +14,42 @@ import java.sql.Statement;
  */
 public class H2Dbs implements Dbs {
 
-    private final BlockDb blockDb;
-    private final TransactionDb transactionDb;
-    private final PeerDb peerDb;
+  private final BlockDb blockDb;
+  private final TransactionDb transactionDb;
+  private final PeerDb peerDb;
 
 
-    public H2Dbs() {
-        H2DbVersion.init();
-        this.blockDb = new H2BlockDB();
-        this.transactionDb = new H2TransactionDb();
-        this.peerDb = new H2PeerDb();
-    }
+  public H2Dbs() {
+    H2DbVersion.init();
+    this.blockDb = new H2BlockDB();
+    this.transactionDb = new H2TransactionDb();
+    this.peerDb = new H2PeerDb();
+  }
 
-    @Override
-    public BlockDb getBlockDb() {
-        return blockDb;
-    }
+  @Override
+  public BlockDb getBlockDb() {
+    return blockDb;
+  }
 
-    @Override
-    public TransactionDb getTransactionDb() {
-        return transactionDb;
-    }
+  @Override
+  public TransactionDb getTransactionDb() {
+    return transactionDb;
+  }
 
-    @Override
-    public PeerDb getPeerDb() {
-        return peerDb;
-    }
+  @Override
+  public PeerDb getPeerDb() {
+    return peerDb;
+  }
 
-    @Override
-    public void disableForeignKeyChecks(Connection con) throws SQLException {
-        Statement stmt = con.createStatement();
-        stmt.executeUpdate("SET REFERENTIAL_INTEGRITY FALSE");
-    }
+  @Override
+  public void disableForeignKeyChecks(Connection con) throws SQLException {
+    Statement stmt = con.createStatement();
+    stmt.executeUpdate("SET REFERENTIAL_INTEGRITY FALSE");
+  }
 
-    @Override
-    public void enableForeignKeyChecks(Connection con) throws SQLException {
-        Statement stmt = con.createStatement();
-        stmt.executeUpdate("SET REFERENTIAL_INTEGRITY TRUE");
-    }
+  @Override
+  public void enableForeignKeyChecks(Connection con) throws SQLException {
+    Statement stmt = con.createStatement();
+    stmt.executeUpdate("SET REFERENTIAL_INTEGRITY TRUE");
+  }
 }

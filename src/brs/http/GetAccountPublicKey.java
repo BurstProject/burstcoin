@@ -11,24 +11,24 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetAccountPublicKey extends APIServlet.APIRequestHandler {
 
-    static final GetAccountPublicKey instance = new GetAccountPublicKey();
+  static final GetAccountPublicKey instance = new GetAccountPublicKey();
 
-    private GetAccountPublicKey() {
-        super(new APITag[] {APITag.ACCOUNTS}, "account");
+  private GetAccountPublicKey() {
+    super(new APITag[] {APITag.ACCOUNTS}, "account");
+  }
+
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+
+    Account account = ParameterParser.getAccount(req);
+
+    if (account.getPublicKey() != null) {
+      JSONObject response = new JSONObject();
+      response.put("publicKey", Convert.toHexString(account.getPublicKey()));
+      return response;
+    } else {
+      return JSON.emptyJSON;
     }
-
-    @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
-
-        Account account = ParameterParser.getAccount(req);
-
-        if (account.getPublicKey() != null) {
-            JSONObject response = new JSONObject();
-            response.put("publicKey", Convert.toHexString(account.getPublicKey()));
-            return response;
-        } else {
-            return JSON.emptyJSON;
-        }
-    }
+  }
 
 }

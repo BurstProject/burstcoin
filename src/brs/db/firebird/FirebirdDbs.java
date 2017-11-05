@@ -20,94 +20,94 @@ import java.sql.ResultSet;
  */
 public class FirebirdDbs implements Dbs {
 
-    private final BlockDb blockDb;
-    private final TransactionDb transactionDb;
-    private final PeerDb peerDb;
+  private final BlockDb blockDb;
+  private final TransactionDb transactionDb;
+  private final PeerDb peerDb;
 
 
-    public FirebirdDbs() {
-        FirebirdDbVersion.init();
-        this.blockDb = new FirebirdBlockDB();
-        this.transactionDb = new FirebirdTransactionDb();
-        this.peerDb = new FirebirdPeerDb();
-    }
+  public FirebirdDbs() {
+    FirebirdDbVersion.init();
+    this.blockDb = new FirebirdBlockDB();
+    this.transactionDb = new FirebirdTransactionDb();
+    this.peerDb = new FirebirdPeerDb();
+  }
 
-    @Override
-    public BlockDb getBlockDb() {
-        return blockDb;
-    }
+  @Override
+  public BlockDb getBlockDb() {
+    return blockDb;
+  }
 
-    @Override
-    public TransactionDb getTransactionDb() {
-        return transactionDb;
-    }
+  @Override
+  public TransactionDb getTransactionDb() {
+    return transactionDb;
+  }
 
-    @Override
-    public PeerDb getPeerDb() {
-        return peerDb;
-    }
+  @Override
+  public PeerDb getPeerDb() {
+    return peerDb;
+  }
 
-    @Override
-    public void disableForeignKeyChecks(Connection con) throws SQLException {
-        // This is a very very ugly and dangerous operation
-        apply("ALTER TABLE transaction DROP CONSTRAINT constraint_ff;");
-        apply("ALTER TABLE block DROP CONSTRAINT constraint_3c5;");
-        apply("ALTER TABLE block DROP CONSTRAINT constraint_3c;");
+  @Override
+  public void disableForeignKeyChecks(Connection con) throws SQLException {
+    // This is a very very ugly and dangerous operation
+    apply("ALTER TABLE transaction DROP CONSTRAINT constraint_ff;");
+    apply("ALTER TABLE block DROP CONSTRAINT constraint_3c5;");
+    apply("ALTER TABLE block DROP CONSTRAINT constraint_3c;");
 
-    }
+  }
 
-    @Override
-    public void enableForeignKeyChecks(Connection con) throws SQLException {
-        apply("ALTER TABLE transaction ADD CONSTRAINT constraint_ff FOREIGN KEY(block_id) REFERENCES block(id) ON DELETE CASCADE;");
-        apply("ALTER TABLE block ADD CONSTRAINT constraint_3c5 FOREIGN KEY(next_block_id) REFERENCES block(id) ON DELETE SET NULL;");
-        apply("ALTER TABLE block ADD CONSTRAINT constraint_3c FOREIGN KEY(previous_block_id) REFERENCES block(id) ON DELETE CASCADE;");
+  @Override
+  public void enableForeignKeyChecks(Connection con) throws SQLException {
+    apply("ALTER TABLE transaction ADD CONSTRAINT constraint_ff FOREIGN KEY(block_id) REFERENCES block(id) ON DELETE CASCADE;");
+    apply("ALTER TABLE block ADD CONSTRAINT constraint_3c5 FOREIGN KEY(next_block_id) REFERENCES block(id) ON DELETE SET NULL;");
+    apply("ALTER TABLE block ADD CONSTRAINT constraint_3c FOREIGN KEY(previous_block_id) REFERENCES block(id) ON DELETE CASCADE;");
 
-        // convert array to list
-        List<String> lTables = Arrays.asList(
-            (
-                new String[] {
-                        "block", "transaction", "alias", "alias_offer", "asset", "trade", "ask_order",
-                        "bid_order", "goods", "purchase", "account", "account_asset", "purchase_feedback",
-                        "purchase_public_feedback", "unconfirmed_transaction", "asset_transfer",
-                        "reward_recip_assign", "escrow", "escrow_decision", "subscription", "\"AT\"", "at_state"
-                }
-            )
-        );
+    // convert array to list
+    List<String> lTables = Arrays.asList(
+                                         (
+                                          new String[] {
+                                            "block", "transaction", "alias", "alias_offer", "asset", "trade", "ask_order",
+                                            "bid_order", "goods", "purchase", "account", "account_asset", "purchase_feedback",
+                                            "purchase_public_feedback", "unconfirmed_transaction", "asset_transfer",
+                                            "reward_recip_assign", "escrow", "escrow_decision", "subscription", "\"AT\"", "at_state"
+                                          }
+                                          )
+                                         );
 
-        for (String table : lTables) {
-            Long maxValue = (long) 0;
-            try ( Statement stmt = con.createStatement() ) {
-                try ( ResultSet rs = stmt.executeQuery("SELECT MAX(db_id) FROM " + table) ) {
-                    rs.next();
-                    maxValue = rs.getLong(1);
-                    Db.commitTransaction();
-                }
-                catch (SQLException e) {
-                    throw new RuntimeException("Database error executing", e);
-                }
-                if ( maxValue > 0 ) {
-                    apply("ALTER TABLE " + table + " ALTER COLUMN db_id RESTART WITH " + maxValue);
-                }
-            }
+    for (String table : lTables) {
+      Long maxValue = (long) 0;
+      try ( Statement stmt = con.createStatement() ) {
+        try ( ResultSet rs = stmt.executeQuery("SELECT MAX(db_id) FROM " + table) ) {
+          rs.next();
+          maxValue = rs.getLong(1);
+          Db.commitTransaction();
         }
-    }
-
-    private static void apply(String sql) {
-        try (Connection con = Db.getConnection(); Statement stmt = con.createStatement()) {
-            try {
-                if (sql != null) {
-                    stmt.executeUpdate(sql);
-                }
-            } catch (Exception e) {
-                throw e;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Database error executing " + sql, e);
+        catch (SQLException e) {
+          throw new RuntimeException("Database error executing", e);
         }
+        if ( maxValue > 0 ) {
+          apply("ALTER TABLE " + table + " ALTER COLUMN db_id RESTART WITH " + maxValue);
+        }
+      }
     }
+  }
 
-    public static String maybeToShortIdentifier(String identifier)
-    {
-        return FirebirdDbVersion.maybeToShortIdentifier(identifier);
+  private static void apply(String sql) {
+    try (Connection con = Db.getConnection(); Statement stmt = con.createStatement()) {
+      try {
+        if (sql != null) {
+          stmt.executeUpdate(sql);
+        }
+      } catch (Exception e) {
+        throw e;
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Database error executing " + sql, e);
     }
+  }
+
+  public static String maybeToShortIdentifier(String identifier)
+  {
+    return FirebirdDbVersion.maybeToShortIdentifier(identifier);
+  }
 }

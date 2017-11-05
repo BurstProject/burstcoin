@@ -12,28 +12,28 @@ import java.util.Collection;
 
 public final class GetAccountEscrowTransactions extends APIServlet.APIRequestHandler {
 	
-	static final GetAccountEscrowTransactions instance = new GetAccountEscrowTransactions();
+  static final GetAccountEscrowTransactions instance = new GetAccountEscrowTransactions();
 	
-	private GetAccountEscrowTransactions() {
-		super(new APITag[] {APITag.ACCOUNTS}, "account");
-	}
+  private GetAccountEscrowTransactions() {
+    super(new APITag[] {APITag.ACCOUNTS}, "account");
+  }
 	
-	@Override
-	JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 		
-		Account account = ParameterParser.getAccount(req);
+    Account account = ParameterParser.getAccount(req);
 		
-		Collection<Escrow> accountEscrows = Escrow.getEscrowTransactionsByParticipent(account.getId());
+    Collection<Escrow> accountEscrows = Escrow.getEscrowTransactionsByParticipent(account.getId());
 		
-		JSONObject response = new JSONObject();
+    JSONObject response = new JSONObject();
 		
-		JSONArray escrows = new JSONArray();
+    JSONArray escrows = new JSONArray();
 		
-		for(Escrow escrow : accountEscrows) {
-			escrows.add(JSONData.escrowTransaction(escrow));
-		}
+    for(Escrow escrow : accountEscrows) {
+      escrows.add(JSONData.escrowTransaction(escrow));
+    }
 		
-		response.put("escrows", escrows);
-		return response;
-	}
+    response.put("escrows", escrows);
+    return response;
+  }
 }

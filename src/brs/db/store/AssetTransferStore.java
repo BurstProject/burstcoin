@@ -6,15 +6,15 @@ import brs.db.BurstKey;
 import brs.db.sql.EntitySqlTable;
 
 public interface AssetTransferStore {
-    BurstKey.LongKeyFactory<AssetTransfer> getTransferDbKeyFactory();
+  BurstKey.LongKeyFactory<AssetTransfer> getTransferDbKeyFactory();
 
-    EntitySqlTable<AssetTransfer> getAssetTransferTable();
+  EntitySqlTable<AssetTransfer> getAssetTransferTable();
 
-    BurstIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to);
+  BurstIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to);
 
-    BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to);
+  BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to);
 
-    BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to);
+  BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to);
 
-    int getTransferCount(long assetId);
+  int getTransferCount(long assetId);
 }

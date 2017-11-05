@@ -10,34 +10,34 @@ import static brs.http.JSONResponses.UNKNOWN_ACCOUNT;
 
 public final class StartForging extends APIServlet.APIRequestHandler {
 
-    static final StartForging instance = new StartForging();
+  static final StartForging instance = new StartForging();
 
-    private StartForging() {
-        super(new APITag[] {APITag.FORGING}, "secretPhrase");
+  private StartForging() {
+    super(new APITag[] {APITag.FORGING}, "secretPhrase");
+  }
+
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req) {
+
+    String secretPhrase = req.getParameter("secretPhrase");
+    if (secretPhrase == null) {
+      return MISSING_SECRET_PHRASE;
     }
 
-    @Override
-    JSONStreamAware processRequest(HttpServletRequest req) {
+    //Generator generator = Generator.startForging(secretPhrase);
+    //if (generator == null) {
+    return UNKNOWN_ACCOUNT;
+    //}
 
-        String secretPhrase = req.getParameter("secretPhrase");
-        if (secretPhrase == null) {
-            return MISSING_SECRET_PHRASE;
-        }
+    //JSONObject response = new JSONObject();
+    //response.put("deadline", generator.getDeadline());
+    //return response;
 
-        //Generator generator = Generator.startForging(secretPhrase);
-        //if (generator == null) {
-            return UNKNOWN_ACCOUNT;
-        //}
+  }
 
-        //JSONObject response = new JSONObject();
-        //response.put("deadline", generator.getDeadline());
-        //return response;
-
-    }
-
-    @Override
-    boolean requirePost() {
-        return true;
-    }
+  @Override
+  boolean requirePost() {
+    return true;
+  }
 
 }

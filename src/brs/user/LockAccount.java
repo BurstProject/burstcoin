@@ -9,15 +9,15 @@ import static brs.user.JSONResponses.LOCK_ACCOUNT;
 
 public final class LockAccount extends UserServlet.UserRequestHandler {
 
-    static final LockAccount instance = new LockAccount();
+  static final LockAccount instance = new LockAccount();
 
-    private LockAccount() {}
+  private LockAccount() {}
 
-    @Override
-    JSONStreamAware processRequest(HttpServletRequest req, User user) throws IOException {
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req, User user) throws IOException {
 
-        user.lockAccount();
+    user.lockAccount();
 
-        return LOCK_ACCOUNT;
-    }
+    return LOCK_ACCOUNT;
+  }
 }

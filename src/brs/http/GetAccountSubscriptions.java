@@ -12,28 +12,28 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetAccountSubscriptions extends APIServlet.APIRequestHandler {
 	
-	static final GetAccountSubscriptions instance = new GetAccountSubscriptions();
+  static final GetAccountSubscriptions instance = new GetAccountSubscriptions();
 	
-	private GetAccountSubscriptions() {
-		super(new APITag[] {APITag.ACCOUNTS}, "account");
-	}
+  private GetAccountSubscriptions() {
+    super(new APITag[] {APITag.ACCOUNTS}, "account");
+  }
 	
-	@Override
-	JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 		
-		Account account = ParameterParser.getAccount(req);
+    Account account = ParameterParser.getAccount(req);
 		
-		JSONObject response = new JSONObject();
+    JSONObject response = new JSONObject();
 		
-		JSONArray subscriptions = new JSONArray();
+    JSONArray subscriptions = new JSONArray();
 
-		BurstIterator<Subscription> accountSubscriptions = Subscription.getSubscriptionsByParticipant(account.getId());
+    BurstIterator<Subscription> accountSubscriptions = Subscription.getSubscriptionsByParticipant(account.getId());
 		
-		for(Subscription subscription : accountSubscriptions) {
-			subscriptions.add(JSONData.subscription(subscription));
-		}
+    for(Subscription subscription : accountSubscriptions) {
+      subscriptions.add(JSONData.subscription(subscription));
+    }
 		
-		response.put("subscriptions", subscriptions);
-		return response;
-	}
+    response.put("subscriptions", subscriptions);
+    return response;
+  }
 }

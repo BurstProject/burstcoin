@@ -7,15 +7,15 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetDGSGood extends APIServlet.APIRequestHandler {
 
-    static final GetDGSGood instance = new GetDGSGood();
+  static final GetDGSGood instance = new GetDGSGood();
 
-    private GetDGSGood() {
-        super(new APITag[] {APITag.DGS}, "goods");
-    }
+  private GetDGSGood() {
+    super(new APITag[] {APITag.DGS}, "goods");
+  }
 
-    @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
-        return JSONData.goods(ParameterParser.getGoods(req));
-    }
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+    return JSONData.goods(ParameterParser.getGoods(req));
+  }
 
 }

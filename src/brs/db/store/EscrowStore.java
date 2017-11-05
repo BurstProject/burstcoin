@@ -14,21 +14,21 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 public interface EscrowStore {
 
-    BurstKey.LongKeyFactory<Escrow> getEscrowDbKeyFactory();
+  BurstKey.LongKeyFactory<Escrow> getEscrowDbKeyFactory();
 
-    VersionedEntityTable<Escrow> getEscrowTable();
+  VersionedEntityTable<Escrow> getEscrowTable();
 
-    DbKey.LinkKeyFactory<Escrow.Decision> getDecisionDbKeyFactory();
+  DbKey.LinkKeyFactory<Escrow.Decision> getDecisionDbKeyFactory();
 
-    VersionedEntityTable<Escrow.Decision> getDecisionTable();
+  VersionedEntityTable<Escrow.Decision> getDecisionTable();
 
-    Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId);
+  Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId);
 
-    void updateOnBlock(Block block);
+  void updateOnBlock(Block block);
 
-    List<TransactionImpl> getResultTransactions();
+  List<TransactionImpl> getResultTransactions();
 
-    ConcurrentSkipListSet<Long> getUpdatedEscrowIds();
+  ConcurrentSkipListSet<Long> getUpdatedEscrowIds();
 
-    BurstIterator<Escrow.Decision> getDecisions(Long id);
+  BurstIterator<Escrow.Decision> getDecisions(Long id);
 }

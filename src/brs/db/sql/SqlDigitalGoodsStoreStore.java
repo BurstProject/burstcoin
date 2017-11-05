@@ -13,44 +13,43 @@ import java.sql.*;
 
 public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
 
-  private static final DbKey.LongKeyFactory<DigitalGoodsStore.Purchase> feedbackDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
+  private static final DbKey.LongKeyFactory<DigitalGoodsStore.Purchase> feedbackDbKeyFactory
+    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
+        @Override
+        public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
+          return purchase.dbKey;
+        }
+      };
 
-      @Override
-      public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
-        return purchase.dbKey;
-      }
+  protected final BurstKey.LongKeyFactory<DigitalGoodsStore.Purchase> purchaseDbKeyFactory
+    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
+        @Override
+        public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
+          return purchase.dbKey;
+        }
+      };
+  
+  private final VersionedEntityTable<DigitalGoodsStore.Purchase> purchaseTable
+    = new VersionedEntitySqlTable<DigitalGoodsStore.Purchase>("purchase", purchaseDbKeyFactory) {
+        @Override
+        protected DigitalGoodsStore.Purchase load(Connection con, ResultSet rs) throws SQLException {
+          return new SQLPurchase(rs);
+        }
 
-    };
-  protected final BurstKey.LongKeyFactory<DigitalGoodsStore.Purchase> purchaseDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
+        @Override
+        protected void save(Connection con, DigitalGoodsStore.Purchase purchase) throws SQLException {
+          savePurchase(con, purchase);
+        }
 
-      @Override
-      public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
-        return purchase.dbKey;
-      }
-
-    };
-  private final VersionedEntityTable<DigitalGoodsStore.Purchase> purchaseTable = new VersionedEntitySqlTable<DigitalGoodsStore.Purchase>("purchase", purchaseDbKeyFactory) {
-
-      @Override
-      protected DigitalGoodsStore.Purchase load(Connection con, ResultSet rs) throws SQLException {
-        return new SQLPurchase(rs);
-      }
-
-      @Override
-      protected void save(Connection con, DigitalGoodsStore.Purchase purchase) throws SQLException {
-        savePurchase(con, purchase);
-      }
-
-      @Override
-      protected String defaultSort() {
-        return " ORDER BY timestamp DESC, id ASC ";
-      }
-
-    };
+        @Override
+        protected String defaultSort() {
+          return " ORDER BY timestamp DESC, id ASC ";
+        }
+      };
 
   @Deprecated
-  private final VersionedValuesTable<DigitalGoodsStore.Purchase, EncryptedData> feedbackTable =
-      new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, EncryptedData>("purchase_feedback", feedbackDbKeyFactory) {
+  private final VersionedValuesTable<DigitalGoodsStore.Purchase, EncryptedData> feedbackTable
+    = new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, EncryptedData>("purchase_feedback", feedbackDbKeyFactory) {
 
         @Override
         protected EncryptedData load(Connection con, ResultSet rs) throws SQLException {
@@ -71,44 +70,41 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
             pstmt.executeUpdate();
           }
         }
-
       };
 
-  protected final DbKey.LongKeyFactory<DigitalGoodsStore.Purchase> publicFeedbackDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
-
-      @Override
-      public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
-        return purchase.dbKey;
-      }
-
-    };
+  protected final DbKey.LongKeyFactory<DigitalGoodsStore.Purchase> publicFeedbackDbKeyFactory
+    = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
+        @Override
+        public BurstKey newKey(DigitalGoodsStore.Purchase purchase) {
+          return purchase.dbKey;
+        }
+      };
 
   private final BurstKey.LongKeyFactory<DigitalGoodsStore.Goods> goodsDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Goods>("id") {
-
       @Override
       public BurstKey newKey(DigitalGoodsStore.Goods goods) {
         return goods.dbKey;
       }
-
     };
-  private final VersionedEntityTable<DigitalGoodsStore.Goods> goodsTable = new VersionedEntitySqlTable<DigitalGoodsStore.Goods>("goods", goodsDbKeyFactory) {
+  
+  private final VersionedEntityTable<DigitalGoodsStore.Goods> goodsTable
+    = new VersionedEntitySqlTable<DigitalGoodsStore.Goods>("goods", goodsDbKeyFactory) {
 
-      @Override
-      protected DigitalGoodsStore.Goods load(Connection con, ResultSet rs) throws SQLException {
-        return new SQLGoods(rs);
-      }
+        @Override
+        protected DigitalGoodsStore.Goods load(Connection con, ResultSet rs) throws SQLException {
+          return new SQLGoods(rs);
+        }
 
-      @Override
-      protected void save(Connection con, DigitalGoodsStore.Goods goods) throws SQLException {
-        saveGoods(con, goods);
-      }
+        @Override
+        protected void save(Connection con, DigitalGoodsStore.Goods goods) throws SQLException {
+          saveGoods(con, goods);
+        }
 
-      @Override
-      protected String defaultSort() {
-        return " ORDER BY timestamp DESC, id ASC ";
-      }
-
-    };
+        @Override
+        protected String defaultSort() {
+          return " ORDER BY timestamp DESC, id ASC ";
+        }
+      };
 
   @Override
   public BurstIterator<DigitalGoodsStore.Purchase> getExpiredPendingPurchases(final int timestamp) {
@@ -126,7 +122,8 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
     if (encryptedData == null) {
       pstmt.setNull(i, Types.VARBINARY);
       pstmt.setNull(i + 1, Types.VARBINARY);
-    } else {
+    }
+    else {
       pstmt.setBytes(i, encryptedData.getData());
       pstmt.setBytes(i + 1, encryptedData.getNonce());
     }

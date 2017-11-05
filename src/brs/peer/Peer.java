@@ -5,60 +5,60 @@ import org.json.simple.JSONStreamAware;
 
 public interface Peer extends Comparable<Peer> {
 
-    public static enum State {
-        NON_CONNECTED, CONNECTED, DISCONNECTED
-    }
+  public static enum State {
+    NON_CONNECTED, CONNECTED, DISCONNECTED
+  }
 
-    String getPeerAddress();
+  String getPeerAddress();
 
-    String getAnnouncedAddress();
+  String getAnnouncedAddress();
 
-    State getState();
+  State getState();
 
-    String getVersion();
+  String getVersion();
 
-    String getApplication();
+  String getApplication();
 
-    String getPlatform();
+  String getPlatform();
 
-    String getSoftware();
+  String getSoftware();
 
-    Hallmark getHallmark();
+  Hallmark getHallmark();
 
-    int getWeight();
+  int getWeight();
 
-    boolean shareAddress();
+  boolean shareAddress();
 
-    boolean isWellKnown();
+  boolean isWellKnown();
 
-    boolean isRebroadcastTarget();
+  boolean isRebroadcastTarget();
 
-    boolean isBlacklisted();
+  boolean isBlacklisted();
 
-    void blacklist(Exception cause);
+  void blacklist(Exception cause);
 
-    void blacklist();
+  void blacklist();
 
-    void unBlacklist();
+  void unBlacklist();
 
-    void deactivate();
+  void deactivate();
 
-    void remove();
+  void remove();
 
-    long getDownloadedVolume();
+  long getDownloadedVolume();
 
-    long getUploadedVolume();
+  long getUploadedVolume();
 
-    int getLastUpdated();
+  int getLastUpdated();
 
-    JSONObject send(JSONStreamAware request);
+  JSONObject send(JSONStreamAware request);
 
-    /** 
-     * Sends a simple GET-Request to the peer and returns the JSON-Object of the response
-     * @param  pathAndQuery  URL path for GET request
-     * @return JSONObject of the response
-    */
-    JSONObject sendGetRequest(String pathAndQuery);
+  /** 
+   * Sends a simple GET-Request to the peer and returns the JSON-Object of the response
+   * @param  pathAndQuery  URL path for GET request
+   * @return JSONObject of the response
+   */
+  JSONObject sendGetRequest(String pathAndQuery);
 
 
 }

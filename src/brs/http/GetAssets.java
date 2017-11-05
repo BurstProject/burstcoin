@@ -13,35 +13,35 @@ import static brs.http.JSONResponses.UNKNOWN_ASSET;
 
 public final class GetAssets extends APIServlet.APIRequestHandler {
 
-    static final GetAssets instance = new GetAssets();
+  static final GetAssets instance = new GetAssets();
 
-    private GetAssets() {
-        super(new APITag[] {APITag.AE}, "assets", "assets", "assets"); // limit to 3 for testing
-    }
+  private GetAssets() {
+    super(new APITag[] {APITag.AE}, "assets", "assets", "assets"); // limit to 3 for testing
+  }
 
-    @Override
-    JSONStreamAware processRequest(HttpServletRequest req) {
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req) {
 
-        String[] assets = req.getParameterValues("assets");
+    String[] assets = req.getParameterValues("assets");
 
-        JSONObject response = new JSONObject();
-        JSONArray assetsJSONArray = new JSONArray();
-        response.put("assets", assetsJSONArray);
-        for (String assetIdString : assets) {
-            if (assetIdString == null || assetIdString.equals("")) {
-                continue;
-            }
-            try {
-                Asset asset = Asset.getAsset(Convert.parseUnsignedLong(assetIdString));
-                if (asset == null) {
-                    return UNKNOWN_ASSET;
-                }
-                assetsJSONArray.add(JSONData.asset(asset));
-            } catch (RuntimeException e) {
-                return INCORRECT_ASSET;
-            }
+    JSONObject response = new JSONObject();
+    JSONArray assetsJSONArray = new JSONArray();
+    response.put("assets", assetsJSONArray);
+    for (String assetIdString : assets) {
+      if (assetIdString == null || assetIdString.equals("")) {
+        continue;
+      }
+      try {
+        Asset asset = Asset.getAsset(Convert.parseUnsignedLong(assetIdString));
+        if (asset == null) {
+          return UNKNOWN_ASSET;
         }
-        return response;
+        assetsJSONArray.add(JSONData.asset(asset));
+      } catch (RuntimeException e) {
+        return INCORRECT_ASSET;
+      }
     }
+    return response;
+  }
 
 }

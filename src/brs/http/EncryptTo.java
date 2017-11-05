@@ -11,24 +11,24 @@ import static brs.http.JSONResponses.INCORRECT_RECIPIENT;
 
 public final class EncryptTo extends APIServlet.APIRequestHandler {
 
-    static final EncryptTo instance = new EncryptTo();
+  static final EncryptTo instance = new EncryptTo();
 
-    private EncryptTo() {
-        super(new APITag[] {APITag.MESSAGES}, "recipient", "messageToEncrypt", "messageToEncryptIsText", "secretPhrase");
+  private EncryptTo() {
+    super(new APITag[] {APITag.MESSAGES}, "recipient", "messageToEncrypt", "messageToEncryptIsText", "secretPhrase");
+  }
+
+  @Override
+  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+
+    long recipientId = ParameterParser.getRecipientId(req);
+    Account recipientAccount = Account.getAccount(recipientId);
+    if (recipientAccount == null || recipientAccount.getPublicKey() == null) {
+      return INCORRECT_RECIPIENT;
     }
 
-    @Override
-    JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+    EncryptedData encryptedData = ParameterParser.getEncryptedMessage(req, recipientAccount);
+    return JSONData.encryptedData(encryptedData);
 
-        long recipientId = ParameterParser.getRecipientId(req);
-        Account recipientAccount = Account.getAccount(recipientId);
-        if (recipientAccount == null || recipientAccount.getPublicKey() == null) {
-            return INCORRECT_RECIPIENT;
-        }
-
-        EncryptedData encryptedData = ParameterParser.getEncryptedMessage(req, recipientAccount);
-        return JSONData.encryptedData(encryptedData);
-
-    }
+  }
 
 }
