@@ -13,15 +13,15 @@ import java.util.TreeMap;
 public class AT_Transaction {
   private static SortedMap<Long,SortedMap<Long, AT_Transaction>> all_AT_Txs = new TreeMap<>();
 	
-  private byte[] senderId = new byte[ AT_Constants.AT_ID_SIZE ];
+  private byte[] senderId    = new byte[ AT_Constants.AT_ID_SIZE ];
   private byte[] recipientId = new byte[ AT_Constants.AT_ID_SIZE ];
-  private long amount;
   private byte[] message;
+  private long amount;
 	
   AT_Transaction( byte[] senderId, byte[] recipientId, long amount, byte[] message ) {
-    this.senderId = senderId.clone();
+    this.senderId    = senderId.clone();
     this.recipientId = recipientId.clone();
-    this.amount = amount;
+    this.amount  = amount;
     this.message = (message != null) ? message.clone() : null;
   }
 	
@@ -56,6 +56,7 @@ public class AT_Transaction {
     if (all_AT_Txs.containsKey(atId)) {
       return all_AT_Txs.get(atId).get(height);
     }
+
     return null;
   }	
 }

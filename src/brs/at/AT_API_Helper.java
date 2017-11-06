@@ -15,14 +15,14 @@ import java.nio.ByteOrder;
 public class AT_API_Helper {
   //private static ByteBuffer buffer = ByteBuffer.allocate(8);    
     
-  public static int longToHeight(long x){
+  public static int longToHeight(long x) {
     ByteBuffer buffer = ByteBuffer.allocate(8);
     buffer.order(ByteOrder.LITTLE_ENDIAN);
     buffer.putLong(0,x);
     return buffer.getInt(4);
   }
     
-  public static long getLong(byte[] b){
+  public static long getLong(byte[] b) {
     ByteBuffer buffer = ByteBuffer.allocate(8);
     buffer.order(ByteOrder.LITTLE_ENDIAN);
     buffer.position(0);
@@ -30,7 +30,7 @@ public class AT_API_Helper {
     return buffer.getLong(0);
   }
     
-  public static byte[] getByteArray( long l ){
+  public static byte[] getByteArray(long l) {
     ByteBuffer buffer = ByteBuffer.allocate(8);
     buffer.order(ByteOrder.LITTLE_ENDIAN);
     buffer.clear();
@@ -38,14 +38,14 @@ public class AT_API_Helper {
     return buffer.array();
   }
     
-  public static int longToNumOfTx(long x){
+  public static int longToNumOfTx(long x) {
     ByteBuffer buffer = ByteBuffer.allocate(8);
     buffer.order(ByteOrder.LITTLE_ENDIAN);
     buffer.putLong(0,x);
     return buffer.getInt(0);
   }
     
-  protected static long getLongTimestamp(int height, int numOfTx){
+  protected static long getLongTimestamp(int height, int numOfTx) {
     ByteBuffer buffer = ByteBuffer.allocate(8);
     buffer.order(ByteOrder.LITTLE_ENDIAN);
     buffer.putInt(4, height);
@@ -81,7 +81,11 @@ public class AT_API_Helper {
         paddedBytesBuffer.put(padding);
     }
     	
-    paddedBytesBuffer.put(bigIntBytes, (32 >= bigIntBytes.length) ? 0 : (bigIntBytes.length - 32), (32 > bigIntBytes.length) ? bigIntBytes.length : 32);
+    paddedBytesBuffer.put(bigIntBytes, (32 >= bigIntBytes.length) ? 0
+                                                                  : (bigIntBytes.length - 32),
+                          (32 > bigIntBytes.length) ? bigIntBytes.length
+                                                    : 32
+                          );
     paddedBytesBuffer.clear();
     byte[] padded = paddedBytesBuffer.array();
     return new byte[] {
