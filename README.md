@@ -98,6 +98,53 @@ For a detailed version history of wallets up to 1.2.9 see https://github.com/bur
 Burstcoin can be build from source using maven or - preferably - via
 the provided `burst.sh compile` script within this repository.
 
+## Credits
+
+Numerous people have contributed to make this software what it is
+today. The Nxt-developers before Burst was forked off from the Nxt
+code base, the initial - yet anonymous - creator of burstcoin who did
+carve out PoS and instantiate PoC and also many small contributors who
+helped out with small fixes, typos, translations etc. In case we
+forgot to mention someone, please do not hesitate to bring this to our
+attention. Past contributions that have been removed from the code
+base are not mentioned, however. In alphabetical order:
+
+@ac0v
+* initial replacement of the H2 wallet against mariaDB in the CG-lineage of the wallet
+* introduction of FirebirdDB to the list of supported DB backends, bugfixing, debugging
+* streamlining helper scripts (invocation, compilation)
+* work on macOS port, testing and release management
+
+@BraindeadOne
+* providing a DB abstraction layer to allow for multiple DB backends
+* implementing a load/dump mechanism for faster sync (called Quicksync)
+* added SQL metrics to the code to be able to spot DB performance problems
+* CPU core limit patch, so the wallet can be assigned only part of your resources
+
+@chrulri improved wallet behavior when running under https
+
+@daWallet did many bugfixes and stabilization improvements
+
+@dcct
+* support for parallel blockchain downloads
+* various bugfixes and lib updates
+
+@de-luxe took care of the releases between 1.2.5 and 1.2.9
+
+@fusecavator
+* initial OpenCL code (GPU acceleration support)
+* critical fixes to the wallet spam-attack vulnerability
+
+@LithMage provided fixes and enhancements to the UI
+
+@rico666
+* moved the wallet from Nxt to BRS/Burst namespace
+* improvements and fixes to the documentation - revival of javadoc references
+* general code refactoring and styleguide unification (Google JAVA Styleguide)
+* removed obsolete/unused code - tens of thousands of LOCs
+* fixes and enhancements to the UI
+
+
 ## Links
 
 For further information, please visit the following pages.

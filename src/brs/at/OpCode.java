@@ -3,7 +3,6 @@
 
  Distributed under the MIT/X11 software license, please refer to the file license.txt
  in the root project directory or http://www.opensource.org/licenses/mit-license.php.
-
 */
 
 package brs.at;	
@@ -23,8 +22,8 @@ public final class OpCode {
   static byte e_op_code_AND_DAT = Byte.parseByte("0b", 16);
   static byte e_op_code_XOR_DAT = Byte.parseByte("0c", 16);
   static byte e_op_code_NOT_DAT = Byte.parseByte("0d", 16);
-  static byte e_op_code_SET_IND = Byte.parseByte("0e", 16);//
-  static byte e_op_code_SET_IDX = Byte.parseByte("0f", 16);//
+  static byte e_op_code_SET_IND = Byte.parseByte("0e", 16);
+  static byte e_op_code_SET_IDX = Byte.parseByte("0f", 16);
   static byte e_op_code_PSH_DAT = Byte.parseByte("10", 16);
   static byte e_op_code_POP_DAT = Byte.parseByte("11", 16);
   static byte e_op_code_JMP_SUB = Byte.parseByte("12", 16);
