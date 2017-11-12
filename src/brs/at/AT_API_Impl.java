@@ -62,66 +62,66 @@ public class AT_API_Impl implements AT_API {
   }
 
   @Override
-  public void set_A1( long val , AT_Machine_State state ) {
+  public void set_A1( long val, AT_Machine_State state ) {
     state.set_A1( AT_API_Helper.getByteArray( val ) );
   }
 
   @Override
-  public void set_A2( long val , AT_Machine_State state ) {
+  public void set_A2( long val, AT_Machine_State state ) {
     state.set_A2( AT_API_Helper.getByteArray( val ) );
   }
 
   @Override
-  public void set_A3( long val , AT_Machine_State state ) {
+  public void set_A3( long val, AT_Machine_State state ) {
     state.set_A3( AT_API_Helper.getByteArray( val ) );
   }
 
   @Override
-  public void set_A4( long val , AT_Machine_State state ) {
+  public void set_A4( long val, AT_Machine_State state ) {
     state.set_A4( AT_API_Helper.getByteArray( val ) );
   }
 
   @Override
-  public void set_A1_A2( long val1 , long val2 , AT_Machine_State state ) {
+  public void set_A1_A2( long val1, long val2, AT_Machine_State state ) {
     state.set_A1( AT_API_Helper.getByteArray( val1 ) );
     state.set_A2( AT_API_Helper.getByteArray( val2 ) );
   }
 
   @Override
-  public void set_A3_A4( long val1 , long val2 ,AT_Machine_State state ) {
+  public void set_A3_A4( long val1, long val2,AT_Machine_State state ) {
     state.set_A3( AT_API_Helper.getByteArray( val1 ) );
     state.set_A4( AT_API_Helper.getByteArray( val2 ) );
 
   }
 
   @Override
-  public void set_B1( long val , AT_Machine_State state ) {
+  public void set_B1( long val, AT_Machine_State state ) {
     state.set_B1( AT_API_Helper.getByteArray( val ) );
   }
 
   @Override
-  public void set_B2( long val , AT_Machine_State state ) {
+  public void set_B2( long val, AT_Machine_State state ) {
     state.set_B2( AT_API_Helper.getByteArray( val ) );
   }
 
   @Override
-  public void set_B3( long val , AT_Machine_State state ) {
+  public void set_B3( long val, AT_Machine_State state ) {
     state.set_B3( AT_API_Helper.getByteArray( val ) );
   }
 
   @Override
-  public void set_B4( long val , AT_Machine_State state ) {
+  public void set_B4( long val, AT_Machine_State state ) {
     state.set_B4( AT_API_Helper.getByteArray( val ) );
   }
 
   @Override
-  public void set_B1_B2( long val1 , long val2 , AT_Machine_State state ) {
+  public void set_B1_B2( long val1, long val2, AT_Machine_State state ) {
     state.set_B1( AT_API_Helper.getByteArray( val1 ) );
     state.set_B2( AT_API_Helper.getByteArray( val2 ) );
   }
 
   @Override
-  public void set_B3_B4( long val3 , long val4 , AT_Machine_State state ) {
+  public void set_B3_B4( long val3, long val4, AT_Machine_State state ) {
     state.set_B3( AT_API_Helper.getByteArray( val3 ) );
     state.set_B4( AT_API_Helper.getByteArray( val4 ) );
   }
@@ -163,26 +163,26 @@ public class AT_API_Impl implements AT_API {
   @Override
   public long check_A_Is_Zero(AT_Machine_State state) {
     byte[] b = new byte[ 8 ];
-    return ( Arrays.equals( state.get_A1() , b ) &&
-             Arrays.equals( state.get_A2() , b ) &&
-             Arrays.equals( state.get_A3() , b ) &&
-             Arrays.equals( state.get_A4() , b ) ) ? 0 : 1 ;
+    return ( Arrays.equals( state.get_A1(), b ) &&
+             Arrays.equals( state.get_A2(), b ) &&
+             Arrays.equals( state.get_A3(), b ) &&
+             Arrays.equals( state.get_A4(), b ) ) ? 0 : 1 ;
   }
 
   @Override
   public long check_B_Is_Zero(AT_Machine_State state) {
     byte[] b = new byte[ 8 ];
-    return ( Arrays.equals( state.get_B1() , b ) &&
-             Arrays.equals( state.get_B2() , b ) &&
-             Arrays.equals( state.get_B3() , b ) &&
-             Arrays.equals( state.get_B4() , b ) ) ? 0 : 1 ;
+    return ( Arrays.equals( state.get_B1(), b ) &&
+             Arrays.equals( state.get_B2(), b ) &&
+             Arrays.equals( state.get_B3(), b ) &&
+             Arrays.equals( state.get_B4(), b ) ) ? 0 : 1 ;
   }
 
   public long check_A_equals_B(AT_Machine_State state) {
-    return ( Arrays.equals( state.get_A1() , state.get_B1() ) &&
-             Arrays.equals( state.get_A2() , state.get_B2() ) &&
-             Arrays.equals( state.get_A3() , state.get_B3() ) &&
-             Arrays.equals( state.get_A4() , state.get_B4() ) ) ? 1 : 0;
+    return ( Arrays.equals( state.get_A1(), state.get_B1() ) &&
+             Arrays.equals( state.get_A2(), state.get_B2() ) &&
+             Arrays.equals( state.get_A3(), state.get_B3() ) &&
+             Arrays.equals( state.get_A4(), state.get_B4() ) ) ? 1 : 0;
   }
 
   @Override
@@ -552,8 +552,8 @@ public class AT_API_Impl implements AT_API {
       }
     }
     else {
-      return ( Arrays.equals( state.get_A1() , state.get_B1() ) &&
-               Arrays.equals( state.get_A2() , state.get_B2() ) ) ? 1 : 0;
+      return ( Arrays.equals( state.get_A1(), state.get_B1() ) &&
+               Arrays.equals( state.get_A2(), state.get_B2() ) ) ? 1 : 0;
     }
   }
 
@@ -657,10 +657,10 @@ public class AT_API_Impl implements AT_API {
       }
     }
     else {
-      return ( Arrays.equals( state.get_A1() , state.get_B1() ) &&
-               Arrays.equals( state.get_A2() , state.get_B2() ) &&
-               Arrays.equals( state.get_A3() , state.get_B3() ) &&
-               Arrays.equals( state.get_A4() , state.get_B4() )) ? 1 : 0;
+      return ( Arrays.equals( state.get_A1(), state.get_B1() ) &&
+               Arrays.equals( state.get_A2(), state.get_B2() ) &&
+               Arrays.equals( state.get_A3(), state.get_B3() ) &&
+               Arrays.equals( state.get_A4(), state.get_B4() )) ? 1 : 0;
     }
   }
 
@@ -687,8 +687,8 @@ public class AT_API_Impl implements AT_API {
   }
 
   @Override
-  public void A_to_Tx_after_Timestamp( long val , AT_Machine_State state ) {
-    platform.A_to_Tx_after_Timestamp( val , state );
+  public void A_to_Tx_after_Timestamp( long val, AT_Machine_State state ) {
+    platform.A_to_Tx_after_Timestamp( val, state );
 
   }
 
@@ -740,8 +740,8 @@ public class AT_API_Impl implements AT_API {
   }
 
   @Override
-  public void send_to_Address_in_B( long val , AT_Machine_State state ) {
-    platform.send_to_Address_in_B( val , state );
+  public void send_to_Address_in_B( long val, AT_Machine_State state ) {
+    platform.send_to_Address_in_B( val, state );
   }
 
   @Override
@@ -760,12 +760,12 @@ public class AT_API_Impl implements AT_API {
   }
 
   @Override
-  public long add_Minutes_to_Timestamp( long val1 , long val2 , AT_Machine_State state ) {
-    return platform.add_Minutes_to_Timestamp( val1 , val2 , state );
+  public long add_Minutes_to_Timestamp( long val1, long val2, AT_Machine_State state ) {
+    return platform.add_Minutes_to_Timestamp( val1, val2, state );
   }
 
   @Override
-  public void set_Min_Activation_Amount( long val , AT_Machine_State state ) {
+  public void set_Min_Activation_Amount( long val, AT_Machine_State state ) {
     state.setMinActivationAmount(val);
   }
 
@@ -775,7 +775,7 @@ public class AT_API_Impl implements AT_API {
   }
 
   @Override
-  public void SHA256_to_B( long val1 , long val2 , AT_Machine_State state ) {
+  public void SHA256_to_B( long val1, long val2, AT_Machine_State state ) {
     if (val1 < 0 || val2 < 0 ||
         (val1 + val2 - 1) < 0 ||
         ((long)val1)*8+8>((long)Integer.MAX_VALUE) ||

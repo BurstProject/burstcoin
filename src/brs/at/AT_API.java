@@ -47,62 +47,62 @@ public interface AT_API {
    * sets A1 to @addr (0x0110)
    * 
    */
-  public void set_A1( long val , AT_Machine_State state );
+  public void set_A1( long val, AT_Machine_State state );
 	
   /**
    *  sets A2 to @addr (0x0111)
    */
-  public void set_A2( long val , AT_Machine_State state );
+  public void set_A2( long val, AT_Machine_State state );
 	
   /**
    * sets A3 to @addr (0x0112)
    */
-  public void set_A3( long val , AT_Machine_State state );
+  public void set_A3( long val, AT_Machine_State state );
 	
   /**
    * sets A4 to @addr (0x0113)
    */
-  public void set_A4( long val , AT_Machine_State state );
+  public void set_A4( long val, AT_Machine_State state );
 	
   /**
    * sets A1 from @addr1 and A2 from @addr2 (0x0114)
    */
-  public void set_A1_A2( long val1 , long val2 , AT_Machine_State state );
+  public void set_A1_A2( long val1, long val2, AT_Machine_State state );
 	
   /**
    * sets A3 from @addr1 and A4 from @addr2 ((0x0115)
    */
-  public void set_A3_A4( long val1 , long val2 ,AT_Machine_State state  );
+  public void set_A3_A4( long val1, long val2,AT_Machine_State state  );
 	
   /**
    * sets B1 from @addr (0x0116)
    */
-  public void set_B1( long val , AT_Machine_State state );
+  public void set_B1( long val, AT_Machine_State state );
 	
   /**
    * sets B2 from @addr (0x0117)
    */
-  public void set_B2( long val , AT_Machine_State state );
+  public void set_B2( long val, AT_Machine_State state );
 	
   /**
    * sets B3 from @addr (0x0118)
    */
-  public void set_B3( long val , AT_Machine_State state );
+  public void set_B3( long val, AT_Machine_State state );
 	
   /**
    * sets B4 @addr (0x0119)
    */
-  public void set_B4( long val , AT_Machine_State state );
+  public void set_B4( long val, AT_Machine_State state );
 	
   /**
    * sets B1 from @addr1 and B2 from @addr2 (0x011a)
    */
-  public void set_B1_B2( long val1 , long val2 , AT_Machine_State state );
+  public void set_B1_B2( long val1, long val2, AT_Machine_State state );
 	
   /**
    * sets B3 from @addr3 and @addr4 to B4 (0x011b)
    */
-  public void set_B3_B4( long val3 , long val4 ,AT_Machine_State state );
+  public void set_B3_B4( long val3, long val4,AT_Machine_State state );
 	
   /**
    * sets A to zero (A being A1...4)
@@ -277,7 +277,7 @@ public interface AT_API {
   /**
    * sets A to zero/tx hash of the first tx after
    */
-  public void A_to_Tx_after_Timestamp( long val , AT_Machine_State state );
+  public void A_to_Tx_after_Timestamp( long val, AT_Machine_State state );
 	
   /**
    * @return bool if A is a valid tx with @addr to tx type
@@ -341,7 +341,7 @@ public interface AT_API {
    * if this amount is greater than the AT's balance then it will also
    * return false
    */
-  public void send_to_Address_in_B( long val , AT_Machine_State state );
+  public void send_to_Address_in_B( long val, AT_Machine_State state );
 	
   /**
    * bool if B is a valid address then send it entire balance
@@ -361,12 +361,12 @@ public interface AT_API {
   /**
    * $addr1 is timestamp calculated from $addr2
    */
-  public long add_Minutes_to_Timestamp ( long val1 , long val2 , AT_Machine_State state );
+  public long add_Minutes_to_Timestamp ( long val1, long val2, AT_Machine_State state );
 	
   /**
    * set min amount of balance increase needed to unfreeze
    */
-  public void set_Min_Activation_Amount( long val , AT_Machine_State state );
+  public void set_Min_Activation_Amount( long val, AT_Machine_State state );
 	
   // end range 0x0400.0x04ff
   // -----------------------
@@ -379,5 +379,5 @@ public interface AT_API {
   /**
    * take a SHA256 hash of val2 bytes starting at val1. out this in B1..4
    */
-  public void SHA256_to_B( long val1 , long val2 , AT_Machine_State state );
+  public void SHA256_to_B( long val1, long val2, AT_Machine_State state );
 }

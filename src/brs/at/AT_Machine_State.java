@@ -19,7 +19,6 @@ import java.util.TreeSet;
 public class AT_Machine_State {
 
   public class Machine_State {
-
     transient boolean running;
     transient boolean stopped;
     transient boolean finished;
@@ -132,7 +131,7 @@ public class AT_Machine_State {
       bf.put( machineState );
       bf.flip();
 
-      bf.get( flags , 0 , 2 );
+      bf.get( flags, 0, 2 );
       running = (flags[0] & 1) == 1;
       stopped = (flags[0] >>> 1 & 1) == 1;
       finished = (flags[0] >>> 2 & 1) == 1;
@@ -143,14 +142,14 @@ public class AT_Machine_State {
       cs = bf.getInt();
       us = bf.getInt();
       err = bf.getInt();
-      bf.get( A1 , 0 , 8 );
-      bf.get( A2 , 0 , 8 );
-      bf.get( A3 , 0 , 8 );
-      bf.get( A4 , 0 , 8 );
-      bf.get( B1 , 0 , 8 );
-      bf.get( B2 , 0 , 8 );
-      bf.get( B3 , 0 , 8 );
-      bf.get( B4 , 0 , 8 );
+      bf.get( A1, 0, 8 );
+      bf.get( A2, 0, 8 );
+      bf.get( A3, 0, 8 );
+      bf.get( A4, 0, 8 );
+      bf.get( B1, 0, 8 );
+      bf.get( B2, 0, 8 );
+      bf.get( B3, 0, 8 );
+      bf.get( B4, 0, 8 );
     }
 
     public int getSize() {
@@ -196,10 +195,10 @@ public class AT_Machine_State {
 
   private LinkedHashMap<ByteBuffer, AT_Transaction> transactions;
 
-  public AT_Machine_State (byte[] atId , byte[] creator , short version ,
-                           byte[] stateBytes, int csize , int dsize , int c_user_stack_bytes , int c_call_stack_bytes ,
-                           int creationBlockHeight , int sleepBetween ,
-                           boolean freezeWhenSameBalance , long minActivationAmount , byte[] apCode ) {
+  public AT_Machine_State (byte[] atId, byte[] creator, short version,
+                           byte[] stateBytes, int csize, int dsize, int c_user_stack_bytes, int c_call_stack_bytes,
+                           int creationBlockHeight, int sleepBetween,
+                           boolean freezeWhenSameBalance, long minActivationAmount, byte[] apCode ) {
     this.atID = atId;
     this.creator = creator;
     this.version = version;
@@ -222,7 +221,7 @@ public class AT_Machine_State {
     transactions = new LinkedHashMap< ByteBuffer, AT_Transaction >();
   }
 
-  public AT_Machine_State( byte[] atId , byte[] creator , byte[] creationBytes , int height ) {
+  public AT_Machine_State( byte[] atId, byte[] creator, byte[] creationBytes, int height ) {
     this.version = AT_Constants.getInstance().AT_VERSION( height );
     this.atID = atId;
     this.creator = creator;
@@ -265,7 +264,7 @@ public class AT_Machine_State {
       codeLen = b.getInt();
     }
     byte[] code = new byte[ codeLen ];
-    b.get( code , 0 , codeLen );
+    b.get( code, 0, codeLen );
 
     this.ap_code = ByteBuffer.allocate( csize );
     this.ap_code.order( ByteOrder.LITTLE_ENDIAN );
@@ -287,7 +286,7 @@ public class AT_Machine_State {
       dataLen = b.getInt();
     }
     byte[] data = new byte[ dataLen ];
-    b.get( data , 0 , dataLen );
+    b.get( data, 0, dataLen );
 
     this.ap_data = ByteBuffer.allocate( this.dsize + this.c_call_stack_bytes + this.c_user_stack_bytes );
     this.ap_data.order( ByteOrder.LITTLE_ENDIAN );
@@ -538,7 +537,7 @@ public class AT_Machine_State {
 
     int stateSize = this.machineState.getSize();
     byte[] machineState = new byte[ stateSize ];
-    b.get( machineState , 0 , stateSize );
+    b.get( machineState, 0, stateSize );
     this.machineState.setMachineState( machineState );
 
     g_balance = b.getLong();
@@ -576,6 +575,5 @@ public class AT_Machine_State {
 
   public void setFreeze(boolean freeze) {
     this.freezeWhenSameBalance = freeze;
-
   }
 }

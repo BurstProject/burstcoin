@@ -133,7 +133,7 @@ public class AT_API_Controller {
     return 0;
   }
 
-  public static long func1( int func_num , long val , AT_Machine_State state) {
+  public static long func1( int func_num, long val, AT_Machine_State state) {
     switch (func_num) {
       case 272:
         atApi.set_A1( val, state);
@@ -195,7 +195,7 @@ public class AT_API_Controller {
 
     /*else if ( func_num == 1536 )
       {
-      atApi.SHA256_to_B( val1 , val2 , state);
+      atApi.SHA256_to_B( val1, val2, state);
       }*/
 
     return 0;
