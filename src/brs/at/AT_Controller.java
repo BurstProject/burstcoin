@@ -427,7 +427,7 @@ public abstract class AT_Controller {
     return ats;
   }
 
-  private static byte[] getBlockATBytes(List<AT> processedATs,y int payload ) throws NoSuchAlgorithmException {
+  private static byte[] getBlockATBytes(List<AT> processedATs, int payload ) throws NoSuchAlgorithmException {
     if (payload <= 0) {
       return null;
     }

@@ -209,7 +209,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
     b.get( temp, 0, 8 );
     state.set_B3( temp );
 
-    b.get( temp, , 8 );
+    b.get( temp, 0, 8 );
     state.set_B4( temp );
 
   }
