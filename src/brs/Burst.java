@@ -31,8 +31,9 @@ import java.util.Properties;
 
 public final class Burst {
 
-  public static final String VERSION = "1.3.6cg";
+  public static final String VERSION     = "1.3.7cg";
   public static final String APPLICATION = "BRS";
+
   public static final MetricRegistry metrics = new MetricRegistry();
   private static final Logger logger = LoggerFactory.getLogger(Burst.class);
   private static final Properties defaultProperties = new Properties();
@@ -79,44 +80,65 @@ public final class Burst {
   private Burst() {
   } // never
 
-  public static int getIntProperty(String name) {
-    try {
-      int result = Integer.parseInt(properties.getProperty(name));
-      logger.info(name + " = \"" + result + "\"");
-      return result;
+  // Boolean Properties handling
+  public static Boolean getBooleanProperty(String name, boolean assume) {
+    String value = properties.getProperty(name);
+
+    if (value != null) {
+      if (value.matches("(?i)^1|true|yes|on$")) {
+        logger.debug(name + " = \"true\"");
+        return true;
+      }
+
+      if (value.matches("(?i)^0|false|no|off$")) {
+        logger.debug(name + " = \"false\"");
+        return false;
+      }
     }
-    catch (NumberFormatException e) {
-      logger.info(name + " not defined, assuming 0");
-      return 0;
-    }
+
+    logger.info(name + " undefined. Default: " + assume);
+    return assume;
   }
-  
+
+  public static Boolean getBooleanProperty(String name) {
+    return getBooleanProperty(name, false);
+  }
+
+  // Int Properties handling
   public static int getIntProperty(String name, int defaultValue) {
     try {
       int result = Integer.parseInt(properties.getProperty(name));
-      logger.info(name + " = \"" + result + "\"");
+      logger.debug(name + " = \"" + result + "\"");
       return result;
-    } catch (NumberFormatException e) {
-      logger.info(name + " not defined, assuming "+defaultValue);
+    }
+    catch (NumberFormatException e) {
+      logger.info(name + " undefined. Default: " + defaultValue);
       return defaultValue;
     }
+  }
+
+  public static int getIntProperty(String name) {
+    return getIntProperty(name, 0);
+  }
+
+  // String Properties handling
+  public static String getStringProperty(String name, String defaultValue) {
+    String value = properties.getProperty(name);
+    if (value != null && !"".equals(value)) {
+      logger.debug(name + " = \"" + value + "\"");
+      return value;
+    }
+
+    logger.info(name + " undefined. Default: " + defaultValue);
+
+    return defaultValue;
   }
 
   public static String getStringProperty(String name) {
     return getStringProperty(name, null);
   }
 
-  public static String getStringProperty(String name, String defaultValue) {
-    String value = properties.getProperty(name);
-    if (value != null && !"".equals(value)) {
-      logger.info(name + " = \"" + value + "\"");
-      return value;
-    }
-
-    logger.info(name + " not defined");
-    return defaultValue;
-  }
-
+  // StringList Properties handling
   public static List<String> getStringListProperty(String name) {
     String value = getStringProperty(name);
     if (value == null || value.length() == 0) {
@@ -130,37 +152,6 @@ public final class Burst {
       }
     }
     return result;
-  }
-
-  public static Boolean getBooleanProperty(String name) {
-    String value = properties.getProperty(name);
-
-    if (Boolean.TRUE.toString().equals(value)) {
-      logger.info(name + " = \"true\"");
-      return true;
-    }
-
-    if (Boolean.FALSE.toString().equals(value)) {
-      logger.info(name + " = \"false\"");
-      return false;
-    }
-
-    logger.info(name + " not defined, assuming false");
-    return false;
-  }
-
-  public static Boolean getBooleanProperty(String name, boolean assume) {
-    String value = properties.getProperty(name);
-    if (Boolean.TRUE.toString().equals(value)) {
-      logger.info(name + " = \"true\"");
-      return true;
-    }
-    if (Boolean.FALSE.toString().equals(value)) {
-      logger.info(name + " = \"false\"");
-      return false;
-    }
-    logger.info(name + " not defined, assuming " + assume);
-    return assume;
   }
 
   public static Blockchain getBlockchain() {

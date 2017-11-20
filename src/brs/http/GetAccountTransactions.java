@@ -8,7 +8,7 @@ import brs.db.BurstIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
-
+import java.lang.Math;
 import javax.servlet.http.HttpServletRequest;
 
 public final class GetAccountTransactions extends APIServlet.APIRequestHandler {
@@ -30,21 +30,30 @@ public final class GetAccountTransactions extends APIServlet.APIRequestHandler {
     byte subtype;
     try {
       type = Byte.parseByte(req.getParameter("type"));
-    } catch (NumberFormatException e) {
+    }
+    catch (NumberFormatException e) {
       type = -1;
     }
     try {
       subtype = Byte.parseByte(req.getParameter("subtype"));
-    } catch (NumberFormatException e) {
+    }
+    catch (NumberFormatException e) {
       subtype = -1;
     }
 
+    int maxIndex   = Burst.getIntProperty("brs.apiMaxIndex"); // maxIndex as defined in config (if any)
     int firstIndex = ParameterParser.getFirstIndex(req);
-    int lastIndex = ParameterParser.getLastIndex(req);
+    int lastIndex  = ParameterParser.getLastIndex(req);
+
+    if (maxIndex > 0) {                                       // only if limit has been defined
+      lastIndex = Math.min(lastIndex, maxIndex);              // take the lower of the two
+    }
+
+    System.out.println("first: " + firstIndex + " last: " + lastIndex + "\n");
 
     JSONArray transactions = new JSONArray();
     try (BurstIterator<? extends Transaction> iterator = Burst.getBlockchain().getTransactions(account, numberOfConfirmations, type, subtype, timestamp,
-                                                                                             firstIndex, lastIndex)) {
+                                                                                               firstIndex, lastIndex)) {
       while (iterator.hasNext()) {
         Transaction transaction = iterator.next();
         transactions.add(JSONData.transaction(transaction));

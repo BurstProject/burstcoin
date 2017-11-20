@@ -87,9 +87,10 @@ nxt.dbPassword=yourpassword
 For a general overview of Burst history see https://burstwiki.org/wiki/History_of_Burst
 
 ```
-2017/10/28 1.3.6cg multi-DB support: added Firebird, re-added H2; support for quick binary dump and load
-2017/09/04 1.3.4cg improved database deployment; bugfix: utf8 encoding
-2017/08/11 1.3.2cg 1st official PoCC release: MariaDB backend based on 1.2.9
+????-??-?? 1.3.8cg Burst namespace; revamped configuration
+2017-10-28 1.3.6cg multi-DB support: added Firebird, re-added H2; support for quick binary dump and load
+2017-09-04 1.3.4cg improved database deployment; bugfix: utf8 encoding
+2017-08-11 1.3.2cg 1st official PoCC release: MariaDB backend based on 1.2.9
 ```
 For a detailed version history of wallets up to 1.2.9 see https://github.com/burst-team/burstcoin/releases
 
@@ -149,13 +150,13 @@ base are not mentioned, however. In alphabetical order:
 
 For further information, please visit the following pages.
 
-Info: https://www.burst-coin.org/
+Wiki: https://burstwiki.org (lots of other links)
 
-Wiki: https://burstwiki.org
+Info: https://www.burst-coin.org/
 
 Explorer: https://explore.burst.cryptoguru.org
 
-Forum1: http://burst-team.us/
+Forum1: http://burstforum.net/
 
 Forum2: https://forums.getburst.net/
 
@@ -190,4 +191,4 @@ https://github.com/uraymeiviar *C Miner, Pool, Block Explorer, Plot Composer (Li
 https://github.com/mrpsion/burst-mining-system *Web interface for Plotting and Mining*
 
 ### Additional Software
-https://forums.burst-team.us/category/9/burst-software
+https://burstforum.net/category/9/burst-software
