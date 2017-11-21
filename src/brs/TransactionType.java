@@ -32,7 +32,6 @@ public abstract class TransactionType {
   private static final byte SUBTYPE_MESSAGING_ALIAS_ASSIGNMENT = 1;
   private static final byte SUBTYPE_MESSAGING_POLL_CREATION = 2;
   private static final byte SUBTYPE_MESSAGING_VOTE_CASTING = 3;
-  private static final byte SUBTYPE_MESSAGING_HUB_ANNOUNCEMENT = 4;
   private static final byte SUBTYPE_MESSAGING_ACCOUNT_INFO = 5;
   private static final byte SUBTYPE_MESSAGING_ALIAS_SELL = 6;
   private static final byte SUBTYPE_MESSAGING_ALIAS_BUY = 7;
@@ -93,8 +92,6 @@ public abstract class TransactionType {
             return Messaging.POLL_CREATION;
           case SUBTYPE_MESSAGING_VOTE_CASTING:
             return Messaging.VOTE_CASTING;
-          case SUBTYPE_MESSAGING_HUB_ANNOUNCEMENT:
-            return Messaging.HUB_ANNOUNCEMENT;
           case SUBTYPE_MESSAGING_ACCOUNT_INFO:
             return Messaging.ACCOUNT_INFO;
           case SUBTYPE_MESSAGING_ALIAS_SELL:
@@ -676,55 +673,6 @@ public abstract class TransactionType {
           }
           if (Poll.getPoll(attachment.getPollId()) == null) {
             throw new BurstException.NotCurrentlyValidException("Invalid poll: " + Convert.toUnsignedLong(attachment.getPollId()));
-          }
-        }
-
-        @Override
-        public boolean hasRecipient() {
-          return false;
-        }
-
-      };
-
-    public static final TransactionType HUB_ANNOUNCEMENT = new Messaging() {
-
-        @Override
-        public final byte getSubtype() {
-          return TransactionType.SUBTYPE_MESSAGING_HUB_ANNOUNCEMENT;
-        }
-
-        @Override
-        public Attachment.MessagingHubAnnouncement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
-          return new Attachment.MessagingHubAnnouncement(buffer, transactionVersion);
-        }
-
-        @Override
-        Attachment.MessagingHubAnnouncement parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
-          return new Attachment.MessagingHubAnnouncement(attachmentData);
-        }
-
-        @Override
-        void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-          Attachment.MessagingHubAnnouncement attachment = (Attachment.MessagingHubAnnouncement) transaction.getAttachment();
-          Hub.addOrUpdateHub(transaction, attachment);
-        }
-
-        @Override
-        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-          if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.TRANSPARENT_FORGING_BLOCK_7) {
-            throw new BurstException.NotYetEnabledException("Hub terminal announcement not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
-          }
-          Attachment.MessagingHubAnnouncement attachment = (Attachment.MessagingHubAnnouncement) transaction.getAttachment();
-          if (attachment.getMinFeePerByteNQT() < 0 || attachment.getMinFeePerByteNQT() > Constants.MAX_BALANCE_NQT
-              || attachment.getUris().length > Constants.MAX_HUB_ANNOUNCEMENT_URIS) {
-            // cfb: "0" is allowed to show that another way to determine the min fee should be used
-            throw new BurstException.NotValidException("Invalid hub terminal announcement: " + attachment.getJSONObject());
-          }
-          for (String uri : attachment.getUris()) {
-            if (uri.length() > Constants.MAX_HUB_ANNOUNCEMENT_URI_LENGTH) {
-              throw new BurstException.NotValidException("Invalid URI length: " + uri.length());
-            }
-            //TODO: also check URI validity here?
           }
         }
 
