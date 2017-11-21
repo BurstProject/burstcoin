@@ -1,5 +1,9 @@
 # Burstcoin CG-Wallet
 
+[![Get Support at https://discord.gg/NKXGM6N](https://img.shields.io/badge/join-discord-blue.svg)](https://discord.gg/NKXGM6N)
+[![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
+[![Build Status](https://api.travis-ci.org/PoC-Consortium/burstcoin.svg?branch=master)](https://travis-ci.org/PoC-Consortium/burstcoin?branch=master) 
+
 The world's first HDD-mined cryptocurrency using an energy efficient
 and fair Proof-of-Capacity (PoC) consensus algorithm.
 
