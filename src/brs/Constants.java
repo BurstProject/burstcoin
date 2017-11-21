@@ -58,10 +58,6 @@ public final class Constants {
   public static final int MAX_DGS_LISTING_TAGS_LENGTH = 100;
   public static final int MAX_DGS_GOODS_LENGTH = 10240;
 
-  public static final int MAX_HUB_ANNOUNCEMENT_URIS = 100;
-  public static final int MAX_HUB_ANNOUNCEMENT_URI_LENGTH = 1000;
-  public static final long MIN_HUB_EFFECTIVE_BALANCE = 100000;
-
   public static final boolean isTestnet = Burst.getBooleanProperty("brs.isTestnet");
   public static final boolean isOffline = Burst.getBooleanProperty("brs.isOffline");
 
@@ -73,7 +69,6 @@ public final class Constants {
   public static final int TRANSPARENT_FORGING_BLOCK_4 = 0;
   public static final int TRANSPARENT_FORGING_BLOCK_5 = 0;
   public static final int TRANSPARENT_FORGING_BLOCK_6 = 0;
-  public static final int TRANSPARENT_FORGING_BLOCK_7 = Integer.MAX_VALUE;
   public static final int TRANSPARENT_FORGING_BLOCK_8 = 0;
   public static final int NQT_BLOCK = 0;
   public static final int FRACTIONAL_BLOCK = 0;
