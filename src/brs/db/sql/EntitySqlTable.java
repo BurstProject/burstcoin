@@ -265,15 +265,13 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   @Override
   public BurstIterator<T> getAll(int height, int from, int to, String sort) {
     checkAvailable(height);
-    Connection con = null;
-    try {
-      con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + " AS a WHERE height <= ?"
-                                                     + (multiversion ? " AND (latest = TRUE OR (latest = FALSE "
-                                                        + "AND EXISTS (SELECT 1 FROM " + table + " AS b WHERE b.height > ? AND " + dbKeyFactory.getSelfJoinClause()
-                                                        + ") AND NOT EXISTS (SELECT 1 FROM " + table + " AS b WHERE b.height <= ? AND " + dbKeyFactory.getSelfJoinClause()
-                                                        + " AND b.height > a.height))) " : " ") + sort
-                                                     + DbUtils.limitsClause(from, to));
+    try ( Connection con = Db.getConnection();
+          PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + " AS a WHERE height <= ?"
+                                                           + (multiversion ? " AND (latest = TRUE OR (latest = FALSE "
+                                                           + "AND EXISTS (SELECT 1 FROM " + table + " AS b WHERE b.height > ? AND " + dbKeyFactory.getSelfJoinClause()
+                                                           + ") AND NOT EXISTS (SELECT 1 FROM " + table + " AS b WHERE b.height <= ? AND " + dbKeyFactory.getSelfJoinClause()
+                                                           + " AND b.height > a.height))) " : " ") + sort
+                                                           + DbUtils.limitsClause(from, to)); ) {
       int i = 0;
       pstmt.setInt(++i, height);
       if (multiversion) {
@@ -283,7 +281,6 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
       i = DbUtils.setLimits(++i, pstmt, from, to);
       return getManyBy(con, pstmt, false);
     } catch (SQLException e) {
-      DbUtils.close(con);
       throw new RuntimeException(e.toString(), e);
     }
   }

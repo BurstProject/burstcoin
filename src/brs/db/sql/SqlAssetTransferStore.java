@@ -65,12 +65,10 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
 
   @Override
   public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
-    Connection con = null;
-    try {
-      con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM asset_transfer WHERE sender_id = ?"
-                                                     + " UNION ALL SELECT * FROM asset_transfer WHERE recipient_id = ? AND sender_id <> ? ORDER BY height DESC"
-                                                     + DbUtils.limitsClause(from, to));
+    try (Connection con = Db.getConnection();
+         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM asset_transfer WHERE sender_id = ?"
+                                                        + " UNION ALL SELECT * FROM asset_transfer WHERE recipient_id = ? AND sender_id <> ? ORDER BY height DESC"
+                                                        + DbUtils.limitsClause(from, to))) {
       int i = 0;
       pstmt.setLong(++i, accountId);
       pstmt.setLong(++i, accountId);
@@ -78,19 +76,16 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
       DbUtils.setLimits(++i, pstmt, from, to);
       return getAssetTransferTable().getManyBy(con, pstmt, false);
     } catch (SQLException e) {
-      DbUtils.close(con);
       throw new RuntimeException(e.toString(), e);
     }
   }
 
   @Override
   public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
-    Connection con = null;
-    try {
-      con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM asset_transfer WHERE sender_id = ? AND asset_id = ?"
-                                                     + " UNION ALL SELECT * FROM asset_transfer WHERE recipient_id = ? AND sender_id <> ? AND asset_id = ? ORDER BY height DESC"
-                                                     + DbUtils.limitsClause(from, to));
+    try (Connection con = Db.getConnection();
+         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM asset_transfer WHERE sender_id = ? AND asset_id = ?"
+                                                        + " UNION ALL SELECT * FROM asset_transfer WHERE recipient_id = ? AND sender_id <> ? AND asset_id = ? ORDER BY height DESC"
+                                                        + DbUtils.limitsClause(from, to))) {
       int i = 0;
       pstmt.setLong(++i, accountId);
       pstmt.setLong(++i, assetId);
@@ -100,7 +95,6 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
       DbUtils.setLimits(++i, pstmt, from, to);
       return getAssetTransferTable().getManyBy(con, pstmt, false);
     } catch (SQLException e) {
-      DbUtils.close(con);
       throw new RuntimeException(e.toString(), e);
     }
   }

@@ -20,30 +20,23 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
 
   @Override
   public BurstIterator<BlockImpl> getAllBlocks() {
-    Connection con = null;
-    try {
-      con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block ORDER BY db_id ASC");
+    try (Connection con = Db.getConnection();
+         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block ORDER BY db_id ASC")) {
       return getBlocks(con, pstmt);
     } catch (SQLException e) {
-      DbUtils.close(con);
       throw new RuntimeException(e.toString(), e);
     }
   }
 
   @Override
   public BurstIterator<BlockImpl> getBlocks(int from, int to) {
-    Connection con = null;
-    try {
-      con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE height <= ? AND height >= ? ORDER BY height DESC");
-
+    try (Connection  con = Db.getConnection();
+         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE height <= ? AND height >= ? ORDER BY height DESC")) {
       int blockchainHeight = Burst.getBlockchain().getHeight();
       pstmt.setInt(1, blockchainHeight - Math.max(from, 0));
       pstmt.setInt(2, to > 0 ? blockchainHeight - to : 0);
       return getBlocks(con, pstmt);
     } catch (SQLException e) {
-      DbUtils.close(con);
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -51,12 +44,10 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
 
   @Override
   public BurstIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to) {
-    Connection con = null;
-    try {
-      con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE generator_id = ? "
-                                                     + (timestamp > 0 ? " AND timestamp >= ? " : " ") + "ORDER BY db_id DESC"
-                                                     + DbUtils.limitsClause(from, to));
+    try (Connection con = Db.getConnection();
+         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE generator_id = ? "
+                                                        + (timestamp > 0 ? " AND timestamp >= ? " : " ") + "ORDER BY db_id DESC"
+                                                        + DbUtils.limitsClause(from, to))) {
       int i = 0;
       pstmt.setLong(++i, account.getId());
       if (timestamp > 0) {
@@ -65,7 +56,6 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
       DbUtils.setLimits(++i, pstmt, from, to);
       return getBlocks(con, pstmt);
     } catch (SQLException e) {
-      DbUtils.close(con);
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -136,13 +126,10 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
 
   @Override
   public BurstIterator<TransactionImpl> getAllTransactions() {
-    Connection con = null;
-    try {
-      con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction ORDER BY db_id ASC");
+    try (Connection con = Db.getConnection();
+         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction ORDER BY db_id ASC")) {
       return getTransactions(con, pstmt);
     } catch (SQLException e) {
-      DbUtils.close(con);
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -156,8 +143,7 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
       throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations
                                          + " exceeds current blockchain height " + Burst.getBlockchain().getHeight());
     }
-    Connection con = null;
-    try {
+    try (Connection con = Db.getConnection()) {
       StringBuilder buf = new StringBuilder();
       buf.append("SELECT * FROM transaction WHERE recipient_id = ? AND sender_id <> ? ");
       if (blockTimestamp > 0) {
@@ -187,41 +173,41 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
       }
       buf.append("ORDER BY block_timestamp DESC, id DESC");
       buf.append(DbUtils.limitsClause(from, to));
-      con = Db.getConnection();
-      PreparedStatement pstmt;
+
       int i = 0;
-      pstmt = con.prepareStatement(buf.toString());
-      pstmt.setLong(++i, account.getId());
-      pstmt.setLong(++i, account.getId());
-      if (blockTimestamp > 0) {
-        pstmt.setInt(++i, blockTimestamp);
-      }
-      if (type >= 0) {
-        pstmt.setByte(++i, type);
-        if (subtype >= 0) {
-          pstmt.setByte(++i, subtype);
+      try (PreparedStatement pstmt = con.prepareStatement(buf.toString())) {
+        pstmt.setLong(++i, account.getId());
+        pstmt.setLong(++i, account.getId());
+        if (blockTimestamp > 0) {
+          pstmt.setInt(++i, blockTimestamp);
         }
-      }
-      if (height < Integer.MAX_VALUE) {
-        pstmt.setInt(++i, height);
-      }
-      pstmt.setLong(++i, account.getId());
-      if (blockTimestamp > 0) {
-        pstmt.setInt(++i, blockTimestamp);
-      }
-      if (type >= 0) {
-        pstmt.setByte(++i, type);
-        if (subtype >= 0) {
-          pstmt.setByte(++i, subtype);
+        if (type >= 0) {
+          pstmt.setByte(++i, type);
+          if (subtype >= 0) {
+            pstmt.setByte(++i, subtype);
+          }
         }
+        if (height < Integer.MAX_VALUE) {
+          pstmt.setInt(++i, height);
+        }
+        pstmt.setLong(++i, account.getId());
+        if (blockTimestamp > 0) {
+          pstmt.setInt(++i, blockTimestamp);
+        }
+        if (type >= 0) {
+          pstmt.setByte(++i, type);
+          if (subtype >= 0) {
+            pstmt.setByte(++i, subtype);
+          }
+        }
+        if (height < Integer.MAX_VALUE) {
+          pstmt.setInt(++i, height);
+        }
+        DbUtils.setLimits(++i, pstmt, from, to);
+        return getTransactions(con, pstmt);
       }
-      if (height < Integer.MAX_VALUE) {
-        pstmt.setInt(++i, height);
-      }
-      DbUtils.setLimits(++i, pstmt, from, to);
-      return getTransactions(con, pstmt);
-    } catch (SQLException e) {
-      DbUtils.close(con);
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -235,7 +221,6 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
         }
       });
   }
-
 
   @Override
   public boolean addBlock(BlockImpl block) {

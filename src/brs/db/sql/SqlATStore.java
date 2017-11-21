@@ -79,8 +79,9 @@ public abstract class SqlATStore implements ATStore {
     try (Connection con = Db.getConnection();
          PreparedStatement pstmt = con.prepareStatement("SELECT id FROM " + DbUtils.quoteTableName("at") + " WHERE id = ? AND latest = TRUE")) {
       pstmt.setLong(1, id);
-      ResultSet result = pstmt.executeQuery();
-      return result.next();
+      try (ResultSet result = pstmt.executeQuery()) {
+        return result.next();
+      }
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
@@ -99,10 +100,11 @@ public abstract class SqlATStore implements ATStore {
       pstmt.setInt(1, Burst.getBlockchain().getHeight() + 1);
       pstmt.setLong(2, AT_Constants.getInstance().STEP_FEE(Burst.getBlockchain().getHeight()) *
                     AT_Constants.getInstance().API_STEP_MULTIPLIER(Burst.getBlockchain().getHeight()));
-      ResultSet result = pstmt.executeQuery();
-      while (result.next()) {
-        Long id = result.getLong(1);
-        orderedATs.add(id);
+      try (ResultSet result = pstmt.executeQuery()) {
+        while (result.next()) {
+          Long id = result.getLong(1);
+          orderedATs.add(id);
+        }
       }
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
@@ -122,12 +124,13 @@ public abstract class SqlATStore implements ATStore {
                                                         + "AND t_at.id = ?")) {
       int i = 0;
       pstmt.setLong(++i, id);
-      ResultSet result = pstmt.executeQuery();
-      List<AT> ats = createATs(result);
-      if (ats.size() > 0) {
-        return ats.get(0);
+      try (ResultSet result = pstmt.executeQuery()) {
+        List<AT> ats = createATs(result);
+        if (ats.size() > 0) {
+          return ats.get(0);
+        }
+        return null;
       }
-      return null;
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
@@ -141,10 +144,12 @@ public abstract class SqlATStore implements ATStore {
                                                         + "WHERE latest = TRUE AND creator_id = ? "
                                                         + "ORDER BY creation_height DESC, id")) {
       pstmt.setLong(1, accountId);
-      ResultSet result = pstmt.executeQuery();
+
       List<Long> resultList = new ArrayList<>();
-      while (result.next()) {
-        resultList.add(result.getLong(1));
+      try (ResultSet result = pstmt.executeQuery()) {
+        while (result.next()) {
+          resultList.add(result.getLong(1));
+        }
       }
       return resultList;
     } catch (SQLException e) {
@@ -155,8 +160,8 @@ public abstract class SqlATStore implements ATStore {
   @Override
   public Collection<Long> getAllATIds() {
     try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT id FROM " + DbUtils.quoteTableName("at") + " WHERE latest = TRUE")) {
-      ResultSet result = pstmt.executeQuery();
+         PreparedStatement pstmt = con.prepareStatement("SELECT id FROM " + DbUtils.quoteTableName("at") + " WHERE latest = TRUE");
+         ResultSet result = pstmt.executeQuery() ) {
       List<Long> ids = new ArrayList<>();
       while (result.next()) {
         ids.add(result.getLong("id"));
@@ -243,14 +248,14 @@ public abstract class SqlATStore implements ATStore {
       pstmt.setLong(i++, atID);
       pstmt.setLong(i++, minAmount);
       i = DbUtils.setLimits(i++, pstmt, numOfTx, numOfTx + 1);
-      ResultSet rs = pstmt.executeQuery();
-      Long transactionId = 0L;
-      if (rs.next()) {
-        transactionId = rs.getLong("id");
-      }
-      rs.close();
-      return transactionId;
 
+      Long transactionId = 0L;        
+      try (ResultSet rs = pstmt.executeQuery()) {
+        if (rs.next()) {
+          transactionId = rs.getLong("id");
+        }
+      }
+      return transactionId;
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
@@ -266,19 +271,18 @@ public abstract class SqlATStore implements ATStore {
       pstmt.setInt(1, height);
       pstmt.setLong(2, atID);
       pstmt.setLong(3, minAmount);
-      ResultSet rs = pstmt.executeQuery();
 
       int counter = 0;
-      while (rs.next()) {
-        if (rs.getLong("id") == transactionId) {
+      try (ResultSet rs = pstmt.executeQuery()) {
+        while (rs.next()) {
+          if (rs.getLong("id") == transactionId) {
+            counter++;
+            break;
+          }
           counter++;
-          break;
         }
-        counter++;
       }
-      rs.close();
       return counter;
-
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
