@@ -162,16 +162,17 @@ public final class Db {
   }
 
   public static void shutdown() {
-    try {
-      Connection con = cp.getConnection();
-      if (DATABASE_TYPE == TYPE.H2) {
-        logger.info("Compacting database - this may take a while");
-        Statement stmt = con.createStatement();
+    if (DATABASE_TYPE == TYPE.H2) {
+      logger.info("Compacting database - this may take a while");
+      try ( Connection con = cp.getConnection(); Statement stmt = con.createStatement(); ) {
         stmt.execute("SHUTDOWN COMPACT");
       }
-      logger.info("Database shutdown completed");
-    } catch (SQLException e) {
-      logger.info(e.toString(), e);
+      catch (SQLException e) {
+        logger.info(e.toString(), e);
+      }
+      finally {
+        logger.info("Database shutdown completed");
+      }
     }
   }
 

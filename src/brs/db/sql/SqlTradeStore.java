@@ -46,12 +46,10 @@ public abstract class SqlTradeStore implements TradeStore {
 
   @Override
   public BurstIterator<Trade> getAccountTrades(long accountId, int from, int to) {
-    Connection con = null;
-    try {
-      con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM trade WHERE seller_id = ?"
-                                                     + " UNION ALL SELECT * FROM trade WHERE buyer_id = ? AND seller_id <> ? ORDER BY height DESC"
-                                                     + DbUtils.limitsClause(from, to));
+    try (Connection con = Db.getConnection();
+         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM trade WHERE seller_id = ?"
+                                                        + " UNION ALL SELECT * FROM trade WHERE buyer_id = ? AND seller_id <> ? ORDER BY height DESC"
+                                                        + DbUtils.limitsClause(from, to))) {
       int i = 0;
       pstmt.setLong(++i, accountId);
       pstmt.setLong(++i, accountId);
@@ -59,19 +57,16 @@ public abstract class SqlTradeStore implements TradeStore {
       DbUtils.setLimits(++i, pstmt, from, to);
       return tradeTable.getManyBy(con, pstmt, false);
     } catch (SQLException e) {
-      DbUtils.close(con);
       throw new RuntimeException(e.toString(), e);
     }
   }
 
   @Override
   public BurstIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
-    Connection con = null;
-    try {
-      con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM trade WHERE seller_id = ? AND asset_id = ?"
-                                                     + " UNION ALL SELECT * FROM trade WHERE buyer_id = ? AND seller_id <> ? AND asset_id = ? ORDER BY height DESC"
-                                                     + DbUtils.limitsClause(from, to));
+    try (Connection con = Db.getConnection();
+         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM trade WHERE seller_id = ? AND asset_id = ?"
+                                                        + " UNION ALL SELECT * FROM trade WHERE buyer_id = ? AND seller_id <> ? AND asset_id = ? ORDER BY height DESC"
+                                                        + DbUtils.limitsClause(from, to))) {
       int i = 0;
       pstmt.setLong(++i, accountId);
       pstmt.setLong(++i, assetId);
@@ -81,7 +76,6 @@ public abstract class SqlTradeStore implements TradeStore {
       DbUtils.setLimits(++i, pstmt, from, to);
       return tradeTable.getManyBy(con, pstmt, false);
     } catch (SQLException e) {
-      DbUtils.close(con);
       throw new RuntimeException(e.toString(), e);
     }
   }
