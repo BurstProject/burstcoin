@@ -105,16 +105,14 @@ public class CreateBinDump {
           fetchSize = 100000;
       }
 
+      try ( Connection con = Db.beginTransaction(); Statement stmt = con.createStatement() ) {
+        int height;
+        try ( ResultSet rs = stmt.executeQuery("select max(height) from block;") ) {
+          rs.next();
+          height = rs.getInt(1);
+          output.write(height);
+        }
 
-      try (Connection con = Db.getConnection()) {
-        Db.beginTransaction();
-
-        Statement stmt = con.createStatement();
-        ResultSet rs = stmt.executeQuery("select max(height) from block;");
-        rs.next();
-        int height = rs.getInt(1);
-        output.write(height);
-        rs.close();
         List<String> classes = getClassNamesFromPackage("brs.db.quicksync.pojo");
 
         for (String classname : classes) {
@@ -148,82 +146,86 @@ public class CreateBinDump {
           String sql = sb.toString();
           logger.debug(sql);
           kryo.writeClass(output, clazz);
-          rs = con.createStatement().executeQuery("select count(1) from " + BinDumps.getTableName(clazz));
-          rs.next();
-          long rows = rs.getLong(1);
-          output.writeLong(rows);
+
+          long rows;
+          try ( ResultSet rs = con.createStatement().executeQuery("select count(1) from " + BinDumps.getTableName(clazz)) ) {
+            rs.next();
+            rows = rs.getLong(1);
+            output.writeLong(rows);
+          }
+
           long records = 0;
-          PreparedStatement ps = con.prepareStatement(sql);
-          ps.setLong(2, fetchSize);
-          while (records < rows) {
-            switch (Db.getDatabaseType()) {
-              case FIREBIRD:
-                ps.setLong(1, records + 1);
-                ps.setLong(2, records + fetchSize);
-                break;
-              default:
-                ps.setLong(1, fetchSize);
-                ps.setLong(2, records );
-            }
-
-
-            rs = ps.executeQuery();
-            Object data = clazz.newInstance();
-            while (rs.next()) {
-              records++;
-              if (records % 1000 == 0)
-                logger.info(classname + ": " + records + " / " + rows);
-              int i = 1;
-
-
-              for (Field field : fields) {
-                Class fieldType = field.getType();
-                field.setAccessible(true);
-                Object value;
-
-
-                if (fieldType.equals(String.class)) {
-                  value = rs.getString(i);
-                } else if (fieldType.equals(Long.class)) {
-                  if (rs.getObject(i) == null)
-                    value = null;
-                  else
-                    value = rs.getLong(i);
-                } else if (fieldType.equals(long.class)) {
-                  value = rs.getLong(i);
-                } else if (fieldType.isArray()) {
-                  // Byte array?
-                  if (fieldType.getComponentType().equals(byte.class)) {
-                    // Not sure if this works across drivers
-                    value = rs.getBytes(i);
-                  } else {
-                    logger.error("Unhandled array type for" + field.getName() + ": " + fieldType);
-                    value = rs.getObject(i);
-                  }
-
-                } else {
-                  logger.error("Unhandled field type for" + field.getName() + ": " + fieldType);
-                  value = rs.getObject(i);
-                }
-                field.set(data, value);
-                i++;
+          try ( PreparedStatement ps = con.prepareStatement(sql) ) {
+            ps.setLong(2, fetchSize);
+            while (records < rows) {
+              switch (Db.getDatabaseType()) {
+                case FIREBIRD:
+                  ps.setLong(1, records + 1);
+                  ps.setLong(2, records + fetchSize);
+                  break;
+                default:
+                  ps.setLong(1, fetchSize);
+                  ps.setLong(2, records );
               }
 
-              kryo.writeObject(output, data);
+
+              try ( ResultSet rs = ps.executeQuery() ) {
+                Object data = clazz.newInstance();
+                while (rs.next()) {
+                  records++;
+                  if (records % 1000 == 0)
+                    logger.info(classname + ": " + records + " / " + rows);
+                  int i = 1;
+
+
+                  for (Field field : fields) {
+                    Class fieldType = field.getType();
+                    field.setAccessible(true);
+                    Object value;
+
+
+                    if (fieldType.equals(String.class)) {
+                      value = rs.getString(i);
+                    } else if (fieldType.equals(Long.class)) {
+                      if (rs.getObject(i) == null)
+                        value = null;
+                      else
+                        value = rs.getLong(i);
+                    } else if (fieldType.equals(long.class)) {
+                      value = rs.getLong(i);
+                    } else if (fieldType.isArray()) {
+                      // Byte array?
+                      if (fieldType.getComponentType().equals(byte.class)) {
+                        // Not sure if this works across drivers
+                        value = rs.getBytes(i);
+                      } else {
+                        logger.error("Unhandled array type for" + field.getName() + ": " + fieldType);
+                        value = rs.getObject(i);
+                      }
+
+                    } else {
+                      logger.error("Unhandled field type for" + field.getName() + ": " + fieldType);
+                      value = rs.getObject(i);
+                    }
+                    field.set(data, value);
+                    i++;
+                  }
+
+                  kryo.writeObject(output, data);
+                }
+              }
             }
-
-            rs.close();
-
-
           }
-          ps.close();
           output.flush();
           logger.info(classname + ": " + records + " / " + rows);
-
         }
+      }
+      catch (SQLException e) {
+        Db.rollbackTransaction();
+        throw e;
+      } finally {
         Db.endTransaction();
       }
-
     }
     logger.info("Dump created in " + ((System.currentTimeMillis() - start) / 1000) + "seconds");
   }
@@ -237,22 +239,22 @@ public class CreateBinDump {
     packageURL = classLoader.getResource(packageName);
     if (packageURL.getProtocol().equals("jar")) {
       String jarFileName;
-      JarFile jf;
       Enumeration<JarEntry> jarEntries;
       String entryName;
       // build jar file name, then loop through zipped entries
       jarFileName = URLDecoder.decode(packageURL.getFile(), "UTF-8");
       jarFileName = jarFileName.substring(5, jarFileName.indexOf("!"));
-      jf = new JarFile(jarFileName);
-      jarEntries = jf.entries();
-      while (jarEntries.hasMoreElements()) {
-        entryName = jarEntries.nextElement().getName();
-        if (entryName.startsWith(packageName) && entryName.length() > packageName.length() + 5) {
-          entryName = entryName.substring(packageName.length(), entryName.lastIndexOf('.'));
-          entryName = entryName.replace("\\","");
-          entryName = entryName.replace("/","");
-          logger.trace("Found class: "+entryName);
-          names.add(entryName);
+      try ( JarFile jf = new JarFile(jarFileName) ) {
+        jarEntries = jf.entries();
+        while (jarEntries.hasMoreElements()) {
+          entryName = jarEntries.nextElement().getName();
+          if (entryName.startsWith(packageName) && entryName.length() > packageName.length() + 5) {
+            entryName = entryName.substring(packageName.length(), entryName.lastIndexOf('.'));
+            entryName = entryName.replace("\\","");
+            entryName = entryName.replace("/","");
+            logger.trace("Found class: "+entryName);
+            names.add(entryName);
+          }
         }
       }
 
