@@ -45,14 +45,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <sonar.sources>src/brs</sonar.sources>
-        <sonar.tests>src/test</sonar.tests>
+        <!-- <sonar.tests>src/test</sonar.tests> -->
 
         <!-- For Java -->
+        <!--
         <sonar.junit.reportsPath>reports/java/surefire-reports</sonar.junit.reportsPath>
         <sonar.jacoco.reportPath>reports/java/jacoco.exec</sonar.jacoco.reportPath>
+        -->
 
         <!-- For JavaScript -->
+        <!--
         <sonar.javascript.lcov.reportPath>reports/js/lcov.dat</sonar.javascript.lcov.reportPath>
+        -->
 
     </properties>
 
