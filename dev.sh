@@ -30,6 +30,7 @@ case "$MY_CMD" in
                 echo "Starting analysis by SonarQube..."
                 mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar -B -e -V \
                         -Dsonar.host.url=$SONAR_HOST_URL \
+                        -Dsonar.organization=$SONAR_ORGANIZATION \
                         -Dsonar.login=$SONAR_TOKEN
 
         elif [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ -n "${GITHUB_TOKEN-}" ]; then
@@ -42,6 +43,7 @@ case "$MY_CMD" in
                 echo "Starting Pull Request analysis by SonarQube..."
                 mvn clean package sonar:sonar -B -e -V \
                         -Dsonar.host.url=$SONAR_HOST_URL \
+                        -Dsonar.organization=$SONAR_ORGANIZATION \
                         -Dsonar.login=$SONAR_TOKEN \
                         -Dsonar.analysis.mode=preview \
                         -Dsonar.github.oauth=$GITHUB_TOKEN \
