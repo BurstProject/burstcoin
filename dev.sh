@@ -1,4 +1,7 @@
-#!/bin/sh
+#!/bin/bash
+
+# Exit on failure
+set -e
 
 MY_SELF=$0
 MY_CMD=$1
@@ -8,17 +11,12 @@ function usage() {
     cat << EOF
 usage: $0 [command] [arguments]
 
-  sonarcube  update sonarcube
+  sonarcube        update sonarcube
 EOF
 }
 
 case "$MY_CMD" in
-    "sonar")
-        # Exit on failure
-        set -e
-
-        SONAR_HOST_URL=https://sonarcloud.io
-	
+    "sonarcube")
         # This assumes that the 2 following variables are defined:
         # - SONAR_HOST_URL => should point to the public URL of the SQ server (e.g. for Nemo: https://nemo.sonarqube.org)
         # - SONAR_TOKEN    => token of a user who has the "Execute Analysis" permission on the SQ server
