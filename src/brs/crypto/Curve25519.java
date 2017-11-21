@@ -446,7 +446,7 @@ final class Curve25519 {
   /* Convert to internal format from little-endian byte format */
   private static void unpack(long10 x,byte[] m) {
     x._0 = (m[0] & 0xFF)         | (m[1] & 0xFF) << 8 |
-           (m[2] & 0xFF) << 16   | ((m[3] & 0xFF)& 3) << 24;
+        (m[2] & 0xFF) << 16   | ((m[3] & 0xFF)& 3) << 24;
     x._1 = ((m[3] & 0xFF) & ~3) >> 2  | (m[4] & 0xFF)<<6 |
         (m[5] & 0xFF)<<14 | ((m[6] & 0xFF)& 7)<<22;
     x._2 = ((m[6] & 0xFF)&~ 7)>>3  | (m[7] & 0xFF)<<5 |
@@ -860,88 +860,80 @@ final class Curve25519 {
 
   /* P = kG   and  s = sign(P)/k  */
   private static void core(byte[] Px, byte[] s, byte[] k, byte[] Gx) {
-    long10
-        dx=new long10(),
-        t1=new long10(),
-        t2=new long10(),
-        t3=new long10(),
-        t4=new long10();
-    long10[]
-        x=new long10[]{new long10(),new long10()},
-        z=new long10[]{new long10(),new long10()};
-        int i, j;
+    long10 dx=new long10();
+    long10 t1=new long10();
+    long10 t2=new long10();
+    long10 t3=new long10();
+    long10 t4=new long10();
+    long10[] x=new long10[]{new long10(),new long10()};
+    long10[] z=new long10[]{new long10(),new long10()};
+    int i;
+    int j;
 
-        /* unpack the base */
-        if (Gx!=null)
-          unpack(dx, Gx);
-        else
-          set(dx, 9);
+    /* unpack the base */
+    if (Gx!=null)
+      unpack(dx, Gx);
+    else
+      set(dx, 9);
 
-        /* 0G = point-at-infinity */
-        set(x[0], 1);
-        set(z[0], 0);
+    /* 0G = point-at-infinity */
+    set(x[0], 1);
+    set(z[0], 0);
 
-        /* 1G = G */
-        cpy(x[1], dx);
-        set(z[1], 1);
+    /* 1G = G */
+    cpy(x[1], dx);
+    set(z[1], 1);
 
-        for (i = 32; i--!=0; ) {
-          if (i==0) {
-            i=0;
-          }
-          for (j = 8; j--!=0; ) {
-            /* swap arguments depending on bit */
-            int bit1 = (k[i] & 0xFF) >> j & 1;
-            int bit0 = ~(k[i] & 0xFF) >> j & 1;
-            long10 ax = x[bit0];
-            long10 az = z[bit0];
-            long10 bx = x[bit1];
-            long10 bz = z[bit1];
+    for (i = 32; i--!=0; ) {
+      for (j = 8; j--!=0; ) {
+        /* swap arguments depending on bit */
+        int bit1 = (k[i] & 0xFF) >> j & 1;
+        int bit0 = ~(k[i] & 0xFF) >> j & 1;
+        long10 ax = x[bit0];
+        long10 az = z[bit0];
+        long10 bx = x[bit1];
+        long10 bz = z[bit1];
 
-            /* a' = a + b	*/
-            /* b' = 2 b	*/
-            mont_prep(t1, t2, ax, az);
-            mont_prep(t3, t4, bx, bz);
-            mont_add(t1, t2, t3, t4, ax, az, dx);
-            mont_dbl(t1, t2, t3, t4, bx, bz);
-          }
-        }
+        /* a' = a + b	*/
+        /* b' = 2 b	*/
+        mont_prep(t1, t2, ax, az);
+        mont_prep(t3, t4, bx, bz);
+        mont_add(t1, t2, t3, t4, ax, az, dx);
+        mont_dbl(t1, t2, t3, t4, bx, bz);
+      }
+    }
 
-        recip(t1, z[0], 0);
-        mul(dx, x[0], t1);
-        pack(dx, Px);
+    recip(t1, z[0], 0);
+    mul(dx, x[0], t1);
+    pack(dx, Px);
 
-        /* calculate s such that s abs(P) = G  .. assumes G is std base point */
-        if (s!=null) {
-          x_to_y2(t2, t1, dx);	/* t1 = Py^2  */
-          recip(t3, z[1], 0);	/* where Q=P+G ... */
-          mul(t2, x[1], t3);	/* t2 = Qx  */
-          add(t2, t2, dx);	/* t2 = Qx + Px  */
-          t2._0 += 9 + 486662;	/* t2 = Qx + Px + Gx + 486662  */
-          dx._0 -= 9;		/* dx = Px - Gx  */
-          sqr(t3, dx);	/* t3 = (Px - Gx)^2  */
-          mul(dx, t2, t3);	/* dx = t2 (Px - Gx)^2  */
-          sub(dx, dx, t1);	/* dx = t2 (Px - Gx)^2 - Py^2  */
-          dx._0 -= 39420360;	/* dx = t2 (Px - Gx)^2 - Py^2 - Gy^2  */
-          mul(t1, dx, BASE_R2Y);	/* t1 = -Py  */
-          if (is_negative(t1)!=0)	/* sign is 1, so just copy  */
-            cpy32(s, k);
-          else			/* sign is -1, so negate  */
-            mula_small(s, ORDER_TIMES_8, 0, k, 32, -1);
+    /* calculate s such that s abs(P) = G  .. assumes G is std base point */
+    if (s!=null) {
+      x_to_y2(t2, t1, dx);	/* t1 = Py^2  */
+      recip(t3, z[1], 0);	/* where Q=P+G ... */
+      mul(t2, x[1], t3);	/* t2 = Qx  */
+      add(t2, t2, dx);	/* t2 = Qx + Px  */
+      t2._0 += 9 + 486662;	/* t2 = Qx + Px + Gx + 486662  */
+      dx._0 -= 9;		/* dx = Px - Gx  */
+      sqr(t3, dx);	/* t3 = (Px - Gx)^2  */
+      mul(dx, t2, t3);	/* dx = t2 (Px - Gx)^2  */
+      sub(dx, dx, t1);	/* dx = t2 (Px - Gx)^2 - Py^2  */
+      dx._0 -= 39420360;	/* dx = t2 (Px - Gx)^2 - Py^2 - Gy^2  */
+      mul(t1, dx, BASE_R2Y);	/* t1 = -Py  */
+      if (is_negative(t1)!=0)	/* sign is 1, so just copy  */
+        cpy32(s, k);
+      else			/* sign is -1, so negate  */
+        mula_small(s, ORDER_TIMES_8, 0, k, 32, -1);
 
-          /* reduce s mod q
-           * (is this needed?  do it just in case, it's fast anyway) */
-          //divmod((dstptr) t1, s, 32, order25519, 32);
-
-          /* take reciprocal of s mod q */
-          byte[] temp1=new byte[32];
-          byte[] temp2=new byte[64];
-          byte[] temp3=new byte[64];
-          cpy32(temp1, ORDER);
-          cpy32(s, egcd32(temp2, temp3, s, temp1));
-          if ((s[31] & 0x80)!=0)
-            mula_small(s, s, 0, ORDER, 32, 1);
-        }
+      /* take reciprocal of s mod q */
+      byte[] temp1=new byte[32];
+      byte[] temp2=new byte[64];
+      byte[] temp3=new byte[64];
+      cpy32(temp1, ORDER);
+      cpy32(s, egcd32(temp2, temp3, s, temp1));
+      if ((s[31] & 0x80)!=0)
+        mula_small(s, s, 0, ORDER, 32, 1);
+    }
   }
 
   /* smallest multiple of the order that's >= 2^255 */
