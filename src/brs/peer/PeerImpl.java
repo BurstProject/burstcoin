@@ -563,6 +563,12 @@ final class PeerImpl implements Peer {
         }
       }
 
+      // totalWeight should never be zero - cause this would result in a division by zero exception
+      // so we force a weight of one if it's zero. that makes a division by totalWeight a noop in general
+      if ( totalWeight == 0 ) {
+          totalWeight = 1;
+      }
+
       for (PeerImpl peer : groupedPeers) {
         peer.adjustedWeight = Constants.MAX_BALANCE_NXT * peer.getHallmarkWeight(mostRecentDate) / totalWeight;
         Peers.notifyListeners(peer, Peers.Event.WEIGHT);
