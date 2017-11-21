@@ -6,6 +6,7 @@ import brs.Burst;
 import brs.db.EntityTable;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
+import brs.db.sql.DbUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -66,7 +67,9 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
       }
     }
     try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + dbKeyFactory.getPKClause()
+         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
+                                                        + DbUtils.quoteTableName(table)
+                                                        + dbKeyFactory.getPKClause()
                                                         + (multiversion ? " AND latest = TRUE " + DbUtils.limitsClause(1) : ""))) {
       int i = dbKey.setPK(pstmt);
       if (multiversion)
@@ -82,7 +85,9 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     DbKey dbKey = (DbKey) nxtKey;
     checkAvailable(height);
     try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + dbKeyFactory.getPKClause()
+         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
+                                                        + DbUtils.quoteTableName(table)
+                                                        + dbKeyFactory.getPKClause()
                                                         + " AND height <= ?" + (multiversion ? " AND (latest = TRUE OR EXISTS ("
                                                                                 + "SELECT 1 FROM " + table + dbKeyFactory.getPKClause() + " AND height > ?)) ORDER BY height DESC" + DbUtils.limitsClause(1) : ""))) {
       int i = dbKey.setPK(pstmt);
@@ -101,7 +106,8 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   @Override
   public T getBy(DbClause dbClause) {
     try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table
+         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
+                                                        + DbUtils.quoteTableName(table)
                                                         + " WHERE " + dbClause.getClause() + (multiversion ? " AND latest = TRUE" + DbUtils.limitsClause(1) : ""))) {
       int i = dbClause.set(pstmt, 1);
       DbUtils.setLimits(i, pstmt, 1);
@@ -115,7 +121,9 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   public T getBy(DbClause dbClause, int height) {
     checkAvailable(height);
     try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + " AS a WHERE " + dbClause.getClause()
+         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
+                                                        + DbUtils.quoteTableName(table)
+                                                        + " AS a WHERE " + dbClause.getClause()
                                                         + " AND height <= ?" + (multiversion ? " AND (latest = TRUE OR EXISTS ("
                                                                                 + "SELECT 1 FROM " + table + " AS b WHERE " + dbKeyFactory.getSelfJoinClause()
                                                                                 + " AND b.height > ?)) ORDER BY height DESC" + DbUtils.limitsClause(1) : ""))) {
@@ -167,7 +175,8 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     Connection con = null;
     try {
       con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table
+      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
+                                                     + DbUtils.quoteTableName(table)
                                                      + " WHERE " + dbClause.getClause() + (multiversion ? " AND latest = TRUE " : " ") + sort
                                                      + DbUtils.limitsClause(from, to));
       int i = 0;
@@ -191,7 +200,10 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     Connection con = null;
     try {
       con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + " AS a WHERE " + dbClause.getClause()
+      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
+                                                     + DbUtils.quoteTableName(table)
+                                                     + " AS a WHERE "
+                                                     + dbClause.getClause()
                                                      + "AND a.height <= ?" + (multiversion ? " AND (a.latest = TRUE OR (a.latest = FALSE "
                                                                               + "AND EXISTS (SELECT 1 FROM " + table + " AS b WHERE " + dbKeyFactory.getSelfJoinClause() + " AND b.height > ?) "
                                                                               + "AND NOT EXISTS (SELECT 1 FROM " + table + " AS b WHERE " + dbKeyFactory.getSelfJoinClause()
@@ -246,7 +258,8 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     Connection con = null;
     try {
       con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table
+      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
+                                                     + DbUtils.quoteTableName(table)
                                                      + (multiversion ? " WHERE latest = TRUE " : " ") + sort
                                                      + DbUtils.limitsClause(from, to));
       DbUtils.setLimits(1, pstmt, from, to);
@@ -266,12 +279,15 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   public BurstIterator<T> getAll(int height, int from, int to, String sort) {
     checkAvailable(height);
     try ( Connection con = Db.getConnection();
-          PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + " AS a WHERE height <= ?"
-                                                           + (multiversion ? " AND (latest = TRUE OR (latest = FALSE "
-                                                           + "AND EXISTS (SELECT 1 FROM " + table + " AS b WHERE b.height > ? AND " + dbKeyFactory.getSelfJoinClause()
-                                                           + ") AND NOT EXISTS (SELECT 1 FROM " + table + " AS b WHERE b.height <= ? AND " + dbKeyFactory.getSelfJoinClause()
-                                                           + " AND b.height > a.height))) " : " ") + sort
-                                                           + DbUtils.limitsClause(from, to)); ) {
+          PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
+                                                         + DbUtils.quoteTableName(table)
+                                                         + " AS a WHERE height <= ?"
+                                                         + (multiversion ? " AND (latest = TRUE OR (latest = FALSE "
+                                                            + "AND EXISTS (SELECT 1 FROM " + table + " AS b WHERE b.height > ? AND " + dbKeyFactory.getSelfJoinClause()
+                                                            + ") AND NOT EXISTS (SELECT 1 FROM " + table + " AS b WHERE b.height <= ? AND " + dbKeyFactory.getSelfJoinClause()
+                                                            + " AND b.height > a.height))) " : " ")
+                                                         + sort
+                                                         + DbUtils.limitsClause(from, to)); ) {
       int i = 0;
       pstmt.setInt(++i, height);
       if (multiversion) {
@@ -288,7 +304,8 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   @Override
   public int getCount() {
     try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + table
+         PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM "
+                                                        + DbUtils.quoteTableName(table)
                                                         + (multiversion ? " WHERE latest = TRUE" : ""));
          ResultSet rs = pstmt.executeQuery()) {
       rs.next();
@@ -301,7 +318,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   @Override
   public int getRowCount() {
     try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + table);
+         PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + DbUtils.quoteTableName(table));
          ResultSet rs = pstmt.executeQuery()) {
       rs.next();
       return rs.getInt(1);
