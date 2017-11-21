@@ -38,8 +38,9 @@
         <metrics.version>3.2.3</metrics.version>
         <metrics-sql.version>3.2.1</metrics-sql.version>
         <junit.version>4.12</junit.version>
-	<evosuite.version>1.0.5</evosuite.version>
-	<hsqldb.version>2.4.0</hsqldb.version>
+        <evosuite.version>1.0.5</evosuite.version>
+        <hsqldb.version>2.4.0</hsqldb.version>
+        <jacoco.version>0.7.9</jacoco.version>
 
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -52,6 +53,7 @@
         <!-- For Java -->
         <sonar.junit.reportsPath>${project.build.directory}/reports/java/surefire-reports</sonar.junit.reportsPath>
         <sonar.jacoco.reportPath>${project.build.directory}/reports/java/jacoco.exec</sonar.jacoco.reportPath>
+        <sonar.jacoco.itReportPath>${user.dir}/target/jacoco-it.exec</sonar.jacoco.itReportPath>
 
         <!-- For JavaScript -->
         <!--
@@ -62,10 +64,10 @@
 <!--
     <pluginRepositories>
         <pluginRepository>
-	    <id>EvoSuite</id>
-	    <name>EvoSuite Repository</name>
-	    <url>http://www.evosuite.org/m2</url>
-	</pluginRepository>
+            <id>EvoSuite</id>
+            <name>EvoSuite Repository</name>
+            <url>http://www.evosuite.org/m2</url>
+        </pluginRepository>
     </pluginRepositories>
 
     <repositories>
@@ -227,12 +229,12 @@
             <version>${hsqldb.version}</version>
             <scope>test</scope>
         </dependency>
-	
+        
     </dependencies>
     
     <build>
         <sourceDirectory>src/brs</sourceDirectory>
-	
+        
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -346,7 +348,7 @@
                     </execution>
                 </executions>
             </plugin>
-	    
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -358,13 +360,41 @@
                 </configuration>
             </plugin>
 
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>jacoco-unit</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <destFile>${sonar.jacoco.reportPath}</destFile>
+                            <propertyName>jacoco.agent.argLine</propertyName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>jacoco-it</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <propertyName>jacoco.itAgent.argLine</propertyName>
+                            <destFile>${sonar.jacoco.itReportPath}</destFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                  <groupId>org.apache.maven.plugins</groupId>
                  <artifactId>maven-surefire-plugin</artifactId>
                  <version>2.17</version>
                  <configuration>
-	             <reportsDirectory>${sonar.junit.reportsPath}</reportsDirectory>
+                     <reportsDirectory>${sonar.junit.reportsPath}</reportsDirectory>
+                     <argLine>${jacoco.agent.argLine}</argLine>
                      <properties>
                          <property>
                              <name>listener</name>
@@ -373,6 +403,14 @@
                     </properties>
                 </configuration>
             </plugin>
+
+            <plugin>
+              <artifactId>maven-failsafe-plugin</artifactId>
+              <configuration>
+                <argLine>${jacoco.itAgent.argLine}</argLine>
+              </configuration>
+            </plugin>
+
 
             <plugin>
                 <groupId>org.evosuite.plugins</groupId>
