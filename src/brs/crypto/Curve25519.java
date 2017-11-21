@@ -170,116 +170,116 @@ final class Curve25519 {
     /* Y = v abs(P) + h G  */
     byte[] d = new byte[32];
 
-    long10[] p = new long10[] { new long10(), new long10() };
-    long10[] s = new long10[] { new long10(), new long10() };
-    long10[] yx=new long10[]{new long10(),new long10(),new long10()},
-        yz=new long10[]{new long10(),new long10(),new long10()},
-            t1=new long10[]{new long10(),new long10(),new long10()},
-                t2=new long10[]{new long10(),new long10(),new long10()};
+    long10[] p  = new long10[] { new long10(), new long10() };
+    long10[] s  = new long10[] { new long10(), new long10() };
+    long10[] yx = new long10[] { new long10(), new long10(), new long10()};
+    long10[] yz = new long10[] { new long10(), new long10(), new long10()};
+    long10[] t1 = new long10[] { new long10(), new long10(), new long10()};
+    long10[] t2 = new long10[] { new long10(), new long10(), new long10()};
 
-                int vi = 0;
-                    int hi = 0;
-                    int di = 0;
-                    int nvh = 0;
-                    int i;
-                    int j;
-                    int k;
+    int vi = 0;
+    int hi = 0;
+    int di = 0;
+    int nvh = 0;
+    int i;
+    int j;
+    int k;
 
-                    /* set p[0] to G and p[1] to P  */
+    /* set p[0] to G and p[1] to P  */
 
-                    set(p[0], 9);
-                    unpack(p[1], P);
+    set(p[0], 9);
+    unpack(p[1], P);
 
-                    /* set s[0] to P+G and s[1] to P-G  */
+    /* set s[0] to P+G and s[1] to P-G  */
 
-                    /* s[0] = (Py^2 + Gy^2 - 2 Py Gy)/(Px - Gx)^2 - Px - Gx - 486662  */
-                    /* s[1] = (Py^2 + Gy^2 + 2 Py Gy)/(Px - Gx)^2 - Px - Gx - 486662  */
+    /* s[0] = (Py^2 + Gy^2 - 2 Py Gy)/(Px - Gx)^2 - Px - Gx - 486662  */
+    /* s[1] = (Py^2 + Gy^2 + 2 Py Gy)/(Px - Gx)^2 - Px - Gx - 486662  */
 
-                    x_to_y2(t1[0], t2[0], p[1]);	/* t2[0] = Py^2  */
-                    sqrt(t1[0], t2[0]);	/* t1[0] = Py or -Py  */
-                    j = is_negative(t1[0]);		/*      ... check which  */
-                    t2[0]._0 += 39420360;		/* t2[0] = Py^2 + Gy^2  */
-                    mul(t2[1], BASE_2Y, t1[0]);/* t2[1] = 2 Py Gy or -2 Py Gy  */
-                    sub(t1[j], t2[0], t2[1]);	/* t1[0] = Py^2 + Gy^2 - 2 Py Gy  */
-                    add(t1[1-j], t2[0], t2[1]);/* t1[1] = Py^2 + Gy^2 + 2 Py Gy  */
-                    cpy(t2[0], p[1]);		/* t2[0] = Px  */
-                    t2[0]._0 -= 9;			/* t2[0] = Px - Gx  */
-                    sqr(t2[1], t2[0]);		/* t2[1] = (Px - Gx)^2  */
-                    recip(t2[0], t2[1], 0);	/* t2[0] = 1/(Px - Gx)^2  */
-                    mul(s[0], t1[0], t2[0]);	/* s[0] = t1[0]/(Px - Gx)^2  */
-                    sub(s[0], s[0], p[1]);	/* s[0] = t1[0]/(Px - Gx)^2 - Px  */
-                    s[0]._0 -= 9 + 486662;		/* s[0] = X(P+G)  */
-                    mul(s[1], t1[1], t2[0]);	/* s[1] = t1[1]/(Px - Gx)^2  */
-                    sub(s[1], s[1], p[1]);	/* s[1] = t1[1]/(Px - Gx)^2 - Px  */
-                    s[1]._0 -= 9 + 486662;		/* s[1] = X(P-G)  */
-                    mul_small(s[0], s[0], 1);	/* reduce s[0] */
-                    mul_small(s[1], s[1], 1);	/* reduce s[1] */
+    x_to_y2(t1[0], t2[0], p[1]);	/* t2[0] = Py^2  */
+    sqrt(t1[0], t2[0]);	/* t1[0] = Py or -Py  */
+    j = is_negative(t1[0]);		/*      ... check which  */
+    t2[0]._0 += 39420360;		/* t2[0] = Py^2 + Gy^2  */
+    mul(t2[1], BASE_2Y, t1[0]);/* t2[1] = 2 Py Gy or -2 Py Gy  */
+    sub(t1[j], t2[0], t2[1]);	/* t1[0] = Py^2 + Gy^2 - 2 Py Gy  */
+    add(t1[1-j], t2[0], t2[1]);/* t1[1] = Py^2 + Gy^2 + 2 Py Gy  */
+    cpy(t2[0], p[1]);		/* t2[0] = Px  */
+    t2[0]._0 -= 9;			/* t2[0] = Px - Gx  */
+    sqr(t2[1], t2[0]);		/* t2[1] = (Px - Gx)^2  */
+    recip(t2[0], t2[1], 0);	/* t2[0] = 1/(Px - Gx)^2  */
+    mul(s[0], t1[0], t2[0]);	/* s[0] = t1[0]/(Px - Gx)^2  */
+    sub(s[0], s[0], p[1]);	/* s[0] = t1[0]/(Px - Gx)^2 - Px  */
+    s[0]._0 -= 9 + 486662;		/* s[0] = X(P+G)  */
+    mul(s[1], t1[1], t2[0]);	/* s[1] = t1[1]/(Px - Gx)^2  */
+    sub(s[1], s[1], p[1]);	/* s[1] = t1[1]/(Px - Gx)^2 - Px  */
+    s[1]._0 -= 9 + 486662;		/* s[1] = X(P-G)  */
+    mul_small(s[0], s[0], 1);	/* reduce s[0] */
+    mul_small(s[1], s[1], 1);	/* reduce s[1] */
 
 
-                    /* prepare the chain  */
-                    for (i = 0; i < 32; i++) {
-                      vi = (vi >> 8) ^ (v[i] & 0xFF) ^ ((v[i] & 0xFF) << 1);
-                      hi = (hi >> 8) ^ (h[i] & 0xFF) ^ ((h[i] & 0xFF) << 1);
-                      nvh = ~(vi ^ hi);
-                      di = (nvh & (di & 0x80) >> 7) ^ vi;
-                      di ^= nvh & (di & 0x01) << 1;
-                      di ^= nvh & (di & 0x02) << 1;
-                      di ^= nvh & (di & 0x04) << 1;
-                      di ^= nvh & (di & 0x08) << 1;
-                      di ^= nvh & (di & 0x10) << 1;
-                      di ^= nvh & (di & 0x20) << 1;
-                      di ^= nvh & (di & 0x40) << 1;
-                      d[i] = (byte)di;
-                    }
+    /* prepare the chain  */
+    for (i = 0; i < 32; i++) {
+      vi = (vi >> 8) ^ (v[i] & 0xFF) ^ ((v[i] & 0xFF) << 1);
+      hi = (hi >> 8) ^ (h[i] & 0xFF) ^ ((h[i] & 0xFF) << 1);
+      nvh = ~(vi ^ hi);
+      di = (nvh & (di & 0x80) >> 7) ^ vi;
+      di ^= nvh & (di & 0x01) << 1;
+      di ^= nvh & (di & 0x02) << 1;
+      di ^= nvh & (di & 0x04) << 1;
+      di ^= nvh & (di & 0x08) << 1;
+      di ^= nvh & (di & 0x10) << 1;
+      di ^= nvh & (di & 0x20) << 1;
+      di ^= nvh & (di & 0x40) << 1;
+      d[i] = (byte)di;
+    }
 
-                    di = ((nvh & (di & 0x80) << 1) ^ vi) >> 8;
+    di = ((nvh & (di & 0x80) << 1) ^ vi) >> 8;
 
-                    /* initialize state */
-                    set(yx[0], 1);
-                    cpy(yx[1], p[di]);
-                    cpy(yx[2], s[0]);
-                    set(yz[0], 0);
-                    set(yz[1], 1);
-                    set(yz[2], 1);
+    /* initialize state */
+    set(yx[0], 1);
+    cpy(yx[1], p[di]);
+    cpy(yx[2], s[0]);
+    set(yz[0], 0);
+    set(yz[1], 1);
+    set(yz[2], 1);
 
-                    /* y[0] is (even)P + (even)G
-                     * y[1] is (even)P + (odd)G  if current d-bit is 0
-                     * y[1] is (odd)P + (even)G  if current d-bit is 1
-                     * y[2] is (odd)P + (odd)G
-                     */
+    /* y[0] is (even)P + (even)G
+     * y[1] is (even)P + (odd)G  if current d-bit is 0
+     * y[1] is (odd)P + (even)G  if current d-bit is 1
+     * y[2] is (odd)P + (odd)G
+     */
 
-                    vi = 0;
-                    hi = 0;
+    vi = 0;
+    hi = 0;
 
-                    /* and go for it! */
-                    for (i = 32; i--!=0; ) {
-                      vi = (vi << 8) | (v[i] & 0xFF);
-                      hi = (hi << 8) | (h[i] & 0xFF);
-                      di = (di << 8) | (d[i] & 0xFF);
+    /* and go for it! */
+    for (i = 32; i--!=0; ) {
+      vi = (vi << 8) | (v[i] & 0xFF);
+      hi = (hi << 8) | (h[i] & 0xFF);
+      di = (di << 8) | (d[i] & 0xFF);
 
-                      for (j = 8; j--!=0; ) {
-                        mont_prep(t1[0], t2[0], yx[0], yz[0]);
-                        mont_prep(t1[1], t2[1], yx[1], yz[1]);
-                        mont_prep(t1[2], t2[2], yx[2], yz[2]);
+      for (j = 8; j--!=0; ) {
+        mont_prep(t1[0], t2[0], yx[0], yz[0]);
+        mont_prep(t1[1], t2[1], yx[1], yz[1]);
+        mont_prep(t1[2], t2[2], yx[2], yz[2]);
 
-                        k = ((vi ^ vi >> 1) >> j & 1)
-                            + ((hi ^ hi >> 1) >> j & 1);
-                        mont_dbl(yx[2], yz[2], t1[k], t2[k], yx[0], yz[0]);
+        k = ((vi ^ vi >> 1) >> j & 1)
+            + ((hi ^ hi >> 1) >> j & 1);
+        mont_dbl(yx[2], yz[2], t1[k], t2[k], yx[0], yz[0]);
 
-                        k = (di >> j & 2) ^ ((di >> j & 1) << 1);
-                        mont_add(t1[1], t2[1], t1[k], t2[k], yx[1], yz[1],
-                                 p[di >> j & 1]);
+        k = (di >> j & 2) ^ ((di >> j & 1) << 1);
+        mont_add(t1[1], t2[1], t1[k], t2[k], yx[1], yz[1],
+                 p[di >> j & 1]);
 
-                        mont_add(t1[2], t2[2], t1[0], t2[0], yx[2], yz[2],
-                                 s[((vi ^ hi) >> j & 2) >> 1]);
-                      }
-                    }
+        mont_add(t1[2], t2[2], t1[0], t2[0], yx[2], yz[2],
+                 s[((vi ^ hi) >> j & 2) >> 1]);
+      }
+    }
 
-                    k = (vi & 1) + (hi & 1);
-                    recip(t1[0], yz[k], 0);
-                    mul(t1[1], yx[k], t1[0]);
+    k = (vi & 1) + (hi & 1);
+    recip(t1[0], yz[k], 0);
+    mul(t1[1], yx[k], t1[0]);
 
-                    pack(t1[1], Y);
+    pack(t1[1], Y);
   }
 
   public static boolean isCanonicalSignature(byte[] v) {
@@ -394,9 +394,13 @@ final class Curve25519 {
   }
 
   private static int numsize(byte[] x,int n) {
-    while (n--!=0 && x[n]==0)
-      ;
-    return n+1;
+    while (n-- != 0) {
+      if (x[n] != 0) {
+        return n + 1;
+      }
+    }
+    
+    return 1;
   }
 
   /* Returns x if a contains the gcd, y if b.
@@ -405,7 +409,11 @@ final class Curve25519 {
    * x and y must have 64 bytes space for temporary use.
    * requires that a[-1] and b[-1] are valid memory locations  */
   private static byte[] egcd32(byte[] x,byte[] y,byte[] a,byte[] b) {
-    int an, bn = 32, qn, i;
+    int an;
+    int bn = 32;
+    int qn;
+    int i;
+    
     for (i = 0; i < 32; i++)
       x[i] = y[i] = 0;
     x[0] = 1;
@@ -437,9 +445,9 @@ final class Curve25519 {
 
   /* Convert to internal format from little-endian byte format */
   private static void unpack(long10 x,byte[] m) {
-    x._0 = ((m[0] & 0xFF))         | ((m[1] & 0xFF))<<8 |
-        (m[2] & 0xFF)<<16      | ((m[3] & 0xFF)& 3)<<24;
-    x._1 = ((m[3] & 0xFF)&~ 3)>>2  | (m[4] & 0xFF)<<6 |
+    x._0 = (m[0] & 0xFF)         | (m[1] & 0xFF) << 8 |
+           (m[2] & 0xFF) << 16   | ((m[3] & 0xFF)& 3) << 24;
+    x._1 = ((m[3] & 0xFF) & ~3) >> 2  | (m[4] & 0xFF)<<6 |
         (m[5] & 0xFF)<<14 | ((m[6] & 0xFF)& 7)<<22;
     x._2 = ((m[6] & 0xFF)&~ 7)>>3  | (m[7] & 0xFF)<<5 |
         (m[8] & 0xFF)<<13 | ((m[9] & 0xFF)&31)<<21;
@@ -462,7 +470,7 @@ final class Curve25519 {
   /* Check if reduced-form input >= 2^255-19 */
   private static boolean is_overflow(long10 x) {
     return (
-            ((x._0 > P26-19)) &&
+            (x._0 > P26 - 19) &&
             ((x._1 & x._3 & x._5 & x._7 & x._9) == P25) &&
             ((x._2 & x._4 & x._6 & x._8) == P26)
             ) || (x._9 > P25);
@@ -474,8 +482,10 @@ final class Curve25519 {
    *     set --  if input in range 0 .. P25
    * If you're unsure if the number is reduced, first multiply it by 1.  */
   private static void pack(long10 x,byte[] m) {
-    int ld = 0, ud = 0;
+    int ld = 0;
+    int ud = 0;
     long t;
+
     ld = (is_overflow(x)?1:0) - ((x._9 < 0)?1:0);
     ud = ld * -(P25+1);
     ld *= 19;
