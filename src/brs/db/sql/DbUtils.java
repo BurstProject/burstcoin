@@ -113,13 +113,13 @@ public final class DbUtils {
 
   public static int setLimits(int index, PreparedStatement pstmt, int from, int to) throws SQLException {
     int limit = to >= 0 && to >= from && to < Integer.MAX_VALUE ? to - from + 1 : 0;
-    logger.debug("setLimits( index: " + index + ", pstmt: ?, from: " + from + ", to: " + to + ", limit: " + limit + ")");
+    logger.trace("setLimits( index: " + index + ", pstmt: ?, from: " + from + ", to: " + to + ", limit: " + limit + ")");
     switch (Db.getDatabaseType()) {
       case FIREBIRD: {
         if (limit > 0 && from > 0) {
           pstmt.setInt(index++, from + 1);
           pstmt.setInt(index++, from + limit);
-          logger.debug("setLimits for Firebird ROWS " + ( from + 1 ) + " TO " + ( from + limit ));
+          logger.trace("setLimits for Firebird ROWS " + ( from + 1 ) + " TO " + ( from + limit ));
         }
         else if (from > 0) {
           pstmt.setInt(index++, from);
