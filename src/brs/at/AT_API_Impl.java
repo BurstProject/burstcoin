@@ -129,19 +129,19 @@ public class AT_API_Impl implements AT_API {
   @Override
   public void clear_A(AT_Machine_State state) {
     byte[] b = new byte[ 8 ];
-    state.set_A1( b );
-    state.set_A2( b );
-    state.set_A3( b );
-    state.set_A4( b );
+    state.set_A1(b);
+    state.set_A2(b);
+    state.set_A3(b);
+    state.set_A4(b);
   }
 
   @Override
   public void clear_B(AT_Machine_State state) {
     byte[] b = new byte[ 8 ];
-    state.set_B1( b );
-    state.set_B2( b );
-    state.set_B3( b );
-    state.set_B4( b );
+    state.set_B1(b);
+    state.set_B2(b);
+    state.set_B3(b);
+    state.set_B4(b);
   }
 
   @Override
@@ -191,19 +191,19 @@ public class AT_API_Impl implements AT_API {
 
     b = state.get_A1().clone();
     state.set_A1( state.get_B1() );
-    state.set_B1( b );
+    state.set_B1(b);
 
     b = state.get_A2().clone();
     state.set_A2( state.get_B2() );
-    state.set_B2( b );
+    state.set_B2(b);
 
     b = state.get_A3().clone();
     state.set_A3( state.get_B3() );
-    state.set_B3( b );
+    state.set_B3(b);
 
     b = state.get_A4().clone();
     state.set_A4( state.get_B4() );
-    state.set_B4( b );
+    state.set_B4(b);
   }
 
   @Override

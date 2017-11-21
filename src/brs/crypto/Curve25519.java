@@ -172,12 +172,12 @@ final class Curve25519 {
 
     long10[] p = new long10[] { new long10(), new long10() };
     long10[] s = new long10[] { new long10(), new long10() };
-        long10[] yx=new long10[]{new long10(),new long10(),new long10()},
-            yz=new long10[]{new long10(),new long10(),new long10()},
-                t1=new long10[]{new long10(),new long10(),new long10()},
-                    t2=new long10[]{new long10(),new long10(),new long10()};
+    long10[] yx=new long10[]{new long10(),new long10(),new long10()},
+        yz=new long10[]{new long10(),new long10(),new long10()},
+            t1=new long10[]{new long10(),new long10(),new long10()},
+                t2=new long10[]{new long10(),new long10(),new long10()};
 
-                    int vi = 0;
+                int vi = 0;
                     int hi = 0;
                     int di = 0;
                     int nvh = 0;

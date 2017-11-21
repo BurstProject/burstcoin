@@ -1090,10 +1090,10 @@ public abstract class TransactionType {
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.ColoredCoinsAskOrderCancellation attachment = (Attachment.ColoredCoinsAskOrderCancellation) transaction.getAttachment();
           Order ask = Order.Ask.getAskOrder(attachment.getOrderId());
-          if(ask == null) {
+          if (ask == null) {
             throw new BurstException.NotCurrentlyValidException("Invalid ask order: " + Convert.toUnsignedLong(attachment.getOrderId()));
           }
-          if(ask.getAccountId() != transaction.getSenderId()) {
+          if (ask.getAccountId() != transaction.getSenderId()) {
             throw new BurstException.NotValidException("Order " + Convert.toUnsignedLong(attachment.getOrderId()) + " was created by account "
                                                      + Convert.toUnsignedLong(ask.getAccountId()));
           }
@@ -1132,10 +1132,10 @@ public abstract class TransactionType {
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.ColoredCoinsBidOrderCancellation attachment = (Attachment.ColoredCoinsBidOrderCancellation) transaction.getAttachment();
           Order bid = Order.Bid.getBidOrder(attachment.getOrderId());
-          if(bid == null) {
+          if (bid == null) {
             throw new BurstException.NotCurrentlyValidException("Invalid bid order: " + Convert.toUnsignedLong(attachment.getOrderId()));
           }
-          if(bid.getAccountId() != transaction.getSenderId()) {
+          if (bid.getAccountId() != transaction.getSenderId()) {
             throw new BurstException.NotValidException("Order " + Convert.toUnsignedLong(attachment.getOrderId()) + " was created by account "
                                                      + Convert.toUnsignedLong(bid.getAccountId()));
           }
@@ -1724,7 +1724,8 @@ public abstract class TransactionType {
         }
     		
         @Override
-        public Attachment.BurstMiningRewardRecipientAssignment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.BurstMiningRewardRecipientAssignment
+        parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
           return new Attachment.BurstMiningRewardRecipientAssignment(buffer, transactionVersion);
         }
 
@@ -1740,7 +1741,7 @@ public abstract class TransactionType {
     		
         @Override
         boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
-          if(Burst.getBlockchain().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+          if (Burst.getBlockchain().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
             return false; // sync fails after 7007 without this
           }
           return isDuplicate(BurstMining.REWARD_RECIPIENT_ASSIGNMENT, Convert.toUnsignedLong(transaction.getSenderId()), duplicates);
@@ -1751,23 +1752,27 @@ public abstract class TransactionType {
           long height = Burst.getBlockchain().getLastBlock().getHeight() + 1;
           Account sender = Account.getAccount(transaction.getSenderId());
 
-          if(sender == null) {
+          if (sender == null) {
             throw new BurstException.NotCurrentlyValidException("Sender not yet known ?!");
           }
 
           Account.RewardRecipientAssignment rewardAssignment = sender.getRewardRecipientAssignment();
-          if(rewardAssignment != null && rewardAssignment.getFromHeight() >= height) {
-            throw new BurstException.NotCurrentlyValidException("Cannot reassign reward recipient before previous goes into effect: " + transaction.getJSONObject());
+          if (rewardAssignment != null && rewardAssignment.getFromHeight() >= height) {
+            throw new BurstException.NotCurrentlyValidException("Cannot reassign reward recipient before previous goes into effect: "
+                                                                + transaction.getJSONObject());
           }
           Account recip = Account.getAccount(transaction.getRecipientId());
-          if(recip == null || recip.getPublicKey() == null) {
-            throw new BurstException.NotValidException("Reward recipient must have public key saved in blockchain: " + transaction.getJSONObject());
+          if (recip == null || recip.getPublicKey() == null) {
+            throw new BurstException.NotValidException("Reward recipient must have public key saved in blockchain: "
+                                                       + transaction.getJSONObject());
           }
-          if(transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_NXT) {
-            throw new BurstException.NotValidException("Reward recipient assisnment transaction must have 0 send amount and 1 fee: " + transaction.getJSONObject());
+          if (transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_NXT) {
+            throw new BurstException.NotValidException("Reward recipient assisnment transaction must have 0 send amount and 1 fee: "
+                                                       + transaction.getJSONObject());
           }
-          if(height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
-            throw new BurstException.NotCurrentlyValidException("Reward recipient assignment not allowed before block " + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK);
+          if (height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
+            throw new BurstException.NotCurrentlyValidException("Reward recipient assignment not allowed before block "
+                                                                + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK);
           }
         }
     		
@@ -1808,7 +1813,7 @@ public abstract class TransactionType {
         final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
           Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
           Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
-          if(senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT.longValue()) {
+          if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT.longValue()) {
             return false;
           }
           senderAccount.addToUnconfirmedBalanceNQT(-totalAmountNQT);
@@ -1850,41 +1855,41 @@ public abstract class TransactionType {
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
           Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), transaction.getFeeNQT());
-          if(transaction.getSenderId() == transaction.getRecipientId()) {
+          if (transaction.getSenderId() == transaction.getRecipientId()) {
             throw new BurstException.NotValidException("Escrow must have different sender and recipient");
           }
           totalAmountNQT = Convert.safeAdd(totalAmountNQT, attachment.getTotalSigners() * Constants.ONE_NXT);
-          if(transaction.getAmountNQT() != 0) {
+          if (transaction.getAmountNQT() != 0) {
             throw new BurstException.NotValidException("Transaction sent amount must be 0 for escrow");
           }
-          if(totalAmountNQT.compareTo(0L) < 0 ||
+          if (totalAmountNQT.compareTo(0L) < 0 ||
              totalAmountNQT.compareTo(Constants.MAX_BALANCE_NQT) > 0)
             {
               throw new BurstException.NotValidException("Invalid escrow creation amount");
             }
-          if(transaction.getFeeNQT() < Constants.ONE_NXT) {
+          if (transaction.getFeeNQT() < Constants.ONE_NXT) {
             throw new BurstException.NotValidException("Escrow transaction must have a fee at least 1 burst");
           }
-          if(attachment.getRequiredSigners() < 1 || attachment.getRequiredSigners() > 10) {
+          if (attachment.getRequiredSigners() < 1 || attachment.getRequiredSigners() > 10) {
             throw new BurstException.NotValidException("Escrow required signers much be 1 - 10");
           }
-          if(attachment.getRequiredSigners() > attachment.getTotalSigners()) {
+          if (attachment.getRequiredSigners() > attachment.getTotalSigners()) {
             throw new BurstException.NotValidException("Cannot have more required than signers on escrow");
           }
-          if(attachment.getTotalSigners() < 1 || attachment.getTotalSigners() > 10) {
+          if (attachment.getTotalSigners() < 1 || attachment.getTotalSigners() > 10) {
             throw new BurstException.NotValidException("Escrow transaction requires 1 - 10 signers");
           }
-          if(attachment.getDeadline() < 1 || attachment.getDeadline() > 7776000) { // max deadline 3 months
+          if (attachment.getDeadline() < 1 || attachment.getDeadline() > 7776000) { // max deadline 3 months
             throw new BurstException.NotValidException("Escrow deadline must be 1 - 7776000 seconds");
           }
-          if(attachment.getDeadlineAction() == null || attachment.getDeadlineAction() == Escrow.DecisionType.UNDECIDED) {
+          if (attachment.getDeadlineAction() == null || attachment.getDeadlineAction() == Escrow.DecisionType.UNDECIDED) {
             throw new BurstException.NotValidException("Invalid deadline action for escrow");
           }
-          if(attachment.getSigners().contains(transaction.getSenderId()) ||
+          if (attachment.getSigners().contains(transaction.getSenderId()) ||
              attachment.getSigners().contains(transaction.getRecipientId())) {
             throw new BurstException.NotValidException("Escrow sender and recipient cannot be signers");
           }
-          if(!Escrow.isEnabled()) {
+          if (!Escrow.isEnabled()) {
             throw new BurstException.NotYetEnabledException("Escrow not yet enabled");
           }
         }
@@ -1939,28 +1944,28 @@ public abstract class TransactionType {
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.AdvancedPaymentEscrowSign attachment = (Attachment.AdvancedPaymentEscrowSign) transaction.getAttachment();
-          if(transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_NXT) {
+          if (transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_NXT) {
             throw new BurstException.NotValidException("Escrow signing must have amount 0 and fee of 1");
           }
-          if(attachment.getEscrowId() == null || attachment.getDecision() == null) {
+          if (attachment.getEscrowId() == null || attachment.getDecision() == null) {
             throw new BurstException.NotValidException("Escrow signing requires escrow id and decision set");
           }
           Escrow escrow = Escrow.getEscrowTransaction(attachment.getEscrowId());
-          if(escrow == null) {
+          if (escrow == null) {
             throw new BurstException.NotValidException("Escrow transaction not found");
           }
-          if(!escrow.isIdSigner(transaction.getSenderId()) &&
+          if (!escrow.isIdSigner(transaction.getSenderId()) &&
              !escrow.getSenderId().equals(transaction.getSenderId()) &&
              !escrow.getRecipientId().equals(transaction.getSenderId())) {
             throw new BurstException.NotValidException("Sender is not a participant in specified escrow");
           }
-          if(escrow.getSenderId().equals(transaction.getSenderId()) && attachment.getDecision() != Escrow.DecisionType.RELEASE) {
+          if (escrow.getSenderId().equals(transaction.getSenderId()) && attachment.getDecision() != Escrow.DecisionType.RELEASE) {
             throw new BurstException.NotValidException("Escrow sender can only release");
           }
-          if(escrow.getRecipientId().equals(transaction.getSenderId()) && attachment.getDecision() != Escrow.DecisionType.REFUND) {
+          if (escrow.getRecipientId().equals(transaction.getSenderId()) && attachment.getDecision() != Escrow.DecisionType.REFUND) {
             throw new BurstException.NotValidException("Escrow recipient can only refund");
           }
-          if(!Escrow.isEnabled()) {
+          if (!Escrow.isEnabled()) {
             throw new BurstException.NotYetEnabledException("Escrow not yet enabled");
           }
         }
@@ -2062,18 +2067,18 @@ public abstract class TransactionType {
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.AdvancedPaymentSubscriptionSubscribe attachment = (Attachment.AdvancedPaymentSubscriptionSubscribe) transaction.getAttachment();
-          if(attachment.getFrequency() == null ||
+          if (attachment.getFrequency() == null ||
              attachment.getFrequency().intValue() < Constants.BURST_SUBSCRIPTION_MIN_FREQ ||
              attachment.getFrequency().intValue() > Constants.BURST_SUBSCRIPTION_MAX_FREQ) {
             throw new BurstException.NotValidException("Invalid subscription frequency");
           }
-          if(transaction.getAmountNQT() < Constants.ONE_NXT || transaction.getAmountNQT() > Constants.MAX_BALANCE_NQT) {
+          if (transaction.getAmountNQT() < Constants.ONE_NXT || transaction.getAmountNQT() > Constants.MAX_BALANCE_NQT) {
             throw new BurstException.NotValidException("Subscriptions must be at least one burst");
           }
-          if(transaction.getSenderId() == transaction.getRecipientId()) {
+          if (transaction.getSenderId() == transaction.getRecipientId()) {
             throw new BurstException.NotValidException("Cannot create subscription to same address");
           }
-          if(!Subscription.isEnabled()) {
+          if (!Subscription.isEnabled()) {
             throw new BurstException.NotYetEnabledException("Subscriptions not yet enabled");
           }
         }
@@ -2127,21 +2132,21 @@ public abstract class TransactionType {
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
-          if(attachment.getSubscriptionId() == null) {
+          if (attachment.getSubscriptionId() == null) {
             throw new BurstException.NotValidException("Subscription cancel must include subscription id");
           }
 				
           Subscription subscription = Subscription.getSubscription(attachment.getSubscriptionId());
-          if(subscription == null) {
+          if (subscription == null) {
             throw new BurstException.NotValidException("Subscription cancel must contain current subscription id");
           }
 				
-          if(!subscription.getSenderId().equals(transaction.getSenderId()) &&
+          if (!subscription.getSenderId().equals(transaction.getSenderId()) &&
              !subscription.getRecipientId().equals(transaction.getSenderId())) {
             throw new BurstException.NotValidException("Subscription cancel can only be done by participants");
           }
 				
-          if(!Subscription.isEnabled()) {
+          if (!Subscription.isEnabled()) {
             throw new BurstException.NotYetEnabledException("Subscription cancel not yet enabled");
           }
         }
@@ -2271,7 +2276,7 @@ public abstract class TransactionType {
           }
           if (transaction.getSignature() != null && Account.getAccount(transaction.getId()) != null) {
             Account existingAccount = Account.getAccount(transaction.getId());
-            if(existingAccount.getPublicKey() != null && !Arrays.equals(existingAccount.getPublicKey(), new byte[32]))
+            if (existingAccount.getPublicKey() != null && !Arrays.equals(existingAccount.getPublicKey(), new byte[32]))
               throw new BurstException.NotValidException("Account with id already exists");
           }
           Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
@@ -2279,18 +2284,18 @@ public abstract class TransactionType {
           try {
             totalPages = AT_Controller.checkCreationBytes(attachment.getCreationBytes(), Burst.getBlockchain().getHeight());
           }
-          catch(AT_Exception e) {
+          catch (AT_Exception e) {
             throw new BurstException.NotCurrentlyValidException("Invalid AT creation bytes", e);
           }
           long requiredFee = totalPages * AT_Constants.getInstance().COST_PER_PAGE( transaction.getHeight() );
           if (transaction.getFeeNQT() <  requiredFee){
             throw new BurstException.NotValidException("Insufficient fee for AT creation. Minimum: " + Convert.toUnsignedLong(requiredFee / Constants.ONE_NXT));
           }
-          if(Burst.getBlockchain().getHeight() >= Constants.AT_FIX_BLOCK_3) {
-            if(attachment.getName().length() > Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH) {
+          if (Burst.getBlockchain().getHeight() >= Constants.AT_FIX_BLOCK_3) {
+            if (attachment.getName().length() > Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH) {
               throw new BurstException.NotValidException("Name of automated transaction over size limit");
             }
-            if(attachment.getDescription().length() > Constants.MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH) {
+            if (attachment.getDescription().length() > Constants.MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH) {
               throw new BurstException.NotValidException("Description of automated transaction over size limit");
             }
           }

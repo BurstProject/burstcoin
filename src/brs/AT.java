@@ -30,12 +30,12 @@ public final class AT extends AT_Machine_State {
     Burst.getBlockchainProcessor().addListener(new Listener<Block>() {
         @Override
         public void notify(Block block) {
-          for(Long id : pendingFees.keySet()) {
+          for (Long id : pendingFees.keySet()) {
             Account atAccount = Account.getAccount(id);
             atAccount.addToBalanceAndUnconfirmedBalanceNQT(-pendingFees.get(id));
           }
           List<TransactionImpl> transactions = new ArrayList<>();
-          for(AT_Transaction atTransaction : pendingTransactions) {
+          for (AT_Transaction atTransaction : pendingTransactions) {
             Account.getAccount(AT_API_Helper.getLong(atTransaction.getSenderId())).addToBalanceAndUnconfirmedBalanceNQT(-atTransaction.getAmount());
             Account.addOrGetAccount(AT_API_Helper.getLong(atTransaction.getRecipientId())).addToBalanceAndUnconfirmedBalanceNQT(atTransaction.getAmount());
 
@@ -51,13 +51,13 @@ public final class AT extends AT_Machine_State {
                 .ecBlockId(0L);
 
             byte[] message = atTransaction.getMessage();
-            if(message != null) {
+            if (message != null) {
               builder.message(new Appendix.Message(message));
             }
 
             try {
               TransactionImpl transaction = builder.build();
-              if(!Burst.getDbs().getTransactionDb().hasTransaction(transaction.getId())) {
+              if (!Burst.getDbs().getTransactionDb().hasTransaction(transaction.getId())) {
                 transactions.add(transaction);
               }
             }
@@ -66,7 +66,7 @@ public final class AT extends AT_Machine_State {
             }
           }
 
-          if(transactions.size() > 0) {
+          if (transactions.size() > 0) {
             /** WATCH: Replace after transactions are converted! */
             Burst.getDbs().getTransactionDb().saveTransactions( transactions);
           }
@@ -100,8 +100,8 @@ public final class AT extends AT_Machine_State {
   }
 
   public static boolean findPendingTransaction(byte[] recipientId) {
-    for(AT_Transaction tx : pendingTransactions) {
-      if(Arrays.equals(recipientId, tx.getRecipientId())) {
+    for (AT_Transaction tx : pendingTransactions) {
+      if (Arrays.equals(recipientId, tx.getRecipientId())) {
         return true;
       }
     }
@@ -254,7 +254,7 @@ public final class AT extends AT_Machine_State {
     ATState state = atStateTable.get(atStateDbKeyFactory.newKey( AT_API_Helper.getLong( this.getId() ) ) );
     int prevHeight = Burst.getBlockchain().getHeight();
     int nextHeight = prevHeight + getWaitForNumberOfBlocks();
-    if(state != null) {
+    if (state != null) {
       state.setState(getState());
       state.setPrevHeight( prevHeight );
       state.setNextHeight(nextHeight);
@@ -264,29 +264,28 @@ public final class AT extends AT_Machine_State {
       state.setMinActivationAmount(minActivationAmount());
     }
     else {
-      state = new ATState( AT_API_Helper.getLong( this.getId() ) , getState(), prevHeight, nextHeight, getSleepBetween(), getP_balance(), freezeOnSameBalance(), minActivationAmount());
+      state = new ATState(AT_API_Helper.getLong( this.getId() ),
+                          getState(), prevHeight, nextHeight, getSleepBetween(),
+                          getP_balance(), freezeOnSameBalance(), minActivationAmount());
     }
     atStateTable.insert(state);
   }
 
 
-  private static void deleteAT( AT at )
-  {
+  private static void deleteAT( AT at ) {
     ATState atState = atStateTable.get(atStateDbKeyFactory.newKey(AT_API_Helper.getLong(at.getId())));
-    if(atState != null) {
+    if (atState != null) {
       atStateTable.delete(atState);
     }
     atTable.delete(at);
     //TODO: release account
   }
 
-  private static void deleteAT( Long id )
-  {
+  private static void deleteAT( Long id ) {
     AT at = AT.getAT(id);
-    if(at != null) {
+    if (at != null) {
       deleteAT(at);
     }
-
   }
 
   public static List< Long > getOrderedATs(){
@@ -299,7 +298,7 @@ public final class AT extends AT_Machine_State {
   }
 
   public static byte[] compressState(byte[] stateBytes) {
-    if(stateBytes == null || stateBytes.length == 0) {
+    if (stateBytes == null || stateBytes.length == 0) {
       return null;
     }
 
@@ -309,13 +308,14 @@ public final class AT extends AT_Machine_State {
       gzip.flush();
       gzip.close();
       return bos.toByteArray();
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       throw new RuntimeException(e.getMessage(), e);
     }
   }
 
   public static byte[] decompressState(byte[] stateBytes) {
-    if(stateBytes == null || stateBytes.length == 0) {
+    if (stateBytes == null || stateBytes.length == 0) {
       return null;
     }
 
@@ -353,12 +353,11 @@ public final class AT extends AT_Machine_State {
   public AT ( byte[] atId , byte[] creator , String name , String description , short version ,
               byte[] stateBytes, int csize , int dsize , int c_user_stack_bytes , int c_call_stack_bytes ,
               int creationBlockHeight, int sleepBetween , int nextHeight ,
-              boolean freezeWhenSameBalance, long minActivationAmount, byte[] apCode )
-  {
-    super( 	atId , creator , version ,
-                stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes ,
-                creationBlockHeight , sleepBetween ,
-                freezeWhenSameBalance , minActivationAmount , apCode );
+              boolean freezeWhenSameBalance, long minActivationAmount, byte[] apCode ) {
+    super(atId , creator , version ,
+          stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes ,
+          creationBlockHeight , sleepBetween ,
+          freezeWhenSameBalance , minActivationAmount , apCode );
     this.name = name;
     this.description = description;
     dbKey = atDbKeyFactory.newKey(AT_API_Helper.getLong(atId));
@@ -384,5 +383,4 @@ public final class AT extends AT_Machine_State {
   public byte[] getApData() {
     return getAp_data().array();
   }
-
 }
