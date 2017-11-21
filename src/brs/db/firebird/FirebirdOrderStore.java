@@ -12,7 +12,9 @@ import java.sql.SQLException;
 class FirebirdOrderStore extends SqlOrderStore {
   @Override
   protected void saveOrder(Connection con, String table, Order order) throws SQLException {
-    try (PreparedStatement pstmt = con.prepareStatement("UPDATE OR INSERT INTO " + DbUtils.quoteTableName(table) + " (id, account_id, asset_id, "
+    try (PreparedStatement pstmt = con.prepareStatement("UPDATE OR INSERT INTO "
+                                                        + DbUtils.quoteTableName(table)
+                                                        + " (id, account_id, asset_id, "
                                                         + "price, quantity, creation_height, height, latest) VALUES (?, ?, ?, ?, ?, ?, ?, TRUE) MATCHING (id, height)")) {
       int i = 0;
       pstmt.setLong(++i, order.getId());
