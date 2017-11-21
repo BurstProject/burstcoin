@@ -24,7 +24,6 @@ final class MariadbDbVersion {
         if (! rs.isLast()) {
           throw new RuntimeException("Invalid version table");
         }
-        rs.close();
         logger.info("Database update may take a while if needed, current db version " + (nextUpdate - 1) + "...");
       } catch (SQLException e) {
         logger.info("Initializing an empty database");
