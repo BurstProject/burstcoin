@@ -16,8 +16,7 @@ final class MariadbDbVersion {
   static void init() {
     try (Connection con = Db.beginTransaction(); Statement stmt = con.createStatement()) {
       int nextUpdate = 1;
-      try {
-        ResultSet rs = stmt.executeQuery("SELECT next_update FROM version");
+      try ( ResultSet rs = stmt.executeQuery("SELECT next_update FROM version") ) {
         if (! rs.next()) {
           throw new RuntimeException("Invalid version table");
         }

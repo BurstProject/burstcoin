@@ -43,17 +43,17 @@ public class MariadbDbs implements Dbs {
 
   @Override
   public void disableForeignKeyChecks(Connection con) throws SQLException {
-    Statement stmt = con.createStatement();
-    stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=0;");
-    stmt.executeUpdate("SET unique_checks=0;");
-
-
+    try ( Statement stmt = con.createStatement() ) {
+      stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=0;");
+      stmt.executeUpdate("SET unique_checks=0;");
+    }
   }
 
   @Override
   public void enableForeignKeyChecks(Connection con) throws SQLException {
-    Statement stmt = con.createStatement();
-    stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=1;");
-    stmt.executeUpdate("SET unique_checks=1;");
+    try ( Statement stmt = con.createStatement() ) {
+      stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=1;");
+      stmt.executeUpdate("SET unique_checks=1;");
+    }
   }
 }
