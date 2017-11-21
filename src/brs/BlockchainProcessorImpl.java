@@ -219,7 +219,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                     logger.warn("Sleeping for one second and trying again");
                     // Lets sleep about it for a second
                     try {
-                      Thread.sleep(1000L);
+                      BlockchainProcessorImpl.blockCache.wait(1000L);
                     } catch (InterruptedException ignored) {
                       logger.trace("Interrupted", ignored);
                     }
