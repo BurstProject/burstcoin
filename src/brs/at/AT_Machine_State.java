@@ -36,22 +36,22 @@ public class AT_Machine_State {
 
     int steps;
 
-    private byte[] A1 = new byte[ 8 ];
-    private byte[] A2 = new byte[ 8 ];
-    private byte[] A3 = new byte[ 8 ];
-    private byte[] A4 = new byte[ 8 ];
+    private byte[] A1 = new byte[8];
+    private byte[] A2 = new byte[8];
+    private byte[] A3 = new byte[8];
+    private byte[] A4 = new byte[8];
 
-    private byte[] B1 = new byte[ 8 ];
-    private byte[] B2 = new byte[ 8 ];
-    private byte[] B3 = new byte[ 8 ];
-    private byte[] B4 = new byte[ 8 ];
+    private byte[] B1 = new byte[8];
+    private byte[] B2 = new byte[8];
+    private byte[] B3 = new byte[8];
+    private byte[] B4 = new byte[8];
 
-    byte[] flags = new byte[ 2 ];
+    byte[] flags = new byte[2];
 
-    TreeSet<Integer> jumps = new TreeSet<Integer>();
+    TreeSet<Integer> jumps = new TreeSet<>();
 
     Machine_State() {
-      pcs=0;
+      pcs = 0;
       reset();
     }
 
@@ -82,10 +82,10 @@ public class AT_Machine_State {
         jumps.clear();
       flags[0] = 0;
       flags[1] = 0;
-      running = false;
-      stopped = true;
+      running  = false;
+      stopped  = true;
       finished = false;
-      dead = false;
+      dead     = false;
     }
 
     /*void run()
