@@ -43,13 +43,15 @@ public class H2Dbs implements Dbs {
 
   @Override
   public void disableForeignKeyChecks(Connection con) throws SQLException {
-    Statement stmt = con.createStatement();
-    stmt.executeUpdate("SET REFERENTIAL_INTEGRITY FALSE");
+    try ( Statement stmt = con.createStatement() ) {
+      stmt.executeUpdate("SET REFERENTIAL_INTEGRITY FALSE");
+    }
   }
 
   @Override
   public void enableForeignKeyChecks(Connection con) throws SQLException {
-    Statement stmt = con.createStatement();
-    stmt.executeUpdate("SET REFERENTIAL_INTEGRITY TRUE");
+    try ( Statement stmt = con.createStatement() ) {
+      stmt.executeUpdate("SET REFERENTIAL_INTEGRITY TRUE");
+    }
   }
 }
