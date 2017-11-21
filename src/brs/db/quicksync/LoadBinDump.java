@@ -172,97 +172,100 @@ public class LoadBinDump {
       logger.info("Dump was created with version " + input.readString());
       logger.trace("Blockchain height is " + input.read());
 
-      try (Connection con = Db.getConnection()) {
+      try ( Connection con = Db.beginTransaction() ) {
         Db.beginTransaction();
         dbs.disableForeignKeyChecks(con);
 
         Object o = null;
         Class clazz = null;
-        Statement stmt = con.createStatement();
 
-        while (!input.eof() && (clazz = kryo.readClass(input).getType()) != null) {
-          long rows = input.readLong();
-          String sql = "truncate table " + BinDumps.getTableName(clazz) + ";";
-          if (Db.getDatabaseType() == Db.TYPE.FIREBIRD)
-            sql = "delete from " + BinDumps.getTableName(clazz) + ";";
-          logger.debug(sql);
-          stmt.executeUpdate(sql);
+        try ( Statement stmt = con.createStatement() ) {
+          while (!input.eof() && (clazz = kryo.readClass(input).getType()) != null) {
+            long rows = input.readLong();
+            String sql = "truncate table " + BinDumps.getTableName(clazz) + ";";
+            if (Db.getDatabaseType() == Db.TYPE.FIREBIRD)
+              sql = "delete from " + BinDumps.getTableName(clazz) + ";";
+            logger.debug(sql);
+            stmt.executeUpdate(sql);
 
 
-          StringBuilder sb = new StringBuilder("insert into ");
-          sb.append(BinDumps.getTableName(clazz));
-          sb.append(" (");
-          List<Field> fields = new ArrayList<>();
+            StringBuilder sb = new StringBuilder("insert into ");
+            sb.append(BinDumps.getTableName(clazz));
+            sb.append(" (");
+            List<Field> fields = new ArrayList<>();
 
-          for (Field field : ReflectionUtils.getAllFields(clazz)) {
-            fields.add(field);
-            sb.append(BinDumps.getColumnName(field)).append(",");
-
-          }
-          // Remove last ,
-          sb.deleteCharAt(sb.lastIndexOf(","));
-          sb.append(") VALUES ( ");
-          sb.append(StringUtils.repeat("?", ",", fields.size()));
-          sb.append(")");
-          sql = sb.toString();
-          logger.debug(sql);
-          PreparedStatement ps = con.prepareStatement(sql);
-
-          for (long l = 0; l < rows; l++) {
-            o = kryo.readObject(input, clazz);
-            int i = 0;
-            for (Field field : fields) {
-              i++;
-              Class fieldType = field.getType();
-              field.setAccessible(true);
-
-              if (fieldType.equals(String.class)) {
-                ps.setString(i, (String) field.get(o));
-
-              }
-              else if (fieldType.equals(Long.class)) {
-                Object val = field.get(o);
-                if (val == null)
-                  ps.setNull(i, Types.NUMERIC);
-                else
-                  ps.setLong(i, (Long) val);
-              }
-              else if (fieldType.equals(long.class)) {
-                ps.setLong(i, field.getLong(o));
-              }
-              else if (fieldType.isArray()) {
-                // Byte array?
-
-                if (fieldType.getComponentType().equals(byte.class)) {
-                  ps.setBytes(i, (byte[]) field.get(o));
-
-                }
-                else {
-                  logger.error("Unhandled field type for" + field.getName() + ": " + fieldType);
-                }
-
-              }
-              else {
-                logger.error("Unhandled field type for" + field.getName() + ": " + fieldType);
-              }
+            for (Field field : ReflectionUtils.getAllFields(clazz)) {
+              fields.add(field);
+              sb.append(BinDumps.getColumnName(field)).append(",");
             }
-            ps.addBatch();
-            ps.clearParameters();
-            if (l % 10000 == 0) {
-              logger.info(clazz.getSimpleName() + ": " + l + " / " + rows);
+            // Remove last ,
+            sb.deleteCharAt(sb.lastIndexOf(","));
+            sb.append(") VALUES ( ");
+            sb.append(StringUtils.repeat("?", ",", fields.size()));
+            sb.append(")");
+            sql = sb.toString();
+            logger.debug(sql);
+
+            try ( PreparedStatement ps = con.prepareStatement(sql) ) {
+              for (long l = 0; l < rows; l++) {
+                o = kryo.readObject(input, clazz);
+                int i = 0;
+                for (Field field : fields) {
+                  i++;
+                  Class fieldType = field.getType();
+                  field.setAccessible(true);
+
+                  if (fieldType.equals(String.class)) {
+                    ps.setString(i, (String) field.get(o));
+                  }
+                  else if (fieldType.equals(Long.class)) {
+                    Object val = field.get(o);
+                    if (val == null)
+                      ps.setNull(i, Types.NUMERIC);
+                    else
+                      ps.setLong(i, (Long) val);
+                  }
+                  else if (fieldType.equals(long.class)) {
+                    ps.setLong(i, field.getLong(o));
+                  }
+                  else if (fieldType.isArray()) {
+                    // Byte array?
+
+                    if (fieldType.getComponentType().equals(byte.class)) {
+                      ps.setBytes(i, (byte[]) field.get(o));
+                    }
+                    else {
+                      logger.error("Unhandled field type for" + field.getName() + ": " + fieldType);
+                    }
+                  }
+                  else {
+                    logger.error("Unhandled field type for" + field.getName() + ": " + fieldType);
+                  }
+                }
+                ps.addBatch();
+                ps.clearParameters();
+                if (l % 10000 == 0) {
+                  logger.info(clazz.getSimpleName() + ": " + l + " / " + rows);
+                  ps.executeBatch();
+                  if (l % 50000 == 0 && Db.getDatabaseType() == Db.TYPE.FIREBIRD)
+                    Db.commitTransaction();
+                }
+              }
               ps.executeBatch();
-              if (l % 50000 == 0 && Db.getDatabaseType() == Db.TYPE.FIREBIRD)
-                Db.commitTransaction();
+              logger.info(clazz.getSimpleName() + ": " + rows + " / " + rows);
             }
           }
-          ps.executeBatch();
-          logger.info(clazz.getSimpleName() + ": " + rows + " / " + rows);
-        }
 
-        dbs.enableForeignKeyChecks(con);
-        Db.commitTransaction();
-        Db.endTransaction();
-        logger.info("Dump loaded in " + ((System.currentTimeMillis() - start) / 1000) + "seconds");
+          dbs.enableForeignKeyChecks(con);
+          Db.commitTransaction();
+        }
+        catch (SQLException e) {
+          Db.rollbackTransaction();
+          throw e;
+        } finally {
+          logger.info("Dump loaded in " + ((System.currentTimeMillis() - start) / 1000) + "seconds");
+          Db.endTransaction();
+        }
       }
     }
   }
