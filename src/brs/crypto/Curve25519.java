@@ -169,8 +169,9 @@ final class Curve25519 {
   public static void verify(byte[] Y, byte[] v, byte[] h, byte[] P) {
     /* Y = v abs(P) + h G  */
     byte[] d = new byte[32];
+
     long10[] p = new long10[] { new long10(), new long10() };
-    long10[] s = new long10[] { new long10(), new long10() },
+    long10[] s = new long10[] { new long10(), new long10() };
         long10[] yx=new long10[]{new long10(),new long10(),new long10()},
             yz=new long10[]{new long10(),new long10(),new long10()},
                 t1=new long10[]{new long10(),new long10(),new long10()},
