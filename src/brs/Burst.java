@@ -270,7 +270,6 @@ public final class Burst {
         Alias.init();
         Asset.init();
         DigitalGoodsStore.init();
-        Hub.init();
         Order.init();
         Poll.init();
         Trade.init();
