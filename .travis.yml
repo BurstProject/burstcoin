@@ -6,7 +6,7 @@ jdk:
   - oraclejdk8
 
 script:
-  - ./dev.sh sonar
+  - ./dev.sh sonarcube
 
 cache:
   directories:
