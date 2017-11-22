@@ -20,7 +20,7 @@ public final class Crypto {
 
   private static final Logger logger = LoggerFactory.getLogger(Crypto.class);
 
-  private static final ThreadLocal<SecureRandom> secureRandom = new ThreadLocal<>() {
+  private static final ThreadLocal<SecureRandom> secureRandom = new ThreadLocal<SecureRandom>() {
       @Override
       protected SecureRandom initialValue() {
         return new SecureRandom();

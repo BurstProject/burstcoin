@@ -12,7 +12,7 @@ import java.util.zip.GZIPOutputStream;
 
 public final class EncryptedData {
 
-  private static final ThreadLocal<SecureRandom> secureRandom = new ThreadLocal<>() {
+  private static final ThreadLocal<SecureRandom> secureRandom = new ThreadLocal<SecureRandom>() {
       @Override
       protected SecureRandom initialValue() {
         return new SecureRandom();
