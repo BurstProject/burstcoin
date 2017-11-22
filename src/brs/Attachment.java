@@ -1512,7 +1512,6 @@ public interface Attachment extends Appendix {
       if(totalSigners > 10 || totalSigners <= 0) {
         throw new BurstException.NotValidException("Invalid number of signers listed on create escrow transaction");
       }
-      //this.signers.addAll((JSONArray)attachmentData.get("signers"));
       JSONArray signersJson = (JSONArray)attachmentData.get("signers");
       for(int i = 0; i < signersJson.size(); i++) {
         this.signers.add(Convert.parseUnsignedLong((String)signersJson.get(i)));
@@ -1569,7 +1568,6 @@ public interface Attachment extends Appendix {
       attachment.put("deadlineAction", Escrow.decisionToString(this.deadlineAction));
       attachment.put("requiredSigners", (int)this.requiredSigners);
       JSONArray ids = new JSONArray();
-      //ids.addAll(this.signers);
       for(Long signer : this.signers) {
         ids.add(Convert.toUnsignedLong(signer));
       }
@@ -1916,44 +1914,4 @@ public interface Attachment extends Appendix {
    	
   }
     
-  /*public final static class AutomatedTransactionsPayment extends AbstractAttachment{
-
-    AutomatedTransactionsPayment(ByteBuffer buffer,
-    byte transactionVersion) throws BurstException.NotValidException {
-    super(buffer, transactionVersion);
-    }
-
-    AutomatedTransactionsPayment(JSONObject attachmentData) throws BurstException.NotValidException {
-    super(attachmentData);
-    }
-		
-    public AutomatedTransactionsPayment() {
-    }
-    	
-    @Override
-    public TransactionType getTransactionType() {
-    return TransactionType.AutomatedTransactions.AT_PAYMENT;
-    }
-
-    @Override
-    String getAppendixName() {
-    return "AutomatedTransactionsPayment";
-    }
-
-    @Override
-    int getMySize() {
-    return 0;
-    }
-
-    @Override
-    void putMyBytes(ByteBuffer buffer) {
-    }
-
-    @Override
-    void putMyJSON(JSONObject json) {
-    }
-    	
-    }*/
-    
-
 }
