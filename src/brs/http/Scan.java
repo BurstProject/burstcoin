@@ -32,16 +32,19 @@ public final class Scan extends APIServlet.APIRequestHandler {
       long start = System.currentTimeMillis();
       if (numBlocks > 0) {
         Burst.getBlockchainProcessor().scan(Burst.getBlockchain().getHeight() - numBlocks + 1);
-      } else if (height >= 0) {
+      }
+      else if (height >= 0) {
         Burst.getBlockchainProcessor().scan(height);
-      } else {
+      }
+      else {
         response.put("error", "invalid numBlocks or height");
         return response;
       }
       long end = System.currentTimeMillis();
       response.put("done", true);
       response.put("scanTime", (end - start)/1000);
-    } catch (RuntimeException e) {
+    }
+    catch (RuntimeException e) {
       response.put("error", e.toString());
     }
     return response;

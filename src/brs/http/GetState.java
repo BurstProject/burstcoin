@@ -28,7 +28,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
     response.put("lastBlock", Burst.getBlockchain().getLastBlock().getStringId());
     response.put("cumulativeDifficulty", Burst.getBlockchain().getLastBlock().getCumulativeDifficulty().toString());
 
-        
+
     long totalEffectiveBalance = 0;
     try (BurstIterator<Account> accounts = Account.getAllAccounts(0, -1)) {
       for (Account account : accounts) {
@@ -44,7 +44,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
       }
     }
     response.put("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_NXT);
-        
+
 
     if (!"false".equalsIgnoreCase(req.getParameter("includeCounts"))) {
       response.put("numberOfBlocks", Burst.getBlockchain().getHeight() + 1);

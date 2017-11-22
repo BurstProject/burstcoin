@@ -34,9 +34,11 @@ public final class PopOff extends APIServlet.APIRequestHandler {
     JSONArray blocksJSON = new JSONArray();
     if (numBlocks > 0) {
       blocks = Burst.getBlockchainProcessor().popOffTo(Burst.getBlockchain().getHeight() - numBlocks);
-    } else if (height > 0) {
+    }
+    else if (height > 0) {
       blocks = Burst.getBlockchainProcessor().popOffTo(height);
-    } else {
+    }
+    else {
       response.put("error", "invalid numBlocks or height");
       return response;
     }

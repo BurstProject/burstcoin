@@ -1,0 +1,12 @@
+--2017-11-20 16:12:50--  http://localhost:8125/burst?requestType=getAccountTransactions
+Resolving localhost... ::1, 127.0.0.1
+Connecting to localhost|::1|:8125... failed: Connection refused.
+Connecting to localhost|127.0.0.1|:8125... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 62 [text/plain]
+Saving to: ‘burst?requestType=getAccountTransactions’
+
+burst?requestType=getAccountTransactions     0%[                                                                                       ]       0  --.-KB/s               burst?requestType=getAccountTransactions   100%[======================================================================================>]      62  --.-KB/s    in 0s      
+
+2017-11-20 16:12:50 (13.3 MB/s) - ‘burst?requestType=getAccountTransactions’ saved [62/62]
+

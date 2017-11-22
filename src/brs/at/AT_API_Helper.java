@@ -13,15 +13,15 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class AT_API_Helper {
-  //private static ByteBuffer buffer = ByteBuffer.allocate(8);    
-    
+  //private static ByteBuffer buffer = ByteBuffer.allocate(8);
+
   public static int longToHeight(long x) {
     ByteBuffer buffer = ByteBuffer.allocate(8);
     buffer.order(ByteOrder.LITTLE_ENDIAN);
     buffer.putLong(0,x);
     return buffer.getInt(4);
   }
-    
+
   public static long getLong(byte[] b) {
     ByteBuffer buffer = ByteBuffer.allocate(8);
     buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -29,7 +29,7 @@ public class AT_API_Helper {
     buffer.put(b);
     return buffer.getLong(0);
   }
-    
+
   public static byte[] getByteArray(long l) {
     ByteBuffer buffer = ByteBuffer.allocate(8);
     buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -37,14 +37,14 @@ public class AT_API_Helper {
     buffer.putLong( l );
     return buffer.array();
   }
-    
+
   public static int longToNumOfTx(long x) {
     ByteBuffer buffer = ByteBuffer.allocate(8);
     buffer.order(ByteOrder.LITTLE_ENDIAN);
     buffer.putLong(0,x);
     return buffer.getInt(0);
   }
-    
+
   protected static long getLongTimestamp(int height, int numOfTx) {
     ByteBuffer buffer = ByteBuffer.allocate(8);
     buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -52,7 +52,7 @@ public class AT_API_Helper {
     buffer.putInt(0,numOfTx);
     return buffer.getLong(0);
   }
-    
+
   public static BigInteger getBigInteger(byte[] b1, byte[] b2, byte[] b3, byte[] b4) {
     ByteBuffer buffer = ByteBuffer.allocate(32);
     buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -60,9 +60,9 @@ public class AT_API_Helper {
     buffer.put(b2);
     buffer.put(b3);
     buffer.put(b4);
-    	
+
     byte[] bytes = buffer.array();
-    	
+
     return new BigInteger(new byte[] {
         bytes[31], bytes[30], bytes[29], bytes[28], bytes[27], bytes[26], bytes[25], bytes[24],
         bytes[23], bytes[22], bytes[21], bytes[20], bytes[19], bytes[18], bytes[17], bytes[16],
@@ -70,7 +70,7 @@ public class AT_API_Helper {
         bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0]
       });
   }
-    
+
   public static byte[] getByteArray(BigInteger bigInt) {
     byte[] bigIntBytes = bigInt.toByteArray();
     ByteBuffer paddedBytesBuffer = ByteBuffer.allocate(32);
@@ -80,7 +80,7 @@ public class AT_API_Helper {
       for(int i = 0; i < 32 - bigIntBytes.length; i++)
         paddedBytesBuffer.put(padding);
     }
-    	
+
     paddedBytesBuffer.put(bigIntBytes, (32 >= bigIntBytes.length) ? 0
                                                                   : (bigIntBytes.length - 32),
                           (32 > bigIntBytes.length) ? bigIntBytes.length

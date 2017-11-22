@@ -18,7 +18,7 @@ package brs.crypto.hash;
  * ==========================(LICENSE BEGIN)============================
  *
  * Copyright (c) 2007-2010  Projet RNRT SAPHIR
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
  * "Software"), to deal in the Software without restriction, including
@@ -26,10 +26,10 @@ package brs.crypto.hash;
  * distribute, sublicense, and/or sell copies of the Software, and to
  * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -86,8 +86,7 @@ public abstract class DigestEngine implements Digest {
   /**
    * Instantiate the engine.
    */
-  public DigestEngine()
-  {
+  public DigestEngine() {
     doInit();
     digestLen = getDigestLength();
     blockLen = getInternalBlockLength();
@@ -97,8 +96,7 @@ public abstract class DigestEngine implements Digest {
     blockCount = 0;
   }
 
-  private void adjustDigestLen()
-  {
+  private void adjustDigestLen() {
     if (digestLen == 0) {
       digestLen = getDigestLength();
       outputBuf = new byte[digestLen];
@@ -106,8 +104,7 @@ public abstract class DigestEngine implements Digest {
   }
 
   /** @see Digest */
-  public byte[] digest()
-  {
+  public byte[] digest() {
     adjustDigestLen();
     byte[] result = new byte[digestLen];
     digest(result, 0, digestLen);
@@ -115,21 +112,20 @@ public abstract class DigestEngine implements Digest {
   }
 
   /** @see Digest */
-  public byte[] digest(byte[] input)
-  {
+  public byte[] digest(byte[] input) {
     update(input, 0, input.length);
     return digest();
   }
 
   /** @see Digest */
-  public int digest(byte[] buf, int offset, int len)
-  {
+  public int digest(byte[] buf, int offset, int len) {
     adjustDigestLen();
     if (len >= digestLen) {
       doPadding(buf, offset);
       reset();
       return digestLen;
-    } else {
+    }
+    else {
       doPadding(outputBuf, 0);
       System.arraycopy(outputBuf, 0, buf, offset, len);
       reset();
@@ -138,16 +134,14 @@ public abstract class DigestEngine implements Digest {
   }
 
   /** @see Digest */
-  public void reset()
-  {
+  public void reset() {
     engineReset();
     inputLen = 0;
     blockCount = 0;
   }
 
   /** @see Digest */
-  public void update(byte input)
-  {
+  public void update(byte input) {
     inputBuf[inputLen ++] = (byte)input;
     if (inputLen == blockLen) {
       processBlock(inputBuf);
@@ -157,14 +151,12 @@ public abstract class DigestEngine implements Digest {
   }
 
   /** @see Digest */
-  public void update(byte[] input)
-  {
+  public void update(byte[] input) {
     update(input, 0, input.length);
   }
 
   /** @see Digest */
-  public void update(byte[] input, int offset, int len)
-  {
+  public void update(byte[] input, int offset, int len) {
     while (len > 0) {
       int copyLen = blockLen - inputLen;
       if (copyLen > len)
@@ -193,8 +185,7 @@ public abstract class DigestEngine implements Digest {
    *
    * @return  the internal block length (in bytes)
    */
-  protected int getInternalBlockLength()
-  {
+  protected int getInternalBlockLength() {
     return getBlockLength();
   }
 
@@ -204,8 +195,7 @@ public abstract class DigestEngine implements Digest {
    *
    * @return  the number of bytes still unprocessed after the flush
    */
-  protected final int flush()
-  {
+  protected final int flush() {
     return inputLen;
   }
 
@@ -221,8 +211,7 @@ public abstract class DigestEngine implements Digest {
    *
    * @return  a block-sized internal buffer
    */
-  protected final byte[] getBlockBuffer()
-  {
+  protected final byte[] getBlockBuffer() {
     return inputBuf;
   }
 
@@ -234,8 +223,7 @@ public abstract class DigestEngine implements Digest {
    *
    * @return  the block count
    */
-  protected long getBlockCount()
-  {
+  protected long getBlockCount() {
     return blockCount;
   }
 
@@ -249,8 +237,7 @@ public abstract class DigestEngine implements Digest {
    * @param dest   the copy
    * @return  the value {@code dest}
    */
-  protected Digest copyState(DigestEngine dest)
-  {
+  protected Digest copyState(DigestEngine dest) {
     dest.inputLen = inputLen;
     dest.blockCount = blockCount;
     System.arraycopy(inputBuf, 0, dest.inputBuf, 0,

@@ -1,5 +1,3 @@
-
-
 package brs.at;
 
 import brs.AT;
@@ -32,15 +30,15 @@ public abstract class AT_Controller {
     //int height = Burst.getBlockchain().getHeight();
 
     state.setFreeze( false );
-		
+
     long stepFee = AT_Constants.getInstance().STEP_FEE( state.getCreationBlockHeight() );
-		
+
     int numSteps = 0;
-		
+
     while ( state.getMachineState().steps +
             (numSteps = getNumSteps(state.getAp_code().get(state.getMachineState().pc), state.getCreationBlockHeight()))
             <= AT_Constants.getInstance().MAX_STEPS( state.getHeight() )) {
-      
+
       if ( ( state.getG_balance() < stepFee * numSteps ) ) {
         //System.out.println( "stopped - not enough balance" );
         state.setFreeze( true );
@@ -70,7 +68,7 @@ public abstract class AT_Controller {
           System.out.println( "error: invalid code" );
           else
           System.out.println( "unexpected error" );*/
-				
+
         if (state.getMachineState().jumps.contains(state.getMachineState().err)) {
           state.getMachineState().pc = state.getMachineState().err;
         }
@@ -84,11 +82,11 @@ public abstract class AT_Controller {
 
     return 5;
   }
-	
+
   public static int getNumSteps(byte op, int height) {
     if (op >= 0x32 && op < 0x38)
       return (int)AT_Constants.getInstance().API_STEP_MULTIPLIER(height);
-		
+
     return 1;
   }
 
@@ -111,7 +109,7 @@ public abstract class AT_Controller {
     state.getMachineState( ).opc = opc;
 
     while ( true ) {
-      
+
       int rc = machineProcessor.processOp( disassembly, determine_jumps );
       if ( rc <= 0 ) break;
 
@@ -125,7 +123,7 @@ public abstract class AT_Controller {
   public static int checkCreationBytes( byte[] creation, int height ) throws AT_Exception{
     if (creation == null)
       throw new AT_Exception( "Creation bytes cannot be null" );
-		
+
     int totalPages = 0;
     try {
       ByteBuffer b = ByteBuffer.allocate( creation.length );
@@ -162,9 +160,9 @@ public abstract class AT_Controller {
       if ( userStackPages > instance.MAX_MACHINE_USER_STACK_PAGES( height ) || userStackPages < 0) {
         throw new AT_Exception( AT_Error.INCORRECT_USER_PAGES.getDescription() );
       }
-			
+
       long minActivationAmount = b.getLong();
-			
+
       //System.out.println("codePages: " + codePages );
       int codeLen;
       if ( codePages * 256 < 257 ) {
@@ -183,7 +181,7 @@ public abstract class AT_Controller {
       else {
         throw new AT_Exception( AT_Error.INCORRECT_CODE_LENGTH.getDescription() );
       }
-      
+
       if ( codeLen < 1 || codeLen > codePages * 256) {
         throw new AT_Exception( AT_Error.INCORRECT_CODE_LENGTH.getDescription() );
       }
@@ -243,7 +241,7 @@ public abstract class AT_Controller {
     int payload = 0;
     long totalFee = 0;
     long totalAmount = 0;
-    
+
     while ( payload <= freePayload - costOfOneAT && keys.hasNext() ) {
       Long id = keys.next();
       AT at = AT.getAT( id );
@@ -314,7 +312,7 @@ public abstract class AT_Controller {
     if (blockATs == null) {
       return new AT_Block(0, 0, null, true);
     }
-		
+
     LinkedHashMap< ByteBuffer, byte[] > ats = getATsFromBlock( blockATs );
 
     List< AT > processedATs = new ArrayList< >();
@@ -324,7 +322,7 @@ public abstract class AT_Controller {
     MessageDigest digest = MessageDigest.getInstance( "MD5" );
     byte[] md5 = null;
     long totalAmount = 0;
-    
+
     for ( ByteBuffer atIdBuffer : ats.keySet() ) {
       byte[] atId = atIdBuffer.array();
       AT at = AT.getAT( atId );
@@ -339,17 +337,17 @@ public abstract class AT_Controller {
             * AT_Constants.getInstance().API_STEP_MULTIPLIER( at.getCreationBlockHeight() ) ) {
           throw new AT_Exception( "AT has insufficient balance to run" );
         }
-				
+
         if ( at.freezeOnSameBalance() && (atAccountBalance - at.getG_balance() < at.minActivationAmount()) ) {
           throw new AT_Exception( "AT should be frozen due to unchanged balance" );
         }
-				
+
         if ( at.nextHeight() > blockHeight ) {
           throw new AT_Exception( "AT not allowed to run again yet" );
         }
 
         at.setG_balance( atAccountBalance );
-				
+
         listCode(at, true, true);
 
         runSteps( at );
@@ -384,8 +382,7 @@ public abstract class AT_Controller {
       }
     }
 
-    for ( AT at : processedATs )
-      {
+    for ( AT at : processedATs ) {
         at.saveState();
       }
     AT_Block atBlock = new AT_Block( totalFee, totalAmount, new byte[ 1 ], validated );
@@ -399,7 +396,7 @@ public abstract class AT_Controller {
         throw new AT_Exception("blockATs must be a multiple of cost of one AT ( " + getCostOfOneAT() +" )" );
       }
     }
-		
+
     ByteBuffer b = ByteBuffer.wrap( blockATs );
     b.order( ByteOrder.LITTLE_ENDIAN );
 
@@ -417,7 +414,7 @@ public abstract class AT_Controller {
       if (ats.containsKey(atId)) {
         throw new AT_Exception("AT included in block multiple times");
       }
-      ats.put( atId, md5 ); 
+      ats.put( atId, md5 );
     }
 
     if ( b.position() != b.capacity() ) {
@@ -431,7 +428,7 @@ public abstract class AT_Controller {
     if (payload <= 0) {
       return null;
     }
-		
+
     ByteBuffer b = ByteBuffer.allocate( payload );
     b.order( ByteOrder.LITTLE_ENDIAN );
 
@@ -450,7 +447,7 @@ public abstract class AT_Controller {
   }
 
   //platform based implementations
-  //platform based 
+  //platform based
   private static long makeTransactions( AT at ) throws AT_Exception {
     long totalAmount = 0;
     if ( at.getHeight() < Constants.AT_FIX_BLOCK_4 ) {
@@ -468,7 +465,7 @@ public abstract class AT_Controller {
                    + " amount "
                    + tx.getAmount() );
     }
-    
+
     return totalAmount;
   }
 

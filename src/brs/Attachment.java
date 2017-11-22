@@ -103,17 +103,17 @@ public interface Attachment extends Appendix {
 
       @Override
       public TransactionType getTransactionType() {
-        return TransactionType.AutomatedTransactions.AT_PAYMENT; 
+        return TransactionType.AutomatedTransactions.AT_PAYMENT;
       }
 
       @Override
       String getAppendixName() {
         return "AT Payment";
       }
-		
-		
+
+
     };
-    
+
   public final static class MessagingAliasAssignment extends AbstractAttachment {
 
     private final String aliasName;
@@ -1439,20 +1439,20 @@ public interface Attachment extends Appendix {
       return period;
     }
   }
-    
+
   public final static class BurstMiningRewardRecipientAssignment extends AbstractAttachment {
-    	
+
     BurstMiningRewardRecipientAssignment(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
     }
-    	
+
     BurstMiningRewardRecipientAssignment(JSONObject attachmentData) {
       super(attachmentData);
     }
-    	
+
     public BurstMiningRewardRecipientAssignment() {
     }
-    	
+
     @Override
     String getAppendixName() {
       return "RewardRecipientAssignment";
@@ -1476,15 +1476,15 @@ public interface Attachment extends Appendix {
       return TransactionType.BurstMining.REWARD_RECIPIENT_ASSIGNMENT;
     }
   }
-    
+
   public final static class AdvancedPaymentEscrowCreation extends AbstractAttachment {
-    	
+
     private final Long amountNQT;
     private final byte requiredSigners;
     private final SortedSet<Long> signers = new TreeSet<>();
     private final int deadline;
     private final Escrow.DecisionType deadlineAction;
-    	
+
     AdvancedPaymentEscrowCreation(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
       this.amountNQT = buffer.getLong();
@@ -1501,7 +1501,7 @@ public interface Attachment extends Appendix {
         }
       }
     }
-    	
+
     AdvancedPaymentEscrowCreation(JSONObject attachmentData) throws BurstException.NotValidException {
       super(attachmentData);
       this.amountNQT = Convert.parseUnsignedLong((String)attachmentData.get("amountNQT"));
@@ -1520,7 +1520,7 @@ public interface Attachment extends Appendix {
         throw new BurstException.NotValidException("Duplicate signer on escrow creation");
       }
     }
-    	
+
     public AdvancedPaymentEscrowCreation(Long amountNQT, int deadline, Escrow.DecisionType deadlineAction,
                                          int requiredSigners, Collection<Long> signers) throws BurstException.NotValidException {
       this.amountNQT = amountNQT;
@@ -1535,19 +1535,19 @@ public interface Attachment extends Appendix {
         throw new BurstException.NotValidException("Duplicate signer on escrow creation");
       }
     }
-    	
+
     @Override
     String getAppendixName() {
       return "EscrowCreation";
     }
-    	
+
     @Override
     int getMySize() {
       int size = 8 + 4 + 1 + 1 + 1;
       size += (signers.size() * 8);
       return size;
     }
-    	
+
     @Override
     void putMyBytes(ByteBuffer buffer) {
       buffer.putLong(this.amountNQT);
@@ -1560,7 +1560,7 @@ public interface Attachment extends Appendix {
         buffer.putLong(id);
       }
     }
-    	
+
     @Override
     void putMyJSON(JSONObject attachment) {
       attachment.put("amountNQT", Convert.toUnsignedLong(this.amountNQT));
@@ -1573,259 +1573,259 @@ public interface Attachment extends Appendix {
       }
       attachment.put("signers", ids);
     }
-    	
+
     @Override
     public TransactionType getTransactionType() {
       return TransactionType.AdvancedPayment.ESCROW_CREATION;
     }
-    	
+
     public Long getAmountNQT() { return amountNQT; }
-    	
+
     public int getDeadline() { return deadline; }
-    	
+
     public Escrow.DecisionType getDeadlineAction() { return deadlineAction; }
-    	
+
     public int getRequiredSigners() { return (int)requiredSigners; }
-    	
+
     public Collection<Long> getSigners() { return Collections.unmodifiableCollection(signers); }
-    	
+
     public int getTotalSigners() { return signers.size(); }
   }
-    
+
   public final static class AdvancedPaymentEscrowSign extends AbstractAttachment {
-    	
+
     private final Long escrowId;
     private final Escrow.DecisionType decision;
-    	
+
     AdvancedPaymentEscrowSign(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
       this.escrowId = buffer.getLong();
       this.decision = Escrow.byteToDecision(buffer.get());
     }
-    	
+
     AdvancedPaymentEscrowSign(JSONObject attachmentData) {
       super(attachmentData);
       this.escrowId = Convert.parseUnsignedLong((String)attachmentData.get("escrowId"));
       this.decision = Escrow.stringToDecision((String)attachmentData.get("decision"));
     }
-    	
+
     public AdvancedPaymentEscrowSign(Long escrowId, Escrow.DecisionType decision) {
       this.escrowId = escrowId;
       this.decision = decision;
     }
-    	
+
     @Override
     String getAppendixName() {
       return "EscrowSign";
     }
-    	
+
     @Override
     int getMySize() {
       return 8 + 1;
     }
-    	
+
     @Override
     void putMyBytes(ByteBuffer buffer) {
       buffer.putLong(this.escrowId);
       buffer.put(Escrow.decisionToByte(this.decision));
     }
-    	
+
     @Override
     void putMyJSON(JSONObject attachment) {
       attachment.put("escrowId", Convert.toUnsignedLong(this.escrowId));
       attachment.put("decision", Escrow.decisionToString(this.decision));
     }
-    	
+
     @Override
     public TransactionType getTransactionType() {
       return TransactionType.AdvancedPayment.ESCROW_SIGN;
     }
-    	
+
     public Long getEscrowId() { return this.escrowId; }
-    	
+
     public Escrow.DecisionType getDecision() { return this.decision; }
   }
-    
+
   public final static class AdvancedPaymentEscrowResult extends AbstractAttachment {
-    	
+
     private final Long escrowId;
     private final Escrow.DecisionType decision;
-    	
+
     AdvancedPaymentEscrowResult(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
       this.escrowId = buffer.getLong();
       this.decision = Escrow.byteToDecision(buffer.get());
     }
-    	
+
     AdvancedPaymentEscrowResult(JSONObject attachmentData) {
       super(attachmentData);
       this.escrowId = Convert.parseUnsignedLong((String) attachmentData.get("escrowId"));
       this.decision = Escrow.stringToDecision((String)attachmentData.get("decision"));
     }
-    	
+
     public AdvancedPaymentEscrowResult(Long escrowId, Escrow.DecisionType decision) {
       this.escrowId = escrowId;
       this.decision = decision;
     }
-    	
+
     @Override
     String getAppendixName() {
       return "EscrowResult";
     }
-    	
+
     @Override
     int getMySize() {
       return 8 + 1;
     }
-    	
+
     @Override
     void putMyBytes(ByteBuffer buffer) {
       buffer.putLong(this.escrowId);
       buffer.put(Escrow.decisionToByte(this.decision));
     }
-    	
+
     @Override
     void putMyJSON(JSONObject attachment) {
       attachment.put("escrowId", Convert.toUnsignedLong(this.escrowId));
       attachment.put("decision", Escrow.decisionToString(this.decision));
     }
-    	
+
     @Override
     public TransactionType getTransactionType() {
       return TransactionType.AdvancedPayment.ESCROW_RESULT;
     }
   }
-    
+
   public final static class AdvancedPaymentSubscriptionSubscribe extends AbstractAttachment {
-    	
+
     private final Integer frequency;
-    	
+
     AdvancedPaymentSubscriptionSubscribe(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
       this.frequency = buffer.getInt();
     }
-    	
+
     AdvancedPaymentSubscriptionSubscribe(JSONObject attachmentData) {
       super(attachmentData);
       this.frequency = ((Long)attachmentData.get("frequency")).intValue();
     }
-    	
+
     public AdvancedPaymentSubscriptionSubscribe(int frequency) {
       this.frequency = frequency;
     }
-    	
+
     @Override
     String getAppendixName() {
       return "SubscriptionSubscribe";
     }
-    	
+
     @Override
     int getMySize() {
       return 4;
     }
-    	
+
     @Override
     void putMyBytes(ByteBuffer buffer) {
       buffer.putInt(this.frequency);
     }
-    	
+
     @Override
     void putMyJSON(JSONObject attachment) {
       attachment.put("frequency", this.frequency);
     }
-    	
+
     @Override
     public TransactionType getTransactionType() {
       return TransactionType.AdvancedPayment.SUBSCRIPTION_SUBSCRIBE;
     }
-    	
+
     public Integer getFrequency() { return this.frequency; }
   }
-    
+
   public final static class AdvancedPaymentSubscriptionCancel extends AbstractAttachment {
-    	
+
     private final Long subscriptionId;
-    	
+
     AdvancedPaymentSubscriptionCancel(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
       this.subscriptionId = buffer.getLong();
     }
-    	
+
     AdvancedPaymentSubscriptionCancel(JSONObject attachmentData) {
       super(attachmentData);
       this.subscriptionId = Convert.parseUnsignedLong((String)attachmentData.get("subscriptionId"));
     }
-    	
+
     public AdvancedPaymentSubscriptionCancel(Long subscriptionId) {
       this.subscriptionId = subscriptionId;
     }
-    	
+
     @Override
     String getAppendixName() {
       return "SubscriptionCancel";
     }
-    	
+
     @Override
     int getMySize() {
       return 8;
     }
-    	
+
     @Override
     void putMyBytes(ByteBuffer buffer) {
       buffer.putLong(subscriptionId);
     }
-    	
+
     @Override
     void putMyJSON(JSONObject attachment) {
       attachment.put("subscriptionId", Convert.toUnsignedLong(this.subscriptionId));
     }
-    	
+
     @Override
     public TransactionType getTransactionType() {
       return TransactionType.AdvancedPayment.SUBSCRIPTION_CANCEL;
     }
-    	
+
     public Long getSubscriptionId() { return this.subscriptionId; }
   }
-    
+
   public final static class AdvancedPaymentSubscriptionPayment extends AbstractAttachment {
-    	
+
     private final Long subscriptionId;
-    	
+
     AdvancedPaymentSubscriptionPayment(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
       this.subscriptionId = buffer.getLong();
     }
-    	
+
     AdvancedPaymentSubscriptionPayment(JSONObject attachmentData) {
       super(attachmentData);
       this.subscriptionId = Convert.parseUnsignedLong((String) attachmentData.get("subscriptionId"));
     }
-    	
+
     public AdvancedPaymentSubscriptionPayment(Long subscriptionId) {
       this.subscriptionId = subscriptionId;
     }
-    	
+
     @Override
     String getAppendixName() {
       return "SubscriptionPayment";
     }
-    	
+
     @Override
     int getMySize() {
       return 8;
     }
-    	
+
     @Override
     void putMyBytes(ByteBuffer buffer) {
       buffer.putLong(this.subscriptionId);
     }
-    	
+
     @Override
     void putMyJSON(JSONObject attachment) {
       attachment.put("subscriptionId", Convert.toUnsignedLong(this.subscriptionId));
     }
-    	
+
     @Override
     public TransactionType getTransactionType() {
       return TransactionType.AdvancedPayment.SUBSCRIPTION_PAYMENT;
@@ -1833,43 +1833,43 @@ public interface Attachment extends Appendix {
   }
 
   public final static class AutomatedTransactionsCreation extends AbstractAttachment{
-    	
-    private final String name;    
+
+    private final String name;
     private final String description;
     private final byte[] creationBytes;
-    	
-    	
+
+
     AutomatedTransactionsCreation(ByteBuffer buffer,
                                   byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
-			
+
       this.name = Convert.readString( buffer , buffer.get() , Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH );
       this.description = Convert.readString( buffer , buffer.getShort() , Constants.MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH );
-			
+
       byte[] dst = new byte[ buffer.capacity() - buffer.position() ];
       buffer.get( dst , 0 , buffer.capacity() - buffer.position() );
       this.creationBytes = dst;
-			
+
     }
 
     AutomatedTransactionsCreation(JSONObject attachmentData) throws BurstException.NotValidException {
       super(attachmentData);
-			
+
       this.name = ( String ) attachmentData.get( "name" );
       this.description = ( String ) attachmentData.get( "description" );
-			
+
       this.creationBytes = Convert.parseHexString( (String) attachmentData.get( "creationBytes" ) );
-			
+
     }
-			
+
     public AutomatedTransactionsCreation( String name, String description , byte[] creationBytes ) throws NotValidException
     {
       this.name = name;
       this.description = description;
       this.creationBytes = creationBytes;
-			
+
     }
-		
+
     @Override
     public TransactionType getTransactionType() {
       return TransactionType.AutomatedTransactions.AUTOMATED_TRANSACTION_CREATION;
@@ -1885,22 +1885,22 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    void putMyBytes(ByteBuffer buffer) {        
-      byte[] nameBytes = Convert.toBytes( name );            
+    void putMyBytes(ByteBuffer buffer) {
+      byte[] nameBytes = Convert.toBytes( name );
       buffer.put( ( byte ) nameBytes.length );
       buffer.put( nameBytes );
       byte[] descriptionBytes = Convert.toBytes( description );
       buffer.putShort( ( short ) descriptionBytes.length );
       buffer.put( descriptionBytes );
-            
-      buffer.put( creationBytes );       
+
+      buffer.put( creationBytes );
     }
 
     @Override
-    void putMyJSON(JSONObject attachment) {       
+    void putMyJSON(JSONObject attachment) {
       attachment.put("name", name);
       attachment.put("description", description);
-      attachment.put("creationBytes", Convert.toHexString( creationBytes ) );        
+      attachment.put("creationBytes", Convert.toHexString( creationBytes ) );
     }
 
     public String getName() { return name; }
@@ -1910,8 +1910,8 @@ public interface Attachment extends Appendix {
     public byte[] getCreationBytes() {
       return creationBytes;
     }
-        
-   	
+
+
   }
-    
+
 }

@@ -377,9 +377,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             long peerHeight = 0;
             if (useRiskyCatchupStrategy)
               peerHeight= getPeerBlockchainHeight(peer);
-            boolean processedAll = true;
             int requestCount = 0;
-            outer:
             while (forkBlocks.size() < 1440 && requestCount++ < 10 && ((blockCacheSize < BLOCKCACHEMB * 1024 * 1024) || forkBlocks.size() > 0)) { // fork decision could be wrong if cut off so ignore cache size for forks
               //logger.info("Downloading " + String.valueOf(currentBlockId));
               Long blockToDownload = currentBlockId;

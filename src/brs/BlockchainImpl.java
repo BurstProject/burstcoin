@@ -12,7 +12,7 @@ public final class BlockchainImpl implements Blockchain {
 
   private static final BlockchainImpl instance = new BlockchainImpl();
   private final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
-  private final BlockDb blockDb =  Burst.getDbs().getBlockDb();;
+  private final BlockDb blockDb =  Burst.getDbs().getBlockDb();
 
   public static BlockchainImpl getInstance() {
     return instance;

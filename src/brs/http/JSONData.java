@@ -36,12 +36,13 @@ public final class JSONData {
   static JSONObject accountBalance(Account account) {
     JSONObject json = new JSONObject();
     if (account == null) {
-      json.put("balanceNQT", "0");
+      json.put("balanceNQT",            "0");
       json.put("unconfirmedBalanceNQT", "0");
-      json.put("effectiveBalanceNXT", "0");
-      json.put("forgedBalanceNQT", "0");
-      json.put("guaranteedBalanceNQT", "0");
-    } else {
+      json.put("effectiveBalanceNXT",   "0");
+      json.put("forgedBalanceNQT",      "0");
+      json.put("guaranteedBalanceNQT",  "0");
+    }
+    else {
       json.put("balanceNQT", String.valueOf(account.getBalanceNQT()));
       json.put("unconfirmedBalanceNQT", String.valueOf(account.getUnconfirmedBalanceNQT()));
       json.put("effectiveBalanceNXT", account.getBalanceNQT());
@@ -64,7 +65,7 @@ public final class JSONData {
     json.put("numberOfAccounts", Account.getAssetAccountsCount(asset.getId()));
     return json;
   }
-    
+
   static JSONObject accountAsset(Account.AccountAsset accountAsset) {
     JSONObject json = new JSONObject();
     putAccount(json, "account", accountAsset.getAccountId());
@@ -139,7 +140,7 @@ public final class JSONData {
     json.put("nonce", Convert.toHexString(encryptedData.getNonce()));
     return json;
   }
-    
+
   static JSONObject escrowTransaction(Escrow escrow) {
     JSONObject json = new JSONObject();
     json.put("id", Convert.toUnsignedLong(escrow.getId()));
@@ -151,7 +152,7 @@ public final class JSONData {
     json.put("requiredSigners", escrow.getRequiredSigners());
     json.put("deadline", escrow.getDeadline());
     json.put("deadlineAction", Escrow.decisionToString(escrow.getDeadlineAction()));
-		
+
     JSONArray signers = new JSONArray();
     for(Escrow.Decision decision : escrow.getDecisions()) {
       if(decision.getAccountId().equals(escrow.getSenderId()) ||
@@ -282,7 +283,7 @@ public final class JSONData {
     }
     return json;
   }
-    
+
   static JSONObject subscription(Subscription subscription) {
     JSONObject json = new JSONObject();
     json.put("id", Convert.toUnsignedLong(subscription.getId()));
@@ -316,7 +317,7 @@ public final class JSONData {
     }
     return json;
   }
-    
+
   static JSONObject assetTransfer(AssetTransfer assetTransfer, boolean includeAssetInfo) {
     JSONObject json = new JSONObject();
     json.put("assetTransfer", Convert.toUnsignedLong(assetTransfer.getId()));
@@ -416,7 +417,7 @@ public final class JSONData {
     JSONObject json = new JSONObject();
     ByteBuffer bf = ByteBuffer.allocate( 8 );
     bf.order( ByteOrder.LITTLE_ENDIAN );
-        
+
     bf.put( at.getCreator() );
     bf.clear();
     putAccount(json, "creator", bf.getLong() );
@@ -425,7 +426,7 @@ public final class JSONData {
     long id = bf.getLong(0);
     json.put("at", Convert.toUnsignedLong( id ));
     json.put("atRS", Convert.rsAccount(id));
-    json.put("atVersion", at.getVersion());        
+    json.put("atVersion", at.getVersion());
     json.put("name", at.getName());
     json.put("description", at.getDescription());
     json.put("creator", Convert.toUnsignedLong(AT_API_Helper.getLong(at.getCreator())));
@@ -444,15 +445,13 @@ public final class JSONData {
     json.put("creationBlock", at.getCreationBlockHeight());
     return json;
   }
-    
+
   static JSONObject hex2long(String longString){
     JSONObject json = new JSONObject();
     json.put("hex2long", longString);
     return json;
   }
-   
-    
-    
+
   private JSONData() {} // never
 
 }
