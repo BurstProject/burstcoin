@@ -401,14 +401,6 @@
             </plugin>
 
             <plugin>
-              <artifactId>maven-failsafe-plugin</artifactId>
-              <configuration>
-                <argLine>${jacoco.itAgent.argLine}</argLine>
-              </configuration>
-            </plugin>
-
-
-            <plugin>
                 <groupId>org.evosuite.plugins</groupId>
                 <artifactId>evosuite-maven-plugin</artifactId>
                 <version>${evosuite.version}</version>
