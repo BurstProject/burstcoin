@@ -86,22 +86,6 @@ public  class Account {
 
   }
 
-  public static class AccountLease {
-
-    public final long lessorId;
-    public final long lesseeId;
-    public final int fromHeight;
-    public final int toHeight;
-
-    private AccountLease(long lessorId, long lesseeId, int fromHeight, int toHeight) {
-      this.lessorId = lessorId;
-      this.lesseeId = lesseeId;
-      this.fromHeight = fromHeight;
-      this.toHeight = toHeight;
-    }
-
-  }
-
   public static class RewardRecipientAssignment {
 
     public final Long accountId;

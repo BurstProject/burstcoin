@@ -78,18 +78,6 @@ public final class DebugTrace {
           }
         }, Account.Event.UNCONFIRMED_ASSET_BALANCE);
     }
-    /*Account.addLeaseListener(new Listener<Account.AccountLease>() {
-      @Override
-      public void notify(Account.AccountLease accountLease) {
-      debugTrace.trace(accountLease, true);
-      }
-      }, Account.Event.LEASE_STARTED);*/
-    /*Account.addLeaseListener(new Listener<Account.AccountLease>() {
-      @Override
-      public void notify(Account.AccountLease accountLease) {
-      debugTrace.trace(accountLease, false);
-      }
-      }, Account.Event.LEASE_ENDED);*/
     Burst.getBlockchainProcessor().addListener(new Listener<Block>() {
         @Override
         public void notify(Block block) {
@@ -187,27 +175,11 @@ public final class DebugTrace {
     log(getValues(accountAsset.getAccountId(), accountAsset, unconfirmed));
   }
 
-  /*private void trace(Account.AccountLease accountLease, boolean start) {
-    if (! include(accountLease.lesseeId) && ! include(accountLease.lessorId)) {
-    return;
-    }
-    log(getValues(accountLease.lessorId, accountLease, start));
-    }*/
 
   private void traceBeforeAccept(Block block) {
     long generatorId = block.getGeneratorId();
     if (include(generatorId)) {
       log(getValues(generatorId, block));
-    }
-    for (long accountId : accountIds) {
-      Account account = Account.getAccount(accountId);
-      if (account != null) {
-        /*try (DbIterator<Account> lessors = account.getLessors()) {
-          while (lessors.hasNext()) {
-          log(lessorGuaranteedBalance(lessors.next(), accountId));
-          }
-          }*/
-      }
     }
   }
 
@@ -300,7 +272,6 @@ public final class DebugTrace {
     map.put("generation fee", String.valueOf(fee));
     map.put("block", block.getStringId());
     map.put("event", "block");
-    //map.put("effective balance", String.valueOf(Account.getAccount(accountId).getEffectiveBalanceNXT()));
     map.put("timestamp", String.valueOf(block.getTimestamp()));
     map.put("height", String.valueOf(block.getHeight()));
     return map;
@@ -320,16 +291,6 @@ public final class DebugTrace {
     map.put("event", "asset balance");
     return map;
   }
-
-  /*private Map<String,String> getValues(long accountId, Account.AccountLease accountLease, boolean start) {
-    Map<String,String> map = new HashMap<>();
-    map.put("account", Convert.toUnsignedLong(accountId));
-    map.put("event", start ? "lease begin" : "lease end");
-    map.put("timestamp", String.valueOf(Burst.getBlockchain().getLastBlock().getTimestamp()));
-    map.put("height", String.valueOf(Burst.getBlockchain().getHeight()));
-    map.put("lessee", Convert.toUnsignedLong(accountLease.lesseeId));
-    return map;
-    }*/
 
   private Map<String,String> getValues(long accountId, Transaction transaction, Attachment attachment, boolean isRecipient) {
     Map<String,String> map = getValues(accountId, false);
@@ -354,7 +315,8 @@ public final class DebugTrace {
       map.put("order cost", orderCost.toString());
       String event = (isAsk ? "ask" : "bid") + " order";
       map.put("event", event);
-    } else if (attachment instanceof Attachment.ColoredCoinsAssetIssuance) {
+    }
+    else if (attachment instanceof Attachment.ColoredCoinsAssetIssuance) {
       if (isRecipient) {
         return Collections.emptyMap();
       }
@@ -362,7 +324,8 @@ public final class DebugTrace {
       map.put("asset", transaction.getStringId());
       map.put("asset quantity", String.valueOf(assetIssuance.getQuantityQNT()));
       map.put("event", "asset issuance");
-    } else if (attachment instanceof Attachment.ColoredCoinsAssetTransfer) {
+    }
+    else if (attachment instanceof Attachment.ColoredCoinsAssetTransfer) {
       Attachment.ColoredCoinsAssetTransfer assetTransfer = (Attachment.ColoredCoinsAssetTransfer)attachment;
       map.put("asset", Convert.toUnsignedLong(assetTransfer.getAssetId()));
       long quantity = assetTransfer.getQuantityQNT();
@@ -371,18 +334,21 @@ public final class DebugTrace {
       }
       map.put("asset quantity", String.valueOf(quantity));
       map.put("event", "asset transfer");
-    } else if (attachment instanceof Attachment.ColoredCoinsOrderCancellation) {
+    }
+    else if (attachment instanceof Attachment.ColoredCoinsOrderCancellation) {
       Attachment.ColoredCoinsOrderCancellation orderCancellation = (Attachment.ColoredCoinsOrderCancellation)attachment;
       map.put("order", Convert.toUnsignedLong(orderCancellation.getOrderId()));
       map.put("event", "order cancel");
-    } else if (attachment instanceof Attachment.DigitalGoodsPurchase) {
+    }
+    else if (attachment instanceof Attachment.DigitalGoodsPurchase) {
       Attachment.DigitalGoodsPurchase purchase = (Attachment.DigitalGoodsPurchase)transaction.getAttachment();
       if (isRecipient) {
         map = getValues(DigitalGoodsStore.getGoods(purchase.getGoodsId()).getSellerId(), false);
       }
       map.put("event", "purchase");
       map.put("purchase", transaction.getStringId());
-    } else if (attachment instanceof Attachment.DigitalGoodsDelivery) {
+    }
+    else if (attachment instanceof Attachment.DigitalGoodsDelivery) {
       Attachment.DigitalGoodsDelivery delivery = (Attachment.DigitalGoodsDelivery)transaction.getAttachment();
       DigitalGoodsStore.Purchase purchase = DigitalGoodsStore.getPurchase(delivery.getPurchaseId());
       if (isRecipient) {
@@ -402,7 +368,8 @@ public final class DebugTrace {
         discount = - discount;
       }
       map.put("discount", String.valueOf(discount));
-    } else if (attachment instanceof Attachment.DigitalGoodsRefund) {
+    }
+    else if (attachment instanceof Attachment.DigitalGoodsRefund) {
       Attachment.DigitalGoodsRefund refund = (Attachment.DigitalGoodsRefund)transaction.getAttachment();
       if (isRecipient) {
         map = getValues(DigitalGoodsStore.getPurchase(refund.getPurchaseId()).getBuyerId(), false);
@@ -414,7 +381,8 @@ public final class DebugTrace {
         refundNQT = - refundNQT;
       }
       map.put("refund", String.valueOf(refundNQT));
-    } else if (attachment == Attachment.ARBITRARY_MESSAGE) {
+    }
+    else if (attachment == Attachment.ARBITRARY_MESSAGE) {
       map = new HashMap<>();
       map.put("account", Convert.toUnsignedLong(accountId));
       map.put("timestamp", String.valueOf(Burst.getBlockchain().getLastBlock().getTimestamp()));
@@ -422,10 +390,12 @@ public final class DebugTrace {
       map.put("event", attachment == Attachment.ARBITRARY_MESSAGE ? "message" : "encrypted message");
       if (isRecipient) {
         map.put("sender", Convert.toUnsignedLong(transaction.getSenderId()));
-      } else {
+      }
+      else {
         map.put("recipient", Convert.toUnsignedLong(transaction.getRecipientId()));
       }
-    } else {
+    }
+    else {
       return Collections.emptyMap();
     }
     return map;
