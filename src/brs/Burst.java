@@ -108,10 +108,22 @@ public final class Burst {
     return getBooleanProperty(name, false);
   }
 
-  // Int Properties handling
+  // Int Properties handling, can accept binary, decimal (0b) and hexadecimal (0x) numbers
   public static int getIntProperty(String name, int defaultValue) {
     try {
-      int result = Integer.parseInt(properties.getProperty(name));
+      String value = properties.getProperty(name);
+      int radix    = 10;
+
+      if (value!= null && value.matches("(?i)^0x.+$")) {
+        value = value.replaceFirst("^0x", "");
+        radix = 16;
+      }
+      else if (value != null && value.matches("(?i)^0b[01]+$")) {
+        value = value.replaceFirst("^0b", "");
+        radix = 2;
+      }
+
+      int result   = Integer.parseInt(value, radix);
       logger.debug(name + " = \"" + result + "\"");
       return result;
     }
@@ -121,6 +133,7 @@ public final class Burst {
     }
   }
 
+  // without any default value, we assume 0 and are facade for the generic previous method
   public static int getIntProperty(String name) {
     return getIntProperty(name, 0);
   }
