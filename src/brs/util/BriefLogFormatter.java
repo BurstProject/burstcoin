@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 public class BriefLogFormatter extends Formatter {
 
   /** Format used for log messages */
-  private static final ThreadLocal<MessageFormat> messageFormat = new ThreadLocal<>() {
+  private static final ThreadLocal<MessageFormat> messageFormat = new ThreadLocal<MessageFormat>() {
       @Override
       protected MessageFormat initialValue() {
         return new MessageFormat("[{1}] {0,date,yyyy-MM-dd HH:mm:ss} {4} - {2}\n{3}");
