@@ -52,7 +52,8 @@ public class CreateBinDump {
       String dbUrl;
       if (Constants.isTestnet) {
         dbUrl = Burst.getStringProperty("brs.testDbUrl");
-      } else {
+      }
+      else {
         dbUrl = Burst.getStringProperty("brs.dbUrl");
       }
 
@@ -79,7 +80,8 @@ public class CreateBinDump {
       }
       Db.init();
       dump(args[0]);
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       logger.error("Error", e);
     }
   }
@@ -186,24 +188,28 @@ public class CreateBinDump {
 
                     if (fieldType.equals(String.class)) {
                       value = rs.getString(i);
-                    } else if (fieldType.equals(Long.class)) {
+                    }
+                    else if (fieldType.equals(Long.class)) {
                       if (rs.getObject(i) == null)
                         value = null;
                       else
                         value = rs.getLong(i);
-                    } else if (fieldType.equals(long.class)) {
+                    }
+                    else if (fieldType.equals(long.class)) {
                       value = rs.getLong(i);
-                    } else if (fieldType.isArray()) {
+                    }
+                    else if (fieldType.isArray()) {
                       // Byte array?
                       if (fieldType.getComponentType().equals(byte.class)) {
                         // Not sure if this works across drivers
                         value = rs.getBytes(i);
-                      } else {
+                      }
+                      else {
                         logger.error("Unhandled array type for" + field.getName() + ": " + fieldType);
                         value = rs.getObject(i);
                       }
-
-                    } else {
+                    }
+                    else {
                       logger.error("Unhandled field type for" + field.getName() + ": " + fieldType);
                       value = rs.getObject(i);
                     }
@@ -223,7 +229,8 @@ public class CreateBinDump {
       catch (SQLException e) {
         Db.rollbackTransaction();
         throw e;
-      } finally {
+      }
+      finally {
         Db.endTransaction();
       }
     }
@@ -234,7 +241,7 @@ public class CreateBinDump {
   public static List<String> getClassNamesFromPackage(String packageName) throws IOException, URISyntaxException {
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     URL packageURL;
-    ArrayList<String> names = new ArrayList<String>();
+    ArrayList<String> names = new ArrayList<>();
     packageName = packageName.replace(".", "/");
     packageURL = classLoader.getResource(packageName);
     if (packageURL.getProtocol().equals("jar")) {
@@ -259,7 +266,8 @@ public class CreateBinDump {
       }
 
       // loop through files in classpath
-    } else {
+    }
+    else {
       URI uri = new URI(packageURL.toString());
       File folder = new File(uri.getPath());
       // won't work with path which contains blank (%20)

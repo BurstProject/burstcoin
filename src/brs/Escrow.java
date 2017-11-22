@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 public class Escrow {
 
-  public static enum DecisionType {
+  public enum DecisionType {
     UNDECIDED,
     RELEASE,
     REFUND,

@@ -19,7 +19,7 @@ import java.util.List;
 
 public final class DigitalGoodsStore {
 
-  public static enum Event {
+  public enum Event {
     GOODS_LISTED, GOODS_DELISTED, GOODS_PRICE_CHANGE, GOODS_QUANTITY_CHANGE,
     PURCHASE, DELIVERY, REFUND, FEEDBACK
   }

@@ -10,7 +10,7 @@ import brs.util.Listeners;
 
 public class Trade {
 
-  public static enum Event {
+  public enum Event {
     TRADE
   }
 

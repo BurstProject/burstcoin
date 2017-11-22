@@ -61,9 +61,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   private volatile boolean getMoreBlocks = true;
 
   // blockCache for faster sync
-  public static final Map<Long, Block> blockCache = new HashMap<Long, Block>();
-  public static final Map<Long, Long> reverseCache = new HashMap<Long, Long>();
-  public static final List<Long> unverified = new LinkedList<Long>();
+  public static final Map<Long, Block> blockCache = new HashMap<>();
+  public static final Map<Long, Long> reverseCache = new HashMap<>();
+  public static final List<Long> unverified = new LinkedList<>();
   private static int blockCacheSize = 0;
 
   private volatile boolean isScanning;

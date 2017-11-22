@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface TransactionProcessor extends Observable<List<? extends Transaction>,TransactionProcessor.Event> {
 
-  public static enum Event {
+  public enum Event {
     REMOVED_UNCONFIRMED_TRANSACTIONS,
     ADDED_UNCONFIRMED_TRANSACTIONS,
     ADDED_CONFIRMED_TRANSACTIONS,
