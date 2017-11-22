@@ -30,7 +30,7 @@ public final class Peers {
 
   private static final Logger logger = LoggerFactory.getLogger(Peers.class);
 
-  public static enum Event {
+  public enum Event {
     BLACKLIST, UNBLACKLIST, DEACTIVATE, REMOVE,
     DOWNLOADED_VOLUME, UPLOADED_VOLUME, WEIGHT,
     ADDED_ACTIVE_PEER, CHANGED_ACTIVE_PEER,

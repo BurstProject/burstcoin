@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface BlockchainProcessor extends Observable<Block,BlockchainProcessor.Event> {
 
-  public static enum Event {
+  public enum Event {
     BLOCK_PUSHED, BLOCK_POPPED, BLOCK_GENERATED, BLOCK_SCANNED,
     RESCAN_BEGIN, RESCAN_END,
     BEFORE_BLOCK_ACCEPT,

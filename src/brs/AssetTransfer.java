@@ -8,7 +8,7 @@ import brs.util.Listeners;
 
 public class AssetTransfer {
 
-  public static enum Event {
+  public enum Event {
     ASSET_TRANSFER
   }
 

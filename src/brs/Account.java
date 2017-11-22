@@ -18,7 +18,7 @@ public  class Account {
 
   private static final Logger logger = Logger.getLogger(Account.class.getSimpleName());
 
-  public static enum Event {
+  public enum Event {
     BALANCE, UNCONFIRMED_BALANCE, ASSET_BALANCE, UNCONFIRMED_ASSET_BALANCE,
     LEASE_SCHEDULED, LEASE_STARTED, LEASE_ENDED
   }
@@ -74,8 +74,14 @@ public  class Account {
 
     @Override
     public String toString() {
-      return "AccountAsset account_id: " + Convert.toUnsignedLong(accountId) + " asset_id: " + Convert.toUnsignedLong(assetId)
-          + " quantity: " + quantityQNT + " unconfirmedQuantity: " + unconfirmedQuantityQNT;
+      return "AccountAsset account_id: "
+          + Convert.toUnsignedLong(accountId)
+          + " asset_id: "
+          + Convert.toUnsignedLong(assetId)
+          + " quantity: "
+          + quantityQNT
+          + " unconfirmedQuantity: "
+          + unconfirmedQuantityQNT;
     }
 
   }
