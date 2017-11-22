@@ -74,7 +74,8 @@ public class Alias {
     Alias alias = getAlias(attachment.getAliasName());
     if (alias == null) {
       alias = new Alias(transaction.getId(), transaction, attachment);
-    } else {
+    }
+    else {
       alias.accountId = transaction.getSenderId();
       alias.aliasURI = attachment.getAliasURI();
       alias.timestamp = transaction.getBlockTimestamp();
@@ -91,12 +92,14 @@ public class Alias {
       Offer offer = getOffer(alias);
       if (offer == null) {
         offerTable.insert(new Offer(alias.id, priceNQT, buyerId));
-      } else {
+      }
+      else {
         offer.priceNQT = priceNQT;
         offer.buyerId = buyerId;
         offerTable.insert(offer);
       }
-    } else {
+    }
+    else {
       changeOwner(buyerId, aliasName, transaction.getBlockTimestamp());
     }
 

@@ -34,6 +34,8 @@ public final class Burst {
   public static final String VERSION     = "1.3.7cg";
   public static final String APPLICATION = "BRS";
 
+  private static final String LOG_UNDEF_NAME_DEFAULT = "{} undefined. Default: {}";
+  
   public static final MetricRegistry metrics = new MetricRegistry();
   private static final Logger logger = LoggerFactory.getLogger(Burst.class);
   private static final Properties defaultProperties = new Properties();
@@ -44,7 +46,7 @@ public final class Burst {
   private static Generator generator = new GeneratorImpl();
 
   static {
-    System.out.println("Initializing Burst server version " + Burst.VERSION);
+    logger.info("Initializing Burst server version {}", Burst.VERSION);
     try (InputStream is = ClassLoader.getSystemResourceAsStream("brs-default.properties")) {
       if (is != null) {
         Burst.defaultProperties.load(is);
@@ -57,11 +59,13 @@ public final class Burst {
           } catch (IOException e) {
             throw new RuntimeException("Error loading brs-default.properties from " + configFile);
           }
-        } else {
+        }
+        else {
           throw new RuntimeException("brs-default.properties not in classpath and system property brs-default.properties not defined either");
         }
       }
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       throw new RuntimeException("Error loading brs-default.properties", e);
     }
   }
@@ -86,17 +90,17 @@ public final class Burst {
 
     if (value != null) {
       if (value.matches("(?i)^1|true|yes|on$")) {
-        logger.debug(name + " = \"true\"");
+        logger.debug("{} = 'true'", name);
         return true;
       }
 
       if (value.matches("(?i)^0|false|no|off$")) {
-        logger.debug(name + " = \"false\"");
+        logger.debug("{} = 'false'", name);
         return false;
       }
     }
 
-    logger.info(name + " undefined. Default: " + assume);
+    logger.info(LOG_UNDEF_NAME_DEFAULT, name, assume);
     return assume;
   }
 
@@ -112,7 +116,7 @@ public final class Burst {
       return result;
     }
     catch (NumberFormatException e) {
-      logger.info(name + " undefined. Default: " + defaultValue);
+      logger.info(LOG_UNDEF_NAME_DEFAULT, name, defaultValue);
       return defaultValue;
     }
   }
@@ -129,7 +133,7 @@ public final class Burst {
       return value;
     }
 
-    logger.info(name + " undefined. Default: " + defaultValue);
+    logger.info(LOG_UNDEF_NAME_DEFAULT, name, defaultValue);
 
     return defaultValue;
   }

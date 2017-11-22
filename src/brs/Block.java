@@ -18,13 +18,13 @@ public interface Block {
   int getTimestamp();
 
   long getGeneratorId();
-    
+
   Long getNonce();
-    
+
   int getScoopNum();
 
   byte[] getGeneratorPublicKey();
-    
+
   byte[] getBlockHash();
 
   long getPreviousBlockId();
@@ -48,14 +48,13 @@ public interface Block {
   byte[] getBlockSignature();
 
   long getBaseTarget();
-    
+
   long getBlockReward();
 
   BigInteger getCumulativeDifficulty();
 
   JSONObject getJSONObject();
-    
-  byte[] getBlockATs();
 
+  byte[] getBlockATs();
 
 }

@@ -24,11 +24,7 @@ public interface Appendix {
     }
 
     AbstractAppendix(ByteBuffer buffer, byte transactionVersion) {
-      if (transactionVersion == 0) {
-        version = 0;
-      } else {
-        version = buffer.get();
-      }
+        version = (transactionVersion == 0) ? 0 : buffer.get();
     }
 
     AbstractAppendix(int version) {

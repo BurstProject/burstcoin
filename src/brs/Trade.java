@@ -141,9 +141,9 @@ public class Trade {
   public long getQuantityQNT() { return quantityQNT; }
 
   public long getPriceNQT() { return priceNQT; }
-    
+
   public long getAssetId() { return assetId; }
-    
+
   public int getTimestamp() { return timestamp; }
 
   public int getHeight() {
