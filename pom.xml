@@ -52,8 +52,7 @@
 
         <!-- For Java -->
         <sonar.junit.reportsPath>${project.build.directory}/reports/java/surefire-reports</sonar.junit.reportsPath>
-        <sonar.jacoco.reportPath>${project.build.directory}/reports/java/jacoco.exec</sonar.jacoco.reportPath>
-        <sonar.jacoco.itReportPath>${user.dir}/target/jacoco-it.exec</sonar.jacoco.itReportPath>
+        <sonar.jacoco.reportsPath>${project.build.directory}/reports/java/jacoco.exec</sonar.jacoco.reportsPath>
 
         <!-- For JavaScript -->
         <!--
@@ -217,6 +216,13 @@
         </dependency>
 
         <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
             <groupId>org.evosuite</groupId>
             <artifactId>evosuite-standalone-runtime</artifactId>
             <version>${evosuite.version}</version>
@@ -366,23 +372,13 @@
                 <version>${jacoco.version}</version>
                 <executions>
                     <execution>
-                        <id>jacoco-unit</id>
+                        <id>pre-unit-test</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                         <configuration>
-                            <destFile>${sonar.jacoco.reportPath}</destFile>
-                            <propertyName>jacoco.agent.argLine</propertyName>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>jacoco-it</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                        <configuration>
-                            <propertyName>jacoco.itAgent.argLine</propertyName>
-                            <destFile>${sonar.jacoco.itReportPath}</destFile>
+                            <destFile>${sonar.jacoco.reportsPath}</destFile>
+                            <propertyName>surefireArgLine</propertyName>
                         </configuration>
                     </execution>
                 </executions>
@@ -394,7 +390,7 @@
                  <version>2.17</version>
                  <configuration>
                      <reportsDirectory>${sonar.junit.reportsPath}</reportsDirectory>
-                     <argLine>${jacoco.agent.argLine}</argLine>
+                     <argLine>${surefireArgLine}</argLine>
                      <properties>
                          <property>
                              <name>listener</name>
