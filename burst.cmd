@@ -5,7 +5,7 @@ SET MY_CMD=%1
 SET MY_OPT=%2
 
 IF "%MY_JAVA%" == "" (
-  for /F "tokens=*" %%f in ('where /F /R %SYSTEMDRIVE% java.exe') do (
+  for /F "tokens=*" %%f in ('where /F /R %SYSTEMDRIVE%\ java.exe') do (
       SET MY_JAVA=%%f
   )
 )
