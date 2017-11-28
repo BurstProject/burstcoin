@@ -220,8 +220,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                     // Lets sleep about it for a second
                     try {
                       BlockchainProcessorImpl.blockCache.wait(1000L);
-                    } catch (InterruptedException ignored) {
+                    }
+                    catch (InterruptedException ignored) {
                       logger.trace("Interrupted", ignored);
+                      Thread.currentThread().interrupt();
                     }
                     break;
                   }
@@ -250,7 +252,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
               while (!reverseCache.containsKey(blockchain.getLastBlock().getId())) {
                 try {
                   blockCache.wait(2000);
-                } catch (InterruptedException ignore) {}
+                }
+                catch (InterruptedException ignore) {
+                  Thread.currentThread().interrupt();
+                }
               }
             }
           }
@@ -284,7 +289,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       }
       Block lastBlock = blockchain.getLastBlock();
       lastDownloaded = lastBlock.getHeight() >= block.getHeight() ? lastBlock.getId() : block.getPreviousBlockId();
-      blockCache.notify();
+      blockCache.notifyAll();
     }
     logger.debug("Blacklisted peer and cleaned queue");
   }
@@ -490,7 +495,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                     logger.warn("Unhandled exception",e);
                   }
                 }
-                blockCache.notify();
+                blockCache.notifyAll();
                 logger.trace("Unverified blocks: " + String.valueOf(unverified.size()));
                 logger.trace("Blocks in cache: " + String.valueOf(blockCache.size()));
                 logger.trace("Bytes in cache: " + String.valueOf(blockCacheSize));
@@ -687,7 +692,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           unverified.clear();
           lastDownloaded = blockchain.getLastBlock().getId();
           blockCacheSize = 0;
-          blockCache.notify();
+          blockCache.notifyAll();
         }
       }
 
@@ -818,7 +823,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             blockCacheSize += block.getByteLength();
             // do not add to unverified as it will be processed immediately
             lastDownloaded = block.getId();
-            blockCache.notify();
+            blockCache.notifyAll();
           }
         }
         else {
