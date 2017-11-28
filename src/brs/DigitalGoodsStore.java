@@ -269,7 +269,6 @@ public final class DigitalGoodsStore {
       this.encryptedGoods = encryptedGoods;
       this.refundNote = refundNote;
       this.hasFeedbackNotes = hasFeedbackNotes;
-      this.feedbackNotes = feedbackNotes;
       this.hasPublicFeedbacks = hasPublicFeedbacks;
       this.discountNQT = discountNQT;
       this.refundNQT = refundNQT;
@@ -521,6 +520,9 @@ public final class DigitalGoodsStore {
 
   static void deliver(Transaction transaction, Attachment.DigitalGoodsDelivery attachment) {
     Purchase purchase = getPendingPurchase(attachment.getPurchaseId());
+    if ( purchase == null ) {
+      throw new RuntimeException("cant find purchase with id {}", attachment.getPurchaseId());
+    }
     purchase.setPending(false);
     long totalWithoutDiscount = Convert.safeMultiply(purchase.getQuantity(), purchase.getPriceNQT());
     Account buyer = Account.getAccount(purchase.getBuyerId());
