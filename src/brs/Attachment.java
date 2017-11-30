@@ -70,7 +70,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static EmptyAttachment ORDINARY_PAYMENT = new EmptyAttachment() {
+  public static final EmptyAttachment ORDINARY_PAYMENT = new EmptyAttachment() {
 
       @Override
       String getAppendixName() {
@@ -85,7 +85,7 @@ public interface Attachment extends Appendix {
     };
 
   // the message payload is in the Appendix
-  public final static EmptyAttachment ARBITRARY_MESSAGE = new EmptyAttachment() {
+  public static final EmptyAttachment ARBITRARY_MESSAGE = new EmptyAttachment() {
 
       @Override
       String getAppendixName() {
@@ -114,7 +114,7 @@ public interface Attachment extends Appendix {
 
     };
 
-  public final static class MessagingAliasAssignment extends AbstractAttachment {
+  public static final class MessagingAliasAssignment extends AbstractAttachment {
 
     private final String aliasName;
     private final String aliasURI;
@@ -176,7 +176,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public final static class MessagingAliasSell extends AbstractAttachment {
+  public static final class MessagingAliasSell extends AbstractAttachment {
 
     private final String aliasName;
     private final long priceNQT;
@@ -236,7 +236,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public final static class MessagingAliasBuy extends AbstractAttachment {
+  public static final class MessagingAliasBuy extends AbstractAttachment {
 
     private final String aliasName;
 
@@ -286,7 +286,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public final static class MessagingPollCreation extends AbstractAttachment {
+  public static final class MessagingPollCreation extends AbstractAttachment {
 
     private final String pollName;
     private final String pollDescription;
@@ -405,7 +405,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static class MessagingVoteCasting extends AbstractAttachment {
+  public static final class MessagingVoteCasting extends AbstractAttachment {
 
     private final long pollId;
     private final byte[] pollVote;
@@ -476,7 +476,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static class MessagingAccountInfo extends AbstractAttachment {
+  public static final class MessagingAccountInfo extends AbstractAttachment {
 
     private final String name;
     private final String description;
@@ -539,7 +539,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static class ColoredCoinsAssetIssuance extends AbstractAttachment {
+  public static final class ColoredCoinsAssetIssuance extends AbstractAttachment {
 
     private final String name;
     private final String description;
@@ -621,7 +621,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public final static class ColoredCoinsAssetTransfer extends AbstractAttachment {
+  public static final class ColoredCoinsAssetTransfer extends AbstractAttachment {
 
     private final long assetId;
     private final long quantityQNT;
@@ -754,7 +754,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public final static class ColoredCoinsAskOrderPlacement extends ColoredCoinsOrderPlacement {
+  public static final class ColoredCoinsAskOrderPlacement extends ColoredCoinsOrderPlacement {
 
     ColoredCoinsAskOrderPlacement(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
@@ -780,7 +780,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static class ColoredCoinsBidOrderPlacement extends ColoredCoinsOrderPlacement {
+  public static final class ColoredCoinsBidOrderPlacement extends ColoredCoinsOrderPlacement {
 
     ColoredCoinsBidOrderPlacement(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
@@ -844,7 +844,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public final static class ColoredCoinsAskOrderCancellation extends ColoredCoinsOrderCancellation {
+  public static final class ColoredCoinsAskOrderCancellation extends ColoredCoinsOrderCancellation {
 
     ColoredCoinsAskOrderCancellation(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
@@ -870,7 +870,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static class ColoredCoinsBidOrderCancellation extends ColoredCoinsOrderCancellation {
+  public static final class ColoredCoinsBidOrderCancellation extends ColoredCoinsOrderCancellation {
 
     ColoredCoinsBidOrderCancellation(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
@@ -896,7 +896,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static class DigitalGoodsListing extends AbstractAttachment {
+  public static final class DigitalGoodsListing extends AbstractAttachment {
 
     private final String name;
     private final String description;
@@ -982,7 +982,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static class DigitalGoodsDelisting extends AbstractAttachment {
+  public static final class DigitalGoodsDelisting extends AbstractAttachment {
 
     private final long goodsId;
 
@@ -1029,7 +1029,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static class DigitalGoodsPriceChange extends AbstractAttachment {
+  public static final class DigitalGoodsPriceChange extends AbstractAttachment {
 
     private final long goodsId;
     private final long priceNQT;
@@ -1084,7 +1084,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static class DigitalGoodsQuantityChange extends AbstractAttachment {
+  public static final class DigitalGoodsQuantityChange extends AbstractAttachment {
 
     private final long goodsId;
     private final int deltaQuantity;
@@ -1139,7 +1139,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static class DigitalGoodsPurchase extends AbstractAttachment {
+  public static final class DigitalGoodsPurchase extends AbstractAttachment {
 
     private final long goodsId;
     private final int quantity;
@@ -1210,7 +1210,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static class DigitalGoodsDelivery extends AbstractAttachment {
+  public static final class DigitalGoodsDelivery extends AbstractAttachment {
 
     private final long purchaseId;
     private final EncryptedData goods;
@@ -1290,7 +1290,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static class DigitalGoodsFeedback extends AbstractAttachment {
+  public static final class DigitalGoodsFeedback extends AbstractAttachment {
 
     private final long purchaseId;
 
@@ -1337,7 +1337,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static class DigitalGoodsRefund extends AbstractAttachment {
+  public static final class DigitalGoodsRefund extends AbstractAttachment {
 
     private final long purchaseId;
     private final long refundNQT;
@@ -1392,7 +1392,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public final static class AccountControlEffectiveBalanceLeasing extends AbstractAttachment {
+  public static final class AccountControlEffectiveBalanceLeasing extends AbstractAttachment {
 
     private final short period;
 
@@ -1440,7 +1440,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public final static class BurstMiningRewardRecipientAssignment extends AbstractAttachment {
+  public static final class BurstMiningRewardRecipientAssignment extends AbstractAttachment {
 
     BurstMiningRewardRecipientAssignment(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
@@ -1477,7 +1477,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public final static class AdvancedPaymentEscrowCreation extends AbstractAttachment {
+  public static final class AdvancedPaymentEscrowCreation extends AbstractAttachment {
 
     private final Long amountNQT;
     private final byte requiredSigners;
@@ -1592,7 +1592,7 @@ public interface Attachment extends Appendix {
     public int getTotalSigners() { return signers.size(); }
   }
 
-  public final static class AdvancedPaymentEscrowSign extends AbstractAttachment {
+  public static final class AdvancedPaymentEscrowSign extends AbstractAttachment {
 
     private final Long escrowId;
     private final Escrow.DecisionType decision;
@@ -1646,7 +1646,7 @@ public interface Attachment extends Appendix {
     public Escrow.DecisionType getDecision() { return this.decision; }
   }
 
-  public final static class AdvancedPaymentEscrowResult extends AbstractAttachment {
+  public static final class AdvancedPaymentEscrowResult extends AbstractAttachment {
 
     private final Long escrowId;
     private final Escrow.DecisionType decision;
@@ -1696,7 +1696,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public final static class AdvancedPaymentSubscriptionSubscribe extends AbstractAttachment {
+  public static final class AdvancedPaymentSubscriptionSubscribe extends AbstractAttachment {
 
     private final Integer frequency;
 
@@ -1742,7 +1742,7 @@ public interface Attachment extends Appendix {
     public Integer getFrequency() { return this.frequency; }
   }
 
-  public final static class AdvancedPaymentSubscriptionCancel extends AbstractAttachment {
+  public static final class AdvancedPaymentSubscriptionCancel extends AbstractAttachment {
 
     private final Long subscriptionId;
 
@@ -1788,7 +1788,7 @@ public interface Attachment extends Appendix {
     public Long getSubscriptionId() { return this.subscriptionId; }
   }
 
-  public final static class AdvancedPaymentSubscriptionPayment extends AbstractAttachment {
+  public static final class AdvancedPaymentSubscriptionPayment extends AbstractAttachment {
 
     private final Long subscriptionId;
 
@@ -1832,7 +1832,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public final static class AutomatedTransactionsCreation extends AbstractAttachment{
+  public static final class AutomatedTransactionsCreation extends AbstractAttachment{
 
     private final String name;
     private final String description;

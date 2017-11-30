@@ -108,7 +108,7 @@ public final class Burst {
     return getBooleanProperty(name, false);
   }
 
-  // Int Properties handling, can accept binary, decimal (0b) and hexadecimal (0x) numbers
+  // Int Properties handling, can accept binary (0b), decimal and hexadecimal (0x) numbers
   public static int getIntProperty(String name, int defaultValue) {
     try {
       String value = properties.getProperty(name);
@@ -124,7 +124,7 @@ public final class Burst {
       }
 
       int result   = Integer.parseInt(value, radix);
-      logger.debug(name + " = \"" + result + "\"");
+      logger.debug("{} = '{}'", name, result);
       return result;
     }
     catch (NumberFormatException e) {
@@ -250,14 +250,6 @@ public final class Burst {
         long startTime = System.currentTimeMillis();
 
         LoggerConfigurator.init();
-
-        String dbUrl;
-        if (Constants.isTestnet) {
-          dbUrl = Burst.getStringProperty("brs.testDbUrl");
-        }
-        else {
-          dbUrl = Burst.getStringProperty("brs.dbUrl");
-        }
 
         Db.init();
         switch (Db.getDatabaseType()) {
