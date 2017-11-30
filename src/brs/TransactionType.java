@@ -350,7 +350,7 @@ public abstract class TransactionType {
     final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
     }
 
-    public final static TransactionType ARBITRARY_MESSAGE = new Messaging() {
+    public static final TransactionType ARBITRARY_MESSAGE = new Messaging() {
 
         @Override
         public final byte getSubtype() {
@@ -587,7 +587,7 @@ public abstract class TransactionType {
 
       };
 
-    public final static TransactionType POLL_CREATION = new Messaging() {
+    public static final TransactionType POLL_CREATION = new Messaging() {
         @Override
         public final byte getSubtype() {
           return TransactionType.SUBTYPE_MESSAGING_POLL_CREATION;
@@ -634,7 +634,7 @@ public abstract class TransactionType {
 
       };
 
-    public final static TransactionType VOTE_CASTING = new Messaging() {
+    public static final TransactionType VOTE_CASTING = new Messaging() {
 
         @Override
         public final byte getSubtype() {
@@ -945,7 +945,7 @@ public abstract class TransactionType {
 
       };
 
-    public final static TransactionType BID_ORDER_PLACEMENT = new ColoredCoins.ColoredCoinsOrderPlacement() {
+    public static final TransactionType BID_ORDER_PLACEMENT = new ColoredCoins.ColoredCoinsOrderPlacement() {
 
         @Override
         public final byte getSubtype() {
@@ -1739,7 +1739,7 @@ public abstract class TransactionType {
       return TransactionType.TYPE_ADVANCED_PAYMENT;
     }
 
-    public final static TransactionType ESCROW_CREATION = new AdvancedPayment() {
+    public static final TransactionType ESCROW_CREATION = new AdvancedPayment() {
 
         @Override
         public final byte getSubtype() {
@@ -1847,7 +1847,7 @@ public abstract class TransactionType {
         }
       };
 
-    public final static TransactionType ESCROW_SIGN = new AdvancedPayment() {
+    public static final TransactionType ESCROW_SIGN = new AdvancedPayment() {
 
         @Override
         public final byte getSubtype() {
@@ -1923,7 +1923,7 @@ public abstract class TransactionType {
         }
       };
 
-    public final static TransactionType ESCROW_RESULT = new AdvancedPayment() {
+    public static final TransactionType ESCROW_RESULT = new AdvancedPayment() {
 
         @Override
         public final byte getSubtype() {
@@ -1974,7 +1974,7 @@ public abstract class TransactionType {
         }
       };
 
-    public final static TransactionType SUBSCRIPTION_SUBSCRIBE = new AdvancedPayment() {
+    public static final TransactionType SUBSCRIPTION_SUBSCRIBE = new AdvancedPayment() {
 
         @Override
         public final byte getSubtype() {
@@ -2036,7 +2036,7 @@ public abstract class TransactionType {
         }
       };
 
-    public final static TransactionType SUBSCRIPTION_CANCEL = new AdvancedPayment() {
+    public static final TransactionType SUBSCRIPTION_CANCEL = new AdvancedPayment() {
 
         @Override
         public final byte getSubtype() {
@@ -2104,7 +2104,7 @@ public abstract class TransactionType {
         }
       };
 
-    public final static TransactionType SUBSCRIPTION_PAYMENT = new AdvancedPayment() {
+    public static final TransactionType SUBSCRIPTION_PAYMENT = new AdvancedPayment() {
 
         @Override
         public final byte getSubtype() {

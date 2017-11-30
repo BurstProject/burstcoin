@@ -240,7 +240,7 @@ public final class Peers {
 
   private static class Init {
 
-    private final static Server peerServer;
+    private static final Server peerServer;
 
     static {
       if (Peers.shareMyAddress) {

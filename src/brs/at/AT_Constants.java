@@ -8,35 +8,35 @@ import java.util.TreeMap;
 
 
 public class AT_Constants {
-  private final static NavigableMap< Integer, Short >  AT_VERSION = new TreeMap<>();
+  private static final NavigableMap< Integer, Short >  AT_VERSION = new TreeMap<>();
 	
-  private final static HashMap< Short, Long > MIN_FEE = new HashMap<>();
-  private final static HashMap< Short, Long > STEP_FEE  = new HashMap<>();
-  private final static HashMap< Short, Long > MAX_STEPS  = new HashMap<>();
-  private final static HashMap< Short, Long > API_STEP_MULTIPLIER = new HashMap<>();
+  private static final HashMap< Short, Long > MIN_FEE = new HashMap<>();
+  private static final HashMap< Short, Long > STEP_FEE  = new HashMap<>();
+  private static final HashMap< Short, Long > MAX_STEPS  = new HashMap<>();
+  private static final HashMap< Short, Long > API_STEP_MULTIPLIER = new HashMap<>();
 	
-  private final static HashMap< Short, Long >  COST_PER_PAGE = new HashMap<>();
+  private static final HashMap< Short, Long >  COST_PER_PAGE = new HashMap<>();
 	
-  private final static HashMap< Short, Long >  MAX_WAIT_FOR_NUM_OF_BLOCKS = new HashMap<>();
-  private final static HashMap< Short, Long >  MAX_SLEEP_BETWEEN_BLOCKS = new HashMap<>();
+  private static final HashMap< Short, Long >  MAX_WAIT_FOR_NUM_OF_BLOCKS = new HashMap<>();
+  private static final HashMap< Short, Long >  MAX_SLEEP_BETWEEN_BLOCKS = new HashMap<>();
 	
-  private final static HashMap< Short, Long >  PAGE_SIZE = new HashMap<>();
+  private static final HashMap< Short, Long >  PAGE_SIZE = new HashMap<>();
 	
-  private final static HashMap< Short, Long >  MAX_MACHINE_CODE_PAGES = new HashMap<>();
-  private final static HashMap< Short, Long >  MAX_MACHINE_DATA_PAGES = new HashMap<>();
-  private final static HashMap< Short, Long >  MAX_MACHINE_USER_STACK_PAGES = new HashMap<>();
-  private final static HashMap< Short, Long >  MAX_MACHINE_CALL_STACK_PAGES = new HashMap<>();
+  private static final HashMap< Short, Long >  MAX_MACHINE_CODE_PAGES = new HashMap<>();
+  private static final HashMap< Short, Long >  MAX_MACHINE_DATA_PAGES = new HashMap<>();
+  private static final HashMap< Short, Long >  MAX_MACHINE_USER_STACK_PAGES = new HashMap<>();
+  private static final HashMap< Short, Long >  MAX_MACHINE_CALL_STACK_PAGES = new HashMap<>();
 
-  private final static HashMap< Short, Long >  BLOCKS_FOR_RANDOM = new HashMap<>();
+  private static final HashMap< Short, Long >  BLOCKS_FOR_RANDOM = new HashMap<>();
 	
-  private final static HashMap< Short, Long >  MAX_PAYLOAD_FOR_BLOCK = new HashMap<>();
+  private static final HashMap< Short, Long >  MAX_PAYLOAD_FOR_BLOCK = new HashMap<>();
 	
-  private final static HashMap< Short, Long >  AVERAGE_BLOCK_MINUTES = new HashMap<>();
+  private static final HashMap< Short, Long >  AVERAGE_BLOCK_MINUTES = new HashMap<>();
 	
   //platform based
-  public final static int AT_ID_SIZE = 8;
+  public static final int AT_ID_SIZE = 8;
 	
-  private final static AT_Constants instance = new AT_Constants();
+  private static final AT_Constants instance = new AT_Constants();
 	
   private AT_Constants() {
     //version 1

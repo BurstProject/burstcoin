@@ -10,7 +10,7 @@ public final class JSON {
 
   private JSON() {} //never
 
-  public final static JSONStreamAware emptyJSON = prepare(new JSONObject());
+  public static final JSONStreamAware emptyJSON = prepare(new JSONObject());
 
   public static JSONStreamAware prepare(final JSONObject json) {
     return new JSONStreamAware() {

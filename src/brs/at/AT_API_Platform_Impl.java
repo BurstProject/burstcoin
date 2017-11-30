@@ -20,7 +20,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 
   private static final Logger logger = LoggerFactory.getLogger(AT_API_Platform_Impl.class);
 
-  private final static AT_API_Platform_Impl instance = new AT_API_Platform_Impl();
+  private static final AT_API_Platform_Impl instance = new AT_API_Platform_Impl();
 
 
   AT_API_Platform_Impl() {
