@@ -128,7 +128,7 @@ public class RIPEMD160 extends MDHelper {
    * @param n   the rotation count (between 1 and 31)
    * @return  the rotated value
    */
-  static private final int circularLeft(int x, int n) {
+  private static final int circularLeft(int x, int n) {
     return (x << n) | (x >>> (32 - n));
   }
 
