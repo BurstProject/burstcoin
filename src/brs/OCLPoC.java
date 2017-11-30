@@ -311,26 +311,26 @@ final class OCLPoC {
     }
   }
 
-  static private boolean checkAvailable(cl_device_id device) {
+  private static boolean checkAvailable(cl_device_id device) {
     long[] available = new long[1];
     clGetDeviceInfo(device, CL_DEVICE_AVAILABLE, Sizeof.cl_long, Pointer.to(available), null);
     return available[0] == 1;
   }
 
   // idk if the kernel works on big endian, but I'm guessing not and I don't have the hardware to find out
-  static private boolean checkLittleEndian(cl_device_id device) {
+  private static boolean checkLittleEndian(cl_device_id device) {
     long[] endianLittle = new long[1];
     clGetDeviceInfo(device, CL_DEVICE_ENDIAN_LITTLE, Sizeof.cl_long, Pointer.to(endianLittle), null);
     return endianLittle[0] == 1;
   }
 
-  static private int getComputeUnits(cl_device_id device) {
+  private static int getComputeUnits(cl_device_id device) {
     int[] maxComputeUnits = new int[1];
     clGetDeviceInfo(device, CL_DEVICE_MAX_COMPUTE_UNITS, 4, Pointer.to(maxComputeUnits), null);
     return maxComputeUnits[0];
   }
 
-  static private long calculateMaxItemsByMem(cl_device_id device) {
+  private static long calculateMaxItemsByMem(cl_device_id device) {
     long[] globalMemSize = new long[1];
     long[] maxMemAllocSize = new long[1];
 
@@ -343,7 +343,7 @@ final class OCLPoC {
     return Math.min(maxItemsByGlobalMemSize, maxItemsByMaxAllocSize);
   }
 
-  static private AutoChooseResult autoChooseDevice() {
+  private static AutoChooseResult autoChooseDevice() {
     int[] numPlatforms = new int[1];
     clGetPlatformIDs(0, null, numPlatforms);
 
@@ -409,7 +409,7 @@ final class OCLPoC {
     return bestResult;
   }
 
-  static private class AutoChooseResult {
+  private static class AutoChooseResult {
     int platform;
     int device;
 

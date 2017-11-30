@@ -94,7 +94,7 @@ public class Subnet
     return buf.toString();
   }
 
-  static private void bigInteger2IpString(final StringBuilder buf, final BigInteger bigInteger, final int displayBytes)
+  private static void bigInteger2IpString(final StringBuilder buf, final BigInteger bigInteger, final int displayBytes)
   {
     final boolean isIPv4 = 4 == displayBytes;
     byte[] bytes = bigInteger.toByteArray();
