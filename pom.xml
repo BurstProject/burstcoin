@@ -38,9 +38,9 @@
         <metrics.version>3.2.3</metrics.version>
         <metrics-sql.version>3.2.1</metrics-sql.version>
         <junit.version>4.12</junit.version>
-        <evosuite.version>1.0.5</evosuite.version>
         <hsqldb.version>2.4.0</hsqldb.version>
         <jacoco.version>0.7.9</jacoco.version>
+	<jooq.version>3.10.0</jooq.version>
 
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -51,32 +51,16 @@
         <!-- <sonar.tests>src/test</sonar.tests> -->
 
         <!-- For Java -->
-        <sonar.junit.reportsPath>${project.build.directory}/reports/java/surefire-reports</sonar.junit.reportsPath>
+<!--        <sonar.junit.reportsPath>${project.build.directory}/reports/java/surefire-reports</sonar.junit.reportsPath>
         <sonar.jacoco.reportsPath>${project.build.directory}/reports/java/jacoco.exec</sonar.jacoco.reportsPath>
-
+-->
         <!-- For JavaScript -->
         <!--
         <sonar.javascript.lcov.reportPath>reports/js/lcov.dat</sonar.javascript.lcov.reportPath>
         -->
 
     </properties>
-<!--
-    <pluginRepositories>
-        <pluginRepository>
-            <id>EvoSuite</id>
-            <name>EvoSuite Repository</name>
-            <url>http://www.evosuite.org/m2</url>
-        </pluginRepository>
-    </pluginRepositories>
 
-    <repositories>
-        <repository>
-            <id>EvoSuite</id>
-            <name>EvoSuite Repository</name>
-            <url>http://www.evosuite.org/m2</url>
-        </repository>
-    </repositories>
-    -->
     <dependencies>
 
         <dependency>
@@ -223,24 +207,33 @@
         </dependency>
         
         <dependency>
-            <groupId>org.evosuite</groupId>
-            <artifactId>evosuite-standalone-runtime</artifactId>
-            <version>${evosuite.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
             <version>${hsqldb.version}</version>
             <scope>test</scope>
         </dependency>
-        
+
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq</artifactId>
+            <version>${jooq.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq-meta</artifactId>
+            <version>${jooq.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq-codegen</artifactId>
+            <version>${jooq.version}</version>
+        </dependency>
+	
     </dependencies>
     
     <build>
         <sourceDirectory>src/brs</sourceDirectory>
-        
+	
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -250,8 +243,8 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -365,7 +358,7 @@
                     <nohelp>true</nohelp>
                 </configuration>
             </plugin>
-
+<!--
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -383,30 +376,48 @@
                     </execution>
                 </executions>
             </plugin>
+-->
+	    <plugin>
+	      <groupId>org.jooq</groupId>
+	      <artifactId>jooq-codegen-maven</artifactId>
+	      <version>${jooq.version}</version>
 
-            <plugin>
-                 <groupId>org.apache.maven.plugins</groupId>
-                 <artifactId>maven-surefire-plugin</artifactId>
-                 <version>2.17</version>
-                 <configuration>
-                     <reportsDirectory>${sonar.junit.reportsPath}</reportsDirectory>
-                     <argLine>${surefireArgLine}</argLine>
-                     <properties>
-                         <property>
-                             <name>listener</name>
-                             <value>org.evosuite.runtime.InitializingListener</value>
-                         </property>
-                    </properties>
-                </configuration>
-            </plugin>
+	      <executions>
+		<execution>
+		  <id>jooq-codegen</id>
+		  <phase>generate-sources</phase>
+		  <goals>
+		    <goal>generate</goal>
+		  </goals>
+		</execution>
+	      </executions>
 
-            <plugin>
-                <groupId>org.evosuite.plugins</groupId>
-                <artifactId>evosuite-maven-plugin</artifactId>
-                <version>${evosuite.version}</version>
-            </plugin>
-            
-    </plugins>
+	      <configuration>
+		<jdbc>
+		  <driver>org.mariadb.jdbc.Driver</driver>
+		  <url>jdbc:mysql://localhost:3306/burstwallet</url>
+		  <user>root</user>
+		  <password></password>
+		</jdbc>
+		<generator>
+		  <name>org.jooq.util.JavaGenerator</name>
+		  <database>
+		    <name>org.jooq.util.mariadb.MariaDBDatabase</name>
+		    <inputSchema>burstwallet</inputSchema>
+		    <outputSchema>DB</outputSchema>
+		    <includes>.*</includes>
+		    <excludes></excludes>
+		  </database>
+		  <target>
+		    <packageName>brs.schema</packageName>
+		    <directory>src</directory>
+		  </target>
+		</generator>
+		<skip>${skip.jooq.generation}</skip>
+	      </configuration>
+	    </plugin>
+
+	  </plugins>
 
     </build>
 </project>

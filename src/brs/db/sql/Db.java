@@ -30,6 +30,11 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jooq.impl.DSL;
+import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.conf.Settings;
+
 public final class Db {
 
   private static final Logger logger = LoggerFactory.getLogger(Db.class);
@@ -194,6 +199,17 @@ public final class Db {
       return new DbConnection(con);
   }
 
+  public static DSLContext getDSLContext() throws SQLException {
+    Settings settings = new Settings();
+    settings.setRenderSchema(Boolean.FALSE);
+    return DSL.using(
+      getConnection(),
+      // SQLDialect.values()[DATABASE_TYPE.ordinal()],
+      DATABASE_TYPE == TYPE.H2 ? SQLDialect.H2 : DATABASE_TYPE == TYPE.FIREBIRD ? SQLDialect.FIREBIRD : SQLDialect.MARIADB,
+      settings
+    );
+  }
+  
   public static Connection getRawConnection() throws SQLException {
 
     Connection con = getPooledConnection();

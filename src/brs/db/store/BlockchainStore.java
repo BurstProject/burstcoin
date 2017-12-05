@@ -16,8 +16,6 @@ import java.util.List;
 public interface BlockchainStore {
 
 
-  BurstIterator<BlockImpl> getAllBlocks();
-
   BurstIterator<BlockImpl> getBlocks(int from, int to);
 
   BurstIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to);

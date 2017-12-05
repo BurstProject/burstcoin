@@ -6,6 +6,8 @@ import brs.BurstException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 
+import org.jooq.Record;
+
 public interface BlockDb {
   BlockImpl findBlock(long blockId);
 
@@ -20,6 +22,8 @@ public interface BlockDb {
   BlockImpl findLastBlock(int timestamp);
 
   BlockImpl loadBlock(Connection con, ResultSet rs) throws BurstException.ValidationException;
+  
+  BlockImpl loadBlock(Record r) throws BurstException.ValidationException;
 
   void saveBlock(Connection con, BlockImpl block);
 
