@@ -442,9 +442,9 @@ public final class BlockImpl implements Block {
   public void preVerify(byte[] scoopData) throws BlockchainProcessor.BlockNotAcceptedException {
     synchronized(this) {
       // Remove from todo-list:
-      synchronized(BlockchainProcessorImpl.blockCache) {
-        BlockchainProcessorImpl.unverified.remove(this.getId());
-      }
+    	  synchronized(BlockchainProcessorImpl.DownloadCache) {
+    	        BlockchainProcessorImpl.DownloadCache.removeUnverified(this.getId());
+    	      }
 
       // Just in case its already verified
       if(this.pocTime != null)
@@ -528,94 +528,94 @@ public final class BlockImpl implements Block {
     }
   }
 
-  private void calculateBaseTarget(BlockImpl previousBlock) {
+  public void calculateBaseTarget(BlockImpl previousBlock) {
 
-    if (this.getId() == Genesis.GENESIS_BLOCK_ID && previousBlockId == 0) {
-      baseTarget = Constants.INITIAL_BASE_TARGET;
-      cumulativeDifficulty = BigInteger.ZERO;
-    } else if(this.height < 4) {
-      baseTarget = Constants.INITIAL_BASE_TARGET;
-      cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(Constants.INITIAL_BASE_TARGET)));
-    } else if(this.height < Constants.BURST_DIFF_ADJUST_CHANGE_BLOCK){
-      Block itBlock = previousBlock;
-      BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
-      do {
-        itBlock = Burst.getBlockchain().getBlock(itBlock.getPreviousBlockId());
-        avgBaseTarget = avgBaseTarget.add(BigInteger.valueOf(itBlock.getBaseTarget()));
-      } while(itBlock.getHeight() > this.height - 4);
-      avgBaseTarget = avgBaseTarget.divide(BigInteger.valueOf(4));
-      long difTime = this.timestamp - itBlock.getTimestamp();
+	    if (this.getId() == Genesis.GENESIS_BLOCK_ID && previousBlockId == 0) {
+	      baseTarget = Constants.INITIAL_BASE_TARGET;
+	      cumulativeDifficulty = BigInteger.ZERO;
+	    } else if(this.height < 4) {
+	      baseTarget = Constants.INITIAL_BASE_TARGET;
+	      cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(Constants.INITIAL_BASE_TARGET)));
+	    } else if(this.height < Constants.BURST_DIFF_ADJUST_CHANGE_BLOCK){
+	      Block itBlock = previousBlock;
+	      BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
+	      do {
+	        itBlock = BlockchainProcessorImpl.DownloadCache.GetBlock(itBlock.getPreviousBlockId());
+	        avgBaseTarget = avgBaseTarget.add(BigInteger.valueOf(itBlock.getBaseTarget()));
+	      } while(itBlock.getHeight() > this.height - 4);
+	      avgBaseTarget = avgBaseTarget.divide(BigInteger.valueOf(4));
+	      long difTime = this.timestamp - itBlock.getTimestamp();
 
-      long curBaseTarget = avgBaseTarget.longValue();
-      long newBaseTarget = BigInteger.valueOf(curBaseTarget)
-          .multiply(BigInteger.valueOf(difTime))
-          .divide(BigInteger.valueOf(240 * 4)).longValue();
-      if (newBaseTarget < 0 || newBaseTarget > Constants.MAX_BASE_TARGET) {
-        newBaseTarget = Constants.MAX_BASE_TARGET;
-      }
-      if (newBaseTarget < (curBaseTarget * 9 / 10)) {
-        newBaseTarget = curBaseTarget * 9 / 10;
-      }
-      if (newBaseTarget == 0) {
-        newBaseTarget = 1;
-      }
-      long twofoldCurBaseTarget = curBaseTarget * 11 / 10;
-      if (twofoldCurBaseTarget < 0) {
-        twofoldCurBaseTarget = Constants.MAX_BASE_TARGET;
-      }
-      if (newBaseTarget > twofoldCurBaseTarget) {
-        newBaseTarget = twofoldCurBaseTarget;
-      }
-      baseTarget = newBaseTarget;
-      cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
-    }
-    else {
-      Block itBlock = previousBlock;
-      BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
-      int blockCounter = 1;
-      do {
-        itBlock = Burst.getBlockchain().getBlock(itBlock.getPreviousBlockId());
-        blockCounter++;
-        avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter))
-                         .add(BigInteger.valueOf(itBlock.getBaseTarget())))
-            .divide(BigInteger.valueOf(blockCounter + 1));
-      } while(blockCounter < 24);
-      long difTime = this.timestamp - itBlock.getTimestamp();
-      long targetTimespan = 24 * 4 * 60;
+	      long curBaseTarget = avgBaseTarget.longValue();
+	      long newBaseTarget = BigInteger.valueOf(curBaseTarget)
+	          .multiply(BigInteger.valueOf(difTime))
+	          .divide(BigInteger.valueOf(240 * 4)).longValue();
+	      if (newBaseTarget < 0 || newBaseTarget > Constants.MAX_BASE_TARGET) {
+	        newBaseTarget = Constants.MAX_BASE_TARGET;
+	      }
+	      if (newBaseTarget < (curBaseTarget * 9 / 10)) {
+	        newBaseTarget = curBaseTarget * 9 / 10;
+	      }
+	      if (newBaseTarget == 0) {
+	        newBaseTarget = 1;
+	      }
+	      long twofoldCurBaseTarget = curBaseTarget * 11 / 10;
+	      if (twofoldCurBaseTarget < 0) {
+	        twofoldCurBaseTarget = Constants.MAX_BASE_TARGET;
+	      }
+	      if (newBaseTarget > twofoldCurBaseTarget) {
+	        newBaseTarget = twofoldCurBaseTarget;
+	      }
+	      baseTarget = newBaseTarget;
+	      cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
+	    }
+	    else {
+	      Block itBlock = previousBlock;
+	      BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
+	      int blockCounter = 1;
+	      do {
+	        itBlock = BlockchainProcessorImpl.DownloadCache.GetBlock(itBlock.getPreviousBlockId());
+	        blockCounter++;
+	        avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter))
+	                         .add(BigInteger.valueOf(itBlock.getBaseTarget())))
+	            .divide(BigInteger.valueOf(blockCounter + 1));
+	      } while(blockCounter < 24);
+	      long difTime = this.timestamp - itBlock.getTimestamp();
+	      long targetTimespan = 24 * 4 * 60;
 
-      if(difTime < targetTimespan /2) {
-        difTime = targetTimespan /2;
-      }
+	      if(difTime < targetTimespan /2) {
+	        difTime = targetTimespan /2;
+	      }
 
-      if(difTime > targetTimespan * 2) {
-        difTime = targetTimespan * 2;
-      }
+	      if(difTime > targetTimespan * 2) {
+	        difTime = targetTimespan * 2;
+	      }
 
-      long curBaseTarget = previousBlock.getBaseTarget();
-      long newBaseTarget = avgBaseTarget
-          .multiply(BigInteger.valueOf(difTime))
-          .divide(BigInteger.valueOf(targetTimespan)).longValue();
+	      long curBaseTarget = previousBlock.getBaseTarget();
+	      long newBaseTarget = avgBaseTarget
+	          .multiply(BigInteger.valueOf(difTime))
+	          .divide(BigInteger.valueOf(targetTimespan)).longValue();
 
-      if (newBaseTarget < 0 || newBaseTarget > Constants.MAX_BASE_TARGET) {
-        newBaseTarget = Constants.MAX_BASE_TARGET;
-      }
+	      if (newBaseTarget < 0 || newBaseTarget > Constants.MAX_BASE_TARGET) {
+	        newBaseTarget = Constants.MAX_BASE_TARGET;
+	      }
 
-      if (newBaseTarget == 0) {
-        newBaseTarget = 1;
-      }
+	      if (newBaseTarget == 0) {
+	        newBaseTarget = 1;
+	      }
 
-      if(newBaseTarget < curBaseTarget * 8 / 10) {
-        newBaseTarget = curBaseTarget * 8 / 10;
-      }
+	      if(newBaseTarget < curBaseTarget * 8 / 10) {
+	        newBaseTarget = curBaseTarget * 8 / 10;
+	      }
 
-      if(newBaseTarget > curBaseTarget * 12 / 10) {
-        newBaseTarget = curBaseTarget * 12 / 10;
-      }
+	      if(newBaseTarget > curBaseTarget * 12 / 10) {
+	        newBaseTarget = curBaseTarget * 12 / 10;
+	      }
 
-      baseTarget = newBaseTarget;
-      cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
-    }
-  }
+	      baseTarget = newBaseTarget;
+	      cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
+	    }
+	  }
 
   @Override
   public byte[] getBlockATs() {

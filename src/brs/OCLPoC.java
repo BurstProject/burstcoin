@@ -62,6 +62,7 @@ final class OCLPoC {
         }
         platformIndex = ac.getPlatform();
         deviceIndex = ac.getDevice();
+        logger.info("Choosing Platform " + platformIndex + " - DeviceId: " + deviceIndex);
       }
       else {
         platformIndex = Burst.getIntProperty("brs.oclPlatform");
@@ -163,7 +164,7 @@ final class OCLPoC {
 
   public static void validatePoC(Collection<BlockImpl> blocks) {
     try {
-      //System.out.println("starting ocl verify for: " + blocks.size());
+      // logger.debug("starting ocl verify for: " + blocks.size());
 
       byte[] scoopsOut = new byte[MiningPlot.SCOOP_SIZE * blocks.size()];
 
@@ -175,7 +176,7 @@ final class OCLPoC {
       if (jobSize > maxItems) {
         throw new IllegalStateException("Attempted to validate too many blocks at once with OCL");
       }
-      //System.out.println("ocl blocks: " + blocks.size() + " jobSize: " + jobSize);
+      // logger.debug("ocl blocks: " + blocks.size() + " jobSize: " + jobSize);
 
       long[] ids = new long[blocks.size()];
       long[] nonces = new long[blocks.size()];
@@ -195,7 +196,7 @@ final class OCLPoC {
         scoopNums[i] = block.getScoopNum();
         i++;
       }
-      //System.out.println("finished preprocessing: " + blocks.size());
+      // logger.debug("finished preprocessing: " + blocks.size());
 
       synchronized (oclLock) {
         if (ctx == null) {
@@ -244,8 +245,10 @@ final class OCLPoC {
           clEnqueueNDRangeKernel(queue, getKernel, 1, null, new long[]{jobSize}, new long[]{maxGroupItems}, 0, null, null);
 
           clEnqueueReadBuffer(queue, scoopOutMem, true, 0, MiningPlot.SCOOP_SIZE * blocks.size(), Pointer.to(scoopsOut), 0, null, null);
-        }
-        finally {
+        } catch (Exception e) {
+        	logger.info("Ocl error. Try to set a lower value on oclHashesPerEnqueue in properties.");
+        	return;
+        } finally {
           if (idMem != null) {
             clReleaseMemObject(idMem);
           }
@@ -264,7 +267,7 @@ final class OCLPoC {
         }
       }
 
-      //System.out.println("finished ocl, doing rest: " + blocks.size());
+      // logger.debug("finished ocl, doing rest: " + blocks.size());
 
       ByteBuffer scoopsBuffer = ByteBuffer.wrap(scoopsOut);
       byte[] scoop = new byte[MiningPlot.SCOOP_SIZE];
@@ -278,7 +281,7 @@ final class OCLPoC {
           throw new PreValidateFailException("Block failed to prevalidate", e, block);
         }
       }
-      //System.out.println("finished rest: " + blocks.size());
+      // logger.debug("finished rest: " + blocks.size());
     }
     catch(CLException e) {
       // intentionally leave out of unverified cache. It won't slow it that much on one failure and avoids infinite looping on repeat failed attempts.
@@ -340,6 +343,13 @@ final class OCLPoC {
     long maxItemsByGlobalMemSize = (globalMemSize[0] * memPercent / 100) / memPerItem;
     long maxItemsByMaxAllocSize = (maxMemAllocSize[0] * memPercent / 100) / bufferPerItem;
 
+    
+    logger.debug("Global Memory:" + globalMemSize[0]);
+    logger.debug("Max alloc Memory:" + maxMemAllocSize[0]);
+    logger.debug("maxItemsByGlobalMemSize:" + maxItemsByGlobalMemSize);
+    logger.debug("maxItemsByMaxAllocSize:" + maxItemsByMaxAllocSize);
+    
+    
     return Math.min(maxItemsByGlobalMemSize, maxItemsByMaxAllocSize);
   }
 
@@ -364,7 +374,7 @@ final class OCLPoC {
       clGetPlatformInfo(platforms[pfi], CL_PLATFORM_NAME, platformNameChars.length, Pointer.to(platformNameChars), null);
       String platformName = new String(platformNameChars);
 
-      System.out.println("Platform " + pfi + ": " + platformName);
+      logger.info("Platform " + pfi + ": " + platformName);
 
       int[] numDevices = new int[1];
       clGetDeviceIDs(platforms[pfi], CL_DEVICE_TYPE_GPU, 0, null, numDevices);
