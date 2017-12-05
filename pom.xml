@@ -48,6 +48,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <sonar.sources>src/brs</sonar.sources>
+
+	<skip.jooq.generation>true</skip.jooq.generation>
         <!-- <sonar.tests>src/test</sonar.tests> -->
 
         <!-- For Java -->
