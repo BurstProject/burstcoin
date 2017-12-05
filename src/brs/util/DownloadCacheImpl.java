@@ -18,9 +18,9 @@ import brs.Constants;
 public final class DownloadCacheImpl {
   public final int BLOCKCACHEMB = Burst.getIntProperty("brs.blockCacheMB") == 0 ? 40 : Burst.getIntProperty("brs.blockCacheMB");
 
-  public static final Map<Long, Block> blockCache = new LinkedHashMap<Long, Block>();
-  public static final Map<Long, Long> reverseCache = new LinkedHashMap<Long, Long>();
-  public static final List<Long> unverified = new LinkedList<Long>();
+  protected static final Map<Long, Block> blockCache = new LinkedHashMap<>();
+  protected static final Map<Long, Long> reverseCache = new LinkedHashMap<>();
+  protected static final List<Long> unverified = new LinkedList<>();
 
   private final BlockchainImpl blockchain = BlockchainImpl.getInstance();
   private static final Logger logger = LoggerFactory.getLogger(DownloadCacheImpl.class);
@@ -33,9 +33,8 @@ public final class DownloadCacheImpl {
   public int getChainHeight() {
     if (LastHeight > -1) {
       return LastHeight;
-    } else {
-      return blockchain.getHeight();
     }
+    return blockchain.getHeight();
   }
 
   public boolean IsFull() {
@@ -50,9 +49,9 @@ public final class DownloadCacheImpl {
   }
 
   public BigInteger getCumulativeDifficulty() {
-	  if(LastBlockId == null) {
-		  setLastVars();
-	  }
+    if (LastBlockId == null) {
+      setLastVars();
+    }
     return HigestCumulativeDifficulty;
   }
 
@@ -88,32 +87,36 @@ public final class DownloadCacheImpl {
   public int getBlockHeight(long BlockId) {
     if (blockCache.containsKey(BlockId)) {
       return blockCache.get(BlockId).getHeight();
-    } else if (blockchain.hasBlock(BlockId)) {
-      return blockchain.getBlock(BlockId).getHeight();
-    } else {//this should not be needed will remove later when all checks out.
-      logger.warn("Cannot get blockheight. blockID: " + BlockId);
-      return 0;
     }
+    if (blockchain.hasBlock(BlockId)) {
+      return blockchain.getBlock(BlockId).getHeight();
+    }
+
+    //this should not be needed will remove later when all checks out.
+    logger.warn("Cannot get blockheight. blockID: " + BlockId);
+    return 0;
   }
 
   public BlockImpl GetBlock(long BlockId) {
     if (blockCache.containsKey(BlockId)) {
       return (BlockImpl) blockCache.get(BlockId);
-    } else if (blockchain.hasBlock(BlockId)) {
-      return blockchain.getBlock(BlockId);
-    } else {
-      return null;
     }
+    if (blockchain.hasBlock(BlockId)) {
+      return blockchain.getBlock(BlockId);
+    }
+
+    return null;
   }
 
   public BlockImpl GetBlock(Long BlockId) {
     if (blockCache.containsKey(BlockId)) {
       return (BlockImpl) blockCache.get(BlockId);
-    } else if (blockchain.hasBlock(BlockId)) {
-      return blockchain.getBlock(BlockId);
-    } else {
-      return null;
     }
+    if (blockchain.hasBlock(BlockId)) {
+      return blockchain.getBlock(BlockId);
+    }
+
+    return null;
   }
 
   public BlockImpl GetNextBlock(long prevBlockId) {
@@ -122,7 +125,8 @@ public final class DownloadCacheImpl {
     }
     try {
       return (BlockImpl) blockCache.get(reverseCache.get(prevBlockId));
-    } finally {
+    }
+    finally {
     }
   }
 
@@ -131,7 +135,8 @@ public final class DownloadCacheImpl {
       try {
         printDebug();
         this.wait(2000);
-      } catch (InterruptedException ignore) {
+      }
+      catch (InterruptedException ignore) {
       }
     }
   }
@@ -139,11 +144,12 @@ public final class DownloadCacheImpl {
   public boolean HasBlock(long BlockId) {
     if (blockCache.containsKey(BlockId)) {
       return true;
-    } else if (blockchain.hasBlock(BlockId)) {
-      return true;
-    } else {
-      return false;
     }
+    if (blockchain.hasBlock(BlockId)) {
+      return true;
+    }
+
+    return false;
   }
 
   public boolean CanBeFork(long oldBlockId) {
@@ -151,7 +157,8 @@ public final class DownloadCacheImpl {
     BlockImpl block = null;
     if (blockCache.containsKey(oldBlockId)) {
       block = (BlockImpl) blockCache.get(oldBlockId);
-    } else if (blockchain.hasBlock(oldBlockId)) {
+    }
+    else if (blockchain.hasBlock(oldBlockId)) {
       block = blockchain.getBlock(oldBlockId);
     }
     if (block == null) {
@@ -160,6 +167,7 @@ public final class DownloadCacheImpl {
     if ((curHeight - block.getHeight()) > Constants.MAX_ROLLBACK) {
       return false;
     }
+
     return true;
   }
 
@@ -202,25 +210,23 @@ public final class DownloadCacheImpl {
         setLastVars();
       }
       return true;
-    } else {
-      return false;
     }
+
+    return false;
   }
 
   public BlockImpl getLastBlock() {
     if (LastBlockId != null) {
       return (BlockImpl) blockCache.get(LastBlockId);
-    } else {
-      return blockchain.getLastBlock();
     }
+    return blockchain.getLastBlock();
   }
 
   public long getLastBlockId() {
     if (LastBlockId != null) {
       return LastBlockId;
-    } else {
-      return blockchain.getLastBlock().getId();
     }
+    return blockchain.getLastBlock().getId();
   }
 
   public int size() {
@@ -234,7 +240,8 @@ public final class DownloadCacheImpl {
       logger.debug("revCache First block Val:" + reverseCache.get(reverseCache.keySet().toArray()[0]));
       logger.debug("BlockCache size:" + blockCache.size());
       logger.debug("revCache size:" + reverseCache.size());
-    } else {
+    }
+    else {
       logger.debug("BlockCache size:" + blockCache.size());
       logger.debug("revCache size:" + reverseCache.size());
     }
@@ -245,7 +252,8 @@ public final class DownloadCacheImpl {
       LastBlockId = blockCache.get(blockCache.keySet().toArray()[blockCache.keySet().size() - 1]).getId();
       LastHeight = blockCache.get(LastBlockId).getHeight();
       HigestCumulativeDifficulty = blockCache.get(LastBlockId).getCumulativeDifficulty();
-    } else {
+    }
+    else {
       LastBlockId = blockchain.getLastBlock().getId();
       LastHeight = blockchain.getHeight();
       HigestCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();

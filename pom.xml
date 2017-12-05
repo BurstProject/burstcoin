@@ -263,7 +263,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>nxt.Nxt</mainClass>
+                            <mainClass>brs.Burst</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
