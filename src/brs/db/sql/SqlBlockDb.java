@@ -13,22 +13,20 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static brs.schema.Tables.*;
+import static org.jooq.impl.DSL.*;
+
+import org.jooq.DSLContext;
+import org.jooq.Record;
+
 public abstract class SqlBlockDb implements BlockDb {
 
   private static final Logger logger = LoggerFactory.getLogger(BlockDb.class);
 
-  @Override
   public BlockImpl findBlock(long blockId) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE id = ?")) {
-      pstmt.setLong(1, blockId);
-      try (ResultSet rs = pstmt.executeQuery()) {
-        BlockImpl block = null;
-        if (rs.next()) {
-          block = loadBlock(con, rs);
-        }
-        return block;
-      }
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      Record r = ctx.selectFrom(BLOCK).where(BLOCK.ID.eq(blockId)).fetchAny();
+      return r == null ? null : loadBlock(r);
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     } catch (BurstException.ValidationException e) {
@@ -36,49 +34,34 @@ public abstract class SqlBlockDb implements BlockDb {
     }
   }
 
-  @Override
   public boolean hasBlock(long blockId) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT 1 FROM block WHERE id = ?")) {
-      pstmt.setLong(1, blockId);
-      try (ResultSet rs = pstmt.executeQuery()) {
-        return rs.next();
-      }
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return ctx.fetchExists(ctx.selectOne().from(BLOCK).where(BLOCK.ID.eq(blockId)));
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
 
-  @Override
   public long findBlockIdAtHeight(int height) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT id FROM block WHERE height = ?")) {
-      pstmt.setInt(1, height);
-      try (ResultSet rs = pstmt.executeQuery()) {
-        if (!rs.next()) {
-          throw new RuntimeException("Block at height " + height + " not found in database!");
-        }
-        return rs.getLong("id");
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      Long id = ctx.select(BLOCK.ID).from(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchOne(BLOCK.ID);
+      if ( id == null ) {
+        throw new RuntimeException("Block at height " + height + " not found in database!");
       }
-    } catch (SQLException e) {
+      return id;
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
 
-  @Override
   public BlockImpl findBlockAtHeight(int height) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE height = ?")) {
-      pstmt.setInt(1, height);
-      try (ResultSet rs = pstmt.executeQuery()) {
-        BlockImpl block;
-        if (rs.next()) {
-          block = loadBlock(con, rs);
-        } else {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      Record r = ctx.selectFrom(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchAny();
+      if ( r == null ) {
           throw new RuntimeException("Block at height " + height + " not found in database!");
-        }
-        return block;
       }
+      return loadBlock(r);
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     } catch (BurstException.ValidationException e) {
@@ -86,18 +69,10 @@ public abstract class SqlBlockDb implements BlockDb {
     }
   }
 
-  @Override
   public BlockImpl findLastBlock() {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block ORDER BY db_id DESC" + DbUtils.limitsClause(1) )) {
-      BlockImpl block = null;
-      DbUtils.setLimits(1, pstmt, 1);
-      try (ResultSet rs = pstmt.executeQuery()) {
-        if (rs.next()) {
-          block = loadBlock(con, rs);
-        }
-      }
-      return block;
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      Record r = ctx.selectFrom(BLOCK).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchOne();
+      return r == null ? null : loadBlock(r);
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     } catch (BurstException.ValidationException e) {
@@ -105,19 +80,10 @@ public abstract class SqlBlockDb implements BlockDb {
     }
   }
 
-  @Override
   public BlockImpl findLastBlock(int timestamp) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE timestamp <= ? ORDER BY timestamp DESC" + DbUtils.limitsClause(1) )) {
-      pstmt.setInt(1, timestamp);
-      DbUtils.setLimits(2, pstmt, 1);
-      BlockImpl block = null;
-      try (ResultSet rs = pstmt.executeQuery()) {
-        if (rs.next()) {
-          block = loadBlock(con, rs);
-        }
-      }
-      return block;
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      Record r = ctx.selectFrom(BLOCK).where(BLOCK.TIMESTAMP.lessOrEqual(timestamp)).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchOne();
+      return r == null ? null : loadBlock(r);
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     } catch (BurstException.ValidationException e) {
@@ -125,7 +91,6 @@ public abstract class SqlBlockDb implements BlockDb {
     }
   }
 
-  @Override
   public BlockImpl loadBlock(Connection con, ResultSet rs) throws BurstException.ValidationException {
     try {
       int version = rs.getInt("version");
@@ -156,42 +121,51 @@ public abstract class SqlBlockDb implements BlockDb {
       throw new RuntimeException(e.toString(), e);
     }
   }
-
-  @Override
+  
+  public BlockImpl loadBlock(Record r) throws BurstException.ValidationException {
+    int version                     = r.getValue(BLOCK.VERSION);
+    int timestamp                   = r.getValue(BLOCK.TIMESTAMP);;
+    long previousBlockId            = r.getValue(BLOCK.PREVIOUS_BLOCK_ID);
+    long totalAmountNQT             = r.getValue(BLOCK.TOTAL_AMOUNT);
+    long totalFeeNQT                = r.getValue(BLOCK.TOTAL_FEE);
+    int payloadLength               = r.getValue(BLOCK.PAYLOAD_LENGTH);;
+    byte[] generatorPublicKey       = r.getValue(BLOCK.GENERATOR_PUBLIC_KEY);
+    byte[] previousBlockHash        = r.getValue(BLOCK.PREVIOUS_BLOCK_HASH);
+    BigInteger cumulativeDifficulty = new BigInteger(r.getValue(BLOCK.CUMULATIVE_DIFFICULTY));
+    long baseTarget                 = r.getValue(BLOCK.BASE_TARGET);
+    Long nextBlockId                = r.getValue(BLOCK.NEXT_BLOCK_ID);
+    int height                      = r.getValue(BLOCK.HEIGHT);
+    byte[] generationSignature      = r.getValue(BLOCK.GENERATION_SIGNATURE);
+    byte[] blockSignature           = r.getValue(BLOCK.BLOCK_SIGNATURE);
+    byte[] payloadHash              = r.getValue(BLOCK.PAYLOAD_HASH);
+    long id                         = r.getValue(BLOCK.ID);
+    long nonce                      = r.getValue(BLOCK.NONCE);
+    byte[] blockATs                 = r.getValue(BLOCK.ATS);
+    return new BlockImpl(
+                         version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
+                         generatorPublicKey, generationSignature, blockSignature, previousBlockHash,
+                         cumulativeDifficulty, baseTarget, nextBlockId, height, id, nonce, blockATs);
+  }
+  
   public void saveBlock(Connection con, BlockImpl block) {
-    try {
-      try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO block (id, version, timestamp, previous_block_id, "
-                                                          + "total_amount, total_fee, payload_length, generator_public_key, previous_block_hash, cumulative_difficulty, "
-                                                          + "base_target, height, generation_signature, block_signature, payload_hash, generator_id, nonce , ats) "
-                                                          + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-        int i = 0;
-        pstmt.setLong(++i, block.getId());
-        pstmt.setInt(++i, block.getVersion());
-        pstmt.setInt(++i, block.getTimestamp());
-        DbUtils.setLongZeroToNull(pstmt, ++i, block.getPreviousBlockId());
-        pstmt.setLong(++i, block.getTotalAmountNQT());
-        pstmt.setLong(++i, block.getTotalFeeNQT());
-        pstmt.setInt(++i, block.getPayloadLength());
-        pstmt.setBytes(++i, block.getGeneratorPublicKey());
-        pstmt.setBytes(++i, block.getPreviousBlockHash());
-        pstmt.setBytes(++i, block.getCumulativeDifficulty().toByteArray());
-        pstmt.setLong(++i, block.getBaseTarget());
-        pstmt.setInt(++i, block.getHeight());
-        pstmt.setBytes(++i, block.getGenerationSignature());
-        pstmt.setBytes(++i, block.getBlockSignature());
-        pstmt.setBytes(++i, block.getPayloadHash());
-        pstmt.setLong(++i, block.getGeneratorId());
-        pstmt.setLong(++i, block.getNonce());
-        DbUtils.setBytes(pstmt, ++i, block.getBlockATs());
-        pstmt.executeUpdate();
-        Burst.getDbs().getTransactionDb().saveTransactions(block.getTransactions());
-      }
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      ctx.insertInto(
+        BLOCK,
+        BLOCK.ID, BLOCK.VERSION, BLOCK.TIMESTAMP, BLOCK.PREVIOUS_BLOCK_ID, BLOCK.TOTAL_AMOUNT, BLOCK.TOTAL_FEE,
+        BLOCK.PAYLOAD_LENGTH, BLOCK.GENERATOR_PUBLIC_KEY, BLOCK.PREVIOUS_BLOCK_HASH, BLOCK.CUMULATIVE_DIFFICULTY,
+        BLOCK.BASE_TARGET, BLOCK.HEIGHT, BLOCK.GENERATION_SIGNATURE, BLOCK.BLOCK_SIGNATURE, BLOCK.PAYLOAD_HASH,
+        BLOCK.GENERATOR_ID, BLOCK.NONCE, BLOCK.ATS
+      ).values(
+        block.getId(), block.getVersion(), block.getTimestamp(), block.getPreviousBlockId(), block.getTotalAmountNQT(), block.getTotalFeeNQT(),
+        block.getPayloadLength(), block.getGeneratorPublicKey(), block.getPreviousBlockHash(), block.getCumulativeDifficulty().toByteArray(),
+        block.getBaseTarget(), block.getHeight(), block.getGenerationSignature(), block.getBlockSignature(), block.getPayloadHash(),
+        block.getGeneratorId(), block.getNonce(), block.getBlockATs()
+      ).execute();
+
+      Burst.getDbs().getTransactionDb().saveTransactions(block.getTransactions());
+
       if (block.getPreviousBlockId() != 0) {
-        try (PreparedStatement pstmt = con.prepareStatement("UPDATE block SET next_block_id = ? WHERE id = ?")) {
-          pstmt.setLong(1, block.getId());
-          pstmt.setLong(2, block.getPreviousBlockId());
-          pstmt.executeUpdate();
-        }
+        ctx.update(BLOCK).set(BLOCK.NEXT_BLOCK_ID, block.getId()).where(BLOCK.ID.eq(block.getPreviousBlockId()));
       }
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);

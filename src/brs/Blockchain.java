@@ -22,8 +22,6 @@ public interface Blockchain {
 
   boolean hasBlock(long blockId);
 
-  BurstIterator<BlockImpl> getAllBlocks();
-    
   BurstIterator<BlockImpl> getBlocks(int from, int to);
 
   BurstIterator<BlockImpl> getBlocks(Account account, int timestamp);

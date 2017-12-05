@@ -71,11 +71,6 @@ public final class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public BurstIterator<BlockImpl> getAllBlocks() {
-    return Burst.getStores().getBlockchainStore().getAllBlocks();
-  }
-    
-  @Override
   public BurstIterator<BlockImpl> getBlocks(int from, int to) {
     return Burst.getStores().getBlockchainStore().getBlocks(from, to);
   }

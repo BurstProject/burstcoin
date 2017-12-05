@@ -38,7 +38,7 @@ public final class BlockImpl implements Block {
   private byte[] blockSignature;
   private BigInteger cumulativeDifficulty = BigInteger.ZERO;
   private long baseTarget = Constants.INITIAL_BASE_TARGET;
-  private volatile long nextBlockId;
+  private volatile Long nextBlockId;
   private int height = -1;
   private volatile long id;
   private volatile String stringId = null;
@@ -89,7 +89,7 @@ public final class BlockImpl implements Block {
   }
 
   public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget,
-      long nextBlockId, int height, Long id, long nonce, byte[] blockATs) throws BurstException.ValidationException {
+      Long nextBlockId, int height, Long id, long nonce, byte[] blockATs) throws BurstException.ValidationException {
     this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature, previousBlockHash, null, nonce, blockATs);
     this.cumulativeDifficulty = cumulativeDifficulty;
     this.baseTarget = baseTarget;

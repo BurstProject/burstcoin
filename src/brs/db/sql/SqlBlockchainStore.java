@@ -12,21 +12,17 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static brs.schema.Tables.*;
+import static org.jooq.impl.DSL.*;
+
+import org.jooq.DSLContext;
+import org.jooq.Result;
+import org.jooq.Record;
+
 public abstract class SqlBlockchainStore implements BlockchainStore {
 
   private final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
   private final BlockDb blockDb = Burst.getDbs().getBlockDb();
-
-
-  @Override
-  public BurstIterator<BlockImpl> getAllBlocks() {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block ORDER BY db_id ASC")) {
-      return getBlocks(con, pstmt);
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
-  }
 
   @Override
   public BurstIterator<BlockImpl> getBlocks(int from, int to) {
@@ -108,10 +104,14 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
       }
       return result;
     } catch (BurstException.ValidationException | SQLException e) {
+      /*    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return ctx.selectFrom(BLOCK).where(
+        BLOCK.HEIGHT.gt(ctx.select(BLOCK.HEIGHT).from(BLOCK).where(BLOCK.ID.eq(blockId)))
+      ).orderBy(BLOCK.HEIGHT.asc()).limit(limit).fetch( r -> { try { return loadBlock(r) } } );
+      }*/
       throw new RuntimeException(e.toString(), e);
     }
   }
-
 
   @Override
   public int getTransactionCount() {
