@@ -25,12 +25,9 @@ public abstract class SqlBlockDb implements BlockDb {
 
   public BlockImpl findBlock(long blockId) {
     try ( DSLContext ctx = Db.getDSLContext() ) {
-      Record r = ctx.selectFrom(BLOCK).where(BLOCK.ID.eq(blockId)).fetchAny();
-      return r == null ? null : loadBlock(r);
+      return ctx.selectFrom(BLOCK).where(BLOCK.ID.eq(blockId)).fetchAny().into(BlockImpl.class);
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
-    } catch (BurstException.ValidationException e) {
-      throw new RuntimeException("Block already in database, id = " + blockId + ", does not pass validation!", e);
     }
   }
 
@@ -57,36 +54,32 @@ public abstract class SqlBlockDb implements BlockDb {
 
   public BlockImpl findBlockAtHeight(int height) {
     try ( DSLContext ctx = Db.getDSLContext() ) {
-      Record r = ctx.selectFrom(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchAny();
-      if ( r == null ) {
+      BlockImpl block = ctx.selectFrom(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchAny().into(BlockImpl.class);
+      if ( block == null ) {
           throw new RuntimeException("Block at height " + height + " not found in database!");
       }
-      return loadBlock(r);
-    } catch (SQLException e) {
+      return block;
+    } catch (Exception e) {
       throw new RuntimeException(e.toString(), e);
-    } catch (BurstException.ValidationException e) {
-      throw new RuntimeException("Block already in database at height " + height + ", does not pass validation!", e);
     }
   }
 
   public BlockImpl findLastBlock() {
     try ( DSLContext ctx = Db.getDSLContext() ) {
-      Record r = ctx.selectFrom(BLOCK).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchOne();
-      return r == null ? null : loadBlock(r);
+      return ctx.selectFrom(BLOCK).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchAny().into(BlockImpl.class);
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
-    } catch (BurstException.ValidationException e) {
+    } catch (Exception e) {
       throw new RuntimeException("Last block already in database does not pass validation!", e);
     }
   }
 
   public BlockImpl findLastBlock(int timestamp) {
     try ( DSLContext ctx = Db.getDSLContext() ) {
-      Record r = ctx.selectFrom(BLOCK).where(BLOCK.TIMESTAMP.lessOrEqual(timestamp)).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchOne();
-      return r == null ? null : loadBlock(r);
+      return ctx.selectFrom(BLOCK).where(BLOCK.TIMESTAMP.lessOrEqual(timestamp)).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchAny().into(BlockImpl.class);
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
-    } catch (BurstException.ValidationException e) {
+    } catch (Exception e) {
       throw new RuntimeException("Block already in database at timestamp " + timestamp + " does not pass validation!", e);
     }
   }
@@ -120,31 +113,6 @@ public abstract class SqlBlockDb implements BlockDb {
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
-  }
-  
-  public BlockImpl loadBlock(Record r) throws BurstException.ValidationException {
-    int version                     = r.getValue(BLOCK.VERSION);
-    int timestamp                   = r.getValue(BLOCK.TIMESTAMP);;
-    long previousBlockId            = r.getValue(BLOCK.PREVIOUS_BLOCK_ID);
-    long totalAmountNQT             = r.getValue(BLOCK.TOTAL_AMOUNT);
-    long totalFeeNQT                = r.getValue(BLOCK.TOTAL_FEE);
-    int payloadLength               = r.getValue(BLOCK.PAYLOAD_LENGTH);;
-    byte[] generatorPublicKey       = r.getValue(BLOCK.GENERATOR_PUBLIC_KEY);
-    byte[] previousBlockHash        = r.getValue(BLOCK.PREVIOUS_BLOCK_HASH);
-    BigInteger cumulativeDifficulty = new BigInteger(r.getValue(BLOCK.CUMULATIVE_DIFFICULTY));
-    long baseTarget                 = r.getValue(BLOCK.BASE_TARGET);
-    Long nextBlockId                = r.getValue(BLOCK.NEXT_BLOCK_ID);
-    int height                      = r.getValue(BLOCK.HEIGHT);
-    byte[] generationSignature      = r.getValue(BLOCK.GENERATION_SIGNATURE);
-    byte[] blockSignature           = r.getValue(BLOCK.BLOCK_SIGNATURE);
-    byte[] payloadHash              = r.getValue(BLOCK.PAYLOAD_HASH);
-    long id                         = r.getValue(BLOCK.ID);
-    long nonce                      = r.getValue(BLOCK.NONCE);
-    byte[] blockATs                 = r.getValue(BLOCK.ATS);
-    return new BlockImpl(
-                         version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
-                         generatorPublicKey, generationSignature, blockSignature, previousBlockHash,
-                         cumulativeDifficulty, baseTarget, nextBlockId, height, id, nonce, blockATs);
   }
   
   public void saveBlock(Connection con, BlockImpl block) {

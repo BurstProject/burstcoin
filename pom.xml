@@ -40,7 +40,7 @@
         <junit.version>4.12</junit.version>
         <hsqldb.version>2.4.0</hsqldb.version>
         <jacoco.version>0.7.9</jacoco.version>
-	<jooq.version>3.10.0</jooq.version>
+        <jooq.version>3.10.0</jooq.version>
 
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -49,7 +49,7 @@
 
         <sonar.sources>src/brs</sonar.sources>
 
-	<skip.jooq.generation>true</skip.jooq.generation>
+        <skip.jooq.generation>true</skip.jooq.generation>
         <!-- <sonar.tests>src/test</sonar.tests> -->
 
         <!-- For Java -->
@@ -207,7 +207,7 @@
             <version>${jacoco.version}</version>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
@@ -230,12 +230,16 @@
             <artifactId>jooq-codegen</artifactId>
             <version>${jooq.version}</version>
         </dependency>
-	
+        <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>javax.persistence</artifactId>
+            <version>2.2.0</version>
+        </dependency>
     </dependencies>
-    
+
     <build>
         <sourceDirectory>src/brs</sourceDirectory>
-	
+
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -349,7 +353,7 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -379,47 +383,47 @@
                 </executions>
             </plugin>
 -->
-	    <plugin>
-	      <groupId>org.jooq</groupId>
-	      <artifactId>jooq-codegen-maven</artifactId>
-	      <version>${jooq.version}</version>
+            <plugin>
+              <groupId>org.jooq</groupId>
+              <artifactId>jooq-codegen-maven</artifactId>
+              <version>${jooq.version}</version>
 
-	      <executions>
-		<execution>
-		  <id>jooq-codegen</id>
-		  <phase>generate-sources</phase>
-		  <goals>
-		    <goal>generate</goal>
-		  </goals>
-		</execution>
-	      </executions>
+              <executions>
+                <execution>
+                  <id>jooq-codegen</id>
+                  <phase>generate-sources</phase>
+                  <goals>
+                    <goal>generate</goal>
+                  </goals>
+                </execution>
+              </executions>
 
-	      <configuration>
-		<jdbc>
-		  <driver>org.mariadb.jdbc.Driver</driver>
-		  <url>jdbc:mysql://localhost:3306/burstwallet</url>
-		  <user>root</user>
-		  <password></password>
-		</jdbc>
-		<generator>
-		  <name>org.jooq.util.JavaGenerator</name>
-		  <database>
-		    <name>org.jooq.util.mariadb.MariaDBDatabase</name>
-		    <inputSchema>burstwallet</inputSchema>
-		    <outputSchema>DB</outputSchema>
-		    <includes>.*</includes>
-		    <excludes></excludes>
-		  </database>
-		  <target>
-		    <packageName>brs.schema</packageName>
-		    <directory>src</directory>
-		  </target>
-		</generator>
-		<skip>${skip.jooq.generation}</skip>
-	      </configuration>
-	    </plugin>
+              <configuration>
+                <jdbc>
+                  <driver>org.mariadb.jdbc.Driver</driver>
+                  <url>jdbc:mysql://localhost:3306/burstwallet</url>
+                  <user>root</user>
+                  <password></password>
+                </jdbc>
+                <generator>
+                  <name>org.jooq.util.JavaGenerator</name>
+                  <database>
+                    <name>org.jooq.util.mariadb.MariaDBDatabase</name>
+                    <inputSchema>burstwallet</inputSchema>
+                    <outputSchema>DB</outputSchema>
+                    <includes>.*</includes>
+                    <excludes></excludes>
+                  </database>
+                  <target>
+                    <packageName>brs.schema</packageName>
+                    <directory>src</directory>
+                  </target>
+                </generator>
+                <skip>${skip.jooq.generation}</skip>
+              </configuration>
+            </plugin>
 
-	  </plugins>
+          </plugins>
 
     </build>
 </project>
