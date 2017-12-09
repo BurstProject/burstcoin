@@ -22,8 +22,6 @@ public interface BlockDb {
   BlockImpl findLastBlock(int timestamp);
 
   BlockImpl loadBlock(Connection con, ResultSet rs) throws BurstException.ValidationException;
-  
-  BlockImpl loadBlock(Record r) throws BurstException.ValidationException;
 
   void saveBlock(Connection con, BlockImpl block);
 

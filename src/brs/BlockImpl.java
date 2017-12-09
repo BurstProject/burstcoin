@@ -19,34 +19,61 @@ import brs.crypto.Crypto;
 import brs.peer.Peer;
 import brs.util.Convert;
 
+import javax.persistence.Entity;
+import javax.persistence.Column;
+import java.beans.ConstructorProperties;
+
+import brs.db.converter.BigIntegerConverter;
+
+@Entity
 public final class BlockImpl implements Block {
 
   private static final Logger logger = LoggerFactory.getLogger(BlockImpl.class);
   private final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
+  @Column(name = "VERSION")
   private final int version;
+  @Column(name = "TIMESTAMP")
   private final int timestamp;
+  @Column(name = "PREVIOUS_BLOCK_ID")
   private final long previousBlockId;
+  @Column(name = "GENERATOR_PUBLIC_KEY")
   private final byte[] generatorPublicKey;
+  @Column(name = "PREVIOUS_BLOCK_HASH")
   private final byte[] previousBlockHash;
+  @Column(name = "TOTAL_AMOUNT")
   private final long totalAmountNQT;
+  @Column(name = "TOTAL_FEE")
   private final long totalFeeNQT;
+  @Column(name = "PAYLOAD_LENGTH")
   private final int payloadLength;
+  @Column(name = "GENERATION_SIGNATURE")
   private final byte[] generationSignature;
+  @Column(name = "PAYLOAD_HASH")
   private final byte[] payloadHash;
   private volatile List<TransactionImpl> blockTransactions;
 
+  @Column(name = "BLOCK_SIGNATURE")
   private byte[] blockSignature;
+
+  @Column(name = "CUMULATIVE_DIFFICULTY")
+  @javax.persistence.Convert(converter = BigIntegerConverter.class)
   private BigInteger cumulativeDifficulty = BigInteger.ZERO;
+  @Column(name = "BASE_TARGET")
   private long baseTarget = Constants.INITIAL_BASE_TARGET;
+  @Column(name = "NEXT_BLOCK_ID")
   private volatile Long nextBlockId;
+  @Column(name = "HEIGHT")
   private int height = -1;
+  @Column(name = "ID")
   private volatile long id;
   private volatile String stringId = null;
   private volatile long generatorId;
+  @Column(name = "NONCE")
   private long nonce;
 
   private BigInteger pocTime = null;
 
+  @Column(name = "ATS")
   private final byte[] blockATs;
 
   private Peer downloadedFrom = null;
@@ -88,9 +115,12 @@ public final class BlockImpl implements Block {
     this.blockATs = blockATs;
   }
 
+  @ConstructorProperties({"version", "timestamp", "previous_block_id", "total_amount", "total_fee", "payload_length", "payload_hash", "generator_public_key", "generation_signature", "block_signature", "previous_block_hash", "cumulative_difficulty", "base_target", "next_block_id", "height", "id", "nonce", "ats"})
   public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget,
       Long nextBlockId, int height, Long id, long nonce, byte[] blockATs) throws BurstException.ValidationException {
+
     this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature, previousBlockHash, null, nonce, blockATs);
+
     this.cumulativeDifficulty = cumulativeDifficulty;
     this.baseTarget = baseTarget;
     this.nextBlockId = nextBlockId;

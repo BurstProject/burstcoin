@@ -71,18 +71,14 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
     if (limit > 1440) {
       throw new IllegalArgumentException("Can't get more than 1440 blocks at a time");
     }
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT id FROM block WHERE db_id > (SELECT db_id FROM block WHERE id = ?) ORDER BY db_id ASC" + DbUtils.limitsClause(limit) )) {
-      List<Long> result = new ArrayList<>();
-      pstmt.setLong(1, blockId);
-      DbUtils.setLimits(2, pstmt, limit);
-      try (ResultSet rs = pstmt.executeQuery()) {
-        while (rs.next()) {
-          result.add(rs.getLong("id"));
-        }
-      }
-      return result;
-    } catch (SQLException e) {
+
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return
+        ctx.selectFrom(BLOCK).where(
+          BLOCK.HEIGHT.gt( ctx.select(BLOCK.HEIGHT).from(BLOCK).where(BLOCK.ID.eq(blockId) ) )
+        ).orderBy(BLOCK.HEIGHT.asc()).limit(limit).fetch(BLOCK.ID, Long.class);
+    }
+    catch ( Exception e ) {
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -92,34 +88,23 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
     if (limit > 1440) {
       throw new IllegalArgumentException("Can't get more than 1440 blocks at a time");
     }
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE db_id > (SELECT db_id FROM block WHERE id = ?) ORDER BY db_id ASC" + DbUtils.limitsClause(limit) )) {
-      List<BlockImpl> result = new ArrayList<>();
-      pstmt.setLong(1, blockId);
-      DbUtils.setLimits(2, pstmt, limit);
-      try (ResultSet rs = pstmt.executeQuery()) {
-        while (rs.next()) {
-          result.add(blockDb.loadBlock(con, rs));
-        }
-      }
-      return result;
-    } catch (BurstException.ValidationException | SQLException e) {
-      /*    try ( DSLContext ctx = Db.getDSLContext() ) {
-      return ctx.selectFrom(BLOCK).where(
-        BLOCK.HEIGHT.gt(ctx.select(BLOCK.HEIGHT).from(BLOCK).where(BLOCK.ID.eq(blockId)))
-      ).orderBy(BLOCK.HEIGHT.asc()).limit(limit).fetch( r -> { try { return loadBlock(r) } } );
-      }*/
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return
+        ctx.selectFrom(BLOCK).where(
+          BLOCK.HEIGHT.gt( ctx.select(BLOCK.HEIGHT).from(BLOCK).where(BLOCK.ID.eq(blockId) ) )
+        ).orderBy(BLOCK.HEIGHT.asc()).limit(limit).fetchInto(BlockImpl.class);
+    }
+    catch ( Exception e ) {
       throw new RuntimeException(e.toString(), e);
     }
   }
 
   @Override
   public int getTransactionCount() {
-    try (Connection con = Db.getConnection(); PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM transaction");
-         ResultSet rs = pstmt.executeQuery()) {
-      rs.next();
-      return rs.getInt(1);
-    } catch (SQLException e) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return ctx.selectCount().from(TRANSACTION).fetchOne(0, int.class);
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
