@@ -29,9 +29,9 @@ Firebird, in which case the following data needs to be added to
 `conf/brs.properties`
 
 ```
-nxt.dbUrl=jdbc:firebirdsql:embedded:burst.firebird.db
-nxt.dbUsername=sysdba
-nxt.dbPassword=
+brs.dbUrl=jdbc:firebirdsql:embedded:burst.firebird.db
+brs.dbUsername=sysdba
+brs.dbPassword=
 ```
 After that you can simply run `burst.cmd` and that should start your wallet.
 
@@ -63,9 +63,9 @@ mysql -uroot burstwallet < init-mysql.sql
 Now you need to add the following stuff to your conf/brs.properties:
 
 ```
-nxt.dbUrl=jdbc:mariadb://localhost:3306/burstwallet
-echo nxt.dbUsername=burstwallet
-nxt.dbPassword=yourpassword
+brs.dbUrl=jdbc:mariadb://localhost:3306/burstwallet
+brs.dbUsername=burstwallet
+brs.dbPassword=yourpassword
 ```
 
 ## Striking Features
