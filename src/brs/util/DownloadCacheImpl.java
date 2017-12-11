@@ -24,7 +24,7 @@ public final class DownloadCacheImpl {
 
   private final BlockchainImpl blockchain = BlockchainImpl.getInstance();
   private static final Logger logger = LoggerFactory.getLogger(DownloadCacheImpl.class);
-  public static int blockCacheSize = 0;
+  private static int blockCacheSize = 0;
 
   private Long LastBlockId = null;
   private int LastHeight = -1;
@@ -35,6 +35,10 @@ public final class DownloadCacheImpl {
       return LastHeight;
     }
     return blockchain.getHeight();
+  }
+
+  public int getBlockCacheSize() {
+    return blockCacheSize;
   }
 
   public boolean IsFull() {

@@ -84,7 +84,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     public void run() {
       logger.info("Unverified blocks: " + String.valueOf(DownloadCache.getUnverifiedSize()));
       logger.info("Blocks in cache: " + String.valueOf(DownloadCache.size()));
-      logger.info("Bytes in cache: " + String.valueOf(DownloadCache.blockCacheSize));
+      logger.info("Bytes in cache: " + String.valueOf(DownloadCache.getBlockCacheSize()));
     }
   };
 
@@ -406,7 +406,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
               logger.trace("Unverified blocks: " + String.valueOf(DownloadCache.getUnverifiedSize()));
               logger.trace("Blocks in cache: " + String.valueOf(DownloadCache.size()));
-              logger.trace("Bytes in cache: " + String.valueOf(DownloadCache.blockCacheSize));
+              logger.trace("Bytes in cache: " + String.valueOf(DownloadCache.getBlockCacheSize()));
             } // end synchronized
             if (forkBlocks.size() > 0) {
               processFork(peer, forkBlocks, commonBlockId);
