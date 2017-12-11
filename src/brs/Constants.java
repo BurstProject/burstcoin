@@ -87,7 +87,7 @@ public final class Constants {
   public static final int AT_FIX_BLOCK_3 = 92000;
   public static final int AT_FIX_BLOCK_4 = 255000;
 
-  public static final int[] MIN_VERSION = new int[] {1, 2};
+  public static final String MIN_VERSION = "1.2";
 
   static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (isTestnet ? 50 : 100) * ONE_NXT;
 
