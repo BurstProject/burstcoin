@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.*;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
@@ -106,28 +107,21 @@ final class PeerImpl implements Peer {
     this.version = version;
     isOldVersion = false;
     if (Burst.APPLICATION.equals(application) && version != null) {
-      String[] versions = version.split("\\.");
-      if (versions.length < Constants.MIN_VERSION.length) {
-        isOldVersion = true;
-      } else {
-        for (int i = 0; i < Constants.MIN_VERSION.length; i++) {
-          try {
-            int v = Integer.parseInt(versions[i]);
-            if (v > Constants.MIN_VERSION[i]) {
-              isOldVersion = false;
-              break;
-            } else if (v < Constants.MIN_VERSION[i]) {
-              isOldVersion = true;
-              break;
-            }
-          } catch (NumberFormatException e) {
-            isOldVersion = true;
+      // a runtime exception should be ok, if someone broke the constants
+      int[] currentVersionParts = Arrays.stream(Constants.MIN_VERSION.split("\\.")).mapToInt(Integer::parseInt).toArray();
+
+      try {
+        int[] versionParts = Arrays.stream(version.split("\\.")).mapToInt(Integer::parseInt).toArray();
+
+        for (int i = 0; i < currentVersionParts.length; i++) {
+          if ( versionParts[i] != currentVersionParts[i] ) {
+            isOldVersion = versionParts[i] < currentVersionParts[i];
             break;
           }
         }
       }
-      if (isOldVersion) {
-        // logger.debug("Blacklisting %s version %s", peerAddress, version);
+      catch (NumberFormatException e) {
+          isOldVersion = true;
       }
     }
   }
