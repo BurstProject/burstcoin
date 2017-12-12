@@ -29,8 +29,6 @@ public abstract class TransactionType {
 
   private static final byte SUBTYPE_MESSAGING_ARBITRARY_MESSAGE = 0;
   private static final byte SUBTYPE_MESSAGING_ALIAS_ASSIGNMENT = 1;
-  private static final byte SUBTYPE_MESSAGING_POLL_CREATION = 2;
-  private static final byte SUBTYPE_MESSAGING_VOTE_CASTING = 3;
   private static final byte SUBTYPE_MESSAGING_ACCOUNT_INFO = 5;
   private static final byte SUBTYPE_MESSAGING_ALIAS_SELL = 6;
   private static final byte SUBTYPE_MESSAGING_ALIAS_BUY = 7;
@@ -87,10 +85,6 @@ public abstract class TransactionType {
             return Messaging.ARBITRARY_MESSAGE;
           case SUBTYPE_MESSAGING_ALIAS_ASSIGNMENT:
             return Messaging.ALIAS_ASSIGNMENT;
-          case SUBTYPE_MESSAGING_POLL_CREATION:
-            return Messaging.POLL_CREATION;
-          case SUBTYPE_MESSAGING_VOTE_CASTING:
-            return Messaging.VOTE_CASTING;
           case SUBTYPE_MESSAGING_ACCOUNT_INFO:
             return Messaging.ACCOUNT_INFO;
           case SUBTYPE_MESSAGING_ALIAS_SELL:
@@ -583,101 +577,6 @@ public abstract class TransactionType {
         @Override
         public boolean hasRecipient() {
           return true;
-        }
-
-      };
-
-    public static final TransactionType POLL_CREATION = new Messaging() {
-        @Override
-        public final byte getSubtype() {
-          return TransactionType.SUBTYPE_MESSAGING_POLL_CREATION;
-        }
-
-        @Override
-        public Attachment.MessagingPollCreation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
-          return new Attachment.MessagingPollCreation(buffer, transactionVersion);
-        }
-
-        @Override
-        Attachment.MessagingPollCreation parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
-          return new Attachment.MessagingPollCreation(attachmentData);
-        }
-
-        @Override
-        void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-          Attachment.MessagingPollCreation attachment = (Attachment.MessagingPollCreation) transaction.getAttachment();
-          Poll.addPoll(transaction, attachment);
-        }
-
-        @Override
-        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-          if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.VOTING_SYSTEM_BLOCK) {
-            throw new BurstException.NotYetEnabledException("Voting System not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
-          }
-          Attachment.MessagingPollCreation attachment = (Attachment.MessagingPollCreation) transaction.getAttachment();
-          for (int i = 0; i < attachment.getPollOptions().length; i++) {
-            if (attachment.getPollOptions()[i].length() > Constants.MAX_POLL_OPTION_LENGTH) {
-              throw new BurstException.NotValidException("Invalid poll options length: " + attachment.getJSONObject());
-            }
-          }
-          if (attachment.getPollName().length() > Constants.MAX_POLL_NAME_LENGTH
-              || attachment.getPollDescription().length() > Constants.MAX_POLL_DESCRIPTION_LENGTH
-              || attachment.getPollOptions().length > Constants.MAX_POLL_OPTION_COUNT) {
-            throw new BurstException.NotValidException("Invalid poll attachment: " + attachment.getJSONObject());
-          }
-        }
-
-        @Override
-        public boolean hasRecipient() {
-          return false;
-        }
-
-      };
-
-    public static final TransactionType VOTE_CASTING = new Messaging() {
-
-        @Override
-        public final byte getSubtype() {
-          return TransactionType.SUBTYPE_MESSAGING_VOTE_CASTING;
-        }
-
-        @Override
-        public Attachment.MessagingVoteCasting parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
-          return new Attachment.MessagingVoteCasting(buffer, transactionVersion);
-        }
-
-        @Override
-        Attachment.MessagingVoteCasting parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
-          return new Attachment.MessagingVoteCasting(attachmentData);
-        }
-
-        @Override
-        void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-          Attachment.MessagingVoteCasting attachment = (Attachment.MessagingVoteCasting) transaction.getAttachment();
-          Poll poll = Poll.getPoll(attachment.getPollId());
-          if (poll != null) {
-            Vote.addVote(transaction, attachment);
-          }
-        }
-
-        @Override
-        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-          if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.VOTING_SYSTEM_BLOCK) {
-            throw new BurstException.NotYetEnabledException("Voting System not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
-          }
-          Attachment.MessagingVoteCasting attachment = (Attachment.MessagingVoteCasting) transaction.getAttachment();
-          if (attachment.getPollId() == 0 || attachment.getPollVote() == null
-              || attachment.getPollVote().length > Constants.MAX_POLL_OPTION_COUNT) {
-            throw new BurstException.NotValidException("Invalid vote casting attachment: " + attachment.getJSONObject());
-          }
-          if (Poll.getPoll(attachment.getPollId()) == null) {
-            throw new BurstException.NotCurrentlyValidException("Invalid poll: " + Convert.toUnsignedLong(attachment.getPollId()));
-          }
-        }
-
-        @Override
-        public boolean hasRecipient() {
-          return false;
         }
 
       };

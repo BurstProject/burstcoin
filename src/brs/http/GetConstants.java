@@ -59,15 +59,6 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
     subtype.put("description", "Alias buy");
     subtypes.add(subtype);
     subtype = new JSONObject();
-    subtype.put("value", TransactionType.Messaging.POLL_CREATION.getSubtype());
-    subtype.put("description", "Poll creation");
-    subtypes.add(subtype);
-    subtype = new JSONObject();
-    subtype.put("value", TransactionType.Messaging.VOTE_CASTING.getSubtype());
-    subtype.put("description", "Vote casting");
-    subtypes.add(subtype);
-    subtypes.add(subtype);
-    subtype = new JSONObject();
     subtype.put("value", TransactionType.Messaging.ACCOUNT_INFO.getSubtype());
     subtype.put("description", "Account info");
     subtypes.add(subtype);

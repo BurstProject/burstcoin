@@ -280,10 +280,8 @@ public final class Burst {
         Asset.init();
         DigitalGoodsStore.init();
         Order.init();
-        Poll.init();
         Trade.init();
         AssetTransfer.init();
-        Vote.init();
         AT.init();
         Peers.init();
         getGenerator().init();
