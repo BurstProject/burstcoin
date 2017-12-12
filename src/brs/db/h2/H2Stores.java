@@ -13,9 +13,7 @@ public class H2Stores implements Stores {
   private final DigitalGoodsStoreStore digitalGoodsStoreStore;
   private final EscrowStore escrowStore;
   private final OrderStore orderStore;
-  private final PollStore pollStore;
   private final TradeStore tradeStore;
-  private final VoteStore voteStore;
   private final TransactionProcessorStore transactionProcessorStore;
   private final SubscriptionStore subscriptionStore;
 
@@ -30,9 +28,7 @@ public class H2Stores implements Stores {
     this.digitalGoodsStoreStore = new H2DigitalGoodsStoreStore();
     this.escrowStore = new H2EscrowStore();
     this.orderStore = new H2OrderStore();
-    this.pollStore = new H2PollStore();
     this.tradeStore = new H2TradeStore();
-    this.voteStore = new H2VoteStore();
     this.transactionProcessorStore = new H2TransactionProcessorStore();
     this.subscriptionStore = new H2SubscriptionStore();
   }
@@ -108,18 +104,8 @@ public class H2Stores implements Stores {
   }
 
   @Override
-  public PollStore getPollStore() {
-    return pollStore;
-  }
-
-  @Override
   public TradeStore getTradeStore() {
     return tradeStore;
-  }
-
-  @Override
-  public VoteStore getVoteStore() {
-    return voteStore;
   }
 
   @Override
