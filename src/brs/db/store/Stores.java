@@ -21,11 +21,7 @@ public interface Stores {
 
   OrderStore getOrderStore();
 
-  PollStore getPollStore();
-
   TradeStore getTradeStore();
-
-  VoteStore getVoteStore();
 
   TransactionProcessorStore getTransactionProcessorStore();
 

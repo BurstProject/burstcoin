@@ -13,9 +13,7 @@ public class MariadbStores implements Stores {
   private final DigitalGoodsStoreStore digitalGoodsStoreStore;
   private final EscrowStore escrowStore;
   private final OrderStore orderStore;
-  private final PollStore pollStore;
   private final TradeStore tradeStore;
-  private final VoteStore voteStore;
   private final TransactionProcessorStore transactionProcessorStore;
   private final SubscriptionStore subscriptionStore;
 
@@ -30,9 +28,7 @@ public class MariadbStores implements Stores {
     this.digitalGoodsStoreStore = new MariadbDigitalGoodsStoreStore();
     this.escrowStore = new MariadbEscrowStore();
     this.orderStore = new MariadbOrderStore();
-    this.pollStore = new MariadbPollStore();
     this.tradeStore = new MariadbTradeStore();
-    this.voteStore = new MariadbVoteStore();
     this.transactionProcessorStore = new MariadbTransactionProcessorStore();
     this.subscriptionStore = new MariadbSubscriptionStore();
   }
@@ -108,18 +104,8 @@ public class MariadbStores implements Stores {
   }
 
   @Override
-  public PollStore getPollStore() {
-    return pollStore;
-  }
-
-  @Override
   public TradeStore getTradeStore() {
     return tradeStore;
-  }
-
-  @Override
-  public VoteStore getVoteStore() {
-    return voteStore;
   }
 
   @Override

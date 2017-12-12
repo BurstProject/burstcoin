@@ -135,12 +135,15 @@ public final class DownloadCacheImpl {
   }
 
   public void WaitForMapToBlockChain() {
-    while (!reverseCache.containsKey(blockchain.getLastBlock().getId())) {
-      try {
-        printDebug();
-        this.wait(2000);
-      }
-      catch (InterruptedException ignore) {
+    synchronized(this) {
+      while (!reverseCache.containsKey(blockchain.getLastBlock().getId())) {
+        try {
+          printDebug();
+          this.wait(2000);
+        }
+        catch (InterruptedException ignore) {
+          logger.trace("Interrupted: ", e);
+        }
       }
     }
   }

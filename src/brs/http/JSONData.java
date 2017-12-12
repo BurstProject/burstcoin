@@ -221,24 +221,6 @@ public final class JSONData {
     return json;
   }
 
-  static JSONObject poll(Poll poll) {
-    JSONObject json = new JSONObject();
-    json.put("name", poll.getName());
-    json.put("description", poll.getDescription());
-    JSONArray options = new JSONArray();
-    Collections.addAll(options, poll.getOptions());
-    json.put("options", options);
-    json.put("minNumberOfOptions", poll.getMinNumberOfOptions());
-    json.put("maxNumberOfOptions", poll.getMaxNumberOfOptions());
-    json.put("optionsAreBinary", poll.isOptionsAreBinary());
-    JSONArray voters = new JSONArray();
-    for (Long voterId : poll.getVoters().keySet()) {
-      voters.add(Convert.toUnsignedLong(voterId));
-    }
-    json.put("voters", voters);
-    return json;
-  }
-
   static JSONObject purchase(DigitalGoodsStore.Purchase purchase) {
     JSONObject json = new JSONObject();
     json.put("purchase", Convert.toUnsignedLong(purchase.getId()));
