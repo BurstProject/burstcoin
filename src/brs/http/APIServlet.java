@@ -60,7 +60,7 @@ public final class APIServlet extends HttpServlet {
 
   static {
 
-    Map<String,APIRequestHandler> map = new HashMap<>();
+    final Map<String,APIRequestHandler> map = new HashMap<>();
 
     map.put("broadcastTransaction", BroadcastTransaction.instance);
     map.put("calculateFullHash", CalculateFullHash.instance);
