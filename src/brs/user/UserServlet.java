@@ -33,7 +33,7 @@ public final class UserServlet extends HttpServlet  {
   private static final Map<String,UserRequestHandler> userRequestHandlers;
 
   static {
-    Map<String,UserRequestHandler> map = new HashMap<>();
+    final Map<String,UserRequestHandler> map = new HashMap<>();
     map.put("generateAuthorizationToken", GenerateAuthorizationToken.instance);
     map.put("getInitialData", GetInitialData.instance);
     map.put("getNewData", GetNewData.instance);
