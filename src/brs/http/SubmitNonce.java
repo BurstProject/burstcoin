@@ -71,18 +71,19 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
       }
     }
 		
-    Generator.GeneratorState generator;
+    Generator.GeneratorState generator = null;
     if(accountId == null || secretAccount == null) {
       generator = Burst.getGenerator().addNonce(secret, nonce);
     }
     else {
       Account genAccount = Account.getAccount(Convert.parseUnsignedLong(accountId));
-      if(genAccount == null ||
-         genAccount.getPublicKey() == null) {
+      if(genAccount == null || genAccount.getPublicKey() == null) {
         response.put("result", "Passthrough mining requires public key in blockchain");
       }
-      byte[] publicKey = genAccount.getPublicKey();
-      generator = Burst.getGenerator().addNonce(secret, nonce, publicKey);
+      else {
+        byte[] publicKey = genAccount.getPublicKey();
+        generator = Burst.getGenerator().addNonce(secret, nonce, publicKey);
+      }
     }
 		
     if(generator == null) {
