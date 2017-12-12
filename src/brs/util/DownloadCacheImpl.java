@@ -143,6 +143,7 @@ public final class DownloadCacheImpl {
         }
         catch (InterruptedException ignore) {
           logger.trace("Interrupted: ", ignore);
+          Thread.currentThread().interrupt();
         }
       }
     }
