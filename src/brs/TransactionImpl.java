@@ -468,7 +468,7 @@ public final class TransactionImpl implements Transaction {
       ByteBuffer buffer = ByteBuffer.allocate(getSize());
       buffer.order(ByteOrder.LITTLE_ENDIAN);
       buffer.put(type.getType());
-      buffer.put((byte) ((version << 4) | type.getSubtype()));
+      buffer.put((byte) ((version << 4) | ( type.getSubtype() & 0xff ) ));
       buffer.putInt(timestamp);
       buffer.putShort(deadline);
       if(type.isSigned() || Burst.getBlockchain().getHeight() < Constants.AT_FIX_BLOCK_4) {
