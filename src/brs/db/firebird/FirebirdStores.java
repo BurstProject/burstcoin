@@ -13,9 +13,7 @@ public class FirebirdStores implements Stores {
   private final DigitalGoodsStoreStore digitalGoodsStoreStore;
   private final EscrowStore escrowStore;
   private final OrderStore orderStore;
-  private final PollStore pollStore;
   private final TradeStore tradeStore;
-  private final VoteStore voteStore;
   private final TransactionProcessorStore transactionProcessorStore;
   private final SubscriptionStore subscriptionStore;
 
@@ -30,9 +28,7 @@ public class FirebirdStores implements Stores {
     this.digitalGoodsStoreStore = new FirebirdDigitalGoodsStoreStore();
     this.escrowStore = new FirebirdEscrowStore();
     this.orderStore = new FirebirdOrderStore();
-    this.pollStore = new FirebirdPollStore();
     this.tradeStore = new FirebirdTradeStore();
-    this.voteStore = new FirebirdVoteStore();
     this.transactionProcessorStore = new FirebirdTransactionProcessorStore();
     this.subscriptionStore = new FirebirdSubscriptionStore();
   }
@@ -108,18 +104,8 @@ public class FirebirdStores implements Stores {
   }
 
   @Override
-  public PollStore getPollStore() {
-    return pollStore;
-  }
-
-  @Override
   public TradeStore getTradeStore() {
     return tradeStore;
-  }
-
-  @Override
-  public VoteStore getVoteStore() {
-    return voteStore;
   }
 
   @Override
