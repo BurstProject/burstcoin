@@ -32,7 +32,7 @@ public final class PeerServlet extends HttpServlet {
   private static final Map<String,PeerRequestHandler> peerRequestHandlers;
 
   static {
-    Map<String,PeerRequestHandler> map = new HashMap<>();
+    final Map<String,PeerRequestHandler> map = new HashMap<>();
     map.put("addPeers", AddPeers.instance);
     map.put("getCumulativeDifficulty", GetCumulativeDifficulty.instance);
     map.put("getInfo", GetInfo.instance);
@@ -50,14 +50,14 @@ public final class PeerServlet extends HttpServlet {
 
   private static final JSONStreamAware UNSUPPORTED_REQUEST_TYPE;
   static {
-    JSONObject response = new JSONObject();
+    final JSONObject response = new JSONObject();
     response.put("error", "Unsupported request type!");
     UNSUPPORTED_REQUEST_TYPE = JSON.prepare(response);
   }
 
   private static final JSONStreamAware UNSUPPORTED_PROTOCOL;
   static {
-    JSONObject response = new JSONObject();
+    final JSONObject response = new JSONObject();
     response.put("error", "Unsupported protocol!");
     UNSUPPORTED_PROTOCOL = JSON.prepare(response);
   }
