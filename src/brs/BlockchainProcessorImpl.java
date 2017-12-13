@@ -88,6 +88,13 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
   };
 
+  public static final void setOclVerify(Boolean b) {
+    oclVerify = b;
+  }
+
+  public static final Boolean getOclVerify() {
+    return oclVerify;
+  }
   /*
   private static void addCollectionGauge (MetricRegistry metrics, final Collection c, String name) {
     metrics.register(MetricRegistry.name(BlockchainProcessorImpl.class, name, "size"),
