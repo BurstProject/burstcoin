@@ -50,8 +50,7 @@ public final class GeneratorImpl implements Generator {
             logger.debug("Error in block generation thread", e);
           }
         } catch (Throwable t) {
-          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
-          t.printStackTrace();
+          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
           System.exit(1);
         }
 
@@ -264,8 +263,7 @@ public final class GeneratorImpl implements Generator {
         BlockchainProcessorImpl.getInstance().generateBlock(secretPhrase, publicKey, nonce);
       }
       catch(BlockchainProcessor.BlockNotAcceptedException e) {
-        e.printStackTrace();
-        logger.debug(e.getMessage(), e);
+        logger.info(e.getMessage(), e);
       }
       return new MockGeneratorStateImpl();
     }
