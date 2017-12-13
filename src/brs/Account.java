@@ -28,8 +28,8 @@ public  class Account {
     public final long accountId;
     public final long assetId;
     public final BurstKey nxtKey;
-    public long quantityQNT;
-    public long unconfirmedQuantityQNT;
+    private long quantityQNT;
+    private long unconfirmedQuantityQNT;
 
     protected AccountAsset(long accountId, long assetId, long quantityQNT, long unconfirmedQuantityQNT, BurstKey BurstKey) {
       this.accountId = accountId;

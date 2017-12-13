@@ -31,8 +31,8 @@ class H2AccountStore extends SqlAccountStore {
           int i = 0;
           pstmt.setLong(++i, accountAsset.accountId);
           pstmt.setLong(++i, accountAsset.assetId);
-          pstmt.setLong(++i, accountAsset.quantityQNT);
-          pstmt.setLong(++i, accountAsset.unconfirmedQuantityQNT);
+          pstmt.setLong(++i, accountAsset.getQuantityQNT());
+          pstmt.setLong(++i, accountAsset.getUnconfirmedQuantityQNT());
           pstmt.setInt(++i, Burst.getBlockchain().getHeight());
           pstmt.executeUpdate();
         }
