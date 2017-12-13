@@ -9,7 +9,7 @@ public final class Listeners<T,E extends Enum<E>> {
   private final ConcurrentHashMap<Enum<E>, List<Listener<T>>> listenersMap = new ConcurrentHashMap<>();
 
   public boolean addListener(Listener<T> listener, Enum<E> eventType) {
-    synchronized (eventType) {
+    synchronized (this) {
       List<Listener<T>> listeners = listenersMap.get(eventType);
       if (listeners == null) {
         listeners = new CopyOnWriteArrayList<>();
@@ -20,7 +20,7 @@ public final class Listeners<T,E extends Enum<E>> {
   }
 
   public boolean removeListener(Listener<T> listener, Enum<E> eventType) {
-    synchronized (eventType) {
+    synchronized (this) {
       List<Listener<T>> listeners = listenersMap.get(eventType);
       if (listeners != null) {
         return listeners.remove(listener);
