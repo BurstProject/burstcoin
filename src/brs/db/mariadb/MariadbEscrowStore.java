@@ -16,7 +16,7 @@ class MariadbEscrowStore extends SqlEscrowStore {
       int i = 0;
       pstmt.setLong(++i, decision.escrowId);
       pstmt.setLong(++i, decision.accountId);
-      pstmt.setInt(++i, Escrow.decisionToByte(decision.decision));
+      pstmt.setInt(++i, Escrow.decisionToByte(decision.getDecision()));
       pstmt.setInt(++i, Burst.getBlockchain().getHeight());
       pstmt.executeUpdate();
     }
