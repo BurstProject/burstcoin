@@ -20,7 +20,7 @@ class MariadbSubscriptionStore extends SqlSubscriptionStore {
       pstmt.setLong(++i, subscription.recipientId);
       pstmt.setLong(++i, subscription.amountNQT);
       pstmt.setInt(++i, subscription.frequency);
-      pstmt.setInt(++i, subscription.timeNext);
+      pstmt.setInt(++i, subscription.getTimeNext());
       pstmt.setInt(++i, Burst.getBlockchain().getHeight());
       pstmt.executeUpdate();
     }

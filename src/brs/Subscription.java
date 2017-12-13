@@ -168,7 +168,7 @@ public class Subscription {
   public final BurstKey dbKey;
   public final Long amountNQT;
   public final int frequency;
-  public volatile int timeNext;
+  private volatile int timeNext;
 
   private Subscription(Long senderId,
                        Long recipientId,
