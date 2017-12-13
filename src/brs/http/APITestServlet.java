@@ -154,19 +154,21 @@ public class APITestServlet extends HttpServlet {
   }
 
   private static final SortedMap<String, SortedSet<String>> requestTags = new TreeMap<>();
-  static {
+  private static SortedMap<String, SortedSet<String>> buildRequestTags () {
+    SortedMap<String, SortedSet<String>> r = new TreeMap<>();
     for (Map.Entry<String, APIServlet.APIRequestHandler> entry : APIServlet.apiRequestHandlers.entrySet()) {
       final String requestType = entry.getKey();
       final Set<APITag> apiTags = entry.getValue().getAPITags();
       for (APITag apiTag : apiTags) {
-        SortedSet<String> set = requestTags.get(apiTag.name());
+        SortedSet<String> set = r.get(apiTag.name());
         if (set == null) {
           set = new TreeSet<>();
-          requestTags.put(apiTag.name(), set);
+          r.put(apiTag.name(), set);
         }
         set.add(requestType);
       }
     }
+    return r;
   }
 
   private static String buildLinks(HttpServletRequest req) {
