@@ -94,7 +94,7 @@ public class Escrow {
     public final Long escrowId;
     public final Long accountId;
     public final BurstKey dbKey;
-    public DecisionType decision;
+    private DecisionType decision;
 
     protected Decision(Long escrowId, Long accountId, DecisionType decision) {
       this.escrowId = escrowId;
