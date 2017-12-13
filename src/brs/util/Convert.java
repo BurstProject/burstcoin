@@ -62,7 +62,7 @@ public final class Convert {
       return 0;
     }
     BigInteger bigInt = new BigInteger(number.trim());
-    if (bigInt.signum() < 0 || bigInt.compareTo(two64) != -1) {
+    if (bigInt.signum() < 0 || bigInt.compareTo(two64) > -1) {
       throw new IllegalArgumentException("overflow: " + number);
     }
     return bigInt.longValue();
