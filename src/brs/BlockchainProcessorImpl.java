@@ -152,10 +152,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                   blocks.get(0).preVerify();
                 }
               } catch (OCLPoC.PreValidateFailException e) {
-                e.printStackTrace();
+                logger.info(e.toString(), e);
                 blacklistClean(e.getBlock(), e);
               } catch (BlockNotAcceptedException e) {
-                e.printStackTrace();
+                logger.info(e.toString(), e);
                 blacklistClean(blocks.get(0), e);
               }
             } finally {
@@ -425,8 +425,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             logger.info("Error in blockchain download thread", e);
           } // end second try
         } catch (Throwable t) {
-          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
-          t.printStackTrace();
+          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
           System.exit(1);
         } // end first try
         try {
