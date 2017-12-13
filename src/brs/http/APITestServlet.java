@@ -156,8 +156,8 @@ public class APITestServlet extends HttpServlet {
   private static final SortedMap<String, SortedSet<String>> requestTags = new TreeMap<>();
   static {
     for (Map.Entry<String, APIServlet.APIRequestHandler> entry : APIServlet.apiRequestHandlers.entrySet()) {
-      String requestType = entry.getKey();
-      Set<APITag> apiTags = entry.getValue().getAPITags();
+      final String requestType = entry.getKey();
+      final Set<APITag> apiTags = entry.getValue().getAPITags();
       for (APITag apiTag : apiTags) {
         SortedSet<String> set = requestTags.get(apiTag.name());
         if (set == null) {
@@ -170,8 +170,8 @@ public class APITestServlet extends HttpServlet {
   }
 
   private static String buildLinks(HttpServletRequest req) {
-    StringBuilder buf = new StringBuilder();
-    String requestTag = Convert.nullToEmpty(req.getParameter("requestTag"));
+    final StringBuilder buf = new StringBuilder();
+    final String requestTag = Convert.nullToEmpty(req.getParameter("requestTag"));
     buf.append("<li");
     if (requestTag.equals("")) {
       buf.append(" class=\"active\"");
