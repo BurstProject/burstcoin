@@ -190,7 +190,7 @@ public final class GeneratorImpl implements Generator {
       // need to store publicKey in addition to accountId, because the account may not have had its publicKey set yet
       this.accountId = account;
       this.nonce = nonce;
-      this.block = Burst.getBlockchain().getLastBlock().getHeight() + 1;
+      this.block = (long)Burst.getBlockchain().getLastBlock().getHeight() + 1;
 
       Block lastBlock = Burst.getBlockchain().getLastBlock();
       byte[] lastGenSig = lastBlock.getGenerationSignature();
@@ -198,7 +198,7 @@ public final class GeneratorImpl implements Generator {
 
       byte[] newGenSig = calculateGenerationSignature(lastGenSig, lastGenerator);
 
-      int scoopNum = calculateScoop(newGenSig, lastBlock.getHeight() + 1);
+      int scoopNum = calculateScoop(newGenSig, lastBlock.getHeight() + 1L);
 
       deadline = calculateDeadline(accountId, nonce, newGenSig, scoopNum, lastBlock.getBaseTarget());
     }

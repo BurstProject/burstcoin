@@ -77,7 +77,7 @@ final class OCLPoC {
 
   private static final Object oclLock = new Object();
 
-  private static final long bufferPerItem = MiningPlot.PLOT_SIZE + 16;
+  private static final long bufferPerItem = (long)MiningPlot.PLOT_SIZE + 16;
   private static final long memPerItem = 8 // id
       + 8 // nonce
       + bufferPerItem // buffer
@@ -249,11 +249,11 @@ final class OCLPoC {
         cl_mem scoopOutMem = null;
 
         try {
-          idMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 8 * blocks.size(), Pointer.to(ids), null);
-          nonceMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 8 * blocks.size(), Pointer.to(nonces), null);
-          bufferMem = clCreateBuffer(ctx, CL_MEM_READ_WRITE, (MiningPlot.PLOT_SIZE + 16) * blocks.size(), null, null);
-          scoopNumMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 4 * blocks.size(), Pointer.to(scoopNums), null);
-          scoopOutMem = clCreateBuffer(ctx, CL_MEM_READ_WRITE, MiningPlot.SCOOP_SIZE * blocks.size(), null, null);
+          idMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 8L * blocks.size(), Pointer.to(ids), null);
+          nonceMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 8L * blocks.size(), Pointer.to(nonces), null);
+          bufferMem = clCreateBuffer(ctx, CL_MEM_READ_WRITE, (long)(MiningPlot.PLOT_SIZE + 16) * blocks.size(), null, null);
+          scoopNumMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 4L * blocks.size(), Pointer.to(scoopNums), null);
+          scoopOutMem = clCreateBuffer(ctx, CL_MEM_READ_WRITE, (long)MiningPlot.SCOOP_SIZE * blocks.size(), null, null);
 
           int[] totalSize = new int[] { blocks.size() };
 
@@ -283,7 +283,7 @@ final class OCLPoC {
 
           clEnqueueNDRangeKernel(queue, getKernel, 1, null, new long[] { jobSize }, new long[] { maxGroupItems }, 0, null, null);
 
-          clEnqueueReadBuffer(queue, scoopOutMem, true, 0, MiningPlot.SCOOP_SIZE * blocks.size(), Pointer.to(scoopsOut), 0, null, null);
+          clEnqueueReadBuffer(queue, scoopOutMem, true, 0, (long) MiningPlot.SCOOP_SIZE * blocks.size(), Pointer.to(scoopsOut), 0, null, null);
         } catch (Exception e) {
           logger.info("Ocl error. Try to set a lower value on oclHashesPerEnqueue in properties.");
           return;
@@ -437,7 +437,7 @@ final class OCLPoC {
         long[] clock = new long[1];
         clGetDeviceInfo(devices[dvi], CL_DEVICE_MAX_CLOCK_FREQUENCY, Sizeof.cl_long, Pointer.to(clock), null);
 
-        long maxItemsAtOnce = Math.min(calculateMaxItemsByMem(devices[dvi]), getComputeUnits(devices[dvi]) * 256);
+        long maxItemsAtOnce = Math.min(calculateMaxItemsByMem(devices[dvi]), (long)getComputeUnits(devices[dvi]) * 256);
 
         long score = maxItemsAtOnce * clock[0];
 

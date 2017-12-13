@@ -564,10 +564,10 @@ public final class BlockImpl implements Block {
         avgBaseTarget = avgBaseTarget.add(BigInteger.valueOf(itBlock.getBaseTarget()));
       } while (itBlock.getHeight() > this.height - 4);
       avgBaseTarget = avgBaseTarget.divide(BigInteger.valueOf(4));
-      long difTime = this.timestamp - itBlock.getTimestamp();
+      long difTime = (long)this.timestamp - itBlock.getTimestamp();
 
       long curBaseTarget = avgBaseTarget.longValue();
-      long newBaseTarget = BigInteger.valueOf(curBaseTarget).multiply(BigInteger.valueOf(difTime)).divide(BigInteger.valueOf(240 * 4)).longValue();
+      long newBaseTarget = (long)BigInteger.valueOf(curBaseTarget).multiply(BigInteger.valueOf(difTime)).divide(BigInteger.valueOf(240 * 4)).longValue();
       if (newBaseTarget < 0 || newBaseTarget > Constants.MAX_BASE_TARGET) {
         newBaseTarget = Constants.MAX_BASE_TARGET;
       }
@@ -577,7 +577,7 @@ public final class BlockImpl implements Block {
       if (newBaseTarget == 0) {
         newBaseTarget = 1;
       }
-      long twofoldCurBaseTarget = curBaseTarget * 11 / 10;
+      long twofoldCurBaseTarget = (long)curBaseTarget * 11 / 10;
       if (twofoldCurBaseTarget < 0) {
         twofoldCurBaseTarget = Constants.MAX_BASE_TARGET;
       }
@@ -593,10 +593,10 @@ public final class BlockImpl implements Block {
       do {
         itBlock = BlockchainProcessorImpl.DownloadCache.GetBlock(itBlock.getPreviousBlockId());
         blockCounter++;
-        avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter)).add(BigInteger.valueOf(itBlock.getBaseTarget()))).divide(BigInteger.valueOf(blockCounter + 1));
+        avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter)).add(BigInteger.valueOf(itBlock.getBaseTarget()))).divide(BigInteger.valueOf(blockCounter + 1L));
       } while (blockCounter < 24);
-      long difTime = this.timestamp - itBlock.getTimestamp();
-      long targetTimespan = 24 * 4 * 60;
+      long difTime = (long)this.timestamp - itBlock.getTimestamp();
+      long targetTimespan = 24L * 4 * 60;
 
       if (difTime < targetTimespan / 2) {
         difTime = targetTimespan / 2;

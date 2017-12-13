@@ -1595,7 +1595,7 @@ public abstract class TransactionType {
 
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-          long height = Burst.getBlockchain().getLastBlock().getHeight() + 1;
+          long height = (long)Burst.getBlockchain().getLastBlock().getHeight() + 1;
           Account sender = Account.getAccount(transaction.getSenderId());
 
           if (sender == null) {
