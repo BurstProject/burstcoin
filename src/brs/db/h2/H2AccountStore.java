@@ -58,9 +58,9 @@ class H2AccountStore extends SqlAccountStore {
                                                             + "(account_id, prev_recip_id, recip_id, from_height, height, latest)  KEY (account_id, height) VALUES (?, ?, ?, ?, ?, TRUE)")) {
           int i = 0;
           pstmt.setLong(++i, assignment.accountId);
-          pstmt.setLong(++i, assignment.prevRecipientId);
-          pstmt.setLong(++i, assignment.recipientId);
-          pstmt.setInt(++i, assignment.fromHeight);
+          pstmt.setLong(++i, assignment.getPrevRecipientId());
+          pstmt.setLong(++i, assignment.getRecipientId());
+          pstmt.setInt(++i, assignment.getFromHeight());
           pstmt.setInt(++i, Burst.getBlockchain().getHeight());
           pstmt.executeUpdate();
         }

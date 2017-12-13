@@ -89,9 +89,9 @@ public  class Account {
   public static class RewardRecipientAssignment {
 
     public final Long accountId;
-    public Long prevRecipientId;
-    public Long recipientId;
-    public int fromHeight;
+    private Long prevRecipientId;
+    private Long recipientId;
+    private int fromHeight;
     public final BurstKey nxtKey;
 
 
