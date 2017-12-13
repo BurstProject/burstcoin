@@ -77,9 +77,9 @@ class FirebirdAccountStore extends SqlAccountStore {
                                                             + "(account_id, prev_recip_id, recip_id, from_height, height, latest)  VALUES (?, ?, ?, ?, ?, TRUE) MATCHING (account_id, height)")) {
           int i = 0;
           pstmt.setLong(++i, assignment.accountId);
-          pstmt.setLong(++i, assignment.prevRecipientId);
-          pstmt.setLong(++i, assignment.recipientId);
-          pstmt.setInt(++i, assignment.fromHeight);
+          pstmt.setLong(++i, assignment.getPrevRecipientId());
+          pstmt.setLong(++i, assignment.getRecipientId());
+          pstmt.setInt(++i, assignment.getFromHeight());
           pstmt.setInt(++i, Burst.getBlockchain().getHeight());
           pstmt.executeUpdate();
         }
