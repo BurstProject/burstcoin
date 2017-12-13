@@ -21,7 +21,7 @@ public final class GetMiningInfo extends APIServlet.APIRequestHandler {
   JSONStreamAware processRequest(HttpServletRequest req) {
     JSONObject response = new JSONObject();
 		
-    response.put("height", Long.toString(Burst.getBlockchain().getHeight() + 1));
+    response.put("height", Long.toString((long)Burst.getBlockchain().getHeight() + 1));
 		
     Block lastBlock = Burst.getBlockchain().getLastBlock();
     byte[] lastGenSig = lastBlock.getGenerationSignature();
