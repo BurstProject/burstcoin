@@ -10,6 +10,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static brs.schema.Tables.*;
+import static org.jooq.impl.DSL.*;
+
+import org.jooq.DSLContext;
+import org.jooq.Record;
+
 public abstract class SqlAssetTransferStore implements AssetTransferStore {
 
   protected static final BurstKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = new DbKey.LongKeyFactory<AssetTransfer>("id") {
@@ -33,18 +39,15 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
     };
 
   private void saveAssetTransfer(Connection con, AssetTransfer assetTransfer) throws SQLException {
-    try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO asset_transfer (id, asset_id, "
-                                                        + "sender_id, recipient_id, quantity, timestamp, height) "
-                                                        + "VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-      int i = 0;
-      pstmt.setLong(++i, assetTransfer.getId());
-      pstmt.setLong(++i, assetTransfer.getAssetId());
-      pstmt.setLong(++i, assetTransfer.getSenderId());
-      pstmt.setLong(++i, assetTransfer.getRecipientId());
-      pstmt.setLong(++i, assetTransfer.getQuantityQNT());
-      pstmt.setInt(++i, assetTransfer.getTimestamp());
-      pstmt.setInt(++i, assetTransfer.getHeight());
-      pstmt.executeUpdate();
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      ctx.insertInto(
+        ASSET_TRANSFER,
+        ASSET_TRANSFER.ID, ASSET_TRANSFER.ASSET_ID, ASSET_TRANSFER.SENDER_ID, ASSET_TRANSFER.RECIPIENT_ID,
+        ASSET_TRANSFER.QUANTITY, ASSET_TRANSFER.TIMESTAMP, ASSET_TRANSFER.HEIGHT
+      ).values(
+        assetTransfer.getId(), assetTransfer.getAssetId(), assetTransfer.getSenderId(), assetTransfer.getRecipientId(),
+        assetTransfer.getQuantityQNT(), assetTransfer.getTimestamp(), assetTransfer.getHeight()
+      ).execute();
     }
   }
 
