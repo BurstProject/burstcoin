@@ -308,13 +308,13 @@ public final class Burst {
           setGenerator(new GeneratorImpl.MockGeneratorImpl());
         }
 
-        if (BlockchainProcessorImpl.oclVerify) {
+        if (BlockchainProcessorImpl.getOclVerify()) {
           try {
             OCLPoC.init();
           }
           catch (OCLPoC.OCLCheckerException e) {
             logger.error("Error initializing OpenCL, disabling ocl verify: " + e.getMessage());
-            BlockchainProcessorImpl.oclVerify = false;
+            BlockchainProcessorImpl.setOclVerify(false);
           }
         }
       }
