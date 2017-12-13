@@ -143,7 +143,7 @@ public class LoadBinDump {
         try {
           Files.delete(temp);
         } catch (IOException e) {
-          e.printStackTrace();
+          logger.info("IOException: ", e);
         }
       if (Db.getDatabaseType() == Db.TYPE.H2)
         logger.warn("Compacting the h2 database may take a small eternity - sorry");

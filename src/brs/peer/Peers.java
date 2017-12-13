@@ -325,8 +325,7 @@ public final class Peers {
             logger.debug("Error un-blacklisting peer", e);
           }
         } catch (Throwable t) {
-          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
-          t.printStackTrace();
+          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
           System.exit(1);
         }
 
@@ -360,8 +359,7 @@ public final class Peers {
             logger.debug("Error connecting to peer", e);
           }
         } catch (Throwable t) {
-          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
-          t.printStackTrace();
+          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
           System.exit(1);
         }
 
@@ -436,8 +434,7 @@ public final class Peers {
             logger.debug("Error requesting peers from a peer", e);
           }
         } catch (Throwable t) {
-          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
-          t.printStackTrace();
+          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
           System.exit(1);
         }
 

@@ -190,8 +190,7 @@ final class OCLPoC {
       }
       logger.info("OCL max items: " + maxItems);
     } catch (CLException e) {
-      logger.error("OpenCL exception: " + e.getMessage());
-      e.printStackTrace();
+      logger.info("OpenCL exception: " + e.getMessage(), e);
       destroy();
       throw new OCLCheckerException("OpenCL exception", e);
     }
