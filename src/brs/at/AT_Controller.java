@@ -300,7 +300,7 @@ public abstract class AT_Controller {
     }
     catch ( NoSuchAlgorithmException e ) {
       //should not reach ever here
-      e.printStackTrace();
+      logger.info("NoSuchAlgorithmException: ", e);
     }
 
     AT_Block atBlock = new AT_Block( totalFee, totalAmount, bytesForBlock );

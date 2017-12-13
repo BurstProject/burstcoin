@@ -17,7 +17,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class AT_API_Impl implements AT_API {
+
+  private static final Logger logger = LoggerFactory.getLogger(AT_API_Impl.class);
 
   AT_API_Platform_Impl platform = AT_API_Platform_Impl.getInstance();
 
@@ -524,7 +529,7 @@ public class AT_API_Impl implements AT_API {
 
     } catch (NoSuchAlgorithmException e) {
       //not expected to reach that point
-      e.printStackTrace();
+      logger.info("NoSuchAlgorithmException: ", e);
     }
   }
 
@@ -547,7 +552,7 @@ public class AT_API_Impl implements AT_API {
                  mdb.getLong(8) == AT_API_Helper.getLong( state.get_B2() ) ) ? 1 : 0;
       } catch (NoSuchAlgorithmException e) {
         //not expected to reach that point
-        e.printStackTrace();
+        logger.info("NoSuchAlgorithmException: ", e);
         throw new RuntimeException("Failed to check md5");
       }
     }
@@ -626,7 +631,7 @@ public class AT_API_Impl implements AT_API {
 
     } catch (NoSuchAlgorithmException e) {
       //not expected to reach that point
-      e.printStackTrace();
+      logger.info("NoSuchAlgorithmException: ", e);
     }
   }
 
@@ -652,7 +657,7 @@ public class AT_API_Impl implements AT_API {
                  shab.getLong(24) == AT_API_Helper.getLong( state.get_B4() ) ) ? 1 : 0;
       } catch (NoSuchAlgorithmException e) {
         //not expected to reach that point
-        e.printStackTrace();
+        logger.info("NoSuchAlgorithmException: ", e);
         throw new RuntimeException("Failed to check sha256");
       }
     }
@@ -798,7 +803,7 @@ public class AT_API_Impl implements AT_API {
     }
     catch (NoSuchAlgorithmException e) {
       //not expected to reach that point
-      e.printStackTrace();
+      logger.info("NoSuchAlgorithmException: ", e);
     }
   }
 }

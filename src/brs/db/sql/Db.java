@@ -259,7 +259,7 @@ public final class Db {
           fbConnection.getTransactionParameters(Connection.TRANSACTION_READ_COMMITTED)
               .addArgument(TransactionParameterBuffer.NO_AUTO_UNDO);
         } catch (IllegalAccessException e) {
-          e.printStackTrace();
+          logger.info("IllegalAccessException: ", e);
         }
       }
       con.setAutoCommit(false);

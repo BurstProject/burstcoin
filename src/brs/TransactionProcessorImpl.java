@@ -83,8 +83,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
             logger.debug("Error removing unconfirmed transactions", e);
           }
         } catch (Throwable t) {
-          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
-          t.printStackTrace();
+          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
           System.exit(1);
         }
 
@@ -117,8 +116,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
             logger.debug("Error in transaction re-broadcasting thread", e);
           }
         } catch (Throwable t) {
-          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
-          t.printStackTrace();
+          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
           System.exit(1);
         }
 
@@ -196,8 +194,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
             logger.debug("Error processing unconfirmed transactions", e);
           }
         } catch (Throwable t) {
-          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
-          t.printStackTrace();
+          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
           System.exit(1);
         }
       }
