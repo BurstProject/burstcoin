@@ -6,15 +6,15 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class MiningPlot {
-  public static int HASH_SIZE = 32;
-  public static int HASHES_PER_SCOOP = 2;
-  public static int SCOOP_SIZE = HASHES_PER_SCOOP * HASH_SIZE;
-  public static int SCOOPS_PER_PLOT = 4096; // original 1MB/plot = 16384
-  public static int PLOT_SIZE = SCOOPS_PER_PLOT * SCOOP_SIZE;
+  public static final int HASH_SIZE = 32;
+  public static final int HASHES_PER_SCOOP = 2;
+  public static final int SCOOP_SIZE = HASHES_PER_SCOOP * HASH_SIZE;
+  public static final int SCOOPS_PER_PLOT = 4096; // original 1MB/plot = 16384
+  public static final int PLOT_SIZE = SCOOPS_PER_PLOT * SCOOP_SIZE;
 	
-  public static int HASH_CAP = 4096;
+  public static final int HASH_CAP = 4096;
 	
-  public byte[] data = new byte[PLOT_SIZE];
+  private byte[] data = new byte[PLOT_SIZE];
 	
   public MiningPlot(long addr, long nonce) {
     ByteBuffer base_buffer = ByteBuffer.allocate(16);
