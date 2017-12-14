@@ -375,15 +375,16 @@ final class Curve25519 {
   private static void divmod(byte[] q, byte[] r, int n, byte[] d, int t) {
     int rn = 0;
     int dt = ((d[t-1] & 0xFF) << 8);
-    if (t>1) {
+
+    if (t > 1) {
       dt |= (d[t-2] & 0xFF);
     }
     while (n-- >= t) {
       int z = (rn << 16) | ((r[n] & 0xFF) << 8);
-      if (n>0) {
+      if (n > 0) {
         z |= (r[n-1] & 0xFF);
       }
-      z/=dt;
+      z /= dt;
       rn += mula_small(r,r, n-t+1, d, t, -z);
       q[n-t+1] = (byte)((z + rn) & 0xFF); /* rn is 0 or -1 (underflow) */
       mula_small(r,r, n-t+1, d, t, -rn);
@@ -445,8 +446,8 @@ final class Curve25519 {
 
   /* Convert to internal format from little-endian byte format */
   private static void unpack(long10 x,byte[] m) {
-    x._0 = (m[0] & 0xFF)         | (m[1] & 0xFF) << 8 |
-        (m[2] & 0xFF) << 16   | ((m[3] & 0xFF)& 3) << 24;
+    x._0 = (m[0] & 0xFF)       |  (m[1] & 0xFF) << 8 |
+           (m[2] & 0xFF) << 16 | ((m[3] & 0xFF)& 3) << 24;
     x._1 = ((m[3] & 0xFF) & ~3) >> 2  | (m[4] & 0xFF)<<6 |
         (m[5] & 0xFF)<<14 | ((m[6] & 0xFF)& 7)<<22;
     x._2 = ((m[6] & 0xFF)&~ 7)>>3  | (m[7] & 0xFF)<<5 |
