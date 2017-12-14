@@ -48,12 +48,24 @@ public final class UserServlet extends HttpServlet  {
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    process(req, resp);
+    try {
+      process(req, resp);
+    }
+    catch ( IOException e ) {
+      logger.trace("IOException: ", e);
+      throw e;
+    }
   }
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    process(req, resp);
+    try {
+      process(req, resp);
+    }
+    catch ( IOException e ) {
+      logger.trace("IOException: ", e);
+      throw e;
+    }
   }
 
   private void process(HttpServletRequest req, HttpServletResponse resp) throws IOException {
