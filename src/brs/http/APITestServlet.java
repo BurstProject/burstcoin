@@ -10,7 +10,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class APITestServlet extends HttpServlet {
+
+  private static final Logger logger = LoggerFactory.getLogger(APITestServlet.class);
 
   private static final String header1 =
       "<!DOCTYPE html>\n"
@@ -200,35 +205,45 @@ public class APITestServlet extends HttpServlet {
     resp.setContentType("text/html; charset=UTF-8");
 
     if (API.allowedBotHosts != null && ! API.allowedBotHosts.toString().contains(req.getRemoteHost())) {
-      resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+      try {
+        resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+      }
+      catch ( IOException e ) {
+        logger.debug("IOException: ", e);
+      }
       return;
     }
 
-    try (PrintWriter writer = resp.getWriter()) {
-      writer.print(header1);
-      writer.print(buildLinks(req));
-      writer.print(header2);
-      String requestType = Convert.nullToEmpty(req.getParameter("requestType"));
-      APIServlet.APIRequestHandler requestHandler = APIServlet.apiRequestHandlers.get(requestType);
-      StringBuilder bufJSCalls = new StringBuilder();
-      if (requestHandler != null) {
-        writer.print(form(requestType, true, requestHandler.getClass().getName(), requestHandler.getParameters(), requestHandler.requirePost()));
-        bufJSCalls.append("apiCalls.push(\"").append(requestType).append("\");\n");
-      } else {
-        String requestTag = Convert.nullToEmpty(req.getParameter("requestTag"));
-        Set<String> taggedTypes = requestTags.get(requestTag);
-        for (String type : (taggedTypes != null ? taggedTypes : allRequestTypes)) {
-          requestHandler = APIServlet.apiRequestHandlers.get(type);
-          writer.print(form(type, false, requestHandler.getClass().getName(), APIServlet.apiRequestHandlers.get(type).getParameters(), 
-                            APIServlet.apiRequestHandlers.get(type).requirePost()));
-          bufJSCalls.append("apiCalls.push(\"").append(type).append("\");\n");
+    try {
+      try (PrintWriter writer = resp.getWriter()) {
+        writer.print(header1);
+        writer.print(buildLinks(req));
+        writer.print(header2);
+        String requestType = Convert.nullToEmpty(req.getParameter("requestType"));
+        APIServlet.APIRequestHandler requestHandler = APIServlet.apiRequestHandlers.get(requestType);
+        StringBuilder bufJSCalls = new StringBuilder();
+        if (requestHandler != null) {
+          writer.print(form(requestType, true, requestHandler.getClass().getName(), requestHandler.getParameters(), requestHandler.requirePost()));
+          bufJSCalls.append("apiCalls.push(\"").append(requestType).append("\");\n");
         }
+        else {
+          String requestTag = Convert.nullToEmpty(req.getParameter("requestTag"));
+          Set<String> taggedTypes = requestTags.get(requestTag);
+          for (String type : (taggedTypes != null ? taggedTypes : allRequestTypes)) {
+            requestHandler = APIServlet.apiRequestHandlers.get(type);
+            writer.print(form(type, false, requestHandler.getClass().getName(), APIServlet.apiRequestHandlers.get(type).getParameters(), 
+                              APIServlet.apiRequestHandlers.get(type).requirePost()));
+            bufJSCalls.append("apiCalls.push(\"").append(type).append("\");\n");
+          }
+        }
+        writer.print(footer1);
+        writer.print(bufJSCalls.toString());
+        writer.print(footer2);
       }
-      writer.print(footer1);
-      writer.print(bufJSCalls.toString());
-      writer.print(footer2);
     }
-
+    catch ( IOException e ) {
+      logger.debug("IOException: ", e);
+    }
   }
 
   private static String form(String requestType, boolean singleView, String className, List<String> parameters, boolean requirePost) {
