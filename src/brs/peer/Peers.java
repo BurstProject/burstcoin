@@ -812,8 +812,7 @@ public final class Peers {
       }
       URI uri = new URI("http://" + address.trim());
       String host = uri.getHost();
-      if (host == null || host.equals("") || host.equals("localhost") ||
-          host.equals("127.0.0.1") || host.equals("[0:0:0:0:0:0:0:1]")) {
+      if (host == null || host.equals("") ) {
         return null;
       }
       InetAddress inetAddress = InetAddress.getByName(host);
