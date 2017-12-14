@@ -1,3 +1,7 @@
+# Info 
+
+Please visit https://github.com/PoC-Consortium/burstcoin for the designated successor and current development version. 
+
 # Burstcoin
 
 The world's first HDD-mined cryptocurrency using the new algorithm, Proof-of-Capacity.
