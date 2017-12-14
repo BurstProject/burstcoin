@@ -52,8 +52,7 @@ public final class UserServlet extends HttpServlet  {
       process(req, resp);
     }
     catch ( IOException e ) {
-      logger.trace("IOException: ", e);
-      throw e;
+      logger.debug("IOException: ", e);
     }
   }
 
@@ -63,8 +62,7 @@ public final class UserServlet extends HttpServlet  {
       process(req, resp);
     }
     catch ( IOException e ) {
-      logger.trace("IOException: ", e);
-      throw e;
+      logger.debug("IOException: ", e);
     }
   }
 
