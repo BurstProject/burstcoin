@@ -121,7 +121,7 @@ public final class BlockImpl implements Block {
 
     this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature, previousBlockHash, null, nonce, blockATs);
 
-    this.cumulativeDifficulty = cumulativeDifficulty;
+    this.cumulativeDifficulty = cumulativeDifficulty == null ? BigInteger.ZERO : cumulativeDifficulty;
     this.baseTarget = baseTarget;
     this.nextBlockId = nextBlockId;
     this.height = height;
