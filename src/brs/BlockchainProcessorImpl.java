@@ -51,7 +51,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   public static final DownloadCacheImpl DownloadCache = new DownloadCacheImpl();
 
   public static final int MAX_TIMESTAMP_DIFFERENCE = 15;
-  public static boolean oclVerify = Burst.getBooleanProperty("brs.oclVerify");
+  private static boolean oclVerify = Burst.getBooleanProperty("brs.oclVerify");
   public static final int oclThreshold = Burst.getIntProperty("brs.oclThreshold") == 0 ? 50 : Burst.getIntProperty("brs.oclThreshold");
   public static final int oclWaitThreshold = Burst.getIntProperty("brs.oclWaitThreshold") == 0 ? 2000 : Burst.getIntProperty("brs.oclWaitThreshold");
 
