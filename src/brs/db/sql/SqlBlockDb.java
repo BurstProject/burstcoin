@@ -124,7 +124,7 @@ public abstract class SqlBlockDb implements BlockDb {
         BLOCK.BASE_TARGET, BLOCK.HEIGHT, BLOCK.GENERATION_SIGNATURE, BLOCK.BLOCK_SIGNATURE, BLOCK.PAYLOAD_HASH,
         BLOCK.GENERATOR_ID, BLOCK.NONCE, BLOCK.ATS
       ).values(
-        block.getId(), block.getVersion(), block.getTimestamp(), block.getPreviousBlockId(), block.getTotalAmountNQT(), block.getTotalFeeNQT(),
+               block.getId(), block.getVersion(), block.getTimestamp(), block.getPreviousBlockId() == 0 ? null : block.getPreviousBlockId(), block.getTotalAmountNQT(), block.getTotalFeeNQT(),
         block.getPayloadLength(), block.getGeneratorPublicKey(), block.getPreviousBlockHash(), block.getCumulativeDifficulty().toByteArray(),
         block.getBaseTarget(), block.getHeight(), block.getGenerationSignature(), block.getBlockSignature(), block.getPayloadHash(),
         block.getGeneratorId(), block.getNonce(), block.getBlockATs()
