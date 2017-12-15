@@ -225,7 +225,7 @@ public final class Burst {
     Peers.shutdown();
     ThreadPool.shutdown();
     Db.shutdown();
-    if (BlockchainProcessorImpl.oclVerify) {
+    if (BlockchainProcessorImpl.getOclVerify()) {
       OCLPoC.destroy();
     }
     logger.info("Burst server " + VERSION + " stopped.");
