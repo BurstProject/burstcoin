@@ -15,6 +15,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 
+import static brs.schema.Tables.*;
+import static org.jooq.impl.DSL.*;
+
+import org.jooq.DSLContext;
+import org.jooq.Record;
+
 public abstract class SqlAccountStore implements AccountStore {
 
   protected static final DbKey.LongKeyFactory<Account> accountDbKeyFactory = new DbKey.LongKeyFactory<Account>("id") {
@@ -87,14 +93,10 @@ public abstract class SqlAccountStore implements AccountStore {
 
   @Override
   public int getAssetAccountsCount(long assetId) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM account_asset WHERE asset_id = ? AND latest = TRUE")) {
-      pstmt.setLong(1, assetId);
-      try (ResultSet rs = pstmt.executeQuery()) {
-        rs.next();
-        return rs.getInt(1);
-      }
-    } catch (SQLException e) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return ctx.selectCount().from(ACCOUNT_ASSET).where(ACCOUNT_ASSET.ASSET_ID.eq(assetId)).and(ACCOUNT_ASSET.LATEST.isTrue()).fetchOne(0, int.class);
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }

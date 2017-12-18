@@ -19,6 +19,14 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static brs.schema.Tables.*;
+import static org.jooq.impl.DSL.*;
+
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.Cursor;
+
 public abstract class SqlATStore implements ATStore {
 
   private static final Logger logger = LoggerFactory.getLogger(DbUtils.class);
@@ -76,40 +84,41 @@ public abstract class SqlATStore implements ATStore {
 
   @Override
   public boolean isATAccountId(Long id) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT id FROM " + DbUtils.quoteTableName("at") + " WHERE id = ? AND latest = TRUE")) {
-      pstmt.setLong(1, id);
-      try (ResultSet result = pstmt.executeQuery()) {
-        return result.next();
-      }
-    } catch (SQLException e) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return ctx.fetchExists(ctx.selectOne().from(AT).where(AT.ID.eq(id)).and(AT.LATEST.isTrue()));
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
 
   @Override
   public List<Long> getOrderedATs() {
-    List<Long> orderedATs = new ArrayList<>();
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT at.id FROM " + DbUtils.quoteTableName("at") + " "
-                                                        + "INNER JOIN at_state ON at.id = at_state.at_id INNER JOIN account ON at.id = account.id "
-                                                        + "WHERE at.latest = TRUE AND at_state.latest = TRUE AND account.latest = TRUE "
-                                                        + "AND at_state.next_height <= ? AND account.balance >= ? "
-                                                        + "AND (at_state.freeze_when_same_balance = FALSE OR (account.balance - at_state.prev_balance >= at_state.min_activate_amount)) "
-                                                        + "ORDER BY at_state.prev_height, at_state.next_height, at.id")) {
-      pstmt.setInt(1, Burst.getBlockchain().getHeight() + 1);
-      pstmt.setLong(2, AT_Constants.getInstance().STEP_FEE(Burst.getBlockchain().getHeight()) *
-                    AT_Constants.getInstance().API_STEP_MULTIPLIER(Burst.getBlockchain().getHeight()));
-      try (ResultSet result = pstmt.executeQuery()) {
-        while (result.next()) {
-          Long id = result.getLong(1);
-          orderedATs.add(id);
-        }
-      }
-    } catch (SQLException e) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return ctx.selectFrom(
+        AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID)).join(ACCOUNT).on(AT.ID.eq(ACCOUNT.ID))
+      ).where(
+        AT.LATEST.isTrue()
+      ).and(
+        AT_STATE.LATEST.isTrue()
+      ).and(
+        AT_STATE.NEXT_HEIGHT.lessOrEqual( Burst.getBlockchain().getHeight() + 1)
+      ).and(
+        ACCOUNT.BALANCE.greaterOrEqual(
+          AT_Constants.getInstance().STEP_FEE(Burst.getBlockchain().getHeight())
+          * AT_Constants.getInstance().API_STEP_MULTIPLIER(Burst.getBlockchain().getHeight())
+        )
+      ).and(
+        AT_STATE.FREEZE_WHEN_SAME_BALANCE.isFalse().or(
+          "account.balance - at_state.prev_balance >= at_state.min_activate_amount"
+        )
+      ).orderBy(
+        AT_STATE.PREV_HEIGHT.asc(), AT_STATE.NEXT_HEIGHT.asc(), AT.ID.asc()
+      ).fetch().getValues(AT.ID);
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
-    return orderedATs;
   }
 
   @Override
@@ -138,36 +147,20 @@ public abstract class SqlATStore implements ATStore {
 
   @Override
   public List<Long> getATsIssuedBy(Long accountId) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT id "
-                                                        + "FROM " + DbUtils.quoteTableName("at") + " "
-                                                        + "WHERE latest = TRUE AND creator_id = ? "
-                                                        + "ORDER BY creation_height DESC, id")) {
-      pstmt.setLong(1, accountId);
-
-      List<Long> resultList = new ArrayList<>();
-      try (ResultSet result = pstmt.executeQuery()) {
-        while (result.next()) {
-          resultList.add(result.getLong(1));
-        }
-      }
-      return resultList;
-    } catch (SQLException e) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return ctx.selectFrom(AT).where(AT.LATEST.isTrue()).and(AT.CREATOR_ID.eq(accountId)).orderBy(AT.CREATION_HEIGHT.desc(), AT.ID.asc()).fetch().getValues(AT.ID);
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
 
   @Override
   public Collection<Long> getAllATIds() {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT id FROM " + DbUtils.quoteTableName("at") + " WHERE latest = TRUE");
-         ResultSet result = pstmt.executeQuery() ) {
-      List<Long> ids = new ArrayList<>();
-      while (result.next()) {
-        ids.add(result.getLong("id"));
-      }
-      return ids;
-    } catch (SQLException e) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return ctx.selectFrom(AT).where(AT.LATEST.isTrue()).fetch().getValues(AT.ID);
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -201,7 +194,7 @@ public abstract class SqlATStore implements ATStore {
       String name = rs.getString(++i);
       String description = rs.getString(++i);
       short version = rs.getShort(++i);
-      byte[] stateBytes = AT.decompressState(rs.getBytes(++i));
+      byte[] stateBytes = brs.AT.decompressState(rs.getBytes(++i));
       int csize = rs.getInt(++i);
       int dsize = rs.getInt(++i);
       int c_user_stack_bytes = rs.getInt(++i);
@@ -211,7 +204,7 @@ public abstract class SqlATStore implements ATStore {
       int nextHeight = rs.getInt(++i);
       boolean freezeWhenSameBalance = rs.getBoolean(++i);
       long minActivationAmount = rs.getLong(++i);
-      byte[] ap_code = AT.decompressState(rs.getBytes(++i));
+      byte[] ap_code = brs.AT.decompressState(rs.getBytes(++i));
 
       AT at = new AT(AT_API_Helper.getByteArray(atId), AT_API_Helper.getByteArray(creator), name, description, version,
                      stateBytes, csize, dsize, c_user_stack_bytes, c_call_stack_bytes, creationBlockHeight, sleepBetween, nextHeight,
@@ -224,67 +217,52 @@ public abstract class SqlATStore implements ATStore {
 
   @Override
   public Long findTransaction(int startHeight, int endHeight, Long atID, int numOfTx, long minAmount) {
-    logger.debug(
-                 "findTransaction: "
-                 + "SELECT id FROM transaction WHERE"
-                 + " height >= "          + startHeight
-                 + " AND height < "       + endHeight
-                 + " AND recipient_id = " + atID
-                 + " AND amount >=  "     + minAmount
-                 + " ORDER BY height, id"
-                 + DbUtils.limitsClause(numOfTx, numOfTx + 1)
-                 + " -- ? = " + numOfTx
-                 + ", ? = "   + ( numOfTx + 1 )
-                 );
-
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
-                                                        + "WHERE height >= ? AND height < ? AND recipient_id = ? AND amount >= ? "
-                                                        + "ORDER BY height, id"
-                                                        + DbUtils.limitsClause(numOfTx, numOfTx + 1) ) ) {
-      int i = 1;
-      pstmt.setInt(i++, startHeight);
-      pstmt.setInt(i++, endHeight);
-      pstmt.setLong(i++, atID);
-      pstmt.setLong(i++, minAmount);
-      i = DbUtils.setLimits(i++, pstmt, numOfTx, numOfTx + 1);
-
-      Long transactionId = 0L;        
-      try (ResultSet rs = pstmt.executeQuery()) {
-        if (rs.next()) {
-          transactionId = rs.getLong("id");
-        }
-      }
-      return transactionId;
-    } catch (SQLException e) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return ctx.select(TRANSACTION.ID).from(TRANSACTION).where(
+        TRANSACTION.HEIGHT.between(startHeight, endHeight - 1)
+      ).and(
+        TRANSACTION.RECIPIENT_ID.eq(atID)
+      ).and(
+        TRANSACTION.AMOUNT.greaterOrEqual(minAmount)
+      ).orderBy(
+        TRANSACTION.HEIGHT, TRANSACTION.ID
+      ).limit(numOfTx).offset(numOfTx + 1).fetchOne(TRANSACTION.ID);
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
-
   }
 
   @Override
   public int findTransactionHeight(Long transactionId, int height, Long atID, long minAmount) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT id FROM transaction "
-                                                        + "WHERE height= ? and recipient_id = ? AND amount >= ? "
-                                                        + "ORDER BY height, id")) {
-      pstmt.setInt(1, height);
-      pstmt.setLong(2, atID);
-      pstmt.setLong(3, minAmount);
+    Cursor<Record1<Long>> cursor = null;
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      cursor = ctx.select(TRANSACTION.ID).from(TRANSACTION).where(
+        TRANSACTION.HEIGHT.eq(height)
+      ).and(
+        TRANSACTION.RECIPIENT_ID.eq(atID)
+      ).and(
+        TRANSACTION.AMOUNT.greaterOrEqual(minAmount)
+      ).orderBy(
+        TRANSACTION.HEIGHT, TRANSACTION.ID
+      ).fetchLazy();
 
       int counter = 0;
-      try (ResultSet rs = pstmt.executeQuery()) {
-        while (rs.next()) {
-          if (rs.getLong("id") == transactionId) {
-            counter++;
-            break;
-          }
-          counter++;
+      while (cursor.hasNext()) {
+        counter++;
+        if ( cursor.fetchOne().getValue(0) == transactionId ) {
+          break;
         }
       }
       return counter;
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
+    }
+    finally {
+      if (cursor != null) {
+        cursor.close();
+      }
     }
   }
 
