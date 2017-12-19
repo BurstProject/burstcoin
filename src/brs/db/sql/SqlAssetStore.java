@@ -21,7 +21,7 @@ public abstract  class SqlAssetStore implements AssetStore {
       }
 
     };
-  private final EntitySqlTable<Asset> assetTable = new EntitySqlTable<Asset>("asset", assetDbKeyFactory) {
+  private final EntitySqlTable<Asset> assetTable = new EntitySqlTable<Asset>("asset", brs.schema.Tables.ASSET, assetDbKeyFactory) {
 
       @Override
       protected Asset load(Connection con, ResultSet rs) throws SQLException {

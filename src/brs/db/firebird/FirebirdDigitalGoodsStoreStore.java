@@ -17,7 +17,7 @@ import java.sql.SQLException;
 
 class FirebirdDigitalGoodsStoreStore extends SqlDigitalGoodsStoreStore {
   private final VersionedValuesTable<DigitalGoodsStore.Purchase, String> publicFeedbackTable =
-      new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, String>("purchase_public_feedback", publicFeedbackDbKeyFactory) {
+      new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, String>("purchase_public_feedback", brs.schema.Tables.PURCHASE_PUBLIC_FEEDBACK, publicFeedbackDbKeyFactory) {
 
         @Override
         protected String load(Connection con, ResultSet rs) throws SQLException {
@@ -37,7 +37,7 @@ class FirebirdDigitalGoodsStoreStore extends SqlDigitalGoodsStoreStore {
         }
 
       };
-  private final VersionedEntityTable<DigitalGoodsStore.Purchase> purchaseTable = new VersionedEntitySqlTable<DigitalGoodsStore.Purchase>("purchase", purchaseDbKeyFactory) {
+  private final VersionedEntityTable<DigitalGoodsStore.Purchase> purchaseTable = new VersionedEntitySqlTable<DigitalGoodsStore.Purchase>("purchase", brs.schema.Tables.PURCHASE, purchaseDbKeyFactory) {
 
       @Override
       protected DigitalGoodsStore.Purchase load(Connection con, ResultSet rs) throws SQLException {

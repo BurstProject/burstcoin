@@ -13,8 +13,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static brs.schema.Tables.*;
+import static org.jooq.impl.DSL.*;
 
-public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T> {    
+import org.jooq.DSLContext;
+import org.jooq.Result;
+import org.jooq.Record;
+import org.jooq.Table;
+import org.jooq.SelectJoinStep;
+import org.jooq.impl.TableImpl;
+
+public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T> {
   protected final DbKey.Factory<T> dbKeyFactory;
   private final boolean multiversion;
   private final String defaultSort;
@@ -24,12 +33,12 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   //    private final Timer getByClauseTimer;
   //    private final Timer getByClauseAndHeightTimer;
   //    private final Timer insertTimer;
-  protected EntitySqlTable(String table, BurstKey.Factory<T> dbKeyFactory) {
-    this(table, dbKeyFactory, false);
+  protected EntitySqlTable(String table, TableImpl<?> tableClass, BurstKey.Factory<T> dbKeyFactory) {
+    this(table, tableClass, dbKeyFactory, false);
   }
 
-  EntitySqlTable(String table, BurstKey.Factory<T> dbKeyFactory, boolean multiversion) {
-    super(table);
+  EntitySqlTable(String table, TableImpl<?> tableClass, BurstKey.Factory<T> dbKeyFactory, boolean multiversion) {
+    super(table, tableClass);
     this.dbKeyFactory = (DbKey.Factory<T>) dbKeyFactory;
     this.multiversion = multiversion;
     this.defaultSort = " ORDER BY " + (multiversion ? this.dbKeyFactory.getPKColumns() : " height DESC ");
@@ -303,26 +312,22 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
 
   @Override
   public int getCount() {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM "
-                                                        + DbUtils.quoteTableName(table)
-                                                        + (multiversion ? " WHERE latest = TRUE" : ""));
-         ResultSet rs = pstmt.executeQuery()) {
-      rs.next();
-      return rs.getInt(1);
-    } catch (SQLException e) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      TableImpl<?>      t = tableClass;
+      SelectJoinStep<?> r = ctx.selectCount().from(t);
+      return ( multiversion ? r.where(t.field("LATEST").isTrue()) : r ).fetchOne(0, int.class);
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
 
   @Override
   public int getRowCount() {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM " + DbUtils.quoteTableName(table));
-         ResultSet rs = pstmt.executeQuery()) {
-      rs.next();
-      return rs.getInt(1);
-    } catch (SQLException e) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return ctx.selectCount().from(tableClass).fetchOne(0, int.class);
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }

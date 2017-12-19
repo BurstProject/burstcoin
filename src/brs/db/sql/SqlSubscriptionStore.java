@@ -21,7 +21,7 @@ public abstract class SqlSubscriptionStore implements SubscriptionStore {
     };
 
   private final VersionedEntityTable<Subscription> subscriptionTable =
-      new VersionedEntitySqlTable<Subscription>("subscription", subscriptionDbKeyFactory) {
+      new VersionedEntitySqlTable<Subscription>("subscription", brs.schema.Tables.SUBSCRIPTION, subscriptionDbKeyFactory) {
         @Override
         protected Subscription load(Connection con, ResultSet rs) throws SQLException {
           return new SqlSubscription(rs);

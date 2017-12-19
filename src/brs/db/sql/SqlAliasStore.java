@@ -62,7 +62,7 @@ public abstract class SqlAliasStore implements AliasStore {
     }
   }
 
-  private final VersionedEntityTable<Alias.Offer> offerTable = new VersionedEntitySqlTable<Alias.Offer>("alias_offer", offerDbKeyFactory) {
+  private final VersionedEntityTable<Alias.Offer> offerTable = new VersionedEntitySqlTable<Alias.Offer>("alias_offer", brs.schema.Tables.ALIAS_OFFER, offerDbKeyFactory) {
       @Override
       protected Alias.Offer load(Connection con, ResultSet rs) throws SQLException {
         return new SqlOffer(rs);
@@ -107,7 +107,7 @@ public abstract class SqlAliasStore implements AliasStore {
     }
   }
 
-  private final VersionedEntityTable<Alias> aliasTable = new VersionedEntitySqlTable<Alias>("alias", aliasDbKeyFactory) {
+  private final VersionedEntityTable<Alias> aliasTable = new VersionedEntitySqlTable<Alias>("alias", brs.schema.Tables.ALIAS, aliasDbKeyFactory) {
       @Override
       protected Alias load(Connection con, ResultSet rs) throws SQLException {
         return new SqlAlias(rs);

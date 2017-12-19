@@ -25,7 +25,7 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
         return assetTransfer.dbKey;
       }
     };
-  private final EntitySqlTable<AssetTransfer> assetTransferTable = new EntitySqlTable<AssetTransfer>("asset_transfer", transferDbKeyFactory) {
+  private final EntitySqlTable<AssetTransfer> assetTransferTable = new EntitySqlTable<AssetTransfer>("asset_transfer", brs.schema.Tables.ASSET_TRANSFER, transferDbKeyFactory) {
 
       @Override
       protected AssetTransfer load(Connection con, ResultSet rs) throws SQLException {

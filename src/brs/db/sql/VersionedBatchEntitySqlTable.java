@@ -9,9 +9,11 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 
+import org.jooq.impl.TableImpl;
+
 public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySqlTable<T> implements VersionedBatchEntityTable<T> {
-  protected VersionedBatchEntitySqlTable(String table, DbKey.Factory<T> dbKeyFactory) {
-    super(table, dbKeyFactory);
+  protected VersionedBatchEntitySqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory) {
+    super(table, tableClass, dbKeyFactory);
   }
 
   protected abstract String updateQuery();

@@ -11,10 +11,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jooq.impl.TableImpl;
+
 public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> implements VersionedEntityTable<T> {
 
-  protected VersionedEntitySqlTable(String table, BurstKey.Factory<T> dbKeyFactory) {
-    super(table, dbKeyFactory, true);
+  protected VersionedEntitySqlTable(String table, TableImpl<?> tableClass, BurstKey.Factory<T> dbKeyFactory) {
+    super(table, tableClass, dbKeyFactory, true);
   }
 
   @Override

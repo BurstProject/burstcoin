@@ -30,7 +30,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
 
   private final EntitySqlTable<TransactionImpl> unconfirmedTransactionTable =
-      new EntitySqlTable<TransactionImpl>("unconfirmed_transaction", unconfirmedTransactionDbKeyFactory) {
+    new EntitySqlTable<TransactionImpl>("unconfirmed_transaction", brs.schema.Tables.UNCONFIRMED_TRANSACTION, unconfirmedTransactionDbKeyFactory) {
 
         @Override
         protected TransactionImpl load(Connection con, ResultSet rs) throws SQLException {

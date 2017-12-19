@@ -37,7 +37,7 @@ public abstract class SqlATStore implements ATStore {
         return at.dbKey;
       }
     };
-  private final VersionedEntityTable<AT> atTable = new VersionedEntitySqlTable<AT>("at", atDbKeyFactory) {
+  private final VersionedEntityTable<AT> atTable = new VersionedEntitySqlTable<AT>("at", brs.schema.Tables.AT, atDbKeyFactory) {
       @Override
       protected AT load(Connection con, ResultSet rs) throws SQLException {
         //return new AT(rs);
@@ -61,7 +61,7 @@ public abstract class SqlATStore implements ATStore {
       }
     };
 
-  private final VersionedEntityTable<AT.ATState> atStateTable = new VersionedEntitySqlTable<AT.ATState>("at_state", atStateDbKeyFactory) {
+  private final VersionedEntityTable<AT.ATState> atStateTable = new VersionedEntitySqlTable<AT.ATState>("at_state", brs.schema.Tables.AT_STATE, atStateDbKeyFactory) {
       @Override
       protected AT.ATState load(Connection con, ResultSet rs) throws SQLException {
         return new SqlATState(rs);

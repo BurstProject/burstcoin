@@ -20,7 +20,7 @@ public abstract class SqlTradeStore implements TradeStore {
 
     };
 
-  private final EntitySqlTable<Trade> tradeTable = new EntitySqlTable<Trade>("trade", tradeDbKeyFactory) {
+  private final EntitySqlTable<Trade> tradeTable = new EntitySqlTable<Trade>("trade", brs.schema.Tables.TRADE, tradeDbKeyFactory) {
 
       @Override
       protected Trade load(Connection con, ResultSet rs) throws SQLException {
