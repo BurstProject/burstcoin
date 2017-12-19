@@ -11,14 +11,18 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.jooq.impl.TableImpl;
+
 public abstract class DerivedSqlTable implements DerivedTable {
   //    private final Timer rollbackTimer;
   //    private final Timer truncateTimer;
   private static final Logger logger = LoggerFactory.getLogger(DerivedSqlTable.class);
   protected final String table;
-
-  protected DerivedSqlTable(String table) {
-    this.table = table;
+  protected final TableImpl<?> tableClass;
+  
+  protected DerivedSqlTable(String table, TableImpl<?> tableClass) {
+    this.table      = table;
+    this.tableClass = tableClass;
     logger.trace("Creating derived table for "+table);
     Burst.getBlockchainProcessor().registerDerivedTable(this);
   }

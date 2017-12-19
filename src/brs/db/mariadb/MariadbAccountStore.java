@@ -17,7 +17,7 @@ import java.sql.SQLException;
 class MariadbAccountStore extends SqlAccountStore {
 
 
-  private final VersionedEntityTable<Account.AccountAsset> accountAssetTable = new VersionedEntitySqlTable<Account.AccountAsset>("account_asset", accountAssetDbKeyFactory) {
+  private final VersionedEntityTable<Account.AccountAsset> accountAssetTable = new VersionedEntitySqlTable<Account.AccountAsset>("account_asset", brs.schema.Tables.ACCOUNT_ASSET, accountAssetDbKeyFactory) {
 
       @Override
       protected Account.AccountAsset load(Connection con, ResultSet rs) throws SQLException {
@@ -45,7 +45,7 @@ class MariadbAccountStore extends SqlAccountStore {
       }
 
     };
-  VersionedBatchEntityTable<Account> accountTable = new VersionedBatchEntitySqlTable<Account>("account", accountDbKeyFactory) {
+  VersionedBatchEntityTable<Account> accountTable = new VersionedBatchEntitySqlTable<Account>("account", brs.schema.Tables.ACCOUNT, accountDbKeyFactory) {
       @Override
       protected Account load(Connection con, ResultSet rs) throws SQLException {
         return new SqlAccount(rs);
@@ -100,7 +100,7 @@ class MariadbAccountStore extends SqlAccountStore {
     return accountTable;
   }
 
-  private  VersionedEntitySqlTable<Account.RewardRecipientAssignment> rewardRecipientAssignmentVersionedEntitySqlTable =  new VersionedEntitySqlTable<Account.RewardRecipientAssignment>("reward_recip_assign", rewardRecipientAssignmentDbKeyFactory) {
+  private  VersionedEntitySqlTable<Account.RewardRecipientAssignment> rewardRecipientAssignmentVersionedEntitySqlTable =  new VersionedEntitySqlTable<Account.RewardRecipientAssignment>("reward_recip_assign", brs.schema.Tables.REWARD_RECIP_ASSIGN, rewardRecipientAssignmentDbKeyFactory) {
 
       @Override
       protected Account.RewardRecipientAssignment load(Connection con, ResultSet rs) throws SQLException {

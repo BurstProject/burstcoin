@@ -30,7 +30,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
       };
   
   private final VersionedEntityTable<DigitalGoodsStore.Purchase> purchaseTable
-    = new VersionedEntitySqlTable<DigitalGoodsStore.Purchase>("purchase", purchaseDbKeyFactory) {
+    = new VersionedEntitySqlTable<DigitalGoodsStore.Purchase>("purchase", brs.schema.Tables.PURCHASE, purchaseDbKeyFactory) {
         @Override
         protected DigitalGoodsStore.Purchase load(Connection con, ResultSet rs) throws SQLException {
           return new SQLPurchase(rs);
@@ -49,7 +49,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
 
   @Deprecated
   private final VersionedValuesTable<DigitalGoodsStore.Purchase, EncryptedData> feedbackTable
-    = new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, EncryptedData>("purchase_feedback", feedbackDbKeyFactory) {
+    = new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, EncryptedData>("purchase_feedback", brs.schema.Tables.PURCHASE_FEEDBACK, feedbackDbKeyFactory) {
 
         @Override
         protected EncryptedData load(Connection con, ResultSet rs) throws SQLException {
@@ -88,7 +88,7 @@ public abstract class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStor
     };
   
   private final VersionedEntityTable<DigitalGoodsStore.Goods> goodsTable
-    = new VersionedEntitySqlTable<DigitalGoodsStore.Goods>("goods", goodsDbKeyFactory) {
+    = new VersionedEntitySqlTable<DigitalGoodsStore.Goods>("goods", brs.schema.Tables.GOODS, goodsDbKeyFactory) {
 
         @Override
         protected DigitalGoodsStore.Goods load(Connection con, ResultSet rs) throws SQLException {

@@ -20,7 +20,7 @@ public abstract class SqlOrderStore implements OrderStore {
       }
 
     };
-  protected VersionedEntityTable<Order.Ask> askOrderTable = new VersionedEntitySqlTable<Order.Ask>("ask_order", askOrderDbKeyFactory) {
+  protected VersionedEntityTable<Order.Ask> askOrderTable = new VersionedEntitySqlTable<Order.Ask>("ask_order", brs.schema.Tables.ASK_ORDER, askOrderDbKeyFactory) {
       @Override
       protected Order.Ask load(Connection con, ResultSet rs) throws SQLException {
         return new SqlAsk(rs);
@@ -45,7 +45,7 @@ public abstract class SqlOrderStore implements OrderStore {
       }
 
     };
-  protected VersionedEntityTable<Order.Bid> bidOrderTable = new VersionedEntitySqlTable<Order.Bid>("bid_order", bidOrderDbKeyFactory) {
+  protected VersionedEntityTable<Order.Bid> bidOrderTable = new VersionedEntitySqlTable<Order.Bid>("bid_order", brs.schema.Tables.BID_ORDER, bidOrderDbKeyFactory) {
 
       @Override
       protected Order.Bid load(Connection con, ResultSet rs) throws SQLException {

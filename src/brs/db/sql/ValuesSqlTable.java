@@ -10,17 +10,19 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jooq.impl.TableImpl;
+
 public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements ValuesTable<T, V> {
 
   private final boolean multiversion;
   protected final DbKey.Factory<T> dbKeyFactory;
 
-  protected ValuesSqlTable(String table, DbKey.Factory<T> dbKeyFactory) {
-    this(table, dbKeyFactory, false);
+  protected ValuesSqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory) {
+    this(table, tableClass, dbKeyFactory, false);
   }
 
-  ValuesSqlTable(String table, DbKey.Factory<T> dbKeyFactory, boolean multiversion) {
-    super(table);
+  ValuesSqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory, boolean multiversion) {
+    super(table, tableClass);
     this.dbKeyFactory = dbKeyFactory;
     this.multiversion = multiversion;
   }

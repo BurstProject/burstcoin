@@ -22,7 +22,7 @@ public abstract class SqlEscrowStore implements EscrowStore {
         return escrow.dbKey;
       }
     };
-  private final VersionedEntityTable<Escrow> escrowTable = new VersionedEntitySqlTable<Escrow>("escrow", escrowDbKeyFactory) {
+  private final VersionedEntityTable<Escrow> escrowTable = new VersionedEntitySqlTable<Escrow>("escrow", brs.schema.Tables.ESCROW, escrowDbKeyFactory) {
       @Override
       protected Escrow load(Connection con, ResultSet rs) throws SQLException {
         return new SqlEscrow(rs);
@@ -40,7 +40,7 @@ public abstract class SqlEscrowStore implements EscrowStore {
           return decision.dbKey;
         }
       };
-  private final VersionedEntityTable<Escrow.Decision> decisionTable = new VersionedEntitySqlTable<Escrow.Decision>("escrow_decision", decisionDbKeyFactory) {
+  private final VersionedEntityTable<Escrow.Decision> decisionTable = new VersionedEntitySqlTable<Escrow.Decision>("escrow_decision", brs.schema.Tables.ESCROW_DECISION, decisionDbKeyFactory) {
       @Override
       protected Escrow.Decision load(Connection con, ResultSet rs) throws SQLException {
         return new SqlDecision(rs);
