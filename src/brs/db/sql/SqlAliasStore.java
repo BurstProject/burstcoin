@@ -6,11 +6,14 @@ import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.AliasStore;
+import org.jooq.DSLContext;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import static brs.schema.Tables.ALIAS_OFFER;
 
 public abstract class SqlAliasStore implements AliasStore {
 
@@ -51,6 +54,15 @@ public abstract class SqlAliasStore implements AliasStore {
   }
 
   protected void saveOffer(Alias.Offer offer, Connection con) throws SQLException {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      ctx.insertInto(
+              ALIAS_OFFER,
+              ALIAS_OFFER.ID, ALIAS_OFFER.PRICE, ALIAS_OFFER.BUYER_ID, ALIAS_OFFER.HEIGHT
+      ).values(
+              offer.getId(), offer.getPriceNQT(), DbUtils.longZeroToNull(offer.getBuyerId()), Burst.getBlockchain().getHeight()
+      ).execute();
+    }
+
     try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO alias_offer (id, price, buyer_id, "
                                                         + "height) VALUES (?, ?, ?, ?)")) {
       int i = 0;
@@ -62,7 +74,7 @@ public abstract class SqlAliasStore implements AliasStore {
     }
   }
 
-  private final VersionedEntityTable<Alias.Offer> offerTable = new VersionedEntitySqlTable<Alias.Offer>("alias_offer", brs.schema.Tables.ALIAS_OFFER, offerDbKeyFactory) {
+  private final VersionedEntityTable<Alias.Offer> offerTable = new VersionedEntitySqlTable<Alias.Offer>("alias_offer", ALIAS_OFFER, offerDbKeyFactory) {
       @Override
       protected Alias.Offer load(Connection con, ResultSet rs) throws SQLException {
         return new SqlOffer(rs);

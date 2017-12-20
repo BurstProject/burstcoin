@@ -188,19 +188,6 @@ public abstract class SqlOrderStore implements OrderStore {
     saveOrder(con, table, bid);
   }
 
-  private class SqlOrder extends Order {
-    private SqlOrder(ResultSet rs) throws SQLException {
-      super(
-            rs.getLong("id"),
-            rs.getLong("account_id"),
-            rs.getLong("asset_id"),
-            rs.getLong("price"),
-            rs.getInt("creation_height"),
-            rs.getLong("quantity")
-            );
-    }
-  }
-
   protected class SqlAsk extends Order.Ask {
     private SqlAsk(ResultSet rs) throws SQLException {
       super(

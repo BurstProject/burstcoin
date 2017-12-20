@@ -56,6 +56,14 @@ public final class DbUtils {
     }
   }
 
+  public static Long longZeroToNull(long l) {
+    if (l != 0) {
+      return l;
+    } else {
+      return null;
+    }
+  }
+
   public static String quoteTableName(String table) {
     switch (Db.getDatabaseType()) {
       case FIREBIRD:
