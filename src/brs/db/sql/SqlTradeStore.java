@@ -4,11 +4,14 @@ import brs.Trade;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.store.TradeStore;
+import org.jooq.DSLContext;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import static brs.schema.Tables.TRADE;
 
 public abstract class SqlTradeStore implements TradeStore {
   private final DbKey.LinkKeyFactory<Trade> tradeDbKeyFactory = new DbKey.LinkKeyFactory<Trade>("ask_order_id", "bid_order_id") {
@@ -20,7 +23,7 @@ public abstract class SqlTradeStore implements TradeStore {
 
     };
 
-  private final EntitySqlTable<Trade> tradeTable = new EntitySqlTable<Trade>("trade", brs.schema.Tables.TRADE, tradeDbKeyFactory) {
+  private final EntitySqlTable<Trade> tradeTable = new EntitySqlTable<Trade>("trade", TRADE, tradeDbKeyFactory) {
 
       @Override
       protected Trade load(Connection con, ResultSet rs) throws SQLException {
@@ -82,13 +85,8 @@ public abstract class SqlTradeStore implements TradeStore {
 
   @Override
   public int getTradeCount(long assetId) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM trade WHERE asset_id = ?")) {
-      pstmt.setLong(1, assetId);
-      try (ResultSet rs = pstmt.executeQuery()) {
-        rs.next();
-        return rs.getInt(1);
-      }
+    try (DSLContext ctx = Db.getDSLContext()) {
+      return ctx.fetchCount(ctx.selectFrom(TRADE).where(TRADE.ASSET_ID.eq(assetId)));
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }

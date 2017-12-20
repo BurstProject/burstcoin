@@ -4,17 +4,14 @@ import brs.AssetTransfer;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.store.AssetTransferStore;
+import org.jooq.DSLContext;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static brs.schema.Tables.*;
-import static org.jooq.impl.DSL.*;
-
-import org.jooq.DSLContext;
-import org.jooq.Record;
+import static brs.schema.Tables.ASSET_TRANSFER;
 
 public abstract class SqlAssetTransferStore implements AssetTransferStore {
 
@@ -34,11 +31,11 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
 
       @Override
       protected void save(Connection con, AssetTransfer assetTransfer) throws SQLException {
-        saveAssetTransfer(con, assetTransfer);
+        saveAssetTransfer(assetTransfer);
       }
     };
 
-  private void saveAssetTransfer(Connection con, AssetTransfer assetTransfer) throws SQLException {
+  private void saveAssetTransfer(AssetTransfer assetTransfer) throws SQLException {
     try ( DSLContext ctx = Db.getDSLContext() ) {
       ctx.insertInto(
         ASSET_TRANSFER,
@@ -104,13 +101,8 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
 
   @Override
   public int getTransferCount(long assetId) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM asset_transfer WHERE asset_id = ?")) {
-      pstmt.setLong(1, assetId);
-      try (ResultSet rs = pstmt.executeQuery()) {
-        rs.next();
-        return rs.getInt(1);
-      }
+    try (DSLContext ctx = Db.getDSLContext()) {
+      return ctx.fetchCount(ctx.selectFrom(ASSET_TRANSFER).where(ASSET_TRANSFER.ASSET_ID.eq(assetId)));
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
