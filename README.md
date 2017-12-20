@@ -1,3 +1,5 @@
+<img src="//github.com/PoC-Consortium/Marketing_Resources/blob/master/BURST_LOGO/SVG/icon_blue.svg" align="right" />
+
 # Burstcoin CG-Wallet
 
 [![Get Support at https://discord.gg/NKXGM6N](https://img.shields.io/badge/join-discord-blue.svg)](https://discord.gg/NKXGM6N)
