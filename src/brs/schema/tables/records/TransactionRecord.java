@@ -296,43 +296,43 @@ public class TransactionRecord extends UpdatableRecordImpl<TransactionRecord> {
     /**
      * Setter for <code>DB.transaction.has_message</code>.
      */
-    public void setHasMessage(Byte value) {
+    public void setHasMessage(Boolean value) {
         set(19, value);
     }
 
     /**
      * Getter for <code>DB.transaction.has_message</code>.
      */
-    public Byte getHasMessage() {
-        return (Byte) get(19);
+    public Boolean getHasMessage() {
+        return (Boolean) get(19);
     }
 
     /**
      * Setter for <code>DB.transaction.has_encrypted_message</code>.
      */
-    public void setHasEncryptedMessage(Byte value) {
+    public void setHasEncryptedMessage(Boolean value) {
         set(20, value);
     }
 
     /**
      * Getter for <code>DB.transaction.has_encrypted_message</code>.
      */
-    public Byte getHasEncryptedMessage() {
-        return (Byte) get(20);
+    public Boolean getHasEncryptedMessage() {
+        return (Boolean) get(20);
     }
 
     /**
      * Setter for <code>DB.transaction.has_public_key_announcement</code>.
      */
-    public void setHasPublicKeyAnnouncement(Byte value) {
+    public void setHasPublicKeyAnnouncement(Boolean value) {
         set(21, value);
     }
 
     /**
      * Getter for <code>DB.transaction.has_public_key_announcement</code>.
      */
-    public Byte getHasPublicKeyAnnouncement() {
-        return (Byte) get(21);
+    public Boolean getHasPublicKeyAnnouncement() {
+        return (Boolean) get(21);
     }
 
     /**
@@ -373,8 +373,8 @@ public class TransactionRecord extends UpdatableRecordImpl<TransactionRecord> {
     /**
      * Getter for <code>DB.transaction.has_encrypttoself_message</code>.
      */
-    public Byte getHasEncrypttoselfMessage() {
-        return (Byte) get(24);
+    public Boolean getHasEncrypttoselfMessage() {
+        return (Boolean) get(24);
     }
 
     // -------------------------------------------------------------------------

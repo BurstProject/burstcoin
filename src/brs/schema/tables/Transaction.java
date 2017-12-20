@@ -24,6 +24,7 @@ import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
@@ -153,17 +154,17 @@ public class Transaction extends TableImpl<TransactionRecord> {
     /**
      * The column <code>DB.transaction.has_message</code>.
      */
-    public final TableField<TransactionRecord, Byte> HAS_MESSAGE = createField("has_message", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<TransactionRecord, Boolean> HAS_MESSAGE = createField("has_message", SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>DB.transaction.has_encrypted_message</code>.
      */
-    public final TableField<TransactionRecord, Byte> HAS_ENCRYPTED_MESSAGE = createField("has_encrypted_message", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<TransactionRecord, Boolean> HAS_ENCRYPTED_MESSAGE = createField("has_encrypted_message", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>DB.transaction.has_public_key_announcement</code>.
      */
-    public final TableField<TransactionRecord, Byte> HAS_PUBLIC_KEY_ANNOUNCEMENT = createField("has_public_key_announcement", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<TransactionRecord, Boolean> HAS_PUBLIC_KEY_ANNOUNCEMENT = createField("has_public_key_announcement", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>DB.transaction.ec_block_height</code>.
@@ -178,7 +179,7 @@ public class Transaction extends TableImpl<TransactionRecord> {
     /**
      * The column <code>DB.transaction.has_encrypttoself_message</code>.
      */
-    public final TableField<TransactionRecord, Byte> HAS_ENCRYPTTOSELF_MESSAGE = createField("has_encrypttoself_message", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<TransactionRecord, Boolean> HAS_ENCRYPTTOSELF_MESSAGE = createField("has_encrypttoself_message", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * Create a <code>DB.transaction</code> table reference
