@@ -1,10 +1,10 @@
-<img src="//github.com/PoC-Consortium/Marketing_Resources/blob/master/BURST_LOGO/SVG/icon_blue.svg" align="right" />
+<img align="right" width="120" height="120" title="Burst Logo" src="https://raw.githubusercontent.com/PoC-Consortium/Marketing_Resources/master/BURST_LOGO/PNG/icon_blue.png" />
 
 # Burstcoin CG-Wallet
 
 [![Get Support at https://discord.gg/NKXGM6N](https://img.shields.io/badge/join-discord-blue.svg)](https://discord.gg/NKXGM6N)
 [![Build Status](https://api.travis-ci.org/PoC-Consortium/burstcoin.svg?branch=master)](https://travis-ci.org/PoC-Consortium/burstcoin?branch=master) 
-![Quality Gate](https://sonarqube.com/api/badges/gate?key=burstcoin:burstcoin)]
+![Quality Gate](https://sonarqube.com/api/badges/gate?key=burstcoin:burstcoin)
 [![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
 
 The world's first HDD-mined cryptocurrency using an energy efficient
