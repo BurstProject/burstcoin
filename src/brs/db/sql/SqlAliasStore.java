@@ -53,7 +53,7 @@ public abstract class SqlAliasStore implements AliasStore {
     }
   }
 
-  protected void saveOffer(Alias.Offer offer, Connection con) throws SQLException {
+  protected void saveOffer(Alias.Offer offer) throws SQLException {
     try ( DSLContext ctx = Db.getDSLContext() ) {
       ctx.insertInto(
               ALIAS_OFFER,
@@ -61,16 +61,6 @@ public abstract class SqlAliasStore implements AliasStore {
       ).values(
               offer.getId(), offer.getPriceNQT(), DbUtils.longZeroToNull(offer.getBuyerId()), Burst.getBlockchain().getHeight()
       ).execute();
-    }
-
-    try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO alias_offer (id, price, buyer_id, "
-                                                        + "height) VALUES (?, ?, ?, ?)")) {
-      int i = 0;
-      pstmt.setLong(++i, offer.getId());
-      pstmt.setLong(++i, offer.getPriceNQT());
-      DbUtils.setLongZeroToNull(pstmt, ++i, offer.getBuyerId());
-      pstmt.setInt(++i, Burst.getBlockchain().getHeight());
-      pstmt.executeUpdate();
     }
   }
 
@@ -82,7 +72,7 @@ public abstract class SqlAliasStore implements AliasStore {
 
       @Override
       protected void save(Connection con, Alias.Offer offer) throws SQLException {
-        saveOffer(offer, con);
+        saveOffer(offer);
       }
     };
 
