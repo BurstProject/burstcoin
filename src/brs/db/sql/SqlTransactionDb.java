@@ -183,9 +183,9 @@ public abstract class SqlTransactionDb implements TransactionDb {
 
   @Override
   public List<TransactionImpl> findBlockTransactions(long blockId) {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      Cursor<TransactionRecord> transactionRecords = ctx.selectFrom(TRANSACTION).where(TRANSACTION.BLOCK_ID.eq(blockId)).fetchLazy();
-
+    try (DSLContext ctx = Db.getDSLContext();
+         Cursor<TransactionRecord> transactionRecords = ctx.selectFrom(TRANSACTION).
+                 where(TRANSACTION.BLOCK_ID.eq(blockId)).fetchLazy()) {
       List<TransactionImpl> list = new ArrayList<>();
       for (TransactionRecord transactionRecord : transactionRecords) {
         list.add(loadTransaction(transactionRecord));
