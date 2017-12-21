@@ -234,6 +234,15 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     }
   }
 
+  public BurstIterator<T> getManyBy(Connection con, String sql, boolean cache) {
+    try {
+      return getManyBy(con, con.prepareStatement(sql), cache);
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e.toString(), e);
+    }
+  }
+
   @Override
   public BurstIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache) {
     final boolean doCache = cache && Db.isInTransaction();
