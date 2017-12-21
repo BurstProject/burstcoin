@@ -13,6 +13,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
+import static brs.schema.Tables.UNCONFIRMED_TRANSACTION;
+import org.jooq.DSLContext;
+
 public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
   private static final Logger logger = LoggerFactory.getLogger(SqlTransactionProcessorStore.class);
@@ -46,33 +49,34 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
         @Override
         protected void save(Connection con, TransactionImpl transaction) throws SQLException {
-          try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO unconfirmed_transaction (id, transaction_height, "
-                                                              + "fee_per_byte, timestamp, expiration, transaction_bytes, height) "
-                                                              + "VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-            int i = 0;
-            pstmt.setLong(++i, transaction.getId());
-            pstmt.setInt(++i, transaction.getHeight());
-            pstmt.setLong(++i, transaction.getFeeNQT() / transaction.getSize());
-            pstmt.setInt(++i, transaction.getTimestamp());
-            pstmt.setInt(++i, transaction.getExpiration());
-            pstmt.setBytes(++i, transaction.getBytes());
-            pstmt.setInt(++i, Burst.getBlockchain().getHeight());
-            pstmt.executeUpdate();
+          try ( DSLContext ctx = Db.getDSLContext() ) {
+            ctx.insertInto(
+              UNCONFIRMED_TRANSACTION,
+              UNCONFIRMED_TRANSACTION.ID, UNCONFIRMED_TRANSACTION.TRANSACTION_HEIGHT, UNCONFIRMED_TRANSACTION.FEE_PER_BYTE,
+              UNCONFIRMED_TRANSACTION.TIMESTAMP, UNCONFIRMED_TRANSACTION.EXPIRATION, UNCONFIRMED_TRANSACTION.TRANSACTION_BYTES,
+              UNCONFIRMED_TRANSACTION.HEIGHT
+            ).values(
+              transaction.getId(), transaction.getHeight(), transaction.getFeeNQT() / transaction.getSize(),
+              transaction.getTimestamp(), transaction.getExpiration(), transaction.getBytes(),
+              Burst.getBlockchain().getHeight()
+            );
+          }
+          catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
           }
         }
 
         @Override
         public void rollback(int height) {
           List<TransactionImpl> transactions = new ArrayList<>();
-          try (Connection con = Db.getConnection();
-               PreparedStatement pstmt = con.prepareStatement("SELECT * FROM unconfirmed_transaction WHERE height > ?")) {
-            pstmt.setInt(1, height);
-            try (ResultSet rs = pstmt.executeQuery()) {
+          try ( DSLContext ctx = Db.getDSLContext() ) {
+            try ( ResultSet rs = ctx.selectFrom(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.HEIGHT.gt(height)).fetchResultSet() ) {
               while (rs.next()) {
-                transactions.add(load(con, rs));
+                transactions.add(load(null, rs));
               }
             }
-          } catch (SQLException e) {
+          }
+          catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
           }
           super.rollback(height);
@@ -85,14 +89,6 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
           return " ORDER BY transaction_height ASC, fee_per_byte DESC, timestamp ASC, id ASC ";
         }
       };
-
-  private final DbClause expiredClause = new DbClause(" expiration < ? ") {
-      @Override
-      protected int set(PreparedStatement pstmt, int index) throws SQLException {
-        pstmt.setInt(index, Burst.getEpochTime());
-        return index + 1;
-      }
-    };
 
   // WATCH: BUSINESS-LOGIC
   @Override
@@ -126,7 +122,16 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
   @Override
   public BurstIterator<TransactionImpl> getExpiredTransactions() {
-    return unconfirmedTransactionTable.getManyBy(expiredClause, 0, -1, "");
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return unconfirmedTransactionTable.getManyBy(
+        Db.getConnection(),
+        ctx.selectFrom(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.EXPIRATION.lt(Burst.getEpochTime())).getSQL(true),
+        true
+      );
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e.toString(), e);
+    }
   }
 
   @Override
