@@ -13,6 +13,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
+import static brs.schema.Tables.UNCONFIRMED_TRANSACTION;
+import org.jooq.DSLContext;
+
 public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
   private static final Logger logger = LoggerFactory.getLogger(SqlTransactionProcessorStore.class);
@@ -126,7 +129,16 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
   @Override
   public BurstIterator<TransactionImpl> getExpiredTransactions() {
-    return unconfirmedTransactionTable.getManyBy(expiredClause, 0, -1, "");
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return unconfirmedTransactionTable.getManyBy(
+        Db.getConnection(),
+        ctx.selectFrom(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.EXPIRATION.lt(Burst.getEpochTime())).getSQL(true),
+        true
+      );
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e.toString(), e);
+    }
   }
 
   @Override
