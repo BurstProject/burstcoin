@@ -7,25 +7,22 @@ import brs.at.AT_Constants;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.ATStore;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static brs.schema.Tables.*;
-import static org.jooq.impl.DSL.*;
-
+import brs.schema.tables.records.AtRecord;
+import brs.schema.tables.records.AtStateRecord;
+import org.jooq.Cursor;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record1;
-import org.jooq.Cursor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.List;
+
+import static brs.schema.Tables.*;
 
 public abstract class SqlATStore implements ATStore {
 
@@ -123,26 +120,29 @@ public abstract class SqlATStore implements ATStore {
 
   @Override
   public AT getAT(Long id) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT t_at.id, t_at.creator_id, t_at.name, t_at.description, t_at.version, "
-                                                        + "at_state.state, t_at.csize, t_at.dsize, t_at.c_user_stack_bytes, t_at.c_call_stack_bytes, "
-                                                        + "t_at.creation_height, at_state.sleep_between, at_state.next_height, at_state.freeze_when_same_balance, at_state.min_activate_amount, "
-                                                        + "t_at.ap_code "
-                                                        + "FROM " +  DbUtils.quoteTableName("at") + " AS t_at INNER JOIN at_state ON t_at.id = at_state.at_id "
-                                                        + "WHERE t_at.latest = TRUE AND at_state.latest = TRUE "
-                                                        + "AND t_at.id = ?")) {
-      int i = 0;
-      pstmt.setLong(++i, id);
-      try (ResultSet result = pstmt.executeQuery()) {
-        List<AT> ats = createATs(result);
-        if (ats.size() > 0) {
-          return ats.get(0);
-        }
+    try (DSLContext ctx = Db.getDSLContext()) {
+      Record record = ctx.select(AT.fields()).select(AT_STATE.fields()).from(AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID))).
+              where(AT.LATEST.isTrue().
+                      and(AT_STATE.LATEST.isTrue()).
+                      and(AT.ID.eq(id))).fetchOne();
+
+      if (record == null) {
         return null;
       }
+
+      AtRecord at = record.into(AT);
+      AtStateRecord atState = record.into(AT_STATE);
+
+      return createAT(at, atState);
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
+  }
+
+  private AT createAT(AtRecord at, AtStateRecord atState) {
+    return new AT(AT_API_Helper.getByteArray(at.getId()), AT_API_Helper.getByteArray(at.getCreatorId()), at.getName(), at.getDescription(), at.getVersion(),
+            atState.getState(), at.getCsize(), at.getDsize(), at.getCUserStackBytes(), at.getCCallStackBytes(), at.getCreationHeight(), atState.getSleepBetween(), atState.getNextHeight(),
+            atState.getFreezeWhenSameBalance(), atState.getMinActivateAmount(), at.getApCode());
   }
 
   @Override
@@ -183,36 +183,6 @@ public abstract class SqlATStore implements ATStore {
   @Override
   public VersionedEntityTable<AT.ATState> getAtStateTable() {
     return atStateTable;
-  }
-
-  protected List<AT> createATs(ResultSet rs) throws SQLException {
-    List<AT> ats = new ArrayList<AT>();
-    while (rs.next()) {
-      int i = 0;
-      Long atId = rs.getLong(++i);
-      Long creator = rs.getLong(++i);
-      String name = rs.getString(++i);
-      String description = rs.getString(++i);
-      short version = rs.getShort(++i);
-      byte[] stateBytes = brs.AT.decompressState(rs.getBytes(++i));
-      int csize = rs.getInt(++i);
-      int dsize = rs.getInt(++i);
-      int c_user_stack_bytes = rs.getInt(++i);
-      int c_call_stack_bytes = rs.getInt(++i);
-      int creationBlockHeight = rs.getInt(++i);
-      int sleepBetween = rs.getInt(++i);
-      int nextHeight = rs.getInt(++i);
-      boolean freezeWhenSameBalance = rs.getBoolean(++i);
-      long minActivationAmount = rs.getLong(++i);
-      byte[] ap_code = brs.AT.decompressState(rs.getBytes(++i));
-
-      AT at = new AT(AT_API_Helper.getByteArray(atId), AT_API_Helper.getByteArray(creator), name, description, version,
-                     stateBytes, csize, dsize, c_user_stack_bytes, c_call_stack_bytes, creationBlockHeight, sleepBetween, nextHeight,
-                     freezeWhenSameBalance, minActivationAmount, ap_code);
-      ats.add(at);
-
-    }
-    return ats;
   }
 
   @Override
