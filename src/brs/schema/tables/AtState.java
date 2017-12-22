@@ -92,7 +92,7 @@ public class AtState extends TableImpl<AtStateRecord> {
     /**
      * The column <code>DB.at_state.freeze_when_same_balance</code>.
      */
-    public final TableField<AtStateRecord, Byte> FREEZE_WHEN_SAME_BALANCE = createField("freeze_when_same_balance", org.jooq.impl.SQLDataType.TINYINT.nullable(false), this, "");
+    public final TableField<AtStateRecord, Boolean> FREEZE_WHEN_SAME_BALANCE = createField("freeze_when_same_balance", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false), this, "");
 
     /**
      * The column <code>DB.at_state.min_activate_amount</code>.
