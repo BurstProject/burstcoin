@@ -5,11 +5,14 @@ import brs.Burst;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.store.AssetStore;
+import org.jooq.DSLContext;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import static brs.schema.tables.Asset.ASSET;
 
 public abstract  class SqlAssetStore implements AssetStore {
 
@@ -30,22 +33,20 @@ public abstract  class SqlAssetStore implements AssetStore {
 
       @Override
       protected void save(Connection con, Asset asset) throws SQLException {
-        saveAsset(con, asset);
+        saveAsset(asset);
       }
     };
 
-  private void saveAsset(Connection con, Asset asset) throws SQLException {
-    try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO asset (id, account_id, name, "
-                                                        + "description, quantity, decimals, height) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-      int i = 0;
-      pstmt.setLong(++i, asset.getId());
-      pstmt.setLong(++i, asset.getAccountId());
-      pstmt.setString(++i, asset.getName());
-      pstmt.setString(++i, asset.getDescription());
-      pstmt.setLong(++i, asset.getQuantityQNT());
-      pstmt.setByte(++i, asset.getDecimals());
-      pstmt.setInt(++i, Burst.getBlockchain().getHeight());
-      pstmt.executeUpdate();
+  private void saveAsset(Asset asset) throws SQLException {
+    try (DSLContext ctx = Db.getDSLContext()) {
+      ctx.insertInto(ASSET).
+              set(ASSET.ID, asset.getId()).
+              set(ASSET.ACCOUNT_ID, asset.getAccountId()).
+              set(ASSET.NAME, asset.getName()).
+              set(ASSET.DESCRIPTION, asset.getDescription()).
+              set(ASSET.QUANTITY, asset.getQuantityQNT()).
+              set(ASSET.DECIMALS, asset.getDecimals()).
+              set(ASSET.HEIGHT, Burst.getBlockchain().getHeight()).execute();
     }
   }
 

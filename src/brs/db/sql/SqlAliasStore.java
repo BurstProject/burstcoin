@@ -9,10 +9,10 @@ import brs.db.store.AliasStore;
 import org.jooq.DSLContext;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static brs.schema.Tables.ALIAS;
 import static brs.schema.Tables.ALIAS_OFFER;
 
 public abstract class SqlAliasStore implements AliasStore {
@@ -54,7 +54,7 @@ public abstract class SqlAliasStore implements AliasStore {
   }
 
   protected void saveOffer(Alias.Offer offer) throws SQLException {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
+    try (DSLContext ctx = Db.getDSLContext()) {
       ctx.insertInto(
               ALIAS_OFFER,
               ALIAS_OFFER.ID, ALIAS_OFFER.PRICE, ALIAS_OFFER.BUYER_ID, ALIAS_OFFER.HEIGHT
@@ -95,17 +95,14 @@ public abstract class SqlAliasStore implements AliasStore {
   }
 
   protected void saveAlias(Alias alias, Connection con) throws SQLException {
-    try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO alias (id, account_id, alias_name, "
-                                                        + "alias_uri, timestamp, height) "
-                                                        + "VALUES (?, ?, ?, ?, ?, ?)")) {
-      int i = 0;
-      pstmt.setLong(++i, alias.getId());
-      pstmt.setLong(++i, alias.getAccountId());
-      pstmt.setString(++i, alias.getAliasName());
-      pstmt.setString(++i, alias.getAliasURI());
-      pstmt.setInt(++i, alias.getTimestamp());
-      pstmt.setInt(++i, Burst.getBlockchain().getHeight());
-      pstmt.executeUpdate();
+    try (DSLContext ctx = Db.getDSLContext()) {
+      ctx.insertInto(ALIAS).
+              set(ALIAS.ID, alias.getId()).
+              set(ALIAS.ACCOUNT_ID, alias.getAccountId()).
+              set(ALIAS.ALIAS_NAME, alias.getAliasName()).
+              set(ALIAS.ALIAS_URI, alias.getAliasURI()).
+              set(ALIAS.TIMESTAMP, alias.getTimestamp()).
+              set(ALIAS.HEIGHT, Burst.getBlockchain().getHeight()).execute();
     }
   }
 
