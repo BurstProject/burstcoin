@@ -47,6 +47,10 @@ You can get further information calling `burst.sh help`
 Please note: Firebird (embedded) needs some more work on macOS at the moment.
 All other supported databases should work as expected.
 
+A good HowTo for running the wallet on a mac can be found here
+https://www.reddit.com/r/burstcoin/comments/7lrdc1/guide_to_getting_the_poc_wallet_running_on_a_mac/
+
+
 ##### Configure and Initialize MariaDB
 
 The Debian and Ubuntu packages provide an automatic configuration of
