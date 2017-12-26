@@ -66,7 +66,7 @@
     "error_invalid_balance_leasing_no_public_key": "Kontrak saldo efektif tidak sah: Rekening penerima tidak ditemukan atau tidak ada penerbitan public key.",
     "error_invalid_balance_leasing": "Kontrak saldo efektif tidak sah.",
     "error_wrong_buyer_for_alias": "Pembeli alias salah.",
-    "status_new_account": "Selamat datang di rekening BURST baru anda. ID rekening anda adalah <strong>__account_id__<\/strong> - Ketika anda mengisi saldo untuk pertama kali, anda diharuskan untuk mengumumkan public key anda, yaitu __public_key__",
+    "status_new_account": "Selamat datang di rekening BURST baru anda. ID rekening anda adalah <strong>__account_id__<\/strong>",
     "error_public_key_already_announced": "Public key untuk rekening ini telah diumumkan.",
     "error_public_key_announcement_no_recipient": "Pengumuman public key tidak dapat dilampirkan pada transaksi yang tidak memiliki penerima.",
     "error_public_key_different_account_id": "Public key yang diumumkan tidak cocok dengan ID rekening penerima.",

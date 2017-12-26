@@ -431,7 +431,7 @@ public abstract class TransactionType {
             void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
                 Attachment.MessagingAliasAssignment attachment = (Attachment.MessagingAliasAssignment) transaction.getAttachment();
                 if (attachment.getAliasName().length() == 0
-                        || attachment.getAliasName().length() > Constants.MAX_ALIAS_LENGTH
+                        || Convert.toBytes(attachment.getAliasName()).length > Constants.MAX_ALIAS_LENGTH
                         || attachment.getAliasURI().length() > Constants.MAX_ALIAS_URI_LENGTH) {
                     throw new NxtException.NotValidException("Invalid alias assignment: " + attachment.getJSONObject());
                 }
@@ -760,8 +760,8 @@ public abstract class TransactionType {
             @Override
             void validateAttachment(Transaction transaction) throws NxtException.ValidationException {
                 Attachment.MessagingAccountInfo attachment = (Attachment.MessagingAccountInfo)transaction.getAttachment();
-                if (attachment.getName().length() > Constants.MAX_ACCOUNT_NAME_LENGTH
-                        || attachment.getDescription().length() > Constants.MAX_ACCOUNT_DESCRIPTION_LENGTH
+                if (Convert.toBytes(attachment.getName()).length > Constants.MAX_ACCOUNT_NAME_LENGTH
+                        || Convert.toBytes(attachment.getDescription()).length > Constants.MAX_ACCOUNT_DESCRIPTION_LENGTH
                         ) {
                     throw new NxtException.NotValidException("Invalid account info issuance: " + attachment.getJSONObject());
                 }
@@ -1674,7 +1674,8 @@ public abstract class TransactionType {
             @Override
             void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.AccountControlEffectiveBalanceLeasing attachment = (Attachment.AccountControlEffectiveBalanceLeasing) transaction.getAttachment();
-                Account.getAccount(transaction.getSenderId()).leaseEffectiveBalance(transaction.getRecipientId(), attachment.getPeriod());
+                //Account.getAccount(transaction.getSenderId()).leaseEffectiveBalance(transaction.getRecipientId(), attachment.getPeriod());
+                // TODO: check if anyone's used this or if it's even possible to use this, and eliminate it if possible
             }
 
             @Override
@@ -1756,7 +1757,7 @@ public abstract class TransactionType {
     			Account sender = Account.getAccount(transaction.getSenderId());
     			Account.RewardRecipientAssignment rewardAssignment = sender.getRewardRecipientAssignment();
     			if(rewardAssignment != null && rewardAssignment.getFromHeight() >= height) {
-    				throw new NxtException.NotValidException("Cannot reassign reward recipient before previous goes into effect: " + transaction.getJSONObject());
+    				throw new NxtException.NotCurrentlyValidException("Cannot reassign reward recipient before previous goes into effect: " + transaction.getJSONObject());
     			}
     			Account recip = Account.getAccount(transaction.getRecipientId());
     			if(recip == null || recip.getPublicKey() == null) {

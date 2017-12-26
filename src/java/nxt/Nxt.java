@@ -18,7 +18,7 @@ import java.util.Properties;
 
 public final class Nxt {
 
-    public static final String VERSION = "1.2.3";
+    public static final String VERSION = "1.2.9";
     public static final String APPLICATION = "NRS";
 
     private static volatile Time time = new Time.EpochTime();
@@ -110,6 +110,19 @@ public final class Nxt {
         return false;
     }
 
+    public static Boolean getBooleanProperty(String name, boolean assume) {
+        String value = properties.getProperty(name);
+        if (Boolean.TRUE.toString().equals(value)) {
+            Logger.logMessage(name + " = \"true\"");
+            return true;
+        } else if (Boolean.FALSE.toString().equals(value)) {
+            Logger.logMessage(name + " = \"false\"");
+            return false;
+        }
+        Logger.logMessage(name + " not defined, assuming " + assume);
+        return assume;
+    }
+
     public static Blockchain getBlockchain() {
         return BlockchainImpl.getInstance();
     }
@@ -120,6 +133,14 @@ public final class Nxt {
 
     public static TransactionProcessor getTransactionProcessor() {
         return TransactionProcessorImpl.getInstance();
+    }
+
+    private static Generator generator = new GeneratorImpl();
+    public static Generator getGenerator() {
+        return generator;
+    }
+    public static void setGenerator(Generator newGenerator) {
+        generator = newGenerator;
     }
 
     public static int getEpochTime() {
@@ -156,6 +177,9 @@ public final class Nxt {
         Peers.shutdown();
         ThreadPool.shutdown();
         Db.shutdown();
+        if(BlockchainProcessorImpl.oclVerify) {
+            OCLPoC.destroy();
+        }
         Logger.logShutdownMessage("Burst server " + VERSION + " stopped.");
         Logger.shutdown();
     }
@@ -167,9 +191,9 @@ public final class Nxt {
                 long startTime = System.currentTimeMillis();
                 Logger.init();
                 Db.init();
+                DbVersion.init();
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
-                DbVersion.init();
                 Account.init();
                 Alias.init();
                 Asset.init();
@@ -182,7 +206,7 @@ public final class Nxt {
                 Vote.init();
                 AT.init();
                 Peers.init();
-                Generator.init();
+                getGenerator().init();
                 API.init();
                 Users.init();
                 DebugTrace.init();
@@ -198,6 +222,18 @@ public final class Nxt {
                 Logger.logMessage("Burst server " + VERSION + " started successfully.");
                 if (Constants.isTestnet) {
                     Logger.logMessage("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
+                }
+                if(Nxt.getBooleanProperty("burst.mockMining")) {
+                    setGenerator(new GeneratorImpl.MockGeneratorImpl());
+                }
+                if(BlockchainProcessorImpl.oclVerify) {
+                    try {
+                        OCLPoC.init();
+                    }
+                    catch(OCLPoC.OCLCheckerException e) {
+                        Logger.logErrorMessage("Error initializing OpenCL, disabling ocl verify: " + e.getMessage());
+                        BlockchainProcessorImpl.oclVerify = false;
+                    }
                 }
             } catch (Exception e) {
                 Logger.logErrorMessage(e.getMessage(), e);

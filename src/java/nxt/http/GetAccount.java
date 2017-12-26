@@ -35,7 +35,7 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
         if (account.getDescription() != null) {
             response.put("description", account.getDescription());
         }
-        if (account.getCurrentLesseeId() != 0) {
+        /*if (account.getCurrentLesseeId() != 0) {
             JSONData.putAccount(response, "currentLessee", account.getCurrentLesseeId());
             response.put("currentLeasingHeightFrom", account.getCurrentLeasingHeightFrom());
             response.put("currentLeasingHeightTo", account.getCurrentLeasingHeightTo());
@@ -44,8 +44,8 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
                 response.put("nextLeasingHeightFrom", account.getNextLeasingHeightFrom());
                 response.put("nextLeasingHeightTo", account.getNextLeasingHeightTo());
             }
-        }
-        try (DbIterator<Account> lessors = account.getLessors()) {
+        }*/
+        /*try (DbIterator<Account> lessors = account.getLessors()) {
             if (lessors.hasNext()) {
                 JSONArray lessorIds = new JSONArray();
                 JSONArray lessorIdsRS = new JSONArray();
@@ -57,7 +57,7 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
                 response.put("lessors", lessorIds);
                 response.put("lessorsRS", lessorIdsRS);
             }
-        }
+        }*/
 
         try (DbIterator<Account.AccountAsset> accountAssets = account.getAssets(0, -1)) {
             JSONArray assetBalances = new JSONArray();

@@ -1,5 +1,6 @@
 {
-    "deadline": "截止时间",
+    "get_burst": "收到 BURST",
+	"deadline": "截止时间",
     "recipient": "接收者",
     "subtype": "子类型",
     "error_description": "错误描述",
@@ -66,7 +67,7 @@
     "error_invalid_balance_leasing_no_public_key": "有效余额出租无效： 未找到接收者账户或未公布公钥。",
     "error_invalid_balance_leasing": "有效余额出租无效。",
     "error_wrong_buyer_for_alias": "别名的错误购买者。",
-    "status_new_account": "欢迎来到新的 BURST 帐户。您的帐户 ID 是 <strong>__account_id__<\/strong>-当第一次为您的帐户充值时，您还需要宣布您的公钥，公钥是 __public_key__",
+    "status_new_account": "欢迎来到新的 BURST 帐户。您的帐户 ID 是 <strong>__account_id__<\/strong>-当第",
     "error_public_key_already_announced": "该帐户已经公布公钥。",
     "error_public_key_announcement_no_recipient": "没有接收者无法给交易附加公钥公告。",
     "error_public_key_different_account_id": "已公布的公钥与接收者账户 ID 不匹配。",

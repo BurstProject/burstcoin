@@ -66,7 +66,7 @@
     "error_invalid_balance_leasing_no_public_key": "Neleistina efektyvaus balanso nuoma: Gavėjo sąskaita neegzistuoja arba ji neturi viešojo rakto.",
     "error_invalid_balance_leasing": "Neleistina efektyvaus balanso nuoma.",
     "error_wrong_buyer_for_alias": "Neteisingas pseudonimo pirkėjas.",
-    "status_new_account": "Sveiki atvykę į savo naują BURST sąskaitą. Jūsų sąskaitos numeris yra <strong>__account_id__<\/strong> - kai papildote sąskaitą pirmą kartą, turite pranešti savo viešąjį raktą, kuris yra __public_key__",
+    "status_new_account": "Sveiki atvykę į savo naują BURST sąskaitą. Jūsų sąskaitos numeris yra <strong>__account_id__<\/strong>.",
     "error_public_key_already_announced": "Viešasis raktas šiai sąskaitai jau buvo paskelbtas.",
     "error_public_key_announcement_no_recipient": "Viešojo rakto paskelbimas negali būti prijungtas prie transakcijos, kuri neturi gavėjo.",
     "error_public_key_different_account_id": "Paskelbtas viešasis raktas nesutampa su gavėjo sąskaitos ID.",

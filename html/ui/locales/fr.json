@@ -66,7 +66,7 @@
     "error_invalid_balance_leasing_no_public_key": "Bail invalide : le compte bénéficiaire est introuvable ou n'a pas de clef publique connue du réseau.",
     "error_invalid_balance_leasing": "Bail invalide.",
     "error_wrong_buyer_for_alias": "Mauvais acheteur pour l'alias.",
-    "status_new_account": "Bienvenue sur votre nouveau compte BURST. Votre ID de compte est <strong>__account_id__<\/strong> - En approvisionnant votre compte pour la première fois, vous devrez également annoncer votre clé publique, qui est __public_key__",
+    "status_new_account": "Bienvenue sur votre nouveau compte BURST. Votre ID de compte est <strong>__account_id__<\/strong>",
     "error_public_key_already_announced": "La clé publique de ce compte a déjà été annoncé.",
     "error_public_key_announcement_no_recipient": "L'annonce de la clé publique ne peut pas être liée aux transactions sans destinataire.",
     "error_public_key_different_account_id": "La clé publique annoncée ne correspond pas à l'ID du compte bénéficiaire.",

@@ -11,8 +11,8 @@ public final class Constants {
 	public static long BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK = 6500;
     public static long BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME = 4;
     
-    public static long BURST_ESCROW_START_BLOCK = Integer.MAX_VALUE;
-    public static long BURST_SUBSCRIPTION_START_BLOCK = Integer.MAX_VALUE;
+    public static long BURST_ESCROW_START_BLOCK = 0; // not sure when these were enabled, but they each do an alias lookup every block if greater than the current height
+    public static long BURST_SUBSCRIPTION_START_BLOCK = 0;
     public static int BURST_SUBSCRIPTION_MIN_FREQ = 3600;
     public static int BURST_SUBSCRIPTION_MAX_FREQ = 31536000;
     
@@ -90,6 +90,9 @@ public final class Constants {
 	public static final int AT_BLOCK_PAYLOAD = MAX_PAYLOAD_LENGTH/2;
 	public static final int AT_FIX_BLOCK_2 = 67000;
 	public static final int AT_FIX_BLOCK_3 = 92000;
+    public static final int AT_FIX_BLOCK_4 = 255000;
+
+    public static final int[] MIN_VERSION = new int[] {1, 2};
     
     static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (isTestnet ? 50 : 100) * ONE_NXT;
 

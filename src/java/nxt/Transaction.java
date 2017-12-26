@@ -64,6 +64,8 @@ public interface Transaction extends Comparable<Transaction> {
 
     void sign(String secretPhrase);
 
+    boolean verifyPublicKey();
+
     boolean verifySignature();
 
     void validate() throws NxtException.ValidationException;

@@ -20,7 +20,7 @@ public abstract class VersionedEntityDbTable<T> extends EntityDbTable<T> {
         rollback(table, height, dbKeyFactory);
     }
 
-    public final boolean delete(T t) {
+    public boolean delete(T t) {
         if (t == null) {
             return false;
         }

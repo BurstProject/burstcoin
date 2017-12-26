@@ -66,7 +66,7 @@
     "error_invalid_balance_leasing_no_public_key": "無効な有効残高のリース: 受信者のアカウントが見つからないか、公開キーが公開されていません。",
     "error_invalid_balance_leasing": "無効な有効残高のリース",
     "error_wrong_buyer_for_alias": "間違ったエイリアスの購買者",
-    "status_new_account": "BURST の新しい口座へようこそ。あなたのアカウントID は <strong>__account_id__<\/strong> です。初めてあなたの口座へ資金調達をする場合、あなたの公開キー __public_key__ も発表する必要があります。",
+    "status_new_account": "BURST の新しい口座へようこそ。あなたのアカウントID は <strong>__account_id__<\/strong> です。",
     "error_public_key_already_announced": "このアカウント用の公開キーは既に発表されています。",
     "error_public_key_announcement_no_recipient": "公開キーの発表は受信者のないトランザクションに添付できません。",
     "error_public_key_different_account_id": "発表された公開キーが受信者のアカウントIDと一致しません。",
