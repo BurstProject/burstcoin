@@ -102,7 +102,7 @@ public class Goods extends TableImpl<GoodsRecord> {
     /**
      * The column <code>DB.goods.delisted</code>.
      */
-    public final TableField<GoodsRecord, Byte> DELISTED = createField("delisted", org.jooq.impl.SQLDataType.TINYINT.nullable(false), this, "");
+    public final TableField<GoodsRecord, Boolean> DELISTED = createField("delisted", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false), this, "");
 
     /**
      * The column <code>DB.goods.height</code>.
@@ -112,7 +112,7 @@ public class Goods extends TableImpl<GoodsRecord> {
     /**
      * The column <code>DB.goods.latest</code>.
      */
-    public final TableField<GoodsRecord, Byte> LATEST = createField("latest", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<GoodsRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false));
 
     /**
      * Create a <code>DB.goods</code> table reference

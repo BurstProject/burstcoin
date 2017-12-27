@@ -12,9 +12,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.jooq.DSLContext;
 import static brs.schema.tables.Asset.ASSET;
 
-public abstract  class SqlAssetStore implements AssetStore {
+public class SqlAssetStore implements AssetStore {
 
   private final BurstKey.LongKeyFactory<Asset> assetDbKeyFactory = new DbKey.LongKeyFactory<Asset>("id") {
 
@@ -27,27 +28,25 @@ public abstract  class SqlAssetStore implements AssetStore {
   private final EntitySqlTable<Asset> assetTable = new EntitySqlTable<Asset>("asset", brs.schema.Tables.ASSET, assetDbKeyFactory) {
 
       @Override
-      protected Asset load(Connection con, ResultSet rs) throws SQLException {
+      protected Asset load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlAsset(rs);
       }
 
       @Override
-      protected void save(Connection con, Asset asset) throws SQLException {
-        saveAsset(asset);
+      protected void save(DSLContext ctx, Asset asset) throws SQLException {
+        saveAsset(ctx, asset);
       }
     };
 
-  private void saveAsset(Asset asset) throws SQLException {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      ctx.insertInto(ASSET).
-              set(ASSET.ID, asset.getId()).
-              set(ASSET.ACCOUNT_ID, asset.getAccountId()).
-              set(ASSET.NAME, asset.getName()).
-              set(ASSET.DESCRIPTION, asset.getDescription()).
-              set(ASSET.QUANTITY, asset.getQuantityQNT()).
-              set(ASSET.DECIMALS, asset.getDecimals()).
-              set(ASSET.HEIGHT, Burst.getBlockchain().getHeight()).execute();
-    }
+  private void saveAsset(DSLContext ctx, Asset asset) throws SQLException {
+    ctx.insertInto(ASSET).
+      set(ASSET.ID, asset.getId()).
+      set(ASSET.ACCOUNT_ID, asset.getAccountId()).
+      set(ASSET.NAME, asset.getName()).
+      set(ASSET.DESCRIPTION, asset.getDescription()).
+      set(ASSET.QUANTITY, asset.getQuantityQNT()).
+      set(ASSET.DECIMALS, asset.getDecimals()).
+      set(ASSET.HEIGHT, Burst.getBlockchain().getHeight()).execute();
   }
 
   @Override
@@ -62,7 +61,7 @@ public abstract  class SqlAssetStore implements AssetStore {
 
   @Override
   public BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
-    return assetTable.getManyBy(new DbClause.LongClause("account_id", accountId), from, to);
+    return assetTable.getManyBy(ASSET.ACCOUNT_ID.eq(accountId), from, to);
   }
 
   private class SqlAsset extends Asset {

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jooq.impl.TableImpl;
+import org.jooq.DSLContext;
 
 public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements ValuesTable<T, V> {
 
@@ -27,9 +28,9 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
     this.multiversion = multiversion;
   }
 
-  protected abstract V load(Connection con, ResultSet rs) throws SQLException;
+  protected abstract V load(DSLContext ctx, ResultSet rs) throws SQLException;
 
-  protected abstract void save(Connection con, T t, V v) throws SQLException;
+  protected abstract void save(DSLContext ctx, T t, V v) throws SQLException;
 
   @Override
   public final List<V> get(BurstKey nxtKey) {
@@ -60,7 +61,7 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
       List<V> result = new ArrayList<>();
       try (ResultSet rs = pstmt.executeQuery()) {
         while (rs.next()) {
-          result.add(load(con, rs));
+          result.add(load(null, rs));
         }
       }
       return result;
@@ -85,7 +86,7 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
         }
       }
       for (V v : values) {
-        save(con, t, v);
+        save(null, t, v);
       }
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);

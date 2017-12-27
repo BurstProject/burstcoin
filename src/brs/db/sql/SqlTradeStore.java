@@ -11,9 +11,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.jooq.DSLContext;
+
 import static brs.schema.Tables.TRADE;
 
-public abstract class SqlTradeStore implements TradeStore {
+public class SqlTradeStore implements TradeStore {
   private final DbKey.LinkKeyFactory<Trade> tradeDbKeyFactory = new DbKey.LinkKeyFactory<Trade>("ask_order_id", "bid_order_id") {
 
       @Override
@@ -26,13 +28,13 @@ public abstract class SqlTradeStore implements TradeStore {
   private final EntitySqlTable<Trade> tradeTable = new EntitySqlTable<Trade>("trade", TRADE, tradeDbKeyFactory) {
 
       @Override
-      protected Trade load(Connection con, ResultSet rs) throws SQLException {
+      protected Trade load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlTrade(rs);
       }
 
       @Override
-      protected void save(Connection con, Trade trade) throws SQLException {
-        saveTrade(con, trade);
+      protected void save(DSLContext ctx, Trade trade) throws SQLException {
+        saveTrade(ctx, trade);
       }
 
     };
@@ -44,41 +46,56 @@ public abstract class SqlTradeStore implements TradeStore {
 
   @Override
   public BurstIterator<Trade> getAssetTrades(long assetId, int from, int to) {
-    return tradeTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
+    return tradeTable.getManyBy(TRADE.ASSET_ID.eq(assetId), from, to);
   }
 
   @Override
   public BurstIterator<Trade> getAccountTrades(long accountId, int from, int to) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM trade WHERE seller_id = ?"
-                                                        + " UNION ALL SELECT * FROM trade WHERE buyer_id = ? AND seller_id <> ? ORDER BY height DESC"
-                                                        + DbUtils.limitsClause(from, to))) {
-      int i = 0;
-      pstmt.setLong(++i, accountId);
-      pstmt.setLong(++i, accountId);
-      pstmt.setLong(++i, accountId);
-      DbUtils.setLimits(++i, pstmt, from, to);
-      return tradeTable.getManyBy(con, pstmt, false);
-    } catch (SQLException e) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return tradeTable.getManyBy(
+        ctx,
+        ctx
+          .selectFrom(TRADE).where(
+            TRADE.SELLER_ID.eq(accountId)
+          )
+          .unionAll(
+            ctx.selectFrom(TRADE).where(
+              TRADE.BUYER_ID.eq(accountId).and(
+                TRADE.SELLER_ID.ne(accountId)
+              )
+            )
+          )
+          .orderBy(TRADE.HEIGHT.desc()).limit(from, to)
+          .getQuery(),
+        false
+      );
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
 
   @Override
   public BurstIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM trade WHERE seller_id = ? AND asset_id = ?"
-                                                        + " UNION ALL SELECT * FROM trade WHERE buyer_id = ? AND seller_id <> ? AND asset_id = ? ORDER BY height DESC"
-                                                        + DbUtils.limitsClause(from, to))) {
-      int i = 0;
-      pstmt.setLong(++i, accountId);
-      pstmt.setLong(++i, assetId);
-      pstmt.setLong(++i, accountId);
-      pstmt.setLong(++i, accountId);
-      pstmt.setLong(++i, assetId);
-      DbUtils.setLimits(++i, pstmt, from, to);
-      return tradeTable.getManyBy(con, pstmt, false);
-    } catch (SQLException e) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return tradeTable.getManyBy(
+        ctx,
+        ctx
+          .selectFrom(TRADE).where(
+            TRADE.SELLER_ID.eq(accountId).and(TRADE.ASSET_ID.eq(assetId))
+          )
+          .unionAll(
+            ctx.selectFrom(TRADE).where(
+              TRADE.BUYER_ID.eq(accountId)).and(
+                TRADE.SELLER_ID.ne(accountId)
+              ).and(TRADE.ASSET_ID.eq(assetId))
+          )
+          .orderBy(TRADE.HEIGHT.desc()).limit(from, to)
+          .getQuery(),
+        false
+      );
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -92,25 +109,17 @@ public abstract class SqlTradeStore implements TradeStore {
     }
   }
 
-  protected void saveTrade(Connection con, Trade trade) throws SQLException {
-    try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO trade (asset_id, block_id, "
-                                                        + "ask_order_id, bid_order_id, ask_order_height, bid_order_height, seller_id, buyer_id, quantity, price, timestamp, height) "
-                                                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-      int i = 0;
-      pstmt.setLong(++i, trade.getAssetId());
-      pstmt.setLong(++i, trade.getBlockId());
-      pstmt.setLong(++i, trade.getAskOrderId());
-      pstmt.setLong(++i, trade.getBidOrderId());
-      pstmt.setInt(++i, trade.getAskOrderHeight());
-      pstmt.setInt(++i, trade.getBidOrderHeight());
-      pstmt.setLong(++i, trade.getSellerId());
-      pstmt.setLong(++i, trade.getBuyerId());
-      pstmt.setLong(++i, trade.getQuantityQNT());
-      pstmt.setLong(++i, trade.getPriceNQT());
-      pstmt.setInt(++i, trade.getTimestamp());
-      pstmt.setInt(++i, trade.getHeight());
-      pstmt.executeUpdate();
-    }
+  protected void saveTrade(DSLContext ctx, Trade trade) throws SQLException {
+    ctx.insertInto(
+      TRADE,
+      TRADE.ASSET_ID, TRADE.BLOCK_ID, TRADE.ASK_ORDER_ID, TRADE.BID_ORDER_ID, TRADE.ASK_ORDER_HEIGHT,
+      TRADE.BID_ORDER_HEIGHT, TRADE.SELLER_ID, TRADE.BUYER_ID, TRADE.QUANTITY, TRADE.PRICE,
+      TRADE.TIMESTAMP, TRADE.HEIGHT
+    ).values(
+      trade.getAssetId(), trade.getBlockId(), trade.getAskOrderId(), trade.getBidOrderId(), trade.getAskOrderHeight(),
+      trade.getBidOrderHeight(), trade.getSellerId(), trade.getBuyerId(), trade.getQuantityQNT(), trade.getPriceNQT(),
+      trade.getTimestamp(), trade.getHeight()
+    ).execute();
   }
 
   @Override

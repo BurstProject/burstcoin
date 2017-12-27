@@ -7,6 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import org.jooq.SelectQuery;
+
 public final class DbUtils {
 
   private static final Logger logger = LoggerFactory.getLogger(DbUtils.class);
@@ -79,6 +81,19 @@ public final class DbUtils {
         return " ROWS ? ";
       default:
         return " LIMIT ?";
+    }
+  }
+
+  public static void applyLimits(SelectQuery query, int from, int to ) {
+    int limit = to >= 0 && to >= from && to < Integer.MAX_VALUE ? to - from + 1 : 0;
+    if (limit > 0 && from > 0) {
+      query.addLimit(limit, from);
+    }
+    else if (limit > 0) {
+      query.addLimit(limit);
+    }
+    else if (from > 0) {
+      query.addOffset(from);
     }
   }
 

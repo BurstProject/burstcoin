@@ -9,15 +9,16 @@ import org.jooq.Insert;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jooq.DSLContext;
+
 import static brs.schema.Tables.TRANSACTION;
 
-public abstract class SqlTransactionDb implements TransactionDb {
+public class SqlTransactionDb implements TransactionDb {
 
   @Override
   public Transaction findTransaction(long transactionId) {
@@ -109,7 +110,7 @@ public abstract class SqlTransactionDb implements TransactionDb {
   }
 
   @Override
-  public TransactionImpl loadTransaction(Connection con, ResultSet rs) throws BurstException.ValidationException {
+  public TransactionImpl loadTransaction(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException {
     // TODO: remove this method once SqlBlockchainStore no longer requires it
     try {
 

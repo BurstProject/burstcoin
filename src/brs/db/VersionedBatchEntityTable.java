@@ -1,9 +1,8 @@
 package brs.db;
 
-import brs.db.sql.DbClause;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
+import org.jooq.DSLContext;
+import org.jooq.Condition;
+import org.jooq.SelectQuery;
 
 public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<T> {
   boolean delete(T t);
@@ -21,22 +20,22 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
   T get(BurstKey dbKey, int height);
 
   @Override
-  T getBy(DbClause dbClause);
+  T getBy(Condition condition);
 
   @Override
-  T getBy(DbClause dbClause, int height);
+  T getBy(Condition condition, int height);
 
   @Override
-  BurstIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort);
+  BurstIterator<T> getManyBy(Condition condition, int from, int to, String sort);
 
   @Override
-  BurstIterator<T> getManyBy(DbClause dbClause, int height, int from, int to);
+  BurstIterator<T> getManyBy(Condition condition, int height, int from, int to);
 
   @Override
-  BurstIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort);
+  BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, String sort);
 
   @Override
-  BurstIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache);
+  BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery query, boolean cache);
 
   @Override
   BurstIterator<T> getAll(int from, int to);

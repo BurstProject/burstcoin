@@ -76,7 +76,7 @@ public final class Db {
 
       switch (DATABASE_TYPE) {
         case MARIADB:
-          config.setAutoCommit(false);
+          config.setAutoCommit(true);
           config.addDataSourceProperty("cachePrepStmts", "true");
           config.addDataSourceProperty("prepStmtCacheSize", "250");
           config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
@@ -99,7 +99,7 @@ public final class Db {
           }
           Class.forName("org.firebirdsql.jdbc.FBDriver");
 
-          config.setAutoCommit(false);
+          config.setAutoCommit(true);
           config.addDataSourceProperty("encoding", "UTF8");
           config.addDataSourceProperty("cachePrepStmts", "true");
           config.addDataSourceProperty("prepStmtCacheSize", "250");
@@ -124,7 +124,7 @@ public final class Db {
           break;
         case H2:
           Class.forName("org.h2.Driver");
-          config.setAutoCommit(false);
+          config.setAutoCommit(true);
           config.addDataSourceProperty("cachePrepStmts", "true");
           config.addDataSourceProperty("prepStmtCacheSize", "250");
           config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
@@ -187,6 +187,7 @@ public final class Db {
   }
 
   public static Connection getConnection() throws SQLException {
+    logger.trace(">>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + Thread.currentThread().getStackTrace()[2].getMethodName());
     Connection con = localConnection.get();
     if (con != null) {
       return con;
@@ -199,21 +200,15 @@ public final class Db {
       return new DbConnection(con);
   }
 
-  public static DSLContext getDSLContext() throws SQLException {
+  public static final DSLContext getDSLContext() throws SQLException {
     Settings settings = new Settings();
     settings.setRenderSchema(Boolean.FALSE);
     return DSL.using(
-      getConnection(),
+      cp,
       // SQLDialect.values()[DATABASE_TYPE.ordinal()],
       DATABASE_TYPE == TYPE.H2 ? SQLDialect.H2 : DATABASE_TYPE == TYPE.FIREBIRD ? SQLDialect.FIREBIRD : SQLDialect.MARIADB,
       settings
     );
-  }
-  
-  public static Connection getRawConnection() throws SQLException {
-
-    Connection con = getPooledConnection();
-    return con;
   }
 
   static Map<DbKey, Object> getCache(String tableName) {

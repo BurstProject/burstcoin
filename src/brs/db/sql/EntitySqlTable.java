@@ -16,12 +16,18 @@ import java.sql.SQLException;
 import static brs.schema.Tables.*;
 import static org.jooq.impl.DSL.*;
 
+import org.jooq.impl.DSL;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.Record;
 import org.jooq.Table;
+import org.jooq.TableField;
+import org.jooq.ResultQuery;
 import org.jooq.SelectJoinStep;
 import org.jooq.impl.TableImpl;
+import org.jooq.SelectQuery;
+import org.jooq.exception.DataAccessException;
 
 public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T> {
   protected final DbKey.Factory<T> dbKeyFactory;
@@ -50,9 +56,9 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     //        insertTimer =  Burst.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"insert"));
   }
 
-  protected abstract T load(Connection con, ResultSet rs) throws SQLException;
+  protected abstract T load(DSLContext ctx, ResultSet rs) throws SQLException;
 
-  protected void save(Connection con, T t) throws SQLException {
+  protected void save(DSLContext ctx, T t) throws SQLException {
   }
 
   protected String defaultSort() {
@@ -75,16 +81,18 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
         return t;
       }
     }
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
-                                                        + DbUtils.quoteTableName(table)
-                                                        + dbKeyFactory.getPKClause()
-                                                        + (multiversion ? " AND latest = TRUE " + DbUtils.limitsClause(1) : ""))) {
-      int i = dbKey.setPK(pstmt);
-      if (multiversion)
-        DbUtils.setLimits(i++, pstmt, 1);
-      return get(con, pstmt, true);
-    } catch (SQLException e) {
+    try (DSLContext ctx = Db.getDSLContext()) {
+      SelectQuery query = ctx.selectQuery();
+      query.addFrom(tableClass);
+      dbKey.applyPKClause(query, tableClass);
+      if ( multiversion ) {
+        query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
+      }
+      query.addLimit(1);
+
+      return get(ctx, query, true);
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -93,150 +101,29 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   public T get(BurstKey nxtKey, int height) {
     DbKey dbKey = (DbKey) nxtKey;
     checkAvailable(height);
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
-                                                        + DbUtils.quoteTableName(table)
-                                                        + dbKeyFactory.getPKClause()
-                                                        + " AND height <= ?" + (multiversion ? " AND (latest = TRUE OR EXISTS ("
-                                                                                + "SELECT 1 FROM " + table + dbKeyFactory.getPKClause() + " AND height > ?)) ORDER BY height DESC" + DbUtils.limitsClause(1) : ""))) {
-      int i = dbKey.setPK(pstmt);
-      pstmt.setInt(i, height);
-      if (multiversion) {
-        i = dbKey.setPK(pstmt, ++i);
-        pstmt.setInt(i++, height);
+
+    try (DSLContext ctx = Db.getDSLContext()) {
+      SelectQuery query = ctx.selectQuery();
+      query.addFrom(tableClass);
+      dbKey.applyPKClause(query, tableClass);
+      query.addConditions(tableClass.field("height", Integer.class).le(height));
+      if ( multiversion ) {
+        Table       innerTable = tableClass.as("b");
+        SelectQuery innerQuery = ctx.selectQuery();
+        innerQuery.addConditions(innerTable.field("height", Integer.class).gt(height));
+        dbKey.applyPKClause(innerQuery, innerTable);
+        // ToDo: verify:
+        // (latest = TRUE OR EXISTS ( SELECT 1 FROM " + table + dbKeyFactory.getPKClause() + " AND height > ?))"
+        query.addConditions(
+          tableClass.field("latest", Boolean.class).isTrue().or(
+            DSL.field(DSL.exists(innerQuery))
+          )
+        );
       }
-      i = DbUtils.setLimits(i++, pstmt, 1);
-      return get(con, pstmt, false);
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
-  }
+      query.addOrderBy(tableClass.field("height").desc());
+      query.addLimit(1);
 
-  @Override
-  public T getBy(DbClause dbClause) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
-                                                        + DbUtils.quoteTableName(table)
-                                                        + " WHERE " + dbClause.getClause() + (multiversion ? " AND latest = TRUE" + DbUtils.limitsClause(1) : ""))) {
-      int i = dbClause.set(pstmt, 1);
-      DbUtils.setLimits(i, pstmt, 1);
-      return get(con, pstmt, true);
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
-  }
-
-  @Override
-  public T getBy(DbClause dbClause, int height) {
-    checkAvailable(height);
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
-                                                        + DbUtils.quoteTableName(table)
-                                                        + " AS a WHERE " + dbClause.getClause()
-                                                        + " AND height <= ?" + (multiversion ? " AND (latest = TRUE OR EXISTS ("
-                                                                                + "SELECT 1 FROM " + table + " AS b WHERE " + dbKeyFactory.getSelfJoinClause()
-                                                                                + " AND b.height > ?)) ORDER BY height DESC" + DbUtils.limitsClause(1) : ""))) {
-      int i = 0;
-      i = dbClause.set(pstmt, ++i);
-      pstmt.setInt(i, height);
-      i = DbUtils.setLimits(i++, pstmt, 1);
-      if (multiversion) {
-        pstmt.setInt(++i, height);
-      }
-      return get(con, pstmt, false);
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
-  }
-
-  private T get(Connection con, PreparedStatement pstmt, boolean cache) throws SQLException {
-    final boolean doCache = cache && Db.isInTransaction();
-    try (ResultSet rs = pstmt.executeQuery()) {
-      if (!rs.next()) {
-        return null;
-      }
-      T t = null;
-      DbKey dbKey = null;
-      if (doCache) {
-        dbKey = (DbKey) dbKeyFactory.newKey(rs);
-        t = (T) Db.getCache(table).get(dbKey);
-      }
-      if (t == null) {
-        t = load(con, rs);
-        if (doCache) {
-          Db.getCache(table).put(dbKey, t);
-        }
-      }
-      if (rs.next()) {
-        throw new RuntimeException("Multiple records found");
-      }
-      return t;
-    }
-  }
-
-  @Override
-  public BurstIterator<T> getManyBy(DbClause dbClause, int from, int to) {
-    return getManyBy(dbClause, from, to, defaultSort());
-  }
-
-  @Override
-  public BurstIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort) {
-    Connection con = null;
-    try {
-      con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
-                                                     + DbUtils.quoteTableName(table)
-                                                     + " WHERE " + dbClause.getClause() + (multiversion ? " AND latest = TRUE " : " ") + sort
-                                                     + DbUtils.limitsClause(from, to));
-      int i = 0;
-      i = dbClause.set(pstmt, ++i);
-      i = DbUtils.setLimits(i++, pstmt, from, to);
-      return getManyBy(con, pstmt, true);
-    } catch (SQLException e) {
-      DbUtils.close(con);
-      throw new RuntimeException(e.toString(), e);
-    }
-  }
-
-  @Override
-  public BurstIterator<T> getManyBy(DbClause dbClause, int height, int from, int to) {
-    return getManyBy(dbClause, height, from, to, defaultSort());
-  }
-
-  @Override
-  public BurstIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort) {
-    checkAvailable(height);
-    Connection con = null;
-    try {
-      con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
-                                                     + DbUtils.quoteTableName(table)
-                                                     + " AS a WHERE "
-                                                     + dbClause.getClause()
-                                                     + "AND a.height <= ?" + (multiversion ? " AND (a.latest = TRUE OR (a.latest = FALSE "
-                                                                              + "AND EXISTS (SELECT 1 FROM " + table + " AS b WHERE " + dbKeyFactory.getSelfJoinClause() + " AND b.height > ?) "
-                                                                              + "AND NOT EXISTS (SELECT 1 FROM " + table + " AS b WHERE " + dbKeyFactory.getSelfJoinClause()
-                                                                              + " AND b.height <= ? AND b.height > a.height))) "
-                                                                              : " ") + sort
-                                                     + DbUtils.limitsClause(from, to));
-      int i = 0;
-      i = dbClause.set(pstmt, ++i);
-      pstmt.setInt(i, height);
-      if (multiversion) {
-        pstmt.setInt(++i, height);
-        pstmt.setInt(++i, height);
-      }
-      i = DbUtils.setLimits(++i, pstmt, from, to);
-      return getManyBy(con, pstmt, false);
-    } catch (SQLException e) {
-      DbUtils.close(con);
-      throw new RuntimeException(e.toString(), e);
-    }
-  }
-
-  public BurstIterator<T> getManyBy(Connection con, String sql, boolean cache) {
-    try {
-      return getManyBy(con, con.prepareStatement(sql), cache);
+      return get(ctx, query, false);
     }
     catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
@@ -244,11 +131,150 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache) {
+  public T getBy(Condition condition) {
+    try (DSLContext ctx = Db.getDSLContext()) {
+      SelectQuery query = ctx.selectQuery();
+      query.addFrom(tableClass);
+      query.addConditions(condition);
+      if ( multiversion ) {
+        query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
+      }
+      query.addLimit(1);
+
+      return get(ctx, query, true);
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e.toString(), e);
+    }
+  }
+
+  @Override
+  public T getBy(Condition condition, int height) {
+    checkAvailable(height);
+
+    try (DSLContext ctx = Db.getDSLContext()) {
+      SelectQuery query = ctx.selectQuery();
+      query.addFrom(tableClass);
+      query.addConditions(condition);
+      query.addConditions(tableClass.field("height", Integer.class).le(height));
+      if ( multiversion ) {
+        Table       innerTable = tableClass.as("b");
+        SelectQuery innerQuery = ctx.selectQuery();
+        innerQuery.addConditions(innerTable.field("height", Integer.class).gt(height));
+        dbKeyFactory.applySelfJoin(innerQuery, innerTable, tableClass);
+        query.addConditions(
+          tableClass.field("latest", Boolean.class).isTrue().or(
+            DSL.field(DSL.exists(innerQuery))
+          )
+        );
+      }
+      query.addOrderBy(tableClass.field("height").desc());
+      query.addLimit(1);
+
+      return get(ctx, query, false);
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e.toString(), e);
+    }
+  }
+
+  private T get(DSLContext ctx, SelectQuery query, boolean cache) throws SQLException {
     final boolean doCache = cache && Db.isInTransaction();
-    return new DbIterator<>(con, pstmt, new DbIterator.ResultSetReader<T>() {
+    ResultSet rs = query.fetchResultSet();
+
+    if (!rs.next()) {
+      return null;
+    }
+    T t = null;
+    DbKey dbKey = null;
+    if (doCache) {
+      dbKey = (DbKey) dbKeyFactory.newKey(rs);
+      t = (T) Db.getCache(table).get(dbKey);
+    }
+    if (t == null) {
+      t = load(ctx, rs);
+      if (doCache) {
+        Db.getCache(table).put(dbKey, t);
+      }
+    }
+    if (rs.next()) {
+      throw new RuntimeException("Multiple records found");
+    }
+    return t;
+  }
+
+  @Override
+  public BurstIterator<T> getManyBy(Condition condition, int from, int to) {
+    return getManyBy(condition, from, to, defaultSort());
+  }
+
+  @Override
+  public BurstIterator<T> getManyBy(Condition condition, int from, int to, String sort) {
+    try (DSLContext ctx = Db.getDSLContext()) {
+      SelectQuery query = ctx.selectQuery();
+      query.addFrom(tableClass);
+      query.addConditions(condition);
+      if ( multiversion ) {
+        query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
+      }
+      DbUtils.applyLimits(query, from, to);
+      return getManyBy(ctx, query, true);
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e.toString(), e);
+    }
+  }
+
+  @Override
+  public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to) {
+    return getManyBy(condition, height, from, to, defaultSort());
+  }
+
+  @Override
+  public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, String sort) {
+    checkAvailable(height);
+    try (DSLContext ctx = Db.getDSLContext()) {
+      SelectQuery query = ctx.selectQuery();
+      query.addFrom(tableClass);
+      query.addConditions(condition);
+      query.addConditions(tableClass.field("height", Integer.class).le(height));
+      if ( multiversion ) {
+        Table       innerTableB = tableClass.as("b");
+        SelectQuery innerQueryB = ctx.selectQuery();
+        innerQueryB.addConditions(innerTableB.field("height", Integer.class).gt(height));
+        dbKeyFactory.applySelfJoin(innerQueryB, innerTableB, tableClass);
+
+        Table       innerTableC = tableClass.as("c");
+        SelectQuery innerQueryC = ctx.selectQuery();
+        innerQueryC.addConditions(
+          innerTableC.field("height", Integer.class).le(height).and(
+            innerTableC.field("height").gt(tableClass.field("height"))
+          )
+        );
+        dbKeyFactory.applySelfJoin(innerQueryC, innerTableC, tableClass);
+
+        query.addConditions(
+          tableClass.field("latest", Boolean.class).isTrue().or(
+            DSL.field(
+              DSL.exists(innerQueryB).and(DSL.notExists(innerQueryC))
+            )
+          )
+        );
+      }
+      // ToDo: addSort
+      DbUtils.applyLimits(query, from, to);
+      return getManyBy(ctx, query, true);
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e.toString(), e);
+    }
+  }
+
+  public BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery query, boolean cache) {
+    final boolean doCache = cache && Db.isInTransaction();
+    return new DbIterator<>(ctx, query.fetchResultSet(), new DbIterator.ResultSetReader<T>() {
         @Override
-        public T get(Connection con, ResultSet rs) throws Exception {
+        public T get(DSLContext ctx, ResultSet rs) throws Exception {
           T t = null;
           DbKey dbKey = null;
           if (doCache) {
@@ -256,7 +282,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
             t = (T) Db.getCache(table).get(dbKey);
           }
           if (t == null) {
-            t = load(con, rs);
+            t = load(ctx, rs);
             if (doCache) {
               Db.getCache(table).put(dbKey, t);
             }
@@ -273,17 +299,17 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
 
   @Override
   public BurstIterator<T> getAll(int from, int to, String sort) {
-    Connection con = null;
-    try {
-      con = Db.getConnection();
-      PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
-                                                     + DbUtils.quoteTableName(table)
-                                                     + (multiversion ? " WHERE latest = TRUE " : " ") + sort
-                                                     + DbUtils.limitsClause(from, to));
-      DbUtils.setLimits(1, pstmt, from, to);
-      return getManyBy(con, pstmt, true);
-    } catch (SQLException e) {
-      DbUtils.close(con);
+    try (DSLContext ctx = Db.getDSLContext()) {
+      SelectQuery query = ctx.selectQuery();
+      query.addFrom(tableClass);
+      if ( multiversion ) {
+        query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
+      }
+      // ToDo: sort
+      DbUtils.applyLimits(query, from, to);
+      return getManyBy(ctx, query, true);
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -296,25 +322,38 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   @Override
   public BurstIterator<T> getAll(int height, int from, int to, String sort) {
     checkAvailable(height);
-    try ( Connection con = Db.getConnection();
-          PreparedStatement pstmt = con.prepareStatement("SELECT * FROM "
-                                                         + DbUtils.quoteTableName(table)
-                                                         + " AS a WHERE height <= ?"
-                                                         + (multiversion ? " AND (latest = TRUE OR (latest = FALSE "
-                                                            + "AND EXISTS (SELECT 1 FROM " + table + " AS b WHERE b.height > ? AND " + dbKeyFactory.getSelfJoinClause()
-                                                            + ") AND NOT EXISTS (SELECT 1 FROM " + table + " AS b WHERE b.height <= ? AND " + dbKeyFactory.getSelfJoinClause()
-                                                            + " AND b.height > a.height))) " : " ")
-                                                         + sort
-                                                         + DbUtils.limitsClause(from, to)); ) {
-      int i = 0;
-      pstmt.setInt(++i, height);
-      if (multiversion) {
-        pstmt.setInt(++i, height);
-        pstmt.setInt(++i, height);
+    try (DSLContext ctx = Db.getDSLContext()) {
+      SelectQuery query = ctx.selectQuery();
+      query.addFrom(tableClass);
+      query.addConditions(tableClass.field("height", Integer.class).le(height));
+      if ( multiversion ) {
+        Table       innerTableB = tableClass.as("b");
+        SelectQuery innerQueryB = ctx.selectQuery();
+        innerQueryB.addConditions(innerTableB.field("height", Integer.class).gt(height));
+        dbKeyFactory.applySelfJoin(innerQueryB, innerTableB, tableClass);
+
+        Table       innerTableC = tableClass.as("c");
+        SelectQuery innerQueryC = ctx.selectQuery();
+        innerQueryC.addConditions(
+          innerTableC.field("height", Integer.class).le(height).and(
+            innerTableC.field("height").gt(tableClass.field("height"))
+          )
+        );
+        dbKeyFactory.applySelfJoin(innerQueryC, innerTableC, tableClass);
+
+        query.addConditions(
+          tableClass.field("latest", Boolean.class).isTrue().or(
+            DSL.field(
+              DSL.exists(innerQueryB).and(DSL.notExists(innerQueryC))
+            )
+          )
+        );
       }
-      i = DbUtils.setLimits(++i, pstmt, from, to);
-      return getManyBy(con, pstmt, false);
-    } catch (SQLException e) {
+      // ToDo: addSort
+      query.addLimit(from, to);
+      return getManyBy(ctx, query, true);
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -324,7 +363,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     try ( DSLContext ctx = Db.getDSLContext() ) {
       TableImpl<?>      t = tableClass;
       SelectJoinStep<?> r = ctx.selectCount().from(t);
-      return ( multiversion ? r.where(t.field("LATEST").isTrue()) : r ).fetchOne(0, int.class);
+      return ( multiversion ? r.where(t.field("latest").isTrue()) : r ).fetchOne(0, int.class);
     }
     catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
@@ -363,7 +402,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
           pstmt.executeUpdate();
         }
       }
-      save(con, t);
+      save(null, t);
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }

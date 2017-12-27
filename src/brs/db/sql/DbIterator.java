@@ -2,32 +2,31 @@ package brs.db.sql;
 
 import brs.db.BurstIterator;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.jooq.DSLContext;
+
 class DbIterator<T> implements BurstIterator<T> {
 
-  private final Connection con;
-  private final PreparedStatement pstmt;
   private final ResultSetReader<T> rsReader;
   private final ResultSet rs;
+  private final DSLContext ctx;
 
   private boolean hasNext;
   private boolean iterated;
 
-  public DbIterator(Connection con, PreparedStatement pstmt, ResultSetReader<T> rsReader) {
-    this.con = con;
-    this.pstmt = pstmt;
+  public DbIterator(DSLContext ctx, ResultSet rs, ResultSetReader<T> rsReader) {
+    this.ctx      = ctx;
     this.rsReader = rsReader;
     try {
-      this.rs = pstmt.executeQuery();
+      this.rs      = rs;
       this.hasNext = rs.next();
-    } catch (SQLException e) {
-      DbUtils.close(pstmt, con);
+    }
+    catch (SQLException e) {
+      DbUtils.close(rs);
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -35,7 +34,7 @@ class DbIterator<T> implements BurstIterator<T> {
   @Override
   public boolean hasNext() {
     if (! hasNext) {
-      DbUtils.close(rs, pstmt, con);
+      DbUtils.close(rs);
     }
     return hasNext;
   }
@@ -43,15 +42,15 @@ class DbIterator<T> implements BurstIterator<T> {
   @Override
   public T next() {
     if (! hasNext) {
-      DbUtils.close(rs, pstmt, con);
+      DbUtils.close(rs);
       throw new NoSuchElementException();
     }
     try {
-      T result = rsReader.get(con, rs);
+      T result = rsReader.get(ctx, rs);
       hasNext = rs.next();
       return result;
     } catch (Exception e) {
-      DbUtils.close(rs, pstmt, con);
+      DbUtils.close(rs);
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -63,7 +62,7 @@ class DbIterator<T> implements BurstIterator<T> {
 
   @Override
   public void close() {
-    DbUtils.close(rs, pstmt, con);
+    DbUtils.close(rs);
   }
 
   @Override

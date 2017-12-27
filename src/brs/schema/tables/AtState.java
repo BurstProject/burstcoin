@@ -107,7 +107,7 @@ public class AtState extends TableImpl<AtStateRecord> {
     /**
      * The column <code>DB.at_state.latest</code>.
      */
-    public final TableField<AtStateRecord, Byte> LATEST = createField("latest", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+  public final TableField<AtStateRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false));
 
     /**
      * Create a <code>DB.at_state</code> table reference

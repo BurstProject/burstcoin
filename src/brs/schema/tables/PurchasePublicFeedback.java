@@ -77,7 +77,7 @@ public class PurchasePublicFeedback extends TableImpl<PurchasePublicFeedbackReco
     /**
      * The column <code>DB.purchase_public_feedback.latest</code>.
      */
-    public final TableField<PurchasePublicFeedbackRecord, Byte> LATEST = createField("latest", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<PurchasePublicFeedbackRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false));
 
     /**
      * Create a <code>DB.purchase_public_feedback</code> table reference

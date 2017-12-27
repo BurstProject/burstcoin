@@ -47,7 +47,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
 
             DbUtils.setLimits(dbKeyFactory.getPkVariables()+1, pstmt, 1);
             pstmt.executeUpdate();
-            save(con, t);
+            save(null, t);
             pstmt.executeUpdate(); // delete after the save
           }
           return true;

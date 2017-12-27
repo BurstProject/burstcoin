@@ -9,6 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import brs.db.sql.SqlBlockDb;
+
 final class H2DbVersion {
 
   private static final Logger logger = LoggerFactory.getLogger(H2DbVersion.class);
@@ -216,7 +218,7 @@ final class H2DbVersion {
       case 54:
         apply("ALTER TABLE transaction ALTER COLUMN recipient_id SET NULL");
       case 55:
-        new H2BlockDB().deleteAll();
+        new SqlBlockDb().deleteAll();
         apply(null);
       case 56:
         apply("CREATE INDEX IF NOT EXISTS transaction_recipient_id_idx ON transaction (recipient_id)");

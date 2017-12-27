@@ -9,6 +9,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import brs.db.sql.SqlBlockDb;
+import brs.db.sql.SqlTransactionDb;
+import brs.db.sql.SqlPeerDb;
+
 /**
  * Db-Classes are necessary for the instanciation of some stores and have to be handled separately. In the original version these were static
  */
@@ -21,9 +25,9 @@ public class H2Dbs implements Dbs {
 
   public H2Dbs() {
     H2DbVersion.init();
-    this.blockDb = new H2BlockDB();
-    this.transactionDb = new H2TransactionDb();
-    this.peerDb = new H2PeerDb();
+    this.blockDb       = new SqlBlockDb();
+    this.transactionDb = new SqlTransactionDb();
+    this.peerDb        = new SqlPeerDb();
   }
 
   @Override
