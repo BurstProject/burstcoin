@@ -16,6 +16,7 @@ public interface BurstKey {
 
   int setPK(PreparedStatement pstmt, int index) throws SQLException;
 
+  long[] getPKValues();
 
   interface LongKeyFactory<T> extends Factory<T> {
     @Override

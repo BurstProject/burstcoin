@@ -36,7 +36,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
     new EntitySqlTable<TransactionImpl>("unconfirmed_transaction", brs.schema.Tables.UNCONFIRMED_TRANSACTION, unconfirmedTransactionDbKeyFactory) {
 
         @Override
-        protected TransactionImpl load(Connection con, ResultSet rs) throws SQLException {
+        protected TransactionImpl load(DSLContext ctx, ResultSet rs) throws SQLException {
           byte[] transactionBytes = rs.getBytes("transaction_bytes");
           try {
             TransactionImpl transaction = TransactionImpl.parseTransaction(transactionBytes);
@@ -48,22 +48,17 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
         }
 
         @Override
-        protected void save(Connection con, TransactionImpl transaction) throws SQLException {
-          try ( DSLContext ctx = Db.getDSLContext() ) {
-            ctx.insertInto(
-              UNCONFIRMED_TRANSACTION,
-              UNCONFIRMED_TRANSACTION.ID, UNCONFIRMED_TRANSACTION.TRANSACTION_HEIGHT, UNCONFIRMED_TRANSACTION.FEE_PER_BYTE,
-              UNCONFIRMED_TRANSACTION.TIMESTAMP, UNCONFIRMED_TRANSACTION.EXPIRATION, UNCONFIRMED_TRANSACTION.TRANSACTION_BYTES,
-              UNCONFIRMED_TRANSACTION.HEIGHT
-            ).values(
-              transaction.getId(), transaction.getHeight(), transaction.getFeeNQT() / transaction.getSize(),
-              transaction.getTimestamp(), transaction.getExpiration(), transaction.getBytes(),
-              Burst.getBlockchain().getHeight()
-            );
-          }
-          catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-          }
+        protected void save(DSLContext ctx, TransactionImpl transaction) throws SQLException {
+          ctx.insertInto(
+            UNCONFIRMED_TRANSACTION,
+            UNCONFIRMED_TRANSACTION.ID, UNCONFIRMED_TRANSACTION.TRANSACTION_HEIGHT, UNCONFIRMED_TRANSACTION.FEE_PER_BYTE,
+            UNCONFIRMED_TRANSACTION.TIMESTAMP, UNCONFIRMED_TRANSACTION.EXPIRATION, UNCONFIRMED_TRANSACTION.TRANSACTION_BYTES,
+            UNCONFIRMED_TRANSACTION.HEIGHT
+          ).values(
+            transaction.getId(), transaction.getHeight(), transaction.getFeeNQT() / transaction.getSize(),
+            transaction.getTimestamp(), transaction.getExpiration(), transaction.getBytes(),
+            Burst.getBlockchain().getHeight()
+          );
         }
 
         @Override
@@ -72,7 +67,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
           try ( DSLContext ctx = Db.getDSLContext() ) {
             try ( ResultSet rs = ctx.selectFrom(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.HEIGHT.gt(height)).fetchResultSet() ) {
               while (rs.next()) {
-                transactions.add(load(null, rs));
+                transactions.add(load(ctx, rs));
               }
             }
           }
@@ -124,8 +119,8 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
   public BurstIterator<TransactionImpl> getExpiredTransactions() {
     try ( DSLContext ctx = Db.getDSLContext() ) {
       return unconfirmedTransactionTable.getManyBy(
-        Db.getConnection(),
-        ctx.selectFrom(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.EXPIRATION.lt(Burst.getEpochTime())).getSQL(true),
+        ctx,
+        ctx.selectFrom(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.EXPIRATION.lt(Burst.getEpochTime())).getQuery(),
         true
       );
     }

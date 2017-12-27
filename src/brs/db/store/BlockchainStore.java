@@ -5,9 +5,10 @@ import brs.BlockImpl;
 import brs.TransactionImpl;
 import brs.db.BurstIterator;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.util.List;
+import java.sql.ResultSet;
+
+import org.jooq.DSLContext;
 
 /**
  * Store for both BlockchainImpl and BlockchainProcessorImpl
@@ -20,7 +21,7 @@ public interface BlockchainStore {
 
   BurstIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to);
 
-  BurstIterator<BlockImpl> getBlocks(Connection con, PreparedStatement pstmt);
+  BurstIterator<BlockImpl> getBlocks(DSLContext ctx, ResultSet rs);
 
   List<Long> getBlockIdsAfter(long blockId, int limit);
 
@@ -33,7 +34,7 @@ public interface BlockchainStore {
   BurstIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                  int blockTimestamp, int from, int to);
 
-  BurstIterator<TransactionImpl> getTransactions(Connection con, PreparedStatement pstmt);
+  BurstIterator<TransactionImpl> getTransactions(DSLContext ctx, ResultSet rs);
 
   boolean addBlock(BlockImpl block);
 

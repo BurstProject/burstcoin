@@ -18,8 +18,9 @@ import static org.jooq.impl.DSL.*;
 
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Table;
 
-public abstract class SqlBlockDb implements BlockDb {
+public class SqlBlockDb implements BlockDb {
 
   private static final Logger logger = LoggerFactory.getLogger(BlockDb.class);
 
@@ -84,7 +85,7 @@ public abstract class SqlBlockDb implements BlockDb {
     }
   }
 
-  public BlockImpl loadBlock(Connection con, ResultSet rs) throws BurstException.ValidationException {
+  public BlockImpl loadBlock(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException {
     try {
       int version = rs.getInt("version");
       int timestamp = rs.getInt("timestamp");
@@ -110,14 +111,14 @@ public abstract class SqlBlockDb implements BlockDb {
       return new BlockImpl(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                            generatorPublicKey, generationSignature, blockSignature, previousBlockHash,
                            cumulativeDifficulty, baseTarget, nextBlockId, height, id, nonce, blockATs);
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
-  
-  public void saveBlock(Connection con, BlockImpl block) {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      ctx.insertInto(
+
+  public void saveBlock(DSLContext ctx, BlockImpl block) {
+    ctx.insertInto(
         BLOCK,
         BLOCK.ID, BLOCK.VERSION, BLOCK.TIMESTAMP, BLOCK.PREVIOUS_BLOCK_ID, BLOCK.TOTAL_AMOUNT, BLOCK.TOTAL_FEE,
         BLOCK.PAYLOAD_LENGTH, BLOCK.GENERATOR_PUBLIC_KEY, BLOCK.PREVIOUS_BLOCK_HASH, BLOCK.CUMULATIVE_DIFFICULTY,
@@ -130,13 +131,10 @@ public abstract class SqlBlockDb implements BlockDb {
         block.getGeneratorId(), block.getNonce(), block.getBlockATs()
       ).execute();
 
-      Burst.getDbs().getTransactionDb().saveTransactions(block.getTransactions());
+    Burst.getDbs().getTransactionDb().saveTransactions(block.getTransactions());
 
-      if (block.getPreviousBlockId() != 0) {
-        ctx.update(BLOCK).set(BLOCK.NEXT_BLOCK_ID, block.getId()).where(BLOCK.ID.eq(block.getPreviousBlockId()));
-      }
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
+    if ( block.getPreviousBlockId() != 0 ) {
+      ctx.update(BLOCK).set(BLOCK.NEXT_BLOCK_ID, block.getId()).where(BLOCK.ID.eq(block.getPreviousBlockId()));
     }
   }
 
@@ -178,7 +176,38 @@ public abstract class SqlBlockDb implements BlockDb {
     }
   }
 
-  @Override
-  public abstract void deleteAll();
+  public void deleteAll() {
+    if (!Db.isInTransaction()) {
+      try {
+        Db.beginTransaction();
+        deleteAll();
+        Db.commitTransaction();
+      } catch (Exception e) {
+        Db.rollbackTransaction();
+        throw e;
+      } finally {
+        Db.endTransaction();
+      }
+      return;
+    }
+    logger.info("Deleting blockchain...");
+    try (DSLContext ctx = Db.getDSLContext() ) {
+      try {
+        for ( Table table : ctx.meta().getTables() ) {
+          if ( table.getName().toUpperCase() != "PEER" ) {
+            ctx.truncate(table).execute();
+          }
+        }
+        Db.commitTransaction();
+      }
+      catch (Exception e) {
+        Db.rollbackTransaction();
+        throw e;
+      }
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e.toString(), e);
+    }
+  }
 
 }

@@ -124,17 +124,18 @@ public class LoadBinDump {
           logger.info("Using mariadb Backend");
           dbs = new MariadbDbs();
           break;
+        case FIREBIRD:
+          logger.info("Using Firebird Backend");
+          dbs = new FirebirdDbs();
+          break;
         case H2:
           logger.info("Using h2 Backend");
           dbs = new H2Dbs();
           break;
-        case FIREBIRD:
-          logger.info("Using firebird Backend");
-          dbs = new FirebirdDbs();
-          break;
         default:
           throw new RuntimeException("Error initializing wallet: Unknown database type");
       }
+
       load(source);
     } catch (Exception e) {
       logger.error("Error", e);

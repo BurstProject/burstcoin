@@ -4,11 +4,8 @@ import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.github.gquintana.metrics.util.SqlObjectNameFactory;
 import brs.db.firebird.FirebirdDbs;
-import brs.db.firebird.FirebirdStores;
 import brs.db.h2.H2Dbs;
-import brs.db.h2.H2Stores;
 import brs.db.mariadb.MariadbDbs;
-import brs.db.mariadb.MariadbStores;
 import brs.db.sql.Db;
 import brs.db.store.Dbs;
 import brs.db.store.Stores;
@@ -35,7 +32,7 @@ public final class Burst {
   public static final String APPLICATION = "BRS";
 
   private static final String LOG_UNDEF_NAME_DEFAULT = "{} undefined. Default: {}";
-  
+
   public static final MetricRegistry metrics = new MetricRegistry();
   private static final Logger logger = LoggerFactory.getLogger(Burst.class);
   private static final Properties defaultProperties = new Properties();
@@ -256,21 +253,20 @@ public final class Burst {
           case MARIADB:
             logger.info("Using mariadb Backend");
             dbs = new MariadbDbs();
-            stores = new MariadbStores();
             break;
           case FIREBIRD:
             logger.info("Using Firebird Backend");
             dbs = new FirebirdDbs();
-            stores = new FirebirdStores();
             break;
           case H2:
             logger.info("Using h2 Backend");
             dbs = new H2Dbs();
-            stores = new H2Stores();
             break;
           default:
             throw new RuntimeException("Error initializing wallet: Unknown database type");
         }
+        stores = new Stores();
+
         TransactionProcessorImpl.getInstance();
         BlockchainProcessorImpl.getInstance();
 

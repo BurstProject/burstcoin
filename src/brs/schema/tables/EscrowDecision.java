@@ -82,7 +82,7 @@ public class EscrowDecision extends TableImpl<EscrowDecisionRecord> {
     /**
      * The column <code>DB.escrow_decision.latest</code>.
      */
-    public final TableField<EscrowDecisionRecord, Byte> LATEST = createField("latest", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<EscrowDecisionRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false), this, "");
 
     /**
      * Create a <code>DB.escrow_decision</code> table reference

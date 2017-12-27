@@ -11,7 +11,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public abstract class SqlOrderStore implements OrderStore {
+import org.jooq.impl.TableImpl;
+import org.jooq.DSLContext;
+import org.jooq.SelectQuery;
+import brs.schema.Tables.*;
+
+public class SqlOrderStore implements OrderStore {
   protected DbKey.LongKeyFactory<Order.Ask> askOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Ask>("id") {
 
       @Override
@@ -22,13 +27,13 @@ public abstract class SqlOrderStore implements OrderStore {
     };
   protected VersionedEntityTable<Order.Ask> askOrderTable = new VersionedEntitySqlTable<Order.Ask>("ask_order", brs.schema.Tables.ASK_ORDER, askOrderDbKeyFactory) {
       @Override
-      protected Order.Ask load(Connection con, ResultSet rs) throws SQLException {
+      protected Order.Ask load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlAsk(rs);
       }
 
       @Override
-      protected void save(Connection con, Order.Ask ask) throws SQLException {
-        saveAsk(con, table, ask);
+      protected void save(DSLContext ctx, Order.Ask ask) throws SQLException {
+        saveAsk(ctx, brs.schema.Tables.ASK_ORDER, ask);
       }
 
       @Override
@@ -48,13 +53,13 @@ public abstract class SqlOrderStore implements OrderStore {
   protected VersionedEntityTable<Order.Bid> bidOrderTable = new VersionedEntitySqlTable<Order.Bid>("bid_order", brs.schema.Tables.BID_ORDER, bidOrderDbKeyFactory) {
 
       @Override
-      protected Order.Bid load(Connection con, ResultSet rs) throws SQLException {
+      protected Order.Bid load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlBid(rs);
       }
 
       @Override
-      protected void save(Connection con, Order.Bid bid) throws SQLException {
-        saveBid(con, table, bid);
+      protected void save(DSLContext ctx, Order.Bid bid) throws SQLException {
+        saveBid(ctx, brs.schema.Tables.BID_ORDER, bid);
       }
 
       @Override
@@ -71,31 +76,32 @@ public abstract class SqlOrderStore implements OrderStore {
 
   @Override
   public BurstIterator<Order.Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
-    DbClause dbClause = new DbClause(" account_id = ? AND asset_id = ? ") {
-        @Override
-        public int set(PreparedStatement pstmt, int index) throws SQLException {
-          pstmt.setLong(index++, accountId);
-          pstmt.setLong(index++, assetId);
-          return index;
-        }
-      };
-    return askOrderTable.getManyBy(dbClause, from, to);
+    return askOrderTable.getManyBy(
+      brs.schema.Tables.ASK_ORDER.ACCOUNT_ID.eq(accountId).and(
+        brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId)
+      ),
+      from,
+      to
+    );
   }
 
   @Override
   public BurstIterator<Order.Ask> getSortedAsks(long assetId, int from, int to) {
-    return askOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to,
+    return askOrderTable.getManyBy(brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId), from, to,
                                    " ORDER BY price ASC, creation_height ASC, id ASC ");
   }
 
   @Override
   public Order.Ask getNextOrder(long assetId) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM ask_order WHERE asset_id = ? "
-                                                        + "AND latest = TRUE ORDER BY price ASC, creation_height ASC, id ASC" + DbUtils.limitsClause(1))) {
-      pstmt.setLong(1, assetId);
-      DbUtils.setLimits(2, pstmt, 1);
-      try (BurstIterator<Order.Ask> askOrders = askOrderTable.getManyBy(con, pstmt, true)) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      SelectQuery query = ctx.selectFrom(brs.schema.Tables.ASK_ORDER).where(
+        brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId).and(brs.schema.Tables.ASK_ORDER.LATEST.isTrue())
+      ).orderBy(
+        brs.schema.Tables.ASK_ORDER.PRICE.asc(),
+        brs.schema.Tables.ASK_ORDER.CREATION_HEIGHT.asc(),
+        brs.schema.Tables.ASK_ORDER.ID.asc()
+      ).limit(1).getQuery();
+      try (BurstIterator<Order.Ask> askOrders = askOrderTable.getManyBy(ctx, query, true)) {
         return askOrders.hasNext() ? askOrders.next() : null;
       }
     } catch (SQLException e) {
@@ -110,18 +116,30 @@ public abstract class SqlOrderStore implements OrderStore {
 
   @Override
   public BurstIterator<Order.Ask> getAskOrdersByAccount(long accountId, int from, int to) {
-    return askOrderTable.getManyBy(new DbClause.LongClause("account_id", accountId), from, to);
+    return askOrderTable.getManyBy(brs.schema.Tables.ASK_ORDER.ACCOUNT_ID.eq(accountId), from, to);
   }
 
   @Override
   public BurstIterator<Order.Ask> getAskOrdersByAsset(long assetId, int from, int to) {
-    return askOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
+    return askOrderTable.getManyBy(brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId), from, to);
   }
 
-  protected abstract void saveOrder(Connection con, String table, Order order) throws SQLException;
+  protected void saveOrder(DSLContext ctx, TableImpl table, Order order) throws SQLException {
+    ctx.mergeInto(
+      table,
+      table.field("ID"), table.field("ACCOUNT_ID"), table.field("ASSET_ID"), table.field("PRICE"),
+      table.field("QUANTITY"), table.field("CREATION_HEIGHT"), table.field("HEIGHT"), table.field("LATEST")
+    )
+    .key(table.field("ID"), table.field("HEIGHT"))
+    .values(
+      order.getId(), order.getAccountId(), order.getAssetId(), order.getPriceNQT(),
+      order.getQuantityQNT(), order.getHeight(), brs.Burst.getBlockchain().getHeight(), true
+    )
+    .execute();
+  }
 
-  private void saveAsk(Connection con, String table, Order.Ask ask) throws SQLException {
-    saveOrder(con, table, ask);
+  private void saveAsk(DSLContext ctx, TableImpl table, Order.Ask ask) throws SQLException {
+    saveOrder(ctx, table, ask);
   }
 
   @Override
@@ -141,42 +159,43 @@ public abstract class SqlOrderStore implements OrderStore {
 
   @Override
   public BurstIterator<Order.Bid> getBidOrdersByAccount(long accountId, int from, int to) {
-    return bidOrderTable.getManyBy(new DbClause.LongClause("account_id", accountId), from, to);
+    return bidOrderTable.getManyBy(brs.schema.Tables.BID_ORDER.ACCOUNT_ID.eq(accountId), from, to);
   }
 
   @Override
   public BurstIterator<Order.Bid> getBidOrdersByAsset(long assetId, int from, int to) {
-    return bidOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
+    return bidOrderTable.getManyBy(brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId), from, to);
   }
 
   @Override
   public BurstIterator<Order.Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
-    DbClause dbClause = new DbClause(" account_id = ? AND asset_id = ? ") {
-        @Override
-        public int set(PreparedStatement pstmt, int index) throws SQLException {
-          pstmt.setLong(index++, accountId);
-          pstmt.setLong(index++, assetId);
-          return index;
-        }
-      };
-    return bidOrderTable.getManyBy(dbClause, from, to);
+    return bidOrderTable.getManyBy(
+      brs.schema.Tables.BID_ORDER.ACCOUNT_ID.eq(accountId).and(
+        brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId)
+      ),
+      from,
+      to
+    );
   }
 
   @Override
   public BurstIterator<Order.Bid> getSortedBids(long assetId, int from, int to) {
 
-    return bidOrderTable.getManyBy(new DbClause.LongClause("asset_id", assetId), from, to,
+    return bidOrderTable.getManyBy(brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId), from, to,
                                    " ORDER BY price DESC, creation_height ASC, id ASC ");
   }
 
   @Override
   public Order.Bid getNextBid(long assetId) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM bid_order WHERE asset_id = ? "
-                                                        + "AND latest = TRUE ORDER BY price DESC, creation_height ASC, id ASC" + DbUtils.limitsClause(1) )) {
-      pstmt.setLong(1, assetId);
-      DbUtils.setLimits(2, pstmt, 1);
-      try (BurstIterator<Order.Bid> bidOrders = bidOrderTable.getManyBy(con, pstmt, true)) {
+    try (DSLContext ctx = Db.getDSLContext() ) {
+      SelectQuery query = ctx.selectFrom(brs.schema.Tables.BID_ORDER).where(
+        brs.schema.Tables.BID_ORDER.LATEST.isTrue()
+      ).orderBy(
+        brs.schema.Tables.BID_ORDER.PRICE.desc(),
+        brs.schema.Tables.BID_ORDER.CREATION_HEIGHT.asc(),
+        brs.schema.Tables.BID_ORDER.ID.asc()
+      ).limit(1).getQuery();
+      try (BurstIterator<Order.Bid> bidOrders = bidOrderTable.getManyBy(ctx, query, true)) {
         return bidOrders.hasNext() ? bidOrders.next() : null;
       }
     } catch (SQLException e) {
@@ -184,8 +203,8 @@ public abstract class SqlOrderStore implements OrderStore {
     }
   }
 
-  private void saveBid(Connection con, String table, Order.Bid bid) throws SQLException {
-    saveOrder(con, table, bid);
+  private void saveBid(DSLContext ctx, TableImpl table, Order.Bid bid) throws SQLException {
+    saveOrder(ctx, table, bid);
   }
 
   protected class SqlAsk extends Order.Ask {

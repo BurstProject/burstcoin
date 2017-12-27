@@ -11,7 +11,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public abstract class SqlSubscriptionStore implements SubscriptionStore {
+import org.jooq.DSLContext;
+import org.jooq.Condition;
+
+import static brs.schema.Tables.SUBSCRIPTION;
+
+public class SqlSubscriptionStore implements SubscriptionStore {
 
   private final BurstKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory = new DbKey.LongKeyFactory<Subscription>("id") {
       @Override
@@ -23,13 +28,13 @@ public abstract class SqlSubscriptionStore implements SubscriptionStore {
   private final VersionedEntityTable<Subscription> subscriptionTable =
       new VersionedEntitySqlTable<Subscription>("subscription", brs.schema.Tables.SUBSCRIPTION, subscriptionDbKeyFactory) {
         @Override
-        protected Subscription load(Connection con, ResultSet rs) throws SQLException {
+        protected Subscription load(DSLContext ctx, ResultSet rs) throws SQLException {
           return new SqlSubscription(rs);
         }
 
         @Override
-        protected void save(Connection con, Subscription subscription) throws SQLException {
-          saveSubscription(con, subscription);
+        protected void save(DSLContext ctx, Subscription subscription) throws SQLException {
+          saveSubscription(ctx, subscription);
         }
 
         @Override
@@ -38,25 +43,12 @@ public abstract class SqlSubscriptionStore implements SubscriptionStore {
         }
       };
 
-  private static DbClause getByParticipantClause(final long id) {
-    return new DbClause(" (sender_id = ? OR recipient_id = ?) ") {
-      @Override
-      public int set(PreparedStatement pstmt, int index) throws SQLException {
-        pstmt.setLong(index++, id);
-        pstmt.setLong(index++, id);
-        return index;
-      }
-    };
+  private static Condition getByParticipantClause(final long id) {
+    return SUBSCRIPTION.SENDER_ID.eq(id).or(SUBSCRIPTION.RECIPIENT_ID.eq(id));
   }
 
-  private static DbClause getUpdateOnBlockClause(final int timestamp) {
-    return new DbClause(" time_next <= ? ") {
-      @Override
-      public int set(PreparedStatement pstmt, int index) throws SQLException {
-        pstmt.setInt(index++, timestamp);
-        return index;
-      }
-    };
+  private static Condition getUpdateOnBlockClause(final int timestamp) {
+    return SUBSCRIPTION.TIME_NEXT.le(timestamp);
   }
 
   @Override
@@ -76,12 +68,12 @@ public abstract class SqlSubscriptionStore implements SubscriptionStore {
 
   @Override
   public BurstIterator<Subscription> getIdSubscriptions(Long accountId) {
-    return subscriptionTable.getManyBy(new DbClause.LongClause("sender_id", accountId), 0, -1);
+    return subscriptionTable.getManyBy(SUBSCRIPTION.SENDER_ID.eq(accountId), 0, -1);
   }
 
   @Override
   public BurstIterator<Subscription> getSubscriptionsToId(Long accountId) {
-    return subscriptionTable.getManyBy(new DbClause.LongClause("recipient_id", accountId), 0, -1);
+    return subscriptionTable.getManyBy(SUBSCRIPTION.RECIPIENT_ID.eq(accountId), 0, -1);
   }
 
   @Override
@@ -89,7 +81,22 @@ public abstract class SqlSubscriptionStore implements SubscriptionStore {
     return subscriptionTable.getManyBy(getUpdateOnBlockClause(timestamp), 0, -1);
   }
 
-  protected abstract void saveSubscription(Connection con, Subscription subscription) throws SQLException;
+  protected void saveSubscription(DSLContext ctx, Subscription subscription) throws SQLException {
+    ctx.mergeInto(
+      SUBSCRIPTION,
+      SUBSCRIPTION.ID, SUBSCRIPTION.SENDER_ID, SUBSCRIPTION.RECIPIENT_ID, SUBSCRIPTION.AMOUNT,
+      SUBSCRIPTION.FREQUENCY, SUBSCRIPTION.TIME_NEXT, SUBSCRIPTION.HEIGHT, SUBSCRIPTION.LATEST
+    )
+    .key(
+      SUBSCRIPTION.ID, SUBSCRIPTION.SENDER_ID, SUBSCRIPTION.RECIPIENT_ID, SUBSCRIPTION.AMOUNT,
+      SUBSCRIPTION.FREQUENCY, SUBSCRIPTION.TIME_NEXT, SUBSCRIPTION.HEIGHT, SUBSCRIPTION.LATEST
+    )
+    .values(
+      subscription.id, subscription.senderId, subscription.recipientId, subscription.amountNQT, subscription.frequency,
+      subscription.getTimeNext(), brs.Burst.getBlockchain().getHeight(), true
+    )
+    .execute();
+  }
 
   private class SqlSubscription extends Subscription {
     public SqlSubscription(ResultSet rs) throws SQLException {

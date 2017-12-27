@@ -87,7 +87,7 @@ public class RewardRecipAssign extends TableImpl<RewardRecipAssignRecord> {
     /**
      * The column <code>DB.reward_recip_assign.latest</code>.
      */
-    public final TableField<RewardRecipAssignRecord, Byte> LATEST = createField("latest", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<RewardRecipAssignRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false));
 
     /**
      * Create a <code>DB.reward_recip_assign</code> table reference
