@@ -32,6 +32,7 @@ public final class Burst {
   public static final String APPLICATION = "BRS";
 
   private static final String LOG_UNDEF_NAME_DEFAULT = "{} undefined. Default: {}";
+  private static final String DEFAULT_PROPERTIES_NAME = "brs-default.properties";
 
   public static final MetricRegistry metrics = new MetricRegistry();
   private static final Logger logger = LoggerFactory.getLogger(Burst.class);
@@ -43,34 +44,34 @@ public final class Burst {
   private static Generator generator = new GeneratorImpl();
 
   static {
-    logger.info("Initializing Burst server version {}", Burst.VERSION);
-    try (InputStream is = ClassLoader.getSystemResourceAsStream("brs-default.properties")) {
+    logger.info("Initializing Burst server version {}", VERSION);
+    try (InputStream is = ClassLoader.getSystemResourceAsStream(DEFAULT_PROPERTIES_NAME)) {
       if (is != null) {
-        Burst.defaultProperties.load(is);
+        defaultProperties.load(is);
       }
       else {
-        String configFile = System.getProperty("brs-default.properties");
+        String configFile = System.getProperty(DEFAULT_PROPERTIES_NAME);
         if (configFile != null) {
           try (InputStream fis = new FileInputStream(configFile)) {
-            Burst.defaultProperties.load(fis);
+            defaultProperties.load(fis);
           } catch (IOException e) {
-            throw new RuntimeException("Error loading brs-default.properties from " + configFile);
+            throw new RuntimeException("Error loading " + DEFAULT_PROPERTIES_NAME + " from " + configFile);
           }
         }
         else {
-          throw new RuntimeException("brs-default.properties not in classpath and system property brs-default.properties not defined either");
+          throw new RuntimeException(DEFAULT_PROPERTIES_NAME + " not in classpath and system property " + DEFAULT_PROPERTIES_NAME + " not defined either");
         }
       }
     }
     catch (IOException e) {
-      throw new RuntimeException("Error loading brs-default.properties", e);
+      throw new RuntimeException("Error loading " + DEFAULT_PROPERTIES_NAME, e);
     }
   }
 
   static {
     try (InputStream is = ClassLoader.getSystemResourceAsStream("brs.properties")) {
       if (is != null) { // parse if brs.properties was loaded
-        Burst.properties.load(is);
+        properties.load(is);
       }
     }
     catch (IOException e) {
@@ -192,15 +193,15 @@ public final class Burst {
     return time.getTime();
   }
 
-  static void setTime(Time time) {
-    Burst.time = time;
+  static void setTime(Time t) {
+    time = t;
   }
 
   public static void main(String[] args) {
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
         @Override
         public void run() {
-          Burst.shutdown();
+          shutdown();
         }
       }));
     init();
@@ -285,11 +286,11 @@ public final class Burst {
         Users.init();
         DebugTrace.init();
 
-        int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(Burst.getIntProperty("brs.timeMultiplier"), 1) : 1;
+        int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(getIntProperty("brs.timeMultiplier"), 1) : 1;
 
         ThreadPool.start(timeMultiplier);
         if (timeMultiplier > 1) {
-          setTime(new Time.FasterTime(Math.max(getEpochTime(), Burst.getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
+          setTime(new Time.FasterTime(Math.max(getEpochTime(), getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
           logger.info("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
         }
 
@@ -300,7 +301,7 @@ public final class Burst {
         if (Constants.isTestnet) {
           logger.info("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
         }
-        if (Burst.getBooleanProperty("brs.mockMining")) {
+        if (getBooleanProperty("brs.mockMining")) {
           setGenerator(new GeneratorImpl.MockGeneratorImpl());
         }
 
