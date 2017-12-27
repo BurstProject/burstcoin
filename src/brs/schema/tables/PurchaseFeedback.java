@@ -82,7 +82,7 @@ public class PurchaseFeedback extends TableImpl<PurchaseFeedbackRecord> {
     /**
      * The column <code>DB.purchase_feedback.latest</code>.
      */
-    public final TableField<PurchaseFeedbackRecord, Byte> LATEST = createField("latest", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<PurchaseFeedbackRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false));
 
     /**
      * Create a <code>DB.purchase_feedback</code> table reference

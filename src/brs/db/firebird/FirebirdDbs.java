@@ -15,6 +15,10 @@ import java.util.List;
 
 import java.sql.ResultSet;
 
+import brs.db.sql.SqlBlockDb;
+import brs.db.sql.SqlTransactionDb;
+import brs.db.sql.SqlPeerDb;
+
 /**
  * Db-Classes are necessary for the instanciation of some stores and have to be handled separately. In the original version these were static
  */
@@ -27,9 +31,9 @@ public class FirebirdDbs implements Dbs {
 
   public FirebirdDbs() {
     FirebirdDbVersion.init();
-    this.blockDb = new FirebirdBlockDB();
-    this.transactionDb = new FirebirdTransactionDb();
-    this.peerDb = new FirebirdPeerDb();
+    this.blockDb       = new SqlBlockDb();
+    this.transactionDb = new SqlTransactionDb();
+    this.peerDb        = new SqlPeerDb();
   }
 
   @Override

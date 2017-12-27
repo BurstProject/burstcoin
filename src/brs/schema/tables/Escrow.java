@@ -102,7 +102,7 @@ public class Escrow extends TableImpl<EscrowRecord> {
     /**
      * The column <code>DB.escrow.latest</code>.
      */
-    public final TableField<EscrowRecord, Byte> LATEST = createField("latest", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<EscrowRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false), this, "");
 
     /**
      * Create a <code>DB.escrow</code> table reference

@@ -1,7 +1,5 @@
 package brs.db.quicksync;
 
-
-import brs.db.firebird.FirebirdDbs;
 import brs.db.sql.Db;
 import brs.db.sql.DbUtils;
 
@@ -26,8 +24,7 @@ public class BinDumps {
         case "timestamp":
           return "\""+name+"\"";
         case "referenced_transaction_full_hash":
-          return FirebirdDbs.maybeToShortIdentifier("referenced_transaction_full_hash");
-
+          return "r_t_f_hash";
       }
     }
     return name;

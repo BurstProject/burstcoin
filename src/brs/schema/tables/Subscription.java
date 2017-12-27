@@ -97,7 +97,7 @@ public class Subscription extends TableImpl<SubscriptionRecord> {
     /**
      * The column <code>DB.subscription.latest</code>.
      */
-    public final TableField<SubscriptionRecord, Byte> LATEST = createField("latest", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+  public final TableField<SubscriptionRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false));
 
     /**
      * Create a <code>DB.subscription</code> table reference

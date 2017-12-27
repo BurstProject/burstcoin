@@ -9,6 +9,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import brs.db.sql.SqlBlockDb;
+import brs.db.sql.SqlTransactionDb;
+import brs.db.sql.SqlPeerDb;
+
 /**
  * Db-Classes are necessary for the instanciation of some stores and have to be handled separately. In the original version these were static
  */
@@ -21,9 +25,9 @@ public class MariadbDbs implements Dbs {
 
   public MariadbDbs() {
     MariadbDbVersion.init();
-    this.blockDb = new MariadbBlockDB();
-    this.transactionDb = new MariadbTransactionDb();
-    this.peerDb = new MariadbPeerDb();
+    this.blockDb       = new SqlBlockDb();
+    this.transactionDb = new SqlTransactionDb();
+    this.peerDb        = new SqlPeerDb();
   }
 
   @Override

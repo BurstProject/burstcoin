@@ -1,39 +1,102 @@
 package brs.db.store;
 
+import brs.db.sql.*;
 
-public interface Stores {
+public class Stores {
+  private final AccountStore accountStore;
+  private final AliasStore aliasStore;
+  private final AssetTransferStore assetTransferStore;
+  private final AssetStore assetStore;
+  private final ATStore atStore;
+  private final BlockchainStore blockchainStore;
+  private final DigitalGoodsStoreStore digitalGoodsStoreStore;
+  private final EscrowStore escrowStore;
+  private final OrderStore orderStore;
+  private final TradeStore tradeStore;
+  private final TransactionProcessorStore transactionProcessorStore;
+  private final SubscriptionStore subscriptionStore;
 
-  AccountStore getAccountStore();
+  public Stores() {
+    this.accountStore              = new SqlAccountStore();
+    this.aliasStore                = new SqlAliasStore();
+    this.assetStore                = new SqlAssetStore();
+    this.assetTransferStore        = new SqlAssetTransferStore();
+    this.atStore                   = new SqlATStore();
+    this.blockchainStore           = new SqlBlockchainStore();
+    this.digitalGoodsStoreStore    = new SqlDigitalGoodsStoreStore();
+    this.escrowStore               = new SqlEscrowStore();
+    this.orderStore                = new SqlOrderStore();
+    this.tradeStore                = new SqlTradeStore();
+    this.transactionProcessorStore = new SqlTransactionProcessorStore();
+    this.subscriptionStore         = new SqlSubscriptionStore();
+  }
 
-  AliasStore getAliasStore();
+  public AccountStore getAccountStore() {
+    return accountStore;
+  }
 
-  AssetStore getAssetStore();
+  public AliasStore getAliasStore() {
+    return aliasStore;
+  }
 
-  AssetTransferStore getAssetTransferStore();
+  public AssetStore getAssetStore() {
+    return assetStore;
+  }
 
-  ATStore getAtStore();
+  public AssetTransferStore getAssetTransferStore() {
+    return assetTransferStore;
+  }
 
-  BlockchainStore getBlockchainStore();
+  public ATStore getAtStore() {
+    return atStore;
+  }
 
-  DigitalGoodsStoreStore getDigitalGoodsStoreStore();
+  public BlockchainStore getBlockchainStore() {
+    return blockchainStore;
+  }
 
-  EscrowStore getEscrowStore();
+  public DigitalGoodsStoreStore getDigitalGoodsStoreStore() {
+    return digitalGoodsStoreStore;
+  }
 
-  OrderStore getOrderStore();
+  public void beginTransaction() {
+    Db.beginTransaction();
+  }
 
-  TradeStore getTradeStore();
+  public void commitTransaction() {
+    Db.commitTransaction();
+  }
 
-  TransactionProcessorStore getTransactionProcessorStore();
+  public void rollbackTransaction() {
+    Db.rollbackTransaction();
+  }
 
-  SubscriptionStore getSubscriptionStore();
+  public void endTransaction() {
+    Db.endTransaction();
+  }
 
-  void beginTransaction();
+  public boolean isInTransaction() {
+    return Db.isInTransaction();
+  }
 
-  void commitTransaction();
+  public EscrowStore getEscrowStore() {
+    return escrowStore;
+  }
 
-  void rollbackTransaction();
-    
-  void endTransaction();
+  public OrderStore getOrderStore() {
+    return orderStore;
+  }
 
-  boolean isInTransaction();
+  public TradeStore getTradeStore() {
+    return tradeStore;
+  }
+
+  public TransactionProcessorStore getTransactionProcessorStore() {
+    return transactionProcessorStore;
+  }
+
+  public SubscriptionStore getSubscriptionStore() {
+    return subscriptionStore;
+  }
+
 }

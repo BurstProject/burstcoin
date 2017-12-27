@@ -112,7 +112,7 @@ public class Purchase extends TableImpl<PurchaseRecord> {
     /**
      * The column <code>DB.purchase.pending</code>.
      */
-    public final TableField<PurchaseRecord, Byte> PENDING = createField("pending", org.jooq.impl.SQLDataType.TINYINT.nullable(false), this, "");
+    public final TableField<PurchaseRecord, Boolean> PENDING = createField("pending", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false), this, "");
 
     /**
      * The column <code>DB.purchase.goods</code>.
@@ -137,12 +137,12 @@ public class Purchase extends TableImpl<PurchaseRecord> {
     /**
      * The column <code>DB.purchase.has_feedback_notes</code>.
      */
-    public final TableField<PurchaseRecord, Byte> HAS_FEEDBACK_NOTES = createField("has_feedback_notes", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<PurchaseRecord, Boolean> HAS_FEEDBACK_NOTES = createField("has_feedback_notes", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false), this, "");
 
     /**
      * The column <code>DB.purchase.has_public_feedbacks</code>.
      */
-    public final TableField<PurchaseRecord, Byte> HAS_PUBLIC_FEEDBACKS = createField("has_public_feedbacks", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<PurchaseRecord, Boolean> HAS_PUBLIC_FEEDBACKS = createField("has_public_feedbacks", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false), this, "");
 
     /**
      * The column <code>DB.purchase.discount</code>.
@@ -162,7 +162,7 @@ public class Purchase extends TableImpl<PurchaseRecord> {
     /**
      * The column <code>DB.purchase.latest</code>.
      */
-    public final TableField<PurchaseRecord, Byte> LATEST = createField("latest", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<PurchaseRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false), this, "");
 
     /**
      * Create a <code>DB.purchase</code> table reference

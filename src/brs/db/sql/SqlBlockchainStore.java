@@ -12,56 +12,65 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static brs.schema.Tables.*;
+import static brs.schema.Tables.BLOCK;
+import static brs.schema.Tables.TRANSACTION;
 import static org.jooq.impl.DSL.*;
 
 import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.Record;
+import org.jooq.Condition;
+import org.jooq.SelectQuery;
+import org.jooq.SelectConditionStep;
 
-public abstract class SqlBlockchainStore implements BlockchainStore {
+public class SqlBlockchainStore implements BlockchainStore {
 
   private final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
   private final BlockDb blockDb = Burst.getDbs().getBlockDb();
 
   @Override
   public BurstIterator<BlockImpl> getBlocks(int from, int to) {
-    try (Connection  con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE height <= ? AND height >= ? ORDER BY height DESC")) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
       int blockchainHeight = Burst.getBlockchain().getHeight();
-      pstmt.setInt(1, blockchainHeight - Math.max(from, 0));
-      pstmt.setInt(2, to > 0 ? blockchainHeight - to : 0);
-      return getBlocks(con, pstmt);
-    } catch (SQLException e) {
+      return
+        getBlocks(
+          ctx,
+          ctx.selectFrom(BLOCK).where(
+            BLOCK.HEIGHT.between(blockchainHeight - Math.max(from, 0)).and(to > 0 ? blockchainHeight - to : 0)
+          ).orderBy(BLOCK.HEIGHT.desc()).fetchResultSet()
+        );
+    }
+    catch ( Exception e ) {
       throw new RuntimeException(e.toString(), e);
     }
   }
-
 
   @Override
   public BurstIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE generator_id = ? "
-                                                        + (timestamp > 0 ? " AND timestamp >= ? " : " ") + "ORDER BY db_id DESC"
-                                                        + DbUtils.limitsClause(from, to))) {
-      int i = 0;
-      pstmt.setLong(++i, account.getId());
-      if (timestamp > 0) {
-        pstmt.setInt(++i, timestamp);
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      int blockchainHeight      = Burst.getBlockchain().getHeight();
+      SelectConditionStep query = ctx.selectFrom(BLOCK).where(BLOCK.GENERATOR_ID.eq(account.getId()));
+      if ( timestamp > 0 ) {
+        query = query.and(BLOCK.TIMESTAMP.ge(timestamp));
       }
-      DbUtils.setLimits(++i, pstmt, from, to);
-      return getBlocks(con, pstmt);
-    } catch (SQLException e) {
+      // DbUtils.limitsClause(from, to)))
+      return
+        getBlocks(
+          ctx,
+          query.orderBy(BLOCK.HEIGHT.desc()).fetchResultSet()
+        );
+    }
+    catch ( Exception e ) {
       throw new RuntimeException(e.toString(), e);
     }
   }
 
   @Override
-  public BurstIterator<BlockImpl> getBlocks(Connection con, PreparedStatement pstmt) {
-    return new DbIterator<>(con, pstmt, new DbIterator.ResultSetReader<BlockImpl>() {
+  public BurstIterator<BlockImpl> getBlocks(DSLContext ctx, ResultSet rs) {
+    return new DbIterator<>(ctx, rs, new DbIterator.ResultSetReader<BlockImpl>() {
         @Override
-        public BlockImpl get(Connection con, ResultSet rs) throws BurstException.ValidationException {
-          return blockDb.loadBlock(con, rs);
+        public BlockImpl get(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException {
+          return blockDb.loadBlock(ctx, rs);
         }
       });
   }
@@ -111,9 +120,11 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
 
   @Override
   public BurstIterator<TransactionImpl> getAllTransactions() {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction ORDER BY db_id ASC")) {
-      return getTransactions(con, pstmt);
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return getTransactions(
+        ctx,
+        ctx.selectFrom(TRANSACTION).orderBy(TRANSACTION.DB_ID.asc()).fetchResultSet()
+      );
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
@@ -128,69 +139,36 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
       throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations
                                          + " exceeds current blockchain height " + Burst.getBlockchain().getHeight());
     }
-    try (Connection con = Db.getConnection()) {
-      StringBuilder buf = new StringBuilder();
-      buf.append("SELECT * FROM transaction WHERE recipient_id = ? AND sender_id <> ? ");
+    try (DSLContext ctx = Db.getDSLContext() ) {
+      ArrayList<Condition> conditions = new ArrayList<Condition>();
       if (blockTimestamp > 0) {
-        buf.append("AND block_timestamp >= ? ");
+        conditions.add(TRANSACTION.BLOCK_TIMESTAMP.ge(blockTimestamp));
       }
       if (type >= 0) {
-        buf.append("AND type = ? ");
+        conditions.add(TRANSACTION.TYPE.eq(type));
         if (subtype >= 0) {
-          buf.append("AND subtype = ? ");
+          conditions.add(TRANSACTION.SUBTYPE.eq(subtype));
         }
       }
       if (height < Integer.MAX_VALUE) {
-        buf.append("AND height <= ? ");
+        conditions.add(TRANSACTION.HEIGHT.le(height));
       }
-      buf.append("UNION ALL SELECT * FROM transaction WHERE sender_id = ? ");
-      if (blockTimestamp > 0) {
-        buf.append("AND block_timestamp >= ? ");
-      }
-      if (type >= 0) {
-        buf.append("AND type = ? ");
-        if (subtype >= 0) {
-          buf.append("AND subtype = ? ");
-        }
-      }
-      if (height < Integer.MAX_VALUE) {
-        buf.append("AND height <= ? ");
-      }
-      buf.append("ORDER BY block_timestamp DESC, id DESC");
-      buf.append(DbUtils.limitsClause(from, to));
-
-      int i = 0;
-      try (PreparedStatement pstmt = con.prepareStatement(buf.toString())) {
-        pstmt.setLong(++i, account.getId());
-        pstmt.setLong(++i, account.getId());
-        if (blockTimestamp > 0) {
-          pstmt.setInt(++i, blockTimestamp);
-        }
-        if (type >= 0) {
-          pstmt.setByte(++i, type);
-          if (subtype >= 0) {
-            pstmt.setByte(++i, subtype);
-          }
-        }
-        if (height < Integer.MAX_VALUE) {
-          pstmt.setInt(++i, height);
-        }
-        pstmt.setLong(++i, account.getId());
-        if (blockTimestamp > 0) {
-          pstmt.setInt(++i, blockTimestamp);
-        }
-        if (type >= 0) {
-          pstmt.setByte(++i, type);
-          if (subtype >= 0) {
-            pstmt.setByte(++i, subtype);
-          }
-        }
-        if (height < Integer.MAX_VALUE) {
-          pstmt.setInt(++i, height);
-        }
-        DbUtils.setLimits(++i, pstmt, from, to);
-        return getTransactions(con, pstmt);
-      }
+      return getTransactions(
+        ctx,
+        ctx.selectFrom(TRANSACTION).where(conditions).and(
+          TRANSACTION.RECIPIENT_ID.eq(account.getId()).and(
+            TRANSACTION.SENDER_ID.ne(account.getId())
+          )
+        )
+        .unionAll(
+          ctx.selectFrom(TRANSACTION).where(conditions).and(
+            TRANSACTION.SENDER_ID.eq(account.getId())
+          )
+        )
+        .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
+        .limit(from, to)
+        .fetchResultSet()
+      );
     }
     catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
@@ -198,21 +176,22 @@ public abstract class SqlBlockchainStore implements BlockchainStore {
   }
 
   @Override
-  public BurstIterator<TransactionImpl> getTransactions(Connection con, PreparedStatement pstmt) {
-    return new DbIterator<>(con, pstmt, new DbIterator.ResultSetReader<TransactionImpl>() {
+  public BurstIterator<TransactionImpl> getTransactions(DSLContext ctx, ResultSet rs) {
+    return new DbIterator<>(ctx, rs, new DbIterator.ResultSetReader<TransactionImpl>() {
         @Override
-        public TransactionImpl get(Connection con, ResultSet rs) throws BurstException.ValidationException {
-          return transactionDb.loadTransaction(con, rs);
+        public TransactionImpl get(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException {
+          return transactionDb.loadTransaction(ctx, rs);
         }
       });
   }
 
   @Override
   public boolean addBlock(BlockImpl block) {
-    try (Connection con = Db.getConnection()) {
-      blockDb.saveBlock(con, block);
+    try (DSLContext ctx = Db.getDSLContext() ) {
+      blockDb.saveBlock(ctx, block);
       return true;
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }

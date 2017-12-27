@@ -10,15 +10,19 @@ import java.sql.SQLException;
 import java.util.*;
 
 import org.jooq.impl.TableImpl;
+import org.jooq.Condition;
+import org.jooq.SelectQuery;
+import org.jooq.Query;
+import org.jooq.Merge;
+import org.jooq.BatchBindStep;
+import org.jooq.DSLContext;
 
 public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySqlTable<T> implements VersionedBatchEntityTable<T> {
   protected VersionedBatchEntitySqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory) {
     super(table, tableClass, dbKeyFactory);
   }
 
-  protected abstract String updateQuery();
-  protected abstract void batch(PreparedStatement pstmt, T t) throws SQLException;
-
+  protected abstract void updateUsing(DSLContext ctx, T t) throws SQLException;
 
   @Override
   public boolean delete(T t) {
@@ -58,35 +62,35 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
       throw new IllegalStateException("Not in transaction");
     }
 
-    try(Connection con = Db.getConnection();
-        PreparedStatement pstmt = con.prepareStatement("UPDATE " + table
-                                                       + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1))) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      BatchBindStep adjustLatestBatch = ctx.batch(
+        ctx.update(tableClass).set(tableClass.field("latest", Boolean.class), false).where(
+          tableClass.field("latest", Boolean.class).isTrue().and(
+            tableClass.getPrimaryKey().getFields().get(0).eq(null)
+          )
+        )
+      );
+
       Set keySet = Db.getBatch(table).keySet();
       Iterator<DbKey> it = keySet.iterator();
       while(it.hasNext()) {
         DbKey key = it.next();
-        key.setPK(pstmt);
-        DbUtils.setLimits(2, pstmt, 1);
-        pstmt.addBatch();
+        adjustLatestBatch.bind(false, key.getPKValues()[0]);
       }
-      pstmt.executeBatch();
+      adjustLatestBatch.execute();
     }
     catch(SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
 
-    try(Connection con =Db.getConnection();
-        PreparedStatement pstmt = con.prepareStatement(updateQuery())) {
-
+    // ToDo: do a real batch here?
+    try ( DSLContext ctx = Db.getDSLContext() ) {
       List<Map.Entry<DbKey,Object>> entries = new ArrayList<>(Db.getBatch(table).entrySet());
-      for ( Map.Entry<DbKey,Object> entry: entries)
-        {
-          if(entry.getValue() != null) {
-            batch(pstmt, (T)entry.getValue());
-          }
+      for ( Map.Entry<DbKey,Object> entry: entries) {
+        if(entry.getValue() != null) {
+          updateUsing(ctx, (T)entry.getValue());
         }
-      pstmt.executeBatch();
-
+      }
     }
     catch(SQLException e) {
       throw new RuntimeException(e.toString(), e);
@@ -102,59 +106,59 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   }
 
   @Override
-  public T getBy(DbClause dbClause) {
+  public T getBy(Condition condition) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
-    return super.getBy(dbClause);
+    return super.getBy(condition);
   }
 
   @Override
-  public T getBy(DbClause dbClause, int height) {
+  public T getBy(Condition condition, int height) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
-    return super.getBy(dbClause, height);
+    return super.getBy(condition, height);
   }
 
   @Override
-  public BurstIterator<T> getManyBy(DbClause dbClause, int from, int to) {
+  public BurstIterator<T> getManyBy(Condition condition, int from, int to) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
-    return super.getManyBy(dbClause, from, to);
+    return super.getManyBy(condition, from, to);
   }
 
   @Override
-  public BurstIterator<T> getManyBy(DbClause dbClause, int from, int to, String sort) {
+  public BurstIterator<T> getManyBy(Condition condition, int from, int to, String sort) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
-    return super.getManyBy(dbClause, from, to, sort);
+    return super.getManyBy(condition, from, to, sort);
   }
 
   @Override
-  public BurstIterator<T> getManyBy(DbClause dbClause, int height, int from, int to) {
+  public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
-    return super.getManyBy(dbClause, height, from, to);
+    return super.getManyBy(condition, height, from, to);
   }
 
   @Override
-  public BurstIterator<T> getManyBy(DbClause dbClause, int height, int from, int to, String sort) {
+  public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, String sort) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
-    return super.getManyBy(dbClause, height, from, to, sort);
+    return super.getManyBy(condition, height, from, to, sort);
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Connection con, PreparedStatement pstmt, boolean cache) {
+  public BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery query, boolean cache) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
-    return super.getManyBy(con, pstmt, cache);
+    return super.getManyBy(ctx, query, cache);
   }
 
   @Override
