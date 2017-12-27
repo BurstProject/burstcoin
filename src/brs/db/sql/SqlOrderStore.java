@@ -6,8 +6,6 @@ import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.OrderStore;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 

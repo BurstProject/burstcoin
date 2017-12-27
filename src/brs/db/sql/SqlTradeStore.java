@@ -4,10 +4,7 @@ import brs.Trade;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.store.TradeStore;
-import org.jooq.DSLContext;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 

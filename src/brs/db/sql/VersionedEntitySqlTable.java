@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jooq.impl.TableImpl;
+import org.jooq.BatchBindStep;
+import org.jooq.SelectQuery;
+import org.jooq.UpdateQuery;
+import org.jooq.DeleteQuery;
+import org.jooq.DSLContext;
 
 public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> implements VersionedEntityTable<T> {
 
@@ -21,7 +26,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
 
   @Override
   public void rollback(int height) {
-    rollback(table, height, dbKeyFactory);
+    rollback(table, tableClass, height, dbKeyFactory);
   }
 
   @Override
@@ -33,34 +38,37 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
       throw new IllegalStateException("Not in transaction");
     }
     DbKey dbKey = (DbKey) dbKeyFactory.newKey(t);
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmtCount = con.prepareStatement("SELECT COUNT(*) AS ct FROM " + DbUtils.quoteTableName(table) + dbKeyFactory.getPKClause()
-                                                             + " AND height < ?")) {
-      int i = dbKey.setPK(pstmtCount);
-      pstmtCount.setInt(i, Burst.getBlockchain().getHeight());
-      try (ResultSet rs = pstmtCount.executeQuery()) {
-        rs.next();
-        if (rs.getInt("ct") > 0) {
-          try (PreparedStatement pstmt = con.prepareStatement("UPDATE " + DbUtils.quoteTableName(table)
-                                                              + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1))) {
-            dbKey.setPK(pstmt);
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      SelectQuery countQuery = ctx.selectQuery();
+      countQuery.addFrom(tableClass);
+      countQuery.addConditions(dbKey.getPKConditions(tableClass));
+      countQuery.addConditions(tableClass.field("height", Integer.class).lt(Burst.getBlockchain().getHeight()));
+      if ( countQuery.fetchCount() > 0 ) {
+        UpdateQuery updateQuery = ctx.updateQuery(tableClass);
+        updateQuery.addValue(
+          tableClass.field("latest", Boolean.class),
+          false
+        );
+        updateQuery.addConditions(dbKey.getPKConditions(tableClass));
+        updateQuery.addConditions(tableClass.field("latest", Boolean.class).isTrue());
 
-            DbUtils.setLimits(dbKeyFactory.getPkVariables()+1, pstmt, 1);
-            pstmt.executeUpdate();
-            save(null, t);
-            pstmt.executeUpdate(); // delete after the save
-          }
-          return true;
-        } else {
-          try (PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + DbUtils.quoteTableName(table) + dbKeyFactory.getPKClause())) {
-            dbKey.setPK(pstmtDelete);
-            return pstmtDelete.executeUpdate() > 0;
-          }
-        }
+        updateQuery.execute();
+        save(ctx, t);
+        // delete after the save
+        updateQuery.execute();
+        
+        return true;
       }
-    } catch (SQLException e) {
+      else {
+        DeleteQuery deleteQuery = ctx.deleteQuery(tableClass);
+        countQuery.addConditions(dbKey.getPKConditions(tableClass));
+        return deleteQuery.execute() > 0;
+      }
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
-    } finally {
+    }
+    finally {
       Db.getCache(table).remove(dbKey);
     }
   }
@@ -70,54 +78,51 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
     trim(table, height, dbKeyFactory);
   }
 
-  static void rollback(final String table, final int height, final DbKey.Factory dbKeyFactory) {
+  static void rollback(final String table, final TableImpl tableClass, final int height, final DbKey.Factory dbKeyFactory) {
     if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
 
-    // WATCH: DIRTY HACK :/ Too lazy to rework all store classes to use subclasses of VersionedEntitySqlTable
-    String setLatestSql;
-    switch (Db.getDatabaseType())
-      {
-        case FIREBIRD:
-          throw new IllegalArgumentException("FIX MEEEEE!!!");
-        case H2:
-          setLatestSql = "UPDATE " + DbUtils.quoteTableName(table)
-              + " SET latest = TRUE " + dbKeyFactory.getPKClause() + " AND height ="
-              + " (SELECT MAX(height) FROM " + DbUtils.quoteTableName(table) + dbKeyFactory.getPKClause() + ")";
-          break;
-        case MARIADB:
-          setLatestSql="UPDATE " + DbUtils.quoteTableName(table)
-              + " SET latest = TRUE " + dbKeyFactory.getPKClause() + " AND height IN"
-              + " ( SELECT * FROM (SELECT MAX(height) FROM " + DbUtils.quoteTableName(table) + dbKeyFactory.getPKClause() + ") ac0v )";
-          break;
-        default:
-          throw new IllegalArgumentException("Unknown database type");
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      SelectQuery selectForDeleteQuery = ctx.selectQuery();
+      selectForDeleteQuery.addFrom(tableClass);
+      selectForDeleteQuery.addConditions(tableClass.field("height", Integer.class).gt(height));
+      for ( String column : dbKeyFactory.getPKColumns() ) {
+        selectForDeleteQuery.addSelect(tableClass.field(column, Long.class));
       }
+      selectForDeleteQuery.setDistinct(true);
+      
 
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmtSelectToDelete = con.prepareStatement("SELECT DISTINCT " + dbKeyFactory.getPKColumns()
-                                                                      + " FROM " + DbUtils.quoteTableName(table) + " WHERE height > ?");
-         PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + DbUtils.quoteTableName(table)
-                                                              + " WHERE height > ?");
-         PreparedStatement pstmtSetLatest = con.prepareStatement(setLatestSql)) {
-      pstmtSelectToDelete.setInt(1, height);
       List<DbKey> dbKeys = new ArrayList<>();
-      try (ResultSet rs = pstmtSelectToDelete.executeQuery()) {
-        while (rs.next()) {
-          dbKeys.add((DbKey) dbKeyFactory.newKey(rs));
+      try ( ResultSet toDeleteResultset = selectForDeleteQuery.fetchResultSet() ) {
+        while ( toDeleteResultset.next() ) {
+          dbKeys.add((DbKey) dbKeyFactory.newKey(toDeleteResultset));
         }
       }
-      pstmtDelete.setInt(1, height);
-      pstmtDelete.executeUpdate();
+      DeleteQuery deleteQuery = ctx.deleteQuery(tableClass);
+      deleteQuery.addConditions(tableClass.field("height", Integer.class).gt(height));
+
       for (DbKey dbKey : dbKeys) {
-        int i = 1;
-        i = dbKey.setPK(pstmtSetLatest, i);
-        i = dbKey.setPK(pstmtSetLatest, i);
-        pstmtSetLatest.executeUpdate();
-        //Db.getCache(table).remove(dbKey);
+        ctx.transaction(configuration -> {
+            SelectQuery selectMaxHeightQuery = ctx.selectQuery();
+            selectMaxHeightQuery.addFrom(tableClass);
+            selectMaxHeightQuery.addConditions(dbKey.getPKConditions(tableClass));
+            selectMaxHeightQuery.addSelect(tableClass.field("height", Long.class).max());
+            Integer maxHeight = (Integer) ctx.fetchValue(selectMaxHeightQuery);
+
+            UpdateQuery setLatestQuery = ctx.updateQuery(tableClass);
+            setLatestQuery.addValue(
+              tableClass.field("latest", Boolean.class),
+              true
+            );
+            setLatestQuery.addConditions(dbKey.getPKConditions(tableClass));
+            setLatestQuery.addConditions(tableClass.field("height", int.class).eq(height));
+            setLatestQuery.execute();
+            //Db.getCache(table).remove(dbKey);
+        });
       }
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
     Db.getCache(table).clear();
@@ -136,7 +141,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
          PreparedStatement pstmtDeleteDeleted = con.prepareStatement(
                                                                      Db.getDatabaseType() == Db.TYPE.FIREBIRD
                                                                      ? "DELETE FROM " + DbUtils.quoteTableName(table) + " WHERE height < ? AND latest = FALSE "
-                                                                     + " AND (" + String.join(" || '\\0' || ", dbKeyFactory.getPKColumns().split(",")) + ") NOT IN ( SELECT * FROM ( SELECT (" + String.join(" || '\\0' || ", dbKeyFactory.getPKColumns().split(",")) + ") AS ac1v FROM "
+                                                                     + " AND (" + String.join(" || '\\0' || ", dbKeyFactory.getPKColumns()) + ") NOT IN ( SELECT * FROM ( SELECT (" + String.join(" || '\\0' || ", dbKeyFactory.getPKColumns()) + ") AS ac1v FROM "
                                                                      + DbUtils.quoteTableName(table) + " WHERE height >= ?) ac0v )"
                                                                      : "DELETE FROM " + DbUtils.quoteTableName(table) + " WHERE height < ? AND latest = FALSE "
                                                                      + " AND CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") NOT IN ( SELECT * FROM ( SELECT CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") FROM "

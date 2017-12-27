@@ -26,43 +26,11 @@ public final class DbUtils {
     }
   }
 
-  public static void setBytes(PreparedStatement pstmt, int index, byte[] bytes) throws SQLException {
-    if (bytes != null) {
-      pstmt.setBytes(index, bytes);
-    } else {
-      pstmt.setNull(index, Types.BINARY);
-    }
-  }
-
   public static void setString(PreparedStatement pstmt, int index, String s) throws SQLException {
     if (s != null) {
       pstmt.setString(index, s);
     } else {
       pstmt.setNull(index, Types.VARCHAR);
-    }
-  }
-
-  public static void setIntZeroToNull(PreparedStatement pstmt, int index, int n) throws SQLException {
-    if (n != 0) {
-      pstmt.setInt(index, n);
-    } else {
-      pstmt.setNull(index, Types.INTEGER);
-    }
-  }
-
-  public static void setLongZeroToNull(PreparedStatement pstmt, int index, long l) throws SQLException {
-    if (l != 0) {
-      pstmt.setLong(index, l);
-    } else {
-      pstmt.setNull(index, Types.BIGINT);
-    }
-  }
-
-  public static Long longZeroToNull(long l) {
-    if (l != 0) {
-      return l;
-    } else {
-      return null;
     }
   }
 

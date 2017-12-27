@@ -6,9 +6,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import java.util.ArrayList;
+
 import org.jooq.Table;
 import org.jooq.Condition;
 import org.jooq.SelectQuery;
+import org.jooq.Query;
 import org.jooq.TableField;
 
 public interface DbKey extends BurstKey {
@@ -16,11 +19,11 @@ public interface DbKey extends BurstKey {
   public static abstract class Factory<T> implements BurstKey.Factory<T> {
 
     private final String pkClause;
-    private final String pkColumns;
+    private final String[] pkColumns;
     private final String selfJoinClause;
     private final int pkVariables;
 
-    protected Factory(String pkClause, String pkColumns, String selfJoinClause) {
+    protected Factory(String pkClause, String[] pkColumns, String selfJoinClause) {
       this.pkClause = pkClause;
       this.pkColumns = pkColumns;
       this.selfJoinClause = selfJoinClause;
@@ -35,7 +38,7 @@ public interface DbKey extends BurstKey {
       return pkClause;
     }
 
-    public final String getPKColumns() {
+    public final String[] getPKColumns() {
       return pkColumns;
     }
 
@@ -57,7 +60,7 @@ public interface DbKey extends BurstKey {
 
   int setPK(PreparedStatement pstmt, int index) throws SQLException;
 
-  void applyPKClause(SelectQuery query, Table tableClass);
+  ArrayList<Condition> getPKConditions(Table tableClass);
 
   long[] getPKValues();
 
@@ -67,7 +70,7 @@ public interface DbKey extends BurstKey {
 
     public LongKeyFactory(String idColumn) {
       super(" WHERE " + idColumn + " = ? ",
-            idColumn,
+            new String[] {idColumn},
             " a." + idColumn + " = b." + idColumn + " ");
       this.idColumn = idColumn;
     }
@@ -102,7 +105,7 @@ public interface DbKey extends BurstKey {
 
     public LinkKeyFactory(String idColumnA, String idColumnB) {
       super(" WHERE " + idColumnA + " = ? AND " + idColumnB + " = ? ",
-            idColumnA + ", " + idColumnB,
+            new String[] {idColumnA,idColumnB},
             " a." + idColumnA + " = b." + idColumnA + " AND a." + idColumnB + " = b." + idColumnB + " ");
       this.idColumnA = idColumnA;
       this.idColumnB = idColumnB;
@@ -174,9 +177,12 @@ public interface DbKey extends BurstKey {
     }
 
     @Override
-    public void applyPKClause(SelectQuery query, Table tableClass) {
-      query.addConditions(tableClass.field(idColumn, Long.class).eq(id));
+    public ArrayList<Condition> getPKConditions(Table tableClass) {
+      ArrayList<Condition> conditions = new ArrayList<Condition>();
+      conditions.add(tableClass.field(idColumn, Long.class).eq(id));
+      return conditions;
     }
+    
   }
 
   static final class LinkKey implements DbKey {
@@ -222,9 +228,11 @@ public interface DbKey extends BurstKey {
     }
 
     @Override
-    public void applyPKClause(SelectQuery query, Table tableClass) {
-      query.addConditions(tableClass.field(idColumnA, Long.class).eq(idA));
-      query.addConditions(tableClass.field(idColumnB, Long.class).eq(idB));
+    public ArrayList<Condition> getPKConditions(Table tableClass) {
+      ArrayList<Condition> conditions = new ArrayList<Condition>();
+      conditions.add(tableClass.field(idColumnA, Long.class).eq(idA));
+      conditions.add(tableClass.field(idColumnB, Long.class).eq(idB));
+      return conditions;
     }
   }
 

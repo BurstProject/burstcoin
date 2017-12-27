@@ -2,8 +2,6 @@ package brs;
 
 import brs.db.BurstIterator;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.util.List;
 
 public interface Blockchain {
@@ -49,7 +47,5 @@ public interface Blockchain {
   BurstIterator<TransactionImpl> getTransactions(Account account, byte type, byte subtype, int blockTimestamp);
 
   BurstIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to);
-
-  //    BurstIterator<TransactionImpl> getTransactions(Connection con, PreparedStatement pstmt);
 
 }
