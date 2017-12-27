@@ -226,7 +226,7 @@ public class SqlTransactionDb implements TransactionDb {
                 set(TRANSACTION.ID, transaction.getId()).
                 set(TRANSACTION.DEADLINE, transaction.getDeadline()).
                 set(TRANSACTION.SENDER_PUBLIC_KEY, transaction.getSenderPublicKey()).
-                set(TRANSACTION.RECIPIENT_ID, DbUtils.longZeroToNull(transaction.getRecipientId())).
+                set(TRANSACTION.RECIPIENT_ID, ( transaction.getRecipientId() == 0 ? null : transaction.getRecipientId() )).
                 set(TRANSACTION.AMOUNT, transaction.getAmountNQT()).
                 set(TRANSACTION.FEE, transaction.getFeeNQT()).
                 set(TRANSACTION.REFERENCED_TRANSACTION_FULL_HASH, Convert.parseHexString(transaction.getReferencedTransactionFullHash())).

@@ -7,8 +7,6 @@ import brs.db.store.TransactionProcessorStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -131,12 +129,10 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
   @Override
   public int deleteTransaction(Transaction transaction) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("DELETE FROM unconfirmed_transaction WHERE id = ?")) {
-      pstmt.setLong(1, transaction.getId());
-      int deleted = pstmt.executeUpdate();
-      return deleted;
-    } catch (SQLException e) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return ctx.delete(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.ID.eq(transaction.getId())).execute();
+    }
+    catch (SQLException e) {
       logger.error(e.toString(), e);
       throw new RuntimeException(e.toString(), e);
     }

@@ -60,10 +60,10 @@ public class SqlAliasStore implements AliasStore {
   protected void saveOffer(Alias.Offer offer) throws SQLException {
     try (DSLContext ctx = Db.getDSLContext()) {
       ctx.insertInto(
-              ALIAS_OFFER,
-              ALIAS_OFFER.ID, ALIAS_OFFER.PRICE, ALIAS_OFFER.BUYER_ID, ALIAS_OFFER.HEIGHT
+        ALIAS_OFFER,
+        ALIAS_OFFER.ID, ALIAS_OFFER.PRICE, ALIAS_OFFER.BUYER_ID, ALIAS_OFFER.HEIGHT
       ).values(
-              offer.getId(), offer.getPriceNQT(), DbUtils.longZeroToNull(offer.getBuyerId()), Burst.getBlockchain().getHeight()
+        offer.getId(), offer.getPriceNQT(), ( offer.getBuyerId() == 0 ? null : offer.getBuyerId() ), Burst.getBlockchain().getHeight()
       ).execute();
     }
   }

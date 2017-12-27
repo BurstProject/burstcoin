@@ -8,8 +8,6 @@ import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.sql.DbUtils;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -27,6 +25,8 @@ import org.jooq.ResultQuery;
 import org.jooq.SelectJoinStep;
 import org.jooq.impl.TableImpl;
 import org.jooq.SelectQuery;
+import org.jooq.UpdateQuery;
+import org.jooq.Row1;
 import org.jooq.exception.DataAccessException;
 
 public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T> {
@@ -84,7 +84,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     try (DSLContext ctx = Db.getDSLContext()) {
       SelectQuery query = ctx.selectQuery();
       query.addFrom(tableClass);
-      dbKey.applyPKClause(query, tableClass);
+      query.addConditions(dbKey.getPKConditions(tableClass));
       if ( multiversion ) {
         query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
       }
@@ -105,13 +105,13 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     try (DSLContext ctx = Db.getDSLContext()) {
       SelectQuery query = ctx.selectQuery();
       query.addFrom(tableClass);
-      dbKey.applyPKClause(query, tableClass);
+      query.addConditions(dbKey.getPKConditions(tableClass));
       query.addConditions(tableClass.field("height", Integer.class).le(height));
       if ( multiversion ) {
         Table       innerTable = tableClass.as("b");
         SelectQuery innerQuery = ctx.selectQuery();
         innerQuery.addConditions(innerTable.field("height", Integer.class).gt(height));
-        dbKey.applyPKClause(innerQuery, innerTable);
+        innerQuery.addConditions(dbKey.getPKConditions(innerTable));
         // ToDo: verify:
         // (latest = TRUE OR EXISTS ( SELECT 1 FROM " + table + dbKeyFactory.getPKClause() + " AND height > ?))"
         query.addConditions(
@@ -393,16 +393,18 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
       throw new IllegalStateException("Different instance found in Db cache, perhaps trying to save an object "
                                       + "that was read outside the current transaction");
     }
-    try (Connection con = Db.getConnection()) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
       if (multiversion) {
-        try (PreparedStatement pstmt = con.prepareStatement("UPDATE " + DbUtils.quoteTableName(table)
-                                                            + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE" + DbUtils.limitsClause(1))) {
-          int i = dbKey.setPK(pstmt);
-          DbUtils.setLimits(i++, pstmt, 1);
-          pstmt.executeUpdate();
-        }
+        UpdateQuery query = ctx.updateQuery(tableClass);
+        query.addValue(
+          tableClass.field("latest", Boolean.class),
+          false
+        );
+        query.addConditions(dbKey.getPKConditions(tableClass));
+        query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
+        query.execute();
       }
-      save(null, t);
+      save(ctx, t);
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }

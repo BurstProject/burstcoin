@@ -12,6 +12,9 @@ import java.util.List;
 
 import org.jooq.impl.TableImpl;
 import org.jooq.DSLContext;
+import org.jooq.SelectQuery;
+import org.jooq.UpdateQuery;
+
 
 public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements ValuesTable<T, V> {
 
@@ -42,11 +45,15 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
         return values;
       }
     }
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM " + table + dbKeyFactory.getPKClause()
-                                                        + (multiversion ? " AND latest = TRUE" : "") + " ORDER BY db_id DESC")) {
-      dbKey.setPK(pstmt);
-      values = get(con, pstmt);
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      SelectQuery query = ctx.selectQuery();
+      query.addFrom(tableClass);
+      query.addConditions(dbKey.getPKConditions(tableClass));
+      if ( multiversion ) {
+        query.addConditions(tableClass.field("latest", int.class).isTrue());
+      }
+      query.addOrderBy(tableClass.field("db_id").desc());
+      values = get(ctx, query.fetchResultSet());
       if (Db.isInTransaction()) {
         Db.getCache(table).put(dbKey, values);
       }
@@ -56,13 +63,11 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
     }
   }
 
-  private List<V> get(Connection con, PreparedStatement pstmt) {
+  private List<V> get(DSLContext ctx, ResultSet rs) {
     try {
       List<V> result = new ArrayList<>();
-      try (ResultSet rs = pstmt.executeQuery()) {
-        while (rs.next()) {
-          result.add(load(null, rs));
-        }
+      while (rs.next()) {
+        result.add(load(ctx, rs));
       }
       return result;
     } catch (SQLException e) {
@@ -77,16 +82,19 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
     }
     DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
     Db.getCache(table).put(dbKey, values);
-    try (Connection con = Db.getConnection()) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
       if (multiversion) {
-        try (PreparedStatement pstmt = con.prepareStatement("UPDATE " + table
-                                                            + " SET latest = FALSE " + dbKeyFactory.getPKClause() + " AND latest = TRUE")) {
-          dbKey.setPK(pstmt);
-          pstmt.executeUpdate();
-        }
+        UpdateQuery query = ctx.updateQuery(tableClass);
+        query.addValue(
+          tableClass.field("latest", Boolean.class),
+          false
+        );
+        query.addConditions(dbKey.getPKConditions(tableClass));
+        query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
+        query.execute();
       }
       for (V v : values) {
-        save(null, t, v);
+        save(ctx, t, v);
       }
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);

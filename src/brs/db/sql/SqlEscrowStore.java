@@ -6,8 +6,6 @@ import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.EscrowStore;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -139,11 +137,7 @@ public class SqlEscrowStore implements EscrowStore {
         }
       }
       if (resultTransactions.size() > 0) {
-        try (Connection con = Db.getConnection()) {
-          Burst.getDbs().getTransactionDb().saveTransactions( resultTransactions);
-        } catch (SQLException e) {
-          throw new RuntimeException(e.toString(), e);
-        }
+        Burst.getDbs().getTransactionDb().saveTransactions( resultTransactions);
       }
       updatedEscrowIds.clear();
     }

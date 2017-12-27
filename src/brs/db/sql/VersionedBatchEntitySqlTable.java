@@ -4,8 +4,6 @@ import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedBatchEntityTable;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 
