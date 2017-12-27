@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 import static brs.schema.Tables.PEER;
 
-public abstract class SqlPeerDb implements PeerDb {
+public class SqlPeerDb implements PeerDb {
 
     @Override public List<String> loadPeers() {
         try (DSLContext ctx = Db.getDSLContext()) {

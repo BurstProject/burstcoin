@@ -12,8 +12,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import static brs.schema.Tables.ASSET_TRANSFER;
+import org.jooq.DSLContext;
 
-public abstract class SqlAssetTransferStore implements AssetTransferStore {
+public class SqlAssetTransferStore implements AssetTransferStore {
 
   protected static final BurstKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = new DbKey.LongKeyFactory<AssetTransfer>("id") {
 
@@ -25,12 +26,12 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
   private final EntitySqlTable<AssetTransfer> assetTransferTable = new EntitySqlTable<AssetTransfer>("asset_transfer", brs.schema.Tables.ASSET_TRANSFER, transferDbKeyFactory) {
 
       @Override
-      protected AssetTransfer load(Connection con, ResultSet rs) throws SQLException {
+      protected AssetTransfer load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlAssetTransfer(rs);
       }
 
       @Override
-      protected void save(Connection con, AssetTransfer assetTransfer) throws SQLException {
+      protected void save(DSLContext ctx, AssetTransfer assetTransfer) throws SQLException {
         saveAssetTransfer(assetTransfer);
       }
     };
@@ -60,41 +61,55 @@ public abstract class SqlAssetTransferStore implements AssetTransferStore {
   }
   @Override
   public BurstIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
-    return getAssetTransferTable().getManyBy(new DbClause.LongClause("asset_id", assetId), from, to);
+    return getAssetTransferTable().getManyBy(ASSET_TRANSFER.ASSET_ID.eq(assetId), from, to);
   }
 
   @Override
   public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM asset_transfer WHERE sender_id = ?"
-                                                        + " UNION ALL SELECT * FROM asset_transfer WHERE recipient_id = ? AND sender_id <> ? ORDER BY height DESC"
-                                                        + DbUtils.limitsClause(from, to))) {
-      int i = 0;
-      pstmt.setLong(++i, accountId);
-      pstmt.setLong(++i, accountId);
-      pstmt.setLong(++i, accountId);
-      DbUtils.setLimits(++i, pstmt, from, to);
-      return getAssetTransferTable().getManyBy(con, pstmt, false);
-    } catch (SQLException e) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+
+      return getAssetTransferTable().getManyBy(
+        ctx,
+        ctx
+          .selectFrom(ASSET_TRANSFER).where(
+            ASSET_TRANSFER.SENDER_ID.eq(accountId)
+          )
+          .unionAll(
+            ctx.selectFrom(ASSET_TRANSFER).where(
+              ASSET_TRANSFER.RECIPIENT_ID.eq(accountId).and(ASSET_TRANSFER.SENDER_ID.ne(accountId))
+            )
+          )
+          .orderBy(ASSET_TRANSFER.HEIGHT.desc()).limit(from, to)
+          .getQuery(),
+        false
+      );
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
 
   @Override
   public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmt = con.prepareStatement("SELECT * FROM asset_transfer WHERE sender_id = ? AND asset_id = ?"
-                                                        + " UNION ALL SELECT * FROM asset_transfer WHERE recipient_id = ? AND sender_id <> ? AND asset_id = ? ORDER BY height DESC"
-                                                        + DbUtils.limitsClause(from, to))) {
-      int i = 0;
-      pstmt.setLong(++i, accountId);
-      pstmt.setLong(++i, assetId);
-      pstmt.setLong(++i, accountId);
-      pstmt.setLong(++i, accountId);
-      pstmt.setLong(++i, assetId);
-      DbUtils.setLimits(++i, pstmt, from, to);
-      return getAssetTransferTable().getManyBy(con, pstmt, false);
-    } catch (SQLException e) {
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return getAssetTransferTable().getManyBy(
+        ctx,
+        ctx
+          .selectFrom(ASSET_TRANSFER).where(
+            ASSET_TRANSFER.SENDER_ID.eq(accountId).and(ASSET_TRANSFER.ASSET_ID.eq(assetId))
+          )
+          .unionAll(
+            ctx.selectFrom(ASSET_TRANSFER).where(
+              ASSET_TRANSFER.RECIPIENT_ID.eq(accountId)).and(
+                ASSET_TRANSFER.SENDER_ID.ne(accountId)
+              ).and(ASSET_TRANSFER.ASSET_ID.eq(assetId))
+          )
+          .orderBy(ASSET_TRANSFER.HEIGHT.desc()).limit(from, to)
+          .getQuery(),
+        false
+      );
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }

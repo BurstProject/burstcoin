@@ -87,7 +87,7 @@ public class AccountAsset extends TableImpl<AccountAssetRecord> {
     /**
      * The column <code>DB.account_asset.latest</code>.
      */
-    public final TableField<AccountAssetRecord, Byte> LATEST = createField("latest", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<AccountAssetRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false));
 
     /**
      * Create a <code>DB.account_asset</code> table reference

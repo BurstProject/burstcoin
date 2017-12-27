@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.Iterator;
 
+import org.jooq.DSLContext;
+
 public interface BurstIterator<T> extends Iterator<T>, Iterable<T>, AutoCloseable {
   @Override
   boolean hasNext();
@@ -21,6 +23,6 @@ public interface BurstIterator<T> extends Iterator<T>, Iterable<T>, AutoCloseabl
   Iterator<T> iterator();
 
   public interface ResultSetReader<T> {
-    T get(Connection con, ResultSet rs) throws Exception;
+    T get(DSLContext ctx, ResultSet rs) throws Exception;
   }
 }

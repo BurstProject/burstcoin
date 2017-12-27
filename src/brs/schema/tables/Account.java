@@ -112,7 +112,7 @@ public class Account extends TableImpl<AccountRecord> {
     /**
      * The column <code>DB.account.latest</code>.
      */
-    public final TableField<AccountRecord, Byte> LATEST = createField("latest", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<AccountRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false));
 
     /**
      * Create a <code>DB.account</code> table reference

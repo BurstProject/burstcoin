@@ -12,10 +12,14 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.jooq.DSLContext;
+
 import static brs.schema.Tables.ALIAS;
 import static brs.schema.Tables.ALIAS_OFFER;
 
-public abstract class SqlAliasStore implements AliasStore {
+import org.jooq.DSLContext;
+
+public class SqlAliasStore implements AliasStore {
 
   private static final DbKey.LongKeyFactory<Alias.Offer> offerDbKeyFactory = new DbKey.LongKeyFactory<Alias.Offer>("id") {
       @Override
@@ -66,12 +70,12 @@ public abstract class SqlAliasStore implements AliasStore {
 
   private final VersionedEntityTable<Alias.Offer> offerTable = new VersionedEntitySqlTable<Alias.Offer>("alias_offer", ALIAS_OFFER, offerDbKeyFactory) {
       @Override
-      protected Alias.Offer load(Connection con, ResultSet rs) throws SQLException {
+      protected Alias.Offer load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlOffer(rs);
       }
 
       @Override
-      protected void save(Connection con, Alias.Offer offer) throws SQLException {
+      protected void save(DSLContext ctx, Alias.Offer offer) throws SQLException {
         saveOffer(offer);
       }
     };
@@ -94,27 +98,25 @@ public abstract class SqlAliasStore implements AliasStore {
     }
   }
 
-  protected void saveAlias(Alias alias, Connection con) throws SQLException {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      ctx.insertInto(ALIAS).
-              set(ALIAS.ID, alias.getId()).
-              set(ALIAS.ACCOUNT_ID, alias.getAccountId()).
-              set(ALIAS.ALIAS_NAME, alias.getAliasName()).
-              set(ALIAS.ALIAS_URI, alias.getAliasURI()).
-              set(ALIAS.TIMESTAMP, alias.getTimestamp()).
-              set(ALIAS.HEIGHT, Burst.getBlockchain().getHeight()).execute();
-    }
+  protected void saveAlias(DSLContext ctx, Alias alias) throws SQLException {
+    ctx.insertInto(ALIAS).
+      set(ALIAS.ID, alias.getId()).
+      set(ALIAS.ACCOUNT_ID, alias.getAccountId()).
+      set(ALIAS.ALIAS_NAME, alias.getAliasName()).
+      set(ALIAS.ALIAS_URI, alias.getAliasURI()).
+      set(ALIAS.TIMESTAMP, alias.getTimestamp()).
+      set(ALIAS.HEIGHT, Burst.getBlockchain().getHeight()).execute();
   }
 
   private final VersionedEntityTable<Alias> aliasTable = new VersionedEntitySqlTable<Alias>("alias", brs.schema.Tables.ALIAS, aliasDbKeyFactory) {
       @Override
-      protected Alias load(Connection con, ResultSet rs) throws SQLException {
+      protected Alias load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlAlias(rs);
       }
 
       @Override
-      protected void save(Connection con, Alias alias) throws SQLException {
-        saveAlias(alias, con);
+      protected void save(DSLContext ctx, Alias alias) throws SQLException {
+        saveAlias(ctx, alias);
       }
 
       @Override
@@ -125,12 +127,12 @@ public abstract class SqlAliasStore implements AliasStore {
 
   @Override
   public BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
-    return aliasTable.getManyBy(new DbClause.LongClause("account_id", accountId), from, to);
+    return aliasTable.getManyBy(brs.schema.Tables.ALIAS.ACCOUNT_ID.eq(accountId), from, to);
   }
 
   @Override
   public Alias getAlias(String aliasName) {
-    return aliasTable.getBy(new DbClause.StringClause("alias_name_lower", aliasName.toLowerCase()));
+    return aliasTable.getBy(brs.schema.Tables.ALIAS.ALIAS_NAME_LOWER.eq(aliasName.toLowerCase()));
   }
 
 }

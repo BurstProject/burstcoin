@@ -15,7 +15,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-public abstract class SqlEscrowStore implements EscrowStore {
+import org.jooq.DSLContext;
+import org.jooq.Condition;
+
+import static brs.schema.Tables.ESCROW;
+import static brs.schema.Tables.ESCROW_DECISION;
+
+public class SqlEscrowStore implements EscrowStore {
   private final BurstKey.LongKeyFactory<Escrow> escrowDbKeyFactory = new DbKey.LongKeyFactory<Escrow>("id") {
       @Override
       public BurstKey newKey(Escrow escrow) {
@@ -24,13 +30,13 @@ public abstract class SqlEscrowStore implements EscrowStore {
     };
   private final VersionedEntityTable<Escrow> escrowTable = new VersionedEntitySqlTable<Escrow>("escrow", brs.schema.Tables.ESCROW, escrowDbKeyFactory) {
       @Override
-      protected Escrow load(Connection con, ResultSet rs) throws SQLException {
+      protected Escrow load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlEscrow(rs);
       }
 
       @Override
-      protected void save(Connection con, Escrow escrow) throws SQLException {
-        saveEscrow(con, escrow);
+      protected void save(DSLContext ctx, Escrow escrow) throws SQLException {
+        saveEscrow(ctx, escrow);
       }
     };
   private final DbKey.LinkKeyFactory<Escrow.Decision> decisionDbKeyFactory =
@@ -42,29 +48,35 @@ public abstract class SqlEscrowStore implements EscrowStore {
       };
   private final VersionedEntityTable<Escrow.Decision> decisionTable = new VersionedEntitySqlTable<Escrow.Decision>("escrow_decision", brs.schema.Tables.ESCROW_DECISION, decisionDbKeyFactory) {
       @Override
-      protected Escrow.Decision load(Connection con, ResultSet rs) throws SQLException {
+      protected Escrow.Decision load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlDecision(rs);
       }
 
       @Override
-      protected void save(Connection con, Escrow.Decision decision) throws SQLException {
-        saveDecision(con, decision);
+      protected void save(DSLContext ctx, Escrow.Decision decision) throws SQLException {
+        saveDecision(ctx, decision);
       }
     };
   private final List<TransactionImpl> resultTransactions = new ArrayList<>();
   private final ConcurrentSkipListSet<Long> updatedEscrowIds = new ConcurrentSkipListSet<>();
 
-  private static DbClause getUpdateOnBlockClause(final int timestamp) {
-    return new DbClause(" deadline < ? ") {
-      @Override
-      public int set(PreparedStatement pstmt, int index) throws SQLException {
-        pstmt.setInt(index++, timestamp);
-        return index;
-      }
-    };
+  private static Condition getUpdateOnBlockClause(final int timestamp) {
+    return ESCROW.DEADLINE.lt(timestamp);
   }
 
-  protected abstract void saveDecision(Connection con, Escrow.Decision decision) throws SQLException;
+  protected void saveDecision(DSLContext ctx, Escrow.Decision decision) throws SQLException {
+    ctx.mergeInto(
+      ESCROW_DECISION,
+      ESCROW_DECISION.ESCROW_ID, ESCROW_DECISION.ACCOUNT_ID, ESCROW_DECISION.DECISION,
+      ESCROW_DECISION.HEIGHT, ESCROW_DECISION.LATEST
+    )
+    .key(ESCROW_DECISION.ESCROW_ID, ESCROW_DECISION.ACCOUNT_ID, ESCROW_DECISION.HEIGHT)
+    .values(
+      decision.escrowId, decision.accountId, ((int) Escrow.decisionToByte(decision.getDecision())),
+      Burst.getBlockchain().getHeight(), true
+    )
+    .execute();
+  }
 
   @Override
   public BurstKey.LongKeyFactory<Escrow> getEscrowDbKeyFactory() {
@@ -86,21 +98,14 @@ public abstract class SqlEscrowStore implements EscrowStore {
     return decisionTable;
   }
 
-  private DbClause getEscrowParticipentClause(final long accountId) {
-    return new DbClause(" (sender_id = ? OR recipient_id = ?) ") {
-      @Override
-      public int set(PreparedStatement pstmt, int index) throws SQLException {
-        pstmt.setLong(index++, accountId);
-        pstmt.setLong(index++, accountId);
-        return index;
-      }
-    };
+  private Condition getEscrowParticipentClause(final long accountId) {
+    return ESCROW.SENDER_ID.eq(accountId).or(ESCROW.RECIPIENT_ID.eq(accountId));
   }
 
   @Override
   public Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId) {
     List<Escrow> filtered = new ArrayList<>();
-    BurstIterator<Escrow.Decision> it = decisionTable.getManyBy(new DbClause.LongClause("account_id", accountId), 0, -1);
+    BurstIterator<Escrow.Decision> it = decisionTable.getManyBy(ESCROW_DECISION.ACCOUNT_ID.eq(accountId), 0, -1);
     while (it.hasNext()) {
       Escrow.Decision decision = it.next();
       Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(decision.escrowId));
@@ -173,7 +178,19 @@ public abstract class SqlEscrowStore implements EscrowStore {
     escrowTable.delete(escrow);
   }
 
-  protected abstract void saveEscrow(Connection con, Escrow escrow) throws SQLException;
+  protected void saveEscrow(DSLContext ctx, Escrow escrow) throws SQLException {
+    ctx.mergeInto(
+      ESCROW,
+      ESCROW.ID, ESCROW.SENDER_ID, ESCROW.RECIPIENT_ID, ESCROW.AMOUNT, ESCROW.REQUIRED_SIGNERS,
+      ESCROW.DEADLINE, ESCROW.DEADLINE_ACTION, ESCROW.HEIGHT, ESCROW.LATEST
+    )
+    .key(ESCROW.ID, ESCROW.HEIGHT)
+    .values(
+      escrow.id, escrow.senderId, escrow.recipientId, escrow.amountNQT, escrow.requiredSigners,
+      escrow.deadline, ((int) escrow.decisionToByte(escrow.deadlineAction)), Burst.getBlockchain().getHeight(), true
+    )
+    .execute();
+  }
 
   private class SqlDecision extends Escrow.Decision {
     private SqlDecision(ResultSet rs) throws SQLException {
@@ -200,7 +217,7 @@ public abstract class SqlEscrowStore implements EscrowStore {
   @Override
   public 	BurstIterator<Escrow.Decision> getDecisions(Long id)
   {
-    return  decisionTable.getManyBy(new DbClause.LongClause("escrow_id", id), 0, -1);
+    return  decisionTable.getManyBy(ESCROW_DECISION.ESCROW_ID.eq(id), 0, -1);
   }
 
 }

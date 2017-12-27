@@ -1,6 +1,5 @@
 package brs.db.sql;
 
-import brs.AT;
 import brs.Burst;
 import brs.at.AT_API_Helper;
 import brs.at.AT_Constants;
@@ -22,28 +21,33 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 
-import static brs.schema.Tables.*;
+import static brs.schema.Tables.AT;
+import static brs.schema.Tables.AT_STATE;
+import static brs.schema.Tables.TRANSACTION;
+import static brs.schema.Tables.ACCOUNT;
 
-public abstract class SqlATStore implements ATStore {
+import org.jooq.DSLContext;
+
+public class SqlATStore implements ATStore {
 
   private static final Logger logger = LoggerFactory.getLogger(DbUtils.class);
 
-  private final BurstKey.LongKeyFactory<AT> atDbKeyFactory = new DbKey.LongKeyFactory<AT>("id") {
+  private final BurstKey.LongKeyFactory<brs.AT> atDbKeyFactory = new DbKey.LongKeyFactory<brs.AT>("id") {
       @Override
-      public BurstKey newKey(AT at) {
+      public BurstKey newKey(brs.AT at) {
         return at.dbKey;
       }
     };
-  private final VersionedEntityTable<AT> atTable = new VersionedEntitySqlTable<AT>("at", brs.schema.Tables.AT, atDbKeyFactory) {
+  private final VersionedEntityTable<brs.AT> atTable = new VersionedEntitySqlTable<brs.AT>("at", brs.schema.Tables.AT, atDbKeyFactory) {
       @Override
-      protected AT load(Connection con, ResultSet rs) throws SQLException {
+      protected brs.AT load(DSLContext ctx, ResultSet rs) throws SQLException {
         //return new AT(rs);
         throw new RuntimeException("AT attempted to be created with atTable.load");
       }
 
       @Override
-      protected void save(Connection con, AT at) throws SQLException {
-        saveAT(con, at);
+      protected void save(DSLContext ctx, brs.AT at) throws SQLException {
+        saveAT(ctx, at);
       }
 
       @Override
@@ -51,22 +55,22 @@ public abstract class SqlATStore implements ATStore {
         return " ORDER BY id ";
       }
     };
-  private final BurstKey.LongKeyFactory<AT.ATState> atStateDbKeyFactory = new DbKey.LongKeyFactory<AT.ATState>("at_id") {
+  private final BurstKey.LongKeyFactory<brs.AT.ATState> atStateDbKeyFactory = new DbKey.LongKeyFactory<brs.AT.ATState>("at_id") {
       @Override
-      public BurstKey newKey(AT.ATState atState) {
+      public BurstKey newKey(brs.AT.ATState atState) {
         return atState.dbKey;
       }
     };
 
-  private final VersionedEntityTable<AT.ATState> atStateTable = new VersionedEntitySqlTable<AT.ATState>("at_state", brs.schema.Tables.AT_STATE, atStateDbKeyFactory) {
+  private final VersionedEntityTable<brs.AT.ATState> atStateTable = new VersionedEntitySqlTable<brs.AT.ATState>("at_state", brs.schema.Tables.AT_STATE, atStateDbKeyFactory) {
       @Override
-      protected AT.ATState load(Connection con, ResultSet rs) throws SQLException {
+      protected brs.AT.ATState load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlATState(rs);
       }
 
       @Override
-      protected void save(Connection con, AT.ATState atState) throws SQLException {
-        saveATState(con, atState);
+      protected void save(DSLContext ctx, brs.AT.ATState atState) throws SQLException {
+        saveATState(ctx, atState);
       }
 
       @Override
@@ -75,9 +79,34 @@ public abstract class SqlATStore implements ATStore {
       }
     };
 
-  protected abstract void saveATState(Connection con, AT.ATState atState) throws SQLException;
+  protected void saveATState(DSLContext ctx, brs.AT.ATState atState) throws SQLException {
+    ctx.mergeInto(
+      AT_STATE,
+      AT_STATE.AT_ID, AT_STATE.STATE, AT_STATE.PREV_HEIGHT, AT_STATE.NEXT_HEIGHT, AT_STATE.SLEEP_BETWEEN,
+      AT_STATE.PREV_BALANCE, AT_STATE.FREEZE_WHEN_SAME_BALANCE, AT_STATE.MIN_ACTIVATE_AMOUNT, AT_STATE.HEIGHT, AT_STATE.LATEST
+    )
+    .key(AT_STATE.AT_ID, AT_STATE.HEIGHT)
+    .values(
+      atState.getATId(), brs.AT.compressState(atState.getState()), atState.getPrevHeight(), atState.getNextHeight(), atState.getSleepBetween(),
+      atState.getPrevBalance(), atState.getFreezeWhenSameBalance(), atState.getMinActivationAmount(), Burst.getBlockchain().getHeight(), true
+    )
+    .execute();
+  }
 
-  protected abstract void saveAT(Connection con, AT at) throws SQLException;
+  protected void saveAT(DSLContext ctx, brs.AT at) throws SQLException {
+    ctx.insertInto(
+      AT,
+      AT.ID, AT.CREATOR_ID, AT.NAME, AT.DESCRIPTION,
+      AT.VERSION, AT.CSIZE, AT.DSIZE, AT.C_USER_STACK_BYTES,
+      AT.C_CALL_STACK_BYTES, AT.CREATION_HEIGHT,
+      AT.AP_CODE, AT.HEIGHT
+    ).values(
+      AT_API_Helper.getLong(at.getId()), AT_API_Helper.getLong(at.getCreator()), at.getName(), at.getDescription(),
+      at.getVersion(), at.getCsize(), at.getDsize(), at.getC_user_stack_bytes(),
+      at.getC_call_stack_bytes(), at.getCreationBlockHeight(),
+      brs.AT.compressState(at.getApCode()), Burst.getBlockchain().getHeight()
+    ).execute();
+  }
 
   @Override
   public boolean isATAccountId(Long id) {
@@ -119,7 +148,7 @@ public abstract class SqlATStore implements ATStore {
   }
 
   @Override
-  public AT getAT(Long id) {
+  public brs.AT getAT(Long id) {
     try (DSLContext ctx = Db.getDSLContext()) {
       Record record = ctx.select(AT.fields()).select(AT_STATE.fields()).from(AT.join(AT_STATE).on(AT.ID.eq(AT_STATE.AT_ID))).
               where(AT.LATEST.isTrue().
@@ -139,8 +168,8 @@ public abstract class SqlATStore implements ATStore {
     }
   }
 
-  private AT createAT(AtRecord at, AtStateRecord atState) {
-    return new AT(AT_API_Helper.getByteArray(at.getId()), AT_API_Helper.getByteArray(at.getCreatorId()), at.getName(), at.getDescription(), at.getVersion(),
+  private brs.AT createAT(AtRecord at, AtStateRecord atState) {
+    return new brs.AT(AT_API_Helper.getByteArray(at.getId()), AT_API_Helper.getByteArray(at.getCreatorId()), at.getName(), at.getDescription(), at.getVersion(),
             atState.getState(), at.getCsize(), at.getDsize(), at.getCUserStackBytes(), at.getCCallStackBytes(), at.getCreationHeight(), atState.getSleepBetween(), atState.getNextHeight(),
             atState.getFreezeWhenSameBalance(), atState.getMinActivateAmount(), at.getApCode());
   }
@@ -166,22 +195,22 @@ public abstract class SqlATStore implements ATStore {
   }
 
   @Override
-  public BurstKey.LongKeyFactory<AT> getAtDbKeyFactory() {
+  public BurstKey.LongKeyFactory<brs.AT> getAtDbKeyFactory() {
     return atDbKeyFactory;
   }
 
   @Override
-  public VersionedEntityTable<AT> getAtTable() {
+  public VersionedEntityTable<brs.AT> getAtTable() {
     return atTable;
   }
 
   @Override
-  public BurstKey.LongKeyFactory<AT.ATState> getAtStateDbKeyFactory() {
+  public BurstKey.LongKeyFactory<brs.AT.ATState> getAtStateDbKeyFactory() {
     return atStateDbKeyFactory;
   }
 
   @Override
-  public VersionedEntityTable<AT.ATState> getAtStateTable() {
+  public VersionedEntityTable<brs.AT.ATState> getAtStateTable() {
     return atStateTable;
   }
 
@@ -236,7 +265,7 @@ public abstract class SqlATStore implements ATStore {
     }
   }
 
-  protected class SqlATState extends AT.ATState {
+  protected class SqlATState extends brs.AT.ATState {
     private SqlATState(ResultSet rs) throws SQLException {
       super(
             rs.getLong("at_id"),
