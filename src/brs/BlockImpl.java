@@ -377,8 +377,6 @@ public final class BlockImpl implements Block {
     buffer.putLong(nonce);
     if (blockATs != null)
       buffer.put(blockATs);
-    if (logger.isTraceEnabled())
-      logger.trace(buffer.position() + " + " + blockSignature.length + " = " + buffer.limit() + "?");
     if (buffer.limit() - buffer.position() < blockSignature.length)
       logger.error("Something is too large here - buffer should have " + blockSignature.length + " bytes left but only has " + (buffer.limit() - buffer.position()));
     buffer.put(blockSignature);
