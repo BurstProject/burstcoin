@@ -8,6 +8,10 @@ import com.zaxxer.hikari.pool.ProxyConnection;
 
 import brs.Constants;
 import brs.Burst;
+import brs.db.firebird.FirebirdDbs;
+import brs.db.h2.H2Dbs;
+import brs.db.mariadb.MariadbDbs;
+import brs.db.store.Dbs;
 
 import com.google.common.base.Predicate;
 import org.reflections.ReflectionUtils;
@@ -152,9 +156,23 @@ public final class Db {
   private Db() {
   } // never
 
-  public static void init() {
+  public static Dbs getDbsByDatabaseType(){
+    switch (Db.getDatabaseType()) 
+    {
+      case MARIADB:
+        logger.info("Using mariadb Backend");
+        return new MariadbDbs();
+      case FIREBIRD:
+        logger.info("Using Firebird Backend");
+        return new FirebirdDbs();
+      case H2:
+        logger.info("Using h2 Backend");
+        return new H2Dbs();
+      default:
+        throw new RuntimeException("Error initializing wallet: Unknown database type");
+    }
   }
-
+  
   public static void analyzeTables() {
     if (DATABASE_TYPE == TYPE.H2) {
       try (Connection con = cp.getConnection();
