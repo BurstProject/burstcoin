@@ -183,27 +183,27 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
 
   private T get(DSLContext ctx, SelectQuery query, boolean cache) throws SQLException {
     final boolean doCache = cache && Db.isInTransaction();
-    ResultSet rs = query.fetchResultSet();
-
-    if (!rs.next()) {
-      return null;
-    }
-    T t = null;
-    DbKey dbKey = null;
-    if (doCache) {
-      dbKey = (DbKey) dbKeyFactory.newKey(rs);
-      t = (T) Db.getCache(table).get(dbKey);
-    }
-    if (t == null) {
-      t = load(ctx, rs);
-      if (doCache) {
-        Db.getCache(table).put(dbKey, t);
+    try ( ResultSet rs = query.fetchResultSet() ) {
+      if (!rs.next()) {
+        return null;
       }
+      T t = null;
+      DbKey dbKey = null;
+      if (doCache) {
+        dbKey = (DbKey) dbKeyFactory.newKey(rs);
+        t = (T) Db.getCache(table).get(dbKey);
+      }
+      if (t == null) {
+        t = load(ctx, rs);
+        if (doCache) {
+          Db.getCache(table).put(dbKey, t);
+        }
+      }
+      if (rs.next()) {
+        throw new RuntimeException("Multiple records found");
+      }
+      return t;
     }
-    if (rs.next()) {
-      throw new RuntimeException("Multiple records found");
-    }
-    return t;
   }
 
   @Override

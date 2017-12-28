@@ -130,6 +130,7 @@ public final class Db {
           config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
           break;
       }
+      // config.setLeakDetectionThreshold(2000);
 
       cp = new HikariDataSource(config);
 
@@ -203,12 +204,10 @@ public final class Db {
   public static final DSLContext getDSLContext() throws SQLException {
     Settings settings = new Settings();
     settings.setRenderSchema(Boolean.FALSE);
-    return DSL.using(
-      cp,
-      // SQLDialect.values()[DATABASE_TYPE.ordinal()],
-      DATABASE_TYPE == TYPE.H2 ? SQLDialect.H2 : DATABASE_TYPE == TYPE.FIREBIRD ? SQLDialect.FIREBIRD : SQLDialect.MARIADB,
-      settings
-    );
+    // SQLDialect.values()[DATABASE_TYPE.ordinal()],
+    try ( DSLContext ctx = DSL.using(cp, DATABASE_TYPE == TYPE.H2 ? SQLDialect.H2 : DATABASE_TYPE == TYPE.FIREBIRD ? SQLDialect.FIREBIRD : SQLDialect.MARIADB, settings ) ) {
+      return ctx;
+    }
   }
 
   static Map<DbKey, Object> getCache(String tableName) {
