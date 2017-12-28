@@ -6,11 +6,15 @@ import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.OrderStore;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.jooq.impl.TableImpl;
 import org.jooq.DSLContext;
+import org.jooq.SortField;
 import org.jooq.SelectQuery;
 import brs.schema.Tables.*;
 
@@ -35,10 +39,11 @@ public class SqlOrderStore implements OrderStore {
       }
 
       @Override
-      protected String defaultSort() {
-        return " ORDER BY creation_height DESC ";
+      protected List<SortField> defaultSort() {
+        List<SortField> sort = new ArrayList<>();
+        sort.add(tableClass.field("creation_height", Integer.class).desc());
+        return sort;
       }
-
     };
   private DbKey.LongKeyFactory<Order.Bid> bidOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Bid>("id") {
 
@@ -61,8 +66,10 @@ public class SqlOrderStore implements OrderStore {
       }
 
       @Override
-      protected String defaultSort() {
-        return " ORDER BY creation_height DESC ";
+      protected List<SortField> defaultSort() {
+        List<SortField> sort = new ArrayList<>();
+        sort.add(tableClass.field("creation_height", Integer.class).desc());
+        return sort;
       }
 
     };
@@ -85,8 +92,11 @@ public class SqlOrderStore implements OrderStore {
 
   @Override
   public BurstIterator<Order.Ask> getSortedAsks(long assetId, int from, int to) {
-    return askOrderTable.getManyBy(brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId), from, to,
-                                   " ORDER BY price ASC, creation_height ASC, id ASC ");
+    List<SortField> sort = new ArrayList<>();
+    sort.add(brs.schema.Tables.ASK_ORDER.field("price", Long.class).asc());
+    sort.add(brs.schema.Tables.ASK_ORDER.field("creation_height", Integer.class).asc());
+    sort.add(brs.schema.Tables.ASK_ORDER.field("id", Long.class).asc());
+    return askOrderTable.getManyBy(brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId), from, to, sort);
   }
 
   @Override
@@ -178,9 +188,11 @@ public class SqlOrderStore implements OrderStore {
 
   @Override
   public BurstIterator<Order.Bid> getSortedBids(long assetId, int from, int to) {
-
-    return bidOrderTable.getManyBy(brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId), from, to,
-                                   " ORDER BY price DESC, creation_height ASC, id ASC ");
+    List<SortField> sort = new ArrayList<>();
+    sort.add(brs.schema.Tables.BID_ORDER.field("price", Long.class).desc());
+    sort.add(brs.schema.Tables.BID_ORDER.field("creation_height", Integer.class).asc());
+    sort.add(brs.schema.Tables.BID_ORDER.field("id", Long.class).asc());
+    return bidOrderTable.getManyBy(brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId), from, to, sort);
   }
 
   @Override

@@ -8,6 +8,9 @@ import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.sql.DbUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -21,18 +24,18 @@ import org.jooq.Result;
 import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.SortField;
 import org.jooq.ResultQuery;
 import org.jooq.SelectJoinStep;
 import org.jooq.impl.TableImpl;
 import org.jooq.SelectQuery;
 import org.jooq.UpdateQuery;
-import org.jooq.Row1;
 import org.jooq.exception.DataAccessException;
 
 public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T> {
   protected final DbKey.Factory<T> dbKeyFactory;
   private final boolean multiversion;
-  private final String defaultSort;
+  private final List<SortField> defaultSort;
 
   //    private final Timer getByKeyTimer;
   //    private final Timer getByKeyAndHeightTimer;
@@ -47,13 +50,13 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
     super(table, tableClass);
     this.dbKeyFactory = (DbKey.Factory<T>) dbKeyFactory;
     this.multiversion = multiversion;
-    this.defaultSort = " ORDER BY " + (multiversion ? this.dbKeyFactory.getPKColumns() : " height DESC ");
-
-    //        getByKeyTimer =  Burst.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByKey"));
-    //        getByKeyAndHeightTimer =  Burst.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByKeyAndHeight"));
-    //        getByClauseTimer =  Burst.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByClause"));
-    //        getByClauseAndHeightTimer =  Burst.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"getByClauseAndHeight"));
-    //        insertTimer =  Burst.metrics.timer(MetricRegistry.name(DerivedSqlTable.class, table,"insert"));
+    this.defaultSort  = new ArrayList<>();
+    if ( multiversion ) {
+      for ( String column : this.dbKeyFactory.getPKColumns() ) {
+        defaultSort.add(tableClass.field(column, Long.class).asc());
+      }
+    }
+    defaultSort.add(tableClass.field("height", Integer.class).desc());
   }
 
   protected abstract T load(DSLContext ctx, ResultSet rs) throws SQLException;
@@ -61,7 +64,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   protected void save(DSLContext ctx, T t) throws SQLException {
   }
 
-  protected String defaultSort() {
+  protected List<SortField> defaultSort() {
     return defaultSort;
   }
 
@@ -209,7 +212,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Condition condition, int from, int to, String sort) {
+  public BurstIterator<T> getManyBy(Condition condition, int from, int to, List<SortField> sort) {
     try (DSLContext ctx = Db.getDSLContext()) {
       SelectQuery query = ctx.selectQuery();
       query.addFrom(tableClass);
@@ -231,7 +234,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, String sort) {
+  public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, List<SortField> sort) {
     checkAvailable(height);
     try (DSLContext ctx = Db.getDSLContext()) {
       SelectQuery query = ctx.selectQuery();
@@ -261,7 +264,8 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
           )
         );
       }
-      // ToDo: addSort
+      query.addOrderBy(sort);
+
       DbUtils.applyLimits(query, from, to);
       return getManyBy(ctx, query, true);
     }
@@ -298,14 +302,14 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   }
 
   @Override
-  public BurstIterator<T> getAll(int from, int to, String sort) {
+  public BurstIterator<T> getAll(int from, int to, List<SortField> sort) {
     try (DSLContext ctx = Db.getDSLContext()) {
       SelectQuery query = ctx.selectQuery();
       query.addFrom(tableClass);
       if ( multiversion ) {
         query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
       }
-      // ToDo: sort
+      query.addOrderBy(sort);
       DbUtils.applyLimits(query, from, to);
       return getManyBy(ctx, query, true);
     }
@@ -320,7 +324,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   }
 
   @Override
-  public BurstIterator<T> getAll(int height, int from, int to, String sort) {
+  public BurstIterator<T> getAll(int height, int from, int to, List<SortField> sort) {
     checkAvailable(height);
     try (DSLContext ctx = Db.getDSLContext()) {
       SelectQuery query = ctx.selectQuery();
@@ -349,7 +353,7 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
           )
         );
       }
-      // ToDo: addSort
+      query.addOrderBy(sort);
       query.addLimit(from, to);
       return getManyBy(ctx, query, true);
     }

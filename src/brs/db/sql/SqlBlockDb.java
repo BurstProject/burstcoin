@@ -194,7 +194,7 @@ public class SqlBlockDb implements BlockDb {
     try (DSLContext ctx = Db.getDSLContext() ) {
       try {
         for ( Table table : ctx.meta().getTables() ) {
-          if ( table.getName().toUpperCase() != "PEER" ) {
+          if ( table.getName().toUpperCase() != "PEER" && table.getName().toUpperCase() != "CATALOG" ) {
             ctx.truncate(table).execute();
           }
         }

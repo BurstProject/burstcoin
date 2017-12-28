@@ -12,11 +12,14 @@ import org.slf4j.LoggerFactory;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import static brs.schema.Tables.*;
 import static org.jooq.impl.DSL.*;
 
 import org.jooq.DSLContext;
+import org.jooq.SortField;
 import org.jooq.Condition;
 import org.jooq.Merge;
 import org.jooq.BatchBindStep;
@@ -72,8 +75,12 @@ public class SqlAccountStore implements AccountStore {
       }
 
       @Override
-      protected String defaultSort() {
-        return " ORDER BY quantity DESC, account_id, asset_id ";
+      protected List<SortField> defaultSort() {
+        List<SortField> sort = new ArrayList<>();
+        sort.add(tableClass.field("quantity", Long.class).desc());
+        sort.add(tableClass.field("account_id", Long.class).asc());
+        sort.add(tableClass.field("asset_id", Long.class).asc());
+        return sort;
       }
 
     };
@@ -178,8 +185,10 @@ public class SqlAccountStore implements AccountStore {
 
   @Override
   public BurstIterator<Account.AccountAsset> getAssetAccounts(long assetId, int from, int to) {
-    return getAccountAssetTable().getManyBy(ACCOUNT_ASSET.ASSET_ID.eq(assetId),
-                                            from, to, " ORDER BY quantity DESC, account_id ");
+    List<SortField> sort = new ArrayList<>();
+    sort.add(ACCOUNT_ASSET.field("quantity", Long.class).desc());
+    sort.add(ACCOUNT_ASSET.field("account_id", Long.class).asc());
+    return getAccountAssetTable().getManyBy(ACCOUNT_ASSET.ASSET_ID.eq(assetId), from, to, sort);
   }
 
   @Override
@@ -187,8 +196,11 @@ public class SqlAccountStore implements AccountStore {
     if (height < 0) {
       return getAssetAccounts(assetId, from, to);
     }
-    return getAccountAssetTable().getManyBy(ACCOUNT_ASSET.ASSET_ID.eq(assetId),
-                                            height, from, to, " ORDER BY quantity DESC, account_id ");
+
+    List<SortField> sort = new ArrayList<>();
+    sort.add(ACCOUNT_ASSET.field("quantity", Long.class).desc());
+    sort.add(ACCOUNT_ASSET.field("account_id", Long.class).asc());
+    return getAccountAssetTable().getManyBy(ACCOUNT_ASSET.ASSET_ID.eq(assetId), height, from, to, sort);
   }
 
   @Override

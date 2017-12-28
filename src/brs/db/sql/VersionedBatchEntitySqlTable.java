@@ -14,6 +14,7 @@ import org.jooq.Query;
 import org.jooq.Merge;
 import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
+import org.jooq.SortField;
 
 public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySqlTable<T> implements VersionedBatchEntityTable<T> {
   protected VersionedBatchEntitySqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory) {
@@ -128,7 +129,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Condition condition, int from, int to, String sort) {
+  public BurstIterator<T> getManyBy(Condition condition, int from, int to, List<SortField> sort) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
@@ -144,7 +145,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   }
 
   @Override
-  public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, String sort) {
+  public BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, List<SortField> sort) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
@@ -168,7 +169,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   }
 
   @Override
-  public BurstIterator<T> getAll(int from, int to, String sort) {
+  public BurstIterator<T> getAll(int from, int to, List<SortField> sort) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
@@ -184,7 +185,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
   }
 
   @Override
-  public BurstIterator<T> getAll(int height, int from, int to, String sort) {
+  public BurstIterator<T> getAll(int height, int from, int to, List<SortField> sort) {
     if(Db.isInTransaction()) {
       throw new IllegalStateException("Cannot use in batch table transaction");
     }
