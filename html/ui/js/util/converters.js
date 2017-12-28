@@ -51,6 +51,18 @@ var converters = function() {
 
 			return bytes;
 		},
+		hexStringToDecString: function(hex) {
+			var result = new Big(0);
+			var base = new Big(16);
+			var k = 1;
+			for(var i=0;  i < hex.length; i++){
+				var x = parseInt(hex[i + k], 16);
+				x = base.pow(i).times(x);
+				result = result.plus(x);
+				k *= -1;
+			} 
+			return result.toString();
+		},
 		stringToHexString: function(str) {
 			return this.byteArrayToHexString(this.stringToByteArray(str));
 		},
