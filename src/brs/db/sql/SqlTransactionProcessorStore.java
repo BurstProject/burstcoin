@@ -13,6 +13,7 @@ import java.util.*;
 
 import static brs.schema.Tables.UNCONFIRMED_TRANSACTION;
 import org.jooq.DSLContext;
+import org.jooq.SortField;
 
 public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
@@ -78,8 +79,12 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
         }
 
         @Override
-        protected String defaultSort() {
-          return " ORDER BY transaction_height ASC, fee_per_byte DESC, timestamp ASC, id ASC ";
+        protected List<SortField> defaultSort() {
+          List<SortField> sort = new ArrayList<>();
+          sort.add(tableClass.field("transaction_height", Integer.class).asc());
+          sort.add(tableClass.field("fee_per_byte", Long.class).desc());
+          sort.add(tableClass.field("id", Integer.class).asc());
+          return sort;
         }
       };
 

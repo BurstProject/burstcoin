@@ -6,11 +6,15 @@ import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.SubscriptionStore;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.jooq.DSLContext;
 import org.jooq.Condition;
+import org.jooq.SortField;
 
 import static brs.schema.Tables.SUBSCRIPTION;
 
@@ -36,8 +40,11 @@ public class SqlSubscriptionStore implements SubscriptionStore {
         }
 
         @Override
-        protected String defaultSort() {
-          return " ORDER BY time_next ASC, id ASC ";
+        protected List<SortField> defaultSort() {
+          List<SortField> sort = new ArrayList<>();
+          sort.add(tableClass.field("time_next", Integer.class).asc());
+          sort.add(tableClass.field("id", Long.class).asc());
+          return sort;
         }
       };
 

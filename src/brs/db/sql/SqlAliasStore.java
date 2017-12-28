@@ -6,7 +6,9 @@ import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.AliasStore;
-import org.jooq.DSLContext;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -18,6 +20,7 @@ import static brs.schema.Tables.ALIAS;
 import static brs.schema.Tables.ALIAS_OFFER;
 
 import org.jooq.DSLContext;
+import org.jooq.SortField;
 
 public class SqlAliasStore implements AliasStore {
 
@@ -120,8 +123,10 @@ public class SqlAliasStore implements AliasStore {
       }
 
       @Override
-      protected String defaultSort() {
-        return " ORDER BY alias_name_lower ";
+      protected List<SortField> defaultSort() {
+        List<SortField> sort = new ArrayList<>();
+        sort.add(tableClass.field("alias_name_lower", String.class).asc());
+        return sort;
       }
     };
 

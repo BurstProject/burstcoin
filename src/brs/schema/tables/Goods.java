@@ -62,7 +62,7 @@ public class Goods extends TableImpl<GoodsRecord> {
     /**
      * The column <code>DB.goods.ID</code>.
      */
-    public final TableField<GoodsRecord, Long> ID = createField("ID", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
+    public final TableField<GoodsRecord, Long> ID = createField("id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column <code>DB.goods.seller_id</code>.

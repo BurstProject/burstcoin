@@ -19,6 +19,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 
 import static brs.schema.Tables.AT;
@@ -27,6 +28,7 @@ import static brs.schema.Tables.TRANSACTION;
 import static brs.schema.Tables.ACCOUNT;
 
 import org.jooq.DSLContext;
+import org.jooq.SortField;
 
 public class SqlATStore implements ATStore {
 
@@ -51,8 +53,10 @@ public class SqlATStore implements ATStore {
       }
 
       @Override
-      protected String defaultSort() {
-        return " ORDER BY id ";
+      protected List<SortField> defaultSort() {
+        List<SortField> sort = new ArrayList<>();
+        sort.add(tableClass.field("id", Long.class).asc());
+        return sort;
       }
     };
   private final BurstKey.LongKeyFactory<brs.AT.ATState> atStateDbKeyFactory = new DbKey.LongKeyFactory<brs.AT.ATState>("at_id") {
@@ -74,8 +78,12 @@ public class SqlATStore implements ATStore {
       }
 
       @Override
-      protected String defaultSort() {
-        return " ORDER BY prev_height, height, at_id ";
+      protected List<SortField> defaultSort() {
+        List<SortField> sort = new ArrayList<>();
+        sort.add(tableClass.field("prev_height", Integer.class).asc());
+        sort.add(tableClass.field("height", Integer.class).asc());
+        sort.add(tableClass.field("at_id", Long.class).asc());
+        return sort;
       }
     };
 

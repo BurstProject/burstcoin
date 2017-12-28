@@ -9,7 +9,11 @@ import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
 import brs.db.store.DigitalGoodsStoreStore;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jooq.DSLContext;
+import org.jooq.SortField;
 import static brs.schema.Tables.PURCHASE;
 import static brs.schema.Tables.PURCHASE_FEEDBACK;
 import static brs.schema.Tables.PURCHASE_PUBLIC_FEEDBACK;
@@ -48,8 +52,11 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
         }
 
         @Override
-        protected String defaultSort() {
-          return " ORDER BY timestamp DESC, id ASC ";
+        protected List<SortField> defaultSort() {
+          List<SortField> sort = new ArrayList<>();
+          sort.add(tableClass.field("timestamp", Integer.class).desc());
+          sort.add(tableClass.field("id", Long.class).asc());
+          return sort;
         }
       };
 
@@ -139,8 +146,11 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
         }
 
         @Override
-        protected String defaultSort() {
-          return " ORDER BY timestamp DESC, id ASC ";
+        protected List<SortField> defaultSort() {
+          List<SortField> sort = new ArrayList<>();
+          sort.add(brs.schema.Tables.GOODS.field("timestamp", Integer.class).desc());
+          sort.add(brs.schema.Tables.GOODS.field("id", Long.class).asc());
+          return sort;
         }
       };
 
@@ -266,13 +276,17 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
 
   @Override
   public BurstIterator<DigitalGoodsStore.Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
+    List<SortField> sort = new ArrayList<>();
+    sort.add(GOODS.field("name", String.class).asc());
+    sort.add(GOODS.field("timestamp", Integer.class).desc());
+    sort.add(GOODS.field("id", Long.class).asc());
     return getGoodsTable().getManyBy(
       (
         inStockOnly
           ? GOODS.SELLER_ID.eq(sellerId).and(GOODS.DELISTED.isFalse()).and(GOODS.QUANTITY.gt(0))
           : GOODS.SELLER_ID.eq(sellerId)
       ),
-      from, to, " ORDER BY name ASC, timestamp DESC, id ASC "
+      from, to, sort
     );
   }
 

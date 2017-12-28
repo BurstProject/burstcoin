@@ -1,8 +1,11 @@
 package brs.db;
 
+import java.util.List;
+
 import org.jooq.DSLContext;
 import org.jooq.Condition;
 import org.jooq.SelectQuery;
+import org.jooq.SortField;
 
 public interface EntityTable<T> extends DerivedTable {
   void checkAvailable(int height);
@@ -17,21 +20,21 @@ public interface EntityTable<T> extends DerivedTable {
 
   BurstIterator<T> getManyBy(Condition condition, int from, int to);
 
-  BurstIterator<T> getManyBy(Condition condition, int from, int to, String sort);
+  BurstIterator<T> getManyBy(Condition condition, int from, int to, List<SortField> sort);
 
   BurstIterator<T> getManyBy(Condition condition, int height, int from, int to);
 
-  BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, String sort);
+  BurstIterator<T> getManyBy(Condition condition, int height, int from, int to, List<SortField> sort);
 
   BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery query, boolean cache);
 
   BurstIterator<T> getAll(int from, int to);
 
-  BurstIterator<T> getAll(int from, int to, String sort);
+  BurstIterator<T> getAll(int from, int to, List<SortField> sort);
 
   BurstIterator<T> getAll(int height, int from, int to);
 
-  BurstIterator<T> getAll(int height, int from, int to, String sort);
+  BurstIterator<T> getAll(int height, int from, int to, List<SortField> sort);
 
   int getCount();
 
