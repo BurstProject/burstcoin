@@ -1,11 +1,11 @@
 <img align="right" width="120" height="120" title="Burst Logo" src="https://raw.githubusercontent.com/PoC-Consortium/Marketing_Resources/master/BURST_LOGO/PNG/icon_blue.png" />
 
-# Burstcoin CG-Wallet
+# Burstcoin Wallet
 
 [![Get Support at https://discord.gg/NKXGM6N](https://img.shields.io/badge/join-discord-blue.svg)](https://discord.gg/NKXGM6N)
 [![Build Status](https://api.travis-ci.org/PoC-Consortium/burstcoin.svg?branch=master)](https://travis-ci.org/PoC-Consortium/burstcoin?branch=master) 
 ![Quality Gate](https://sonarqube.com/api/badges/gate?key=burstcoin:burstcoin)
-[![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
+[![MIT](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE.txt)
 
 The world's first HDD-mined cryptocurrency using an energy efficient
 and fair Proof-of-Capacity (PoC) consensus algorithm.
@@ -98,7 +98,7 @@ brs.dbPassword=yourpassword
 For a general overview of Burst history see https://burstwiki.org/wiki/History_of_Burst
 
 ```
-????-??-?? 1.3.8cg Burst namespace; revamped configuration
+????-??-?? 1.9.1   Burst namespace; revamped configuration; migrated plain SQL to JOOQ
 2017-10-28 1.3.6cg multi-DB support: added Firebird, re-added H2; support for quick binary dump and load
 2017-09-04 1.3.4cg improved database deployment; bugfix: utf8 encoding
 2017-08-11 1.3.2cg 1st official PoCC release: MariaDB backend based on 1.2.9
