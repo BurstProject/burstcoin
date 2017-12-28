@@ -279,7 +279,6 @@ public final class Burst {
         Order.init();
         Trade.init();
         AssetTransfer.init();
-        AT.init();
         Peers.init();
         getGenerator().init();
         API.init();
