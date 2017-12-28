@@ -345,11 +345,11 @@ public final class AT extends AT_Machine_State {
   }
 
   public AT ( byte[] atId , byte[] creator , String name , String description , short version ,
-              byte[] stateBytes, int csize , int dsize , int c_user_stack_bytes , int c_call_stack_bytes ,
+              byte[] stateBytes, int csize , int dsize , int cUserStackBytes , int cCallStackBytes ,
               int creationBlockHeight, int sleepBetween , int nextHeight ,
               boolean freezeWhenSameBalance, long minActivationAmount, byte[] apCode ) {
     super(atId , creator , version ,
-          stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes ,
+          stateBytes , csize , dsize , cUserStackBytes , cCallStackBytes ,
           creationBlockHeight , sleepBetween ,
           freezeWhenSameBalance , minActivationAmount , apCode );
     this.name = name;
