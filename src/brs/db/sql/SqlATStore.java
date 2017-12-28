@@ -270,7 +270,6 @@ public class SqlATStore implements ATStore {
       super(
             rs.getLong("at_id"),
             rs.getBytes("state"),
-            rs.getInt("prev_height"),
             rs.getInt("next_height"),
             rs.getInt("sleep_between"),
             rs.getLong("prev_balance"),
