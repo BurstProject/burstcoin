@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jooq.impl.TableImpl;
@@ -17,6 +18,10 @@ import org.jooq.SelectQuery;
 import org.jooq.UpdateQuery;
 import org.jooq.DeleteQuery;
 import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
+import org.jooq.Field;
+import org.jooq.Table;
+import org.jooq.Record;
 
 public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> implements VersionedEntityTable<T> {
 
@@ -75,7 +80,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
 
   @Override
   public final void trim(int height) {
-    trim(table, height, dbKeyFactory);
+    trim(table, tableClass, height, dbKeyFactory);
   }
 
   static void rollback(final String table, final TableImpl tableClass, final int height, final DbKey.Factory dbKeyFactory) {
@@ -128,42 +133,59 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
     Db.getCache(table).clear();
   }
 
-  static void trim(final String table, final int height, final DbKey.Factory dbKeyFactory) {
+  static void trim(final String table, final TableImpl tableClass, final int height, final DbKey.Factory dbKeyFactory) {
     if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmtSelect = con.prepareStatement("SELECT " + dbKeyFactory.getPKColumns() + ", MAX(height) AS max_height"
-                                                              + " FROM " + DbUtils.quoteTableName(table) + " WHERE height < ? GROUP BY " + dbKeyFactory.getPKColumns() + " HAVING COUNT(DISTINCT height) > 1");
-         PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + DbUtils.quoteTableName(table) + dbKeyFactory.getPKClause()
-                                                              + " AND height < ?");
-
-         PreparedStatement pstmtDeleteDeleted = con.prepareStatement(
-                                                                     Db.getDatabaseType() == Db.TYPE.FIREBIRD
-                                                                     ? "DELETE FROM " + DbUtils.quoteTableName(table) + " WHERE height < ? AND latest = FALSE "
-                                                                     + " AND (" + String.join(" || '\\0' || ", dbKeyFactory.getPKColumns()) + ") NOT IN ( SELECT * FROM ( SELECT (" + String.join(" || '\\0' || ", dbKeyFactory.getPKColumns()) + ") AS ac1v FROM "
-                                                                     + DbUtils.quoteTableName(table) + " WHERE height >= ?) ac0v )"
-                                                                     : "DELETE FROM " + DbUtils.quoteTableName(table) + " WHERE height < ? AND latest = FALSE "
-                                                                     + " AND CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") NOT IN ( SELECT * FROM ( SELECT CONCAT_WS('\\0', " + dbKeyFactory.getPKColumns() + ") FROM "
-                                                                     + DbUtils.quoteTableName(table) + " WHERE height >= ?) ac0v )"
-                                                                     )) {
-
-      // logger.info( "DELETE PK columns: ", dbKeyFactory.getPKColumns() );
-      pstmtSelect.setInt(1, height);
-      try (ResultSet rs = pstmtSelect.executeQuery()) {
-        while (rs.next()) {
-          DbKey dbKey = (DbKey) dbKeyFactory.newKey(rs);
-          int maxHeight = rs.getInt("max_height");
-          int i = 1;
-          i = dbKey.setPK(pstmtDelete, i);
-          pstmtDelete.setInt(i, maxHeight);
-          pstmtDelete.executeUpdate();
-        }
-        pstmtDeleteDeleted.setInt(1, height);
-        pstmtDeleteDeleted.setInt(2, height);
-        pstmtDeleteDeleted.executeUpdate();
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      SelectQuery selectMaxHeightQuery = ctx.selectQuery();
+      selectMaxHeightQuery.addFrom(tableClass);
+      selectMaxHeightQuery.addSelect(tableClass.field("height", Long.class).max().as("max_height"));
+      for ( String column : dbKeyFactory.getPKColumns() ) {
+        Field pkField = tableClass.field(column, Long.class);
+        selectMaxHeightQuery.addSelect(pkField);
+        selectMaxHeightQuery.addGroupBy(pkField);
       }
-    } catch (SQLException e) {
+      selectMaxHeightQuery.addConditions(tableClass.field("height", Long.class).lt(height));
+      selectMaxHeightQuery.addHaving(tableClass.field("height", Long.class).countDistinct().gt(1));
+      
+      try {
+        try ( ResultSet rs = selectMaxHeightQuery.fetchResultSet() ) {
+          while ( rs.next() ) {
+            DbKey dbKey = (DbKey) dbKeyFactory.newKey(rs);
+            int maxHeight = rs.getInt("max_height");
+
+            DeleteQuery deleteLowerHeightQuery = ctx.deleteQuery(tableClass);
+            deleteLowerHeightQuery.addConditions(tableClass.field("height", Integer.class).lt(height));
+            deleteLowerHeightQuery.addConditions(dbKey.getPKConditions(tableClass));
+            deleteLowerHeightQuery.execute();
+          }
+        }
+        catch (Exception e) {
+          throw new RuntimeException(e.toString(), e);
+        }
+
+        SelectQuery keepQuery = ctx.selectQuery();
+        keepQuery.addFrom(tableClass);
+        keepQuery.addSelect(tableClass.field("db_id", Long.class));
+        keepQuery.addConditions(tableClass.field("height", Integer.class).ge(height));
+        keepQuery.asTable("pocc");
+        
+        //        Table<Record> keepQuery = ctx.select(tableClass.field("db_id", Long.class)).from(tableClass).where(tableClass.field("height", Integer.class).ge(height)).asTable("pocc");
+        DeleteQuery deleteQuery = ctx.deleteQuery(tableClass);
+        deleteQuery.addConditions(
+          tableClass.field("height", Long.class).lt(height),
+          tableClass.field("latest", Boolean.class).isFalse(),
+          tableClass.field("db_id", Long.class).notIn(ctx.select(keepQuery.fields()).from(keepQuery))
+        );
+
+        deleteQuery.execute();
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e.toString(), e);
+      }
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
