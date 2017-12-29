@@ -25,15 +25,17 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public final class AT extends AT_Machine_State {
+    
+  private static final LinkedHashMap<Long, Long> pendingFees = new LinkedHashMap<>();
+  private static final List<AT_Transaction> pendingTransactions = new ArrayList<>();
 
   static {
-    Burst.getBlockchainProcessor().addListener(new Listener<Block>() {
-        @Override
-        public void notify(Block block) {
-          for (Long id : pendingFees.keySet()) {
-            Account atAccount = Account.getAccount(id);
-            atAccount.addToBalanceAndUnconfirmedBalanceNQT(-pendingFees.get(id));
-          }
+    Burst.getBlockchainProcessor().addListener((Block block) -> {
+          pendingFees.entrySet().forEach((entry) -> {
+            Account atAccount = Account.getAccount(entry.getKey());
+            atAccount.addToBalanceAndUnconfirmedBalanceNQT(-entry.getValue());
+          });
+          
           List<TransactionImpl> transactions = new ArrayList<>();
           for (AT_Transaction atTransaction : pendingTransactions) {
             Account.getAccount(AT_API_Helper.getLong(atTransaction.getSenderId())).addToBalanceAndUnconfirmedBalanceNQT(-atTransaction.getAmount());
@@ -66,18 +68,13 @@ public final class AT extends AT_Machine_State {
             }
           }
 
-          if (transactions.size() > 0) {
+          if (!transactions.isEmpty()) {
             /** WATCH: Replace after transactions are converted! */
             Burst.getDbs().getTransactionDb().saveTransactions( transactions);
           }
-
-        }
-
+          
       }, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
   }
-
-  private static final LinkedHashMap<Long, Long> pendingFees = new LinkedHashMap<>();
-  private static final List<AT_Transaction> pendingTransactions = new ArrayList<>();
 
   public static void clearPendingFees() {
     pendingFees.clear();
@@ -120,7 +117,7 @@ public final class AT extends AT_Machine_State {
     private boolean freezeWhenSameBalance;
     private long minActivationAmount;
 
-    protected ATState(long atId, byte[] state, int prevHeight,
+    protected ATState(long atId, byte[] state,
                       int nextHeight, int sleepBetween, long prevBalance, boolean freezeWhenSameBalance, long minActivationAmount) {
       this.atId = atId;
       this.dbKey =  atStateDbKeyFactory.newKey(this.atId);
@@ -253,11 +250,11 @@ public final class AT extends AT_Machine_State {
   public void saveState() {
     ATState state = atStateTable.get(atStateDbKeyFactory.newKey( AT_API_Helper.getLong( this.getId() ) ) );
     int prevHeight = Burst.getBlockchain().getHeight();
-    int nextHeight = prevHeight + getWaitForNumberOfBlocks();
+    int newNextHeight = prevHeight + getWaitForNumberOfBlocks();
     if (state != null) {
       state.setState(getState());
       state.setPrevHeight( prevHeight );
-      state.setNextHeight(nextHeight);
+      state.setNextHeight(newNextHeight);
       state.setSleepBetween(getSleepBetween());
       state.setPrevBalance(getP_balance());
       state.setFreezeWhenSameBalance(freezeOnSameBalance());
@@ -265,7 +262,7 @@ public final class AT extends AT_Machine_State {
     }
     else {
       state = new ATState(AT_API_Helper.getLong( this.getId() ),
-                          getState(), prevHeight, nextHeight, getSleepBetween(),
+                          getState(), newNextHeight, getSleepBetween(),
                           getP_balance(), freezeOnSameBalance(), minActivationAmount());
     }
     atStateTable.insert(state);
@@ -306,7 +303,6 @@ public final class AT extends AT_Machine_State {
         GZIPOutputStream gzip = new GZIPOutputStream(bos)) {
       gzip.write(stateBytes);
       gzip.flush();
-      gzip.close();
       return bos.toByteArray();
     }
     catch (IOException e) {
@@ -334,8 +330,6 @@ public final class AT extends AT_Machine_State {
     }
   }
 
-  static void init() {}
-
   private final String name;
   private final String description;
   public final BurstKey dbKey;
@@ -351,11 +345,11 @@ public final class AT extends AT_Machine_State {
   }
 
   public AT ( byte[] atId , byte[] creator , String name , String description , short version ,
-              byte[] stateBytes, int csize , int dsize , int c_user_stack_bytes , int c_call_stack_bytes ,
+              byte[] stateBytes, int csize , int dsize , int cUserStackBytes , int cCallStackBytes ,
               int creationBlockHeight, int sleepBetween , int nextHeight ,
               boolean freezeWhenSameBalance, long minActivationAmount, byte[] apCode ) {
     super(atId , creator , version ,
-          stateBytes , csize , dsize , c_user_stack_bytes , c_call_stack_bytes ,
+          stateBytes , csize , dsize , cUserStackBytes , cCallStackBytes ,
           creationBlockHeight , sleepBetween ,
           freezeWhenSameBalance , minActivationAmount , apCode );
     this.name = name;
