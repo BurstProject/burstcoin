@@ -63,24 +63,8 @@ public class CreateBinDump {
         Thread.sleep(20000);
       }
 
-      Db.init();
-      switch (Db.getDatabaseType()) {
-        case MARIADB:
-          logger.info("Using mariadb Backend");
-          dbs = new MariadbDbs();
-          break;
-        case FIREBIRD:
-          logger.info("Using Firebird Backend");
-          dbs = new FirebirdDbs();
-          break;
-        case H2:
-          logger.info("Using h2 Backend");
-          dbs = new H2Dbs();
-          break;
-        default:
-          throw new RuntimeException("Error initializing wallet: Unknown database type");
-      }
-
+      dbs = Db.getDbsByDatabaseType();
+      
       dump(args[0]);
     }
     catch (Exception e) {
