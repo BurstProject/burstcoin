@@ -4,8 +4,6 @@ import brs.Burst;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;

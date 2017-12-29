@@ -12,10 +12,6 @@ public interface BurstKey {
     BurstKey newKey(ResultSet rs) throws SQLException;
   }
 
-  int setPK(PreparedStatement pstmt) throws SQLException;
-
-  int setPK(PreparedStatement pstmt, int index) throws SQLException;
-
   long[] getPKValues();
 
   interface LongKeyFactory<T> extends Factory<T> {

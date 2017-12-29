@@ -2,7 +2,6 @@ package brs.db.sql;
 
 import brs.db.BurstKey;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -55,10 +54,6 @@ public interface DbKey extends BurstKey {
     public abstract void applySelfJoin(SelectQuery query, Table queryTable, Table otherTable);
 
   }
-
-  int setPK(PreparedStatement pstmt) throws SQLException;
-
-  int setPK(PreparedStatement pstmt, int index) throws SQLException;
 
   ArrayList<Condition> getPKConditions(Table tableClass);
 
@@ -150,17 +145,6 @@ public interface DbKey extends BurstKey {
     }
 
     @Override
-    public int setPK(PreparedStatement pstmt) throws SQLException {
-      return setPK(pstmt, 1);
-    }
-
-    @Override
-    public int setPK(PreparedStatement pstmt, int index) throws SQLException {
-      pstmt.setLong(index, id);
-      return index + 1;
-    }
-
-    @Override
     public long[] getPKValues() {
       long[] values = {id};
       return values;
@@ -197,18 +181,6 @@ public interface DbKey extends BurstKey {
       this.idB       = idB;
       this.idColumnA = idColumnA;
       this.idColumnB = idColumnB;
-    }
-
-    @Override
-    public int setPK(PreparedStatement pstmt) throws SQLException {
-      return setPK(pstmt, 1);
-    }
-
-    @Override
-    public int setPK(PreparedStatement pstmt, int index) throws SQLException {
-      pstmt.setLong(index, idA);
-      pstmt.setLong(index + 1, idB);
-      return index + 2;
     }
 
     @Override
