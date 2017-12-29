@@ -3,10 +3,6 @@ package brs.db.sql;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Types;
-
 import org.jooq.SelectQuery;
 
 public final class DbUtils {
@@ -26,29 +22,12 @@ public final class DbUtils {
     }
   }
 
-  public static void setString(PreparedStatement pstmt, int index, String s) throws SQLException {
-    if (s != null) {
-      pstmt.setString(index, s);
-    } else {
-      pstmt.setNull(index, Types.VARCHAR);
-    }
-  }
-
   public static String quoteTableName(String table) {
     switch (Db.getDatabaseType()) {
       case FIREBIRD:
         return table.equalsIgnoreCase("at") ? "\"" + table.toUpperCase() + "\"" : table;
       default:
         return table;
-    }
-  }
-
-  public static String limitsClause(int limit) {
-    switch (Db.getDatabaseType()) {
-      case FIREBIRD:
-        return " ROWS ? ";
-      default:
-        return " LIMIT ?";
     }
   }
 
@@ -93,47 +72,6 @@ public final class DbUtils {
     }
 
 
-  }
-
-  public static int setLimits(int index, PreparedStatement pstmt, int limit) throws SQLException {
-    //        logger.debug("Limits: "+index+" "+limit);
-    //        logger.debug(pstmt.toString());
-    pstmt.setInt(index++, limit);
-    return index;
-  }
-
-  public static int setLimits(int index, PreparedStatement pstmt, int from, int to) throws SQLException {
-    int limit = to >= 0 && to >= from && to < Integer.MAX_VALUE ? to - from + 1 : 0;
-    logger.trace("setLimits( index: " + index + ", pstmt: ?, from: " + from + ", to: " + to + ", limit: " + limit + ")");
-    switch (Db.getDatabaseType()) {
-      case FIREBIRD: {
-        if (limit > 0 && from > 0) {
-          pstmt.setInt(index++, from + 1);
-          pstmt.setInt(index++, from + limit);
-          logger.trace("setLimits for Firebird ROWS " + ( from + 1 ) + " TO " + ( from + limit ));
-        }
-        else if (from > 0) {
-          pstmt.setInt(index++, from);
-          // emulate offset function without knowing the amount of rows available
-          // by using the biggest bigint
-          pstmt.setLong(index++, 9223372036854775807L);
-        }
-        else if (limit > 0) {
-          pstmt.setInt(index++, limit);
-        }
-        break;
-      }
-      default: {
-        if (limit > 0) {
-          pstmt.setInt(index++, limit);
-        }
-        if (from > 0) {
-          pstmt.setInt(index++, from);
-        }
-      }
-    }
-
-    return index;
   }
 
 }

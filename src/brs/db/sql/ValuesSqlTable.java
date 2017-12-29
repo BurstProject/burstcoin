@@ -3,8 +3,6 @@ package brs.db.sql;
 import brs.db.BurstKey;
 import brs.db.ValuesTable;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
