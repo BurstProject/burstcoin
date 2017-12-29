@@ -8,8 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -19,6 +17,8 @@ import static org.jooq.impl.DSL.*;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Table;
+import org.jooq.SelectQuery;
+import org.jooq.DeleteQuery;
 
 public class SqlBlockDb implements BlockDb {
 
@@ -141,69 +141,38 @@ public class SqlBlockDb implements BlockDb {
   // relying on cascade triggers in the database to delete the transactions for all deleted blocks
   @Override
   public void deleteBlocksFrom(long blockId) {
-    if (!Db.isInTransaction()) {
-      try {
-        Db.beginTransaction();
-        deleteBlocksFrom(blockId);
-        Db.commitTransaction();
-      } catch (Exception e) {
-        Db.rollbackTransaction();
-        throw e;
-      } finally {
-        Db.endTransaction();
-      }
-      return;
-    }
-    try (Connection con = Db.getConnection();
-         PreparedStatement pstmtSelect = con.prepareStatement("SELECT db_id FROM block WHERE db_id >= "
-                                                              + "(SELECT db_id FROM block WHERE id = ?) ORDER BY db_id DESC");
-         PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM block WHERE db_id = ?")) {
-      try {
-        pstmtSelect.setLong(1, blockId);
-        try (ResultSet rs = pstmtSelect.executeQuery()) {
-          while (rs.next()) {
-            pstmtDelete.setInt(1, rs.getInt("db_id"));
-            pstmtDelete.executeUpdate();
-          }
-          Db.commitTransaction();
+    try (DSLContext ctx = Db.getDSLContext()) {
+      ctx.transaction(
+        configuration -> {
+          SelectQuery blockHeightQuery = ctx.selectQuery();
+          blockHeightQuery.addFrom(BLOCK);
+          blockHeightQuery.addSelect(BLOCK.field("height", Integer.class));
+          blockHeightQuery.addConditions(BLOCK.field("id", Long.class).eq(blockId));
+          Integer blockHeight = (Integer) ctx.fetchValue(blockHeightQuery);
+
+          DeleteQuery deleteQuery = ctx.deleteQuery(BLOCK);
+          deleteQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
+          deleteQuery.execute();
         }
-      } catch (SQLException e) {
-        Db.rollbackTransaction();
-        throw e;
-      }
-    } catch (SQLException e) {
+      );
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
 
   public void deleteAll() {
-    if (!Db.isInTransaction()) {
-      try {
-        Db.beginTransaction();
-        deleteAll();
-        Db.commitTransaction();
-      } catch (Exception e) {
-        Db.rollbackTransaction();
-        throw e;
-      } finally {
-        Db.endTransaction();
-      }
-      return;
-    }
     logger.info("Deleting blockchain...");
     try (DSLContext ctx = Db.getDSLContext() ) {
-      try {
-        for ( Table table : ctx.meta().getTables() ) {
-          if ( table.getName().toUpperCase() != "PEER" && table.getName().toUpperCase() != "CATALOG" ) {
-            ctx.truncate(table).execute();
+      ctx.transaction(
+        configuration -> {
+          for ( Table table : ctx.meta().getTables() ) {
+            if ( table.getName().toUpperCase() != "PEER" && table.getName().toUpperCase() != "CATALOG" ) {
+              ctx.truncate(table).execute();
+            }
           }
         }
-        Db.commitTransaction();
-      }
-      catch (Exception e) {
-        Db.rollbackTransaction();
-        throw e;
-      }
+      );
     }
     catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
