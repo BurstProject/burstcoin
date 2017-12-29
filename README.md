@@ -165,15 +165,11 @@ Wiki: https://burstwiki.org (lots of other links)
 
 Info: https://www.burst-coin.org/
 
-Explorer1: https://explore.burst.cryptoguru.org
-
-Explorer2: http://x.burstnation.com/
+Explorer: https://explore.burst.cryptoguru.org
 
 Forum1: https://burstforum.net/
 
-Forum2: https://www.burstnation.com/
-
-Forum3: https://forums.getburst.net/
+Forum2: https://forums.getburst.net/
 
 
 ### Bitcointalk
