@@ -157,9 +157,8 @@ $(document).ready(function() {
 });
 
 function getATs(data) {
-	for (var i = 0; i < data.atIds.length; i++) {
-		getAT(data.atIds[i]);
-	}
+	getBlockHeight(data.atIds);
+
     /**
      * Hidden CFs Management while loading the page.
      */
@@ -194,8 +193,8 @@ function getATs(data) {
     }, 2000);
 }
 
-function getAT(atId) {
-	jsonRequest = {
+function getAT(blockHeight, atId) {
+	var jsonRequest = {
 		requestType: "getAT",
 		at: atId
 	}
@@ -205,13 +204,13 @@ function getAT(atId) {
 		dataType: "json",
 		data: jsonRequest,
 		success: function(data, textStatus, jqXHR) {
-			if (data.description.toLowerCase().indexOf('crowdfund') > -1) getBlockHeight(data);
+			getTransaction(blockHeight, data);
 		}
 	});
 }
 
-function getBlockHeight(atData) {
-	jsonRequest = {
+function getBlockHeight(atIds) {
+	var jsonRequest = {
 		requestType: "getBlockchainStatus"
 	}
 	$.ajax({
@@ -220,89 +219,41 @@ function getBlockHeight(atData) {
 		dataType: "json",
 		data: jsonRequest,
 		success: function(data, textStatus, jqXHR) {
-			getTransaction(data.numberOfBlocks, atData);
+			for (var i = 0; i < atIds.length; i++) {
+				getAT(data.numberOfBlocks, atIds[i]);
+			}
 		}
 	});
 }
 
 function getTransaction(blockHeight, atData) {
-	jsonRequest = {
-		requestType: "getATLong",
-		hexString: atData.machineData.substring(1 * 8, 1 * 8 + 8)
-	}
-	$.ajax({
-		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
-		type: 'POST',
-		dataType: "json",
-		data: jsonRequest,
-		success: function(data, textStatus, jqXHR) {
-			getDecision(data.hex2long, blockHeight, atData);
-		}
-	});
+	var hexString = atData.machineData.substring(1 * 8, 1 * 8 + 8);
+	var decSting = converters.hexStringToDecString(hexString);
+	getDecision(decSting, blockHeight, atData);
 }
 
 function getDecision(transaction, blockHeight, atData) {
-	jsonRequest = {
-		requestType: "getATLong",
-		hexString: atData.machineData.substring(1 * 16, 1 * 16 + 16)
-	}
-	$.ajax({
-		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
-		type: 'POST',
-		dataType: "json",
-		data: jsonRequest,
-		success: function(data, textStatus, jqXHR) {
-			getTargetAmount(data.hex2long, transaction, blockHeight, atData);
-		}
-	});
+	var hexString = atData.machineData.substring(1 * 16, 1 * 16 + 16);
+	var decSting = converters.hexStringToDecString(hexString);
+	getTargetAmount(decSting, transaction, blockHeight, atData);
 }
 
 function getTargetAmount(decision, transaction, blockHeight, atData) {
-	jsonRequest = {
-		requestType: "getATLong",
-		hexString: atData.machineData.substring(3 * 16, 3 * 16 + 16)
-	}
-	$.ajax({
-		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
-		type: 'POST',
-		dataType: "json",
-		data: jsonRequest,
-		success: function(data, textStatus, jqXHR) {
-			getGatheredAmount(data.hex2long, decision, transaction, blockHeight, atData);
-		}
-	});
+	var hexString = atData.machineData.substring(3 * 16, 3 * 16 + 16);
+	var decSting = converters.hexStringToDecString(hexString);
+	getGatheredAmount(decSting, decision, transaction, blockHeight, atData);
 }
 
 function getGatheredAmount(targetAmount, decision, transaction, blockHeight, atData) {
-	jsonRequest = {
-		requestType: "getATLong",
-		hexString: atData.machineData.substring(2 * 16, 2 * 16 + 16)
-	}
-	$.ajax({
-		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
-		type: 'POST',
-		dataType: "json",
-		data: jsonRequest,
-		success: function(data, textStatus, jqXHR) {
-			getFunded(data.hex2long, targetAmount, decision, transaction, blockHeight, atData);
-		}
-	});
+	var hexString = atData.machineData.substring(2 * 16, 2 * 16 + 16);
+	var decSting = converters.hexStringToDecString(hexString);
+	getFunded(decSting, targetAmount, decision, transaction, blockHeight, atData);
 }
 
 function getFunded(gatheredAmount, targetAmount, decision, transaction, blockHeight, atData) {
-	jsonRequest = {
-		requestType: "getATLong",
-		hexString: atData.machineData.substring(7 * 16, 7 * 16 + 16)
-	}
-	$.ajax({
-		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
-		type: 'POST',
-		dataType: "json",
-		data: jsonRequest,
-		success: function(data, textStatus, jqXHR) {
-			drawAT(data.hex2long, gatheredAmount, targetAmount, decision, transaction, blockHeight, atData);
-		}
-	});
+	var hexString = atData.machineData.substring(7 * 16, 7 * 16 + 16);
+	var decSting = converters.hexStringToDecString(hexString);
+	drawAT(decSting, gatheredAmount, targetAmount, decision, transaction, blockHeight, atData);
 }
 
 function drawAT(funded, gatheredAmount, targetAmount, decision, transaction, blockHeight, atData) {
