@@ -154,7 +154,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
             int maxHeight = rs.getInt("max_height");
 
             DeleteQuery deleteLowerHeightQuery = ctx.deleteQuery(tableClass);
-            deleteLowerHeightQuery.addConditions(tableClass.field("height", Integer.class).lt(height));
+            deleteLowerHeightQuery.addConditions(tableClass.field("height", Integer.class).lt(maxHeight));
             deleteLowerHeightQuery.addConditions(dbKey.getPKConditions(tableClass));
             deleteLowerHeightQuery.execute();
           }
