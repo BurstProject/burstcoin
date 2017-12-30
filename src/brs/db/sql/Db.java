@@ -220,11 +220,20 @@ public final class Db {
   }
 
   public static final DSLContext getDSLContext() throws SQLException {
-    Settings settings = new Settings();
+    Connection con     = localConnection.get();
+    SQLDialect dialect =  DATABASE_TYPE == TYPE.H2 ? SQLDialect.H2 : DATABASE_TYPE == TYPE.FIREBIRD ? SQLDialect.FIREBIRD : SQLDialect.MARIADB;
+    Settings settings  = new Settings();
     settings.setRenderSchema(Boolean.FALSE);
-    // SQLDialect.values()[DATABASE_TYPE.ordinal()],
-    try ( DSLContext ctx = DSL.using(cp, DATABASE_TYPE == TYPE.H2 ? SQLDialect.H2 : DATABASE_TYPE == TYPE.FIREBIRD ? SQLDialect.FIREBIRD : SQLDialect.MARIADB, settings ) ) {
-      return ctx;
+
+    if ( con == null ) {
+      try ( DSLContext ctx = DSL.using(cp, dialect, settings) ) {
+        return ctx;
+      }
+    }
+    else {
+      try ( DSLContext ctx = DSL.using(con, dialect, settings) ) {
+        return ctx;
+      }
     }
   }
 
@@ -261,20 +270,9 @@ public final class Db {
       throw new IllegalStateException("Transaction already in progress");
     }
     try {
-      Connection con = getPooledConnection();
-      // Now for the interesting part
-      if (DATABASE_TYPE == TYPE.FIREBIRD) {
-        Field field = ReflectionUtils.getFields(ProxyConnection.class, (Predicate<Field>) input -> input.getName().equals("delegate")).iterator().next();
-        field.setAccessible(true);
-        try {
-          FBConnection fbConnection = (FBConnection) field.get((HikariProxyConnection)con);
-          fbConnection.getTransactionParameters(Connection.TRANSACTION_READ_COMMITTED)
-              .addArgument(TransactionParameterBuffer.NO_AUTO_UNDO);
-        } catch (IllegalAccessException e) {
-          logger.info("IllegalAccessException: ", e);
-        }
-      }
+      Connection con = cp.getConnection();
       con.setAutoCommit(false);
+
       if (enableSqlMetrics)
         con = new MeteredDbConnection(con);
       else
@@ -283,8 +281,10 @@ public final class Db {
       localConnection.set((DbConnection) con);
       transactionCaches.set(new HashMap<>());
       transactionBatches.set(new HashMap<>());
+
       return con;
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -296,7 +296,8 @@ public final class Db {
     }
     try {
       con.doCommit();
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -308,7 +309,8 @@ public final class Db {
     }
     try {
       con.doRollback();
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
     transactionCaches.get().clear();
@@ -370,9 +372,11 @@ public final class Db {
     public void commit() throws SQLException {
       if (localConnection.get() == null) {
         super.commit();
-      } else if (!this.equals(localConnection.get())) {
+      }
+      else if (!this.equals(localConnection.get())) {
         throw new IllegalStateException("Previous connection not committed");
-      } else {
+      }
+      else {
         throw new UnsupportedOperationException("Use Db.commitTransaction() to commit the transaction");
       }
     }
@@ -385,9 +389,11 @@ public final class Db {
     public void rollback() throws SQLException {
       if (localConnection.get() == null) {
         super.rollback();
-      } else if (!this.equals(localConnection.get())) {
+      }
+      else if (!this.equals(localConnection.get())) {
         throw new IllegalStateException("Previous connection not committed");
-      } else {
+      }
+      else {
         throw new UnsupportedOperationException("Use Db.rollbackTransaction() to rollback the transaction");
       }
     }
@@ -400,7 +406,8 @@ public final class Db {
     public void close() throws SQLException {
       if (localConnection.get() == null) {
         super.close();
-      } else if (!this.equals(localConnection.get())) {
+      }
+      else if (!this.equals(localConnection.get())) {
         throw new IllegalStateException("Previous connection not committed");
       }
     }
