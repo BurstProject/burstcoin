@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class PurchaseRecord extends UpdatableRecordImpl<PurchaseRecord> implements Record22<Long, Long, Long, Long, Long, Integer, Long, Integer, byte[], byte[], Integer, Boolean, byte[], byte[], byte[], byte[], Boolean, Boolean, Long, Long, Integer, Boolean> {
 
-    private static final long serialVersionUID = 343678780;
+    private static final long serialVersionUID = -942129552;
 
     /**
      * Setter for <code>DB.purchase.db_id</code>.

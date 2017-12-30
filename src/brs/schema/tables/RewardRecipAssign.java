@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class RewardRecipAssign extends TableImpl<RewardRecipAssignRecord> {
 
-    private static final long serialVersionUID = -1975566850;
+    private static final long serialVersionUID = 1252529510;
 
     /**
      * The reference instance of <code>DB.reward_recip_assign</code>
@@ -87,7 +87,7 @@ public class RewardRecipAssign extends TableImpl<RewardRecipAssignRecord> {
     /**
      * The column <code>DB.reward_recip_assign.latest</code>.
      */
-    public final TableField<RewardRecipAssignRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false));
+    public final TableField<RewardRecipAssignRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * Create a <code>DB.reward_recip_assign</code> table reference

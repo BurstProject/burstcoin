@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class AccountAsset extends TableImpl<AccountAssetRecord> {
 
-    private static final long serialVersionUID = -1715294385;
+    private static final long serialVersionUID = -1289663187;
 
     /**
      * The reference instance of <code>DB.account_asset</code>
@@ -87,7 +87,7 @@ public class AccountAsset extends TableImpl<AccountAssetRecord> {
     /**
      * The column <code>DB.account_asset.latest</code>.
      */
-    public final TableField<AccountAssetRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false));
+    public final TableField<AccountAssetRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * Create a <code>DB.account_asset</code> table reference

@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Purchase extends TableImpl<PurchaseRecord> {
 
-    private static final long serialVersionUID = 1869845333;
+    private static final long serialVersionUID = 1469054028;
 
     /**
      * The reference instance of <code>DB.purchase</code>
@@ -137,12 +137,12 @@ public class Purchase extends TableImpl<PurchaseRecord> {
     /**
      * The column <code>DB.purchase.has_feedback_notes</code>.
      */
-    public final TableField<PurchaseRecord, Boolean> HAS_FEEDBACK_NOTES = createField("has_feedback_notes", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false), this, "");
+    public final TableField<PurchaseRecord, Boolean> HAS_FEEDBACK_NOTES = createField("has_feedback_notes", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>DB.purchase.has_public_feedbacks</code>.
      */
-    public final TableField<PurchaseRecord, Boolean> HAS_PUBLIC_FEEDBACKS = createField("has_public_feedbacks", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false), this, "");
+    public final TableField<PurchaseRecord, Boolean> HAS_PUBLIC_FEEDBACKS = createField("has_public_feedbacks", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>DB.purchase.discount</code>.
@@ -162,7 +162,7 @@ public class Purchase extends TableImpl<PurchaseRecord> {
     /**
      * The column <code>DB.purchase.latest</code>.
      */
-    public final TableField<PurchaseRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false), this, "");
+    public final TableField<PurchaseRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * Create a <code>DB.purchase</code> table reference

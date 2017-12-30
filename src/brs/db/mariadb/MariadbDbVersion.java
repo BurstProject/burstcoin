@@ -545,6 +545,8 @@ final class MariadbDbVersion {
       case 169:
         apply("ALTER TABLE at CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
       case 170:
+        apply("ALTER TABLE goods CHANGE COLUMN ID id BIGINT NOT NULL;");
+      case 171:
         return;
       default:
         throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");

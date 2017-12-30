@@ -413,6 +413,13 @@
                     <outputSchema>DB</outputSchema>
                     <includes>.*</includes>
                     <excludes></excludes>
+		    <forcedTypes>
+		      <forcedType>
+			<name>BOOLEAN</name>
+			<expression>.*\.(.*\.LATEST|AT_STATE\.FREEZE_WHEN_SAME_BALANCE|GOODS\.DELISTED|TRANSACTION\.(HAS_MESSAGE|HAS_ENCRYPTED_MESSAGE|HAS_PUBLIC_KEY_ANNOUNCEMENT|HAS_ENCRYPTTOSELF_MESSAGE)|PURCHASE\.(PENDING|HAS_FEEDBACK_NOTES|HAS_PUBLIC_FEEDBACKS))</expression>
+			<types>.*</types>
+		      </forcedType>
+		    </forcedTypes>
                   </database>
                   <target>
                     <packageName>brs.schema</packageName>

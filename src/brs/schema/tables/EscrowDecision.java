@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class EscrowDecision extends TableImpl<EscrowDecisionRecord> {
 
-    private static final long serialVersionUID = 1747742030;
+    private static final long serialVersionUID = 1880648732;
 
     /**
      * The reference instance of <code>DB.escrow_decision</code>
@@ -82,7 +82,7 @@ public class EscrowDecision extends TableImpl<EscrowDecisionRecord> {
     /**
      * The column <code>DB.escrow_decision.latest</code>.
      */
-    public final TableField<EscrowDecisionRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false), this, "");
+    public final TableField<EscrowDecisionRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * Create a <code>DB.escrow_decision</code> table reference

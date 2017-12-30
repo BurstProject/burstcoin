@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class At extends TableImpl<AtRecord> {
 
-    private static final long serialVersionUID = 1419612474;
+    private static final long serialVersionUID = 885877192;
 
     /**
      * The reference instance of <code>DB.at</code>
@@ -122,7 +122,7 @@ public class At extends TableImpl<AtRecord> {
     /**
      * The column <code>DB.at.latest</code>.
      */
-    public final TableField<AtRecord, Byte> LATEST = createField("latest", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<AtRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * Create a <code>DB.at</code> table reference

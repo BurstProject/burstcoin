@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class GoodsRecord extends UpdatableRecordImpl<GoodsRecord> implements Record12<Long, Long, Long, String, String, String, Integer, Integer, Long, Boolean, Integer, Boolean> {
 
-    private static final long serialVersionUID = -715679062;
+    private static final long serialVersionUID = -281912380;
 
     /**
      * Setter for <code>DB.goods.db_id</code>.
@@ -45,14 +45,14 @@ public class GoodsRecord extends UpdatableRecordImpl<GoodsRecord> implements Rec
     }
 
     /**
-     * Setter for <code>DB.goods.ID</code>.
+     * Setter for <code>DB.goods.id</code>.
      */
     public void setId(Long value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>DB.goods.ID</code>.
+     * Getter for <code>DB.goods.id</code>.
      */
     public Long getId() {
         return (Long) get(1);

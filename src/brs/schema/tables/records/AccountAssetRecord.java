@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class AccountAssetRecord extends UpdatableRecordImpl<AccountAssetRecord> implements Record7<Long, Long, Long, Long, Long, Integer, Boolean> {
 
-    private static final long serialVersionUID = 1893920258;
+    private static final long serialVersionUID = -653651112;
 
     /**
      * Setter for <code>DB.account_asset.db_id</code>.
