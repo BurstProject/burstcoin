@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import static brs.schema.Tables.*;
 import static org.jooq.impl.DSL.*;
 
+import org.jooq.impl.DSL;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Table;
@@ -141,16 +142,32 @@ public class SqlBlockDb implements BlockDb {
   // relying on cascade triggers in the database to delete the transactions for all deleted blocks
   @Override
   public void deleteBlocksFrom(long blockId) {
+    if (!Db.isInTransaction()) {
+      try {
+        Db.beginTransaction();
+        deleteBlocksFrom(blockId);
+        Db.commitTransaction();
+      }
+      catch (Exception e) {
+        Db.rollbackTransaction();
+        throw e;
+      }
+      finally {
+        Db.endTransaction();
+      }
+      return;
+    }
     try (DSLContext ctx = Db.getDSLContext()) {
       ctx.transaction(
         configuration -> {
-          SelectQuery blockHeightQuery = ctx.selectQuery();
+          DSLContext txCtx = DSL.using(configuration);
+          SelectQuery blockHeightQuery = txCtx.selectQuery();
           blockHeightQuery.addFrom(BLOCK);
           blockHeightQuery.addSelect(BLOCK.field("height", Integer.class));
           blockHeightQuery.addConditions(BLOCK.field("id", Long.class).eq(blockId));
-          Integer blockHeight = (Integer) ctx.fetchValue(blockHeightQuery);
+          Integer blockHeight = (Integer) txCtx.fetchValue(blockHeightQuery);
 
-          DeleteQuery deleteQuery = ctx.deleteQuery(BLOCK);
+          DeleteQuery deleteQuery = txCtx.deleteQuery(BLOCK);
           deleteQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
           deleteQuery.execute();
         }
@@ -162,13 +179,27 @@ public class SqlBlockDb implements BlockDb {
   }
 
   public void deleteAll() {
+    if (!Db.isInTransaction()) {
+      try {
+        Db.beginTransaction();
+        deleteAll();
+        Db.commitTransaction();
+      }
+      catch (Exception e) {
+        Db.rollbackTransaction();
+        throw e;
+      } // FIXME: nally {
+      Db.endTransaction();
+      return;
+    }
     logger.info("Deleting blockchain...");
     try (DSLContext ctx = Db.getDSLContext() ) {
       ctx.transaction(
         configuration -> {
-          for ( Table table : ctx.meta().getTables() ) {
+          DSLContext txCtx = DSL.using(configuration);
+          for ( Table table : txCtx.meta().getTables() ) {
             if ( table.getName().toUpperCase() != "PEER" && table.getName().toUpperCase() != "CATALOG" ) {
-              ctx.truncate(table).execute();
+              txCtx.truncate(table).execute();
             }
           }
         }
