@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BidOrder extends TableImpl<BidOrderRecord> {
 
-    private static final long serialVersionUID = 249880294;
+    private static final long serialVersionUID = -376319964;
 
     /**
      * The reference instance of <code>DB.bid_order</code>
@@ -97,7 +97,7 @@ public class BidOrder extends TableImpl<BidOrderRecord> {
     /**
      * The column <code>DB.bid_order.latest</code>.
      */
-    public final TableField<BidOrderRecord, Byte> LATEST = createField("latest", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<BidOrderRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * Create a <code>DB.bid_order</code> table reference

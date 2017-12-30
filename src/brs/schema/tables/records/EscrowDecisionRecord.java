@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class EscrowDecisionRecord extends UpdatableRecordImpl<EscrowDecisionRecord> implements Record6<Long, Long, Long, Integer, Integer, Boolean> {
 
-    private static final long serialVersionUID = -97750356;
+    private static final long serialVersionUID = 996082564;
 
     /**
      * Setter for <code>DB.escrow_decision.db_id</code>.

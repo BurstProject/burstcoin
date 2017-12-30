@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class PurchaseFeedback extends TableImpl<PurchaseFeedbackRecord> {
 
-    private static final long serialVersionUID = -1595768807;
+    private static final long serialVersionUID = 806785913;
 
     /**
      * The reference instance of <code>DB.purchase_feedback</code>
@@ -82,7 +82,7 @@ public class PurchaseFeedback extends TableImpl<PurchaseFeedbackRecord> {
     /**
      * The column <code>DB.purchase_feedback.latest</code>.
      */
-    public final TableField<PurchaseFeedbackRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false));
+    public final TableField<PurchaseFeedbackRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * Create a <code>DB.purchase_feedback</code> table reference

@@ -24,7 +24,6 @@ import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
@@ -41,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Transaction extends TableImpl<TransactionRecord> {
 
-    private static final long serialVersionUID = -2043488364;
+    private static final long serialVersionUID = 1475250642;
 
     /**
      * The reference instance of <code>DB.transaction</code>
@@ -154,7 +153,7 @@ public class Transaction extends TableImpl<TransactionRecord> {
     /**
      * The column <code>DB.transaction.has_message</code>.
      */
-    public final TableField<TransactionRecord, Boolean> HAS_MESSAGE = createField("has_message", SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<TransactionRecord, Boolean> HAS_MESSAGE = createField("has_message", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>DB.transaction.has_encrypted_message</code>.

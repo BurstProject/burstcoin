@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Goods extends TableImpl<GoodsRecord> {
 
-    private static final long serialVersionUID = -1504891070;
+    private static final long serialVersionUID = 476639959;
 
     /**
      * The reference instance of <code>DB.goods</code>
@@ -60,7 +60,7 @@ public class Goods extends TableImpl<GoodsRecord> {
     public final TableField<GoodsRecord, Long> DB_ID = createField("db_id", org.jooq.impl.SQLDataType.BIGINT.nullable(false).identity(true), this, "");
 
     /**
-     * The column <code>DB.goods.ID</code>.
+     * The column <code>DB.goods.id</code>.
      */
     public final TableField<GoodsRecord, Long> ID = createField("id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
 
@@ -112,7 +112,7 @@ public class Goods extends TableImpl<GoodsRecord> {
     /**
      * The column <code>DB.goods.latest</code>.
      */
-    public final TableField<GoodsRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false));
+    public final TableField<GoodsRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * Create a <code>DB.goods</code> table reference

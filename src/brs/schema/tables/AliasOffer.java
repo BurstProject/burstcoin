@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class AliasOffer extends TableImpl<AliasOfferRecord> {
 
-    private static final long serialVersionUID = 803857657;
+    private static final long serialVersionUID = 279890715;
 
     /**
      * The reference instance of <code>DB.alias_offer</code>
@@ -82,7 +82,7 @@ public class AliasOffer extends TableImpl<AliasOfferRecord> {
     /**
      * The column <code>DB.alias_offer.latest</code>.
      */
-    public final TableField<AliasOfferRecord, Byte> LATEST = createField("latest", org.jooq.impl.SQLDataType.TINYINT.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.TINYINT)), this, "");
+    public final TableField<AliasOfferRecord, Boolean> LATEST = createField("latest", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("1", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * Create a <code>DB.alias_offer</code> table reference

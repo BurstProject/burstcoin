@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class RewardRecipAssignRecord extends UpdatableRecordImpl<RewardRecipAssignRecord> implements Record7<Long, Long, Long, Long, Integer, Integer, Boolean> {
 
-    private static final long serialVersionUID = 465432153;
+    private static final long serialVersionUID = 1276370487;
 
     /**
      * Setter for <code>DB.reward_recip_assign.db_id</code>.

@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class SubscriptionRecord extends UpdatableRecordImpl<SubscriptionRecord> implements Record9<Long, Long, Long, Long, Long, Integer, Integer, Integer, Boolean> {
 
-    private static final long serialVersionUID = 1587308279;
+    private static final long serialVersionUID = -1228105293;
 
     /**
      * Setter for <code>DB.subscription.db_id</code>.

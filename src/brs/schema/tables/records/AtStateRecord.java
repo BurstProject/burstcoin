@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class AtStateRecord extends UpdatableRecordImpl<AtStateRecord> implements Record11<Long, Long, byte[], Integer, Integer, Integer, Long, Boolean, Long, Integer, Boolean> {
 
-    private static final long serialVersionUID = 641217833;
+    private static final long serialVersionUID = -1737667443;
 
     /**
      * Setter for <code>DB.at_state.db_id</code>.
