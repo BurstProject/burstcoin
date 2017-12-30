@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import org.jooq.DSLContext;
 import org.jooq.Condition;
 import org.jooq.SortField;
+import org.jooq.Field;
 
 import static brs.schema.Tables.SUBSCRIPTION;
 
@@ -87,20 +88,30 @@ public class SqlSubscriptionStore implements SubscriptionStore {
   }
 
   protected void saveSubscription(DSLContext ctx, Subscription subscription) throws SQLException {
-    ctx.mergeInto(
-      SUBSCRIPTION,
-      SUBSCRIPTION.ID, SUBSCRIPTION.SENDER_ID, SUBSCRIPTION.RECIPIENT_ID, SUBSCRIPTION.AMOUNT,
-      SUBSCRIPTION.FREQUENCY, SUBSCRIPTION.TIME_NEXT, SUBSCRIPTION.HEIGHT, SUBSCRIPTION.LATEST
-    )
-    .key(
-      SUBSCRIPTION.ID, SUBSCRIPTION.SENDER_ID, SUBSCRIPTION.RECIPIENT_ID, SUBSCRIPTION.AMOUNT,
-      SUBSCRIPTION.FREQUENCY, SUBSCRIPTION.TIME_NEXT, SUBSCRIPTION.HEIGHT, SUBSCRIPTION.LATEST
-    )
-    .values(
-      subscription.id, subscription.senderId, subscription.recipientId, subscription.amountNQT, subscription.frequency,
-      subscription.getTimeNext(), brs.Burst.getBlockchain().getHeight(), true
-    )
-    .execute();
+    brs.schema.tables.records.SubscriptionRecord subscriptionRecord = ctx.newRecord(SUBSCRIPTION);
+    subscriptionRecord.setId(subscription.id);
+    subscriptionRecord.setSenderId(subscription.senderId);
+    subscriptionRecord.setRecipientId(subscription.recipientId);
+    subscriptionRecord.setAmount(subscription.amountNQT);
+    subscriptionRecord.setFrequency(subscription.frequency);
+    subscriptionRecord.setTimeNext(subscription.getTimeNext());
+    subscriptionRecord.setHeight(brs.Burst.getBlockchain().getHeight());
+    subscriptionRecord.setLatest(true);
+    DbUtils.mergeInto(
+      ctx, subscriptionRecord, SUBSCRIPTION,
+      (
+        new Field[] {
+          subscriptionRecord.field("id"),
+          subscriptionRecord.field("sender_id"),
+          subscriptionRecord.field("recipient_id"),
+          subscriptionRecord.field("amount"),
+          subscriptionRecord.field("frequency"),
+          subscriptionRecord.field("time_next"),
+          subscriptionRecord.field("height"),
+          subscriptionRecord.field("latest")
+        }
+       )
+    );
   }
 
   private class SqlSubscription extends Subscription {

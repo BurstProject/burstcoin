@@ -29,6 +29,7 @@ import static brs.schema.Tables.ACCOUNT;
 
 import org.jooq.DSLContext;
 import org.jooq.SortField;
+import org.jooq.Field;
 
 public class SqlATStore implements ATStore {
 
@@ -88,17 +89,21 @@ public class SqlATStore implements ATStore {
     };
 
   protected void saveATState(DSLContext ctx, brs.AT.ATState atState) throws SQLException {
-    ctx.mergeInto(
-      AT_STATE,
-      AT_STATE.AT_ID, AT_STATE.STATE, AT_STATE.PREV_HEIGHT, AT_STATE.NEXT_HEIGHT, AT_STATE.SLEEP_BETWEEN,
-      AT_STATE.PREV_BALANCE, AT_STATE.FREEZE_WHEN_SAME_BALANCE, AT_STATE.MIN_ACTIVATE_AMOUNT, AT_STATE.HEIGHT, AT_STATE.LATEST
-    )
-    .key(AT_STATE.AT_ID, AT_STATE.HEIGHT)
-    .values(
-      atState.getATId(), brs.AT.compressState(atState.getState()), atState.getPrevHeight(), atState.getNextHeight(), atState.getSleepBetween(),
-      atState.getPrevBalance(), atState.getFreezeWhenSameBalance(), atState.getMinActivationAmount(), Burst.getBlockchain().getHeight(), true
-    )
-    .execute();
+    brs.schema.tables.records.AtStateRecord atStateRecord = ctx.newRecord(brs.schema.Tables.AT_STATE);
+    atStateRecord.setAtId(atState.getATId());
+    atStateRecord.setState(brs.AT.compressState(atState.getState()));
+    atStateRecord.setPrevHeight(atState.getPrevHeight());
+    atStateRecord.setNextHeight(atState.getNextHeight());
+    atStateRecord.setSleepBetween(atState.getSleepBetween());
+    atStateRecord.setPrevBalance(atState.getPrevBalance());
+    atStateRecord.setFreezeWhenSameBalance(atState.getFreezeWhenSameBalance());
+    atStateRecord.setMinActivateAmount(atState.getMinActivationAmount());
+    atStateRecord.setHeight(Burst.getBlockchain().getHeight());
+    atStateRecord.setLatest(true);
+    DbUtils.mergeInto(
+      ctx, atStateRecord, brs.schema.Tables.AT_STATE,
+      ( new Field[] { atStateRecord.field("id"), atStateRecord.field("height") } )
+    );
   }
 
   protected void saveAT(DSLContext ctx, brs.AT at) throws SQLException {

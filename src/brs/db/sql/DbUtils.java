@@ -3,6 +3,18 @@ package brs.db.sql;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+  
+import java.sql.SQLException;
+
+import org.jooq.impl.DSL;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.impl.TableImpl;
+import org.jooq.Field;
+import org.jooq.Condition;
+import org.jooq.UpdateQuery;
+import org.jooq.InsertQuery;
 import org.jooq.SelectQuery;
 
 public final class DbUtils {
@@ -74,4 +86,19 @@ public final class DbUtils {
 
   }
 
+  public static void mergeInto(DSLContext ctx, Record record, TableImpl table, Field[] keyFields) throws SQLException {
+    ArrayList<Condition> conditions = new ArrayList<Condition>();
+    for ( Field field : keyFields ) {
+      conditions.add(field.eq(record.getValue(field)));
+    }
+
+    UpdateQuery updateQuery = ctx.updateQuery(table);
+    updateQuery.setRecord(record);
+    updateQuery.addConditions(conditions);
+    if ( updateQuery.execute() == 0 ) {
+      InsertQuery insertQuery = ctx.insertQuery(table);
+      insertQuery.setRecord(record);
+      insertQuery.execute();
+    }
+  }
 }

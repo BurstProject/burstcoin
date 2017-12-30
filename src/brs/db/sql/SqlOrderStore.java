@@ -17,6 +17,8 @@ import org.jooq.DSLContext;
 import org.jooq.SortField;
 import org.jooq.SelectQuery;
 import brs.schema.Tables.*;
+import org.jooq.Record;
+import org.jooq.Field;
 
 public class SqlOrderStore implements OrderStore {
   protected DbKey.LongKeyFactory<Order.Ask> askOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Ask>("id") {
@@ -132,22 +134,20 @@ public class SqlOrderStore implements OrderStore {
     return askOrderTable.getManyBy(brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId), from, to);
   }
 
-  protected void saveOrder(DSLContext ctx, TableImpl table, Order order) throws SQLException {
-    ctx.mergeInto(
-      table,
-      table.field("ID"), table.field("ACCOUNT_ID"), table.field("ASSET_ID"), table.field("PRICE"),
-      table.field("QUANTITY"), table.field("CREATION_HEIGHT"), table.field("HEIGHT"), table.field("LATEST")
-    )
-    .key(table.field("ID"), table.field("HEIGHT"))
-    .values(
-      order.getId(), order.getAccountId(), order.getAssetId(), order.getPriceNQT(),
-      order.getQuantityQNT(), order.getHeight(), brs.Burst.getBlockchain().getHeight(), true
-    )
-    .execute();
-  }
-
   private void saveAsk(DSLContext ctx, TableImpl table, Order.Ask ask) throws SQLException {
-    saveOrder(ctx, table, ask);
+    brs.schema.tables.records.AskOrderRecord askOrderRecord = ctx.newRecord(brs.schema.Tables.ASK_ORDER);
+    askOrderRecord.setId(ask.getId());
+    askOrderRecord.setAccountId(ask.getAccountId());
+    askOrderRecord.setAssetId(ask.getAssetId());
+    askOrderRecord.setPrice(ask.getPriceNQT());
+    askOrderRecord.setQuantity(ask.getQuantityQNT());
+    askOrderRecord.setCreationHeight(ask.getHeight());
+    askOrderRecord.setHeight(brs.Burst.getBlockchain().getHeight());
+    askOrderRecord.setLatest(true);
+    DbUtils.mergeInto(
+      ctx, askOrderRecord, table,
+      ( new Field[] { askOrderRecord.field("id"), askOrderRecord.field("height") } )
+    );
   }
 
   @Override
@@ -214,7 +214,19 @@ public class SqlOrderStore implements OrderStore {
   }
 
   private void saveBid(DSLContext ctx, TableImpl table, Order.Bid bid) throws SQLException {
-    saveOrder(ctx, table, bid);
+    brs.schema.tables.records.BidOrderRecord bidOrderRecord = ctx.newRecord(brs.schema.Tables.BID_ORDER);
+    bidOrderRecord.setId(bid.getId());
+    bidOrderRecord.setAccountId(bid.getAccountId());
+    bidOrderRecord.setAssetId(bid.getAssetId());
+    bidOrderRecord.setPrice(bid.getPriceNQT());
+    bidOrderRecord.setQuantity(bid.getQuantityQNT());
+    bidOrderRecord.setCreationHeight(bid.getHeight());
+    bidOrderRecord.setHeight(brs.Burst.getBlockchain().getHeight());
+    bidOrderRecord.setLatest(true);
+    DbUtils.mergeInto(
+      ctx, bidOrderRecord, table,
+      ( new Field[] { bidOrderRecord.field("id"), bidOrderRecord.field("height") } )
+    );
   }
 
   protected class SqlAsk extends Order.Ask {
