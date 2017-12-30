@@ -20,6 +20,7 @@ import static org.jooq.impl.DSL.*;
 
 import org.jooq.DSLContext;
 import org.jooq.SortField;
+import org.jooq.Field;
 import org.jooq.Condition;
 import org.jooq.Merge;
 import org.jooq.BatchBindStep;
@@ -61,17 +62,17 @@ public class SqlAccountStore implements AccountStore {
 
       @Override
       protected void save(DSLContext ctx, Account.AccountAsset accountAsset) throws SQLException {
-        ctx.mergeInto(
-          ACCOUNT_ASSET,
-          ACCOUNT_ASSET.ACCOUNT_ID, ACCOUNT_ASSET.ASSET_ID, ACCOUNT_ASSET.QUANTITY,
-          ACCOUNT_ASSET.UNCONFIRMED_QUANTITY, ACCOUNT_ASSET.HEIGHT, ACCOUNT_ASSET.LATEST
-        )
-        .key(ACCOUNT_ASSET.ACCOUNT_ID, ACCOUNT_ASSET.ASSET_ID, ACCOUNT_ASSET.HEIGHT)
-        .values(
-          accountAsset.accountId, accountAsset.assetId, accountAsset.getQuantityQNT(),
-          accountAsset.getUnconfirmedQuantityQNT(), Burst.getBlockchain().getHeight(), true
-        )
-        .execute();
+        brs.schema.tables.records.AccountAssetRecord assetRecord = ctx.newRecord(brs.schema.Tables.ACCOUNT_ASSET);
+        assetRecord.setAccountId(accountAsset.accountId);
+        assetRecord.setAssetId(accountAsset.assetId);
+        assetRecord.setQuantity(accountAsset.getQuantityQNT());
+        assetRecord.setUnconfirmedQuantity(accountAsset.getUnconfirmedQuantityQNT());
+        assetRecord.setHeight(Burst.getBlockchain().getHeight());
+        assetRecord.setLatest(true);
+        DbUtils.mergeInto(
+          ctx, assetRecord, brs.schema.Tables.ACCOUNT_ASSET,
+          ( new Field[] { assetRecord.field("account_id"), assetRecord.field("asset_id"), assetRecord.field("height") } )
+        );
       }
 
       @Override
@@ -94,17 +95,17 @@ public class SqlAccountStore implements AccountStore {
 
       @Override
       protected void save(DSLContext ctx, Account.RewardRecipientAssignment assignment) throws SQLException {
-        ctx.mergeInto(
-          REWARD_RECIP_ASSIGN,
-          REWARD_RECIP_ASSIGN.ACCOUNT_ID, REWARD_RECIP_ASSIGN.PREV_RECIP_ID, REWARD_RECIP_ASSIGN.RECIP_ID,
-          REWARD_RECIP_ASSIGN.FROM_HEIGHT, REWARD_RECIP_ASSIGN.HEIGHT, REWARD_RECIP_ASSIGN.LATEST
-        )
-        .key(REWARD_RECIP_ASSIGN.ACCOUNT_ID, REWARD_RECIP_ASSIGN.HEIGHT)
-        .values(
-          assignment.accountId, assignment.getPrevRecipientId(), assignment.getRecipientId(),
-          assignment.getFromHeight(), Burst.getBlockchain().getHeight(), true
-        )
-        .execute();
+        brs.schema.tables.records.RewardRecipAssignRecord rewardRecord = ctx.newRecord(brs.schema.Tables.REWARD_RECIP_ASSIGN);
+        rewardRecord.setAccountId(assignment.accountId);
+        rewardRecord.setPrevRecipId(assignment.getPrevRecipientId());
+        rewardRecord.setRecipId(assignment.getRecipientId());
+        rewardRecord.setFromHeight(assignment.getFromHeight());
+        rewardRecord.setHeight(Burst.getBlockchain().getHeight());
+        rewardRecord.setLatest(true);
+        DbUtils.mergeInto(
+          ctx, rewardRecord, brs.schema.Tables.REWARD_RECIP_ASSIGN,
+          ( new Field[] { rewardRecord.field("account_id"), rewardRecord.field("height") } )
+        );
       }
     };
 
@@ -116,19 +117,22 @@ public class SqlAccountStore implements AccountStore {
 
       @Override
       protected void updateUsing(DSLContext ctx, Account account) throws SQLException {
-        ctx.mergeInto(
-          ACCOUNT,
-          ACCOUNT.CREATION_HEIGHT, ACCOUNT.PUBLIC_KEY, ACCOUNT.KEY_HEIGHT, ACCOUNT.BALANCE,
-          ACCOUNT.UNCONFIRMED_BALANCE, ACCOUNT.FORGED_BALANCE, ACCOUNT.NAME, ACCOUNT.DESCRIPTION,
-          ACCOUNT.ID, ACCOUNT.HEIGHT, ACCOUNT.LATEST
-        )
-        .key(ACCOUNT.ID, ACCOUNT.HEIGHT)
-        .values(
-          account.getCreationHeight(), account.getPublicKey(), account.getKeyHeight(), account.getBalanceNQT(),
-          account.getUnconfirmedBalanceNQT(), account.getForgedBalanceNQT(), account.getName(), account.getDescription(),
-          account.getId(), Burst.getBlockchain().getHeight(), true
-        )
-        .execute();
+        brs.schema.tables.records.AccountRecord accountRecord = ctx.newRecord(ACCOUNT);
+        accountRecord.setCreationHeight(account.getCreationHeight());
+        accountRecord.setPublicKey(account.getPublicKey());
+        accountRecord.setKeyHeight(account.getKeyHeight());
+        accountRecord.setBalance(account.getBalanceNQT());
+        accountRecord.setUnconfirmedBalance(account.getUnconfirmedBalanceNQT());
+        accountRecord.setForgedBalance(account.getForgedBalanceNQT());
+        accountRecord.setName(account.getName());
+        accountRecord.setDescription(account.getDescription());
+        accountRecord.setId(account.getId());
+        accountRecord.setHeight(Burst.getBlockchain().getHeight());
+        accountRecord.setLatest(true);
+        DbUtils.mergeInto(
+          ctx, accountRecord, ACCOUNT,
+          ( new Field[] { accountRecord.field("id"), accountRecord.field("height") } )
+        );
       }
     };
 
