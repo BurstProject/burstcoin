@@ -10,6 +10,7 @@ import java.util.*;
 import org.jooq.impl.TableImpl;
 import org.jooq.Condition;
 import org.jooq.SelectQuery;
+import org.jooq.UpdateQuery;
 import org.jooq.Query;
 import org.jooq.Merge;
 import org.jooq.BatchBindStep;
@@ -60,23 +61,22 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     if(!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-
     try ( DSLContext ctx = Db.getDSLContext() ) {
-      BatchBindStep adjustLatestBatch = ctx.batch(
-        ctx.update(tableClass).set(tableClass.field("latest", Boolean.class), false).where(
-          tableClass.field("latest", Boolean.class).isTrue().and(
-            tableClass.getPrimaryKey().getFields().get(0).eq(null)
-          )
-        )
-      );
-
       Set keySet = Db.getBatch(table).keySet();
       Iterator<DbKey> it = keySet.iterator();
       while(it.hasNext()) {
-        DbKey key = it.next();
-        adjustLatestBatch.bind(false, key.getPKValues()[0]);
+        DbKey dbKey = it.next();
+
+        // ToDo: do a real batch here?
+        UpdateQuery updateQuery = ctx.updateQuery(tableClass);
+        updateQuery.addValue(
+          tableClass.field("latest", Boolean.class),
+          false
+        );
+        updateQuery.addConditions(dbKey.getPKConditions(tableClass));
+        updateQuery.addConditions(tableClass.field("latest", Boolean.class).isTrue());
+        updateQuery.execute();
       }
-      adjustLatestBatch.execute();
     }
     catch(SQLException e) {
       throw new RuntimeException(e.toString(), e);
