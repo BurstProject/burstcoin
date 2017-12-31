@@ -121,11 +121,15 @@ forgot to mention someone, please do not hesitate to bring this to our
 attention. Past contributions that have been removed from the code
 base are not mentioned, however. In alphabetical order:
 
+@4nt1g0
+* helping with JOOQ migration
+
 @ac0v
 * initial replacement of the H2 wallet against mariaDB in the CG-lineage of the wallet
 * introduction of FirebirdDB to the list of supported DB backends, bugfixing, debugging
 * streamlining helper scripts (invocation, compilation)
 * work on macOS port, testing and release management
+* JOOQ migration
 
 @BraindeadOne
 * providing a DB abstraction layer to allow for multiple DB backends
@@ -149,12 +153,20 @@ base are not mentioned, however. In alphabetical order:
 
 @LithMage provided fixes and enhancements to the UI
 
+@Quibus DownloadCache
+
 @rico666
 * moved the wallet from Nxt to BRS/Burst namespace
 * improvements and fixes to the documentation - revival of javadoc references
 * general code refactoring and styleguide unification (Google JAVA Styleguide)
 * removed obsolete/unused code - tens of thousands of LOCs
 * fixes and enhancements to the UI
+
+Other contributors
+
+Accepted pull requests improving the wallet quality in several areas
+were made by @Doncode, @naiduv
+
 
 
 ## Links
