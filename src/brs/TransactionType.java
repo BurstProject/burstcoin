@@ -10,10 +10,15 @@ import brs.at.AT_Exception;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.ByteBuffer;
 import java.util.*;
 
 public abstract class TransactionType {
+
+  private static final Logger logger = LoggerFactory.getLogger(TransactionType.class);
 
   private static final byte TYPE_PAYMENT = 0;
   private static final byte TYPE_MESSAGING = 1;
@@ -194,11 +199,13 @@ public abstract class TransactionType {
         && transaction.getTimestamp() > Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP) {
       totalAmountNQT = Convert.safeAdd(totalAmountNQT, Constants.UNCONFIRMED_POOL_DEPOSIT_NQT);
     }
+    logger.trace("applyUnconfirmed: " + senderAccount.getUnconfirmedBalanceNQT() + " < totalamount: " + totalAmountNQT + " = false");
     if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT) {
       return false;
     }
     senderAccount.addToUnconfirmedBalanceNQT(-totalAmountNQT);
     if (!applyAttachmentUnconfirmed(transaction, senderAccount)) {
+      logger.trace("!applyAttachmentUnconfirmed(" + transaction + ", " + senderAccount.getId() );
       senderAccount.addToUnconfirmedBalanceNQT(totalAmountNQT);
       return false;
     }
@@ -216,6 +223,7 @@ public abstract class TransactionType {
     if (recipientAccount != null) {
       recipientAccount.addToBalanceAndUnconfirmedBalanceNQT(transaction.getAmountNQT());
     }
+    logger.trace("applying transaction - id:" + transaction.getId() + ", type: " + transaction.getType());
     applyAttachment(transaction, senderAccount, recipientAccount);
   }
 
@@ -719,6 +727,7 @@ public abstract class TransactionType {
 
         @Override
         boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+          logger.trace("TransactionType ASSET_TRANSFER");
           Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer) transaction.getAttachment();
           long unconfirmedAssetBalance = senderAccount.getUnconfirmedAssetBalanceQNT(attachment.getAssetId());
           if (unconfirmedAssetBalance >= 0 && unconfirmedAssetBalance >= attachment.getQuantityQNT()) {
@@ -816,6 +825,7 @@ public abstract class TransactionType {
 
         @Override
         boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+          logger.trace("TransactionType ASK_ORDER_PLACEMENT");
           Attachment.ColoredCoinsAskOrderPlacement attachment = (Attachment.ColoredCoinsAskOrderPlacement) transaction.getAttachment();
           long unconfirmedAssetBalance = senderAccount.getUnconfirmedAssetBalanceQNT(attachment.getAssetId());
           if (unconfirmedAssetBalance >= 0 && unconfirmedAssetBalance >= attachment.getQuantityQNT()) {
@@ -860,6 +870,7 @@ public abstract class TransactionType {
 
         @Override
         boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+          logger.trace("TransactionType BID_ORDER_PLACEMENT");
           Attachment.ColoredCoinsBidOrderPlacement attachment = (Attachment.ColoredCoinsBidOrderPlacement) transaction.getAttachment();
           if (senderAccount.getUnconfirmedBalanceNQT() >= Convert.safeMultiply(attachment.getQuantityQNT(), attachment.getPriceNQT())) {
             senderAccount.addToUnconfirmedBalanceNQT(-Convert.safeMultiply(attachment.getQuantityQNT(), attachment.getPriceNQT()));
@@ -1234,6 +1245,7 @@ public abstract class TransactionType {
 
         @Override
         boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+          logger.trace("TransactionType PURCHASE");
           Attachment.DigitalGoodsPurchase attachment = (Attachment.DigitalGoodsPurchase) transaction.getAttachment();
           if (senderAccount.getUnconfirmedBalanceNQT() >= Convert.safeMultiply(attachment.getQuantity(), attachment.getPriceNQT())) {
             senderAccount.addToUnconfirmedBalanceNQT(-Convert.safeMultiply(attachment.getQuantity(), attachment.getPriceNQT()));
@@ -1419,6 +1431,7 @@ public abstract class TransactionType {
 
         @Override
         boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+          logger.trace("TransactionType REFUND");
           Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) transaction.getAttachment();
           if (senderAccount.getUnconfirmedBalanceNQT() >= attachment.getRefundNQT()) {
             senderAccount.addToUnconfirmedBalanceNQT(-attachment.getRefundNQT());
@@ -1654,6 +1667,7 @@ public abstract class TransactionType {
 
         @Override
         final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+          logger.trace("TransactionType ESCROW_CREATION");
           Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
           Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
           if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT.longValue()) {
@@ -1951,6 +1965,7 @@ public abstract class TransactionType {
 
         @Override
         final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+          logger.trace("TransactionType SUBSCRIPTION_CANCEL");
           Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
           Subscription.addRemoval(attachment.getSubscriptionId());
           return true;
