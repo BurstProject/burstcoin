@@ -64,7 +64,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
       }
       else {
         DeleteQuery deleteQuery = ctx.deleteQuery(tableClass);
-        countQuery.addConditions(dbKey.getPKConditions(tableClass));
+        deleteQuery.addConditions(dbKey.getPKConditions(tableClass));
         return deleteQuery.execute() > 0;
       }
     }
