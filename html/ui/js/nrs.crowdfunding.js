@@ -1,3 +1,28 @@
+/**
+ * @depends {nrs.js}
+ */
+var NRS = (function(NRS, $, undefined) {
+	var isLoaded = false;
+	NRS.pages.crowdfunding = function() {
+		$("#new-project").show();
+		$(".hide-all-cfs").show();	
+		if (!isLoaded) {
+			isLoaded = true;
+			$.ajax({
+				url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+				type: 'POST',
+				dataType: "json",
+				data: "requestType=getATIds",
+				success: function(data, textStatus, jqXHR) {
+					getATs(data);
+				}
+			});
+		} else {
+			NRS.pageLoaded();
+		}
+	}
+
+
 $("#menu-toggle").click(function(e) {
 	e.preventDefault();
 	$("#wrapper").toggleClass("toggled");
@@ -126,34 +151,6 @@ $('#buyTicket').on('show.bs.modal', function(e) {
 	var atId = $(e.relatedTarget).data('at-id');
 	$(e.currentTarget).find('input[name="total-amount"]').val(totalAmount);
 	$(e.currentTarget).find('input[name="at-id"]').val(atId);
-});
-$(document).ready(function() {
-	$('.form-search').on('submit', function() {
-		return false;
-	});
-	$('#search-btn').on('click', function(e) {
-		var query = $.trim($(this).parent().prevAll('.search-query').val()).toLowerCase();
-		$('div.col-lg-4 div.crowdbox .crowdtext').each(function() {
-			var $this = $(this);
-			var h2Text = $this.closest('div.crowdbox').parent().find('h2')
-			if ($this.text().toLowerCase().indexOf(query) === -1 && h2Text.text().toLowerCase().indexOf(query) === -1) {
-				$this.closest('div.crowdbox').parent().fadeOut();
-				$this.closest('div.crowdbox').parent().css('display', 'none')
-			} else {
-				$this.closest('div.crowdbox').parent().fadeIn();
-				$this.closest('div.crowdbox').parent().css('display', 'visible')
-			}
-		});
-	});
-	$.ajax({
-		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
-		type: 'POST',
-		dataType: "json",
-		data: "requestType=getATIds",
-		success: function(data, textStatus, jqXHR) {
-			getATs(data);
-		}
-	});
 });
 
 function getATs(data) {
@@ -344,6 +341,24 @@ $(".crowdfunding-link-funded").click(function(e) {
 	$('.at-block').append(html);
 }
 $(document).ready(function(e) {
+	$('.form-search').on('submit', function() {
+		return false;
+	});
+	$('#search-btn').on('click', function(e) {
+		var query = $.trim($(this).parent().prevAll('.search-query').val()).toLowerCase();
+		$('div.col-lg-4 div.crowdbox .crowdtext').each(function() {
+			var $this = $(this);
+			var h2Text = $this.closest('div.crowdbox').parent().find('h2')
+			if ($this.text().toLowerCase().indexOf(query) === -1 && h2Text.text().toLowerCase().indexOf(query) === -1) {
+				$this.closest('div.crowdbox').parent().fadeOut();
+				$this.closest('div.crowdbox').parent().css('display', 'none')
+			} else {
+				$this.closest('div.crowdbox').parent().fadeIn();
+				$this.closest('div.crowdbox').parent().css('display', 'visible')
+			}
+		});
+	});
+	
     /**
      * Ceowd funding tab click event
      */
@@ -408,12 +423,8 @@ $(document).ready(function(e) {
 	});
 
     $(".sidebar-menu").on("click", function(e){
-        if ($("li#sidebar_crowdfunding").hasClass('active')){
-            $("#new-project").show();
-            $(".hide-all-cfs").show();
-        } else {
+		if (!$("li#sidebar_crowdfunding").hasClass('active')){
             $("#new-project").hide();
-            $("#crowdfunding_page").hide();
         }
     });
     
@@ -553,3 +564,7 @@ $(document).ready(function(e) {
     localStorage.setItem('cfs', JSON.stringify(cf));
     //console.log(localStorage.getItem('cfs'));
  }
+
+ 
+ 	return NRS;
+}(NRS || {}, jQuery));
