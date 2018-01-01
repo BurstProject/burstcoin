@@ -13,7 +13,6 @@ import brs.at.AT_Machine_State;
 import brs.at.AT_Transaction;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
-import brs.util.Listener;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -31,7 +30,7 @@ public final class AT extends AT_Machine_State {
 
   static {
     Burst.getBlockchainProcessor().addListener((Block block) -> {
-          pendingFees.entrySet().forEach((entry) -> {
+          pendingFees.entrySet().forEach(entry -> {
             Account atAccount = Account.getAccount(entry.getKey());
             atAccount.addToBalanceAndUnconfirmedBalanceNQT(-entry.getValue());
           });

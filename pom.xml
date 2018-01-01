@@ -238,7 +238,12 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>src/brs</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>conf</directory>
+            </resource>
+        </resources>
+        <sourceDirectory>src</sourceDirectory>
 
         <pluginManagement>
             <plugins>
