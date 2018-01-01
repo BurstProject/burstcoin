@@ -72,7 +72,7 @@ public class SqlEscrowStore implements EscrowStore {
     decisionRecord.setLatest(true);
     DbUtils.mergeInto(
       ctx, decisionRecord, ESCROW_DECISION,
-      ( new Field[] { decisionRecord.field("account_id"), decisionRecord.field("asset_id"), decisionRecord.field("height") } )
+      ( new Field[] { decisionRecord.field("escrow_id"), decisionRecord.field("account_id"), decisionRecord.field("height") } )
     );
   }
 

@@ -199,7 +199,7 @@ public class SqlOrderStore implements OrderStore {
   public Order.Bid getNextBid(long assetId) {
     try (DSLContext ctx = Db.getDSLContext() ) {
       SelectQuery query = ctx.selectFrom(brs.schema.Tables.BID_ORDER).where(
-        brs.schema.Tables.BID_ORDER.LATEST.isTrue()
+        brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId).and(brs.schema.Tables.BID_ORDER.LATEST.isTrue())
       ).orderBy(
         brs.schema.Tables.BID_ORDER.PRICE.desc(),
         brs.schema.Tables.BID_ORDER.CREATION_HEIGHT.asc(),
