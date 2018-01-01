@@ -156,7 +156,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
 
   @Override
   public BurstIterator<DigitalGoodsStore.Purchase> getExpiredPendingPurchases(final int timestamp) {
-    return getPurchaseTable().getManyBy(PURCHASE.DEADLINE.gt(timestamp).and(PURCHASE.PENDING.isTrue()), 0, -1);
+    return getPurchaseTable().getManyBy(PURCHASE.DEADLINE.lt(timestamp).and(PURCHASE.PENDING.isTrue()), 0, -1);
   }
 
   private EncryptedData loadEncryptedData(ResultSet rs, String dataColumn, String nonceColumn) throws SQLException {
@@ -233,14 +233,14 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
     byte[] refundNote  = null;
     byte[] refundNonce = null;
     if ( purchase.getNote() != null ) {
-      note  = purchase.getEncryptedGoods().getData();
-      nonce = purchase.getEncryptedGoods().getNonce();
+      note  = purchase.getNote().getData();
+      nonce = purchase.getNote().getNonce();
     }
-    if ( purchase.getEncryptedGoods().getData() != null ) {
+    if ( purchase.getEncryptedGoods() != null ) {
       goods      = purchase.getEncryptedGoods().getData();
       goodsNonce = purchase.getEncryptedGoods().getNonce();
     }
-    if ( purchase.getRefundNote().getData() != null ) {
+    if ( purchase.getRefundNote() != null ) {
       refundNote  = purchase.getRefundNote().getData();
       refundNonce = purchase.getRefundNote().getNonce();
     }
