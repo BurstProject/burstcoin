@@ -26,6 +26,25 @@ installation for you.
 
 #### Windows
 
+###### MariaDb
+
+In the conf directory, copy brs-default.properties into a new file named brs.properties.
+
+Download and insall MariaDB https://mariadb.com/downloads/mariadb-tx
+
+The MariaDb installation will ask to setup a password for the root user. 
+Add this password to the brs.properties file created above in the following section:
+```
+brs.dbUrl=jdbc:mariadb://localhost:3306/burstwallet
+brs.dbUsername=root
+brs.dbPassword=YOUR_PASSWORD
+```
+
+The MariaDB installation will also install HeidiSQL, a gui tool to administer MariaDb.
+Use it to connect to the newly created mariaDb server and create a new DB called 'burstwallet'. 
+
+###### Firebird (alternative to MariaDb)
+
 If you are not familiar with MariaDB we recommend you to go for
 Firebird, in which case the following data needs to be added to
 `conf/brs.properties`
