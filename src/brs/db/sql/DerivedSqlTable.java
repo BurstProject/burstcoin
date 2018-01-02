@@ -32,7 +32,7 @@ public abstract class DerivedSqlTable implements DerivedTable {
       throw new IllegalStateException("Not in transaction");
     }
     try ( DSLContext ctx = Db.getDSLContext() ) {
-      ctx.delete(tableClass).where(tableClass.field("HEIGHT", Integer.class).gt(height));
+      ctx.delete(tableClass).where(tableClass.field("height", Integer.class).gt(height));
     }
     catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
