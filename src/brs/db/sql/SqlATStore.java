@@ -102,7 +102,7 @@ public class SqlATStore implements ATStore {
     atStateRecord.setLatest(true);
     DbUtils.mergeInto(
       ctx, atStateRecord, brs.schema.Tables.AT_STATE,
-      ( new Field[] { atStateRecord.field("id"), atStateRecord.field("height") } )
+      ( new Field[] { atStateRecord.field("at_id"), atStateRecord.field("height") } )
     );
   }
 
