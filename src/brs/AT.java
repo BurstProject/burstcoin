@@ -299,10 +299,11 @@ public final class AT extends AT_Machine_State {
       return null;
     }
 
-    try(ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        GZIPOutputStream gzip = new GZIPOutputStream(bos)) {
-      gzip.write(stateBytes);
-      gzip.flush();
+    try(ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+      try(GZIPOutputStream gzip = new GZIPOutputStream(bos)) {
+        gzip.write(stateBytes);
+        gzip.flush();
+      }
       return bos.toByteArray();
     }
     catch (IOException e) {
