@@ -238,7 +238,7 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>src/brs</sourceDirectory>
+        <sourceDirectory>src</sourceDirectory>
 
         <pluginManagement>
             <plugins>
