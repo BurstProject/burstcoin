@@ -247,6 +247,11 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>conf</directory>
+            </resource>
+        </resources>
         <sourceDirectory>src</sourceDirectory>
         <testSourceDirectory>test</testSourceDirectory>
 
