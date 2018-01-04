@@ -47,15 +47,17 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <sonar.sources>src/brs</sonar.sources>
+        <sonar.sources>src</sonar.sources>
 
         <skip.jooq.generation>true</skip.jooq.generation>
-        <!-- <sonar.tests>src/test</sonar.tests> -->
+        <sonar.tests>test</sonar.tests>
 
         <!-- For Java -->
-<!--        <sonar.junit.reportsPath>${project.build.directory}/reports/java/surefire-reports</sonar.junit.reportsPath>
+        <sonar.junit.reportPath>${project.build.directory}/reports/java/surefire-reports</sonar.junit.reportPath>
         <sonar.jacoco.reportsPath>${project.build.directory}/reports/java/jacoco.exec</sonar.jacoco.reportsPath>
--->
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.language>java</sonar.language>
+
         <!-- For JavaScript -->
         <!--
         <sonar.javascript.lcov.reportPath>reports/js/lcov.dat</sonar.javascript.lcov.reportPath>
@@ -128,11 +130,11 @@
             <version>${mariadb.version}</version>
         </dependency>
 
-      <!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
+        <!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
         <dependency>
-          <groupId>com.zaxxer</groupId>
-          <artifactId>HikariCP</artifactId>
-          <version>${hikaricp.version}</version>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>${hikaricp.version}</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -202,6 +204,13 @@
         </dependency>
 
         <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
             <version>${jacoco.version}</version>
@@ -244,6 +253,7 @@
             </resource>
         </resources>
         <sourceDirectory>src</sourceDirectory>
+        <testSourceDirectory>test</testSourceDirectory>
 
         <pluginManagement>
             <plugins>
@@ -369,7 +379,7 @@
                     <nohelp>true</nohelp>
                 </configuration>
             </plugin>
-<!--
+
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -387,55 +397,61 @@
                     </execution>
                 </executions>
             </plugin>
--->
+
+            <!--plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.20.1</version>
+            </plugin-->
+
             <plugin>
-              <groupId>org.jooq</groupId>
-              <artifactId>jooq-codegen-maven</artifactId>
-              <version>${jooq.version}</version>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-codegen-maven</artifactId>
+                <version>${jooq.version}</version>
 
-              <executions>
-                <execution>
-                  <id>jooq-codegen</id>
-                  <phase>generate-sources</phase>
-                  <goals>
-                    <goal>generate</goal>
-                  </goals>
-                </execution>
-              </executions>
+                <executions>
+                    <execution>
+                        <id>jooq-codegen</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
 
-              <configuration>
-                <jdbc>
-                  <driver>org.mariadb.jdbc.Driver</driver>
-                  <url>jdbc:mysql://localhost:3306/burstwallet</url>
-                  <user>root</user>
-                  <password></password>
-                </jdbc>
-                <generator>
-                  <name>org.jooq.util.JavaGenerator</name>
-                  <database>
-                    <name>org.jooq.util.mariadb.MariaDBDatabase</name>
-                    <inputSchema>burstwallet</inputSchema>
-                    <outputSchema>DB</outputSchema>
-                    <includes>.*</includes>
-                    <excludes></excludes>
-		    <forcedTypes>
-		      <forcedType>
-			<name>BOOLEAN</name>
-			<expression>.*\.(.*\.LATEST|AT_STATE\.FREEZE_WHEN_SAME_BALANCE|GOODS\.DELISTED|TRANSACTION\.(HAS_MESSAGE|HAS_ENCRYPTED_MESSAGE|HAS_PUBLIC_KEY_ANNOUNCEMENT|HAS_ENCRYPTTOSELF_MESSAGE)|PURCHASE\.(PENDING|HAS_FEEDBACK_NOTES|HAS_PUBLIC_FEEDBACKS))</expression>
-			<types>.*</types>
-		      </forcedType>
-		    </forcedTypes>
-                  </database>
-                  <target>
-                    <packageName>brs.schema</packageName>
-                    <directory>src</directory>
-                  </target>
-                </generator>
-                <skip>${skip.jooq.generation}</skip>
-              </configuration>
+                <configuration>
+                    <jdbc>
+                        <driver>org.mariadb.jdbc.Driver</driver>
+                        <url>jdbc:mysql://localhost:3306/burstwallet</url>
+                        <user>root</user>
+                        <password></password>
+                    </jdbc>
+                    <generator>
+                        <name>org.jooq.util.JavaGenerator</name>
+                        <database>
+                            <name>org.jooq.util.mariadb.MariaDBDatabase</name>
+                            <inputSchema>burstwallet</inputSchema>
+                            <outputSchema>DB</outputSchema>
+                            <includes>.*</includes>
+                            <excludes></excludes>
+                            <forcedTypes>
+                                <forcedType>
+                                    <name>BOOLEAN</name>
+                                    <expression>.*\.(.*\.LATEST|AT_STATE\.FREEZE_WHEN_SAME_BALANCE|GOODS\.DELISTED|TRANSACTION\.(HAS_MESSAGE|HAS_ENCRYPTED_MESSAGE|HAS_PUBLIC_KEY_ANNOUNCEMENT|HAS_ENCRYPTTOSELF_MESSAGE)|PURCHASE\.(PENDING|HAS_FEEDBACK_NOTES|HAS_PUBLIC_FEEDBACKS))</expression>
+                                    <types>.*</types>
+                                </forcedType>
+                            </forcedTypes>
+                        </database>
+                        <target>
+                            <packageName>brs.schema</packageName>
+                            <directory>src</directory>
+                        </target>
+                    </generator>
+                    <skip>${skip.jooq.generation}</skip>
+                </configuration>
             </plugin>
 
-          </plugins>
+        </plugins>
 
     </build>
 </project>
