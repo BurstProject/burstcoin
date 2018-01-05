@@ -12,13 +12,13 @@ public final class DecodeToken extends APIServlet.APIRequestHandler {
   static final DecodeToken instance = new DecodeToken();
 
   private DecodeToken() {
-    super(new APITag[] {APITag.TOKENS}, "website", TOKEN);
+    super(new APITag[] {APITag.TOKENS}, WEBSITE, TOKEN);
   }
 
   @Override
   public JSONStreamAware processRequest(HttpServletRequest req) {
 
-    String website = req.getParameter("website");
+    String website = req.getParameter(WEBSITE);
     String tokenString = req.getParameter(TOKEN);
     if (website == null) {
       return MISSING_WEBSITE;

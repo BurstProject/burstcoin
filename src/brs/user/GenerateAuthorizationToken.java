@@ -24,7 +24,7 @@ public final class GenerateAuthorizationToken extends UserServlet.UserRequestHan
       return INVALID_SECRET_PHRASE;
     }
 
-    String tokenString = Token.generateToken(secretPhrase, req.getParameter("website").trim());
+    String tokenString = Token.generateToken(secretPhrase, req.getParameter(WEBSITE).trim());
 
     JSONObject response = new JSONObject();
     response.put(RESPONSE, "showAuthorizationToken");
