@@ -117,6 +117,7 @@ public final class Constants {
   public static final String RESPONSE = "response";
   public static final String TOKEN = "token";
   public static final String WEBSITE = "website";
+  public static final String PROTOCOL = "protocol";
 
   
   private Constants() {} // never
