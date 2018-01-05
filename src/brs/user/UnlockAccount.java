@@ -9,11 +9,11 @@ import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
-
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
 
+import static brs.Constants.*;
 import static brs.user.JSONResponses.LOCK_ACCOUNT;
 
 public final class UnlockAccount extends UserServlet.UserRequestHandler {

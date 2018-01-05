@@ -4,17 +4,17 @@ import brs.*;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.util.Subnet;
-import org.eclipse.jetty.server.*;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static brs.Constants.*;
 
 public final class Users {
 
@@ -87,7 +87,7 @@ public final class Users {
   }
 
   private static void sendNewDataToAll(JSONObject response) {
-    response.put("response", "processNewData");
+    response.put(RESPONSE, "processNewData");
     sendToAll(response);
   }
 

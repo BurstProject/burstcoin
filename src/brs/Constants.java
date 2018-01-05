@@ -113,5 +113,8 @@ public final class Constants {
   public static final int EC_BLOCK_DISTANCE_LIMIT = 60;
   public static final int EC_CHANGE_BLOCK_1 = 67000;
 
+  
+  public static final String RESPONSE = "response";
+  
   private Constants() {} // never
 }
