@@ -277,13 +277,6 @@ public final class AT extends AT_Machine_State {
     //TODO: release account
   }
 
-  private static void deleteAT( Long id ) {
-    AT at = AT.getAT(id);
-    if (at != null) {
-      deleteAT(at);
-    }
-  }
-
   public static List< Long > getOrderedATs(){
     return Burst.getStores().getAtStore().getOrderedATs();
   }
