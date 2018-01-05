@@ -212,9 +212,9 @@ public final class BlockImpl implements Block {
   public List<TransactionImpl> getTransactions() {
     if (blockTransactions == null) {
       this.blockTransactions = Collections.unmodifiableList(transactionDb.findBlockTransactions(getId()));
-      for (TransactionImpl transaction : this.blockTransactions) {
-        transaction.setBlock(this);
-      }
+      this.blockTransactions.forEach(transaction -> {
+          transaction.setBlock(this);
+        });
     }
     return blockTransactions;
   }
@@ -313,9 +313,9 @@ public final class BlockImpl implements Block {
     }
     json.put("blockSignature", Convert.toHexString(blockSignature));
     JSONArray transactionsData = new JSONArray();
-    for (Transaction transaction : getTransactions()) {
-      transactionsData.add(transaction.getJSONObject());
-    }
+    getTransactions().forEach(transaction -> {
+        transactionsData.add(transaction.getJSONObject());
+      });
     json.put("transactions", transactionsData);
     json.put("nonce", Convert.toUnsignedLong(nonce));
     json.put("blockATs", Convert.toHexString(blockATs));
@@ -514,9 +514,9 @@ public final class BlockImpl implements Block {
       rewardAccount.addToBalanceAndUnconfirmedBalanceNQT(totalFeeNQT + getBlockReward());
       rewardAccount.addToForgedBalanceNQT(totalFeeNQT + getBlockReward());
     }
-    for (TransactionImpl transaction : getTransactions()) {
-      transaction.apply();
-    }
+    getTransactions().forEach(transaction -> {
+        transaction.apply();
+      });
   }
 
   @Override
@@ -541,9 +541,9 @@ public final class BlockImpl implements Block {
     } else {
       this.height = 0;
     }
-    for (TransactionImpl transaction : getTransactions()) {
-      transaction.setBlock(this);
-    }
+    getTransactions().forEach(transaction -> {
+        transaction.setBlock(this);
+      });
   }
 
   public void calculateBaseTarget(BlockImpl previousBlock) {
