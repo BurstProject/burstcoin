@@ -64,9 +64,9 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                 try {
                   Burst.getStores().beginTransaction();
 
-                  for (TransactionImpl transaction : expiredTransactions) {
-                    removeUnconfirmedTransaction(transaction);
-                  }
+                  expiredTransactions.forEach(transaction -> {
+                      removeUnconfirmedTransaction(transaction);
+                    });
                   Account.flushAccountTable();
                   Burst.getStores().commitTransaction();
 
@@ -100,13 +100,13 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
           try {
             List<Transaction> transactionList = new ArrayList<>();
             int curTime = Burst.getEpochTime();
-            for (TransactionImpl transaction : nonBroadcastedTransactions) {
-              if (Burst.getDbs().getTransactionDb().hasTransaction(transaction.getId()) || transaction.getExpiration() < curTime) {
-                nonBroadcastedTransactions.remove(transaction);
-              } else if (transaction.getTimestamp() < curTime - 30) {
-                transactionList.add(transaction);
-              }
-            }
+            nonBroadcastedTransactions.forEach(transaction -> {
+                if (Burst.getDbs().getTransactionDb().hasTransaction(transaction.getId()) || transaction.getExpiration() < curTime) {
+                    nonBroadcastedTransactions.remove(transaction);
+                } else if (transaction.getTimestamp() < curTime - 30) {
+                    transactionList.add(transaction);
+                }
+              });
 
             if (transactionList.size() > 0) {
               Peers.rebroadcastTransactions(transactionList);
@@ -143,17 +143,17 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
 
                 if(enableTransactionRebroadcasting && Burst.getEpochTime() - Burst.getBlockchain().getLastBlock().getTimestamp() < 4 * 60) {
                   List<Transaction> rebroadcastLost = new ArrayList<>();
-                  for (Transaction lost : reAdded) {
-                    if (lostTransactionHeights.containsKey(lost.getId())) {
-                      int addedHeight = lostTransactionHeights.get(lost.getId());
-                      if (Burst.getBlockchain().getHeight() - addedHeight >= rebroadcastAfter
-                          && (Burst.getBlockchain().getHeight() - addedHeight - rebroadcastAfter) % rebroadcastEvery == 0) {
-                        rebroadcastLost.add(lost);
+                  reAdded.forEach(lost -> {
+                      if (lostTransactionHeights.containsKey(lost.getId())) {
+                          int addedHeight = lostTransactionHeights.get(lost.getId());
+                          if (Burst.getBlockchain().getHeight() - addedHeight >= rebroadcastAfter
+                                  && (Burst.getBlockchain().getHeight() - addedHeight - rebroadcastAfter) % rebroadcastEvery == 0) {
+                              rebroadcastLost.add(lost);
+                          }
+                      } else {
+                          lostTransactionHeights.put(lost.getId(), Burst.getBlockchain().getHeight());
                       }
-                    } else {
-                      lostTransactionHeights.put(lost.getId(), Burst.getBlockchain().getHeight());
-                    }
-                  }
+                    });
 
                   for(Transaction lost : rebroadcastLost) {
                     if(!nonBroadcastedTransactions.contains(lost)) {
@@ -182,7 +182,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
               return;
             }
             JSONArray transactionsData = (JSONArray)response.get("unconfirmedTransactions");
-            if (transactionsData == null || transactionsData.size() == 0) {
+            if (transactionsData == null || transactionsData.isEmpty()) {
               return;
             }
             try {
@@ -243,6 +243,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     return unconfirmedTransactionTable.get(unconfirmedTransactionDbKeyFactory.newKey(transactionId));
   }
 
+  @Override
   public Transaction.Builder newTransactionBuilder(byte[] senderPublicKey, long amountNQT, long feeNQT, short deadline,
                                                    Attachment attachment) {
     byte version = (byte) getTransactionVersion(Burst.getBlockchain().getHeight());
