@@ -3,23 +3,16 @@ package brs.db.sql;
 import brs.Burst;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
 import org.jooq.impl.TableImpl;
-import org.jooq.BatchBindStep;
 import org.jooq.SelectQuery;
 import org.jooq.UpdateQuery;
 import org.jooq.DeleteQuery;
 import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
 import org.jooq.Field;
-import org.jooq.Table;
-import org.jooq.Record;
 
 public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> implements VersionedEntityTable<T> {
 

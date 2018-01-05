@@ -8,22 +8,16 @@ import brs.db.VersionedEntityTable;
 import brs.db.store.AccountStore;
 import brs.util.Convert;
 import org.slf4j.LoggerFactory;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
-
 import static brs.schema.Tables.*;
-import static org.jooq.impl.DSL.*;
-
 import org.jooq.DSLContext;
 import org.jooq.SortField;
 import org.jooq.Field;
 import org.jooq.Condition;
-import org.jooq.Merge;
-import org.jooq.BatchBindStep;
 
 public class SqlAccountStore implements AccountStore {
 
