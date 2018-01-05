@@ -115,6 +115,7 @@ public final class Constants {
 
   
   public static final String RESPONSE = "response";
+  public static final String TOKEN = "token";
   
   private Constants() {} // never
 }

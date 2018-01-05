@@ -55,7 +55,7 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
     long accountId = user.unlockAccount(secretPhrase);
 
     JSONObject response = new JSONObject();
-    response.put("response", "unlockAccount");
+    response.put(RESPONSE, "unlockAccount");
     response.put("account", Convert.toUnsignedLong(accountId));
 
     if (secretPhrase.length() < 30) {
@@ -178,7 +178,7 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
 
       if (myTransactions.size() > 0) {
         JSONObject response2 = new JSONObject();
-        response2.put("response", "processNewData");
+        response2.put(RESPONSE, "processNewData");
         response2.put("addedMyTransactions", myTransactions);
         user.enqueue(response2);
       }

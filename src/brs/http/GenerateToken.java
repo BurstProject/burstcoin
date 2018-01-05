@@ -3,11 +3,10 @@ package brs.http;
 import brs.Token;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
-
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.*;
-
+import static brs.Constants.*;
 
 public final class GenerateToken extends APIServlet.APIRequestHandler {
 
@@ -33,7 +32,7 @@ public final class GenerateToken extends APIServlet.APIRequestHandler {
       String tokenString = Token.generateToken(secretPhrase, website.trim());
 
       JSONObject response = new JSONObject();
-      response.put("token", tokenString);
+      response.put(TOKEN, tokenString);
 
       return response;
 

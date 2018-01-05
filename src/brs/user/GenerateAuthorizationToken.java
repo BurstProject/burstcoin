@@ -28,7 +28,7 @@ public final class GenerateAuthorizationToken extends UserServlet.UserRequestHan
 
     JSONObject response = new JSONObject();
     response.put(RESPONSE, "showAuthorizationToken");
-    response.put("token", tokenString);
+    response.put(TOKEN, tokenString);
 
     return response;
   }
