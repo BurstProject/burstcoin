@@ -6,20 +6,16 @@ import brs.BurstException;
 import brs.db.BlockDb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import static brs.schema.Tables.*;
-import static org.jooq.impl.DSL.*;
-
 import org.jooq.impl.DSL;
 import org.jooq.DSLContext;
-import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.SelectQuery;
 import org.jooq.DeleteQuery;
+
+import static brs.schema.Tables.*;
 
 public class SqlBlockDb implements BlockDb {
 
