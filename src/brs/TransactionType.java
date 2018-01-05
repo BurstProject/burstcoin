@@ -81,8 +81,9 @@ public abstract class TransactionType {
         switch (subtype) {
           case SUBTYPE_PAYMENT_ORDINARY_PAYMENT:
             return Payment.ORDINARY;
+          default:
+            return null;   
         }
-        return null;
       case TYPE_MESSAGING:
         switch (subtype) {
           case SUBTYPE_MESSAGING_ARBITRARY_MESSAGE:
@@ -95,8 +96,9 @@ public abstract class TransactionType {
             return Messaging.ALIAS_SELL;
           case SUBTYPE_MESSAGING_ALIAS_BUY:
             return Messaging.ALIAS_BUY;
+          default:
+            return null;
         }
-        return null;
       case TYPE_COLORED_COINS:
         switch (subtype) {
           case SUBTYPE_COLORED_COINS_ASSET_ISSUANCE:
@@ -111,8 +113,9 @@ public abstract class TransactionType {
             return ColoredCoins.ASK_ORDER_CANCELLATION;
           case SUBTYPE_COLORED_COINS_BID_ORDER_CANCELLATION:
             return ColoredCoins.BID_ORDER_CANCELLATION;
+          default:
+            return null;   
         }
-        return null;
       case TYPE_DIGITAL_GOODS:
         switch (subtype) {
           case SUBTYPE_DIGITAL_GOODS_LISTING:
