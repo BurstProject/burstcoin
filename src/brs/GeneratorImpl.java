@@ -46,7 +46,7 @@ public final class GeneratorImpl implements Generator {
                 it.remove();
               }
             }
-          } catch (Exception e) {
+          } catch (BlockchainProcessor.BlockNotAcceptedException e) {
             logger.debug("Error in block generation thread", e);
           }
         } catch (Throwable t) {
