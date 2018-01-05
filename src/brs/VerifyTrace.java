@@ -101,9 +101,9 @@ public final class VerifyTrace {
         String accountId = mapEntry.getKey();
         Map<String,Long> accountValues = mapEntry.getValue();
         System.out.println("account: " + accountId);
-        for (String balanceHeader : balanceHeaders) {
-          System.out.println(balanceHeader + ": " + nullToZero(accountValues.get(balanceHeader)));
-        }
+        balanceHeaders.forEach(balanceHeader -> {
+            System.out.println(balanceHeader + ": " + nullToZero(accountValues.get(balanceHeader)));
+          });
         System.out.println("totals:");
         long totalDelta = 0;
         for (String header : deltaHeaders) {
@@ -118,40 +118,40 @@ public final class VerifyTrace {
           failed.add(accountId);
         }
         Map<String,Map<String,Long>> accountAssetMap = accountAssetTotals.get(accountId);
-        for (Map.Entry<String,Map<String,Long>> assetMapEntry : accountAssetMap.entrySet()) {
-          String assetId = assetMapEntry.getKey();
-          Map<String,Long> assetValues = assetMapEntry.getValue();
-          System.out.println("asset: " + assetId);
-          for (Map.Entry<String,Long> assetValueEntry : assetValues.entrySet()) {
-            System.out.println(assetValueEntry.getKey() + ": " + assetValueEntry.getValue());
-          }
-          long totalAssetDelta = 0;
-          for (String header : deltaAssetQuantityHeaders) {
-            long delta = nullToZero(assetValues.get(header));
-            totalAssetDelta = Convert.safeAdd(totalAssetDelta, delta);
-          }
-          System.out.println("total confirmed asset quantity change: " + totalAssetDelta);
-          long assetBalance= assetValues.get("asset balance");
-          if (assetBalance != totalAssetDelta) {
-            System.out.println("ERROR: asset balance doesn't match total asset quantity change!!!");
-            failed.add(accountId);
-          }
-          long previousAssetQuantity = nullToZero(accountAssetQuantities.get(assetId));
-          accountAssetQuantities.put(assetId, Convert.safeAdd(previousAssetQuantity, assetBalance));
-        }
+        accountAssetMap.entrySet().forEach(assetMapEntry -> {
+            String assetId = assetMapEntry.getKey();
+            Map<String,Long> assetValues = assetMapEntry.getValue();
+            System.out.println("asset: " + assetId);
+            assetValues.entrySet().forEach(assetValueEntry -> {
+                System.out.println(assetValueEntry.getKey() + ": " + assetValueEntry.getValue());
+            });
+            long totalAssetDelta = 0;
+            for (String header : deltaAssetQuantityHeaders) {
+                long delta = nullToZero(assetValues.get(header));
+                totalAssetDelta = Convert.safeAdd(totalAssetDelta, delta);
+            }
+            System.out.println("total confirmed asset quantity change: " + totalAssetDelta);
+            long assetBalance= assetValues.get("asset balance");
+            if (assetBalance != totalAssetDelta) {
+                System.out.println("ERROR: asset balance doesn't match total asset quantity change!!!");
+                failed.add(accountId);
+            }
+            long previousAssetQuantity = nullToZero(accountAssetQuantities.get(assetId));
+            accountAssetQuantities.put(assetId, Convert.safeAdd(previousAssetQuantity, assetBalance));
+          });
         System.out.println();
       }
       Set<String> failedAssets = new HashSet<>();
-      for (Map.Entry<String,Long> assetEntry : issuedAssetQuantities.entrySet()) {
-        String assetId = assetEntry.getKey();
-        long issuedAssetQuantity = assetEntry.getValue();
-        if (issuedAssetQuantity != nullToZero(accountAssetQuantities.get(assetId))) {
-          System.out.println("ERROR: asset " + assetId + " balances don't match, issued: "
-                             + issuedAssetQuantity
-                             + ", total of account balances: " + accountAssetQuantities.get(assetId));
-          failedAssets.add(assetId);
-        }
-      }
+      issuedAssetQuantities.entrySet().forEach(assetEntry -> {
+          String assetId = assetEntry.getKey();
+          long issuedAssetQuantity = assetEntry.getValue();
+            if (issuedAssetQuantity != nullToZero(accountAssetQuantities.get(assetId))) {
+                System.out.println("ERROR: asset " + assetId + " balances don't match, issued: "
+                        + issuedAssetQuantity
+                        + ", total of account balances: " + accountAssetQuantities.get(assetId));
+                failedAssets.add(assetId);
+            }
+        });
       if (failed.size() > 0) {
         System.out.println("ERROR: " + failed.size() + " accounts have incorrect balances");
         System.out.println(failed);
