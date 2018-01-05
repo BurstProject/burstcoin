@@ -353,7 +353,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             List<BlockImpl> forkBlocks = new ArrayList<>();
             JSONArray nextBlocks = getNextBlocks(peer, commonBlockId);
-            if (nextBlocks == null || nextBlocks.size() == 0) {
+            if (nextBlocks == null || nextBlocks.isEmpty()) {
               logger.debug("Peer did not feed us any blocks");
               return;
             }
@@ -500,7 +500,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           return 0;
         }
         JSONArray nextBlockIds = (JSONArray) response.get("nextBlockIds");
-        if (nextBlockIds == null || nextBlockIds.size() == 0) {
+        if (nextBlockIds == null || nextBlockIds.isEmpty()) {
           return 0;
         }
         // prevent overloading with blockIds
@@ -601,9 +601,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           peer.blacklist();
           List<BlockImpl> peerPoppedOffBlocks = popOffTo(ForkBlock);
           pushedForkBlocks = 0;
-          for (BlockImpl block : peerPoppedOffBlocks) {
-            TransactionProcessorImpl.getInstance().processLater(block.getTransactions());
-          }
+          peerPoppedOffBlocks.forEach(block -> {
+              TransactionProcessorImpl.getInstance().processLater(block.getTransactions());
+            });
         }
 
         // if we did not push any blocks we try to restore chain.
@@ -618,9 +618,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
           }
         } else {
-          for (BlockImpl block : myPoppedOffBlocks) {
-            TransactionProcessorImpl.getInstance().processLater(block.getTransactions());
-          }
+            myPoppedOffBlocks.forEach(block -> {
+                TransactionProcessorImpl.getInstance().processLater(block.getTransactions());
+            });
         }
       } // synchronized
       DownloadCache.ResetCache(); //Reset and set cached vars to chaindata.
@@ -655,9 +655,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           if (block.getHeight() % 1440 == 0) {
             lastTrimHeight = Math.max(block.getHeight() - Constants.MAX_ROLLBACK, 0);
             if (lastTrimHeight > 0) {
-              for (DerivedTable table : derivedTables) {
-                table.trim(lastTrimHeight);
-              }
+                derivedTables.forEach(table -> {
+                    table.trim(lastTrimHeight);
+                });
             }
           }
         }
@@ -796,9 +796,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     try {
       List<TransactionImpl> transactions = new ArrayList<>();
       MessageDigest digest = Crypto.sha256();
-      for (Transaction transaction : transactions) {
-        digest.update(transaction.getBytes());
-      }
+      transactions.forEach(transaction -> {
+          digest.update(transaction.getBytes());
+        });
       ByteBuffer bf = ByteBuffer.allocate(0);
       bf.order(ByteOrder.LITTLE_ENDIAN);
       byte[] byteATs = bf.array();
@@ -928,14 +928,14 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           addBlock(block);
           accept(block, remainingAmount, remainingFee);
           Timer.Context finishContext = finishTimer.time();
-          for (DerivedTable table : derivedTables) {
-            table.finish();
-          }
+          derivedTables.forEach(table -> {
+              table.finish();
+            });
           finishContext.stop();
           Timer.Context commitContext = commitTimer.time();
           Burst.getStores().commitTransaction();
           commitContext.stop();
-        } catch (Exception e) {
+        } catch (BlockNotAcceptedException | ArithmeticException e) {
           Burst.getStores().rollbackTransaction();
           blockchain.setLastBlock(previousLastBlock);
           throw e;
@@ -987,10 +987,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       if (Subscription.isEnabled()) {
         calculatedRemainingFee += Subscription.applyUnconfirmed(block.getTimestamp());
       }
-      if (remainingAmount != null && remainingAmount.longValue() != calculatedRemainingAmount) {
+      if (remainingAmount != null && remainingAmount != calculatedRemainingAmount) {
         throw new BlockNotAcceptedException("Calculated remaining amount doesn't add up");
       }
-      if (remainingFee != null && remainingFee.longValue() != calculatedRemainingFee) {
+      if (remainingFee != null && remainingFee != calculatedRemainingFee) {
         throw new BlockNotAcceptedException("Calculated remaining fee doesn't add up");
       }
       blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
@@ -1026,9 +1026,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           poppedOffBlocks.add(block);
           block = popLastBlock();
         }
-        for (DerivedTable table : derivedTables) {
-          table.rollback(commonBlock.getHeight());
-        }
+        derivedTables.forEach(table -> {
+            table.rollback(commonBlock.getHeight());
+          });
         Burst.getStores().commitTransaction();
       } catch (RuntimeException e) {
         Burst.getStores().rollbackTransaction();
@@ -1048,9 +1048,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     BlockImpl previousBlock = blockDb.findBlock(block.getPreviousBlockId());
     blockchain.setLastBlock(block, previousBlock);
-    for (TransactionImpl transaction : block.getTransactions()) {
-      transaction.unsetBlock();
-    }
+    block.getTransactions().forEach(transaction -> {
+        transaction.unsetBlock();
+      });
     blockDb.deleteBlocksFrom(block.getId());
     blockListeners.notify(block, Event.BLOCK_POPPED);
     return previousBlock;
@@ -1148,10 +1148,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         try {
           Burst.getStores().beginTransaction();
           transactionProcessor.requeueAllUnconfirmedTransactions();
-          //transactionProcessor.processTransactions(newTransactions, false);
-          for (TransactionImpl transaction : blockTransactions) {
-            transaction.applyUnconfirmed();
-          }
+            //transactionProcessor.processTransactions(newTransactions, false);
+            blockTransactions.forEach(transaction -> {
+                transaction.applyUnconfirmed();
+            });
           totalFeeNQT += Subscription.calculateFees(blockTimestamp);
         } finally {
           Burst.getStores().rollbackTransaction();
@@ -1180,9 +1180,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     MessageDigest digest = Crypto.sha256();
 
-    for (Transaction transaction : blockTransactions) {
-      digest.update(transaction.getBytes());
-    }
+    blockTransactions.forEach(transaction -> {
+        digest.update(transaction.getBytes());
+      });
 
     byte[] payloadHash = digest.digest();
 
