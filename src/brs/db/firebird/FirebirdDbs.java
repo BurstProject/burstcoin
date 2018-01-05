@@ -102,7 +102,7 @@ public class FirebirdDbs implements Dbs {
         if (sql != null) {
           stmt.executeUpdate(sql);
         }
-      } catch (Exception e) {
+      } catch (SQLException e) {
         throw e;
       }
     } catch (SQLException e) {

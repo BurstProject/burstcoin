@@ -51,7 +51,7 @@ final class FirebirdDbVersion {
         }
         stmt.executeUpdate("UPDATE version SET next_update = next_update + 1");
         Db.commitTransaction();
-      } catch (Exception e) {
+      } catch (SQLException e) {
         Db.rollbackTransaction();
         throw e;
       }
