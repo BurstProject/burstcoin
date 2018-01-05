@@ -226,13 +226,13 @@ public final class TransactionImpl implements Transaction {
       list.add(this.encryptToSelfMessage);
     }
     this.appendages = Collections.unmodifiableList(list);
-    int appendagesSize = 0;
+    int countAppendeges = 0;
     for (Appendix appendage : appendages) {
-      appendagesSize += appendage.getSize();
+      countAppendeges += appendage.getSize();
     }
-    this.appendagesSize = appendagesSize;
+    this.appendagesSize = countAppendeges;
     int effectiveHeight = (height < Integer.MAX_VALUE ? height : Burst.getBlockchain().getHeight());
-    long minimumFeeNQT = type.minimumFeeNQT(effectiveHeight, appendagesSize);
+    long minimumFeeNQT = type.minimumFeeNQT(effectiveHeight, countAppendeges);
     if(type == null || type.isSigned()) {
       if (builder.feeNQT > 0 && builder.feeNQT < minimumFeeNQT) {
         throw new BurstException.NotValidException(String.format("Requested fee %d less than the minimum fee %d",
@@ -502,9 +502,9 @@ public final class TransactionImpl implements Transaction {
         buffer.putInt(ecBlockHeight);
         buffer.putLong(ecBlockId);
       }
-      for (Appendix appendage : appendages) {
-        appendage.putBytes(buffer);
-      }
+      appendages.forEach(appendage -> {
+          appendage.putBytes(buffer);
+        });
       return buffer.array();
     } catch (RuntimeException e) {
       logger.debug("Failed to get transaction bytes for transaction: " + getJSONObject().toJSONString());
@@ -614,9 +614,9 @@ public final class TransactionImpl implements Transaction {
     json.put("ecBlockId", Convert.toUnsignedLong(ecBlockId));
     json.put("signature", Convert.toHexString(signature));
     JSONObject attachmentJSON = new JSONObject();
-    for (Appendix appendage : appendages) {
-      attachmentJSON.putAll(appendage.getJSONObject());
-    }
+    appendages.forEach(appendage -> {
+        attachmentJSON.putAll(appendage.getJSONObject());
+      });
     //if (! attachmentJSON.isEmpty()) {
     json.put("attachment", attachmentJSON);
     //}
@@ -706,6 +706,7 @@ public final class TransactionImpl implements Transaction {
     return Long.compare(this.getId(), other.getId());
   }
 
+  @Override
   public boolean verifyPublicKey() {
     Account account = Account.getAccount(getSenderId());
     if (account == null) {
@@ -717,6 +718,7 @@ public final class TransactionImpl implements Transaction {
     return account.setOrVerify(senderPublicKey, this.getHeight());
   }
 
+  @Override
   public boolean verifySignature() {
     byte[] data = zeroSignature(getBytes());
     return Crypto.verify(signature, data, senderPublicKey, useNQT());
