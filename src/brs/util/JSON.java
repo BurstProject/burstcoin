@@ -2,9 +2,10 @@ package brs.util;
 
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
-
 import java.io.IOException;
 import java.io.Writer;
+
+import static brs.Constants.*;
 
 public final class JSON {
 
@@ -23,7 +24,7 @@ public final class JSON {
   }
 
   public static JSONStreamAware prepareRequest(final JSONObject json) {
-    json.put("protocol", "B1");
+    json.put(PROTOCOL, "B1");
     return prepare(json);
   }
 
