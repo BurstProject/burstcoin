@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static brs.user.JSONResponses.*;
+import static brs.Constants.*;
 
 public final class UserServlet extends HttpServlet  {
 
@@ -127,7 +128,7 @@ public final class UserServlet extends HttpServlet  {
       logger.info("Error processing GET request", e);
       if (user != null) {
         JSONObject response = new JSONObject();
-        response.put("response", "showMessage");
+        response.put(RESPONSE, "showMessage");
         response.put("message", e.toString());
         user.enqueue(response);
       }

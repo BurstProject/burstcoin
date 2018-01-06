@@ -10,7 +10,6 @@ import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -20,6 +19,8 @@ import java.io.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import static brs.Constants.*;
 
 public final class PeerServlet extends HttpServlet {
 
@@ -106,7 +107,7 @@ public final class PeerServlet extends HttpServlet {
         return;
       }
 
-      if (request.get("protocol") != null && ((String)request.get("protocol")).equals("B1")) {
+      if (request.get(PROTOCOL) != null && ((String)request.get(PROTOCOL)).equals("B1")) {
         PeerRequestHandler peerRequestHandler = peerRequestHandlers.get(request.get("requestType"));
         if (peerRequestHandler != null) {
           response = peerRequestHandler.processRequest(request, peer);
@@ -114,7 +115,7 @@ public final class PeerServlet extends HttpServlet {
           response = UNSUPPORTED_REQUEST_TYPE;
         }
       } else {
-        logger.debug("Unsupported protocol " + request.get("protocol"));
+        logger.debug("Unsupported protocol " + request.get(PROTOCOL));
         response = UNSUPPORTED_PROTOCOL;
       }
 

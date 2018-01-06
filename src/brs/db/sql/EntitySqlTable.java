@@ -1,36 +1,22 @@
 package brs.db.sql;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Timer;
 import brs.Burst;
 import brs.db.EntityTable;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
-import brs.db.sql.DbUtils;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import static brs.schema.Tables.*;
-import static org.jooq.impl.DSL.*;
-
 import org.jooq.impl.DSL;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.Result;
-import org.jooq.Record;
 import org.jooq.Table;
-import org.jooq.TableField;
 import org.jooq.SortField;
-import org.jooq.ResultQuery;
 import org.jooq.SelectJoinStep;
 import org.jooq.impl.TableImpl;
 import org.jooq.SelectQuery;
 import org.jooq.UpdateQuery;
-import org.jooq.exception.DataAccessException;
 
 public abstract class EntitySqlTable<T> extends DerivedSqlTable implements EntityTable<T> {
   protected final DbKey.Factory<T> dbKeyFactory;

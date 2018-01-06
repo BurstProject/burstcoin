@@ -3,17 +3,12 @@ package brs.db.sql;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedBatchEntityTable;
-
 import java.sql.SQLException;
 import java.util.*;
-
 import org.jooq.impl.TableImpl;
 import org.jooq.Condition;
 import org.jooq.SelectQuery;
 import org.jooq.UpdateQuery;
-import org.jooq.Query;
-import org.jooq.Merge;
-import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
 import org.jooq.SortField;
 

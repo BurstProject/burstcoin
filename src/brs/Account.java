@@ -12,6 +12,7 @@ import brs.util.Listener;
 import brs.util.Listeners;
 
 import java.util.Arrays;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Account {
@@ -246,7 +247,7 @@ public class Account {
 
   protected Account(long id) {
     if (id != Crypto.rsDecode(Crypto.rsEncode(id))) {
-      logger.info("CRITICAL ERROR: Reed-Solomon encoding fails for " + id);
+      logger.log(Level.INFO, "CRITICAL ERROR: Reed-Solomon encoding fails for {0}", id);
     }
     this.id = id;
     this.nxtKey = accountBurstKeyFactory.newKey(this.id);
@@ -255,7 +256,7 @@ public class Account {
 
   protected Account(long id, BurstKey burstKey, int creationHeight) {
     if (id != Crypto.rsDecode(Crypto.rsEncode(id))) {
-      logger.info("CRITICAL ERROR: Reed-Solomon encoding fails for " + id);
+      logger.log(Level.INFO, "CRITICAL ERROR: Reed-Solomon encoding fails for {0}", id);
     }
     this.id = id;
     this.nxtKey = burstKey;
@@ -334,14 +335,14 @@ public class Account {
   }
 
   public long getAssetBalanceQNT(long assetId) {
-    BurstKey nxtKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
-    AccountAsset accountAsset = accountAssetTable.get(nxtKey);
+    BurstKey newKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    AccountAsset accountAsset = accountAssetTable.get(newKey);
     return accountAsset == null ? 0 : accountAsset.quantityQNT;
   }
 
   public long getUnconfirmedAssetBalanceQNT(long assetId) {
-    BurstKey nxtKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
-    AccountAsset accountAsset = accountAssetTable.get(nxtKey);
+    BurstKey newKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    AccountAsset accountAsset = accountAssetTable.get(newKey);
     return accountAsset == null ? 0 : accountAsset.unconfirmedQuantityQNT;
   }
 
@@ -406,8 +407,8 @@ public class Account {
     }
     AccountAsset accountAsset;
 
-    BurstKey nxtKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
-    accountAsset = accountAssetTable.get(nxtKey);
+    BurstKey newKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    accountAsset = accountAssetTable.get(newKey);
     long assetBalance = accountAsset == null ? 0 : accountAsset.quantityQNT;
     assetBalance = Convert.safeAdd(assetBalance, quantityQNT);
     if (accountAsset == null) {
@@ -425,8 +426,8 @@ public class Account {
       return;
     }
     AccountAsset accountAsset;
-    BurstKey nxtKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
-    accountAsset = accountAssetTable.get(nxtKey);
+    BurstKey newKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    accountAsset = accountAssetTable.get(newKey);
     long unconfirmedAssetBalance = accountAsset == null ? 0 : accountAsset.unconfirmedQuantityQNT;
     unconfirmedAssetBalance = Convert.safeAdd(unconfirmedAssetBalance, quantityQNT);
     if (accountAsset == null) {
@@ -444,8 +445,8 @@ public class Account {
       return;
     }
     AccountAsset accountAsset;
-    BurstKey nxtKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
-    accountAsset = accountAssetTable.get(nxtKey);
+    BurstKey newKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    accountAsset = accountAssetTable.get(newKey);
     long assetBalance = accountAsset == null ? 0 : accountAsset.quantityQNT;
     assetBalance = Convert.safeAdd(assetBalance, quantityQNT);
     long unconfirmedAssetBalance = accountAsset == null ? 0 : accountAsset.unconfirmedQuantityQNT;

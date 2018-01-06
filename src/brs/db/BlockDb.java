@@ -2,10 +2,7 @@ package brs.db;
 
 import brs.BlockImpl;
 import brs.BurstException;
-
 import java.sql.ResultSet;
-
-import org.jooq.Record;
 import org.jooq.DSLContext;
 
 public interface BlockDb {

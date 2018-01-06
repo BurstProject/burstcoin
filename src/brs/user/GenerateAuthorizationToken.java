@@ -7,6 +7,8 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
+import static brs.Constants.*;
+
 import static brs.user.JSONResponses.INVALID_SECRET_PHRASE;
 
 public final class GenerateAuthorizationToken extends UserServlet.UserRequestHandler {
@@ -22,11 +24,11 @@ public final class GenerateAuthorizationToken extends UserServlet.UserRequestHan
       return INVALID_SECRET_PHRASE;
     }
 
-    String tokenString = Token.generateToken(secretPhrase, req.getParameter("website").trim());
+    String tokenString = Token.generateToken(secretPhrase, req.getParameter(WEBSITE).trim());
 
     JSONObject response = new JSONObject();
-    response.put("response", "showAuthorizationToken");
-    response.put("token", tokenString);
+    response.put(RESPONSE, "showAuthorizationToken");
+    response.put(TOKEN, tokenString);
 
     return response;
   }
