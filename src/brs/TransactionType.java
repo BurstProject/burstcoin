@@ -81,8 +81,9 @@ public abstract class TransactionType {
         switch (subtype) {
           case SUBTYPE_PAYMENT_ORDINARY_PAYMENT:
             return Payment.ORDINARY;
+          default:
+            return null;   
         }
-        return null;
       case TYPE_MESSAGING:
         switch (subtype) {
           case SUBTYPE_MESSAGING_ARBITRARY_MESSAGE:
@@ -95,8 +96,9 @@ public abstract class TransactionType {
             return Messaging.ALIAS_SELL;
           case SUBTYPE_MESSAGING_ALIAS_BUY:
             return Messaging.ALIAS_BUY;
+          default:
+            return null;
         }
-        return null;
       case TYPE_COLORED_COINS:
         switch (subtype) {
           case SUBTYPE_COLORED_COINS_ASSET_ISSUANCE:
@@ -111,8 +113,9 @@ public abstract class TransactionType {
             return ColoredCoins.ASK_ORDER_CANCELLATION;
           case SUBTYPE_COLORED_COINS_BID_ORDER_CANCELLATION:
             return ColoredCoins.BID_ORDER_CANCELLATION;
+          default:
+            return null;   
         }
-        return null;
       case TYPE_DIGITAL_GOODS:
         switch (subtype) {
           case SUBTYPE_DIGITAL_GOODS_LISTING:
@@ -1670,7 +1673,7 @@ public abstract class TransactionType {
           logger.trace("TransactionType ESCROW_CREATION");
           Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
           Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
-          if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT.longValue()) {
+          if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT) {
             return false;
           }
           senderAccount.addToUnconfirmedBalanceNQT(-totalAmountNQT);
@@ -1683,9 +1686,9 @@ public abstract class TransactionType {
           Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
           senderAccount.addToBalanceNQT(-totalAmountNQT);
           Collection<Long> signers = attachment.getSigners();
-          for(Long signer : signers) {
-            Account.addOrGetAccount(signer).addToBalanceAndUnconfirmedBalanceNQT(Constants.ONE_NXT);
-          }
+          signers.forEach(signer -> {
+              Account.addOrGetAccount(signer).addToBalanceAndUnconfirmedBalanceNQT(Constants.ONE_NXT);
+            });
           Escrow.addEscrowTransaction(senderAccount,
                                       recipientAccount,
                                       transaction.getId(),
@@ -1925,8 +1928,8 @@ public abstract class TransactionType {
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.AdvancedPaymentSubscriptionSubscribe attachment = (Attachment.AdvancedPaymentSubscriptionSubscribe) transaction.getAttachment();
           if (attachment.getFrequency() == null ||
-             attachment.getFrequency().intValue() < Constants.BURST_SUBSCRIPTION_MIN_FREQ ||
-             attachment.getFrequency().intValue() > Constants.BURST_SUBSCRIPTION_MAX_FREQ) {
+             attachment.getFrequency() < Constants.BURST_SUBSCRIPTION_MIN_FREQ ||
+             attachment.getFrequency() > Constants.BURST_SUBSCRIPTION_MAX_FREQ) {
             throw new BurstException.NotValidException("Invalid subscription frequency");
           }
           if (transaction.getAmountNQT() < Constants.ONE_NXT || transaction.getAmountNQT() > Constants.MAX_BALANCE_NQT) {

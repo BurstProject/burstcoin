@@ -5,19 +5,14 @@ import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.OrderStore;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.jooq.impl.TableImpl;
 import org.jooq.DSLContext;
 import org.jooq.SortField;
 import org.jooq.SelectQuery;
-import brs.schema.Tables.*;
-import org.jooq.Record;
 import org.jooq.Field;
 
 public class SqlOrderStore implements OrderStore {

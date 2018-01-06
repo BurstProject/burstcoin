@@ -1,12 +1,10 @@
 package brs.db.sql;
 
 import brs.db.BurstIterator;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-
 import org.jooq.DSLContext;
 
 class DbIterator<T> implements BurstIterator<T> {

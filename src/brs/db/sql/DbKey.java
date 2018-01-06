@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import org.jooq.Table;
 import org.jooq.Condition;
 import org.jooq.SelectQuery;
-import org.jooq.Query;
-import org.jooq.TableField;
 
 public interface DbKey extends BurstKey {
 
