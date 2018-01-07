@@ -99,23 +99,21 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
       deleteQuery.addConditions(tableClass.field("height", Integer.class).gt(height));
 
       for (DbKey dbKey : dbKeys) {
-        ctx.transaction(configuration -> {
-            SelectQuery selectMaxHeightQuery = ctx.selectQuery();
-            selectMaxHeightQuery.addFrom(tableClass);
-            selectMaxHeightQuery.addConditions(dbKey.getPKConditions(tableClass));
-            selectMaxHeightQuery.addSelect(tableClass.field("height", Long.class).max());
-            Integer maxHeight = (Integer) ctx.fetchValue(selectMaxHeightQuery);
+        SelectQuery selectMaxHeightQuery = ctx.selectQuery();
+        selectMaxHeightQuery.addFrom(tableClass);
+        selectMaxHeightQuery.addConditions(dbKey.getPKConditions(tableClass));
+        selectMaxHeightQuery.addSelect(tableClass.field("height", Long.class).max());
+        Integer maxHeight = (Integer) ctx.fetchValue(selectMaxHeightQuery.fetchResultSet());
 
-            UpdateQuery setLatestQuery = ctx.updateQuery(tableClass);
-            setLatestQuery.addValue(
-              tableClass.field("latest", Boolean.class),
-              true
-            );
-            setLatestQuery.addConditions(dbKey.getPKConditions(tableClass));
-            setLatestQuery.addConditions(tableClass.field("height", int.class).eq(height));
-            setLatestQuery.execute();
-            //Db.getCache(table).remove(dbKey);
-        });
+        UpdateQuery setLatestQuery = ctx.updateQuery(tableClass);
+        setLatestQuery.addValue(
+          tableClass.field("latest", Boolean.class),
+          true
+        );
+        setLatestQuery.addConditions(dbKey.getPKConditions(tableClass));
+        setLatestQuery.addConditions(tableClass.field("height", int.class).eq(height));
+        setLatestQuery.execute();
+        //Db.getCache(table).remove(dbKey);
       }
     }
     catch (SQLException e) {

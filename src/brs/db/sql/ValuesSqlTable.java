@@ -45,7 +45,7 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
       query.addFrom(tableClass);
       query.addConditions(dbKey.getPKConditions(tableClass));
       if ( multiversion ) {
-        query.addConditions(tableClass.field("latest", int.class).isTrue());
+        query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
       }
       query.addOrderBy(tableClass.field("db_id").desc());
       values = get(ctx, query.fetchResultSet());
