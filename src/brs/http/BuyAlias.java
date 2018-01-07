@@ -15,8 +15,11 @@ public final class BuyAlias extends CreateTransaction {
 
   static final BuyAlias instance = new BuyAlias();
 
+  static final String ALIAS_PARAMETER_FIELD = "alias";
+  static final String ALIAS_NAME_PARAMETER_FIELD = "aliasName";
+
   private BuyAlias() {
-    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, "alias", "aliasName");
+    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, ALIAS_PARAMETER_FIELD, ALIAS_NAME_PARAMETER_FIELD);
   }
 
   @Override
