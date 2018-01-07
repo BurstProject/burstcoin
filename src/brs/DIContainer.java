@@ -5,11 +5,14 @@ package brs;
  */
 public class DIContainer {
 
-  private DIContainer(){
+  private DIContainer() {
   }
 
   public static TransactionProcessor getTransactionProcessor() {
     return TransactionProcessorImpl.getInstance();
   }
 
+  public static Blockchain getBlockchain() {
+    return BlockchainImpl.getInstance();
+  }
 }

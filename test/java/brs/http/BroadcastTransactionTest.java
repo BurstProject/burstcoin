@@ -1,11 +1,11 @@
 package brs.http;
 
-import static brs.http.BroadcastTransaction.ERROR_CODE_RESPONSE_FIELD;
-import static brs.http.BroadcastTransaction.ERROR_DESCRIPTION_RESPONSE_FIELD;
-import static brs.http.BroadcastTransaction.FULL_HASH_RESPONSE_FIELD;
-import static brs.http.BroadcastTransaction.TRANSACTION_BYTES_PARAMETER_FIELD;
-import static brs.http.BroadcastTransaction.TRANSACTION_JSON_PARAMETER_FIELD;
-import static brs.http.BroadcastTransaction.TRANSACTION_RESPONSE_FIELD;
+import static brs.http.BroadcastTransaction.ERROR_CODE_RESPONSE;
+import static brs.http.BroadcastTransaction.ERROR_DESCRIPTION_RESPONSE;
+import static brs.http.BroadcastTransaction.FULL_HASH_RESPONSE;
+import static brs.http.BroadcastTransaction.TRANSACTION_BYTES_PARAMETER;
+import static brs.http.BroadcastTransaction.TRANSACTION_JSON_PARAMETER;
+import static brs.http.BroadcastTransaction.TRANSACTION_RESPONSE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -57,8 +57,8 @@ public class BroadcastTransactionTest {
     when(mockTransaction.getStringId()).thenReturn(mockTransactionStringId);
     when(mockTransaction.getFullHash()).thenReturn(mockTransactionFullHash);
 
-    when(req.getParameter(TRANSACTION_BYTES_PARAMETER_FIELD)).thenReturn(mockTransactionBytesParameter);
-    when(req.getParameter(TRANSACTION_JSON_PARAMETER_FIELD)).thenReturn(mockTransactionJson);
+    when(req.getParameter(TRANSACTION_BYTES_PARAMETER)).thenReturn(mockTransactionBytesParameter);
+    when(req.getParameter(TRANSACTION_JSON_PARAMETER)).thenReturn(mockTransactionJson);
 
     when(ParameterParser.parseTransaction(eq(mockTransactionBytesParameter), eq(mockTransactionJson))).thenReturn(mockTransaction);
 
@@ -68,8 +68,8 @@ public class BroadcastTransactionTest {
 
     verify(mockTransactionProcessor).broadcast(eq(mockTransaction));
 
-    assertEquals(mockTransactionStringId, result.get(TRANSACTION_RESPONSE_FIELD));
-    assertEquals(mockTransactionFullHash, result.get(FULL_HASH_RESPONSE_FIELD));
+    assertEquals(mockTransactionStringId, result.get(TRANSACTION_RESPONSE));
+    assertEquals(mockTransactionFullHash, result.get(FULL_HASH_RESPONSE));
   }
 
   @Test
@@ -82,8 +82,8 @@ public class BroadcastTransactionTest {
     final HttpServletRequest req = mock(HttpServletRequest.class);
     final Transaction mockTransaction = mock(Transaction.class);
 
-    when(req.getParameter(TRANSACTION_BYTES_PARAMETER_FIELD)).thenReturn(mockTransactionBytesParameter);
-    when(req.getParameter(TRANSACTION_JSON_PARAMETER_FIELD)).thenReturn(mockTransactionJson);
+    when(req.getParameter(TRANSACTION_BYTES_PARAMETER)).thenReturn(mockTransactionBytesParameter);
+    when(req.getParameter(TRANSACTION_JSON_PARAMETER)).thenReturn(mockTransactionJson);
 
     when(ParameterParser.parseTransaction(eq(mockTransactionBytesParameter), eq(mockTransactionJson))).thenReturn(mockTransaction);
 
@@ -91,8 +91,8 @@ public class BroadcastTransactionTest {
 
     final JSONObject result = (JSONObject) t.processRequest(req);
 
-    assertEquals(4, result.get(ERROR_CODE_RESPONSE_FIELD));
-    assertNotNull(result.get(ERROR_DESCRIPTION_RESPONSE_FIELD));
+    assertEquals(4, result.get(ERROR_CODE_RESPONSE));
+    assertNotNull(result.get(ERROR_DESCRIPTION_RESPONSE));
   }
 
   @Test
