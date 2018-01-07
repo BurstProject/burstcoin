@@ -4,22 +4,16 @@ import brs.*;
 import brs.db.BlockDb;
 import brs.db.BurstIterator;
 import brs.db.store.BlockchainStore;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import org.jooq.DSLContext;
+import org.jooq.Condition;
+import org.jooq.SelectConditionStep;
 
 import static brs.schema.Tables.BLOCK;
 import static brs.schema.Tables.TRANSACTION;
-import static org.jooq.impl.DSL.*;
-
-import org.jooq.DSLContext;
-import org.jooq.Result;
-import org.jooq.Record;
-import org.jooq.Condition;
-import org.jooq.SelectQuery;
-import org.jooq.SelectConditionStep;
 
 public class SqlBlockchainStore implements BlockchainStore {
 

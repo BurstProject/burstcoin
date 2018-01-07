@@ -3,23 +3,13 @@ package brs.db.sql;
 import com.github.gquintana.metrics.sql.MetricsSql;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import com.zaxxer.hikari.pool.HikariProxyConnection;
-import com.zaxxer.hikari.pool.ProxyConnection;
-
 import brs.Constants;
 import brs.Burst;
 import brs.db.firebird.FirebirdDbs;
 import brs.db.h2.H2Dbs;
 import brs.db.mariadb.MariadbDbs;
 import brs.db.store.Dbs;
-
-import com.google.common.base.Predicate;
-import org.reflections.ReflectionUtils;
-import java.lang.reflect.Field;
-
-import org.firebirdsql.jdbc.FBConnection;
 import org.firebirdsql.management.FBManager;
-import org.firebirdsql.gds.TransactionParameterBuffer;
 import org.firebirdsql.gds.impl.GDSType;
 
 import org.slf4j.Logger;

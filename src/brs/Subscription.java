@@ -95,17 +95,17 @@ public class Subscription {
     long totalFeeNQT = 0;
     BurstIterator<Subscription> updateSubscriptions =
         Burst.getStores().getSubscriptionStore().getUpdateSubscriptions(timestamp);
-    List<Subscription> appliedSubscriptions = new ArrayList<>();
+    List<Subscription> appliedUnconfirmedSubscriptions = new ArrayList<>();
     for(Subscription subscription : updateSubscriptions) {
       if(removeSubscriptions.contains(subscription.getId())) {
         continue;
       }
       if(subscription.applyUnconfirmed()) {
-        appliedSubscriptions.add(subscription);
+        appliedUnconfirmedSubscriptions.add(subscription);
       }
     }
-    if(appliedSubscriptions.size() > 0) {
-      for(Subscription subscription : appliedSubscriptions) {
+    if(appliedUnconfirmedSubscriptions.size() > 0) {
+      for(Subscription subscription : appliedUnconfirmedSubscriptions) {
         totalFeeNQT = Convert.safeAdd(totalFeeNQT, subscription.getFee());
         subscription.undoUnconfirmed();
       }
@@ -157,9 +157,9 @@ public class Subscription {
     if(paymentTransactions.size() > 0) {
       Burst.getDbs().getTransactionDb().saveTransactions( paymentTransactions);
     }
-    for(Long subscription : removeSubscriptions) {
-      removeSubscription(subscription);
-    }
+    removeSubscriptions.forEach(subscription -> {
+        removeSubscription(subscription);
+      });
   }
 
   public final Long senderId;

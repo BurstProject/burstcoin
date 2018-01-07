@@ -4,13 +4,11 @@ import brs.AssetTransfer;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.store.AssetTransferStore;
-import org.jooq.DSLContext;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import org.jooq.DSLContext;
 
 import static brs.schema.Tables.ASSET_TRANSFER;
-import org.jooq.DSLContext;
 
 public class SqlAssetTransferStore implements AssetTransferStore {
 

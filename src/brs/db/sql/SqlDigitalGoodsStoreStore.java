@@ -8,7 +8,6 @@ import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
 import brs.db.store.DigitalGoodsStoreStore;
-
 import java.util.ArrayList;
 import java.util.List;
 

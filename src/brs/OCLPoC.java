@@ -310,14 +310,14 @@ final class OCLPoC {
       ByteBuffer scoopsBuffer = ByteBuffer.wrap(scoopsOut);
       byte[] scoop = new byte[MiningPlot.SCOOP_SIZE];
 
-      for (BlockImpl block : blocks) {
-        try {
-          scoopsBuffer.get(scoop);
-          block.preVerify(scoop);
-        } catch (BlockchainProcessor.BlockNotAcceptedException e) {
-          throw new PreValidateFailException("Block failed to prevalidate", e, block);
-        }
-      }
+      blocks.forEach((block) -> {
+          try {
+              scoopsBuffer.get(scoop);
+              block.preVerify(scoop);
+          } catch (BlockchainProcessor.BlockNotAcceptedException e) {
+              throw new PreValidateFailException("Block failed to prevalidate", e, block);
+          }
+        }); 
       // logger.debug("finished rest: " + blocks.size());
     } catch (CLException e) {
       // intentionally leave out of unverified cache. It won't slow it that much on one failure and avoids infinite looping on repeat failed attempts.

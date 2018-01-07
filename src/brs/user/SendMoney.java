@@ -8,6 +8,8 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
+import static brs.Constants.*;
+
 import static brs.user.JSONResponses.NOTIFY_OF_ACCEPTED_TRANSACTION;
 
 public final class SendMoney extends UserServlet.UserRequestHandler {
@@ -44,7 +46,7 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
     } catch (RuntimeException e) {
 
       JSONObject response = new JSONObject();
-      response.put("response", "notifyOfIncorrectTransaction");
+      response.put(RESPONSE, "notifyOfIncorrectTransaction");
       response.put("message", "One of the fields is filled incorrectly!");
       response.put("recipient", recipientValue);
       response.put("amountNXT", amountValue);
@@ -57,7 +59,7 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
     if (! user.getSecretPhrase().equals(secretPhrase)) {
 
       JSONObject response = new JSONObject();
-      response.put("response", "notifyOfIncorrectTransaction");
+      response.put(RESPONSE, "notifyOfIncorrectTransaction");
       response.put("message", "Wrong secret phrase!");
       response.put("recipient", recipientValue);
       response.put("amountNXT", amountValue);
@@ -69,7 +71,7 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
     } else if (amountNQT <= 0 || amountNQT > Constants.MAX_BALANCE_NQT) {
 
       JSONObject response = new JSONObject();
-      response.put("response", "notifyOfIncorrectTransaction");
+      response.put(RESPONSE, "notifyOfIncorrectTransaction");
       response.put("message", "\"Amount\" must be greater than 0!");
       response.put("recipient", recipientValue);
       response.put("amountNXT", amountValue);
@@ -81,7 +83,7 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
     } else if (feeNQT < Constants.ONE_NXT || feeNQT > Constants.MAX_BALANCE_NQT) {
 
       JSONObject response = new JSONObject();
-      response.put("response", "notifyOfIncorrectTransaction");
+      response.put(RESPONSE, "notifyOfIncorrectTransaction");
       response.put("message", "\"Fee\" must be at least 1 NXT!");
       response.put("recipient", recipientValue);
       response.put("amountNXT", amountValue);
@@ -93,7 +95,7 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
     } else if (deadline < 1 || deadline > 1440) {
 
       JSONObject response = new JSONObject();
-      response.put("response", "notifyOfIncorrectTransaction");
+      response.put(RESPONSE, "notifyOfIncorrectTransaction");
       response.put("message", "\"Deadline\" must be greater or equal to 1 minute and less than 24 hours!");
       response.put("recipient", recipientValue);
       response.put("amountNXT", amountValue);
@@ -108,7 +110,7 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
     if (account == null || Convert.safeAdd(amountNQT, feeNQT) > account.getUnconfirmedBalanceNQT()) {
 
       JSONObject response = new JSONObject();
-      response.put("response", "notifyOfIncorrectTransaction");
+      response.put(RESPONSE, "notifyOfIncorrectTransaction");
       response.put("message", "Not enough funds!");
       response.put("recipient", recipientValue);
       response.put("amountNXT", amountValue);
