@@ -1,9 +1,15 @@
 package brs.common;
 
+import static brs.http.common.Parameters.PUBLIC_KEY_PARAMETER;
+import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import org.mockito.Mock;
 
 public class QuickMocker {
 
@@ -15,6 +21,16 @@ public class QuickMocker {
     }
 
     return mockedRequest;
+  }
+
+  public static HttpServletRequest httpServletRequestDefaultKeys(MockParam... parameters) {
+    final List<MockParam> paramsWithKeys = new ArrayList<>(Arrays.asList(
+        new MockParam(SECRET_PHRASE_PARAMETER, TestConstants.TEST_SECRET_PHRASE),
+        new MockParam(PUBLIC_KEY_PARAMETER, TestConstants.TEST_PUBLIC_KEY)));
+
+    paramsWithKeys.addAll(Arrays.asList(parameters));
+
+    return httpServletRequest(paramsWithKeys.toArray(new MockParam[paramsWithKeys.size()]));
   }
 
   public static class MockParam {

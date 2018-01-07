@@ -1,8 +1,8 @@
 package brs.http;
 
 import static brs.http.JSONResponses.INCORRECT_ALIAS_NOTFORSALE;
-import static brs.http.ParameterParser.ALIAS_NAME_PARAMETER;
-import static brs.http.ParameterParser.ALIAS_PARAMETER;
+import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
+import static brs.http.common.Parameters.ALIAS_PARAMETER;
 
 import brs.Account;
 import brs.Alias;
