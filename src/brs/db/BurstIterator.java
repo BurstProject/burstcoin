@@ -1,9 +1,7 @@
 package brs.db;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.Iterator;
-
 import org.jooq.DSLContext;
 
 public interface BurstIterator<T> extends Iterator<T>, Iterable<T>, AutoCloseable {

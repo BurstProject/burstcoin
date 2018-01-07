@@ -1,16 +1,12 @@
 package brs.db.sql;
 
-import com.codahale.metrics.Timer;
 import brs.Burst;
 import brs.db.DerivedTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.sql.SQLException;
-
 import org.jooq.impl.TableImpl;
 import org.jooq.DSLContext;
-import org.jooq.Condition;
 
 public abstract class DerivedSqlTable implements DerivedTable {
   //    private final Timer rollbackTimer;

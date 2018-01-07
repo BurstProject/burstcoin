@@ -2,17 +2,14 @@ package brs.db.sql;
 
 import brs.db.BurstKey;
 import brs.db.ValuesTable;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.jooq.impl.TableImpl;
 import org.jooq.DSLContext;
 import org.jooq.SelectQuery;
 import org.jooq.UpdateQuery;
-
 
 public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements ValuesTable<T, V> {
 

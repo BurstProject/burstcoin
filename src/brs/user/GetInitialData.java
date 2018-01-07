@@ -11,10 +11,11 @@ import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
-
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.math.BigInteger;
+
+import static brs.Constants.*;
 
 public final class GetInitialData extends UserServlet.UserRequestHandler {
 
@@ -114,7 +115,7 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
     }
 
     JSONObject response = new JSONObject();
-    response.put("response", "processInitialData");
+    response.put(RESPONSE, "processInitialData");
     response.put("version", Burst.VERSION);
     if (unconfirmedTransactions.size() > 0) {
       response.put("unconfirmedTransactions", unconfirmedTransactions);

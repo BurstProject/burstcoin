@@ -320,12 +320,12 @@ public interface Attachment extends Appendix {
 
     @Override
     void putMyBytes(ByteBuffer buffer) {
-      byte[] name = Convert.toBytes(this.name);
-      byte[] description = Convert.toBytes(this.description);
-      buffer.put((byte)name.length);
-      buffer.put(name);
-      buffer.putShort((short) description.length);
-      buffer.put(description);
+      byte[] putName = Convert.toBytes(this.name);
+      byte[] putDescription = Convert.toBytes(this.description);
+      buffer.put((byte)putName.length);
+      buffer.put(putName);
+      buffer.putShort((short) putDescription.length);
+      buffer.put(putDescription);
     }
 
     @Override
@@ -1337,7 +1337,7 @@ public interface Attachment extends Appendix {
       this.deadline = deadline;
       this.deadlineAction = deadlineAction;
       this.requiredSigners = (byte)requiredSigners;
-      if(signers.size() > 10 || signers.size() == 0) {
+      if(signers.size() > 10 || signers.isEmpty()) {
         throw new BurstException.NotValidException("Invalid number of signers listed on create escrow transaction");
       }
       this.signers.addAll(signers);
@@ -1366,9 +1366,9 @@ public interface Attachment extends Appendix {
       buffer.put(this.requiredSigners);
       byte totalSigners = (byte) this.signers.size();
       buffer.put(totalSigners);
-      for(Long id : this.signers) {
-        buffer.putLong(id);
-      }
+      this.signers.forEach(id -> {
+          buffer.putLong(id);
+        });
     }
 
     @Override
