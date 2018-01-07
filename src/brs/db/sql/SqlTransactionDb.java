@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.jooq.DSLContext;
 
 import static brs.schema.Tables.TRANSACTION;
@@ -100,7 +101,7 @@ public class SqlTransactionDb implements TransactionDb {
     }
     if (tr.getVersion() > 0) {
       builder.ecBlockHeight(tr.getEcBlockHeight());
-      builder.ecBlockId(tr.getEcBlockId());
+      builder.ecBlockId(Optional.ofNullable(tr.getEcBlockId()).orElse(0L));
     }
 
     return builder.build();

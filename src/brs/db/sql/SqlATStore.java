@@ -25,6 +25,7 @@ import static brs.schema.Tables.TRANSACTION;
 import static brs.schema.Tables.ACCOUNT;
 
 import org.jooq.DSLContext;
+import org.jooq.SelectQuery;
 import org.jooq.SortField;
 import org.jooq.Field;
 
@@ -180,8 +181,8 @@ public class SqlATStore implements ATStore {
 
   private brs.AT createAT(AtRecord at, AtStateRecord atState) {
     return new brs.AT(AT_API_Helper.getByteArray(at.getId()), AT_API_Helper.getByteArray(at.getCreatorId()), at.getName(), at.getDescription(), at.getVersion(),
-            atState.getState(), at.getCsize(), at.getDsize(), at.getCUserStackBytes(), at.getCCallStackBytes(), at.getCreationHeight(), atState.getSleepBetween(), atState.getNextHeight(),
-            atState.getFreezeWhenSameBalance(), atState.getMinActivateAmount(), at.getApCode());
+            brs.AT.decompressState(atState.getState()), at.getCsize(), at.getDsize(), at.getCUserStackBytes(), at.getCCallStackBytes(), at.getCreationHeight(), atState.getSleepBetween(), atState.getNextHeight(),
+            atState.getFreezeWhenSameBalance(), atState.getMinActivateAmount(), brs.AT.decompressState(at.getApCode()));
   }
 
   @Override
@@ -227,7 +228,7 @@ public class SqlATStore implements ATStore {
   @Override
   public Long findTransaction(int startHeight, int endHeight, Long atID, int numOfTx, long minAmount) {
     try ( DSLContext ctx = Db.getDSLContext() ) {
-      return ctx.select(TRANSACTION.ID).from(TRANSACTION).where(
+      SelectQuery query = ctx.select(TRANSACTION.ID).from(TRANSACTION).where(
         TRANSACTION.HEIGHT.between(startHeight, endHeight - 1)
       ).and(
         TRANSACTION.RECIPIENT_ID.eq(atID)
@@ -235,7 +236,11 @@ public class SqlATStore implements ATStore {
         TRANSACTION.AMOUNT.greaterOrEqual(minAmount)
       ).orderBy(
         TRANSACTION.HEIGHT, TRANSACTION.ID
-      ).limit(numOfTx).offset(numOfTx + 1).fetchOne(TRANSACTION.ID);
+      ).getQuery();
+      DbUtils.applyLimits(query, numOfTx, numOfTx + 1);
+      try ( ResultSet rs = query.fetchResultSet() ) {
+        return rs.next() ? rs.getLong(1) : 0L;
+      }
     }
     catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
@@ -259,7 +264,8 @@ public class SqlATStore implements ATStore {
       int counter = 0;
       while (cursor.hasNext()) {
         counter++;
-        if ( cursor.fetchOne().getValue(0) == transactionId ) {
+        long currentTransactionId = cursor.fetchNext().getValue(TRANSACTION.ID).longValue();
+        if ( currentTransactionId == transactionId ) {
           break;
         }
       }

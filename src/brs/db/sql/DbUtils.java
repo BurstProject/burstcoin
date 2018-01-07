@@ -42,7 +42,7 @@ public final class DbUtils {
   public static void applyLimits(SelectQuery query, int from, int to ) {
     int limit = to >= 0 && to >= from && to < Integer.MAX_VALUE ? to - from + 1 : 0;
     if (limit > 0 && from > 0) {
-      query.addLimit(limit, from);
+      query.addLimit(from, limit);
     }
     else if (limit > 0) {
       query.addLimit(limit);
