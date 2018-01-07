@@ -46,7 +46,7 @@ public class Alias {
   }
 
   private static final VersionedEntityTable<Alias> aliasTable() {
-    return Burst.getStores().getAliasStore().getAliasTable();
+    return DIContainer.getStores().getAliasStore().getAliasTable();
   }
 
   private static final BurstKey.LongKeyFactory<Offer> offerDbKeyFactory() {

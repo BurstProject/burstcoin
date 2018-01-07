@@ -42,6 +42,38 @@ import static brs.http.JSONResponses.UNKNOWN_ALIAS;
 import static brs.http.JSONResponses.UNKNOWN_ASSET;
 import static brs.http.JSONResponses.UNKNOWN_AT;
 import static brs.http.JSONResponses.UNKNOWN_GOODS;
+import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
+import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
+import static brs.http.common.Parameters.ALIAS_PARAMETER;
+import static brs.http.common.Parameters.AMOUNT_NQT_PARAMETER;
+import static brs.http.common.Parameters.ASSET_PARAMETER;
+import static brs.http.common.Parameters.BUYER_PARAMETER;
+import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_DATA_PARAMETER;
+import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_NONCE_PARAMETER;
+import static brs.http.common.Parameters.ENCRYPT_TO_SELF_MESSAGE_DATA;
+import static brs.http.common.Parameters.ENCRYPT_TO_SELF_MESSAGE_NONCE;
+import static brs.http.common.Parameters.FEE_QT_PARAMETER;
+import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
+import static brs.http.common.Parameters.GOODS_DATA_PARAMETER;
+import static brs.http.common.Parameters.GOODS_NONCE_PARAMETER;
+import static brs.http.common.Parameters.GOODS_PARAMETER;
+import static brs.http.common.Parameters.HEIGHT_PARAMETER;
+import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER;
+import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_PARAMETER;
+import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_TO_SELF_IS_TEXT_PARAMETER;
+import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_TO_SELF_PARAMETER;
+import static brs.http.common.Parameters.NUMBER_OF_CONFIRMATIONS_PARAMETER;
+import static brs.http.common.Parameters.ORDER_PARAMETER;
+import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
+import static brs.http.common.Parameters.PUBLIC_KEY_PARAMETER;
+import static brs.http.common.Parameters.PURCHASE_PARAMETER;
+import static brs.http.common.Parameters.QUANTITY_NQT_PARAMETER;
+import static brs.http.common.Parameters.QUANTITY_PARAMETER;
+import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
+import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
+import static brs.http.common.Parameters.SELLER_PARAMETER;
+import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
 
 import brs.AT;
 import brs.Account;
@@ -50,12 +82,13 @@ import brs.Asset;
 import brs.Burst;
 import brs.BurstException;
 import brs.Constants;
+import brs.DIContainer;
 import brs.DigitalGoodsStore;
 import brs.Transaction;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
+import brs.http.common.Parameters;
 import brs.util.Convert;
-import brs.util.Parameter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -71,38 +104,6 @@ final class ParameterParser {
 
   private static final Logger logger = LoggerFactory.getLogger(ParameterParser.class);
 
-  static final String ALIAS_PARAMETER = "alias";
-  static final String AMOUNT_NQT_PARAMETER = "amountNQT";
-  static final String ALIAS_NAME_PARAMETER = "aliasName";
-  static final String FEE_QT_PARAMETER = "feeNQT";
-  static final String PRICE_NQT_PARAMETER = "priceNQT";
-  static final String QUANTITY_NQT_PARAMETER = "quantityQNT";
-  static final String ASSET_PARAMETER = "asset";
-  static final String GOODS_PARAMETER = "goods";
-  static final String ORDER_PARAMETER = "order";
-  static final String QUANTITY_PARAMETER = "quantity";
-  static final String ENCRYPTED_MESSAGE_DATA_PARAMETER = "encryptedMessageData";
-  static final String ENCRYPTED_MESSAGE_NONCE_PARAMETER = "encryptedMessageNonce";
-  static final String MESSAGE_TO_ENCRYPT_PARAMETER = "messageToEncrypt";
-  static final String MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER = "messageToEncryptIsText";
-  static final String ENCRYPT_TO_SELF_MESSAGE_DATA = "encryptToSelfMessageData";
-  static final String ENCRYPT_TO_SELF_MESSAGE_NONCE = "encryptToSelfMessageNonce";
-  static final String MESSAGE_TO_ENCRYPT_TO_SELF_PARAMETER = "messageToEncryptToSelf";
-  static final String MESSAGE_TO_ENCRYPT_TO_SELF_IS_TEXT_PARAMETER = "messageToEncryptToSelfIsText";
-  static final String GOODS_DATA_PARAMETER = "goodsData";
-  static final String GOODS_NONCE_PARAMETER = "goodsNonce";
-  static final String PURCHASE_PARAMETER = "purchase";
-  static final String SECRET_PHRASE_PARAMETER = "secretPhrase";
-  static final String PUBLIC_KEY_PARAMETER = "publicKey";
-  static final String ACCOUNT_PARAMETER = "account";
-  static final String TIMESTAMP_PARAMETER = "timestamp";
-  static final String RECIPIENT_PARAMETER = "recipient";
-  static final String SELLER_PARAMETER = "seller";
-  static final String BUYER_PARAMETER = "buyer";
-  static final String FIRST_INDEX_PARAMETER = "firstIndex";
-  static final String LAST_INDEX_PARAMETER = "lastIndex";
-  static final String NUMBER_OF_CONFIRMATIONS_PARAMETER = "numberOfConfirmations";
-  static final String HEIGHT_PARAMETER = "height";
 
   static final String ERROR_CODE_RESPONSE = "errorCode";
   static final String ERROR_DESCRIPTION_RESPONSE = "errorDescription";
@@ -279,7 +280,7 @@ final class ParameterParser {
       throw new ParameterException(INCORRECT_RECIPIENT);
     }
     String secretPhrase = getSecretPhrase(req);
-    boolean isText = !Parameter.isFalse(req.getParameter(MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER));
+    boolean isText = !Parameters.isFalse(req.getParameter(MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER));
     try {
       byte[] plainMessageBytes = isText ? Convert.toBytes(plainMessage) : Convert.parseHexString(plainMessage);
       return recipientAccount.encryptTo(plainMessageBytes, secretPhrase);
@@ -304,7 +305,7 @@ final class ParameterParser {
     }
     String secretPhrase = getSecretPhrase(req);
     Account senderAccount = Account.getAccount(Crypto.getPublicKey(secretPhrase));
-    boolean isText = !Parameter.isFalse(req.getParameter(MESSAGE_TO_ENCRYPT_TO_SELF_IS_TEXT_PARAMETER));
+    boolean isText = !Parameters.isFalse(req.getParameter(MESSAGE_TO_ENCRYPT_TO_SELF_IS_TEXT_PARAMETER));
     try {
       byte[] plainMessageBytes = isText ? Convert.toBytes(plainMessage) : Convert.parseHexString(plainMessage);
       return senderAccount.encryptTo(plainMessageBytes, secretPhrase);
@@ -429,7 +430,7 @@ final class ParameterParser {
 
   static long getRecipientId(HttpServletRequest req) throws ParameterException {
     String recipientValue = Convert.emptyToNull(req.getParameter(RECIPIENT_PARAMETER));
-    if (recipientValue == null || Parameter.isZero(recipientValue)) {
+    if (recipientValue == null || Parameters.isZero(recipientValue)) {
       throw new ParameterException(MISSING_RECIPIENT);
     }
     long recipientId;
@@ -493,7 +494,7 @@ final class ParameterParser {
     if (numberOfConfirmationsValue != null) {
       try {
         int numberOfConfirmations = Integer.parseInt(numberOfConfirmationsValue);
-        if (numberOfConfirmations <= Burst.getBlockchain().getHeight()) {
+        if (numberOfConfirmations <= DIContainer.getBlockchain().getHeight()) {
           return numberOfConfirmations;
         }
         throw new ParameterException(INCORRECT_NUMBER_OF_CONFIRMATIONS);
@@ -509,10 +510,10 @@ final class ParameterParser {
     if (heightValue != null) {
       try {
         int height = Integer.parseInt(heightValue);
-        if (height < 0 || height > Burst.getBlockchain().getHeight()) {
+        if (height < 0 || height > DIContainer.getBlockchain().getHeight()) {
           throw new ParameterException(INCORRECT_HEIGHT);
         }
-        if (height < Burst.getBlockchainProcessor().getMinRollbackHeight()) {
+        if (height < DIContainer.getBlockchainProcessor().getMinRollbackHeight()) {
           throw new ParameterException(HEIGHT_NOT_AVAILABLE);
         }
         return height;
@@ -530,7 +531,7 @@ final class ParameterParser {
     if (transactionBytes != null) {
       try {
         byte[] bytes = Convert.parseHexString(transactionBytes);
-        return Burst.getTransactionProcessor().parseTransaction(bytes);
+        return DIContainer.getTransactionProcessor().parseTransaction(bytes);
       } catch (BurstException.ValidationException | RuntimeException e) {
         logger.debug(e.getMessage(), e);
         JSONObject response = new JSONObject();
@@ -541,7 +542,7 @@ final class ParameterParser {
     } else {
       try {
         JSONObject json = (JSONObject) JSONValue.parseWithException(transactionJSON);
-        return Burst.getTransactionProcessor().parseTransaction(json);
+        return DIContainer.getTransactionProcessor().parseTransaction(json);
       } catch (BurstException.ValidationException | RuntimeException | ParseException e) {
         logger.debug(e.getMessage(), e);
         JSONObject response = new JSONObject();
