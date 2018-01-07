@@ -12,6 +12,7 @@ function usage() {
 usage: $0 [command] [arguments]
 
   sonarcube        update sonarcube
+  debug		   start connecting to remote debuger on port 8000
 EOF
 }
 
@@ -51,6 +52,9 @@ case "$MY_CMD" in
                         -Dsonar.github.pullRequest=$TRAVIS_PULL_REQUEST
         fi
         # When neither on master branch nor on a non-external pull request => nothing to do
+        ;;
+    "debug")
+        mvn exec:exec -Dexec.executable=java "-Dexec.args=-classpath %classpath:conf -agentlib:jdwp=transport=dt_socket,server=n,address=127.0.0.1:8000,suspend=y -Dgreeting=\"Hello\" brs.Burst"
         ;;
     *)
         usage
