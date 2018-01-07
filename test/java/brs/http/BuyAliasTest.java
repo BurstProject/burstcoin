@@ -27,7 +27,10 @@ public class BuyAliasTest {
     t = BuyAlias.instance;
   }
 
-  //TODO Add happy path test...but right now doesn't seem possible due to Burst class
+  @Test
+  public void processRequest() {
+    //TODO implement happy path test
+  }
 
   @Test
   public void processRequest_aliasNotForSale() throws BurstException {

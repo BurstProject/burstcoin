@@ -1,25 +1,24 @@
 package brs.http;
 
+import static brs.http.JSONResponses.INCORRECT_ALIAS_NOTFORSALE;
+import static brs.http.ParameterParser.ALIAS_NAME_PARAMETER;
+import static brs.http.ParameterParser.ALIAS_PARAMETER;
+
 import brs.Account;
 import brs.Alias;
 import brs.Attachment;
 import brs.BurstException;
-import org.json.simple.JSONStreamAware;
-
 import javax.servlet.http.HttpServletRequest;
-
-import static brs.http.JSONResponses.INCORRECT_ALIAS_NOTFORSALE;
+import org.json.simple.JSONStreamAware;
 
 
 public final class BuyAlias extends CreateTransaction {
 
   static final BuyAlias instance = new BuyAlias();
 
-  static final String ALIAS_PARAMETER_FIELD = "alias";
-  static final String ALIAS_NAME_PARAMETER_FIELD = "aliasName";
-
+//TODO Should this not also contain AMOUNT_NQT?                                                                              V
   private BuyAlias() {
-    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, ALIAS_PARAMETER_FIELD, ALIAS_NAME_PARAMETER_FIELD);
+    super(new APITag[]{APITag.ALIASES, APITag.CREATE_TRANSACTION}, ALIAS_PARAMETER, ALIAS_NAME_PARAMETER);
   }
 
   @Override
