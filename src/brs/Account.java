@@ -14,7 +14,7 @@ import brs.util.Listeners;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
-public  class Account {
+public class Account {
 
   private static final Logger logger = Logger.getLogger(Account.class.getSimpleName());
 
@@ -31,12 +31,12 @@ public  class Account {
     private long quantityQNT;
     private long unconfirmedQuantityQNT;
 
-    protected AccountAsset(long accountId, long assetId, long quantityQNT, long unconfirmedQuantityQNT, BurstKey BurstKey) {
+    protected AccountAsset(long accountId, long assetId, long quantityQNT, long unconfirmedQuantityQNT, BurstKey burstKey) {
       this.accountId = accountId;
       this.assetId = assetId;
       this.quantityQNT = quantityQNT;
       this.unconfirmedQuantityQNT = unconfirmedQuantityQNT;
-      this.nxtKey = BurstKey;
+      this.nxtKey = burstKey;
     }
 
     protected AccountAsset(long accountId, long assetId, long quantityQNT, long unconfirmedQuantityQNT) {
@@ -95,12 +95,12 @@ public  class Account {
     public final BurstKey nxtKey;
 
 
-    protected RewardRecipientAssignment(Long accountId, Long prevRecipientId, Long recipientId, int fromHeight, BurstKey BurstKey) {
+    protected RewardRecipientAssignment(Long accountId, Long prevRecipientId, Long recipientId, int fromHeight, BurstKey burstKey) {
       this.accountId = accountId;
       this.prevRecipientId = prevRecipientId;
       this.recipientId = recipientId;
       this.fromHeight = fromHeight;
-      this.nxtKey = BurstKey;
+      this.nxtKey = burstKey;
     }
 
 
@@ -264,12 +264,12 @@ public  class Account {
     this.creationHeight = Burst.getBlockchain().getHeight();
   }
 
-  protected Account(long id, BurstKey BurstKey, int creationHeight) {
+  protected Account(long id, BurstKey burstKey, int creationHeight) {
     if (id != Crypto.rsDecode(Crypto.rsEncode(id))) {
       logger.info("CRITICAL ERROR: Reed-Solomon encoding fails for " + id);
     }
     this.id = id;
-    this.nxtKey = BurstKey;
+    this.nxtKey = burstKey;
     this.creationHeight = creationHeight;
   }
 
@@ -374,8 +374,8 @@ public  class Account {
     int currentHeight = Burst.getBlockchain().getLastBlock().getHeight();
     RewardRecipientAssignment assignment = getRewardRecipientAssignment(id);
     if(assignment == null) {
-      BurstKey BurstKey =     Burst.getStores().getAccountStore().getRewardRecipientAssignmentKeyFactory().newKey(id);
-      assignment = new RewardRecipientAssignment(id, id, recipient, (int) (currentHeight + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME), BurstKey);
+      BurstKey burstKey =     Burst.getStores().getAccountStore().getRewardRecipientAssignmentKeyFactory().newKey(id);
+      assignment = new RewardRecipientAssignment(id, id, recipient, (int) (currentHeight + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME), burstKey);
     }
     else {
       assignment.setRecipient(recipient, (int) (currentHeight + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME));
