@@ -135,9 +135,6 @@ public class Account {
 
   }
 
-  static {
-  }
-
   protected static final BurstKey.LongKeyFactory<Account> accountBurstKeyFactory() {
     return Burst.getStores().getAccountStore().getAccountKeyFactory();
   }
@@ -150,8 +147,6 @@ public class Account {
   public static void flushAccountTable() {
     accountTable().finish();
   }
-
-
 
   private static final VersionedEntityTable<AccountAsset> accountAssetTable() {
     return Burst.getStores().getAccountStore().getAccountAssetTable();
