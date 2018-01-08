@@ -17,7 +17,7 @@ public class Alias {
       this.priceNQT = priceNQT;
       this.buyerId = buyerId;
       this.aliasId = aliasId;
-      this.dbKey = offerDbKeyFactory.newKey(this.aliasId);
+      this.dbKey = offerDbKeyFactory().newKey(this.aliasId);
     }
 
     protected Offer(long aliasId, long priceNQT, long buyerId, BurstKey nxtKey) {
@@ -41,17 +41,24 @@ public class Alias {
 
   }
 
-  private static final BurstKey.LongKeyFactory<Alias> aliasDbKeyFactory = Burst.getStores().getAliasStore().getAliasDbKeyFactory();
+  private static final BurstKey.LongKeyFactory<Alias> aliasDbKeyFactory() {
+    return Burst.getStores().getAliasStore().getAliasDbKeyFactory();
+  }
 
-  private static final VersionedEntityTable<Alias> aliasTable = Burst.getStores().getAliasStore().getAliasTable();
+  private static final VersionedEntityTable<Alias> aliasTable() {
+    return DIContainer.getStores().getAliasStore().getAliasTable();
+  }
 
+  private static final BurstKey.LongKeyFactory<Offer> offerDbKeyFactory() {
+    return Burst.getStores().getAliasStore().getOfferDbKeyFactory();
+  }
 
-  private static final BurstKey.LongKeyFactory<Offer> offerDbKeyFactory = Burst.getStores().getAliasStore().getOfferDbKeyFactory();
-
-  private static final VersionedEntityTable<Offer> offerTable = Burst.getStores().getAliasStore().getOfferTable();
+  private static final VersionedEntityTable<Offer> offerTable() {
+    return Burst.getStores().getAliasStore().getOfferTable();
+  }
 
   public static int getCount() {
-    return aliasTable.getCount();
+    return aliasTable().getCount();
   }
 
   public static BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
@@ -63,11 +70,11 @@ public class Alias {
   }
 
   public static Alias getAlias(long id) {
-    return aliasTable.get(aliasDbKeyFactory.newKey(id));
+    return aliasTable().get(aliasDbKeyFactory().newKey(id));
   }
 
   public static Offer getOffer(Alias alias) {
-    return offerTable.get(offerDbKeyFactory.newKey(alias.getId()));
+    return offerTable().get(offerDbKeyFactory().newKey(alias.getId()));
   }
 
   static void addOrUpdateAlias(Transaction transaction, Attachment.MessagingAliasAssignment attachment) {
@@ -80,7 +87,7 @@ public class Alias {
       alias.aliasURI = attachment.getAliasURI();
       alias.timestamp = transaction.getBlockTimestamp();
     }
-    aliasTable.insert(alias);
+    aliasTable().insert(alias);
   }
 
   static void sellAlias(Transaction transaction, Attachment.MessagingAliasSell attachment) {
@@ -91,12 +98,12 @@ public class Alias {
       Alias alias = getAlias(aliasName);
       Offer offer = getOffer(alias);
       if (offer == null) {
-        offerTable.insert(new Offer(alias.id, priceNQT, buyerId));
+        offerTable().insert(new Offer(alias.id, priceNQT, buyerId));
       }
       else {
         offer.priceNQT = priceNQT;
         offer.buyerId = buyerId;
-        offerTable.insert(offer);
+        offerTable().insert(offer);
       }
     }
     else {
@@ -109,9 +116,9 @@ public class Alias {
     Alias alias = getAlias(aliasName);
     alias.accountId = newOwnerId;
     alias.timestamp = timestamp;
-    aliasTable.insert(alias);
+    aliasTable().insert(alias);
     Offer offer = getOffer(alias);
-    offerTable.delete(offer);
+    offerTable().delete(offer);
   }
 
   static void init() {
@@ -127,7 +134,7 @@ public class Alias {
 
   private Alias(long id, long accountId, String aliasName, String aliasURI, int timestamp) {
     this.id = id;
-    this.dbKey = aliasDbKeyFactory.newKey(this.id);
+    this.dbKey = aliasDbKeyFactory().newKey(this.id);
     this.accountId = accountId;
     this.aliasName = aliasName;
     this.aliasURI = aliasURI;
