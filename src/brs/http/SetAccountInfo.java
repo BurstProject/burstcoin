@@ -4,6 +4,8 @@ import brs.Account;
 import brs.Attachment;
 import brs.Constants;
 import brs.BurstException;
+import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
 
@@ -11,13 +13,16 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.INCORRECT_ACCOUNT_DESCRIPTION_LENGTH;
 import static brs.http.JSONResponses.INCORRECT_ACCOUNT_NAME_LENGTH;
+import static brs.http.common.Parameters.DESCRIPTION_PARAMETER;
+import static brs.http.common.Parameters.NAME_PARAMETER;
 
 public final class SetAccountInfo extends CreateTransaction {
 
-  static final SetAccountInfo instance = new SetAccountInfo();
+  private final ParameterService parameterService;
 
-  private SetAccountInfo() {
-    super(new APITag[] {APITag.ACCOUNTS, APITag.CREATE_TRANSACTION}, "name", "description");
+  public SetAccountInfo(ParameterService parameterService, TransactionProcessor transactionProcessor) {
+    super(new APITag[] {APITag.ACCOUNTS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, NAME_PARAMETER, DESCRIPTION_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
@@ -34,7 +39,7 @@ public final class SetAccountInfo extends CreateTransaction {
       return INCORRECT_ACCOUNT_DESCRIPTION_LENGTH;
     }
 
-    Account account = ParameterParser.getSenderAccount(req);
+    Account account = parameterService.getSenderAccount(req);
     Attachment attachment = new Attachment.MessagingAccountInfo(name, description);
     return createTransaction(req, account, attachment);
 

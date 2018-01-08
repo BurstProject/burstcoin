@@ -1,8 +1,11 @@
 package brs.http;
 
+import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
+
 import brs.Account;
 import brs.BurstException;
 import brs.db.BurstIterator;
+import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -12,16 +15,17 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetAccount extends APIServlet.APIRequestHandler {
 
-  static final GetAccount instance = new GetAccount();
+  private ParameterService parameterService;
 
-  private GetAccount() {
-    super(new APITag[] {APITag.ACCOUNTS}, "account");
+  GetAccount(ParameterService parameterService) {
+    super(new APITag[] {APITag.ACCOUNTS}, ACCOUNT_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    Account account = ParameterParser.getAccount(req);
+    Account account = parameterService.getAccount(req);
 
     JSONObject response = JSONData.accountBalance(account);
     JSONData.putAccount(response, "account", account.getId());

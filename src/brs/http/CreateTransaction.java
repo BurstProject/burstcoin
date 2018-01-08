@@ -3,6 +3,7 @@ package brs.http;
 import brs.*;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
+import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -22,14 +23,19 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
     "messageToEncryptToSelf", "messageToEncryptToSelfIsText", "encryptToSelfMessageData", "encryptToSelfMessageNonce",
     "recipientPublicKey"};
 
+  private final ParameterService parameterService;
+  private final TransactionProcessor transactionProcessor;
+
   private static String[] addCommonParameters(String[] parameters) {
     String[] result = Arrays.copyOf(parameters, parameters.length + commonParameters.length);
     System.arraycopy(commonParameters, 0, result, parameters.length, commonParameters.length);
     return result;
   }
 
-  CreateTransaction(APITag[] apiTags, String... parameters) {
+  CreateTransaction(APITag[] apiTags, ParameterService parameterService, TransactionProcessor transactionProcessor, String... parameters) {
     super(apiTags, addCommonParameters(parameters));
+    this.parameterService = parameterService;
+    this.transactionProcessor = transactionProcessor;
   }
 
   final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment)
@@ -45,7 +51,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
   final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Long recipientId,
                                           long amountNQT, Attachment attachment)
     throws BurstException {
-    int blockchainHeight = DIContainer.getBlockchain().getHeight();
+    int blockchainHeight = Burst.getBlockchain().getHeight();
     String deadlineValue = req.getParameter("deadline");
     String referencedTransactionFullHash = Convert.emptyToNull(req.getParameter("referencedTransactionFullHash"));
     String referencedTransactionId = Convert.emptyToNull(req.getParameter("referencedTransaction"));
@@ -54,13 +60,13 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
     boolean broadcast = !"false".equalsIgnoreCase(req.getParameter("broadcast"));
     Appendix.EncryptedMessage encryptedMessage = null;
     if (attachment.getTransactionType().hasRecipient()) {
-      EncryptedData encryptedData = ParameterParser.getEncryptedMessage(req, Account.getAccount(recipientId));
+      EncryptedData encryptedData = parameterService.getEncryptedMessage(req, Account.getAccount(recipientId));
       if (encryptedData != null) {
         encryptedMessage = new Appendix.EncryptedMessage(encryptedData, !"false".equalsIgnoreCase(req.getParameter("messageToEncryptIsText")));
       }
     }
     Appendix.EncryptToSelfMessage encryptToSelfMessage = null;
-    EncryptedData encryptedToSelfData = ParameterParser.getEncryptToSelfMessage(req);
+    EncryptedData encryptedToSelfData = parameterService.getEncryptToSelfMessage(req);
     if (encryptedToSelfData != null) {
       encryptToSelfMessage = new Appendix.EncryptToSelfMessage(encryptedToSelfData, !"false".equalsIgnoreCase(req.getParameter("messageToEncryptToSelfIsText")));
     }
@@ -127,8 +133,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
     byte[] publicKey = secretPhrase != null ? Crypto.getPublicKey(secretPhrase) : Convert.parseHexString(publicKeyValue);
 
     try {
-      Transaction.Builder builder = DIContainer.getTransactionProcessor().newTransactionBuilder(publicKey, amountNQT, feeNQT,
-                                                                                          deadline, attachment).referencedTransactionFullHash(referencedTransactionFullHash);
+      Transaction.Builder builder = transactionProcessor.newTransactionBuilder(publicKey, amountNQT, feeNQT, deadline, attachment).referencedTransactionFullHash(referencedTransactionFullHash);
       if (attachment.getTransactionType().hasRecipient()) {
         builder.recipientId(recipientId);
       }
@@ -155,7 +160,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         response.put("transactionBytes", Convert.toHexString(transaction.getBytes()));
         response.put("signatureHash", Convert.toHexString(Crypto.sha256().digest(transaction.getSignature())));
         if (broadcast) {
-          DIContainer.getTransactionProcessor().broadcast(transaction);
+          transactionProcessor.broadcast(transaction);
           response.put("broadcasted", true);
         } else {
           response.put("broadcasted", false);

@@ -1,10 +1,10 @@
 package brs.http;
 
-import static brs.http.CalculateFullHash.FULLHASH_RESPONSE;
-import static brs.http.CalculateFullHash.SIGNATURE_HASH_PARAMETER;
-import static brs.http.CalculateFullHash.UNSIGNED_TRANSACTION_BYTES_PARAMETER;
 import static brs.http.JSONResponses.MISSING_SIGNATURE_HASH;
 import static brs.http.JSONResponses.MISSING_UNSIGNED_BYTES;
+import static brs.http.common.Parameters.SIGNATURE_HASH_PARAMETER;
+import static brs.http.common.Parameters.UNSIGNED_TRANSACTION_BYTES_PARAMETER;
+import static brs.http.common.ResultFields.FULL_HASH_RESPONSE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -21,7 +21,7 @@ public class CalculateFullHashTest {
 
   @Before
   public void setUp() {
-    t = CalculateFullHash.instance;
+    t = new CalculateFullHash();
   }
 
   @Test
@@ -37,7 +37,7 @@ public class CalculateFullHashTest {
     when(req.getParameter(eq(SIGNATURE_HASH_PARAMETER))).thenReturn(mockSignatureHash);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
-    assertEquals(expectedFullHash, result.get(FULLHASH_RESPONSE));
+    assertEquals(expectedFullHash, result.get(FULL_HASH_RESPONSE));
   }
 
   @Test

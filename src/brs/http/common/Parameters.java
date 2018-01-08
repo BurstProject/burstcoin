@@ -34,9 +34,63 @@ public class Parameters {
   public static final String LAST_INDEX_PARAMETER = "lastIndex";
   public static final String NUMBER_OF_CONFIRMATIONS_PARAMETER = "numberOfConfirmations";
   public static final String HEIGHT_PARAMETER = "height";
+  public static final String DECRYPTED_MESSAGE_IS_TEXT_PARAMETER = "decryptedMessageIsText";
+  public static final String REFUND_NQT_PARAMETER = "refundNQT";
+  public static final String DATA_PARAMETER = "data";
+  public static final String NONCE_PARAMETER = "nonce";
+  public static final String SUBSCRIPTION_PARAMETER = "subscription";
+  public static final String ALIAS_URI_PARAMETER = "aliasURI";
+  public static final String NAME_PARAMETER = "name";
+  public static final String DESCRIPTION_PARAMETER = "description";
+  public static final String FREQUENCY_PARAMETER = "frequency";
+
+  public static final String AT_PARAMETER = "at";
+  public static final String CREATION_BYTES_PARAMETER = "creationBytes";
+  public static final String HEX_STRING_PARAMETER = "hexString";
+  public static final String TRANSACTION_BYTES_PARAMETER = "transactionBytes";
+  public static final String TRANSACTION_JSON_PARAMETER = "transactionJSON";
+
+  public static final String CODE_PARAMETER = "code";
+  public static final String DPAGES_PARAMETER = "dpages";
+  public static final String CSPAGES_PARAMETER = "cspages";
+  public static final String USPAGES_PARAMETER = "uspages";
+  public static final String MIN_ACTIVATION_AMOUNT_NQT_PARAMETER = "minActivationAmountNQT";
+  public static final String DISCOUNT_NQT_PARAMETER = "discountNQT";
+  public static final String GOODS_TO_ENCRYPT_PARAMETER = "goodsToEncrypt";
+  public static final String GOODS_IS_TEXT_PARAMETER = "goodsIsText";
+  public static final String TAGS_PARAMETER = "tags";
+  public static final String DELIVERY_DEADLINE_TIMESTAMP_PARAMETER = "deliveryDeadlineTimestamp";
+  public static final String DELTA_QUALITY_PARAMETER = "deltaQuantity";
+  public static final String ESCROW_PARAMETER = "escrow";
+  public static final String DECISION_PARAMETER = "decision";
+  public static final String DECIMALS_PARAMETER = "decimals";
+  public static final String PERIOD_PARAMETER = "period";
+  public static final String ESCROW_DEADLINE_PARAMETER = "escrowDeadline";
+  public static final String DEADLINE_ACTION_PARAMETER = "deadlineAction";
+  public static final String REQUIRED_SIGNERS_PARAMETER = "requiredSigners";
+  public static final String SIGNERS_PARAMETER = "signers";
+  public static final String INCLUDE_ASSET_INFO_PARAMETER = "includeAssetInfo";
+  public static final String INCLUDE_TRANSACTIONS_PARAMETER = "includeTransactions";
+  public static final String TYPE_PARAMETER = "type";
+  public static final String SUBTYPE_PARAMETER = "subtype";
+
+  public static final String UNSIGNED_TRANSACTION_BYTES_PARAMETER = "unsignedTransactionBytes";
+  public static final String SIGNATURE_HASH_PARAMETER = "signatureHash";
+
+  public static final String FULL_HASH_RESPONSE = "fullHash";
+
+  public static final String TRANSACTION_PARAMETER = "transaction";
+  public static final String FULL_HASH_PARAMETER = "fullHash";
+  public static final String ACCOUNT_ID_PARAMETER = "accountId";
+  public static final String NUM_BLOCKS_PARAMETER = "numBlocks";
+
 
   public static boolean isFalse(String text) {
     return "false".equalsIgnoreCase(text);
+  }
+
+  public static boolean isTrue(String text) {
+    return "true".equalsIgnoreCase(text);
   }
 
   public static boolean isZero(String recipientValue) {

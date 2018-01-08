@@ -8,6 +8,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 import brs.Alias;
 import brs.BurstException;
+import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,9 +24,15 @@ public class BuyAliasTest {
 
   private BuyAlias t;
 
+  private ParameterService parameterServiceMock;
+  private TransactionProcessor transactionProcessorMock;
+
   @Before
   public void init() {
-    t = BuyAlias.instance;
+    parameterServiceMock = mock(ParameterService.class);
+    transactionProcessorMock = mock(TransactionProcessor.class);
+
+    t = new BuyAlias(parameterServiceMock, transactionProcessorMock);
   }
 
   @Test
@@ -40,7 +48,7 @@ public class BuyAliasTest {
     final HttpServletRequest req = mock(HttpServletRequest.class);
     final Alias mockAlias = mock(Alias.class);
 
-    when(ParameterParser.getAlias(eq(req))).thenReturn(mockAlias);
+    when(parameterServiceMock.getAlias(eq(req))).thenReturn(mockAlias);
 
     when(Alias.getOffer(eq(mockAlias))).thenReturn(null);
 

@@ -1,5 +1,11 @@
 package brs.http;
 
+import static brs.http.common.ResultFields.BALANCE_NQT;
+import static brs.http.common.ResultFields.EFFECTIVE_BALANCE_NQT;
+import static brs.http.common.ResultFields.FORGED_BALANCE_NQT;
+import static brs.http.common.ResultFields.GUARANTEED_BALANCE_NQT;
+import static brs.http.common.ResultFields.UNCONFIRMED_BALANCE_NQT;
+
 import brs.*;
 import brs.at.AT_API_Helper;
 import brs.crypto.Crypto;
@@ -13,7 +19,6 @@ import org.json.simple.JSONObject;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Collections;
 
 public final class JSONData {
 
@@ -37,18 +42,18 @@ public final class JSONData {
   static JSONObject accountBalance(Account account) {
     JSONObject json = new JSONObject();
     if (account == null) {
-      json.put("balanceNQT",            "0");
-      json.put("unconfirmedBalanceNQT", "0");
-      json.put("effectiveBalanceNXT",   "0");
-      json.put("forgedBalanceNQT",      "0");
-      json.put("guaranteedBalanceNQT",  "0");
+      json.put(BALANCE_NQT, "0");
+      json.put(UNCONFIRMED_BALANCE_NQT, "0");
+      json.put(EFFECTIVE_BALANCE_NQT,   "0");
+      json.put(FORGED_BALANCE_NQT,     "0");
+      json.put(GUARANTEED_BALANCE_NQT, "0");
     }
     else {
-      json.put("balanceNQT", String.valueOf(account.getBalanceNQT()));
-      json.put("unconfirmedBalanceNQT", String.valueOf(account.getUnconfirmedBalanceNQT()));
-      json.put("effectiveBalanceNXT", account.getBalanceNQT());
-      json.put("forgedBalanceNQT", String.valueOf(account.getForgedBalanceNQT()));
-      json.put("guaranteedBalanceNQT", String.valueOf(account.getBalanceNQT()));
+      json.put(BALANCE_NQT, String.valueOf(account.getBalanceNQT()));
+      json.put(UNCONFIRMED_BALANCE_NQT, String.valueOf(account.getUnconfirmedBalanceNQT()));
+      json.put(EFFECTIVE_BALANCE_NQT, String.valueOf(account.getBalanceNQT()));
+      json.put(FORGED_BALANCE_NQT, String.valueOf(account.getForgedBalanceNQT()));
+      json.put(GUARANTEED_BALANCE_NQT, String.valueOf(account.getBalanceNQT()));
     }
     return json;
   }

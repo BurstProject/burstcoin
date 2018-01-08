@@ -1,8 +1,13 @@
 package brs.http;
 
+import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
+import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
+import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+
 import brs.Account;
 import brs.Asset;
 import brs.db.BurstIterator;
+import brs.services.ParameterService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -12,15 +17,16 @@ import java.util.List;
 
 public final class GetAssetsByIssuer extends APIServlet.APIRequestHandler {
 
-  static final GetAssetsByIssuer instance = new GetAssetsByIssuer();
+  private final ParameterService parameterService;
 
-  private GetAssetsByIssuer() {
-    super(new APITag[] {APITag.AE, APITag.ACCOUNTS}, "account", "account", "account", "firstIndex", "lastIndex");
+  GetAssetsByIssuer(ParameterService parameterService) {                                 //TODO Clarify: Why 3?
+    super(new APITag[] {APITag.AE, APITag.ACCOUNTS}, ACCOUNT_PARAMETER, ACCOUNT_PARAMETER, ACCOUNT_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws ParameterException {
-    List<Account> accounts = ParameterParser.getAccounts(req);
+    List<Account> accounts = parameterService.getAccounts(req);
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
 

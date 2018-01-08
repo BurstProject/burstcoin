@@ -1,6 +1,10 @@
 package brs.http;
 
+import static brs.http.common.Parameters.HEIGHT_PARAMETER;
+import static brs.http.common.Parameters.NUM_BLOCKS_PARAMETER;
+
 import brs.Block;
+import brs.BlockchainProcessor;
 import brs.Burst;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -11,10 +15,11 @@ import java.util.List;
 
 public final class PopOff extends APIServlet.APIRequestHandler {
 
-  static final PopOff instance = new PopOff();
+  private final BlockchainProcessor blockchainProcessor;
 
-  private PopOff() {
-    super(new APITag[] {APITag.DEBUG}, "numBlocks", "height");
+  PopOff(BlockchainProcessor blockchainProcessor) {
+    super(new APITag[] {APITag.DEBUG}, NUM_BLOCKS_PARAMETER, HEIGHT_PARAMETER);
+    this.blockchainProcessor = blockchainProcessor;
   }
 
   @Override
@@ -33,10 +38,10 @@ public final class PopOff extends APIServlet.APIRequestHandler {
     List<? extends Block> blocks;
     JSONArray blocksJSON = new JSONArray();
     if (numBlocks > 0) {
-      blocks = Burst.getBlockchainProcessor().popOffTo(Burst.getBlockchain().getHeight() - numBlocks);
+      blocks = blockchainProcessor.popOffTo(Burst.getBlockchain().getHeight() - numBlocks);
     }
     else if (height > 0) {
-      blocks = Burst.getBlockchainProcessor().popOffTo(height);
+      blocks = blockchainProcessor.popOffTo(height);
     }
     else {
       response.put("error", "invalid numBlocks or height");

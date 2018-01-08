@@ -1,30 +1,36 @@
 package brs.http;
 
+import static brs.http.common.Parameters.ASSET_PARAMETER;
+import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
+import static brs.http.common.Parameters.HEIGHT_PARAMETER;
+import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+
 import brs.Account;
 import brs.Asset;
 import brs.BurstException;
 import brs.db.BurstIterator;
+import brs.services.ParameterService;
+import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-import javax.servlet.http.HttpServletRequest;
-
 public final class GetAssetAccounts extends APIServlet.APIRequestHandler {
 
-  static final GetAssetAccounts instance = new GetAssetAccounts();
+  private final ParameterService parameterService;
 
-  private GetAssetAccounts() {
-    super(new APITag[] {APITag.AE}, "asset", "height", "firstIndex", "lastIndex");
+  GetAssetAccounts(ParameterService parameterService) {
+    super(new APITag[]{APITag.AE}, ASSET_PARAMETER, HEIGHT_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    Asset asset = ParameterParser.getAsset(req);
+    Asset asset = parameterService.getAsset(req);
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
-    int height = ParameterParser.getHeight(req);
+    int height = parameterService.getHeight(req);
 
     JSONArray accountAssets = new JSONArray();
     try (BurstIterator<Account.AccountAsset> iterator = asset.getAccounts(height, firstIndex, lastIndex)) {

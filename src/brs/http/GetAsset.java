@@ -1,21 +1,24 @@
 package brs.http;
 
-import brs.BurstException;
-import org.json.simple.JSONStreamAware;
+import static brs.http.common.Parameters.ASSET_PARAMETER;
 
+import brs.BurstException;
+import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
+import org.json.simple.JSONStreamAware;
 
 public final class GetAsset extends APIServlet.APIRequestHandler {
 
-  static final GetAsset instance = new GetAsset();
+  private final ParameterService parameterService;
 
-  private GetAsset() {
-    super(new APITag[] {APITag.AE}, "asset");
+  GetAsset(ParameterService parameterService) {
+    super(new APITag[]{APITag.AE}, ASSET_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
-    return JSONData.asset(ParameterParser.getAsset(req));
+    return JSONData.asset(parameterService.getAsset(req));
   }
 
 }

@@ -1,9 +1,16 @@
 package brs.http;
 
+import static brs.http.common.Parameters.ACCOUNT_ID_PARAMETER;
+import static brs.http.common.Parameters.NONCE_PARAMETER;
+import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
+
 import brs.Account;
+import brs.Blockchain;
 import brs.Generator;
 import brs.Burst;
 import brs.crypto.Crypto;
+import brs.services.AccountService;
+import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -12,18 +19,23 @@ import javax.servlet.http.HttpServletRequest;
 
 
 public final class SubmitNonce extends APIServlet.APIRequestHandler {
-  static final SubmitNonce instance = new SubmitNonce();
-	
-  private SubmitNonce() {
-    super(new APITag[] {APITag.MINING}, "secretPhrase", "nonce", "accountId");
+
+  private final AccountService accountService;
+  private final Blockchain blockchain;
+
+  SubmitNonce(AccountService accountService, Blockchain blockchain) {
+    super(new APITag[] {APITag.MINING}, SECRET_PHRASE_PARAMETER, NONCE_PARAMETER, ACCOUNT_ID_PARAMETER);
+
+    this.accountService = accountService;
+    this.blockchain = blockchain;
   }
 	
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) {
-    String secret = req.getParameter("secretPhrase");
-    Long nonce = Convert.parseUnsignedLong(req.getParameter("nonce"));
+    String secret = req.getParameter(SECRET_PHRASE_PARAMETER);
+    Long nonce = Convert.parseUnsignedLong(req.getParameter(NONCE_PARAMETER));
 		
-    String accountId = req.getParameter("accountId");
+    String accountId = req.getParameter(ACCOUNT_ID_PARAMETER);
 		
     JSONObject response = new JSONObject();
 		
@@ -38,11 +50,11 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
     }
 		
     byte[] secretPublicKey = Crypto.getPublicKey(secret);
-    Account secretAccount = Account.getAccount(secretPublicKey);
+    Account secretAccount = accountService.getAccount(secretPublicKey);
     if(secretAccount != null) {
       Account genAccount;
       if(accountId != null) {
-        genAccount = Account.getAccount(Convert.parseAccountId(accountId));
+        genAccount = accountService.getAccount(Convert.parseAccountId(accountId));
       }
       else {
         genAccount = secretAccount;
@@ -54,7 +66,7 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
         if(assignment == null) {
           rewardId = genAccount.getId();
         }
-        else if(assignment.getFromHeight() > Burst.getBlockchain().getLastBlock().getHeight() + 1) {
+        else if(assignment.getFromHeight() > blockchain.getLastBlock().getHeight() + 1) {
           rewardId = assignment.getPrevRecipientId();
         }
         else {
@@ -76,7 +88,7 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
       generator = Burst.getGenerator().addNonce(secret, nonce);
     }
     else {
-      Account genAccount = Account.getAccount(Convert.parseUnsignedLong(accountId));
+      Account genAccount = accountService.getAccount(Convert.parseUnsignedLong(accountId));
       if(genAccount == null || genAccount.getPublicKey() == null) {
         response.put("result", "Passthrough mining requires public key in blockchain");
       }
