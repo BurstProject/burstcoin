@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Transaction extends TableImpl<TransactionRecord> {
 
-    private static final long serialVersionUID = 1475250642;
+    private static final long serialVersionUID = 1088310003;
 
     /**
      * The reference instance of <code>DB.transaction</code>
@@ -136,9 +136,9 @@ public class Transaction extends TableImpl<TransactionRecord> {
     public final TableField<TransactionRecord, byte[]> FULL_HASH = createField("full_hash", org.jooq.impl.SQLDataType.VARBINARY(32).nullable(false), this, "");
 
     /**
-     * The column <code>DB.transaction.referenced_transaction_full_hash</code>.
+     * The column <code>DB.transaction.referenced_transaction_fullhash</code>.
      */
-    public final TableField<TransactionRecord, byte[]> REFERENCED_TRANSACTION_FULL_HASH = createField("referenced_transaction_full_hash", org.jooq.impl.SQLDataType.VARBINARY(32), this, "");
+    public final TableField<TransactionRecord, byte[]> REFERENCED_TRANSACTION_FULLHASH = createField("referenced_transaction_fullhash", org.jooq.impl.SQLDataType.VARBINARY(32), this, "");
 
     /**
      * The column <code>DB.transaction.attachment_bytes</code>.

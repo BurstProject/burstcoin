@@ -559,6 +559,7 @@ final class FirebirdDbVersion {
         apply("ALTER TABLE goods ALTER COLUMN ID TO id;");
         apply("ALTER TABLE account ALTER COLUMN creation_HEIGHT TO creation_height;");
         apply("ALTER TABLE alias_offer ALTER COLUMN buyer_ID TO buyer_id;");
+        apply("ALTER TABLE transaction ALTER COLUMN " + maybeToShortIdentifier("referenced_transaction_full_hash") + " TO referenced_transaction_fullhash;");
       case 171:
         return;
       default:

@@ -23,8 +23,6 @@ public class BinDumps {
       switch (name) {
         case "timestamp":
           return "\""+name+"\"";
-        case "referenced_transaction_full_hash":
-          return "r_t_f_hash";
       }
     }
     return name;

@@ -25,7 +25,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class TransactionRecord extends UpdatableRecordImpl<TransactionRecord> {
 
-    private static final long serialVersionUID = -1828192551;
+    private static final long serialVersionUID = -2022269463;
 
     /**
      * Setter for <code>DB.transaction.db_id</code>.
@@ -252,16 +252,16 @@ public class TransactionRecord extends UpdatableRecordImpl<TransactionRecord> {
     }
 
     /**
-     * Setter for <code>DB.transaction.referenced_transaction_full_hash</code>.
+     * Setter for <code>DB.transaction.referenced_transaction_fullhash</code>.
      */
-    public void setReferencedTransactionFullHash(byte... value) {
+    public void setReferencedTransactionFullhash(byte... value) {
         set(16, value);
     }
 
     /**
-     * Getter for <code>DB.transaction.referenced_transaction_full_hash</code>.
+     * Getter for <code>DB.transaction.referenced_transaction_fullhash</code>.
      */
-    public byte[] getReferencedTransactionFullHash() {
+    public byte[] getReferencedTransactionFullhash() {
         return (byte[]) get(16);
     }
 
@@ -403,7 +403,7 @@ public class TransactionRecord extends UpdatableRecordImpl<TransactionRecord> {
     /**
      * Create a detached, initialised TransactionRecord
      */
-    public TransactionRecord(Long dbId, Long id, Short deadline, byte[] senderPublicKey, Long recipientId, Long amount, Long fee, Integer height, Long blockId, byte[] signature, Integer timestamp, Byte type, Byte subtype, Long senderId, Integer blockTimestamp, byte[] fullHash, byte[] referencedTransactionFullHash, byte[] attachmentBytes, Byte version, Boolean hasMessage, Boolean hasEncryptedMessage, Boolean hasPublicKeyAnnouncement, Integer ecBlockHeight, Long ecBlockId, Boolean hasEncrypttoselfMessage) {
+    public TransactionRecord(Long dbId, Long id, Short deadline, byte[] senderPublicKey, Long recipientId, Long amount, Long fee, Integer height, Long blockId, byte[] signature, Integer timestamp, Byte type, Byte subtype, Long senderId, Integer blockTimestamp, byte[] fullHash, byte[] referencedTransactionFullhash, byte[] attachmentBytes, Byte version, Boolean hasMessage, Boolean hasEncryptedMessage, Boolean hasPublicKeyAnnouncement, Integer ecBlockHeight, Long ecBlockId, Boolean hasEncrypttoselfMessage) {
         super(Transaction.TRANSACTION);
 
         set(0, dbId);
@@ -422,7 +422,7 @@ public class TransactionRecord extends UpdatableRecordImpl<TransactionRecord> {
         set(13, senderId);
         set(14, blockTimestamp);
         set(15, fullHash);
-        set(16, referencedTransactionFullHash);
+        set(16, referencedTransactionFullhash);
         set(17, attachmentBytes);
         set(18, version);
         set(19, hasMessage);
