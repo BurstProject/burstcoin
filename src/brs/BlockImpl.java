@@ -212,9 +212,7 @@ public final class BlockImpl implements Block {
   public List<TransactionImpl> getTransactions() {
     if (blockTransactions == null) {
       this.blockTransactions = Collections.unmodifiableList(transactionDb.findBlockTransactions(getId()));
-      this.blockTransactions.forEach(transaction -> {
-          transaction.setBlock(this);
-        });
+      this.blockTransactions.forEach(transaction -> transaction.setBlock(this));
     }
     return blockTransactions;
   }
@@ -313,9 +311,7 @@ public final class BlockImpl implements Block {
     }
     json.put("blockSignature", Convert.toHexString(blockSignature));
     JSONArray transactionsData = new JSONArray();
-    getTransactions().forEach(transaction -> {
-        transactionsData.add(transaction.getJSONObject());
-      });
+    getTransactions().forEach(transaction ->  transactionsData.add(transaction.getJSONObject()));
     json.put("transactions", transactionsData);
     json.put("nonce", Convert.toUnsignedLong(nonce));
     json.put("blockATs", Convert.toHexString(blockATs));
@@ -514,9 +510,7 @@ public final class BlockImpl implements Block {
       rewardAccount.addToBalanceAndUnconfirmedBalanceNQT(totalFeeNQT + getBlockReward());
       rewardAccount.addToForgedBalanceNQT(totalFeeNQT + getBlockReward());
     }
-    getTransactions().forEach(transaction -> {
-        transaction.apply();
-      });
+    getTransactions().forEach(transaction -> transaction.apply());
   }
 
   @Override
@@ -525,9 +519,7 @@ public final class BlockImpl implements Block {
       return 0;
     }
     int month = this.height / 10800;
-    long reward = BigInteger.valueOf(10000).multiply(BigInteger.valueOf(95).pow(month)).divide(BigInteger.valueOf(100).pow(month)).longValue() * Constants.ONE_NXT;
-
-    return reward;
+    return BigInteger.valueOf(10000).multiply(BigInteger.valueOf(95).pow(month)).divide(BigInteger.valueOf(100).pow(month)).longValue() * Constants.ONE_NXT;
   }
 
   void setPrevious(BlockImpl previousBlock) {
@@ -541,9 +533,7 @@ public final class BlockImpl implements Block {
     } else {
       this.height = 0;
     }
-    getTransactions().forEach(transaction -> {
-        transaction.setBlock(this);
-      });
+    getTransactions().forEach(transaction -> transaction.setBlock(this));
   }
 
   public void calculateBaseTarget(BlockImpl previousBlock) {
