@@ -76,7 +76,7 @@ public class SqlTransactionDb implements TransactionDb {
     TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl(tr.getVersion(), tr.getSenderPublicKey(),
             tr.getAmount(), tr.getFee(), tr.getTimestamp(), tr.getDeadline(),
             transactionType.parseAttachment(buffer, tr.getVersion()))
-            .referencedTransactionFullHash(tr.getReferencedTransactionFullHash())
+            .referencedTransactionFullHash(tr.getReferencedTransactionFullhash())
             .signature(tr.getSignature())
             .blockId(tr.getBlockId())
             .height(tr.getHeight())
@@ -119,7 +119,7 @@ public class SqlTransactionDb implements TransactionDb {
       byte[] senderPublicKey = rs.getBytes("sender_public_key");
       long amountNQT = rs.getLong("amount");
       long feeNQT = rs.getLong("fee");
-      byte[] referencedTransactionFullHash = rs.getBytes("referenced_transaction_full_hash");
+      byte[] referencedTransactionFullHash = rs.getBytes("referenced_transaction_fullhash");
       int ecBlockHeight = rs.getInt("ec_block_height");
       long ecBlockId = rs.getLong("ec_block_id");
       byte[] signature = rs.getBytes("signature");
@@ -227,7 +227,7 @@ public class SqlTransactionDb implements TransactionDb {
                 set(TRANSACTION.RECIPIENT_ID, ( transaction.getRecipientId() == 0 ? null : transaction.getRecipientId() )).
                 set(TRANSACTION.AMOUNT, transaction.getAmountNQT()).
                 set(TRANSACTION.FEE, transaction.getFeeNQT()).
-                set(TRANSACTION.REFERENCED_TRANSACTION_FULL_HASH, Convert.parseHexString(transaction.getReferencedTransactionFullHash())).
+                set(TRANSACTION.REFERENCED_TRANSACTION_FULLHASH, Convert.parseHexString(transaction.getReferencedTransactionFullHash())).
                 set(TRANSACTION.HEIGHT, transaction.getHeight()).
                 set(TRANSACTION.BLOCK_ID, transaction.getBlockId()).
                 set(TRANSACTION.SIGNATURE, transaction.getSignature()).

@@ -550,6 +550,8 @@ final class MariadbDbVersion {
         apply("ALTER TABLE account CHANGE COLUMN creation_HEIGHT creation_height INT NOT NULL;");
         apply("ALTER TABLE alias_offer CHANGE COLUMN buyer_ID buyer_id BIGINT;");
       case 172:
+        apply("ALTER TABLE transaction CHANGE COLUMN referenced_transaction_full_hash referenced_transaction_fullhash VARBINARY(32);");
+      case 173:
         return;
       default:
         throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");
