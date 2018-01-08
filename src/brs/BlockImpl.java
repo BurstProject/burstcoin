@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.Optional;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -88,7 +89,7 @@ public final class BlockImpl implements Block {
 
     this.version = version;
     this.timestamp = timestamp;
-    this.previousBlockId = previousBlockId;
+    this.previousBlockId = Optional.ofNullable(previousBlockId).orElse(0L);
     this.totalAmountNQT = totalAmountNQT;
     this.totalFeeNQT = totalFeeNQT;
     this.payloadLength = payloadLength;
@@ -123,7 +124,7 @@ public final class BlockImpl implements Block {
 
     this.cumulativeDifficulty = cumulativeDifficulty == null ? BigInteger.ZERO : cumulativeDifficulty;
     this.baseTarget = baseTarget;
-    this.nextBlockId = nextBlockId;
+    this.nextBlockId = Optional.ofNullable(nextBlockId).orElse(0L);
     this.height = height;
     this.id = id;
   }
