@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class AliasOfferRecord extends UpdatableRecordImpl<AliasOfferRecord> implements Record6<Long, Long, Long, Long, Integer, Boolean> {
 
-    private static final long serialVersionUID = -1380279297;
+    private static final long serialVersionUID = 1955732479;
 
     /**
      * Setter for <code>DB.alias_offer.db_id</code>.
@@ -73,14 +73,14 @@ public class AliasOfferRecord extends UpdatableRecordImpl<AliasOfferRecord> impl
     }
 
     /**
-     * Setter for <code>DB.alias_offer.buyer_ID</code>.
+     * Setter for <code>DB.alias_offer.buyer_id</code>.
      */
     public void setBuyerId(Long value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>DB.alias_offer.buyer_ID</code>.
+     * Getter for <code>DB.alias_offer.buyer_id</code>.
      */
     public Long getBuyerId() {
         return (Long) get(3);

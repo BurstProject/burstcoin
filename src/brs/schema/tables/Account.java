@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Account extends TableImpl<AccountRecord> {
 
-    private static final long serialVersionUID = 1255869354;
+    private static final long serialVersionUID = 2042071978;
 
     /**
      * The reference instance of <code>DB.account</code>
@@ -65,9 +65,9 @@ public class Account extends TableImpl<AccountRecord> {
     public final TableField<AccountRecord, Long> ID = createField("id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
-     * The column <code>DB.account.creation_HEIGHT</code>.
+     * The column <code>DB.account.creation_height</code>.
      */
-    public final TableField<AccountRecord, Integer> CREATION_HEIGHT = createField("creation_HEIGHT", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<AccountRecord, Integer> CREATION_HEIGHT = createField("creation_height", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
      * The column <code>DB.account.public_key</code>.

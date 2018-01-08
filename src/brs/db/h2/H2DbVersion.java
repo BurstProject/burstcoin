@@ -218,7 +218,7 @@ final class H2DbVersion {
       case 54:
         apply("ALTER TABLE transaction ALTER COLUMN recipient_id SET NULL");
       case 55:
-        new SqlBlockDb().deleteAll();
+        new SqlBlockDb().deleteAll(true);
         apply(null);
       case 56:
         apply("CREATE INDEX IF NOT EXISTS transaction_recipient_id_idx ON transaction (recipient_id)");

@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class AliasOffer extends TableImpl<AliasOfferRecord> {
 
-    private static final long serialVersionUID = 279890715;
+    private static final long serialVersionUID = 1808550683;
 
     /**
      * The reference instance of <code>DB.alias_offer</code>
@@ -70,9 +70,9 @@ public class AliasOffer extends TableImpl<AliasOfferRecord> {
     public final TableField<AliasOfferRecord, Long> PRICE = createField("price", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
-     * The column <code>DB.alias_offer.buyer_ID</code>.
+     * The column <code>DB.alias_offer.buyer_id</code>.
      */
-    public final TableField<AliasOfferRecord, Long> BUYER_ID = createField("buyer_ID", org.jooq.impl.SQLDataType.BIGINT, this, "");
+    public final TableField<AliasOfferRecord, Long> BUYER_ID = createField("buyer_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
      * The column <code>DB.alias_offer.height</code>.

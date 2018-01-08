@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class AccountRecord extends UpdatableRecordImpl<AccountRecord> implements Record12<Long, Long, Integer, byte[], Integer, Long, Long, Long, String, String, Integer, Boolean> {
 
-    private static final long serialVersionUID = 101502268;
+    private static final long serialVersionUID = 1389159740;
 
     /**
      * Setter for <code>DB.account.db_id</code>.
@@ -59,14 +59,14 @@ public class AccountRecord extends UpdatableRecordImpl<AccountRecord> implements
     }
 
     /**
-     * Setter for <code>DB.account.creation_HEIGHT</code>.
+     * Setter for <code>DB.account.creation_height</code>.
      */
     public void setCreationHeight(Integer value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>DB.account.creation_HEIGHT</code>.
+     * Getter for <code>DB.account.creation_height</code>.
      */
     public Integer getCreationHeight() {
         return (Integer) get(2);
