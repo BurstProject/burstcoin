@@ -29,8 +29,8 @@ public final class GetAccountSubscriptions extends APIServlet.APIRequestHandler 
 
     BurstIterator<Subscription> accountSubscriptions = Subscription.getSubscriptionsByParticipant(account.getId());
 		
-    for(Subscription subscription : accountSubscriptions) {
-      subscriptions.add(JSONData.subscription(subscription));
+    while(accountSubscriptions.hasNext()) {
+      subscriptions.add(JSONData.subscription(accountSubscriptions.next()));
     }
 		
     response.put("subscriptions", subscriptions);

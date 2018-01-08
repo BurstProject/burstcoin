@@ -1067,8 +1067,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         return hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0);
       }
     })) {
-      for (TransactionImpl transaction : transactions) {
-        orderedUnconfirmedTransactions.add(transaction);
+      while(transactions.hasNext()) {
+        orderedUnconfirmedTransactions.add(transactions.next());
       }
     }
 
