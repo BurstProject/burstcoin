@@ -1,6 +1,6 @@
 package brs.http;
 
-import static brs.http.ParameterParser.ALIAS_PARAMETER;
+import static brs.http.common.Parameters.ALIAS_PARAMETER;
 
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
