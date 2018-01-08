@@ -14,7 +14,7 @@ public interface Appendix {
   JSONObject getJSONObject();
   byte getVersion();
 
-  static abstract class AbstractAppendix implements Appendix {
+  abstract static class AbstractAppendix implements Appendix {
 
     private final byte version;
 
@@ -83,7 +83,7 @@ public interface Appendix {
 
   public static class Message extends AbstractAppendix {
 
-    static Message parse(JSONObject attachmentData) throws BurstException.NotValidException {
+    static Message parse(JSONObject attachmentData) {
       if (attachmentData.get("message") == null) {
         return null;
       }
@@ -332,7 +332,7 @@ public interface Appendix {
 
   public static class PublicKeyAnnouncement extends AbstractAppendix {
 
-    static PublicKeyAnnouncement parse(JSONObject attachmentData) throws BurstException.NotValidException {
+    static PublicKeyAnnouncement parse(JSONObject attachmentData) {
       if (attachmentData.get("recipientPublicKey") == null) {
         return null;
       }
