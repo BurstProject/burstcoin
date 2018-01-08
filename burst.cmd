@@ -5,6 +5,13 @@ SET MY_CMD=%1
 SET MY_OPT=%2
 
 IF "%MY_JAVA%" == "" (
+  for %%f in (java.exe) do if exist %%~$path:f (
+      echo Java found at: %%~$path:f
+      SET MY_JAVA=%%~$path:f
+  )
+)
+
+IF "%MY_JAVA%" == "" (
   for /F "tokens=*" %%f in ('where /F /R %SYSTEMDRIVE%\ java.exe') do (
       SET MY_JAVA=%%f
   )
