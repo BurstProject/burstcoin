@@ -2,6 +2,7 @@ package brs.http;
 
 import static org.powermock.api.mockito.PowerMockito.mock;
 
+import brs.Blockchain;
 import brs.TransactionProcessor;
 import brs.services.ParameterService;
 import org.junit.Before;
@@ -13,13 +14,15 @@ public class CancelAskOrderTest extends AbstractCreateTransactionTest {
 
   private ParameterService parameterServiceMock;
   private TransactionProcessor transactionProcessorMock;
+  private Blockchain blockchainMock;
 
   @Before
   public void setUp() {
     parameterServiceMock = mock(ParameterService.class);
     transactionProcessorMock = mock(TransactionProcessor.class);
+    blockchainMock = mock(Blockchain.class);
 
-    t = new CancelAskOrder(parameterServiceMock, transactionProcessorMock);
+    t = new CancelAskOrder(parameterServiceMock, transactionProcessorMock, blockchainMock);
   }
 
   @Test

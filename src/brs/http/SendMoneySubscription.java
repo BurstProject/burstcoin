@@ -7,6 +7,7 @@ import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.Constants;
 import brs.BurstException;
 import brs.TransactionProcessor;
@@ -20,8 +21,8 @@ public final class SendMoneySubscription extends CreateTransaction {
 
   private final ParameterService parameterService;
 	
-  public SendMoneySubscription(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER, FREQUENCY_PARAMETER);
+  public SendMoneySubscription(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER, FREQUENCY_PARAMETER);
     this.parameterService = parameterService;
   }
 	

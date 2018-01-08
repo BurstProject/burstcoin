@@ -7,6 +7,7 @@ import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.Escrow;
 import brs.BurstException;
 import brs.TransactionProcessor;
@@ -21,8 +22,8 @@ public final class EscrowSign extends CreateTransaction {
 	
   private final ParameterService parameterService;
 	
-  EscrowSign(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, ESCROW_PARAMETER, DECISION_PARAMETER);
+  EscrowSign(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ESCROW_PARAMETER, DECISION_PARAMETER);
     this.parameterService = parameterService;
   }
 	

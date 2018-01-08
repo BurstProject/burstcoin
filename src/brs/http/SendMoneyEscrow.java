@@ -21,8 +21,8 @@ public final class SendMoneyEscrow extends CreateTransaction {
 	
   private final ParameterService parameterService;
 	
-  SendMoneyEscrow(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER, ESCROW_DEADLINE_PARAMETER);
+  SendMoneyEscrow(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER, ESCROW_DEADLINE_PARAMETER);
     this.parameterService = parameterService;
   }
 	

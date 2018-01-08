@@ -12,6 +12,7 @@ import static brs.http.common.Parameters.QUANTITY_NQT_PARAMETER;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
 import brs.Constants;
 import brs.TransactionProcessor;
@@ -24,8 +25,8 @@ public final class IssueAsset extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  IssueAsset(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, NAME_PARAMETER, DESCRIPTION_PARAMETER, QUANTITY_NQT_PARAMETER, DECIMALS_PARAMETER);
+  IssueAsset(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, NAME_PARAMETER, DESCRIPTION_PARAMETER, QUANTITY_NQT_PARAMETER, DECIMALS_PARAMETER);
     this.parameterService = parameterService;
   }
 

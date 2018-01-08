@@ -2,6 +2,7 @@ package brs.http;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.DigitalGoodsStore;
 import brs.BurstException;
 import brs.TransactionProcessor;
@@ -18,9 +19,9 @@ public final class DGSFeedback extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  DGSFeedback(ParameterService parameterService, TransactionProcessor transactionProcessor) {
+  DGSFeedback(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[] {APITag.DGS, APITag.CREATE_TRANSACTION},
-        parameterService, transactionProcessor, PURCHASE_PARAMETER);
+        parameterService, transactionProcessor, blockchain, PURCHASE_PARAMETER);
     this.parameterService = parameterService;
   }
 

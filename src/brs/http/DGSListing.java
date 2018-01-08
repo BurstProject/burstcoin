@@ -12,6 +12,7 @@ import static brs.http.common.Parameters.TAGS_PARAMETER;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
 import brs.Constants;
 import brs.TransactionProcessor;
@@ -24,8 +25,8 @@ public final class DGSListing extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  DGSListing(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, NAME_PARAMETER, DESCRIPTION_PARAMETER, TAGS_PARAMETER, QUANTITY_PARAMETER, PRICE_NQT_PARAMETER);
+  DGSListing(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, NAME_PARAMETER, DESCRIPTION_PARAMETER, TAGS_PARAMETER, QUANTITY_PARAMETER, PRICE_NQT_PARAMETER);
     this.parameterService = parameterService;
   }
 

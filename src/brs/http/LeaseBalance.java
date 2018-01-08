@@ -2,6 +2,7 @@ package brs.http;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
 import brs.TransactionProcessor;
 import brs.services.ParameterService;
@@ -20,8 +21,8 @@ public final class LeaseBalance extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  LeaseBalance(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[] {APITag.FORGING}, parameterService, transactionProcessor, PERIOD_PARAMETER, RECIPIENT_PARAMETER);
+  LeaseBalance(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.FORGING}, parameterService, transactionProcessor, blockchain, PERIOD_PARAMETER, RECIPIENT_PARAMETER);
     this.parameterService = parameterService;
   }
 
