@@ -556,6 +556,10 @@ final class FirebirdDbVersion {
           apply("ALTER TABLE at CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
         */
       case 170:
+        apply("ALTER TABLE goods ALTER COLUMN ID TO id;");
+        apply("ALTER TABLE account ALTER COLUMN creation_HEIGHT TO creation_height;");
+        apply("ALTER TABLE alias_offer ALTER COLUMN buyer_ID TO buyer_id;");
+      case 171:
         return;
       default:
         throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");

@@ -756,7 +756,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   public void fullReset() {
     synchronized (blockchain) {
       //blockDb.deleteBlock(Genesis.GENESIS_BLOCK_ID); // fails with stack overflow in H2
-      blockDb.deleteAll();
+      blockDb.deleteAll(false);
       addGenesisBlock();
       scan(0);
     }

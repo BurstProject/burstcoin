@@ -13,7 +13,13 @@ import org.jooq.impl.DSL;
 import org.jooq.DSLContext;
 import org.jooq.Table;
 import org.jooq.SelectQuery;
+import org.jooq.UpdateQuery;
 import org.jooq.DeleteQuery;
+import org.jooq.impl.TableImpl;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import static brs.schema.Tables.*;
 
@@ -154,31 +160,31 @@ public class SqlBlockDb implements BlockDb {
       return;
     }
     try (DSLContext ctx = Db.getDSLContext()) {
-      ctx.transaction(
-        configuration -> {
-          DSLContext txCtx = DSL.using(configuration);
-          SelectQuery blockHeightQuery = txCtx.selectQuery();
-          blockHeightQuery.addFrom(BLOCK);
-          blockHeightQuery.addSelect(BLOCK.field("height", Integer.class));
-          blockHeightQuery.addConditions(BLOCK.field("id", Long.class).eq(blockId));
-          Integer blockHeight = (Integer) txCtx.fetchValue(blockHeightQuery);
+      SelectQuery blockHeightQuery = ctx.selectQuery();
+      blockHeightQuery.addFrom(BLOCK);
+      blockHeightQuery.addSelect(BLOCK.field("height", Integer.class));
+      blockHeightQuery.addConditions(BLOCK.field("id", Long.class).eq(blockId));
+      Integer blockHeight = (Integer) ctx.fetchValue(blockHeightQuery.fetchResultSet());
 
-          DeleteQuery deleteQuery = txCtx.deleteQuery(BLOCK);
-          deleteQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
-          deleteQuery.execute();
-        }
-      );
+      UpdateQuery unlinkFromPreviousQuery = ctx.updateQuery(BLOCK);
+      unlinkFromPreviousQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
+      unlinkFromPreviousQuery.addValue(BLOCK.PREVIOUS_BLOCK_ID, (Long) null);
+      unlinkFromPreviousQuery.execute();
+
+      DeleteQuery deleteQuery = ctx.deleteQuery(BLOCK);
+      deleteQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
+      deleteQuery.execute();
     }
     catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
 
-  public void deleteAll() {
+  public void deleteAll(boolean force) {
     if (!Db.isInTransaction()) {
       try {
         Db.beginTransaction();
-        deleteAll();
+        deleteAll(force);
         Db.commitTransaction();
       }
       catch (Exception e) {
@@ -190,20 +196,47 @@ public class SqlBlockDb implements BlockDb {
     }
     logger.info("Deleting blockchain...");
     try (DSLContext ctx = Db.getDSLContext() ) {
-      ctx.transaction(
-        configuration -> {
-          DSLContext txCtx = DSL.using(configuration);
-          for ( Table table : txCtx.meta().getTables() ) {
-            if ( table.getName().toUpperCase() != "PEER" && table.getName().toUpperCase() != "CATALOG" ) {
-              txCtx.truncate(table).execute();
-            }
+      List<TableImpl> tables = new ArrayList<TableImpl>(Arrays.asList(
+        brs.schema.Tables.ACCOUNT,
+        brs.schema.Tables.ACCOUNT_ASSET,
+        brs.schema.Tables.ALIAS,
+        brs.schema.Tables.ALIAS_OFFER,
+        brs.schema.Tables.ASK_ORDER,
+        brs.schema.Tables.ASSET,
+        brs.schema.Tables.ASSET_TRANSFER,
+        brs.schema.Tables.AT,
+        brs.schema.Tables.AT_STATE,
+        brs.schema.Tables.BID_ORDER,
+        brs.schema.Tables.BLOCK,
+        brs.schema.Tables.ESCROW,
+        brs.schema.Tables.ESCROW_DECISION,
+        brs.schema.Tables.GOODS,
+        brs.schema.Tables.PEER,
+        brs.schema.Tables.PURCHASE,
+        brs.schema.Tables.PURCHASE_FEEDBACK,
+        brs.schema.Tables.PURCHASE_PUBLIC_FEEDBACK,
+        brs.schema.Tables.REWARD_RECIP_ASSIGN,
+        brs.schema.Tables.SUBSCRIPTION,
+        brs.schema.Tables.TRADE,
+        brs.schema.Tables.TRANSACTION,
+        brs.schema.Tables.UNCONFIRMED_TRANSACTION
+      ));
+      for ( TableImpl table : tables ) {
+        try {
+          ctx.truncate(table).execute();
+        }
+        catch (org.jooq.exception.DataAccessException e) {
+          if ( force ) {
+            logger.trace("exception during truncate {0}", table, e);
+          }
+          else {
+            throw e;
           }
         }
-      );
+      }
     }
     catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
-
 }

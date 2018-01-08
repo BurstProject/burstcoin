@@ -122,6 +122,7 @@ public final class Db {
           config.addDataSourceProperty("cachePrepStmts", "true");
           config.addDataSourceProperty("prepStmtCacheSize", "250");
           config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+          config.addDataSourceProperty("databaseToUpper", "false");
           break;
       }
       // config.setLeakDetectionThreshold(2000);

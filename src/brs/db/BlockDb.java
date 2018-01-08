@@ -25,5 +25,5 @@ public interface BlockDb {
   // relying on cascade triggers in the database to delete the transactions for all deleted blocks
   void deleteBlocksFrom(long blockId);
 
-  void deleteAll();
+  void deleteAll(boolean force);
 }
