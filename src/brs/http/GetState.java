@@ -31,16 +31,16 @@ public final class GetState extends APIServlet.APIRequestHandler {
 
     long totalEffectiveBalance = 0;
     try (BurstIterator<Account> accounts = Account.getAllAccounts(0, -1)) {
-      for (Account account : accounts) {
-        long effectiveBalanceNXT = account.getBalanceNQT();
+      while(accounts.hasNext()) {
+        long effectiveBalanceNXT = accounts.next().getBalanceNQT();
         if (effectiveBalanceNXT > 0) {
           totalEffectiveBalance += effectiveBalanceNXT;
         }
       }
     }
     try(BurstIterator<Escrow> escrows = Escrow.getAllEscrowTransactions()) {
-      for(Escrow escrow : escrows) {
-        totalEffectiveBalance += escrow.getAmountNQT();
+      while(escrows.hasNext()) {
+        totalEffectiveBalance += escrows.next().getAmountNQT();
       }
     }
     response.put("totalEffectiveBalanceNXT", totalEffectiveBalance / Constants.ONE_NXT);

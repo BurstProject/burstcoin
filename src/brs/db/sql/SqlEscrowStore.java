@@ -117,8 +117,8 @@ public class SqlEscrowStore implements EscrowStore {
     resultTransactions.clear();
 
     BurstIterator<Escrow> deadlineEscrows = escrowTable.getManyBy(getUpdateOnBlockClause(block.getTimestamp()), 0, -1);
-    for (Escrow escrow : deadlineEscrows) {
-      updatedEscrowIds.add(escrow.getId());
+    while(deadlineEscrows.hasNext()) {
+      updatedEscrowIds.add(deadlineEscrows.next().getId());
     }
 
     if (updatedEscrowIds.size() > 0) {

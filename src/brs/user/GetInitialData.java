@@ -31,7 +31,7 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
     JSONArray recentBlocks = new JSONArray();
 
     try (BurstIterator<? extends Transaction> transactions = Burst.getTransactionProcessor().getAllUnconfirmedTransactions()) {
-      while (transactions.hasNext()) {
+      while(transactions.hasNext()) {
         Transaction transaction = transactions.next();
 
         JSONObject unconfirmedTransaction = new JSONObject();
@@ -95,7 +95,8 @@ public final class GetInitialData extends UserServlet.UserRequestHandler {
     }
 
     try (BurstIterator<? extends Block> lastBlocks = Burst.getBlockchain().getBlocks(0, 59)) {
-      for (Block block : lastBlocks) {
+      while(lastBlocks.hasNext()) {
+        Block block = lastBlocks.next();
         JSONObject recentBlock = new JSONObject();
         recentBlock.put("index", Users.getIndex(block));
         recentBlock.put("timestamp", block.getTimestamp());

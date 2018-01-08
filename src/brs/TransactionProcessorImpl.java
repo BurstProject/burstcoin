@@ -210,8 +210,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
           @Override
           public void run() {
             try (BurstIterator<TransactionImpl> oldNonBroadcastedTransactions = getAllUnconfirmedTransactions()) {
-              for (TransactionImpl transaction : oldNonBroadcastedTransactions) {
-                nonBroadcastedTransactions.add(transaction);
+              while(oldNonBroadcastedTransactions.hasNext()) {
+                nonBroadcastedTransactions.add(oldNonBroadcastedTransactions.next());
               }
             }
           }
@@ -315,7 +315,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         Burst.getStores().beginTransaction();
 
         try (BurstIterator<TransactionImpl> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
-          for (TransactionImpl transaction : unconfirmedTransactions) {
+          while(unconfirmedTransactions.hasNext()) {
+            TransactionImpl transaction = unconfirmedTransactions.next();
             transaction.undoUnconfirmed();
             removed.add(transaction);
           }
@@ -339,7 +340,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
   void requeueAllUnconfirmedTransactions() {
     List<Transaction> removed = new ArrayList<>();
     try (BurstIterator<TransactionImpl> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
-      for (TransactionImpl transaction : unconfirmedTransactions) {
+      while(unconfirmedTransactions.hasNext()) {
+        TransactionImpl transaction = unconfirmedTransactions.next();
         transaction.undoUnconfirmed();
         removed.add(transaction);
         lostTransactions.add(transaction);

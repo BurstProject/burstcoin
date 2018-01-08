@@ -6,6 +6,7 @@ import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
 import brs.peer.Hallmark;
 import brs.peer.Peer;
+import brs.db.BurstIterator;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -154,7 +155,9 @@ public final class JSONData {
     json.put("deadlineAction", Escrow.decisionToString(escrow.getDeadlineAction()));
 
     JSONArray signers = new JSONArray();
-    for(Escrow.Decision decision : escrow.getDecisions()) {
+    BurstIterator<Escrow.Decision> decisions = escrow.getDecisions();
+    while(decisions.hasNext()) {
+      Escrow.Decision decision = decisions.next();
       if(decision.getAccountId().equals(escrow.getSenderId()) ||
          decision.getAccountId().equals(escrow.getRecipientId())) {
         continue;

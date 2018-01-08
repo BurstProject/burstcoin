@@ -96,7 +96,8 @@ public class Subscription {
     BurstIterator<Subscription> updateSubscriptions =
         Burst.getStores().getSubscriptionStore().getUpdateSubscriptions(timestamp);
     List<Subscription> appliedUnconfirmedSubscriptions = new ArrayList<>();
-    for(Subscription subscription : updateSubscriptions) {
+    while(updateSubscriptions.hasNext()) {
+      Subscription subscription = updateSubscriptions.next();
       if(removeSubscriptions.contains(subscription.getId())) {
         continue;
       }
@@ -127,7 +128,8 @@ public class Subscription {
     long totalFees = 0;
     BurstIterator<Subscription> updateSubscriptions =
         Burst.getStores().getSubscriptionStore().getUpdateSubscriptions(timestamp);
-    for(Subscription subscription : updateSubscriptions) {
+    while(updateSubscriptions.hasNext()) {
+      Subscription subscription = updateSubscriptions.next();
       if(removeSubscriptions.contains(subscription.getId())) {
         continue;
       }

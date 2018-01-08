@@ -63,13 +63,4 @@ class DbIterator<T> implements BurstIterator<T> {
     DbUtils.close(rs);
   }
 
-  @Override
-  public Iterator<T> iterator() {
-    if (iterated) {
-      throw new IllegalStateException("Already iterated");
-    }
-    iterated = true;
-    return this;
-  }
-
 }
