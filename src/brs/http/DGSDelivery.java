@@ -13,6 +13,7 @@ import static brs.http.common.Parameters.PURCHASE_PARAMETER;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
 import brs.Constants;
 import brs.DigitalGoodsStore;
@@ -28,9 +29,9 @@ public final class DGSDelivery extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  DGSDelivery(ParameterService parameterService, TransactionProcessor transactionProcessor) {
+  DGSDelivery(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION},
-        parameterService, transactionProcessor, PURCHASE_PARAMETER, DISCOUNT_NQT_PARAMETER, GOODS_TO_ENCRYPT_PARAMETER, GOODS_IS_TEXT_PARAMETER, GOODS_DATA_PARAMETER, GOODS_NONCE_PARAMETER);
+        parameterService, transactionProcessor, blockchain, PURCHASE_PARAMETER, DISCOUNT_NQT_PARAMETER, GOODS_TO_ENCRYPT_PARAMETER, GOODS_IS_TEXT_PARAMETER, GOODS_DATA_PARAMETER, GOODS_NONCE_PARAMETER);
     this.parameterService = parameterService;
   }
 

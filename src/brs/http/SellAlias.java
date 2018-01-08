@@ -18,8 +18,8 @@ public final class SellAlias extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  SellAlias(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, ALIAS_PARAMETER, ALIAS_NAME_PARAMETER, RECIPIENT_PARAMETER, PRICE_NQT_PARAMETER);
+  SellAlias(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ALIAS_PARAMETER, ALIAS_NAME_PARAMETER, RECIPIENT_PARAMETER, PRICE_NQT_PARAMETER);
     this.parameterService = parameterService;
   }
 

@@ -2,6 +2,7 @@ package brs.http;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.Constants;
 import brs.BurstException;
 import brs.TransactionProcessor;
@@ -20,8 +21,8 @@ public final class SetAccountInfo extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  public SetAccountInfo(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[] {APITag.ACCOUNTS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, NAME_PARAMETER, DESCRIPTION_PARAMETER);
+  public SetAccountInfo(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.ACCOUNTS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, NAME_PARAMETER, DESCRIPTION_PARAMETER);
     this.parameterService = parameterService;
   }
 

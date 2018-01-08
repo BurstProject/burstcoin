@@ -25,6 +25,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
   private final TransactionProcessor transactionProcessor;
+  private final Blockchain blockchain;
 
   private static String[] addCommonParameters(String[] parameters) {
     String[] result = Arrays.copyOf(parameters, parameters.length + commonParameters.length);
@@ -32,10 +33,11 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
     return result;
   }
 
-  CreateTransaction(APITag[] apiTags, ParameterService parameterService, TransactionProcessor transactionProcessor, String... parameters) {
+  CreateTransaction(APITag[] apiTags, ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, String... parameters) {
     super(apiTags, addCommonParameters(parameters));
     this.parameterService = parameterService;
     this.transactionProcessor = transactionProcessor;
+    this.blockchain = blockchain;
   }
 
   final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment)
@@ -51,7 +53,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
   final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Long recipientId,
                                           long amountNQT, Attachment attachment)
     throws BurstException {
-    int blockchainHeight = Burst.getBlockchain().getHeight();
+    int blockchainHeight = blockchain.getHeight();
     String deadlineValue = req.getParameter("deadline");
     String referencedTransactionFullHash = Convert.emptyToNull(req.getParameter("referencedTransactionFullHash"));
     String referencedTransactionId = Convert.emptyToNull(req.getParameter("referencedTransaction"));

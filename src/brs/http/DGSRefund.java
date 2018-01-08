@@ -15,8 +15,8 @@ public final class DGSRefund extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  DGSRefund(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[] {APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, PURCHASE_PARAMETER, REFUND_NQT_PARAMETER);
+  DGSRefund(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, PURCHASE_PARAMETER, REFUND_NQT_PARAMETER);
     this.parameterService = parameterService;
   }
 

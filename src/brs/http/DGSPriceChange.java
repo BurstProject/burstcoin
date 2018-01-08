@@ -6,6 +6,7 @@ import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
 import brs.DigitalGoodsStore;
 import brs.TransactionProcessor;
@@ -17,8 +18,8 @@ public final class DGSPriceChange extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  DGSPriceChange(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, GOODS_PARAMETER, PRICE_NQT_PARAMETER);
+  DGSPriceChange(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, GOODS_PARAMETER, PRICE_NQT_PARAMETER);
     this.parameterService = parameterService;
   }
 

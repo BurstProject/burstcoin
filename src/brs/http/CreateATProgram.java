@@ -16,6 +16,7 @@ import static brs.http.common.Parameters.USPAGES_PARAMETER;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.Burst;
 import brs.BurstException;
 import brs.Constants;
@@ -33,9 +34,9 @@ public final class CreateATProgram extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  CreateATProgram(ParameterService parameterService, TransactionProcessor transactionProcessor) {
+  CreateATProgram(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[]{APITag.AT, APITag.CREATE_TRANSACTION},
-        parameterService, transactionProcessor, NAME_PARAMETER, DESCRIPTION_PARAMETER, CREATION_BYTES_PARAMETER, CODE_PARAMETER, DATA_PARAMETER, DPAGES_PARAMETER,
+        parameterService, transactionProcessor, blockchain, NAME_PARAMETER, DESCRIPTION_PARAMETER, CREATION_BYTES_PARAMETER, CODE_PARAMETER, DATA_PARAMETER, DPAGES_PARAMETER,
         CSPAGES_PARAMETER, USPAGES_PARAMETER, MIN_ACTIVATION_AMOUNT_NQT_PARAMETER);
     this.parameterService = parameterService;
   }

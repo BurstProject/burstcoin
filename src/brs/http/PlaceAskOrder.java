@@ -3,6 +3,7 @@ package brs.http;
 import brs.Account;
 import brs.Asset;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
 import brs.TransactionProcessor;
 import brs.services.ParameterService;
@@ -19,8 +20,8 @@ public final class PlaceAskOrder extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  PlaceAskOrder(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, ASSET_PARAMETER, QUANTITY_NQT_PARAMETER, PRICE_NQT_PARAMETER);
+  PlaceAskOrder(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ASSET_PARAMETER, QUANTITY_NQT_PARAMETER, PRICE_NQT_PARAMETER);
     this.parameterService = parameterService;
   }
 

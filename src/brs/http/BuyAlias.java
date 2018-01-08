@@ -7,6 +7,7 @@ import static brs.http.common.Parameters.ALIAS_PARAMETER;
 import brs.Account;
 import brs.Alias;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
 import brs.TransactionProcessor;
 import brs.services.ParameterService;
@@ -18,9 +19,9 @@ public final class BuyAlias extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  public BuyAlias(ParameterService parameterService, TransactionProcessor transactionProcessor) {
+  public BuyAlias(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     //TODO Should this not also contain AMOUNT_NQT?                                                      V
-    super(new APITag[]{APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, ALIAS_PARAMETER, ALIAS_NAME_PARAMETER);
+    super(new APITag[]{APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ALIAS_PARAMETER, ALIAS_NAME_PARAMETER);
     this.parameterService = parameterService;
   }
 

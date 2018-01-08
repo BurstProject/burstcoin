@@ -4,6 +4,7 @@ import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
 import brs.TransactionProcessor;
 import brs.services.ParameterService;
@@ -15,8 +16,8 @@ public final class SendMessage extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  SendMessage(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[] {APITag.MESSAGES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, RECIPIENT_PARAMETER);
+  SendMessage(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.MESSAGES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, RECIPIENT_PARAMETER);
     this.parameterService = parameterService;
   }
 

@@ -5,6 +5,7 @@ import static brs.http.common.Parameters.ORDER_PARAMETER;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
 import brs.Order;
 import brs.TransactionProcessor;
@@ -16,8 +17,8 @@ public final class CancelAskOrder extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  public CancelAskOrder(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, ORDER_PARAMETER);
+  public CancelAskOrder(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ORDER_PARAMETER);
     this.parameterService = parameterService;
   }
 

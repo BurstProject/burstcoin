@@ -6,6 +6,7 @@ import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
 import brs.Subscription;
 import brs.TransactionProcessor;
@@ -19,8 +20,8 @@ public final class SubscriptionCancel extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  public SubscriptionCancel(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[]{APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, SUBSCRIPTION_PARAMETER);
+  public SubscriptionCancel(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[]{APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, SUBSCRIPTION_PARAMETER);
     this.parameterService = parameterService;
   }
 

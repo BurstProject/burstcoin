@@ -8,6 +8,7 @@ import static brs.http.common.Parameters.GOODS_PARAMETER;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
 import brs.Constants;
 import brs.DigitalGoodsStore;
@@ -21,8 +22,8 @@ public final class DGSQuantityChange extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  DGSQuantityChange(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, GOODS_PARAMETER, DELTA_QUALITY_PARAMETER);
+  DGSQuantityChange(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, GOODS_PARAMETER, DELTA_QUALITY_PARAMETER);
 
     this.parameterService = parameterService;
   }

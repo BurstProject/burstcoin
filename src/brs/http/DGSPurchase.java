@@ -12,6 +12,7 @@ import static brs.http.common.Parameters.QUANTITY_PARAMETER;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.Burst;
 import brs.BurstException;
 import brs.DigitalGoodsStore;
@@ -25,9 +26,9 @@ public final class DGSPurchase extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  DGSPurchase(ParameterService parameterService, TransactionProcessor transactionProcessor) {
+  DGSPurchase(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION},
-        parameterService, transactionProcessor, GOODS_PARAMETER, PRICE_NQT_PARAMETER, QUANTITY_PARAMETER, DELIVERY_DEADLINE_TIMESTAMP_PARAMETER);
+        parameterService, transactionProcessor, blockchain, GOODS_PARAMETER, PRICE_NQT_PARAMETER, QUANTITY_PARAMETER, DELIVERY_DEADLINE_TIMESTAMP_PARAMETER);
     this.parameterService = parameterService;
   }
 

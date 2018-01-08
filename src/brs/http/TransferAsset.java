@@ -3,6 +3,7 @@ package brs.http;
 import brs.Account;
 import brs.Asset;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
 import brs.TransactionProcessor;
 import brs.services.ParameterService;
@@ -19,8 +20,8 @@ public final class TransferAsset extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  public TransferAsset(ParameterService parameterService, TransactionProcessor transactionProcessor) {
-    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, RECIPIENT_PARAMETER, ASSET_PARAMETER, QUANTITY_NQT_PARAMETER);
+  public TransferAsset(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, RECIPIENT_PARAMETER, ASSET_PARAMETER, QUANTITY_NQT_PARAMETER);
     this.parameterService = parameterService;
   }
 
