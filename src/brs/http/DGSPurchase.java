@@ -1,26 +1,40 @@
 package brs.http;
 
-import brs.*;
+import static brs.http.JSONResponses.INCORRECT_DELIVERY_DEADLINE_TIMESTAMP;
+import static brs.http.JSONResponses.INCORRECT_PURCHASE_PRICE;
+import static brs.http.JSONResponses.INCORRECT_PURCHASE_QUANTITY;
+import static brs.http.JSONResponses.MISSING_DELIVERY_DEADLINE_TIMESTAMP;
+import static brs.http.JSONResponses.UNKNOWN_GOODS;
+import static brs.http.common.Parameters.DELIVERY_DEADLINE_TIMESTAMP_PARAMETER;
+import static brs.http.common.Parameters.GOODS_PARAMETER;
+import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
+import static brs.http.common.Parameters.QUANTITY_PARAMETER;
+
+import brs.Account;
+import brs.Attachment;
+import brs.Burst;
+import brs.BurstException;
+import brs.DigitalGoodsStore;
+import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONStreamAware;
-
 import javax.servlet.http.HttpServletRequest;
-
-import static brs.http.JSONResponses.*;
+import org.json.simple.JSONStreamAware;
 
 public final class DGSPurchase extends CreateTransaction {
 
-  static final DGSPurchase instance = new DGSPurchase();
+  private final ParameterService parameterService;
 
-  private DGSPurchase() {
-    super(new APITag[] {APITag.DGS, APITag.CREATE_TRANSACTION},
-          "goods", "priceNQT", "quantity", "deliveryDeadlineTimestamp");
+  DGSPurchase(ParameterService parameterService, TransactionProcessor transactionProcessor) {
+    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION},
+        parameterService, transactionProcessor, GOODS_PARAMETER, PRICE_NQT_PARAMETER, QUANTITY_PARAMETER, DELIVERY_DEADLINE_TIMESTAMP_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    DigitalGoodsStore.Goods goods = ParameterParser.getGoods(req);
+    DigitalGoodsStore.Goods goods = parameterService.getGoods(req);
     if (goods.isDelisted()) {
       return UNKNOWN_GOODS;
     }
@@ -49,11 +63,11 @@ public final class DGSPurchase extends CreateTransaction {
       return INCORRECT_DELIVERY_DEADLINE_TIMESTAMP;
     }
 
-    Account buyerAccount = ParameterParser.getSenderAccount(req);
+    Account buyerAccount = parameterService.getSenderAccount(req);
     Account sellerAccount = Account.getAccount(goods.getSellerId());
 
     Attachment attachment = new Attachment.DigitalGoodsPurchase(goods.getId(), quantity, priceNQT,
-                                                                deliveryDeadline);
+        deliveryDeadline);
     return createTransaction(req, buyerAccount, sellerAccount.getId(), 0, attachment);
 
   }

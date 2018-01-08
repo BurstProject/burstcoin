@@ -3,22 +3,25 @@ package brs.http;
 import brs.Account;
 import brs.Attachment;
 import brs.BurstException;
+import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
 public final class SetRewardRecipient extends CreateTransaction {
+
+  private final ParameterService parameterService;
 	
-  static final SetRewardRecipient instance = new SetRewardRecipient();
-	
-  private SetRewardRecipient() {
-    super(new APITag[] {APITag.ACCOUNTS, APITag.MINING, APITag.CREATE_TRANSACTION}, "recipient");
+  public SetRewardRecipient(ParameterService parameterService, TransactionProcessor transactionProcessor) {
+    super(new APITag[] {APITag.ACCOUNTS, APITag.MINING, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, "recipient");
+    this.parameterService = parameterService;
   }
 	
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
-    Account account = ParameterParser.getSenderAccount(req);
+    final Account account = parameterService.getSenderAccount(req);
     Long recipient = ParameterParser.getRecipientId(req);
     Account recipientAccount = Account.getAccount(recipient);
     if (recipientAccount == null || recipientAccount.getPublicKey() == null) {

@@ -1,7 +1,7 @@
 package brs.http;
 
-import brs.crypto.hash.Shabal256;
 import brs.Block;
+import brs.crypto.hash.Shabal256;
 import brs.Burst;
 import brs.util.Convert;
 import org.json.simple.JSONObject;

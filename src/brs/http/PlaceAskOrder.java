@@ -4,27 +4,33 @@ import brs.Account;
 import brs.Asset;
 import brs.Attachment;
 import brs.BurstException;
+import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.NOT_ENOUGH_ASSETS;
+import static brs.http.common.Parameters.ASSET_PARAMETER;
+import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
+import static brs.http.common.Parameters.QUANTITY_NQT_PARAMETER;
 
 public final class PlaceAskOrder extends CreateTransaction {
 
-  static final PlaceAskOrder instance = new PlaceAskOrder();
+  private final ParameterService parameterService;
 
-  private PlaceAskOrder() {
-    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, "asset", "quantityQNT", "priceNQT");
+  PlaceAskOrder(ParameterService parameterService, TransactionProcessor transactionProcessor) {
+    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, ASSET_PARAMETER, QUANTITY_NQT_PARAMETER, PRICE_NQT_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    Asset asset = ParameterParser.getAsset(req);
-    long priceNQT = ParameterParser.getPriceNQT(req);
-    long quantityQNT = ParameterParser.getQuantityQNT(req);
-    Account account = ParameterParser.getSenderAccount(req);
+    final Asset asset = parameterService.getAsset(req);
+    final long priceNQT = ParameterParser.getPriceNQT(req);
+    final long quantityQNT = ParameterParser.getQuantityQNT(req);
+    final Account account = parameterService.getSenderAccount(req);
 
     long assetBalance = account.getUnconfirmedAssetBalanceQNT(asset.getId());
     if (assetBalance < 0 || quantityQNT > assetBalance) {

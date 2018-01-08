@@ -8,24 +8,27 @@ import brs.Account;
 import brs.Alias;
 import brs.Attachment;
 import brs.BurstException;
+import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONStreamAware;
 
 
 public final class BuyAlias extends CreateTransaction {
 
-  static final BuyAlias instance = new BuyAlias();
+  private final ParameterService parameterService;
 
-//TODO Should this not also contain AMOUNT_NQT?                                                                              V
-  private BuyAlias() {
-    super(new APITag[]{APITag.ALIASES, APITag.CREATE_TRANSACTION}, ALIAS_PARAMETER, ALIAS_NAME_PARAMETER);
+  public BuyAlias(ParameterService parameterService, TransactionProcessor transactionProcessor) {
+    //TODO Should this not also contain AMOUNT_NQT?                                                      V
+    super(new APITag[]{APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, ALIAS_PARAMETER, ALIAS_NAME_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
-    Account buyer = ParameterParser.getSenderAccount(req);
-    Alias alias = ParameterParser.getAlias(req);
-    long amountNQT = ParameterParser.getAmountNQT(req);
+    Account buyer = parameterService.getSenderAccount(req);
+    Alias alias = parameterService.getAlias(req);
+    long amountNQT = parameterService.getAmountNQT(req);
     if (Alias.getOffer(alias) == null) {
       return INCORRECT_ALIAS_NOTFORSALE;
     }

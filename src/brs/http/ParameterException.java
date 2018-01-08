@@ -3,11 +3,11 @@ package brs.http;
 import brs.BurstException;
 import org.json.simple.JSONStreamAware;
 
-final class ParameterException extends BurstException {
+public final class ParameterException extends BurstException {
 
   private final JSONStreamAware errorResponse;
 
-  ParameterException(JSONStreamAware errorResponse) {
+  public ParameterException(JSONStreamAware errorResponse) {
     this.errorResponse = errorResponse;
   }
 

@@ -1,8 +1,16 @@
 package brs.http;
 
+import static brs.http.common.Parameters.TRANSACTION_BYTES_PARAMETER;
+import static brs.http.common.Parameters.TRANSACTION_JSON_PARAMETER;
+import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
+import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
+import static brs.http.common.ResultFields.ERROR_RESPONSE;
+import static brs.http.common.ResultFields.FULL_HASH_RESPONSE;
+import static brs.http.common.ResultFields.TRANSACTION_RESPONSE;
+
 import brs.BurstException;
-import brs.DIContainer;
 import brs.Transaction;
+import brs.TransactionProcessor;
 import brs.util.Convert;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -14,19 +22,12 @@ public final class BroadcastTransaction extends APIServlet.APIRequestHandler {
 
   private static final Logger logger = Logger.getLogger(BroadcastTransaction.class.getSimpleName());
 
-  static final BroadcastTransaction instance = new BroadcastTransaction();
+  private final TransactionProcessor transactionProcessor;
 
-  static final String TRANSACTION_BYTES_PARAMETER = "transactionBytes";
-  static final String TRANSACTION_JSON_PARAMETER = "transactionJSON";
-
-  static final String TRANSACTION_RESPONSE = "transaction";
-  static final String FULL_HASH_RESPONSE = "fullHash";
-  static final String ERROR_CODE_RESPONSE = "errorCode";
-  static final String ERROR_DESCRIPTION_RESPONSE = "errorDescription";
-  static final String ERROR_RESPONSE = "error";
-
-  private BroadcastTransaction() {
+  public BroadcastTransaction(TransactionProcessor transactionProcessor) {
     super(new APITag[]{APITag.TRANSACTIONS}, TRANSACTION_BYTES_PARAMETER, TRANSACTION_JSON_PARAMETER);
+
+    this.transactionProcessor = transactionProcessor;
   }
 
   @Override
@@ -38,7 +39,7 @@ public final class BroadcastTransaction extends APIServlet.APIRequestHandler {
     JSONObject response = new JSONObject();
     try {
       transaction.validate();
-      DIContainer.getTransactionProcessor().broadcast(transaction);
+      transactionProcessor.broadcast(transaction);
       response.put(TRANSACTION_RESPONSE, transaction.getStringId());
       response.put(FULL_HASH_RESPONSE, transaction.getFullHash());
     } catch (BurstException.ValidationException | RuntimeException e) {
