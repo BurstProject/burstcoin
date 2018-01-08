@@ -194,7 +194,7 @@ public final class TransactionImpl implements Transaction {
     this.timestamp = builder.timestamp;
     this.deadline = builder.deadline;
     this.senderPublicKey = builder.senderPublicKey;
-    this.recipientId = builder.recipientId;
+    this.recipientId = Optional.ofNullable(builder.recipientId).orElse(0L);
     this.amountNQT = builder.amountNQT;
     this.referencedTransactionFullHash = builder.referencedTransactionFullHash;
     this.signature = builder.signature;
@@ -680,7 +680,7 @@ public final class TransactionImpl implements Transaction {
 
   @Override
   public long getECBlockId() {
-    return ecBlockId;
+    return Optional.ofNullable(ecBlockId).orElse(0L);
   }
 
   @Override

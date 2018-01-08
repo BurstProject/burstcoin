@@ -170,7 +170,7 @@ public class SqlTransactionDb implements TransactionDb {
       }
       if (version > 0) {
         builder.ecBlockHeight(ecBlockHeight);
-        builder.ecBlockId(ecBlockId);
+        builder.ecBlockId(Optional.ofNullable(ecBlockId).orElse(0L));
       }
 
       return builder.build();

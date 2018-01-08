@@ -115,10 +115,10 @@ public final class JSONData {
     json.put("payloadLength", block.getPayloadLength());
     json.put("version", block.getVersion());
     json.put("baseTarget", Convert.toUnsignedLong(block.getBaseTarget()));
-    if (Long.valueOf(block.getPreviousBlockId()) != null) {
+    if (block.getPreviousBlockId() != 0) {
       json.put("previousBlock", Convert.toUnsignedLong(block.getPreviousBlockId()));
     }
-    if (Long.valueOf(block.getNextBlockId()) != null) {
+    if (block.getNextBlockId() != 0) {
       json.put("nextBlock", Convert.toUnsignedLong(block.getNextBlockId()));
     }
     json.put("payloadHash", Convert.toHexString(block.getPayloadHash()));
