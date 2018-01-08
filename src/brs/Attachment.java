@@ -1366,9 +1366,7 @@ public interface Attachment extends Appendix {
       buffer.put(this.requiredSigners);
       byte totalSigners = (byte) this.signers.size();
       buffer.put(totalSigners);
-      this.signers.forEach(id -> {
-          buffer.putLong(id);
-        });
+      this.signers.forEach(id -> buffer.putLong(id));
     }
 
     @Override
@@ -1672,12 +1670,11 @@ public interface Attachment extends Appendix {
 
     }
 
-    public AutomatedTransactionsCreation( String name, String description , byte[] creationBytes ) throws NotValidException
+    public AutomatedTransactionsCreation( String name, String description , byte[] creationBytes )
     {
       this.name = name;
       this.description = description;
       this.creationBytes = creationBytes;
-
     }
 
     @Override
