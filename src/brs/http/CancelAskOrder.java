@@ -1,21 +1,21 @@
 package brs.http;
 
+import static brs.http.JSONResponses.UNKNOWN_ORDER;
+import static brs.http.common.Parameters.ORDER_PARAMETER;
+
 import brs.Account;
 import brs.Attachment;
 import brs.BurstException;
 import brs.Order;
-import org.json.simple.JSONStreamAware;
-
 import javax.servlet.http.HttpServletRequest;
-
-import static brs.http.JSONResponses.UNKNOWN_ORDER;
+import org.json.simple.JSONStreamAware;
 
 public final class CancelAskOrder extends CreateTransaction {
 
   static final CancelAskOrder instance = new CancelAskOrder();
 
   private CancelAskOrder() {
-    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, "order");
+    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, ORDER_PARAMETER);
   }
 
   @Override
