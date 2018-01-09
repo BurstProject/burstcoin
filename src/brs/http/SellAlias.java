@@ -1,28 +1,34 @@
 package brs.http;
 
 import brs.*;
+import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.*;
+import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
+import static brs.http.common.Parameters.ALIAS_PARAMETER;
+import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
+import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
 
 
 public final class SellAlias extends CreateTransaction {
 
-  static final SellAlias instance = new SellAlias();
+  private final ParameterService parameterService;
 
-  private SellAlias() {
-    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, "alias", "aliasName", "recipient", "priceNQT");
+  SellAlias(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ALIAS_PARAMETER, ALIAS_NAME_PARAMETER, RECIPIENT_PARAMETER, PRICE_NQT_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
-    Alias alias = ParameterParser.getAlias(req);
-    Account owner = ParameterParser.getSenderAccount(req);
+    Alias alias = parameterService.getAlias(req);
+    Account owner = parameterService.getSenderAccount(req);
 
-    String priceValueNQT = Convert.emptyToNull(req.getParameter("priceNQT"));
+    String priceValueNQT = Convert.emptyToNull(req.getParameter(PRICE_NQT_PARAMETER));
     if (priceValueNQT == null) {
       return MISSING_PRICE;
     }
@@ -36,7 +42,7 @@ public final class SellAlias extends CreateTransaction {
       throw new ParameterException(INCORRECT_PRICE);
     }
 
-    String recipientValue = Convert.emptyToNull(req.getParameter("recipient"));
+    String recipientValue = Convert.emptyToNull(req.getParameter(RECIPIENT_PARAMETER));
     long recipientId = 0;
     if (recipientValue != null) {
       try {

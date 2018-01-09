@@ -1,7 +1,8 @@
 package brs.http;
 
-import brs.Burst;
+import brs.Blockchain;
 import brs.Transaction;
+import brs.TransactionProcessor;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -12,10 +13,13 @@ import static brs.http.JSONResponses.*;
 
 public final class GetTransactionBytes extends APIServlet.APIRequestHandler {
 
-  static final GetTransactionBytes instance = new GetTransactionBytes();
+  private final Blockchain blockchain;
+  private final TransactionProcessor transactionProcessor;
 
-  private GetTransactionBytes() {
+  GetTransactionBytes(Blockchain blockchain, TransactionProcessor transactionProcessor) {
     super(new APITag[] {APITag.TRANSACTIONS}, "transaction");
+    this.blockchain = blockchain;
+    this.transactionProcessor = transactionProcessor;
   }
 
   @Override
@@ -34,20 +38,21 @@ public final class GetTransactionBytes extends APIServlet.APIRequestHandler {
       return INCORRECT_TRANSACTION;
     }
 
-    transaction = Burst.getBlockchain().getTransaction(transactionId);
+    transaction = blockchain.getTransaction(transactionId);
     JSONObject response = new JSONObject();
     if (transaction == null) {
-      transaction = Burst.getTransactionProcessor().getUnconfirmedTransaction(transactionId);
+      transaction = transactionProcessor.getUnconfirmedTransaction(transactionId);
       if (transaction == null) {
         return UNKNOWN_TRANSACTION;
       }
     } else {
-      response.put("confirmations", Burst.getBlockchain().getHeight() - transaction.getHeight());
+      response.put("confirmations", blockchain.getHeight() - transaction.getHeight());
     }
+
     response.put("transactionBytes", Convert.toHexString(transaction.getBytes()));
     response.put("unsignedTransactionBytes", Convert.toHexString(transaction.getUnsignedBytes()));
-    return response;
 
+    return response;
   }
 
 }

@@ -1,27 +1,31 @@
 package brs.http;
 
+import static brs.http.JSONResponses.UNKNOWN_GOODS;
+import static brs.http.common.Parameters.GOODS_PARAMETER;
+
 import brs.Account;
 import brs.Attachment;
-import brs.DigitalGoodsStore;
+import brs.Blockchain;
 import brs.BurstException;
-import org.json.simple.JSONStreamAware;
-
+import brs.DigitalGoodsStore;
+import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
-
-import static brs.http.JSONResponses.UNKNOWN_GOODS;
+import org.json.simple.JSONStreamAware;
 
 public final class DGSDelisting extends CreateTransaction {
 
-  static final DGSDelisting instance = new DGSDelisting();
+  private final ParameterService parameterService;
 
-  private DGSDelisting() {
-    super(new APITag[] {APITag.DGS, APITag.CREATE_TRANSACTION}, "goods");
+  public DGSDelisting(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, GOODS_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
-    Account account = ParameterParser.getSenderAccount(req);
-    DigitalGoodsStore.Goods goods = ParameterParser.getGoods(req);
+    Account account = parameterService.getSenderAccount(req);
+    DigitalGoodsStore.Goods goods = parameterService.getGoods(req);
     if (goods.isDelisted() || goods.getSellerId() != account.getId()) {
       return UNKNOWN_GOODS;
     }

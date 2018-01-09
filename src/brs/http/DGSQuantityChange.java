@@ -1,34 +1,45 @@
 package brs.http;
 
-import brs.*;
+import static brs.http.JSONResponses.INCORRECT_DELTA_QUANTITY;
+import static brs.http.JSONResponses.MISSING_DELTA_QUANTITY;
+import static brs.http.JSONResponses.UNKNOWN_GOODS;
+import static brs.http.common.Parameters.DELTA_QUALITY_PARAMETER;
+import static brs.http.common.Parameters.GOODS_PARAMETER;
+
+import brs.Account;
+import brs.Attachment;
+import brs.Blockchain;
+import brs.BurstException;
+import brs.Constants;
+import brs.DigitalGoodsStore;
+import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONStreamAware;
-
 import javax.servlet.http.HttpServletRequest;
-
-import static brs.http.JSONResponses.*;
+import org.json.simple.JSONStreamAware;
 
 public final class DGSQuantityChange extends CreateTransaction {
 
-  static final DGSQuantityChange instance = new DGSQuantityChange();
+  private final ParameterService parameterService;
 
-  private DGSQuantityChange() {
-    super(new APITag[] {APITag.DGS, APITag.CREATE_TRANSACTION},
-          "goods", "deltaQuantity");
+  DGSQuantityChange(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, GOODS_PARAMETER, DELTA_QUALITY_PARAMETER);
+
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    Account account = ParameterParser.getSenderAccount(req);
-    DigitalGoodsStore.Goods goods = ParameterParser.getGoods(req);
+    Account account = parameterService.getSenderAccount(req);
+    DigitalGoodsStore.Goods goods = parameterService.getGoods(req);
     if (goods.isDelisted() || goods.getSellerId() != account.getId()) {
       return UNKNOWN_GOODS;
     }
 
     int deltaQuantity;
     try {
-      String deltaQuantityString = Convert.emptyToNull(req.getParameter("deltaQuantity"));
+      String deltaQuantityString = Convert.emptyToNull(req.getParameter(DELTA_QUALITY_PARAMETER));
       if (deltaQuantityString == null) {
         return MISSING_DELTA_QUANTITY;
       }

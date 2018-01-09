@@ -3,19 +3,26 @@ package brs.http;
 import brs.Account;
 import brs.Asset;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
+import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.NOT_ENOUGH_ASSETS;
+import static brs.http.common.Parameters.ASSET_PARAMETER;
+import static brs.http.common.Parameters.QUANTITY_NQT_PARAMETER;
+import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
 
 public final class TransferAsset extends CreateTransaction {
 
-  static final TransferAsset instance = new TransferAsset();
+  private final ParameterService parameterService;
 
-  private TransferAsset() {
-    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, "recipient", "asset", "quantityQNT");
+  public TransferAsset(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, RECIPIENT_PARAMETER, ASSET_PARAMETER, QUANTITY_NQT_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
@@ -23,9 +30,9 @@ public final class TransferAsset extends CreateTransaction {
 
     long recipient = ParameterParser.getRecipientId(req);
 
-    Asset asset = ParameterParser.getAsset(req);
+    Asset asset = parameterService.getAsset(req);
     long quantityQNT = ParameterParser.getQuantityQNT(req);
-    Account account = ParameterParser.getSenderAccount(req);
+    Account account = parameterService.getSenderAccount(req);
 
     long assetBalance = account.getUnconfirmedAssetBalanceQNT(asset.getId());
     if (assetBalance < 0 || quantityQNT > assetBalance) {

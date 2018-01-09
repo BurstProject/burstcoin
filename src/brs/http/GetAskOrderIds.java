@@ -1,27 +1,33 @@
 package brs.http;
 
+import static brs.http.common.Parameters.ASSET_PARAMETER;
+import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
+import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+import static brs.http.common.ResultFields.ASK_ORDER_IDS_RESPONSE;
+
 import brs.BurstException;
 import brs.Order;
 import brs.db.BurstIterator;
+import brs.services.ParameterService;
 import brs.util.Convert;
+import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-import javax.servlet.http.HttpServletRequest;
-
 public final class GetAskOrderIds extends APIServlet.APIRequestHandler {
 
-  static final GetAskOrderIds instance = new GetAskOrderIds();
+  private final ParameterService parameterService;
 
-  private GetAskOrderIds() {
-    super(new APITag[] {APITag.AE}, "asset", "firstIndex", "lastIndex");
+  GetAskOrderIds(ParameterService parameterService) {
+    super(new APITag[]{APITag.AE}, ASSET_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    long assetId = ParameterParser.getAsset(req).getId();
+    long assetId = parameterService.getAsset(req).getId();
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
 
@@ -33,7 +39,7 @@ public final class GetAskOrderIds extends APIServlet.APIRequestHandler {
     }
 
     JSONObject response = new JSONObject();
-    response.put("askOrderIds", orderIds);
+    response.put(ASK_ORDER_IDS_RESPONSE, orderIds);
     return response;
 
   }

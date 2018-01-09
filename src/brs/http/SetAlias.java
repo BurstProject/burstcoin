@@ -2,6 +2,7 @@ package brs.http;
 
 
 import brs.*;
+import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -9,19 +10,22 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.*;
+import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
+import static brs.http.common.Parameters.ALIAS_URI_PARAMETER;
 
 public final class SetAlias extends CreateTransaction {
 
-  static final SetAlias instance = new SetAlias();
+  private final ParameterService parameterService;
 
-  private SetAlias() {
-    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, "aliasName", "aliasURI");
+  public SetAlias(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ALIAS_NAME_PARAMETER, ALIAS_URI_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
-    String aliasName = Convert.emptyToNull(req.getParameter("aliasName"));
-    String aliasURI = Convert.nullToEmpty(req.getParameter("aliasURI"));
+    String aliasName = Convert.emptyToNull(req.getParameter(ALIAS_NAME_PARAMETER));
+    String aliasURI = Convert.nullToEmpty(req.getParameter(ALIAS_URI_PARAMETER));
 
     if (aliasName == null) {
       return MISSING_ALIAS_NAME;
@@ -44,7 +48,7 @@ public final class SetAlias extends CreateTransaction {
       return INCORRECT_URI_LENGTH;
     }
 
-    Account account = ParameterParser.getSenderAccount(req);
+    Account account = parameterService.getSenderAccount(req);
 
     Alias alias = Alias.getAlias(normalizedAlias);
     if (alias != null && alias.getAccountId() != account.getId()) {

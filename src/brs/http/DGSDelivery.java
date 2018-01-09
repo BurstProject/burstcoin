@@ -1,32 +1,49 @@
 package brs.http;
 
-import brs.*;
+import static brs.http.JSONResponses.ALREADY_DELIVERED;
+import static brs.http.JSONResponses.INCORRECT_DGS_DISCOUNT;
+import static brs.http.JSONResponses.INCORRECT_DGS_GOODS;
+import static brs.http.JSONResponses.INCORRECT_PURCHASE;
+import static brs.http.common.Parameters.DISCOUNT_NQT_PARAMETER;
+import static brs.http.common.Parameters.GOODS_DATA_PARAMETER;
+import static brs.http.common.Parameters.GOODS_IS_TEXT_PARAMETER;
+import static brs.http.common.Parameters.GOODS_NONCE_PARAMETER;
+import static brs.http.common.Parameters.GOODS_TO_ENCRYPT_PARAMETER;
+import static brs.http.common.Parameters.PURCHASE_PARAMETER;
+
+import brs.Account;
+import brs.Attachment;
+import brs.Blockchain;
+import brs.BurstException;
+import brs.Constants;
+import brs.DigitalGoodsStore;
+import brs.TransactionProcessor;
 import brs.crypto.EncryptedData;
+import brs.http.common.Parameters;
+import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONStreamAware;
-
 import javax.servlet.http.HttpServletRequest;
-
-import static brs.http.JSONResponses.*;
+import org.json.simple.JSONStreamAware;
 
 public final class DGSDelivery extends CreateTransaction {
 
-  static final DGSDelivery instance = new DGSDelivery();
+  private final ParameterService parameterService;
 
-  private DGSDelivery() {
-    super(new APITag[] {APITag.DGS, APITag.CREATE_TRANSACTION},
-          "purchase", "discountNQT", "goodsToEncrypt", "goodsIsText", "goodsData", "goodsNonce");
+  DGSDelivery(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION},
+        parameterService, transactionProcessor, blockchain, PURCHASE_PARAMETER, DISCOUNT_NQT_PARAMETER, GOODS_TO_ENCRYPT_PARAMETER, GOODS_IS_TEXT_PARAMETER, GOODS_DATA_PARAMETER, GOODS_NONCE_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    Account sellerAccount = ParameterParser.getSenderAccount(req);
+    Account sellerAccount = parameterService.getSenderAccount(req);
     DigitalGoodsStore.Purchase purchase = ParameterParser.getPurchase(req);
     if (sellerAccount.getId() != purchase.getSellerId()) {
       return INCORRECT_PURCHASE;
     }
-    if (! purchase.isPending()) {
+    if (!purchase.isPending()) {
       return ALREADY_DELIVERED;
     }
 
@@ -46,14 +63,14 @@ public final class DGSDelivery extends CreateTransaction {
     }
 
     Account buyerAccount = Account.getAccount(purchase.getBuyerId());
-    boolean goodsIsText = !"false".equalsIgnoreCase(req.getParameter("goodsIsText"));
+    boolean goodsIsText = Parameters.isFalse(req.getParameter(GOODS_IS_TEXT_PARAMETER));
     EncryptedData encryptedGoods = ParameterParser.getEncryptedGoods(req);
 
     if (encryptedGoods == null) {
       String secretPhrase = ParameterParser.getSecretPhrase(req);
       byte[] goodsBytes;
       try {
-        String plainGoods = Convert.nullToEmpty(req.getParameter("goodsToEncrypt"));
+        String plainGoods = Convert.nullToEmpty(req.getParameter(GOODS_TO_ENCRYPT_PARAMETER));
         if (plainGoods.length() == 0) {
           return INCORRECT_DGS_GOODS;
         }

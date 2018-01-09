@@ -1,26 +1,29 @@
 package brs.http;
 
 import brs.*;
+import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.*;
+import static brs.http.common.Parameters.PURCHASE_PARAMETER;
+import static brs.http.common.Parameters.REFUND_NQT_PARAMETER;
 
 public final class DGSRefund extends CreateTransaction {
 
-  static final DGSRefund instance = new DGSRefund();
+  private final ParameterService parameterService;
 
-  private DGSRefund() {
-    super(new APITag[] {APITag.DGS, APITag.CREATE_TRANSACTION},
-          "purchase", "refundNQT");
+  DGSRefund(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, PURCHASE_PARAMETER, REFUND_NQT_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    Account sellerAccount = ParameterParser.getSenderAccount(req);
+    Account sellerAccount = parameterService.getSenderAccount(req);
     DigitalGoodsStore.Purchase purchase = ParameterParser.getPurchase(req);
     if (sellerAccount.getId() != purchase.getSellerId()) {
       return INCORRECT_PURCHASE;
@@ -32,7 +35,7 @@ public final class DGSRefund extends CreateTransaction {
       return GOODS_NOT_DELIVERED;
     }
 
-    String refundValueNQT = Convert.emptyToNull(req.getParameter("refundNQT"));
+    String refundValueNQT = Convert.emptyToNull(req.getParameter(REFUND_NQT_PARAMETER));
     long refundNQT = 0;
     try {
       if (refundValueNQT != null) {
