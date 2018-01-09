@@ -1054,7 +1054,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   int getBlockVersion(int previousBlockHeight) {
-    return previousBlockHeight < Constants.TRANSPARENT_FORGING_BLOCK ? 1 : previousBlockHeight < Constants.NQT_BLOCK ? 2 : 3;
+    return 3;
   }
 
   void generateBlock(String secretPhrase, byte[] publicKey, Long nonce) throws BlockNotAcceptedException {

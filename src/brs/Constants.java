@@ -62,14 +62,7 @@ public final class Constants {
   public static final boolean isOffline = Burst.getBooleanProperty("brs.isOffline");
 
   public static final int ALIAS_SYSTEM_BLOCK = 0;
-  public static final int TRANSPARENT_FORGING_BLOCK = 0;
   public static final int ARBITRARY_MESSAGES_BLOCK = 0;
-  public static final int TRANSPARENT_FORGING_BLOCK_2 = 0;
-  public static final int TRANSPARENT_FORGING_BLOCK_3 = 0;
-  public static final int TRANSPARENT_FORGING_BLOCK_4 = 0;
-  public static final int TRANSPARENT_FORGING_BLOCK_5 = 0;
-  public static final int TRANSPARENT_FORGING_BLOCK_6 = 0;
-  public static final int TRANSPARENT_FORGING_BLOCK_8 = 0;
   public static final int NQT_BLOCK = 0;
   public static final int FRACTIONAL_BLOCK = 0;
   public static final int ASSET_EXCHANGE_BLOCK = 0;
