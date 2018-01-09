@@ -1,8 +1,13 @@
 package brs.http;
 
+import static brs.http.common.Parameters.ASSET_PARAMETER;
+import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
+import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+
 import brs.BurstException;
 import brs.Order;
 import brs.db.BurstIterator;
+import brs.services.ParameterService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -11,16 +16,17 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetBidOrders extends APIServlet.APIRequestHandler {
 
-  static final GetBidOrders instance = new GetBidOrders();
+  private ParameterService parameterService;
 
-  private GetBidOrders() {
-    super(new APITag[] {APITag.AE}, "asset", "firstIndex", "lastIndex");
+  GetBidOrders(ParameterService parameterService) {
+    super(new APITag[] {APITag.AE}, ASSET_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    long assetId = ParameterParser.getAsset(req).getId();
+    long assetId = parameterService.getAsset(req).getId();
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
 

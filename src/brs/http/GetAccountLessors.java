@@ -1,27 +1,31 @@
 package brs.http;
 
+import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
+import static brs.http.common.Parameters.HEIGHT_PARAMETER;
+
 import brs.Account;
 import brs.Burst;
 import brs.BurstException;
+import brs.services.ParameterService;
+import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-import javax.servlet.http.HttpServletRequest;
-
 public final class GetAccountLessors extends APIServlet.APIRequestHandler {
 
-  static final GetAccountLessors instance = new GetAccountLessors();
+  private final ParameterService parameterService;
 
-  private GetAccountLessors() {
-    super(new APITag[] {APITag.ACCOUNTS}, "account", "height");
+  GetAccountLessors(ParameterService parameterService) {
+    super(new APITag[]{APITag.ACCOUNTS}, ACCOUNT_PARAMETER, HEIGHT_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    Account account = ParameterParser.getAccount(req);
-    int height = ParameterParser.getHeight(req);
+    Account account = parameterService.getAccount(req);
+    int height = parameterService.getHeight(req);
     if (height < 0) {
       height = Burst.getBlockchain().getHeight();
     }

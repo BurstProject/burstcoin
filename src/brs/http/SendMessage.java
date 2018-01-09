@@ -1,24 +1,30 @@
 package brs.http;
 
+import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
+
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
+import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
 public final class SendMessage extends CreateTransaction {
 
-  static final SendMessage instance = new SendMessage();
+  private final ParameterService parameterService;
 
-  private SendMessage() {
-    super(new APITag[] {APITag.MESSAGES, APITag.CREATE_TRANSACTION}, "recipient");
+  SendMessage(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.MESSAGES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, RECIPIENT_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     long recipient = ParameterParser.getRecipientId(req);
-    Account account = ParameterParser.getSenderAccount(req);
+    Account account = parameterService.getSenderAccount(req);
     return createTransaction(req, account, recipient, 0, Attachment.ARBITRARY_MESSAGE);
   }
 

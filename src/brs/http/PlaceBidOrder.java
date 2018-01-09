@@ -3,30 +3,37 @@ package brs.http;
 import brs.Account;
 import brs.Asset;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
+import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.NOT_ENOUGH_FUNDS;
+import static brs.http.common.Parameters.ASSET_PARAMETER;
+import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
+import static brs.http.common.Parameters.QUANTITY_NQT_PARAMETER;
 
 public final class PlaceBidOrder extends CreateTransaction {
 
-  static final PlaceBidOrder instance = new PlaceBidOrder();
+  private final ParameterService parameterService;
 
-  private PlaceBidOrder() {
-    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, "asset", "quantityQNT", "priceNQT");
+  PlaceBidOrder(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ASSET_PARAMETER, QUANTITY_NQT_PARAMETER, PRICE_NQT_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    Asset asset = ParameterParser.getAsset(req);
+    Asset asset = parameterService.getAsset(req);
     long priceNQT = ParameterParser.getPriceNQT(req);
     long quantityQNT = ParameterParser.getQuantityQNT(req);
     long feeNQT = ParameterParser.getFeeNQT(req);
-    Account account = ParameterParser.getSenderAccount(req);
+    Account account = parameterService.getSenderAccount(req);
 
     try {
       if (Convert.safeAdd(feeNQT, Convert.safeMultiply(priceNQT, quantityQNT)) > account.getUnconfirmedBalanceNQT()) {

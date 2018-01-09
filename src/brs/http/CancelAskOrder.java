@@ -5,23 +5,27 @@ import static brs.http.common.Parameters.ORDER_PARAMETER;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
 import brs.Order;
+import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONStreamAware;
 
 public final class CancelAskOrder extends CreateTransaction {
 
-  static final CancelAskOrder instance = new CancelAskOrder();
+  private final ParameterService parameterService;
 
-  private CancelAskOrder() {
-    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, ORDER_PARAMETER);
+  public CancelAskOrder(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ORDER_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     long orderId = ParameterParser.getOrderId(req);
-    Account account = ParameterParser.getSenderAccount(req);
+    Account account = parameterService.getSenderAccount(req);
     Order.Ask orderData = Order.Ask.getAskOrder(orderId);
     if (orderData == null || orderData.getAccountId() != account.getId()) {
       return UNKNOWN_ORDER;

@@ -3,14 +3,12 @@ package brs;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
 import brs.db.BurstIterator;
+import brs.db.BurstKey;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.VersionedEntityTable;
-
-import brs.db.BurstKey;
 import brs.util.Convert;
 import brs.util.Listener;
 import brs.util.Listeners;
-
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -158,9 +156,9 @@ public class Account {
     return Burst.getStores().getAccountStore().getRewardRecipientAssignmentTable();
   }
 
-  private static final Listeners<Account,Event> listeners = new Listeners<>();
+  private static final Listeners<Account, Event> listeners = new Listeners<>();
 
-  private static final Listeners<AccountAsset,Event> assetListeners = new Listeners<>();
+  private static final Listeners<AccountAsset, Event> assetListeners = new Listeners<>();
 
   public static boolean addListener(Listener<Account> listener, Event eventType) {
     return listeners.addListener(listener, eventType);
@@ -207,7 +205,7 @@ public class Account {
       return account;
     }
     throw new RuntimeException("DUPLICATE KEY for account " + Convert.toUnsignedLong(account.getId())
-                               + " existing key " + Convert.toHexString(account.getPublicKey()) + " new key " + Convert.toHexString(publicKey));
+        + " existing key " + Convert.toHexString(account.getPublicKey()) + " new key " + Convert.toHexString(publicKey));
   }
 
   public static long getId(byte[] publicKey) {
@@ -235,7 +233,8 @@ public class Account {
     return Burst.getStores().getAccountStore().getAssetAccounts(assetId, height, from, to);
   }
 
-  static void init() {}
+  static void init() {
+  }
 
 
   public final long id;
@@ -341,13 +340,13 @@ public class Account {
   }
 
   public long getAssetBalanceQNT(long assetId) {
-    BurstKey newKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    BurstKey newKey = Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
     AccountAsset accountAsset = accountAssetTable().get(newKey);
     return accountAsset == null ? 0 : accountAsset.quantityQNT;
   }
 
   public long getUnconfirmedAssetBalanceQNT(long assetId) {
-    BurstKey newKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    BurstKey newKey = Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
     AccountAsset accountAsset = accountAssetTable().get(newKey);
     return accountAsset == null ? 0 : accountAsset.unconfirmedQuantityQNT;
   }
@@ -358,8 +357,8 @@ public class Account {
 
   public static RewardRecipientAssignment getRewardRecipientAssignment(Long id) {
     return rewardRecipientAssignmentTable().get(
-                                              Burst.getStores().getAccountStore().getRewardRecipientAssignmentKeyFactory().newKey(id)
-                                              );
+        Burst.getStores().getAccountStore().getRewardRecipientAssignmentKeyFactory().newKey(id)
+    );
   }
 
   public void setRewardRecipientAssignment(Long recipient) {
@@ -369,21 +368,15 @@ public class Account {
   public static void setRewardRecipientAssignment(Long id, Long recipient) {
     int currentHeight = Burst.getBlockchain().getLastBlock().getHeight();
     RewardRecipientAssignment assignment = getRewardRecipientAssignment(id);
-    if(assignment == null) {
-      BurstKey burstKey =     Burst.getStores().getAccountStore().getRewardRecipientAssignmentKeyFactory().newKey(id);
+    if (assignment == null) {
+      BurstKey burstKey = Burst.getStores().getAccountStore().getRewardRecipientAssignmentKeyFactory().newKey(id);
       assignment = new RewardRecipientAssignment(id, id, recipient, (int) (currentHeight + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME), burstKey);
-    }
-    else {
+    } else {
       assignment.setRecipient(recipient, (int) (currentHeight + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_WAIT_TIME));
     }
     rewardRecipientAssignmentTable().insert(assignment);
   }
 
-
-
-  public static BurstIterator<RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
-    return Burst.getStores().getAccountStore().getAccountsWithRewardRecipient(recipientId);
-  }
 
   // returns true iff:
   // this.publicKey is set to null (in which case this.publicKey also gets set to key)
@@ -394,12 +387,12 @@ public class Account {
   }
 
   void apply(byte[] key, int height) {
-    if (! setOrVerify(key, this.creationHeight)) {
+    if (!setOrVerify(key, this.creationHeight)) {
       throw new IllegalStateException("Public key mismatch");
     }
     if (this.publicKey == null) {
       throw new IllegalStateException("Public key has not been set for account " + Convert.toUnsignedLong(id)
-                                      +" at height " + height + ", key height is " + keyHeight);
+          + " at height " + height + ", key height is " + keyHeight);
     }
     if (this.keyHeight == -1 || this.keyHeight > height) {
       this.keyHeight = height;
@@ -413,7 +406,7 @@ public class Account {
     }
     AccountAsset accountAsset;
 
-    BurstKey newKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    BurstKey newKey = Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
     accountAsset = accountAssetTable().get(newKey);
     long assetBalance = accountAsset == null ? 0 : accountAsset.quantityQNT;
     assetBalance = Convert.safeAdd(assetBalance, quantityQNT);
@@ -432,7 +425,7 @@ public class Account {
       return;
     }
     AccountAsset accountAsset;
-    BurstKey newKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    BurstKey newKey = Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
     accountAsset = accountAssetTable().get(newKey);
     long unconfirmedAssetBalance = accountAsset == null ? 0 : accountAsset.unconfirmedQuantityQNT;
     unconfirmedAssetBalance = Convert.safeAdd(unconfirmedAssetBalance, quantityQNT);
@@ -451,7 +444,7 @@ public class Account {
       return;
     }
     AccountAsset accountAsset;
-    BurstKey newKey =  Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
+    BurstKey newKey = Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
     accountAsset = accountAssetTable().get(newKey);
     long assetBalance = accountAsset == null ? 0 : accountAsset.quantityQNT;
     assetBalance = Convert.safeAdd(assetBalance, quantityQNT);

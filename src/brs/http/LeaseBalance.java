@@ -2,7 +2,10 @@ package brs.http;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Blockchain;
 import brs.BurstException;
+import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -11,19 +14,22 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.INCORRECT_PERIOD;
 import static brs.http.JSONResponses.MISSING_PERIOD;
+import static brs.http.common.Parameters.PERIOD_PARAMETER;
+import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
 
 public final class LeaseBalance extends CreateTransaction {
 
-  static final LeaseBalance instance = new LeaseBalance();
+  private final ParameterService parameterService;
 
-  private LeaseBalance() {
-    super(new APITag[] {APITag.FORGING}, "period", "recipient");
+  LeaseBalance(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.FORGING}, parameterService, transactionProcessor, blockchain, PERIOD_PARAMETER, RECIPIENT_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    String periodString = Convert.emptyToNull(req.getParameter("period"));
+    String periodString = Convert.emptyToNull(req.getParameter(PERIOD_PARAMETER));
     if (periodString == null) {
       return MISSING_PERIOD;
     }
@@ -37,7 +43,7 @@ public final class LeaseBalance extends CreateTransaction {
       return INCORRECT_PERIOD;
     }
 
-    Account account = ParameterParser.getSenderAccount(req);
+    Account account = parameterService.getSenderAccount(req);
     long recipient = ParameterParser.getRecipientId(req);
     Account recipientAccount = Account.getAccount(recipient);
     if (recipientAccount == null || recipientAccount.getPublicKey() == null) {

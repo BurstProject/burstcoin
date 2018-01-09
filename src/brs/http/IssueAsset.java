@@ -1,22 +1,33 @@
 package brs.http;
 
+import static brs.http.JSONResponses.INCORRECT_ASSET_DESCRIPTION;
+import static brs.http.JSONResponses.INCORRECT_ASSET_NAME;
+import static brs.http.JSONResponses.INCORRECT_ASSET_NAME_LENGTH;
+import static brs.http.JSONResponses.INCORRECT_DECIMALS;
+import static brs.http.JSONResponses.MISSING_NAME;
+import static brs.http.common.Parameters.DECIMALS_PARAMETER;
+import static brs.http.common.Parameters.DESCRIPTION_PARAMETER;
+import static brs.http.common.Parameters.NAME_PARAMETER;
+import static brs.http.common.Parameters.QUANTITY_NQT_PARAMETER;
+
 import brs.Account;
 import brs.Attachment;
-import brs.Constants;
+import brs.Blockchain;
 import brs.BurstException;
+import brs.Constants;
+import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import brs.util.Convert;
-import org.json.simple.JSONStreamAware;
-
 import javax.servlet.http.HttpServletRequest;
-
-import static brs.http.JSONResponses.*;
+import org.json.simple.JSONStreamAware;
 
 public final class IssueAsset extends CreateTransaction {
 
-  static final IssueAsset instance = new IssueAsset();
+  private final ParameterService parameterService;
 
-  private IssueAsset() {
-    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, "name", "description", "quantityQNT", "decimals");
+  IssueAsset(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, NAME_PARAMETER, DESCRIPTION_PARAMETER, QUANTITY_NQT_PARAMETER, DECIMALS_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
@@ -58,7 +69,7 @@ public final class IssueAsset extends CreateTransaction {
     }
 
     long quantityQNT = ParameterParser.getQuantityQNT(req);
-    Account account = ParameterParser.getSenderAccount(req);
+    Account account = parameterService.getSenderAccount(req);
     Attachment attachment = new Attachment.ColoredCoinsAssetIssuance(name, description, quantityQNT, decimals);
     return createTransaction(req, account, attachment);
 

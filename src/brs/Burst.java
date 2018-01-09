@@ -1,5 +1,14 @@
 package brs;
 
+import brs.http.APIServlet;
+import brs.services.AccountService;
+import brs.services.AliasService;
+import brs.services.AssetService;
+import brs.services.ParameterService;
+import brs.services.impl.AccountServiceImpl;
+import brs.services.impl.AliasServiceImpl;
+import brs.services.impl.AssetServiceImpl;
+import brs.services.impl.ParameterServiceImpl;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.github.gquintana.metrics.util.SqlObjectNameFactory;
@@ -211,6 +220,14 @@ public final class Burst {
 
   public static void init() {
     Init.init();
+
+    AccountService accountService = new AccountServiceImpl(stores.getAccountStore().getAccountTable(), stores.getAccountStore().getAccountKeyFactory());
+    AliasService aliasService = new AliasServiceImpl(stores.getAliasStore().getAliasTable(), stores.getAliasStore().getAliasDbKeyFactory());
+    AssetService assetService = new AssetServiceImpl(stores.getAssetStore().getAssetTable(), stores.getAssetStore().getAssetDbKeyFactory());
+
+    ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService);
+
+    APIServlet.injectServices(getTransactionProcessor(), getBlockchain(), getBlockchainProcessor(), parameterService, accountService);
   }
 
   public static void shutdown() {
