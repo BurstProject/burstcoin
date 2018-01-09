@@ -1,6 +1,9 @@
 package brs.http;
 
+import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
+
 import brs.Block;
+import brs.Blockchain;
 import brs.EconomicClustering;
 import brs.Burst;
 import brs.BurstException;
@@ -11,10 +14,11 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetECBlock extends APIServlet.APIRequestHandler {
 
-  static final GetECBlock instance = new GetECBlock();
+  private final Blockchain blockchain;
 
-  private GetECBlock() {
-    super(new APITag[] {APITag.BLOCKS}, "timestamp");
+  GetECBlock(Blockchain blockchain) {
+    super(new APITag[] {APITag.BLOCKS}, TIMESTAMP_PARAMETER);
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -23,7 +27,7 @@ public final class GetECBlock extends APIServlet.APIRequestHandler {
     if (timestamp == 0) {
       timestamp = Burst.getEpochTime();
     }
-    if (timestamp < Burst.getBlockchain().getLastBlock().getTimestamp() - 15) {
+    if (timestamp < blockchain.getLastBlock().getTimestamp() - 15) {
       return JSONResponses.INCORRECT_TIMESTAMP;
     }
     Block ecBlock = EconomicClustering.getECBlock(timestamp);

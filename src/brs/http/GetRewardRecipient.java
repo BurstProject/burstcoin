@@ -1,6 +1,9 @@
 package brs.http;
 
+import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
+
 import brs.Account;
+import brs.Blockchain;
 import brs.Burst;
 import brs.BurstException;
 import brs.services.ParameterService;
@@ -12,10 +15,12 @@ import org.json.simple.JSONStreamAware;
 public final class GetRewardRecipient extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
-  GetRewardRecipient(ParameterService parameterService) {
-    super(new APITag[]{APITag.ACCOUNTS, APITag.MINING, APITag.INFO}, "account");
+  GetRewardRecipient(ParameterService parameterService, Blockchain blockchain) {
+    super(new APITag[]{APITag.ACCOUNTS, APITag.MINING, APITag.INFO}, ACCOUNT_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -24,7 +29,7 @@ public final class GetRewardRecipient extends APIServlet.APIRequestHandler {
 
     final Account account = parameterService.getAccount(req);
     Account.RewardRecipientAssignment assignment = account.getRewardRecipientAssignment();
-    long height = Burst.getBlockchain().getLastBlock().getHeight();
+    long height = blockchain.getLastBlock().getHeight();
     if (account == null || assignment == null) {
       response.put("rewardRecipient", Convert.toUnsignedLong(account.getId()));
     } else if (assignment.getFromHeight() > height + 1) {

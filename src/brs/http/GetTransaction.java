@@ -1,6 +1,6 @@
 package brs.http;
 
-import brs.Burst;
+import brs.Blockchain;
 import brs.Transaction;
 import brs.TransactionProcessor;
 import brs.util.Convert;
@@ -10,16 +10,17 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.FULL_HASH_PARAMETER;
-import static brs.http.common.Parameters.FULL_HASH_RESPONSE;
 import static brs.http.common.Parameters.TRANSACTION_PARAMETER;
 
 public final class GetTransaction extends APIServlet.APIRequestHandler {
 
   private final TransactionProcessor transactionProcessor;
+  private final Blockchain blockchain;
 
-  GetTransaction(TransactionProcessor transactionProcessor) {
+  GetTransaction(TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[] {APITag.TRANSACTIONS}, TRANSACTION_PARAMETER, FULL_HASH_PARAMETER);
     this.transactionProcessor = transactionProcessor;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -36,9 +37,9 @@ public final class GetTransaction extends APIServlet.APIRequestHandler {
     try {
       if (transactionIdString != null) {
         transactionId = Convert.parseUnsignedLong(transactionIdString);
-        transaction = Burst.getBlockchain().getTransaction(transactionId);
+        transaction = blockchain.getTransaction(transactionId);
       } else {
-        transaction = Burst.getBlockchain().getTransactionByFullHash(transactionFullHash);
+        transaction = blockchain.getTransactionByFullHash(transactionFullHash);
         if (transaction == null) {
           return UNKNOWN_TRANSACTION;
         }

@@ -8,7 +8,7 @@ import brs.services.ParameterService;
 import org.junit.Before;
 import org.junit.Test;
 
-public class CancelAskOrderTest extends AbstractCreateTransactionTest {
+public class CancelAskOrderTest {
 
   private CancelAskOrder t;
 

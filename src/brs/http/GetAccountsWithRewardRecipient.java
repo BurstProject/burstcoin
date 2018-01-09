@@ -32,7 +32,7 @@ public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestH
 		
     Account targetAccount = parameterService.getAccount(req);
 		
-    long height = Burst.getBlockchain().getLastBlock().getHeight();
+    // long height = Burst.getBlockchain().getLastBlock().getHeight();
 		
     JSONArray accounts = new JSONArray();
     /*for(Account account : Account.getAllAccounts()) {

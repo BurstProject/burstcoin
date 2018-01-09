@@ -30,7 +30,7 @@ public final class SendMoneySubscription extends CreateTransaction {
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     Account sender = parameterService.getSenderAccount(req);
     Long recipient = ParameterParser.getRecipientId(req);
-    Long amountNQT = parameterService.getAmountNQT(req);
+    Long amountNQT = ParameterParser.getAmountNQT(req);
 		
     int frequency;
     try {

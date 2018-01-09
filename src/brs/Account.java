@@ -335,9 +335,7 @@ public class Account {
     return Trade.getAccountTrades(this.id, from, to);
   }
 
-  public BurstIterator<AssetTransfer> getAssetTransfers(int from, int to) {
-    return AssetTransfer.getAccountAssetTransfers(this.id, from, to);
-  }
+
 
   public long getAssetBalanceQNT(long assetId) {
     BurstKey newKey = Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);

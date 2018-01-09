@@ -15,4 +15,7 @@ public class ResultFields {
   public static final String ERROR_RESPONSE = "error";
   public static final String ASK_ORDERS_RESPONSE = "askOrders";
   public static final String ASK_ORDER_IDS_RESPONSE = "askOrderIds";
+  public static final String BLOCKS_RESPONSE = "blocks";
+  public static final String DONE_RESPONSE = "done";
+  public static final String SCAN_TIME_RESPONSE = "scanTime";
 }
