@@ -548,10 +548,11 @@ final class MariadbDbVersion {
         apply("ALTER TABLE goods CHANGE COLUMN ID id BIGINT NOT NULL;");
       case 171:
         apply("ALTER TABLE account CHANGE COLUMN creation_HEIGHT creation_height INT NOT NULL;");
-        apply("ALTER TABLE alias_offer CHANGE COLUMN buyer_ID buyer_id BIGINT;");
       case 172:
-        apply("ALTER TABLE transaction CHANGE COLUMN referenced_transaction_full_hash referenced_transaction_fullhash VARBINARY(32);");
+        apply("ALTER TABLE alias_offer CHANGE COLUMN buyer_ID buyer_id BIGINT;");
       case 173:
+        apply("ALTER TABLE transaction CHANGE COLUMN referenced_transaction_full_hash referenced_transaction_fullhash VARBINARY(32);");
+      case 174:
         return;
       default:
         throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");

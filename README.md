@@ -30,7 +30,7 @@ installation for you.
 
 In the conf directory, copy brs-default.properties into a new file named brs.properties.
 
-Download and insall MariaDB https://mariadb.com/downloads/mariadb-tx
+Download and install MariaDB https://mariadb.com/downloads/mariadb-tx
 
 The MariaDb installation will ask to setup a password for the root user. 
 Add this password to the brs.properties file created above in the following section:
