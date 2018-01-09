@@ -13,6 +13,7 @@ import brs.BurstException;
 import brs.db.BurstIterator;
 import brs.db.sql.DbUtils;
 import brs.http.common.Parameters;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
@@ -23,10 +24,12 @@ import org.json.simple.JSONStreamAware;
 public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
+  private final AccountService accountService;
 
-  GetAssetTransfers(ParameterService parameterService) {
+  GetAssetTransfers(ParameterService parameterService, AccountService accountService) {
     super(new APITag[]{APITag.AE}, ASSET_PARAMETER, ACCOUNT_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER, INCLUDE_ASSET_INFO_PARAMETER);
     this.parameterService = parameterService;
+    this.accountService = accountService;
   }
 
   @Override
@@ -48,7 +51,7 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
         transfers = asset.getAssetTransfers(firstIndex, lastIndex);
       } else if (assetId == null) {
         Account account = parameterService.getAccount(req);
-        transfers = account.getAssetTransfers(firstIndex, lastIndex);
+        transfers = accountService.getAssetTransfers(account.getId(), firstIndex, lastIndex);
       } else {
         Asset asset = parameterService.getAsset(req);
         Account account = parameterService.getAccount(req);

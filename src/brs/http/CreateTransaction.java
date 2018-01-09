@@ -3,6 +3,7 @@ package brs.http;
 import brs.*;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
+import brs.http.common.Parameters;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
@@ -12,6 +13,13 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
 import static brs.http.JSONResponses.*;
+import static brs.http.common.Parameters.BROADCAST_PARAMETER;
+import static brs.http.common.Parameters.DEADLINE_PARAMETER;
+import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER;
+import static brs.http.common.Parameters.PUBLIC_KEY_PARAMETER;
+import static brs.http.common.Parameters.REFERENCED_TRANSACTION_FULL_HASH_PARAMETER;
+import static brs.http.common.Parameters.REFERENCED_TRANSACTION_PARAMETER;
+import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 
 abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
@@ -54,19 +62,22 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
                                           long amountNQT, Attachment attachment)
     throws BurstException {
     int blockchainHeight = blockchain.getHeight();
-    String deadlineValue = req.getParameter("deadline");
-    String referencedTransactionFullHash = Convert.emptyToNull(req.getParameter("referencedTransactionFullHash"));
-    String referencedTransactionId = Convert.emptyToNull(req.getParameter("referencedTransaction"));
-    String secretPhrase = Convert.emptyToNull(req.getParameter("secretPhrase"));
-    String publicKeyValue = Convert.emptyToNull(req.getParameter("publicKey"));
-    boolean broadcast = !"false".equalsIgnoreCase(req.getParameter("broadcast"));
+    String deadlineValue = req.getParameter(DEADLINE_PARAMETER);
+    String referencedTransactionFullHash = Convert.emptyToNull(req.getParameter(REFERENCED_TRANSACTION_FULL_HASH_PARAMETER));
+    String referencedTransactionId = Convert.emptyToNull(req.getParameter(REFERENCED_TRANSACTION_PARAMETER));
+    String secretPhrase = Convert.emptyToNull(req.getParameter(SECRET_PHRASE_PARAMETER));
+    String publicKeyValue = Convert.emptyToNull(req.getParameter(PUBLIC_KEY_PARAMETER));
+    boolean broadcast = !Parameters.isFalse(req.getParameter(BROADCAST_PARAMETER));
+
     Appendix.EncryptedMessage encryptedMessage = null;
+
     if (attachment.getTransactionType().hasRecipient()) {
       EncryptedData encryptedData = parameterService.getEncryptedMessage(req, Account.getAccount(recipientId));
       if (encryptedData != null) {
-        encryptedMessage = new Appendix.EncryptedMessage(encryptedData, !"false".equalsIgnoreCase(req.getParameter("messageToEncryptIsText")));
+        encryptedMessage = new Appendix.EncryptedMessage(encryptedData, !Parameters.isFalse(req.getParameter(MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER)));
       }
     }
+
     Appendix.EncryptToSelfMessage encryptToSelfMessage = null;
     EncryptedData encryptedToSelfData = parameterService.getEncryptToSelfMessage(req);
     if (encryptedToSelfData != null) {

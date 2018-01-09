@@ -33,12 +33,14 @@ import org.json.simple.JSONStreamAware;
 public final class CreateATProgram extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
   CreateATProgram(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[]{APITag.AT, APITag.CREATE_TRANSACTION},
         parameterService, transactionProcessor, blockchain, NAME_PARAMETER, DESCRIPTION_PARAMETER, CREATION_BYTES_PARAMETER, CODE_PARAMETER, DATA_PARAMETER, DPAGES_PARAMETER,
         CSPAGES_PARAMETER, USPAGES_PARAMETER, MIN_ACTIVATION_AMOUNT_NQT_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -104,7 +106,7 @@ public final class CreateATProgram extends CreateTransaction {
 
         ByteBuffer creation = ByteBuffer.allocate(creationLength);
         creation.order(ByteOrder.LITTLE_ENDIAN);
-        creation.putShort(AT_Constants.getInstance().AT_VERSION(Burst.getBlockchain().getHeight()));
+        creation.putShort(AT_Constants.getInstance().AT_VERSION(blockchain.getHeight()));
         creation.putShort((short) 0);
         creation.putShort((short) cpages);
         creation.putShort((short) dpages);

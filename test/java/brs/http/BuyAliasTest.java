@@ -7,10 +7,10 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import brs.Alias;
-import brs.Block;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.TransactionProcessor;
+import brs.services.AliasService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
@@ -29,14 +29,16 @@ public class BuyAliasTest {
   private ParameterService parameterServiceMock;
   private TransactionProcessor transactionProcessorMock;
   private Blockchain blockchain;
+  private AliasService aliasService;
 
   @Before
   public void init() {
     parameterServiceMock = mock(ParameterService.class);
     transactionProcessorMock = mock(TransactionProcessor.class);
     blockchain = mock(Blockchain.class);
+    aliasService = mock(AliasService.class);
 
-    t = new BuyAlias(parameterServiceMock, transactionProcessorMock, blockchain);
+    t = new BuyAlias(parameterServiceMock, transactionProcessorMock, blockchain, aliasService);
   }
 
   @Test

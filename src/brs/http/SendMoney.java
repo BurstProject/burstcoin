@@ -23,7 +23,7 @@ public final class SendMoney extends CreateTransaction {
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     long recipient = ParameterParser.getRecipientId(req);
-    long amountNQT = parameterService.getAmountNQT(req);
+    long amountNQT = ParameterParser.getAmountNQT(req);
     Account account = parameterService.getSenderAccount(req);
     return createTransaction(req, account, recipient, amountNQT);
   }

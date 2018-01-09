@@ -1,9 +1,14 @@
 package brs.http;
 
+import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
+import static brs.http.common.Parameters.INCLUDE_TRANSACTIONS_PARAMETER;
+import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+
 import brs.Block;
-import brs.Burst;
+import brs.Blockchain;
 import brs.BurstException;
 import brs.db.BurstIterator;
+import brs.http.common.Parameters;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -12,10 +17,11 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetBlocks extends APIServlet.APIRequestHandler {
 
-  static final GetBlocks instance = new GetBlocks();
+  private final Blockchain blockchain;
 
-  private GetBlocks() {
-    super(new APITag[] {APITag.BLOCKS}, "firstIndex", "lastIndex", "includeTransactions");
+  GetBlocks(Blockchain blockchain) {
+    super(new APITag[] {APITag.BLOCKS}, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER, INCLUDE_TRANSACTIONS_PARAMETER);
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -27,10 +33,10 @@ public final class GetBlocks extends APIServlet.APIRequestHandler {
       lastIndex = firstIndex + 99;
     }
 
-    boolean includeTransactions = "true".equalsIgnoreCase(req.getParameter("includeTransactions"));
+    boolean includeTransactions = Parameters.isTrue(req.getParameter(Parameters.INCLUDE_TRANSACTIONS_PARAMETER));
 
     JSONArray blocks = new JSONArray();
-    try (BurstIterator<? extends Block> iterator = Burst.getBlockchain().getBlocks(firstIndex, lastIndex)) {
+    try (BurstIterator<? extends Block> iterator = blockchain.getBlocks(firstIndex, lastIndex)) {
       while (iterator.hasNext()) {
         Block block = iterator.next();
         blocks.add(JSONData.block(block, includeTransactions));

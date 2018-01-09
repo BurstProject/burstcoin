@@ -1,5 +1,6 @@
 package brs.http;
 
+import static brs.http.JSONResponses.INCORRECT_AMOUNT;
 import static brs.http.JSONResponses.INCORRECT_ASSET_QUANTITY;
 import static brs.http.JSONResponses.INCORRECT_AT;
 import static brs.http.JSONResponses.INCORRECT_CREATION_BYTES;
@@ -11,6 +12,7 @@ import static brs.http.JSONResponses.INCORRECT_PURCHASE;
 import static brs.http.JSONResponses.INCORRECT_QUANTITY;
 import static brs.http.JSONResponses.INCORRECT_RECIPIENT;
 import static brs.http.JSONResponses.INCORRECT_TIMESTAMP;
+import static brs.http.JSONResponses.MISSING_AMOUNT;
 import static brs.http.JSONResponses.MISSING_AT;
 import static brs.http.JSONResponses.MISSING_FEE;
 import static brs.http.JSONResponses.MISSING_ORDER;
@@ -21,6 +23,7 @@ import static brs.http.JSONResponses.MISSING_RECIPIENT;
 import static brs.http.JSONResponses.MISSING_SECRET_PHRASE;
 import static brs.http.JSONResponses.MISSING_TRANSACTION_BYTES_OR_JSON;
 import static brs.http.JSONResponses.UNKNOWN_AT;
+import static brs.http.common.Parameters.AMOUNT_NQT_PARAMETER;
 import static brs.http.common.Parameters.AT_PARAMETER;
 import static brs.http.common.Parameters.BUYER_PARAMETER;
 import static brs.http.common.Parameters.CREATION_BYTES_PARAMETER;
@@ -327,4 +330,20 @@ final class ParameterParser {
     return ret;
   }
 
+  public static long getAmountNQT(HttpServletRequest req) throws ParameterException {
+    String amountValueNQT = Convert.emptyToNull(req.getParameter(AMOUNT_NQT_PARAMETER));
+    if (amountValueNQT == null) {
+      throw new ParameterException(MISSING_AMOUNT);
+    }
+    long amountNQT;
+    try {
+      amountNQT = Long.parseLong(amountValueNQT);
+    } catch (RuntimeException e) {
+      throw new ParameterException(INCORRECT_AMOUNT);
+    }
+    if (amountNQT <= 0 || amountNQT >= Constants.MAX_BALANCE_NQT) {
+      throw new ParameterException(INCORRECT_AMOUNT);
+    }
+    return amountNQT;
+  }
 }

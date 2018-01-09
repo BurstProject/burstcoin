@@ -161,24 +161,6 @@ public class ParameterServiceImpl implements ParameterService {
   }
 
   @Override
-  public long getAmountNQT(HttpServletRequest req) throws ParameterException {
-    String amountValueNQT = Convert.emptyToNull(req.getParameter(AMOUNT_NQT_PARAMETER));
-    if (amountValueNQT == null) {
-      throw new ParameterException(MISSING_AMOUNT);
-    }
-    long amountNQT;
-    try {
-      amountNQT = Long.parseLong(amountValueNQT);
-    } catch (RuntimeException e) {
-      throw new ParameterException(INCORRECT_AMOUNT);
-    }
-    if (amountNQT <= 0 || amountNQT >= Constants.MAX_BALANCE_NQT) {
-      throw new ParameterException(INCORRECT_AMOUNT);
-    }
-    return amountNQT;
-  }
-
-  @Override
   public Asset getAsset(HttpServletRequest req) throws ParameterException {
     String assetValue = Convert.emptyToNull(req.getParameter(ASSET_PARAMETER));
     if (assetValue == null) {

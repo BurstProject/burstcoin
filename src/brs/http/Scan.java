@@ -1,6 +1,15 @@
 package brs.http;
 
-import brs.Burst;
+import static brs.http.common.Parameters.HEIGHT_PARAMETER;
+import static brs.http.common.Parameters.NUM_BLOCKS_PARAMETER;
+import static brs.http.common.Parameters.VALIDATE_PARAMETER;
+import static brs.http.common.ResultFields.DONE_RESPONSE;
+import static brs.http.common.ResultFields.ERROR_RESPONSE;
+import static brs.http.common.ResultFields.SCAN_TIME_RESPONSE;
+
+import brs.Blockchain;
+import brs.BlockchainProcessor;
+import brs.http.common.Parameters;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -8,44 +17,47 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class Scan extends APIServlet.APIRequestHandler {
 
-  static final Scan instance = new Scan();
+  private final BlockchainProcessor blockchainProcessor;
+  private final Blockchain blockchain;
 
-  private Scan() {
-    super(new APITag[] {APITag.DEBUG}, "numBlocks", "height", "validate");
+  Scan(BlockchainProcessor blockchainProcessor, Blockchain blockchain) {
+    super(new APITag[] {APITag.DEBUG}, NUM_BLOCKS_PARAMETER, HEIGHT_PARAMETER, VALIDATE_PARAMETER);
+    this.blockchainProcessor = blockchainProcessor;
+    this.blockchain = blockchain;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) {
     JSONObject response = new JSONObject();
     try {
-      if ("true".equalsIgnoreCase(req.getParameter("validate"))) {
-        Burst.getBlockchainProcessor().validateAtNextScan();
+      if (Parameters.isTrue(req.getParameter(VALIDATE_PARAMETER))) {
+        blockchainProcessor.validateAtNextScan();
       }
       int numBlocks = 0;
       try {
-        numBlocks = Integer.parseInt(req.getParameter("numBlocks"));
+        numBlocks = Integer.parseInt(req.getParameter(NUM_BLOCKS_PARAMETER));
       } catch (NumberFormatException e) {}
       int height = -1;
       try {
-        height = Integer.parseInt(req.getParameter("height"));
+        height = Integer.parseInt(req.getParameter(HEIGHT_PARAMETER));
       } catch (NumberFormatException ignore) {}
       long start = System.currentTimeMillis();
       if (numBlocks > 0) {
-        Burst.getBlockchainProcessor().scan(Burst.getBlockchain().getHeight() - numBlocks + 1);
+        blockchainProcessor.scan(blockchain.getHeight() - numBlocks + 1);
       }
       else if (height >= 0) {
-        Burst.getBlockchainProcessor().scan(height);
+        blockchainProcessor.scan(height);
       }
       else {
-        response.put("error", "invalid numBlocks or height");
+        response.put(ERROR_RESPONSE, "invalid numBlocks or height");
         return response;
       }
       long end = System.currentTimeMillis();
-      response.put("done", true);
-      response.put("scanTime", (end - start)/1000);
+      response.put(DONE_RESPONSE, true);
+      response.put(SCAN_TIME_RESPONSE, (end - start)/1000);
     }
     catch (RuntimeException e) {
-      response.put("error", e.toString());
+      response.put(ERROR_RESPONSE, e.toString());
     }
     return response;
   }

@@ -20,8 +20,6 @@ public interface ParameterService {
 
   Alias getAlias(HttpServletRequest req) throws ParameterException;
 
-  long getAmountNQT(HttpServletRequest req) throws ParameterException;
-
   Asset getAsset(HttpServletRequest req) throws ParameterException;
 
   DigitalGoodsStore.Goods getGoods(HttpServletRequest req) throws ParameterException;

@@ -1,6 +1,6 @@
 package brs.http;
 
-import brs.Burst;
+import brs.Blockchain;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -9,13 +9,15 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.INCORRECT_HEIGHT;
 import static brs.http.JSONResponses.MISSING_HEIGHT;
+import static brs.http.common.Parameters.HEIGHT_PARAMETER;
 
 public final class GetBlockId extends APIServlet.APIRequestHandler {
 
-  static final GetBlockId instance = new GetBlockId();
+  private final Blockchain blockchain;
 
-  private GetBlockId() {
-    super(new APITag[] {APITag.BLOCKS}, "height");
+  GetBlockId(Blockchain blockchain) {
+    super(new APITag[] {APITag.BLOCKS}, HEIGHT_PARAMETER);
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -23,7 +25,7 @@ public final class GetBlockId extends APIServlet.APIRequestHandler {
 
     int height;
     try {
-      String heightValue = Convert.emptyToNull(req.getParameter("height"));
+      String heightValue = Convert.emptyToNull(req.getParameter(HEIGHT_PARAMETER));
       if (heightValue == null) {
         return MISSING_HEIGHT;
       }
@@ -34,7 +36,7 @@ public final class GetBlockId extends APIServlet.APIRequestHandler {
 
     try {
       JSONObject response = new JSONObject();
-      response.put("block", Convert.toUnsignedLong(Burst.getBlockchain().getBlockIdAtHeight(height)));
+      response.put("block", Convert.toUnsignedLong(blockchain.getBlockIdAtHeight(height)));
       return response;
     } catch (RuntimeException e) {
       return INCORRECT_HEIGHT;

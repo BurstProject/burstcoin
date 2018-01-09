@@ -2,6 +2,7 @@ package brs.services;
 
 import brs.Account;
 import brs.Account.RewardRecipientAssignment;
+import brs.AssetTransfer;
 import brs.db.BurstIterator;
 
 public interface AccountService {
@@ -11,6 +12,8 @@ public interface AccountService {
   Account getAccount(long id, int height);
 
   Account getAccount(byte[] publicKey);
+
+  BurstIterator<AssetTransfer> getAssetTransfers(long accountId, int from, int to);
 
   BurstIterator<RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId);
 }

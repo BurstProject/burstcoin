@@ -2,6 +2,7 @@ package brs.services.impl;
 
 import brs.Account;
 import brs.Account.RewardRecipientAssignment;
+import brs.AssetTransfer;
 import brs.Burst;
 import brs.crypto.Crypto;
 import brs.db.BurstIterator;
@@ -43,6 +44,11 @@ public class AccountServiceImpl implements AccountService {
     }
     throw new RuntimeException("DUPLICATE KEY for account " + Convert.toUnsignedLong(account.getId())
         + " existing key " + Convert.toHexString(account.getPublicKey()) + " new key " + Convert.toHexString(publicKey));
+  }
+
+  @Override
+  public BurstIterator<AssetTransfer> getAssetTransfers(long accountId, int from, int to) {
+    return AssetTransfer.getAccountAssetTransfers(accountId, from, to);
   }
 
   @Override
