@@ -27,7 +27,7 @@ public interface Attachment extends Appendix {
     }
 
     private AbstractAttachment(int version) {
-      super(version);
+      super((byte) version);
     }
 
     private AbstractAttachment() {}
