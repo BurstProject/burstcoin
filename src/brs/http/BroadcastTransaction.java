@@ -11,6 +11,7 @@ import static brs.http.common.ResultFields.TRANSACTION_RESPONSE;
 import brs.BurstException;
 import brs.Transaction;
 import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import brs.util.Convert;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,11 +24,13 @@ public final class BroadcastTransaction extends APIServlet.APIRequestHandler {
   private static final Logger logger = Logger.getLogger(BroadcastTransaction.class.getSimpleName());
 
   private final TransactionProcessor transactionProcessor;
+  private final ParameterService parameterService;
 
-  public BroadcastTransaction(TransactionProcessor transactionProcessor) {
+  public BroadcastTransaction(TransactionProcessor transactionProcessor, ParameterService parameterService) {
     super(new APITag[]{APITag.TRANSACTIONS}, TRANSACTION_BYTES_PARAMETER, TRANSACTION_JSON_PARAMETER);
 
     this.transactionProcessor = transactionProcessor;
+    this.parameterService = parameterService;
   }
 
   @Override
@@ -35,7 +38,7 @@ public final class BroadcastTransaction extends APIServlet.APIRequestHandler {
 
     String transactionBytes = Convert.emptyToNull(req.getParameter(TRANSACTION_BYTES_PARAMETER));
     String transactionJSON = Convert.emptyToNull(req.getParameter(TRANSACTION_JSON_PARAMETER));
-    Transaction transaction = ParameterParser.parseTransaction(transactionBytes, transactionJSON);
+    Transaction transaction = parameterService.parseTransaction(transactionBytes, transactionJSON);
     JSONObject response = new JSONObject();
     try {
       transaction.validate();

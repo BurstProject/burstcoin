@@ -1,10 +1,15 @@
 package brs.http;
 
+import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
+import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
+import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
+
 import brs.Account;
 import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.TransactionProcessor;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -16,8 +21,8 @@ public final class SetRewardRecipient extends CreateTransaction {
   private final ParameterService parameterService;
   private final Blockchain blockchain;
 	
-  public SetRewardRecipient(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
-    super(new APITag[] {APITag.ACCOUNTS, APITag.MINING, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, "recipient");
+  public SetRewardRecipient(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
+    super(new APITag[] {APITag.ACCOUNTS, APITag.MINING, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, RECIPIENT_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
   }
@@ -29,8 +34,8 @@ public final class SetRewardRecipient extends CreateTransaction {
     Account recipientAccount = Account.getAccount(recipient);
     if (recipientAccount == null || recipientAccount.getPublicKey() == null) {
       JSONObject response = new JSONObject();
-      response.put("errorCode", 8);
-      response.put("errorDescription", "recipient account does not have public key");
+      response.put(ERROR_CODE_RESPONSE, 8);
+      response.put(ERROR_DESCRIPTION_RESPONSE, "recipient account does not have public key");
       return response;
     }
     Attachment attachment = new Attachment.BurstMiningRewardRecipientAssignment(blockchain.getHeight());

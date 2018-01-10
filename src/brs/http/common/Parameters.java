@@ -90,6 +90,11 @@ public class Parameters {
   public static final String REFERENCED_TRANSACTION_FULL_HASH_PARAMETER = "referencedTransactionFullHash";
   public static final String REFERENCED_TRANSACTION_PARAMETER = "referencedTransaction";
   public static final String BROADCAST_PARAMETER = "broadcast";
+  public static final String RECIPIENT_PUBLIC_KEY_PARAMETER = "recipientPublicKey";
+  public static final String COMMENT_PARAMETER = "comment";
+  public static final String MESSAGE_IS_TEXT_PARAMETER = "messageIsText";
+  public static final String MESSAGE_PARAMETER = "message";
+  public static final String UNSIGNED_TRANSACTION_JSON_PARAMETER = "unsignedTransactionJSON";
 
 
   public static boolean isFalse(String text) {

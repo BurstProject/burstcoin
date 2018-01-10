@@ -42,30 +42,20 @@ import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 import static brs.http.common.Parameters.SELLER_PARAMETER;
 import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
-import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
-import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
 import brs.AT;
-import brs.Burst;
-import brs.BurstException;
 import brs.Constants;
 import brs.DigitalGoodsStore;
-import brs.Transaction;
 import brs.crypto.EncryptedData;
 import brs.http.common.Parameters;
 import brs.util.Convert;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 final class ParameterParser {
-
-  private static final Logger logger = LoggerFactory.getLogger(ParameterParser.class);
 
   static long getFeeNQT(HttpServletRequest req) throws ParameterException {
     String feeValueNQT = Convert.emptyToNull(req.getParameter(FEE_QT_PARAMETER));
@@ -257,36 +247,6 @@ final class ParameterParser {
     }
     return lastIndex;
   }
-
-  static Transaction parseTransaction(String transactionBytes, String transactionJSON) throws ParameterException {
-    if (transactionBytes == null && transactionJSON == null) {
-      throw new ParameterException(MISSING_TRANSACTION_BYTES_OR_JSON);
-    }
-    if (transactionBytes != null) {
-      try {
-        byte[] bytes = Convert.parseHexString(transactionBytes);
-        return Burst.getTransactionProcessor().parseTransaction(bytes);
-      } catch (BurstException.ValidationException | RuntimeException e) {
-        logger.debug(e.getMessage(), e);
-        JSONObject response = new JSONObject();
-        response.put(ERROR_CODE_RESPONSE, 4);
-        response.put(ERROR_DESCRIPTION_RESPONSE, "Incorrect transactionBytes: " + e.toString());
-        throw new ParameterException(response);
-      }
-    } else {
-      try {
-        JSONObject json = (JSONObject) JSONValue.parseWithException(transactionJSON);
-        return Burst.getTransactionProcessor().parseTransaction(json);
-      } catch (BurstException.ValidationException | RuntimeException | ParseException e) {
-        logger.debug(e.getMessage(), e);
-        JSONObject response = new JSONObject();
-        response.put(ERROR_CODE_RESPONSE, 4);
-        response.put(ERROR_DESCRIPTION_RESPONSE, "Incorrect transactionJSON: " + e.toString());
-        throw new ParameterException(response);
-      }
-    }
-  }
-
 
   private ParameterParser() {
   } // never
