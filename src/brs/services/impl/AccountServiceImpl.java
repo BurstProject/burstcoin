@@ -3,24 +3,29 @@ package brs.services.impl;
 import brs.Account;
 import brs.Account.RewardRecipientAssignment;
 import brs.AssetTransfer;
-import brs.Burst;
 import brs.crypto.Crypto;
 import brs.db.BurstIterator;
-import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedBatchEntityTable;
+import brs.db.store.AccountStore;
+import brs.db.store.AssetTransferStore;
 import brs.services.AccountService;
 import brs.util.Convert;
 import java.util.Arrays;
 
 public class AccountServiceImpl implements AccountService {
 
+  private final AccountStore accountStore;
   private final VersionedBatchEntityTable<Account> accountTable;
   private final LongKeyFactory<Account> accountBurstKeyFactory;
 
-  public AccountServiceImpl(VersionedBatchEntityTable<Account> accountTable, BurstKey.LongKeyFactory<Account> accountBurstKeyFactory) {
-    this.accountTable = accountTable;
-    this.accountBurstKeyFactory = accountBurstKeyFactory;
+  private final AssetTransferStore assetTransferStore;
+
+  public AccountServiceImpl(AccountStore accountStore, AssetTransferStore assetTransferStore) {
+    this.accountStore = accountStore;
+    this.accountTable = accountStore.getAccountTable();
+    this.accountBurstKeyFactory = accountStore.getAccountKeyFactory();
+    this.assetTransferStore = assetTransferStore;
   }
 
   @Override
@@ -35,25 +40,28 @@ public class AccountServiceImpl implements AccountService {
 
   @Override
   public Account getAccount(byte[] publicKey) {
-    Account account = accountTable.get(accountBurstKeyFactory.newKey(getId(publicKey)));
+    final Account account = accountTable.get(accountBurstKeyFactory.newKey(getId(publicKey)));
+
     if (account == null) {
       return null;
     }
+
     if (account.getPublicKey() == null || Arrays.equals(account.getPublicKey(), publicKey)) {
       return account;
     }
+
     throw new RuntimeException("DUPLICATE KEY for account " + Convert.toUnsignedLong(account.getId())
         + " existing key " + Convert.toHexString(account.getPublicKey()) + " new key " + Convert.toHexString(publicKey));
   }
 
   @Override
   public BurstIterator<AssetTransfer> getAssetTransfers(long accountId, int from, int to) {
-    return AssetTransfer.getAccountAssetTransfers(accountId, from, to);
+    return assetTransferStore.getAccountAssetTransfers(accountId, from, to);
   }
 
   @Override
   public BurstIterator<RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
-    return Burst.getStores().getAccountStore().getAccountsWithRewardRecipient(recipientId);
+    return accountStore.getAccountsWithRewardRecipient(recipientId);
   }
 
   public static long getId(byte[] publicKey) {

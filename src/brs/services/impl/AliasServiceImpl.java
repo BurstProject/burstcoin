@@ -3,9 +3,9 @@ package brs.services.impl;
 import brs.Alias;
 import brs.Alias.Offer;
 import brs.Burst;
-import brs.db.BurstIterator.ResultSetReader;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
+import brs.db.store.AliasStore;
 import brs.services.AliasService;
 
 public class AliasServiceImpl implements AliasService {
@@ -15,12 +15,11 @@ public class AliasServiceImpl implements AliasService {
   private final VersionedEntityTable<Offer> offerTable;
   private final BurstKey.LongKeyFactory<Offer> offerDbKeyFactory;
 
-  public AliasServiceImpl(VersionedEntityTable<Alias> aliasTable, BurstKey.LongKeyFactory<Alias> aliasDbKeyFactory,
-      VersionedEntityTable<Offer> offerTable, BurstKey.LongKeyFactory<Offer> offerDbKeyFactory) {
-    this.aliasTable = aliasTable;
-    this.aliasDbKeyFactory = aliasDbKeyFactory;
-    this.offerTable = offerTable;
-    this.offerDbKeyFactory = offerDbKeyFactory;
+  public AliasServiceImpl(AliasStore aliasStore) {
+    this.aliasTable = aliasStore.getAliasTable();
+    this.aliasDbKeyFactory = aliasStore.getAliasDbKeyFactory();
+    this.offerTable = aliasStore.getOfferTable();
+    this.offerDbKeyFactory = aliasStore.getOfferDbKeyFactory();
   }
 
   public Alias getAlias(String aliasName) {
