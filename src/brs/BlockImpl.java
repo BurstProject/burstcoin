@@ -1,5 +1,6 @@
 package brs;
 
+import java.beans.ConstructorProperties;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -7,9 +8,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.Optional;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -17,14 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import brs.crypto.Crypto;
+import brs.db.converter.BigIntegerConverter;
 import brs.peer.Peer;
 import brs.util.Convert;
-
-import javax.persistence.Entity;
-import javax.persistence.Column;
-import java.beans.ConstructorProperties;
-
-import brs.db.converter.BigIntegerConverter;
 
 @Entity
 public final class BlockImpl implements Block {
@@ -116,7 +115,8 @@ public final class BlockImpl implements Block {
     this.blockATs = blockATs;
   }
 
-  @ConstructorProperties({"version", "timestamp", "previous_block_id", "total_amount", "total_fee", "payload_length", "payload_hash", "generator_public_key", "generation_signature", "block_signature", "previous_block_hash", "cumulative_difficulty", "base_target", "next_block_id", "height", "id", "nonce", "ats"})
+  @ConstructorProperties({ "version", "timestamp", "previous_block_id", "total_amount", "total_fee", "payload_length", "payload_hash", "generator_public_key", "generation_signature", "block_signature", "previous_block_hash", "cumulative_difficulty", "base_target", "next_block_id", "height", "id",
+      "nonce", "ats" })
   public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget,
       Long nextBlockId, int height, Long id, long nonce, byte[] blockATs) throws BurstException.ValidationException {
 
@@ -312,7 +312,7 @@ public final class BlockImpl implements Block {
     }
     json.put("blockSignature", Convert.toHexString(blockSignature));
     JSONArray transactionsData = new JSONArray();
-    getTransactions().forEach(transaction ->  transactionsData.add(transaction.getJSONObject()));
+    getTransactions().forEach(transaction -> transactionsData.add(transaction.getJSONObject()));
     json.put("transactions", transactionsData);
     json.put("nonce", Convert.toUnsignedLong(nonce));
     json.put("blockATs", Convert.toHexString(blockATs));
@@ -474,7 +474,7 @@ public final class BlockImpl implements Block {
       try {
         // Pre-verify poc:
         if (scoopData == null) {
-          this.pocTime = Burst.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, getScoopNum());
+          this.pocTime = Burst.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, getScoopNum(), this.getHeight());
         } else {
           this.pocTime = Burst.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, scoopData);
         }
@@ -553,7 +553,7 @@ public final class BlockImpl implements Block {
         avgBaseTarget = avgBaseTarget.add(BigInteger.valueOf(itBlock.getBaseTarget()));
       } while (itBlock.getHeight() > this.height - 4);
       avgBaseTarget = avgBaseTarget.divide(BigInteger.valueOf(4));
-      long difTime = (long)this.timestamp - itBlock.getTimestamp();
+      long difTime = (long) this.timestamp - itBlock.getTimestamp();
 
       long curBaseTarget = avgBaseTarget.longValue();
       long newBaseTarget = BigInteger.valueOf(curBaseTarget).multiply(BigInteger.valueOf(difTime)).divide(BigInteger.valueOf(240L * 4)).longValue();
@@ -584,7 +584,7 @@ public final class BlockImpl implements Block {
         blockCounter++;
         avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter)).add(BigInteger.valueOf(itBlock.getBaseTarget()))).divide(BigInteger.valueOf(blockCounter + 1L));
       } while (blockCounter < 24);
-      long difTime = (long)this.timestamp - itBlock.getTimestamp();
+      long difTime = (long) this.timestamp - itBlock.getTimestamp();
       long targetTimespan = 24L * 4 * 60;
 
       if (difTime < targetTimespan / 2) {
