@@ -11,13 +11,12 @@ import static brs.http.common.Parameters.NAME_PARAMETER;
 import static brs.http.common.Parameters.QUANTITY_NQT_PARAMETER;
 
 import brs.Account;
-import brs.AssetTransfer;
 import brs.Attachment;
-import brs.Block;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.Constants;
 import brs.TransactionProcessor;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
@@ -28,8 +27,9 @@ public final class IssueAsset extends CreateTransaction {
   private final ParameterService parameterService;
   private final Blockchain blockchain;
 
-  IssueAsset(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
-    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, NAME_PARAMETER, DESCRIPTION_PARAMETER, QUANTITY_NQT_PARAMETER, DECIMALS_PARAMETER);
+  IssueAsset(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
+    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService,
+        NAME_PARAMETER, DESCRIPTION_PARAMETER, QUANTITY_NQT_PARAMETER, DECIMALS_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
   }

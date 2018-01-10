@@ -1,7 +1,16 @@
 package brs.http;
 
+import static brs.http.common.Parameters.TRANSACTION_BYTES_PARAMETER;
+import static brs.http.common.Parameters.TRANSACTION_JSON_PARAMETER;
+import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
+import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
+import static brs.http.common.ResultFields.ERROR_RESPONSE;
+import static brs.http.common.ResultFields.VALIDATE_RESPONSE;
+import static brs.http.common.ResultFields.VERIFY_RESPONSE;
+
 import brs.BurstException;
 import brs.Transaction;
+import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -14,29 +23,30 @@ public final class ParseTransaction extends APIServlet.APIRequestHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(ParseTransaction.class);
 
-  static final ParseTransaction instance = new ParseTransaction();
+  private final ParameterService parameterService;
 
-  private ParseTransaction() {
-    super(new APITag[] {APITag.TRANSACTIONS}, "transactionBytes", "transactionJSON");
+  ParseTransaction(ParameterService parameterService) {
+    super(new APITag[] {APITag.TRANSACTIONS}, TRANSACTION_BYTES_PARAMETER, TRANSACTION_JSON_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    String transactionBytes = Convert.emptyToNull(req.getParameter("transactionBytes"));
-    String transactionJSON = Convert.emptyToNull(req.getParameter("transactionJSON"));
-    Transaction transaction = ParameterParser.parseTransaction(transactionBytes, transactionJSON);
+    String transactionBytes = Convert.emptyToNull(req.getParameter(TRANSACTION_BYTES_PARAMETER));
+    String transactionJSON = Convert.emptyToNull(req.getParameter(TRANSACTION_JSON_PARAMETER));
+    Transaction transaction = parameterService.parseTransaction(transactionBytes, transactionJSON);
     JSONObject response = JSONData.unconfirmedTransaction(transaction);
     try {
       transaction.validate();
     } catch (BurstException.ValidationException|RuntimeException e) {
       logger.debug(e.getMessage(), e);
-      response.put("validate", false);
-      response.put("errorCode", 4);
-      response.put("errorDescription", "Invalid transaction: " + e.toString());
-      response.put("error", e.getMessage());
+      response.put(VALIDATE_RESPONSE, false);
+      response.put(ERROR_CODE_RESPONSE, 4);
+      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid transaction: " + e.toString());
+      response.put(ERROR_RESPONSE, e.getMessage());
     }
-    response.put("verify", transaction.verifySignature() && transaction.verifyPublicKey());
+    response.put(VERIFY_RESPONSE, transaction.verifySignature() && transaction.verifyPublicKey());
     return response;
   }
 

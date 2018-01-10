@@ -5,6 +5,7 @@ import brs.Alias;
 import brs.Asset;
 import brs.BurstException;
 import brs.DigitalGoodsStore;
+import brs.Transaction;
 import brs.crypto.EncryptedData;
 import brs.http.ParameterException;
 import java.util.List;
@@ -33,4 +34,6 @@ public interface ParameterService {
   int getNumberOfConfirmations(HttpServletRequest req) throws ParameterException;
 
   int getHeight(HttpServletRequest req) throws ParameterException;
+
+  Transaction parseTransaction(String transactionBytes, String transactionJSON) throws ParameterException;
 }

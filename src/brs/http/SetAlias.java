@@ -2,6 +2,7 @@ package brs.http;
 
 
 import brs.*;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
@@ -18,8 +19,8 @@ public final class SetAlias extends CreateTransaction {
   private final ParameterService parameterService;
   private final Blockchain blockchain;
 
-  public SetAlias(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
-    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ALIAS_NAME_PARAMETER, ALIAS_URI_PARAMETER);
+  public SetAlias(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
+    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, ALIAS_NAME_PARAMETER, ALIAS_URI_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
   }

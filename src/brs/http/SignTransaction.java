@@ -3,6 +3,7 @@ package brs.http;
 import brs.BurstException;
 import brs.Transaction;
 import brs.crypto.Crypto;
+import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -13,25 +14,37 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
 import static brs.http.JSONResponses.MISSING_SECRET_PHRASE;
+import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
+import static brs.http.common.Parameters.UNSIGNED_TRANSACTION_BYTES_PARAMETER;
+import static brs.http.common.Parameters.UNSIGNED_TRANSACTION_JSON_PARAMETER;
+import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
+import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
+import static brs.http.common.ResultFields.ERROR_RESPONSE;
+import static brs.http.common.ResultFields.FULL_HASH_RESPONSE;
+import static brs.http.common.ResultFields.SIGNATURE_HASH_RESPONSE;
+import static brs.http.common.ResultFields.TRANSACTION_BYTES_RESPONSE;
+import static brs.http.common.ResultFields.TRANSACTION_RESPONSE;
+import static brs.http.common.ResultFields.VERIFY_RESPONSE;
 
 public final class SignTransaction extends APIServlet.APIRequestHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(SignTransaction.class);
 
-  static final SignTransaction instance = new SignTransaction();
+  private final ParameterService parameterService;
 
-  private SignTransaction() {
-    super(new APITag[] {APITag.TRANSACTIONS}, "unsignedTransactionBytes", "unsignedTransactionJSON", "secretPhrase");
+  SignTransaction(ParameterService parameterService) {
+    super(new APITag[] {APITag.TRANSACTIONS}, UNSIGNED_TRANSACTION_BYTES_PARAMETER, UNSIGNED_TRANSACTION_JSON_PARAMETER, SECRET_PHRASE_PARAMETER);
+    this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    String transactionBytes = Convert.emptyToNull(req.getParameter("unsignedTransactionBytes"));
-    String transactionJSON = Convert.emptyToNull(req.getParameter("unsignedTransactionJSON"));
-    Transaction transaction = ParameterParser.parseTransaction(transactionBytes, transactionJSON);
+    String transactionBytes = Convert.emptyToNull(req.getParameter(UNSIGNED_TRANSACTION_BYTES_PARAMETER));
+    String transactionJSON = Convert.emptyToNull(req.getParameter(UNSIGNED_TRANSACTION_JSON_PARAMETER));
+    Transaction transaction = parameterService.parseTransaction(transactionBytes, transactionJSON);
 
-    String secretPhrase = Convert.emptyToNull(req.getParameter("secretPhrase"));
+    String secretPhrase = Convert.emptyToNull(req.getParameter(SECRET_PHRASE_PARAMETER));
     if (secretPhrase == null) {
       return MISSING_SECRET_PHRASE;
     }
@@ -40,26 +53,26 @@ public final class SignTransaction extends APIServlet.APIRequestHandler {
     try {
       transaction.validate();
       if (transaction.getSignature() != null) {
-        response.put("errorCode", 4);
-        response.put("errorDescription", "Incorrect unsigned transaction - already signed");
+        response.put(ERROR_CODE_RESPONSE, 4);
+        response.put(ERROR_DESCRIPTION_RESPONSE, "Incorrect unsigned transaction - already signed");
         return response;
       }
       if (! Arrays.equals(Crypto.getPublicKey(secretPhrase), transaction.getSenderPublicKey())) {
-        response.put("errorCode", 4);
-        response.put("errorDescription", "Secret phrase doesn't match transaction sender public key");
+        response.put(ERROR_CODE_RESPONSE, 4);
+        response.put(ERROR_DESCRIPTION_RESPONSE, "Secret phrase doesn't match transaction sender public key");
         return response;
       }
       transaction.sign(secretPhrase);
-      response.put("transaction", transaction.getStringId());
-      response.put("fullHash", transaction.getFullHash());
-      response.put("transactionBytes", Convert.toHexString(transaction.getBytes()));
-      response.put("signatureHash", Convert.toHexString(Crypto.sha256().digest(transaction.getSignature())));
-      response.put("verify", transaction.verifySignature() && transaction.verifyPublicKey());
+      response.put(TRANSACTION_RESPONSE, transaction.getStringId());
+      response.put(FULL_HASH_RESPONSE, transaction.getFullHash());
+      response.put(TRANSACTION_BYTES_RESPONSE, Convert.toHexString(transaction.getBytes()));
+      response.put(SIGNATURE_HASH_RESPONSE, Convert.toHexString(Crypto.sha256().digest(transaction.getSignature())));
+      response.put(VERIFY_RESPONSE, transaction.verifySignature() && transaction.verifyPublicKey());
     } catch (BurstException.ValidationException|RuntimeException e) {
       logger.debug(e.getMessage(), e);
-      response.put("errorCode", 4);
-      response.put("errorDescription", "Incorrect unsigned transaction: " + e.toString());
-      response.put("error", e.getMessage());
+      response.put(ERROR_CODE_RESPONSE, 4);
+      response.put(ERROR_DESCRIPTION_RESPONSE, "Incorrect unsigned transaction: " + e.toString());
+      response.put(ERROR_RESPONSE, e.getMessage());
       return response;
     }
     return response;
