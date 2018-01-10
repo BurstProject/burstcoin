@@ -14,10 +14,12 @@ import javax.servlet.http.HttpServletRequest;
 public final class SetRewardRecipient extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 	
   public SetRewardRecipient(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[] {APITag.ACCOUNTS, APITag.MINING, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, "recipient");
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 	
   @Override
@@ -31,7 +33,7 @@ public final class SetRewardRecipient extends CreateTransaction {
       response.put("errorDescription", "recipient account does not have public key");
       return response;
     }
-    Attachment attachment = new Attachment.BurstMiningRewardRecipientAssignment();
+    Attachment attachment = new Attachment.BurstMiningRewardRecipientAssignment(blockchain.getHeight());
     return createTransaction(req, account, recipient, 0, attachment);
   }
 

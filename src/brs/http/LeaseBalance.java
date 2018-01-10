@@ -16,14 +16,18 @@ import static brs.http.JSONResponses.INCORRECT_PERIOD;
 import static brs.http.JSONResponses.MISSING_PERIOD;
 import static brs.http.common.Parameters.PERIOD_PARAMETER;
 import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
+import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
+import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
 public final class LeaseBalance extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
   LeaseBalance(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[] {APITag.FORGING}, parameterService, transactionProcessor, blockchain, PERIOD_PARAMETER, RECIPIENT_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -48,11 +52,11 @@ public final class LeaseBalance extends CreateTransaction {
     Account recipientAccount = Account.getAccount(recipient);
     if (recipientAccount == null || recipientAccount.getPublicKey() == null) {
       JSONObject response = new JSONObject();
-      response.put("errorCode", 8);
-      response.put("errorDescription", "recipient account does not have public key");
+      response.put(ERROR_CODE_RESPONSE, 8);
+      response.put(ERROR_DESCRIPTION_RESPONSE, "recipient account does not have public key");
       return response;
     }
-    Attachment attachment = new Attachment.AccountControlEffectiveBalanceLeasing(period);
+    Attachment attachment = new Attachment.AccountControlEffectiveBalanceLeasing(period, blockchain.getHeight());
     return createTransaction(req, account, recipient, 0, attachment);
 
   }

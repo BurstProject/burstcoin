@@ -20,10 +20,12 @@ import javax.servlet.http.HttpServletRequest;
 public final class SendMoneySubscription extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 	
   public SendMoneySubscription(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER, FREQUENCY_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 	
   @Override
@@ -51,7 +53,7 @@ public final class SendMoneySubscription extends CreateTransaction {
       return response;
     }
 		
-    Attachment.AdvancedPaymentSubscriptionSubscribe attachment = new Attachment.AdvancedPaymentSubscriptionSubscribe(frequency);
+    Attachment.AdvancedPaymentSubscriptionSubscribe attachment = new Attachment.AdvancedPaymentSubscriptionSubscribe(frequency, blockchain.getHeight());
 		
     return createTransaction(req, sender, recipient, amountNQT, attachment);
   }

@@ -17,10 +17,12 @@ import static brs.http.common.Parameters.ORDER_PARAMETER;
 public final class CancelBidOrder extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
   public CancelBidOrder(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ORDER_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -31,7 +33,7 @@ public final class CancelBidOrder extends CreateTransaction {
     if (orderData == null || orderData.getAccountId() != account.getId()) {
       return UNKNOWN_ORDER;
     }
-    Attachment attachment = new Attachment.ColoredCoinsBidOrderCancellation(orderId);
+    Attachment attachment = new Attachment.ColoredCoinsBidOrderCancellation(orderId, blockchain.getHeight());
     return createTransaction(req, account, attachment);
   }
 

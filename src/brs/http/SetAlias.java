@@ -16,10 +16,12 @@ import static brs.http.common.Parameters.ALIAS_URI_PARAMETER;
 public final class SetAlias extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
   public SetAlias(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ALIAS_NAME_PARAMETER, ALIAS_URI_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -58,7 +60,7 @@ public final class SetAlias extends CreateTransaction {
       return response;
     }
 
-    Attachment attachment = new Attachment.MessagingAliasAssignment(aliasName, aliasURI);
+    Attachment attachment = new Attachment.MessagingAliasAssignment(aliasName, aliasURI, blockchain.getHeight());
     return createTransaction(req, account, attachment);
 
   }

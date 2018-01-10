@@ -19,10 +19,12 @@ import org.json.simple.JSONStreamAware;
 public final class SubscriptionCancel extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
   public SubscriptionCancel(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[]{APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, SUBSCRIPTION_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -63,7 +65,7 @@ public final class SubscriptionCancel extends CreateTransaction {
       return response;
     }
 
-    Attachment.AdvancedPaymentSubscriptionCancel attachment = new Attachment.AdvancedPaymentSubscriptionCancel(subscription.getId());
+    Attachment.AdvancedPaymentSubscriptionCancel attachment = new Attachment.AdvancedPaymentSubscriptionCancel(subscription.getId(), blockchain.getHeight());
 
     return createTransaction(req, sender, null, 0, attachment);
   }

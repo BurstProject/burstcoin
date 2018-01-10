@@ -20,10 +20,12 @@ import static brs.http.common.Parameters.QUANTITY_NQT_PARAMETER;
 public final class PlaceBidOrder extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
   PlaceBidOrder(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ASSET_PARAMETER, QUANTITY_NQT_PARAMETER, PRICE_NQT_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -43,7 +45,7 @@ public final class PlaceBidOrder extends CreateTransaction {
       return NOT_ENOUGH_FUNDS;
     }
 
-    Attachment attachment = new Attachment.ColoredCoinsBidOrderPlacement(asset.getId(), quantityQNT, priceNQT);
+    Attachment attachment = new Attachment.ColoredCoinsBidOrderPlacement(asset.getId(), quantityQNT, priceNQT, blockchain.getHeight());
     return createTransaction(req, account, attachment);
   }
 

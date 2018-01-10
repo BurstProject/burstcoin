@@ -17,10 +17,12 @@ import org.json.simple.JSONStreamAware;
 public final class DGSPriceChange extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
   DGSPriceChange(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, GOODS_PARAMETER, PRICE_NQT_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -31,7 +33,7 @@ public final class DGSPriceChange extends CreateTransaction {
     if (goods.isDelisted() || goods.getSellerId() != account.getId()) {
       return UNKNOWN_GOODS;
     }
-    Attachment attachment = new Attachment.DigitalGoodsPriceChange(goods.getId(), priceNQT);
+    Attachment attachment = new Attachment.DigitalGoodsPriceChange(goods.getId(), priceNQT, blockchain.getHeight());
     return createTransaction(req, account, attachment);
   }
 
