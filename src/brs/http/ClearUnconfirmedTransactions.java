@@ -1,7 +1,9 @@
 package brs.http;
 
+import static brs.http.common.ResultFields.DONE_RESPONSE;
+import static brs.http.common.ResultFields.ERROR_RESPONSE;
+
 import brs.TransactionProcessor;
-import brs.TransactionProcessorImpl;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -21,9 +23,9 @@ public final class ClearUnconfirmedTransactions extends APIServlet.APIRequestHan
     JSONObject response = new JSONObject();
     try {
       transactionProcessor.clearUnconfirmedTransactions();
-      response.put("done", true);
+      response.put(DONE_RESPONSE, true);
     } catch (RuntimeException e) {
-      response.put("error", e.toString());
+      response.put(ERROR_RESPONSE, e.toString());
     }
     return response;
   }

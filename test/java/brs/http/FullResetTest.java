@@ -2,11 +2,11 @@ package brs.http;
 
 import static brs.http.common.ResultFields.DONE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_RESPONSE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
+import brs.BlockchainProcessor;
 import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import javax.servlet.http.HttpServletRequest;
@@ -14,17 +14,17 @@ import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ClearUnconfirmedTransactionsTest {
+public class FullResetTest {
 
-  private ClearUnconfirmedTransactions t;
+  private FullReset t;
 
-  private TransactionProcessor transactionProcessorMock;
+  private BlockchainProcessor blockchainProcessor;
 
   @Before
   public void init() {
-    transactionProcessorMock = mock(TransactionProcessor.class);
+    blockchainProcessor = mock(BlockchainProcessor.class);
 
-    this.t = new ClearUnconfirmedTransactions(transactionProcessorMock);
+    this.t = new FullReset(blockchainProcessor);
   }
 
   @Test
@@ -40,7 +40,7 @@ public class ClearUnconfirmedTransactionsTest {
   public void processRequest_runtimeExceptionOccurs() {
     final HttpServletRequest req = QuickMocker.httpServletRequest();
 
-    doThrow(new RuntimeException("errorMessage")).when(transactionProcessorMock).clearUnconfirmedTransactions();
+    doThrow(new RuntimeException("errorMessage")).when(blockchainProcessor).fullReset();
 
     final JSONObject result = ((JSONObject) t.processRequest(req));
 
