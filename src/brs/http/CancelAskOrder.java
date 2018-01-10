@@ -16,10 +16,12 @@ import org.json.simple.JSONStreamAware;
 public final class CancelAskOrder extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
   public CancelAskOrder(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ORDER_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -30,7 +32,7 @@ public final class CancelAskOrder extends CreateTransaction {
     if (orderData == null || orderData.getAccountId() != account.getId()) {
       return UNKNOWN_ORDER;
     }
-    Attachment attachment = new Attachment.ColoredCoinsAskOrderCancellation(orderId);
+    Attachment attachment = new Attachment.ColoredCoinsAskOrderCancellation(orderId, blockchain.getHeight());
     return createTransaction(req, account, attachment);
   }
 

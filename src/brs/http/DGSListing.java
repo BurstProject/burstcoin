@@ -24,10 +24,12 @@ import org.json.simple.JSONStreamAware;
 public final class DGSListing extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
   DGSListing(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, NAME_PARAMETER, DESCRIPTION_PARAMETER, TAGS_PARAMETER, QUANTITY_PARAMETER, PRICE_NQT_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -56,7 +58,7 @@ public final class DGSListing extends CreateTransaction {
     }
 
     Account account = parameterService.getSenderAccount(req);
-    Attachment attachment = new Attachment.DigitalGoodsListing(name, description, tags, quantity, priceNQT);
+    Attachment attachment = new Attachment.DigitalGoodsListing(name, description, tags, quantity, priceNQT, blockchain.getHeight());
     return createTransaction(req, account, attachment);
 
   }

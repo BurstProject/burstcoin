@@ -74,14 +74,14 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
     if (attachment.getTransactionType().hasRecipient()) {
       EncryptedData encryptedData = parameterService.getEncryptedMessage(req, Account.getAccount(recipientId));
       if (encryptedData != null) {
-        encryptedMessage = new Appendix.EncryptedMessage(encryptedData, !Parameters.isFalse(req.getParameter(MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER)));
+        encryptedMessage = new Appendix.EncryptedMessage(encryptedData, !Parameters.isFalse(req.getParameter(MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER)), blockchainHeight);
       }
     }
 
     Appendix.EncryptToSelfMessage encryptToSelfMessage = null;
     EncryptedData encryptedToSelfData = parameterService.getEncryptToSelfMessage(req);
     if (encryptedToSelfData != null) {
-      encryptToSelfMessage = new Appendix.EncryptToSelfMessage(encryptedToSelfData, !"false".equalsIgnoreCase(req.getParameter("messageToEncryptToSelfIsText")));
+      encryptToSelfMessage = new Appendix.EncryptToSelfMessage(encryptedToSelfData, !"false".equalsIgnoreCase(req.getParameter("messageToEncryptToSelfIsText")), blockchainHeight);
     }
     Appendix.Message message = null;
     String messageValue = Convert.emptyToNull(req.getParameter("message"));
@@ -89,22 +89,22 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
       boolean messageIsText = blockchainHeight >= Constants.DIGITAL_GOODS_STORE_BLOCK
           && !"false".equalsIgnoreCase(req.getParameter("messageIsText"));
       try {
-        message = messageIsText ? new Appendix.Message(messageValue) : new Appendix.Message(Convert.parseHexString(messageValue));
+        message = messageIsText ? new Appendix.Message(messageValue, blockchainHeight) : new Appendix.Message(Convert.parseHexString(messageValue), blockchainHeight);
       } catch (RuntimeException e) {
         throw new ParameterException(INCORRECT_ARBITRARY_MESSAGE);
       }
     } else if (attachment instanceof Attachment.ColoredCoinsAssetTransfer && blockchainHeight >= Constants.DIGITAL_GOODS_STORE_BLOCK) {
       String commentValue = Convert.emptyToNull(req.getParameter("comment"));
       if (commentValue != null) {
-        message = new Appendix.Message(commentValue);
+        message = new Appendix.Message(commentValue, blockchainHeight);
       }
     } else if (attachment == Attachment.ARBITRARY_MESSAGE && blockchainHeight < Constants.DIGITAL_GOODS_STORE_BLOCK) {
-      message = new Appendix.Message(new byte[0]);
+      message = new Appendix.Message(new byte[0], blockchainHeight);
     }
     Appendix.PublicKeyAnnouncement publicKeyAnnouncement = null;
     String recipientPublicKey = Convert.emptyToNull(req.getParameter("recipientPublicKey"));
     if (recipientPublicKey != null && blockchainHeight >= Constants.DIGITAL_GOODS_STORE_BLOCK) {
-      publicKeyAnnouncement = new Appendix.PublicKeyAnnouncement(Convert.parseHexString(recipientPublicKey));
+      publicKeyAnnouncement = new Appendix.PublicKeyAnnouncement(Convert.parseHexString(recipientPublicKey), blockchainHeight);
     }
 
     if (secretPhrase == null && publicKeyValue == null) {

@@ -20,10 +20,12 @@ import java.util.ArrayList;
 public final class SendMoneyEscrow extends CreateTransaction {
 	
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 	
   SendMoneyEscrow(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER, ESCROW_DEADLINE_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 	
   @Override
@@ -118,7 +120,7 @@ public final class SendMoneyEscrow extends CreateTransaction {
       return response;
     }
 		
-    Attachment.AdvancedPaymentEscrowCreation attachment = new Attachment.AdvancedPaymentEscrowCreation(amountNQT, deadline.intValue(), deadlineAction, requiredSigners.intValue(), signers);
+    Attachment.AdvancedPaymentEscrowCreation attachment = new Attachment.AdvancedPaymentEscrowCreation(amountNQT, deadline.intValue(), deadlineAction, requiredSigners.intValue(), signers, blockchain.getHeight());
 		
     return createTransaction(req, sender, recipient, 0, attachment);
   }

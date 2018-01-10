@@ -151,7 +151,7 @@ public final class CreateATProgram extends CreateTransaction {
     }
 
     Account account = parameterService.getSenderAccount(req);
-    Attachment attachment = new Attachment.AutomatedTransactionsCreation(name, description, creationBytes);
+    Attachment attachment = new Attachment.AutomatedTransactionsCreation(name, description, creationBytes, blockchain.getHeight());
 
     System.out.println("AT " + name + " added succesfully ..");
     System.out.println();

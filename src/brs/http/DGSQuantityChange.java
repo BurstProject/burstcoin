@@ -21,11 +21,13 @@ import org.json.simple.JSONStreamAware;
 public final class DGSQuantityChange extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
   DGSQuantityChange(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, GOODS_PARAMETER, DELTA_QUALITY_PARAMETER);
 
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -51,7 +53,7 @@ public final class DGSQuantityChange extends CreateTransaction {
       return INCORRECT_DELTA_QUANTITY;
     }
 
-    Attachment attachment = new Attachment.DigitalGoodsQuantityChange(goods.getId(), deltaQuantity);
+    Attachment attachment = new Attachment.DigitalGoodsQuantityChange(goods.getId(), deltaQuantity, blockchain.getHeight());
     return createTransaction(req, account, attachment);
 
   }

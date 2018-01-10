@@ -21,10 +21,12 @@ import javax.servlet.http.HttpServletRequest;
 public final class EscrowSign extends CreateTransaction {
 	
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 	
   EscrowSign(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
     super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ESCROW_PARAMETER, DECISION_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 	
   @Override
@@ -80,7 +82,7 @@ public final class EscrowSign extends CreateTransaction {
       return response;
     }
 		
-    Attachment.AdvancedPaymentEscrowSign attachment = new Attachment.AdvancedPaymentEscrowSign(escrow.getId(), decision);
+    Attachment.AdvancedPaymentEscrowSign attachment = new Attachment.AdvancedPaymentEscrowSign(escrow.getId(), decision, blockchain.getHeight());
 		
     return createTransaction(req, sender, null, 0, attachment);
   }

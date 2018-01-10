@@ -202,8 +202,8 @@ public class Escrow {
 
 
 
-  public static void updateOnBlock(Block block) {
-    Burst.getStores().getEscrowStore().updateOnBlock(block);
+  public static void updateOnBlock(Block block, int blockchainHeight) {
+    Burst.getStores().getEscrowStore().updateOnBlock(block, blockchainHeight);
 
   }
 
@@ -356,30 +356,30 @@ public class Escrow {
     return DecisionType.UNDECIDED;
   }
 
-  public synchronized void doPayout(DecisionType result, Block block) {
+  public synchronized void doPayout(DecisionType result, Block block, int blockchainHeight) {
     switch(result) {
       case RELEASE:
         Account.getAccount(recipientId).addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
-        saveResultTransaction(block, id, recipientId, amountNQT, DecisionType.RELEASE);
+        saveResultTransaction(block, id, recipientId, amountNQT, DecisionType.RELEASE, blockchainHeight);
         break;
       case REFUND:
         Account.getAccount(senderId).addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
-        saveResultTransaction(block, id, senderId, amountNQT, DecisionType.REFUND);
+        saveResultTransaction(block, id, senderId, amountNQT, DecisionType.REFUND, blockchainHeight);
         break;
       case SPLIT:
         Long halfAmountNQT = amountNQT / 2;
         Account.getAccount(recipientId).addToBalanceAndUnconfirmedBalanceNQT(halfAmountNQT);
         Account.getAccount(senderId).addToBalanceAndUnconfirmedBalanceNQT(amountNQT - halfAmountNQT);
-        saveResultTransaction(block, id, recipientId, halfAmountNQT, DecisionType.SPLIT);
-        saveResultTransaction(block, id, senderId, amountNQT - halfAmountNQT, DecisionType.SPLIT);
+        saveResultTransaction(block, id, recipientId, halfAmountNQT, DecisionType.SPLIT, blockchainHeight);
+        saveResultTransaction(block, id, senderId, amountNQT - halfAmountNQT, DecisionType.SPLIT, blockchainHeight);
         break;
       default: // should never get here
         break;
     }
   }
 
-  private static void saveResultTransaction(Block block, Long escrowId, Long recipientId, Long amountNQT, DecisionType decision) {
-    Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentEscrowResult(escrowId, decision);
+  private static void saveResultTransaction(Block block, Long escrowId, Long recipientId, Long amountNQT, DecisionType decision, int blockchainHeight) {
+    Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentEscrowResult(escrowId, decision, blockchainHeight);
     TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte)1, Genesis.CREATOR_PUBLIC_KEY,
                                                                           amountNQT, 0L, block.getTimestamp(), (short)1440, attachment);
     builder.senderId(0L)
