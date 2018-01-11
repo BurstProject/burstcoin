@@ -6,6 +6,7 @@ import brs.Blockchain;
 import brs.Constants;
 import brs.BurstException;
 import brs.TransactionProcessor;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
@@ -20,10 +21,12 @@ import static brs.http.common.Parameters.NAME_PARAMETER;
 public final class SetAccountInfo extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
-  public SetAccountInfo(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
-    super(new APITag[] {APITag.ACCOUNTS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, NAME_PARAMETER, DESCRIPTION_PARAMETER);
+  public SetAccountInfo(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
+    super(new APITag[] {APITag.ACCOUNTS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, NAME_PARAMETER, DESCRIPTION_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -41,7 +44,7 @@ public final class SetAccountInfo extends CreateTransaction {
     }
 
     Account account = parameterService.getSenderAccount(req);
-    Attachment attachment = new Attachment.MessagingAccountInfo(name, description);
+    Attachment attachment = new Attachment.MessagingAccountInfo(name, description, blockchain.getHeight());
     return createTransaction(req, account, attachment);
 
   }

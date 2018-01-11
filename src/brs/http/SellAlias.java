@@ -1,6 +1,7 @@
 package brs.http;
 
 import brs.*;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
@@ -17,10 +18,13 @@ import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
 public final class SellAlias extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
-  SellAlias(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
-    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, ALIAS_PARAMETER, ALIAS_NAME_PARAMETER, RECIPIENT_PARAMETER, PRICE_NQT_PARAMETER);
+  SellAlias(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
+    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService,
+        ALIAS_PARAMETER, ALIAS_NAME_PARAMETER, RECIPIENT_PARAMETER, PRICE_NQT_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -59,7 +63,7 @@ public final class SellAlias extends CreateTransaction {
       return INCORRECT_ALIAS_OWNER;
     }
 
-    Attachment attachment = new Attachment.MessagingAliasSell(alias.getAliasName(), priceNQT);
+    Attachment attachment = new Attachment.MessagingAliasSell(alias.getAliasName(), priceNQT, blockchain.getHeight());
     return createTransaction(req, owner, recipientId, 0, attachment);
   }
 }

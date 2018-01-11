@@ -53,7 +53,7 @@ public final class AT extends AT_Machine_State {
 
             byte[] message = atTransaction.getMessage();
             if (message != null) {
-              builder.message(new Appendix.Message(message));
+              builder.message(new Appendix.Message(message, Burst.getBlockchain().getHeight()));
             }
 
             try {

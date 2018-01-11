@@ -83,6 +83,18 @@ public class Parameters {
   public static final String FULL_HASH_PARAMETER = "fullHash";
   public static final String ACCOUNT_ID_PARAMETER = "accountId";
   public static final String NUM_BLOCKS_PARAMETER = "numBlocks";
+  public static final String BLOCK_PARAMETER = "block";
+  public static final String INCLUDE_COUNTS_PARAMETER = "includeCounts";
+  public static final String VALIDATE_PARAMETER = "validate";
+  public static final String DEADLINE_PARAMETER = "deadline";
+  public static final String REFERENCED_TRANSACTION_FULL_HASH_PARAMETER = "referencedTransactionFullHash";
+  public static final String REFERENCED_TRANSACTION_PARAMETER = "referencedTransaction";
+  public static final String BROADCAST_PARAMETER = "broadcast";
+  public static final String RECIPIENT_PUBLIC_KEY_PARAMETER = "recipientPublicKey";
+  public static final String COMMENT_PARAMETER = "comment";
+  public static final String MESSAGE_IS_TEXT_PARAMETER = "messageIsText";
+  public static final String MESSAGE_PARAMETER = "message";
+  public static final String UNSIGNED_TRANSACTION_JSON_PARAMETER = "unsignedTransactionJSON";
 
 
   public static boolean isFalse(String text) {

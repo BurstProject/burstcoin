@@ -9,6 +9,7 @@ import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
 import brs.*;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
@@ -20,17 +21,19 @@ import java.util.ArrayList;
 public final class SendMoneyEscrow extends CreateTransaction {
 	
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 	
-  SendMoneyEscrow(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
-    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER, ESCROW_DEADLINE_PARAMETER);
+  SendMoneyEscrow(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
+    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER, ESCROW_DEADLINE_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 	
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     Account sender = parameterService.getSenderAccount(req);
     Long recipient = ParameterParser.getRecipientId(req);
-    Long amountNQT = parameterService.getAmountNQT(req);
+    Long amountNQT = ParameterParser.getAmountNQT(req);
     String signerString = Convert.emptyToNull(req.getParameter(SIGNERS_PARAMETER));
 		
     Long requiredSigners;
@@ -118,7 +121,7 @@ public final class SendMoneyEscrow extends CreateTransaction {
       return response;
     }
 		
-    Attachment.AdvancedPaymentEscrowCreation attachment = new Attachment.AdvancedPaymentEscrowCreation(amountNQT, deadline.intValue(), deadlineAction, requiredSigners.intValue(), signers);
+    Attachment.AdvancedPaymentEscrowCreation attachment = new Attachment.AdvancedPaymentEscrowCreation(amountNQT, deadline.intValue(), deadlineAction, requiredSigners.intValue(), signers, blockchain.getHeight());
 		
     return createTransaction(req, sender, recipient, 0, attachment);
   }

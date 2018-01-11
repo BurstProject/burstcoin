@@ -1,42 +1,49 @@
 package brs.http;
 
 import brs.Block;
+import brs.Blockchain;
 import brs.Burst;
+import brs.http.common.Parameters;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.*;
+import static brs.http.common.Parameters.BLOCK_PARAMETER;
+import static brs.http.common.Parameters.HEIGHT_PARAMETER;
+import static brs.http.common.Parameters.INCLUDE_TRANSACTIONS_PARAMETER;
+import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
 
 public final class GetBlock extends APIServlet.APIRequestHandler {
 
-  static final GetBlock instance = new GetBlock();
+  private final Blockchain blockchain;
 
-  private GetBlock() {
-    super(new APITag[] {APITag.BLOCKS}, "block", "height", "timestamp", "includeTransactions");
+  GetBlock(Blockchain blockchain) {
+    super(new APITag[] {APITag.BLOCKS}, BLOCK_PARAMETER, HEIGHT_PARAMETER, TIMESTAMP_PARAMETER, INCLUDE_TRANSACTIONS_PARAMETER);
+    this.blockchain = blockchain;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) {
 
     Block blockData;
-    String blockValue = Convert.emptyToNull(req.getParameter("block"));
-    String heightValue = Convert.emptyToNull(req.getParameter("height"));
-    String timestampValue = Convert.emptyToNull(req.getParameter("timestamp"));
+    String blockValue = Convert.emptyToNull(req.getParameter(BLOCK_PARAMETER));
+    String heightValue = Convert.emptyToNull(req.getParameter(HEIGHT_PARAMETER));
+    String timestampValue = Convert.emptyToNull(req.getParameter(TIMESTAMP_PARAMETER));
     if (blockValue != null) {
       try {
-        blockData = Burst.getBlockchain().getBlock(Convert.parseUnsignedLong(blockValue));
+        blockData = blockchain.getBlock(Convert.parseUnsignedLong(blockValue));
       } catch (RuntimeException e) {
         return INCORRECT_BLOCK;
       }
     } else if (heightValue != null) {
       try {
         int height = Integer.parseInt(heightValue);
-        if (height < 0 || height > Burst.getBlockchain().getHeight()) {
+        if (height < 0 || height > blockchain.getHeight()) {
           return INCORRECT_HEIGHT;
         }
-        blockData = Burst.getBlockchain().getBlockAtHeight(height);
+        blockData = blockchain.getBlockAtHeight(height);
       } catch (RuntimeException e) {
         return INCORRECT_HEIGHT;
       }
@@ -46,19 +53,19 @@ public final class GetBlock extends APIServlet.APIRequestHandler {
         if (timestamp < 0) {
           return INCORRECT_TIMESTAMP;
         }
-        blockData = Burst.getBlockchain().getLastBlock(timestamp);
+        blockData = blockchain.getLastBlock(timestamp);
       } catch (RuntimeException e) {
         return INCORRECT_TIMESTAMP;
       }
     } else {
-      blockData = Burst.getBlockchain().getLastBlock();
+      blockData = blockchain.getLastBlock();
     }
 
     if (blockData == null) {
       return UNKNOWN_BLOCK;
     }
 
-    boolean includeTransactions = "true".equalsIgnoreCase(req.getParameter("includeTransactions"));
+    boolean includeTransactions = Parameters.isTrue(req.getParameter(INCLUDE_TRANSACTIONS_PARAMETER));
 
     return JSONData.block(blockData, includeTransactions);
 

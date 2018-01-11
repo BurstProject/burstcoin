@@ -16,6 +16,7 @@ import brs.Blockchain;
 import brs.BurstException;
 import brs.Constants;
 import brs.TransactionProcessor;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
@@ -24,10 +25,13 @@ import org.json.simple.JSONStreamAware;
 public final class IssueAsset extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
-  IssueAsset(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
-    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, NAME_PARAMETER, DESCRIPTION_PARAMETER, QUANTITY_NQT_PARAMETER, DECIMALS_PARAMETER);
+  IssueAsset(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
+    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService,
+        NAME_PARAMETER, DESCRIPTION_PARAMETER, QUANTITY_NQT_PARAMETER, DECIMALS_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -70,7 +74,7 @@ public final class IssueAsset extends CreateTransaction {
 
     long quantityQNT = ParameterParser.getQuantityQNT(req);
     Account account = parameterService.getSenderAccount(req);
-    Attachment attachment = new Attachment.ColoredCoinsAssetIssuance(name, description, quantityQNT, decimals);
+    Attachment attachment = new Attachment.ColoredCoinsAssetIssuance(name, description, quantityQNT, decimals, blockchain.getHeight());
     return createTransaction(req, account, attachment);
 
   }

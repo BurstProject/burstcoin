@@ -17,34 +17,30 @@ import static org.mockito.Mockito.when;
 import brs.BurstException;
 import brs.Transaction;
 import brs.TransactionProcessor;
+import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ParameterParser.class})
 public class BroadcastTransactionTest {
 
   private BroadcastTransaction t;
 
   private TransactionProcessor transactionProcessorMock;
+  private ParameterService parameterServiceMock;
 
   @Before
   public void setUp() {
     this.transactionProcessorMock = mock(TransactionProcessor.class);
-    t = new BroadcastTransaction(transactionProcessorMock);
+    this.parameterServiceMock = mock(ParameterService.class);
+
+    t = new BroadcastTransaction(transactionProcessorMock, parameterServiceMock);
   }
 
   @Test
   public void processRequest() throws BurstException {
-    PowerMockito.mockStatic(ParameterParser.class);
-
     final String mockTransactionBytesParameter = "mockTransactionBytesParameter";
     final String mockTransactionJson = "mockTransactionJson";
 
@@ -60,7 +56,7 @@ public class BroadcastTransactionTest {
     when(req.getParameter(TRANSACTION_BYTES_PARAMETER)).thenReturn(mockTransactionBytesParameter);
     when(req.getParameter(TRANSACTION_JSON_PARAMETER)).thenReturn(mockTransactionJson);
 
-    when(ParameterParser.parseTransaction(eq(mockTransactionBytesParameter), eq(mockTransactionJson))).thenReturn(mockTransaction);
+    when(parameterServiceMock.parseTransaction(eq(mockTransactionBytesParameter), eq(mockTransactionJson))).thenReturn(mockTransaction);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
 
@@ -72,8 +68,6 @@ public class BroadcastTransactionTest {
 
   @Test
   public void processRequest_validationException() throws BurstException {
-    PowerMockito.mockStatic(ParameterParser.class);
-
     final String mockTransactionBytesParameter = "mockTransactionBytesParameter";
     final String mockTransactionJson = "mockTransactionJson";
 
@@ -83,7 +77,7 @@ public class BroadcastTransactionTest {
     when(req.getParameter(TRANSACTION_BYTES_PARAMETER)).thenReturn(mockTransactionBytesParameter);
     when(req.getParameter(TRANSACTION_JSON_PARAMETER)).thenReturn(mockTransactionJson);
 
-    when(ParameterParser.parseTransaction(eq(mockTransactionBytesParameter), eq(mockTransactionJson))).thenReturn(mockTransaction);
+    when(parameterServiceMock.parseTransaction(eq(mockTransactionBytesParameter), eq(mockTransactionJson))).thenReturn(mockTransaction);
 
     Mockito.doThrow(BurstException.NotCurrentlyValidException.class).when(mockTransaction).validate();
 

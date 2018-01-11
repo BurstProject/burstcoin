@@ -16,7 +16,7 @@ public interface Attachment extends Appendix {
 
   TransactionType getTransactionType();
 
-  abstract static class AbstractAttachment extends AbstractAppendix implements Attachment {
+  abstract class AbstractAttachment extends AbstractAppendix implements Attachment {
 
     private AbstractAttachment(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
@@ -26,11 +26,13 @@ public interface Attachment extends Appendix {
       super(attachmentData);
     }
 
-    private AbstractAttachment(int version) {
+    private AbstractAttachment(byte version) {
       super(version);
     }
 
-    private AbstractAttachment() {}
+    private AbstractAttachment(int blockchainHeight) {
+      super(blockchainHeight);
+    }
 
     @Override
     final void validate(Transaction transaction) throws BurstException.ValidationException {
@@ -44,10 +46,10 @@ public interface Attachment extends Appendix {
 
   }
 
-  abstract static class EmptyAttachment extends AbstractAttachment {
+  abstract class EmptyAttachment extends AbstractAttachment {
 
     private EmptyAttachment() {
-      super(0);
+      super((byte) 0);
     }
 
     @Override
@@ -70,7 +72,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public static final EmptyAttachment ORDINARY_PAYMENT = new EmptyAttachment() {
+  EmptyAttachment ORDINARY_PAYMENT = new EmptyAttachment() {
 
       @Override
       String getAppendixName() {
@@ -85,7 +87,7 @@ public interface Attachment extends Appendix {
     };
 
   // the message payload is in the Appendix
-  public static final EmptyAttachment ARBITRARY_MESSAGE = new EmptyAttachment() {
+  EmptyAttachment ARBITRARY_MESSAGE = new EmptyAttachment() {
 
       @Override
       String getAppendixName() {
@@ -99,7 +101,7 @@ public interface Attachment extends Appendix {
 
     };
 
-  public static final EmptyAttachment AT_PAYMENT = new EmptyAttachment() {
+  EmptyAttachment AT_PAYMENT = new EmptyAttachment() {
 
       @Override
       public TransactionType getTransactionType() {
@@ -114,7 +116,7 @@ public interface Attachment extends Appendix {
 
     };
 
-  public static final class MessagingAliasAssignment extends AbstractAttachment {
+  final class MessagingAliasAssignment extends AbstractAttachment {
 
     private final String aliasName;
     private final String aliasURI;
@@ -131,7 +133,8 @@ public interface Attachment extends Appendix {
       aliasURI = (Convert.nullToEmpty((String) attachmentData.get("uri"))).trim();
     }
 
-    public MessagingAliasAssignment(String aliasName, String aliasURI) {
+    public MessagingAliasAssignment(String aliasName, String aliasURI, int blockchainHeight) {
+      super(blockchainHeight);
       this.aliasName = aliasName.trim();
       this.aliasURI = aliasURI.trim();
     }
@@ -176,7 +179,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public static final class MessagingAliasSell extends AbstractAttachment {
+  final class MessagingAliasSell extends AbstractAttachment {
 
     private final String aliasName;
     private final long priceNQT;
@@ -193,7 +196,8 @@ public interface Attachment extends Appendix {
       this.priceNQT = Convert.parseLong(attachmentData.get("priceNQT"));
     }
 
-    public MessagingAliasSell(String aliasName, long priceNQT) {
+    public MessagingAliasSell(String aliasName, long priceNQT, int blockchainHeight) {
+      super(blockchainHeight);
       this.aliasName = aliasName;
       this.priceNQT = priceNQT;
     }
@@ -236,7 +240,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public static final class MessagingAliasBuy extends AbstractAttachment {
+  final class MessagingAliasBuy extends AbstractAttachment {
 
     private final String aliasName;
 
@@ -250,7 +254,8 @@ public interface Attachment extends Appendix {
       this.aliasName = Convert.nullToEmpty((String) attachmentData.get("alias"));
     }
 
-    public MessagingAliasBuy(String aliasName) {
+    public MessagingAliasBuy(String aliasName, int blockchainHeight) {
+      super(blockchainHeight);
       this.aliasName = aliasName;
     }
 
@@ -286,7 +291,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public static final class MessagingAccountInfo extends AbstractAttachment {
+  final class MessagingAccountInfo extends AbstractAttachment {
 
     private final String name;
     private final String description;
@@ -303,7 +308,8 @@ public interface Attachment extends Appendix {
       this.description = Convert.nullToEmpty((String) attachmentData.get("description"));
     }
 
-    public MessagingAccountInfo(String name, String description) {
+    public MessagingAccountInfo(String name, String description, int blockchainHeight) {
+      super(blockchainHeight);
       this.name = name;
       this.description = description;
     }
@@ -349,7 +355,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public static final class ColoredCoinsAssetIssuance extends AbstractAttachment {
+  final class ColoredCoinsAssetIssuance extends AbstractAttachment {
 
     private final String name;
     private final String description;
@@ -372,7 +378,8 @@ public interface Attachment extends Appendix {
       this.decimals = ((Long) attachmentData.get("decimals")).byteValue();
     }
 
-    public ColoredCoinsAssetIssuance(String name, String description, long quantityQNT, byte decimals) {
+    public ColoredCoinsAssetIssuance(String name, String description, long quantityQNT, byte decimals, int blockchainHeight) {
+      super(blockchainHeight);
       this.name = name;
       this.description = Convert.nullToEmpty(description);
       this.quantityQNT = quantityQNT;
@@ -431,7 +438,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public static final class ColoredCoinsAssetTransfer extends AbstractAttachment {
+  final class ColoredCoinsAssetTransfer extends AbstractAttachment {
 
     private final long assetId;
     private final long quantityQNT;
@@ -451,7 +458,8 @@ public interface Attachment extends Appendix {
       this.comment = getVersion() == 0 ? Convert.nullToEmpty((String) attachmentData.get("comment")) : null;
     }
 
-    public ColoredCoinsAssetTransfer(long assetId, long quantityQNT) {
+    public ColoredCoinsAssetTransfer(long assetId, long quantityQNT, int blockchainHeight) {
+      super(blockchainHeight);
       this.assetId = assetId;
       this.quantityQNT = quantityQNT;
       this.comment = null;
@@ -506,7 +514,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  abstract static class ColoredCoinsOrderPlacement extends AbstractAttachment {
+  abstract class ColoredCoinsOrderPlacement extends AbstractAttachment {
 
     private final long assetId;
     private final long quantityQNT;
@@ -526,7 +534,8 @@ public interface Attachment extends Appendix {
       this.priceNQT = Convert.parseLong(attachmentData.get("priceNQT"));
     }
 
-    private ColoredCoinsOrderPlacement(long assetId, long quantityQNT, long priceNQT) {
+    private ColoredCoinsOrderPlacement(long assetId, long quantityQNT, long priceNQT, int blockchainHeight) {
+      super(blockchainHeight);
       this.assetId = assetId;
       this.quantityQNT = quantityQNT;
       this.priceNQT = priceNQT;
@@ -564,7 +573,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public static final class ColoredCoinsAskOrderPlacement extends ColoredCoinsOrderPlacement {
+  final class ColoredCoinsAskOrderPlacement extends ColoredCoinsOrderPlacement {
 
     ColoredCoinsAskOrderPlacement(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
@@ -574,8 +583,8 @@ public interface Attachment extends Appendix {
       super(attachmentData);
     }
 
-    public ColoredCoinsAskOrderPlacement(long assetId, long quantityQNT, long priceNQT) {
-      super(assetId, quantityQNT, priceNQT);
+    public ColoredCoinsAskOrderPlacement(long assetId, long quantityQNT, long priceNQT, int blockchainHeight) {
+      super(assetId, quantityQNT, priceNQT, blockchainHeight);
     }
 
     @Override
@@ -590,7 +599,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public static final class ColoredCoinsBidOrderPlacement extends ColoredCoinsOrderPlacement {
+  final class ColoredCoinsBidOrderPlacement extends ColoredCoinsOrderPlacement {
 
     ColoredCoinsBidOrderPlacement(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
@@ -600,8 +609,8 @@ public interface Attachment extends Appendix {
       super(attachmentData);
     }
 
-    public ColoredCoinsBidOrderPlacement(long assetId, long quantityQNT, long priceNQT) {
-      super(assetId, quantityQNT, priceNQT);
+    public ColoredCoinsBidOrderPlacement(long assetId, long quantityQNT, long priceNQT, int blockchainHeight) {
+      super(assetId, quantityQNT, priceNQT, blockchainHeight);
     }
 
     @Override
@@ -616,7 +625,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  abstract static class ColoredCoinsOrderCancellation extends AbstractAttachment {
+  abstract class ColoredCoinsOrderCancellation extends AbstractAttachment {
 
     private final long orderId;
 
@@ -630,7 +639,8 @@ public interface Attachment extends Appendix {
       this.orderId = Convert.parseUnsignedLong((String) attachmentData.get("order"));
     }
 
-    private ColoredCoinsOrderCancellation(long orderId) {
+    private ColoredCoinsOrderCancellation(long orderId, int blockchainHeight) {
+      super(blockchainHeight);
       this.orderId = orderId;
     }
 
@@ -654,7 +664,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public static final class ColoredCoinsAskOrderCancellation extends ColoredCoinsOrderCancellation {
+  final class ColoredCoinsAskOrderCancellation extends ColoredCoinsOrderCancellation {
 
     ColoredCoinsAskOrderCancellation(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
@@ -664,8 +674,8 @@ public interface Attachment extends Appendix {
       super(attachmentData);
     }
 
-    public ColoredCoinsAskOrderCancellation(long orderId) {
-      super(orderId);
+    public ColoredCoinsAskOrderCancellation(long orderId, int blockchainHeight) {
+      super(orderId, blockchainHeight);
     }
 
     @Override
@@ -680,7 +690,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public static final class ColoredCoinsBidOrderCancellation extends ColoredCoinsOrderCancellation {
+  final class ColoredCoinsBidOrderCancellation extends ColoredCoinsOrderCancellation {
 
     ColoredCoinsBidOrderCancellation(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
@@ -690,8 +700,8 @@ public interface Attachment extends Appendix {
       super(attachmentData);
     }
 
-    public ColoredCoinsBidOrderCancellation(long orderId) {
-      super(orderId);
+    public ColoredCoinsBidOrderCancellation(long orderId, int blockchainHeight) {
+      super(orderId, blockchainHeight);
     }
 
     @Override
@@ -706,7 +716,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public static final class DigitalGoodsListing extends AbstractAttachment {
+  final class DigitalGoodsListing extends AbstractAttachment {
 
     private final String name;
     private final String description;
@@ -732,7 +742,8 @@ public interface Attachment extends Appendix {
       this.priceNQT = Convert.parseLong(attachmentData.get("priceNQT"));
     }
 
-    public DigitalGoodsListing(String name, String description, String tags, int quantity, long priceNQT) {
+    public DigitalGoodsListing(String name, String description, String tags, int quantity, long priceNQT, int blockchainHeight) {
+      super(blockchainHeight);
       this.name = name;
       this.description = description;
       this.tags = tags;
@@ -792,7 +803,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public static final class DigitalGoodsDelisting extends AbstractAttachment {
+  final class DigitalGoodsDelisting extends AbstractAttachment {
 
     private final long goodsId;
 
@@ -806,7 +817,8 @@ public interface Attachment extends Appendix {
       this.goodsId = Convert.parseUnsignedLong((String)attachmentData.get("goods"));
     }
 
-    public DigitalGoodsDelisting(long goodsId) {
+    public DigitalGoodsDelisting(long goodsId, int blockchainHeight) {
+      super(blockchainHeight);
       this.goodsId = goodsId;
     }
 
@@ -839,7 +851,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public static final class DigitalGoodsPriceChange extends AbstractAttachment {
+  final class DigitalGoodsPriceChange extends AbstractAttachment {
 
     private final long goodsId;
     private final long priceNQT;
@@ -856,7 +868,8 @@ public interface Attachment extends Appendix {
       this.priceNQT = Convert.parseLong(attachmentData.get("priceNQT"));
     }
 
-    public DigitalGoodsPriceChange(long goodsId, long priceNQT) {
+    public DigitalGoodsPriceChange(long goodsId, long priceNQT, int blockchainHeight) {
+      super(blockchainHeight);
       this.goodsId = goodsId;
       this.priceNQT = priceNQT;
     }
@@ -894,7 +907,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public static final class DigitalGoodsQuantityChange extends AbstractAttachment {
+  final class DigitalGoodsQuantityChange extends AbstractAttachment {
 
     private final long goodsId;
     private final int deltaQuantity;
@@ -911,7 +924,8 @@ public interface Attachment extends Appendix {
       this.deltaQuantity = ((Long)attachmentData.get("deltaQuantity")).intValue();
     }
 
-    public DigitalGoodsQuantityChange(long goodsId, int deltaQuantity) {
+    public DigitalGoodsQuantityChange(long goodsId, int deltaQuantity, int blockchainHeight) {
+      super(blockchainHeight);
       this.goodsId = goodsId;
       this.deltaQuantity = deltaQuantity;
     }
@@ -949,7 +963,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public static final class DigitalGoodsPurchase extends AbstractAttachment {
+  final class DigitalGoodsPurchase extends AbstractAttachment {
 
     private final long goodsId;
     private final int quantity;
@@ -972,7 +986,8 @@ public interface Attachment extends Appendix {
       this.deliveryDeadlineTimestamp = ((Long)attachmentData.get("deliveryDeadlineTimestamp")).intValue();
     }
 
-    public DigitalGoodsPurchase(long goodsId, int quantity, long priceNQT, int deliveryDeadlineTimestamp) {
+    public DigitalGoodsPurchase(long goodsId, int quantity, long priceNQT, int deliveryDeadlineTimestamp, int blockchainHeight) {
+      super(blockchainHeight);
       this.goodsId = goodsId;
       this.quantity = quantity;
       this.priceNQT = priceNQT;
@@ -1020,7 +1035,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public static final class DigitalGoodsDelivery extends AbstractAttachment {
+  final class DigitalGoodsDelivery extends AbstractAttachment {
 
     private final long purchaseId;
     private final EncryptedData goods;
@@ -1048,7 +1063,8 @@ public interface Attachment extends Appendix {
       this.goodsIsText = Boolean.TRUE.equals(attachmentData.get("goodsIsText"));
     }
 
-    public DigitalGoodsDelivery(long purchaseId, EncryptedData goods, boolean goodsIsText, long discountNQT) {
+    public DigitalGoodsDelivery(long purchaseId, EncryptedData goods, boolean goodsIsText, long discountNQT, int blockchainHeight) {
+      super(blockchainHeight);
       this.purchaseId = purchaseId;
       this.goods = goods;
       this.discountNQT = discountNQT;
@@ -1100,7 +1116,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public static final class DigitalGoodsFeedback extends AbstractAttachment {
+  final class DigitalGoodsFeedback extends AbstractAttachment {
 
     private final long purchaseId;
 
@@ -1114,7 +1130,8 @@ public interface Attachment extends Appendix {
       this.purchaseId = Convert.parseUnsignedLong((String)attachmentData.get("purchase"));
     }
 
-    public DigitalGoodsFeedback(long purchaseId) {
+    public DigitalGoodsFeedback(long purchaseId, int blockchainHeight) {
+      super(blockchainHeight);
       this.purchaseId = purchaseId;
     }
 
@@ -1147,7 +1164,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public static final class DigitalGoodsRefund extends AbstractAttachment {
+  final class DigitalGoodsRefund extends AbstractAttachment {
 
     private final long purchaseId;
     private final long refundNQT;
@@ -1164,7 +1181,8 @@ public interface Attachment extends Appendix {
       this.refundNQT = Convert.parseLong(attachmentData.get("refundNQT"));
     }
 
-    public DigitalGoodsRefund(long purchaseId, long refundNQT) {
+    public DigitalGoodsRefund(long purchaseId, long refundNQT, int blockchainHeight) {
+      super(blockchainHeight);
       this.purchaseId = purchaseId;
       this.refundNQT = refundNQT;
     }
@@ -1202,7 +1220,7 @@ public interface Attachment extends Appendix {
 
   }
 
-  public static final class AccountControlEffectiveBalanceLeasing extends AbstractAttachment {
+  final class AccountControlEffectiveBalanceLeasing extends AbstractAttachment {
 
     private final short period;
 
@@ -1216,7 +1234,8 @@ public interface Attachment extends Appendix {
       this.period = ((Long) attachmentData.get("period")).shortValue();
     }
 
-    public AccountControlEffectiveBalanceLeasing(short period) {
+    public AccountControlEffectiveBalanceLeasing(short period, int blockchainHeight) {
+      super(blockchainHeight);
       this.period = period;
     }
 
@@ -1250,7 +1269,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public static final class BurstMiningRewardRecipientAssignment extends AbstractAttachment {
+  final class BurstMiningRewardRecipientAssignment extends AbstractAttachment {
 
     BurstMiningRewardRecipientAssignment(ByteBuffer buffer, byte transactionVersion) {
       super(buffer, transactionVersion);
@@ -1260,7 +1279,8 @@ public interface Attachment extends Appendix {
       super(attachmentData);
     }
 
-    public BurstMiningRewardRecipientAssignment() {
+    public BurstMiningRewardRecipientAssignment(int blockchainHeight) {
+      super(blockchainHeight);
     }
 
     @Override
@@ -1287,7 +1307,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public static final class AdvancedPaymentEscrowCreation extends AbstractAttachment {
+  final class AdvancedPaymentEscrowCreation extends AbstractAttachment {
 
     private final Long amountNQT;
     private final byte requiredSigners;
@@ -1332,7 +1352,8 @@ public interface Attachment extends Appendix {
     }
 
     public AdvancedPaymentEscrowCreation(Long amountNQT, int deadline, Escrow.DecisionType deadlineAction,
-                                         int requiredSigners, Collection<Long> signers) throws BurstException.NotValidException {
+                                         int requiredSigners, Collection<Long> signers, int blockchainHeight) throws BurstException.NotValidException {
+      super(blockchainHeight);
       this.amountNQT = amountNQT;
       this.deadline = deadline;
       this.deadlineAction = deadlineAction;
@@ -1400,7 +1421,7 @@ public interface Attachment extends Appendix {
     public int getTotalSigners() { return signers.size(); }
   }
 
-  public static final class AdvancedPaymentEscrowSign extends AbstractAttachment {
+  final class AdvancedPaymentEscrowSign extends AbstractAttachment {
 
     private final Long escrowId;
     private final Escrow.DecisionType decision;
@@ -1417,7 +1438,8 @@ public interface Attachment extends Appendix {
       this.decision = Escrow.stringToDecision((String)attachmentData.get("decision"));
     }
 
-    public AdvancedPaymentEscrowSign(Long escrowId, Escrow.DecisionType decision) {
+    public AdvancedPaymentEscrowSign(Long escrowId, Escrow.DecisionType decision, int blockchainHeight) {
+      super(blockchainHeight);
       this.escrowId = escrowId;
       this.decision = decision;
     }
@@ -1454,7 +1476,7 @@ public interface Attachment extends Appendix {
     public Escrow.DecisionType getDecision() { return this.decision; }
   }
 
-  public static final class AdvancedPaymentEscrowResult extends AbstractAttachment {
+  final class AdvancedPaymentEscrowResult extends AbstractAttachment {
 
     private final Long escrowId;
     private final Escrow.DecisionType decision;
@@ -1471,7 +1493,8 @@ public interface Attachment extends Appendix {
       this.decision = Escrow.stringToDecision((String)attachmentData.get("decision"));
     }
 
-    public AdvancedPaymentEscrowResult(Long escrowId, Escrow.DecisionType decision) {
+    public AdvancedPaymentEscrowResult(Long escrowId, Escrow.DecisionType decision, int blockchainHeight) {
+      super(blockchainHeight);
       this.escrowId = escrowId;
       this.decision = decision;
     }
@@ -1504,7 +1527,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public static final class AdvancedPaymentSubscriptionSubscribe extends AbstractAttachment {
+  final class AdvancedPaymentSubscriptionSubscribe extends AbstractAttachment {
 
     private final Integer frequency;
 
@@ -1518,7 +1541,8 @@ public interface Attachment extends Appendix {
       this.frequency = ((Long)attachmentData.get("frequency")).intValue();
     }
 
-    public AdvancedPaymentSubscriptionSubscribe(int frequency) {
+    public AdvancedPaymentSubscriptionSubscribe(int frequency, int blockchainHeight) {
+      super(blockchainHeight);
       this.frequency = frequency;
     }
 
@@ -1550,7 +1574,7 @@ public interface Attachment extends Appendix {
     public Integer getFrequency() { return this.frequency; }
   }
 
-  public static final class AdvancedPaymentSubscriptionCancel extends AbstractAttachment {
+  final class AdvancedPaymentSubscriptionCancel extends AbstractAttachment {
 
     private final Long subscriptionId;
 
@@ -1564,7 +1588,8 @@ public interface Attachment extends Appendix {
       this.subscriptionId = Convert.parseUnsignedLong((String)attachmentData.get("subscriptionId"));
     }
 
-    public AdvancedPaymentSubscriptionCancel(Long subscriptionId) {
+    public AdvancedPaymentSubscriptionCancel(Long subscriptionId, int blockchainHeight) {
+      super(blockchainHeight);
       this.subscriptionId = subscriptionId;
     }
 
@@ -1596,7 +1621,7 @@ public interface Attachment extends Appendix {
     public Long getSubscriptionId() { return this.subscriptionId; }
   }
 
-  public static final class AdvancedPaymentSubscriptionPayment extends AbstractAttachment {
+  final class AdvancedPaymentSubscriptionPayment extends AbstractAttachment {
 
     private final Long subscriptionId;
 
@@ -1610,7 +1635,8 @@ public interface Attachment extends Appendix {
       this.subscriptionId = Convert.parseUnsignedLong((String) attachmentData.get("subscriptionId"));
     }
 
-    public AdvancedPaymentSubscriptionPayment(Long subscriptionId) {
+    public AdvancedPaymentSubscriptionPayment(Long subscriptionId, int blockchainHeight) {
+      super(blockchainHeight);
       this.subscriptionId = subscriptionId;
     }
 
@@ -1640,7 +1666,7 @@ public interface Attachment extends Appendix {
     }
   }
 
-  public static final class AutomatedTransactionsCreation extends AbstractAttachment{
+  final class AutomatedTransactionsCreation extends AbstractAttachment{
 
     private final String name;
     private final String description;
@@ -1670,8 +1696,8 @@ public interface Attachment extends Appendix {
 
     }
 
-    public AutomatedTransactionsCreation( String name, String description , byte[] creationBytes )
-    {
+    public AutomatedTransactionsCreation( String name, String description , byte[] creationBytes, int blockchainHeight) {
+      super(blockchainHeight);
       this.name = name;
       this.description = description;
       this.creationBytes = creationBytes;

@@ -1,5 +1,7 @@
 package brs.http;
 
+import static brs.http.common.Parameters.INCLUDE_COUNTS_PARAMETER;
+
 import brs.*;
 import brs.db.BurstIterator;
 import brs.peer.Peer;
@@ -11,10 +13,11 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetState extends APIServlet.APIRequestHandler {
 
-  static final GetState instance = new GetState();
+  private final Blockchain blockchain;
 
-  private GetState() {
-    super(new APITag[] {APITag.INFO}, "includeCounts");
+  GetState(Blockchain blockchain) {
+    super(new APITag[] {APITag.INFO}, INCLUDE_COUNTS_PARAMETER);
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -25,8 +28,8 @@ public final class GetState extends APIServlet.APIRequestHandler {
     response.put("application", Burst.APPLICATION);
     response.put("version", Burst.VERSION);
     response.put("time", Burst.getEpochTime());
-    response.put("lastBlock", Burst.getBlockchain().getLastBlock().getStringId());
-    response.put("cumulativeDifficulty", Burst.getBlockchain().getLastBlock().getCumulativeDifficulty().toString());
+    response.put("lastBlock", blockchain.getLastBlock().getStringId());
+    response.put("cumulativeDifficulty", blockchain.getLastBlock().getCumulativeDifficulty().toString());
 
 
     long totalEffectiveBalance = 0;

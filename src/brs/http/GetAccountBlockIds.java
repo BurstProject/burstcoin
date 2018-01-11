@@ -7,6 +7,7 @@ import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
 
 import brs.Account;
 import brs.Block;
+import brs.Blockchain;
 import brs.Burst;
 import brs.BurstException;
 import brs.db.BurstIterator;
@@ -20,10 +21,12 @@ import javax.servlet.http.HttpServletRequest;
 public final class GetAccountBlockIds extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
-  GetAccountBlockIds(ParameterService parameterService) {
+  GetAccountBlockIds(ParameterService parameterService, Blockchain blockchain) {
     super(new APITag[] {APITag.ACCOUNTS}, ACCOUNT_PARAMETER, TIMESTAMP_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -35,7 +38,7 @@ public final class GetAccountBlockIds extends APIServlet.APIRequestHandler {
     int lastIndex = ParameterParser.getLastIndex(req);
 
     JSONArray blockIds = new JSONArray();
-    try (BurstIterator<? extends Block> iterator = Burst.getBlockchain().getBlocks(account, timestamp, firstIndex, lastIndex)) {
+    try (BurstIterator<? extends Block> iterator = blockchain.getBlocks(account, timestamp, firstIndex, lastIndex)) {
       while (iterator.hasNext()) {
         Block block = iterator.next();
         blockIds.add(block.getStringId());

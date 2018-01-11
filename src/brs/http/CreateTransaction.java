@@ -3,6 +3,8 @@ package brs.http;
 import brs.*;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
+import brs.http.common.Parameters;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
@@ -12,20 +14,48 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
 import static brs.http.JSONResponses.*;
+import static brs.http.common.Parameters.BROADCAST_PARAMETER;
+import static brs.http.common.Parameters.COMMENT_PARAMETER;
+import static brs.http.common.Parameters.DEADLINE_PARAMETER;
+import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_DATA_PARAMETER;
+import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_NONCE_PARAMETER;
+import static brs.http.common.Parameters.ENCRYPT_TO_SELF_MESSAGE_DATA;
+import static brs.http.common.Parameters.ENCRYPT_TO_SELF_MESSAGE_NONCE;
+import static brs.http.common.Parameters.FEE_QT_PARAMETER;
+import static brs.http.common.Parameters.MESSAGE_IS_TEXT_PARAMETER;
+import static brs.http.common.Parameters.MESSAGE_PARAMETER;
+import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER;
+import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_PARAMETER;
+import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_TO_SELF_IS_TEXT_PARAMETER;
+import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_TO_SELF_PARAMETER;
+import static brs.http.common.Parameters.PUBLIC_KEY_PARAMETER;
+import static brs.http.common.Parameters.RECIPIENT_PUBLIC_KEY_PARAMETER;
+import static brs.http.common.Parameters.REFERENCED_TRANSACTION_FULL_HASH_PARAMETER;
+import static brs.http.common.Parameters.REFERENCED_TRANSACTION_PARAMETER;
+import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
+import static brs.http.common.ResultFields.BROADCASTED_RESPONSE;
+import static brs.http.common.ResultFields.ERROR_RESPONSE;
+import static brs.http.common.ResultFields.FULL_HASH_RESPONSE;
+import static brs.http.common.ResultFields.SIGNATURE_HASH_RESPONSE;
+import static brs.http.common.ResultFields.TRANSACTION_BYTES_RESPONSE;
+import static brs.http.common.ResultFields.TRANSACTION_JSON_RESPONSE;
+import static brs.http.common.ResultFields.TRANSACTION_RESPONSE;
+import static brs.http.common.ResultFields.UNSIGNED_TRANSACTION_BYTES_RESPONSE;
 
 abstract class CreateTransaction extends APIServlet.APIRequestHandler {
 
   private static final String[] commonParameters = new String[] {
-    "secretPhrase", "publicKey", "feeNQT",
-    "deadline", "referencedTransactionFullHash", "broadcast",
-    "message", "messageIsText",
-    "messageToEncrypt", "messageToEncryptIsText", "encryptedMessageData", "encryptedMessageNonce",
-    "messageToEncryptToSelf", "messageToEncryptToSelfIsText", "encryptToSelfMessageData", "encryptToSelfMessageNonce",
-    "recipientPublicKey"};
+    SECRET_PHRASE_PARAMETER, PUBLIC_KEY_PARAMETER, FEE_QT_PARAMETER,
+    DEADLINE_PARAMETER, REFERENCED_TRANSACTION_FULL_HASH_PARAMETER, BROADCAST_PARAMETER,
+    MESSAGE_PARAMETER, MESSAGE_IS_TEXT_PARAMETER,
+    MESSAGE_TO_ENCRYPT_PARAMETER, MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER, ENCRYPTED_MESSAGE_DATA_PARAMETER, ENCRYPTED_MESSAGE_NONCE_PARAMETER,
+    MESSAGE_TO_ENCRYPT_TO_SELF_PARAMETER, MESSAGE_TO_ENCRYPT_TO_SELF_IS_TEXT_PARAMETER, ENCRYPT_TO_SELF_MESSAGE_DATA, ENCRYPT_TO_SELF_MESSAGE_NONCE,
+    RECIPIENT_PUBLIC_KEY_PARAMETER};
 
   private final ParameterService parameterService;
   private final TransactionProcessor transactionProcessor;
   private final Blockchain blockchain;
+  private final AccountService accountService;
 
   private static String[] addCommonParameters(String[] parameters) {
     String[] result = Arrays.copyOf(parameters, parameters.length + commonParameters.length);
@@ -33,11 +63,13 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
     return result;
   }
 
-  CreateTransaction(APITag[] apiTags, ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, String... parameters) {
+  CreateTransaction(APITag[] apiTags, ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService,
+      String... parameters) {
     super(apiTags, addCommonParameters(parameters));
     this.parameterService = parameterService;
     this.transactionProcessor = transactionProcessor;
     this.blockchain = blockchain;
+    this.accountService = accountService;
   }
 
   final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment)
@@ -54,46 +86,49 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
                                           long amountNQT, Attachment attachment)
     throws BurstException {
     int blockchainHeight = blockchain.getHeight();
-    String deadlineValue = req.getParameter("deadline");
-    String referencedTransactionFullHash = Convert.emptyToNull(req.getParameter("referencedTransactionFullHash"));
-    String referencedTransactionId = Convert.emptyToNull(req.getParameter("referencedTransaction"));
-    String secretPhrase = Convert.emptyToNull(req.getParameter("secretPhrase"));
-    String publicKeyValue = Convert.emptyToNull(req.getParameter("publicKey"));
-    boolean broadcast = !"false".equalsIgnoreCase(req.getParameter("broadcast"));
+    String deadlineValue = req.getParameter(DEADLINE_PARAMETER);
+    String referencedTransactionFullHash = Convert.emptyToNull(req.getParameter(REFERENCED_TRANSACTION_FULL_HASH_PARAMETER));
+    String referencedTransactionId = Convert.emptyToNull(req.getParameter(REFERENCED_TRANSACTION_PARAMETER));
+    String secretPhrase = Convert.emptyToNull(req.getParameter(SECRET_PHRASE_PARAMETER));
+    String publicKeyValue = Convert.emptyToNull(req.getParameter(PUBLIC_KEY_PARAMETER));
+    boolean broadcast = !Parameters.isFalse(req.getParameter(BROADCAST_PARAMETER));
+
     Appendix.EncryptedMessage encryptedMessage = null;
+
     if (attachment.getTransactionType().hasRecipient()) {
-      EncryptedData encryptedData = parameterService.getEncryptedMessage(req, Account.getAccount(recipientId));
+      EncryptedData encryptedData = parameterService.getEncryptedMessage(req, accountService.getAccount(recipientId));
       if (encryptedData != null) {
-        encryptedMessage = new Appendix.EncryptedMessage(encryptedData, !"false".equalsIgnoreCase(req.getParameter("messageToEncryptIsText")));
+        encryptedMessage = new Appendix.EncryptedMessage(encryptedData, !Parameters.isFalse(req.getParameter(MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER)), blockchainHeight);
       }
     }
+
     Appendix.EncryptToSelfMessage encryptToSelfMessage = null;
     EncryptedData encryptedToSelfData = parameterService.getEncryptToSelfMessage(req);
     if (encryptedToSelfData != null) {
-      encryptToSelfMessage = new Appendix.EncryptToSelfMessage(encryptedToSelfData, !"false".equalsIgnoreCase(req.getParameter("messageToEncryptToSelfIsText")));
+      encryptToSelfMessage = new Appendix.EncryptToSelfMessage(encryptedToSelfData, !Parameters.isFalse(req.getParameter(MESSAGE_TO_ENCRYPT_TO_SELF_IS_TEXT_PARAMETER)), blockchainHeight);
     }
     Appendix.Message message = null;
-    String messageValue = Convert.emptyToNull(req.getParameter("message"));
+    String messageValue = Convert.emptyToNull(req.getParameter(MESSAGE_PARAMETER));
     if (messageValue != null) {
       boolean messageIsText = blockchainHeight >= Constants.DIGITAL_GOODS_STORE_BLOCK
-          && !"false".equalsIgnoreCase(req.getParameter("messageIsText"));
+          && !Parameters.isFalse(req.getParameter(MESSAGE_IS_TEXT_PARAMETER));
       try {
-        message = messageIsText ? new Appendix.Message(messageValue) : new Appendix.Message(Convert.parseHexString(messageValue));
+        message = messageIsText ? new Appendix.Message(messageValue, blockchainHeight) : new Appendix.Message(Convert.parseHexString(messageValue), blockchainHeight);
       } catch (RuntimeException e) {
         throw new ParameterException(INCORRECT_ARBITRARY_MESSAGE);
       }
     } else if (attachment instanceof Attachment.ColoredCoinsAssetTransfer && blockchainHeight >= Constants.DIGITAL_GOODS_STORE_BLOCK) {
-      String commentValue = Convert.emptyToNull(req.getParameter("comment"));
+      String commentValue = Convert.emptyToNull(req.getParameter(COMMENT_PARAMETER));
       if (commentValue != null) {
-        message = new Appendix.Message(commentValue);
+        message = new Appendix.Message(commentValue, blockchainHeight);
       }
     } else if (attachment == Attachment.ARBITRARY_MESSAGE && blockchainHeight < Constants.DIGITAL_GOODS_STORE_BLOCK) {
-      message = new Appendix.Message(new byte[0]);
+      message = new Appendix.Message(new byte[0], blockchainHeight);
     }
     Appendix.PublicKeyAnnouncement publicKeyAnnouncement = null;
-    String recipientPublicKey = Convert.emptyToNull(req.getParameter("recipientPublicKey"));
+    String recipientPublicKey = Convert.emptyToNull(req.getParameter(RECIPIENT_PUBLIC_KEY_PARAMETER));
     if (recipientPublicKey != null && blockchainHeight >= Constants.DIGITAL_GOODS_STORE_BLOCK) {
-      publicKeyAnnouncement = new Appendix.PublicKeyAnnouncement(Convert.parseHexString(recipientPublicKey));
+      publicKeyAnnouncement = new Appendix.PublicKeyAnnouncement(Convert.parseHexString(recipientPublicKey), blockchainHeight);
     }
 
     if (secretPhrase == null && publicKeyValue == null) {
@@ -157,26 +192,26 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
       if (secretPhrase != null) {
         transaction.sign(secretPhrase);
         transaction.validate(); // 2nd validate may be needed if validation requires id to be known
-        response.put("transaction", transaction.getStringId());
-        response.put("fullHash", transaction.getFullHash());
-        response.put("transactionBytes", Convert.toHexString(transaction.getBytes()));
-        response.put("signatureHash", Convert.toHexString(Crypto.sha256().digest(transaction.getSignature())));
+        response.put(TRANSACTION_RESPONSE, transaction.getStringId());
+        response.put(FULL_HASH_RESPONSE, transaction.getFullHash());
+        response.put(TRANSACTION_BYTES_RESPONSE, Convert.toHexString(transaction.getBytes()));
+        response.put(SIGNATURE_HASH_RESPONSE, Convert.toHexString(Crypto.sha256().digest(transaction.getSignature())));
         if (broadcast) {
           transactionProcessor.broadcast(transaction);
-          response.put("broadcasted", true);
+          response.put(BROADCASTED_RESPONSE, true);
         } else {
-          response.put("broadcasted", false);
+          response.put(BROADCASTED_RESPONSE, false);
         }
       } else {
-        response.put("broadcasted", false);
+        response.put(BROADCASTED_RESPONSE, false);
       }
-      response.put("unsignedTransactionBytes", Convert.toHexString(transaction.getUnsignedBytes()));
-      response.put("transactionJSON", JSONData.unconfirmedTransaction(transaction));
+      response.put(UNSIGNED_TRANSACTION_BYTES_RESPONSE, Convert.toHexString(transaction.getUnsignedBytes()));
+      response.put(TRANSACTION_JSON_RESPONSE, JSONData.unconfirmedTransaction(transaction));
 
     } catch (BurstException.NotYetEnabledException e) {
       return FEATURE_NOT_AVAILABLE;
     } catch (BurstException.ValidationException e) {
-      response.put("error", e.getMessage());
+      response.put(ERROR_RESPONSE, e.getMessage());
     }
     return response;
 

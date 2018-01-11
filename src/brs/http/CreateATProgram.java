@@ -17,11 +17,11 @@ import static brs.http.common.Parameters.USPAGES_PARAMETER;
 import brs.Account;
 import brs.Attachment;
 import brs.Blockchain;
-import brs.Burst;
 import brs.BurstException;
 import brs.Constants;
 import brs.TransactionProcessor;
 import brs.at.AT_Constants;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import java.nio.ByteBuffer;
@@ -33,12 +33,14 @@ import org.json.simple.JSONStreamAware;
 public final class CreateATProgram extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
-  CreateATProgram(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+  CreateATProgram(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
     super(new APITag[]{APITag.AT, APITag.CREATE_TRANSACTION},
-        parameterService, transactionProcessor, blockchain, NAME_PARAMETER, DESCRIPTION_PARAMETER, CREATION_BYTES_PARAMETER, CODE_PARAMETER, DATA_PARAMETER, DPAGES_PARAMETER,
-        CSPAGES_PARAMETER, USPAGES_PARAMETER, MIN_ACTIVATION_AMOUNT_NQT_PARAMETER);
+        parameterService, transactionProcessor, blockchain, accountService,
+        NAME_PARAMETER, DESCRIPTION_PARAMETER, CREATION_BYTES_PARAMETER, CODE_PARAMETER, DATA_PARAMETER, DPAGES_PARAMETER, CSPAGES_PARAMETER, USPAGES_PARAMETER, MIN_ACTIVATION_AMOUNT_NQT_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -104,7 +106,7 @@ public final class CreateATProgram extends CreateTransaction {
 
         ByteBuffer creation = ByteBuffer.allocate(creationLength);
         creation.order(ByteOrder.LITTLE_ENDIAN);
-        creation.putShort(AT_Constants.getInstance().AT_VERSION(Burst.getBlockchain().getHeight()));
+        creation.putShort(AT_Constants.getInstance().AT_VERSION(blockchain.getHeight()));
         creation.putShort((short) 0);
         creation.putShort((short) cpages);
         creation.putShort((short) dpages);
@@ -149,7 +151,7 @@ public final class CreateATProgram extends CreateTransaction {
     }
 
     Account account = parameterService.getSenderAccount(req);
-    Attachment attachment = new Attachment.AutomatedTransactionsCreation(name, description, creationBytes);
+    Attachment attachment = new Attachment.AutomatedTransactionsCreation(name, description, creationBytes, blockchain.getHeight());
 
     System.out.println("AT " + name + " added succesfully ..");
     System.out.println();

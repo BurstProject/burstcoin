@@ -24,7 +24,7 @@ public interface EscrowStore {
 
   Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId);
 
-  void updateOnBlock(Block block);
+  void updateOnBlock(Block block, int blockchainHeight);
 
   List<TransactionImpl> getResultTransactions();
 

@@ -2,8 +2,8 @@ package brs.services.impl;
 
 import brs.Asset;
 import brs.db.BurstKey;
-import brs.db.BurstKey.LongKeyFactory;
 import brs.db.sql.EntitySqlTable;
+import brs.db.store.AssetStore;
 import brs.services.AssetService;
 
 public class AssetServiceImpl implements AssetService {
@@ -12,9 +12,9 @@ public class AssetServiceImpl implements AssetService {
 
   private final BurstKey.LongKeyFactory<Asset> assetDbKeyFactory;
 
-  public AssetServiceImpl(EntitySqlTable<Asset> assetTable, LongKeyFactory<Asset> assetDbKeyFactory) {
-    this.assetDbKeyFactory = assetDbKeyFactory;
-    this.assetTable = assetTable;
+  public AssetServiceImpl(AssetStore assetStore) {
+    this.assetTable = assetStore.getAssetTable();
+    this.assetDbKeyFactory = assetStore.getAssetDbKeyFactory();
   }
 
   @Override
