@@ -3,7 +3,6 @@ package brs.services.impl;
 import static brs.http.JSONResponses.HEIGHT_NOT_AVAILABLE;
 import static brs.http.JSONResponses.INCORRECT_ACCOUNT;
 import static brs.http.JSONResponses.INCORRECT_ALIAS;
-import static brs.http.JSONResponses.INCORRECT_AMOUNT;
 import static brs.http.JSONResponses.INCORRECT_ASSET;
 import static brs.http.JSONResponses.INCORRECT_ENCRYPTED_MESSAGE;
 import static brs.http.JSONResponses.INCORRECT_GOODS;
@@ -14,7 +13,6 @@ import static brs.http.JSONResponses.INCORRECT_PUBLIC_KEY;
 import static brs.http.JSONResponses.INCORRECT_RECIPIENT;
 import static brs.http.JSONResponses.MISSING_ACCOUNT;
 import static brs.http.JSONResponses.MISSING_ALIAS_OR_ALIAS_NAME;
-import static brs.http.JSONResponses.MISSING_AMOUNT;
 import static brs.http.JSONResponses.MISSING_ASSET;
 import static brs.http.JSONResponses.MISSING_GOODS;
 import static brs.http.JSONResponses.MISSING_SECRET_PHRASE;
@@ -27,7 +25,6 @@ import static brs.http.JSONResponses.UNKNOWN_GOODS;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_PARAMETER;
-import static brs.http.common.Parameters.AMOUNT_NQT_PARAMETER;
 import static brs.http.common.Parameters.ASSET_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_DATA_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_NONCE_PARAMETER;
@@ -86,12 +83,12 @@ public class ParameterServiceImpl implements ParameterService {
 
   @Override
   public Account getAccount(HttpServletRequest req) throws BurstException {
-    String accountValue = Convert.emptyToNull(req.getParameter(ACCOUNT_PARAMETER));
-    if (accountValue == null) {
+    String accountId = Convert.emptyToNull(req.getParameter(ACCOUNT_PARAMETER));
+    if (accountId == null) {
       throw new ParameterException(MISSING_ACCOUNT);
     }
     try {
-      Account account = accountService.getAccount(Convert.parseAccountId(accountValue));
+      Account account = accountService.getAccount(Convert.parseAccountId(accountId));
       if (account == null) {
         throw new ParameterException(UNKNOWN_ACCOUNT);
       }
@@ -103,12 +100,12 @@ public class ParameterServiceImpl implements ParameterService {
 
   @Override
   public List<Account> getAccounts(HttpServletRequest req) throws ParameterException {
-    String[] accountValues = req.getParameterValues(ACCOUNT_PARAMETER);
-    if (accountValues == null || accountValues.length == 0) {
+    String[] accountIDs = req.getParameterValues(ACCOUNT_PARAMETER);
+    if (accountIDs == null || accountIDs.length == 0) {
       throw new ParameterException(MISSING_ACCOUNT);
     }
     List<Account> result = new ArrayList<>();
-    for (String accountValue : accountValues) {
+    for (String accountValue : accountIDs) {
       if (accountValue == null || accountValue.isEmpty()) {
         continue;
       }
