@@ -38,10 +38,6 @@ public class AssetTransfer {
     return Burst.getStores().getAssetTransferStore().getAssetTransfers(assetId, from, to);
   }
 
-  public static BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
-    return Burst.getStores().getAssetTransferStore().getAccountAssetTransfers(accountId, from, to);
-  }
-
   public static BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
     return Burst.getStores().getAssetTransferStore().getAccountAssetTransfers(accountId, assetId, from, to);
   }

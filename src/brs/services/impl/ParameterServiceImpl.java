@@ -19,6 +19,7 @@ import static brs.http.JSONResponses.MISSING_ASSET;
 import static brs.http.JSONResponses.MISSING_GOODS;
 import static brs.http.JSONResponses.MISSING_SECRET_PHRASE;
 import static brs.http.JSONResponses.MISSING_SECRET_PHRASE_OR_PUBLIC_KEY;
+import static brs.http.JSONResponses.MISSING_TRANSACTION_BYTES_OR_JSON;
 import static brs.http.JSONResponses.UNKNOWN_ACCOUNT;
 import static brs.http.JSONResponses.UNKNOWN_ALIAS;
 import static brs.http.JSONResponses.UNKNOWN_ASSET;
@@ -41,14 +42,16 @@ import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_TO_SELF_PARAMETER;
 import static brs.http.common.Parameters.NUMBER_OF_CONFIRMATIONS_PARAMETER;
 import static brs.http.common.Parameters.PUBLIC_KEY_PARAMETER;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
+import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
+import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
 import brs.Account;
 import brs.Alias;
 import brs.Asset;
 import brs.Burst;
 import brs.BurstException;
-import brs.Constants;
 import brs.DigitalGoodsStore;
+import brs.Transaction;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
 import brs.http.ParameterException;
@@ -61,8 +64,15 @@ import brs.util.Convert;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ParameterServiceImpl implements ParameterService {
+
+  private static final Logger logger = LoggerFactory.getLogger(ParameterServiceImpl.class);
 
   private final AccountService accountService;
   private final AliasService aliasService;
@@ -158,24 +168,6 @@ public class ParameterServiceImpl implements ParameterService {
       throw new ParameterException(UNKNOWN_ALIAS);
     }
     return alias;
-  }
-
-  @Override
-  public long getAmountNQT(HttpServletRequest req) throws ParameterException {
-    String amountValueNQT = Convert.emptyToNull(req.getParameter(AMOUNT_NQT_PARAMETER));
-    if (amountValueNQT == null) {
-      throw new ParameterException(MISSING_AMOUNT);
-    }
-    long amountNQT;
-    try {
-      amountNQT = Long.parseLong(amountValueNQT);
-    } catch (RuntimeException e) {
-      throw new ParameterException(INCORRECT_AMOUNT);
-    }
-    if (amountNQT <= 0 || amountNQT >= Constants.MAX_BALANCE_NQT) {
-      throw new ParameterException(INCORRECT_AMOUNT);
-    }
-    return amountNQT;
   }
 
   @Override
@@ -314,6 +306,36 @@ public class ParameterServiceImpl implements ParameterService {
       }
     }
     return -1;
+  }
+
+  @Override
+  public Transaction parseTransaction(String transactionBytes, String transactionJSON) throws ParameterException {
+    if (transactionBytes == null && transactionJSON == null) {
+      throw new ParameterException(MISSING_TRANSACTION_BYTES_OR_JSON);
+    }
+    if (transactionBytes != null) {
+      try {
+        byte[] bytes = Convert.parseHexString(transactionBytes);
+        return Burst.getTransactionProcessor().parseTransaction(bytes);
+      } catch (BurstException.ValidationException | RuntimeException e) {
+        logger.debug(e.getMessage(), e);
+        JSONObject response = new JSONObject();
+        response.put(ERROR_CODE_RESPONSE, 4);
+        response.put(ERROR_DESCRIPTION_RESPONSE, "Incorrect transactionBytes: " + e.toString());
+        throw new ParameterException(response);
+      }
+    } else {
+      try {
+        JSONObject json = (JSONObject) JSONValue.parseWithException(transactionJSON);
+        return Burst.getTransactionProcessor().parseTransaction(json);
+      } catch (BurstException.ValidationException | RuntimeException | ParseException e) {
+        logger.debug(e.getMessage(), e);
+        JSONObject response = new JSONObject();
+        response.put(ERROR_CODE_RESPONSE, 4);
+        response.put(ERROR_DESCRIPTION_RESPONSE, "Incorrect transactionJSON: " + e.toString());
+        throw new ParameterException(response);
+      }
+    }
   }
 
 }

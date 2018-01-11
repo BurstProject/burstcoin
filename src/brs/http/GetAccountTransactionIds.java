@@ -10,6 +10,7 @@ import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
 import static brs.http.common.Parameters.TYPE_PARAMETER;
 
 import brs.Account;
+import brs.Blockchain;
 import brs.Burst;
 import brs.BurstException;
 import brs.Transaction;
@@ -23,11 +24,13 @@ import org.json.simple.JSONStreamAware;
 public final class GetAccountTransactionIds extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
-  GetAccountTransactionIds(ParameterService parameterService) {
+  GetAccountTransactionIds(ParameterService parameterService, Blockchain blockchain) {
     super(new APITag[]{APITag.ACCOUNTS}, ACCOUNT_PARAMETER, TIMESTAMP_PARAMETER, TYPE_PARAMETER, ACCOUNT_PARAMETER, TIMESTAMP_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER,
         NUMBER_OF_CONFIRMATIONS_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -54,7 +57,7 @@ public final class GetAccountTransactionIds extends APIServlet.APIRequestHandler
     int lastIndex = ParameterParser.getLastIndex(req);
 
     JSONArray transactionIds = new JSONArray();
-    try (BurstIterator<? extends Transaction> iterator = Burst.getBlockchain().getTransactions(account, numberOfConfirmations, type, subtype, timestamp,
+    try (BurstIterator<? extends Transaction> iterator = blockchain.getTransactions(account, numberOfConfirmations, type, subtype, timestamp,
         firstIndex, lastIndex)) {
       while (iterator.hasNext()) {
         Transaction transaction = iterator.next();

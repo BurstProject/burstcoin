@@ -17,6 +17,7 @@ import brs.Burst;
 import brs.BurstException;
 import brs.DigitalGoodsStore;
 import brs.TransactionProcessor;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
@@ -25,11 +26,13 @@ import org.json.simple.JSONStreamAware;
 public final class DGSPurchase extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
-  DGSPurchase(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+  DGSPurchase(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
     super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION},
-        parameterService, transactionProcessor, blockchain, GOODS_PARAMETER, PRICE_NQT_PARAMETER, QUANTITY_PARAMETER, DELIVERY_DEADLINE_TIMESTAMP_PARAMETER);
+        parameterService, transactionProcessor, blockchain, accountService, GOODS_PARAMETER, PRICE_NQT_PARAMETER, QUANTITY_PARAMETER, DELIVERY_DEADLINE_TIMESTAMP_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -68,7 +71,7 @@ public final class DGSPurchase extends CreateTransaction {
     Account sellerAccount = Account.getAccount(goods.getSellerId());
 
     Attachment attachment = new Attachment.DigitalGoodsPurchase(goods.getId(), quantity, priceNQT,
-        deliveryDeadline);
+        deliveryDeadline, blockchain.getHeight());
     return createTransaction(req, buyerAccount, sellerAccount.getId(), 0, attachment);
 
   }

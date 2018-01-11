@@ -7,6 +7,7 @@ import brs.Account;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.TransactionProcessor;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONStreamAware;
@@ -15,15 +16,15 @@ public final class SendMoney extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  SendMoney(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
-    super(new APITag[]{APITag.ACCOUNTS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER);
+  SendMoney(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
+    super(new APITag[]{APITag.ACCOUNTS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER);
     this.parameterService = parameterService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     long recipient = ParameterParser.getRecipientId(req);
-    long amountNQT = parameterService.getAmountNQT(req);
+    long amountNQT = ParameterParser.getAmountNQT(req);
     Account account = parameterService.getSenderAccount(req);
     return createTransaction(req, account, recipient, amountNQT);
   }

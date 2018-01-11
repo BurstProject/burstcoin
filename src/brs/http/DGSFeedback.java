@@ -6,6 +6,7 @@ import brs.Blockchain;
 import brs.DigitalGoodsStore;
 import brs.BurstException;
 import brs.TransactionProcessor;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import org.json.simple.JSONStreamAware;
 
@@ -18,11 +19,13 @@ import static brs.http.common.Parameters.PURCHASE_PARAMETER;
 public final class DGSFeedback extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
-  DGSFeedback(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
+  DGSFeedback(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
     super(new APITag[] {APITag.DGS, APITag.CREATE_TRANSACTION},
-        parameterService, transactionProcessor, blockchain, PURCHASE_PARAMETER);
+        parameterService, transactionProcessor, blockchain, accountService, PURCHASE_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -39,7 +42,7 @@ public final class DGSFeedback extends CreateTransaction {
     }
 
     Account sellerAccount = Account.getAccount(purchase.getSellerId());
-    Attachment attachment = new Attachment.DigitalGoodsFeedback(purchase.getId());
+    Attachment attachment = new Attachment.DigitalGoodsFeedback(purchase.getId(), blockchain.getHeight());
     return createTransaction(req, buyerAccount, sellerAccount.getId(), 0, attachment);
   }
 

@@ -11,6 +11,7 @@ import brs.Blockchain;
 import brs.Constants;
 import brs.BurstException;
 import brs.TransactionProcessor;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -20,17 +21,19 @@ import javax.servlet.http.HttpServletRequest;
 public final class SendMoneySubscription extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 	
-  public SendMoneySubscription(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain) {
-    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER, FREQUENCY_PARAMETER);
+  public SendMoneySubscription(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
+    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER, FREQUENCY_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 	
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     Account sender = parameterService.getSenderAccount(req);
     Long recipient = ParameterParser.getRecipientId(req);
-    Long amountNQT = parameterService.getAmountNQT(req);
+    Long amountNQT = ParameterParser.getAmountNQT(req);
 		
     int frequency;
     try {
@@ -51,7 +54,7 @@ public final class SendMoneySubscription extends CreateTransaction {
       return response;
     }
 		
-    Attachment.AdvancedPaymentSubscriptionSubscribe attachment = new Attachment.AdvancedPaymentSubscriptionSubscribe(frequency);
+    Attachment.AdvancedPaymentSubscriptionSubscribe attachment = new Attachment.AdvancedPaymentSubscriptionSubscribe(frequency, blockchain.getHeight());
 		
     return createTransaction(req, sender, recipient, amountNQT, attachment);
   }

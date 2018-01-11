@@ -14,7 +14,7 @@ public interface Appendix {
   JSONObject getJSONObject();
   byte getVersion();
 
-  abstract static class AbstractAppendix implements Appendix {
+  abstract class AbstractAppendix implements Appendix {
 
     private final byte version;
 
@@ -27,12 +27,12 @@ public interface Appendix {
         version = (transactionVersion == 0) ? 0 : buffer.get();
     }
 
-    AbstractAppendix(int version) {
-      this.version = (byte) version;
+    AbstractAppendix(byte version) {
+      this.version = version;
     }
 
-    AbstractAppendix() {
-      this.version = (byte)(Burst.getBlockchain().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK ? 0 : 1);
+    AbstractAppendix(int blockchainHeight) {
+      this.version = (byte)(blockchainHeight < Constants.DIGITAL_GOODS_STORE_BLOCK ? 0 : 1);
     }
 
     abstract String getAppendixName();
@@ -81,7 +81,7 @@ public interface Appendix {
 
   }
 
-  public static class Message extends AbstractAppendix {
+  class Message extends AbstractAppendix {
 
     static Message parse(JSONObject attachmentData) {
       if (attachmentData.get("message") == null) {
@@ -114,12 +114,14 @@ public interface Appendix {
       this.message = isText ? Convert.toBytes(messageString) : Convert.parseHexString(messageString);
     }
 
-    public Message(byte[] message) {
+    public Message(byte[] message, int blockchainHeight) {
+      super(blockchainHeight);
       this.message = message;
       this.isText = false;
     }
 
-    public Message(String string) {
+    public Message(String string, int blockchainHeight) {
+      super(blockchainHeight);
       this.message = Convert.toBytes(string);
       this.isText = true;
     }
@@ -194,7 +196,8 @@ public interface Appendix {
       this.isText = Boolean.TRUE.equals(encryptedMessageJSON.get("isText"));
     }
 
-    private AbstractEncryptedMessage(EncryptedData encryptedData, boolean isText) {
+    private AbstractEncryptedMessage(EncryptedData encryptedData, boolean isText, int blockchainHeight) {
+      super(blockchainHeight);
       this.encryptedData = encryptedData;
       this.isText = isText;
     }
@@ -258,8 +261,8 @@ public interface Appendix {
       super(attachmentData, (JSONObject)attachmentData.get("encryptedMessage"));
     }
 
-    public EncryptedMessage(EncryptedData encryptedData, boolean isText) {
-      super(encryptedData, isText);
+    public EncryptedMessage(EncryptedData encryptedData, boolean isText, int blockchainHeight) {
+      super(encryptedData, isText, blockchainHeight);
     }
 
     @Override
@@ -304,8 +307,8 @@ public interface Appendix {
       super(attachmentData, (JSONObject)attachmentData.get("encryptToSelfMessage"));
     }
 
-    public EncryptToSelfMessage(EncryptedData encryptedData, boolean isText) {
-      super(encryptedData, isText);
+    public EncryptToSelfMessage(EncryptedData encryptedData, boolean isText, int blockchainHeight) {
+      super(encryptedData, isText, blockchainHeight);
     }
 
     @Override
@@ -352,7 +355,8 @@ public interface Appendix {
       this.publicKey = Convert.parseHexString((String)attachmentData.get("recipientPublicKey"));
     }
 
-    public PublicKeyAnnouncement(byte[] publicKey) {
+    public PublicKeyAnnouncement(byte[] publicKey, int blockchainHeight) {
+      super(blockchainHeight);
       this.publicKey = publicKey;
     }
 

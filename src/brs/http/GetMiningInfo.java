@@ -1,6 +1,7 @@
 package brs.http;
 
 import brs.Block;
+import brs.Blockchain;
 import brs.crypto.hash.Shabal256;
 import brs.Burst;
 import brs.util.Convert;
@@ -11,10 +12,12 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.ByteBuffer;
 
 public final class GetMiningInfo extends APIServlet.APIRequestHandler {
-  static final GetMiningInfo instance = new GetMiningInfo();
-	
-  private GetMiningInfo() {
+
+  private final Blockchain blockchain;
+
+  GetMiningInfo(Blockchain blockchain) {
     super(new APITag[] {APITag.MINING, APITag.INFO});
+    this.blockchain = blockchain;
   }
 	
   @Override
@@ -23,7 +26,7 @@ public final class GetMiningInfo extends APIServlet.APIRequestHandler {
 		
     response.put("height", Long.toString((long)Burst.getBlockchain().getHeight() + 1));
 		
-    Block lastBlock = Burst.getBlockchain().getLastBlock();
+    Block lastBlock = blockchain.getLastBlock();
     byte[] lastGenSig = lastBlock.getGenerationSignature();
     Long lastGenerator = lastBlock.getGeneratorId();
 		

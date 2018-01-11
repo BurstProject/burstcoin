@@ -1,7 +1,7 @@
 package brs.http;
 
-import brs.Burst;
 import brs.Transaction;
+import brs.TransactionProcessor;
 import brs.db.BurstIterator;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
@@ -11,19 +11,21 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.INCORRECT_ACCOUNT;
+import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 
 public final class GetUnconfirmedTransactions extends APIServlet.APIRequestHandler {
 
-  static final GetUnconfirmedTransactions instance = new GetUnconfirmedTransactions();
+  private final TransactionProcessor transactionProcessor;
 
-  private GetUnconfirmedTransactions() {
-    super(new APITag[] {APITag.TRANSACTIONS, APITag.ACCOUNTS}, "account");
+  GetUnconfirmedTransactions(TransactionProcessor transactionProcessor) {
+    super(new APITag[] {APITag.TRANSACTIONS, APITag.ACCOUNTS}, ACCOUNT_PARAMETER);
+    this.transactionProcessor = transactionProcessor;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) {
 
-    String accountIdString = Convert.emptyToNull(req.getParameter("account"));
+    String accountIdString = Convert.emptyToNull(req.getParameter(ACCOUNT_PARAMETER));
     long accountId = 0;
 
     if (accountIdString != null) {
@@ -35,7 +37,7 @@ public final class GetUnconfirmedTransactions extends APIServlet.APIRequestHandl
     }
 
     JSONArray transactions = new JSONArray();
-    try (BurstIterator<? extends Transaction> transactionsIterator = Burst.getTransactionProcessor().getAllUnconfirmedTransactions()) {
+    try (BurstIterator<? extends Transaction> transactionsIterator = transactionProcessor.getAllUnconfirmedTransactions()) {
       while (transactionsIterator.hasNext()) {
         Transaction transaction = transactionsIterator.next();
         if (accountId != 0 && !(accountId == transaction.getSenderId() || accountId == transaction.getRecipientId())) {

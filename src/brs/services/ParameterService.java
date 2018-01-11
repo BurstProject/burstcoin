@@ -5,6 +5,7 @@ import brs.Alias;
 import brs.Asset;
 import brs.BurstException;
 import brs.DigitalGoodsStore;
+import brs.Transaction;
 import brs.crypto.EncryptedData;
 import brs.http.ParameterException;
 import java.util.List;
@@ -20,8 +21,6 @@ public interface ParameterService {
 
   Alias getAlias(HttpServletRequest req) throws ParameterException;
 
-  long getAmountNQT(HttpServletRequest req) throws ParameterException;
-
   Asset getAsset(HttpServletRequest req) throws ParameterException;
 
   DigitalGoodsStore.Goods getGoods(HttpServletRequest req) throws ParameterException;
@@ -35,4 +34,6 @@ public interface ParameterService {
   int getNumberOfConfirmations(HttpServletRequest req) throws ParameterException;
 
   int getHeight(HttpServletRequest req) throws ParameterException;
+
+  Transaction parseTransaction(String transactionBytes, String transactionJSON) throws ParameterException;
 }

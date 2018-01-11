@@ -113,7 +113,7 @@ public class SqlEscrowStore implements EscrowStore {
   }
 
   @Override
-  public void updateOnBlock(Block block) {
+  public void updateOnBlock(Block block, int blockchainHeight) {
     resultTransactions.clear();
 
     BurstIterator<Escrow> deadlineEscrows = escrowTable.getManyBy(getUpdateOnBlockClause(block.getTimestamp()), 0, -1);
@@ -129,7 +129,7 @@ public class SqlEscrowStore implements EscrowStore {
           if (result == Escrow.DecisionType.UNDECIDED) {
             result = escrow.getDeadlineAction();
           }
-          escrow.doPayout(result, block);
+          escrow.doPayout(result, block, blockchainHeight);
 
           removeEscrowTransaction(escrowId);
         }

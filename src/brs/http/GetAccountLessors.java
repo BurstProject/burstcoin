@@ -4,6 +4,7 @@ import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.HEIGHT_PARAMETER;
 
 import brs.Account;
+import brs.Blockchain;
 import brs.Burst;
 import brs.BurstException;
 import brs.services.ParameterService;
@@ -15,10 +16,12 @@ import org.json.simple.JSONStreamAware;
 public final class GetAccountLessors extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
+  private final Blockchain blockchain;
 
-  GetAccountLessors(ParameterService parameterService) {
+  GetAccountLessors(ParameterService parameterService, Blockchain blockchain) {
     super(new APITag[]{APITag.ACCOUNTS}, ACCOUNT_PARAMETER, HEIGHT_PARAMETER);
     this.parameterService = parameterService;
+    this.blockchain = blockchain;
   }
 
   @Override
@@ -27,7 +30,7 @@ public final class GetAccountLessors extends APIServlet.APIRequestHandler {
     Account account = parameterService.getAccount(req);
     int height = parameterService.getHeight(req);
     if (height < 0) {
-      height = Burst.getBlockchain().getHeight();
+      height = blockchain.getHeight();
     }
 
     JSONObject response = new JSONObject();

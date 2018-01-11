@@ -150,10 +150,10 @@ public class Subscription {
     }
     }*/
 
-  public static void applyConfirmed(Block block) {
+  public static void applyConfirmed(Block block, int blockchainHeight) {
     paymentTransactions.clear();
     for(Subscription subscription : appliedSubscriptions) {
-      subscription.apply(block);
+      subscription.apply(block, blockchainHeight);
       subscriptionTable.insert(subscription);
     }
     if(paymentTransactions.size() > 0) {
@@ -247,7 +247,7 @@ public class Subscription {
     sender.addToUnconfirmedBalanceNQT(totalAmountNQT);
   }
 
-  private void apply(Block block) {
+  private void apply(Block block, int blockchainHeight) {
     Account sender = Account.getAccount(senderId);
     Account recipient = Account.getAccount(recipientId);
 
@@ -256,7 +256,7 @@ public class Subscription {
     sender.addToBalanceNQT(-totalAmountNQT);
     recipient.addToBalanceAndUnconfirmedBalanceNQT(amountNQT);
 
-    Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentSubscriptionPayment(id);
+    Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentSubscriptionPayment(id, blockchainHeight);
     TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte) 1,
                                                                           sender.getPublicKey(), amountNQT,
                                                                           getFee(),
