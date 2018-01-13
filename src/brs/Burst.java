@@ -224,7 +224,8 @@ public final class Burst {
     final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
     final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
     final AssetService assetService = new AssetServiceImpl(stores.getAssetStore());
-    final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService);
+    final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,
+        getBlockchain(), getBlockchainProcessor(), getTransactionProcessor());
 
     APIServlet.injectServices(getTransactionProcessor(), getBlockchain(), getBlockchainProcessor(), parameterService, accountService, aliasService);
   }

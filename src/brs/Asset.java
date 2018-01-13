@@ -6,20 +6,24 @@ import brs.db.BurstKey;
 
 public class Asset {
 
-  private static final BurstKey.LongKeyFactory<Asset> assetDbKeyFactory = Burst.getStores().getAssetStore().getAssetDbKeyFactory();
+  private static final BurstKey.LongKeyFactory<Asset> assetDbKeyFactory() {
+    return Burst.getStores().getAssetStore().getAssetDbKeyFactory();
+  }
 
-  private static final EntityTable<Asset> assetTable = Burst.getStores().getAssetStore().getAssetTable();
+  private static final EntityTable<Asset> assetTable() {
+    return Burst.getStores().getAssetStore().getAssetTable();
+  }
 
   public static BurstIterator<Asset> getAllAssets(int from, int to) {
-    return assetTable.getAll(from, to);
+    return assetTable().getAll(from, to);
   }
 
   public static int getCount() {
-    return assetTable.getCount();
+    return assetTable().getCount();
   }
 
   public static Asset getAsset(long id) {
-    return assetTable.get(assetDbKeyFactory.newKey(id));
+    return assetTable().get(assetDbKeyFactory().newKey(id));
   }
 
   public static BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
@@ -27,7 +31,7 @@ public class Asset {
   }
 
   static void addAsset(Transaction transaction, Attachment.ColoredCoinsAssetIssuance attachment) {
-    assetTable.insert(new Asset(transaction, attachment));
+    assetTable().insert(new Asset(transaction, attachment));
   }
 
   static void init() {
@@ -54,7 +58,7 @@ public class Asset {
 
   private Asset(Transaction transaction, Attachment.ColoredCoinsAssetIssuance attachment) {
     this.assetId = transaction.getId();
-    this.dbKey = assetDbKeyFactory.newKey(this.assetId);
+    this.dbKey = assetDbKeyFactory().newKey(this.assetId);
     this.accountId = transaction.getSenderId();
     this.name = attachment.getName();
     this.description = attachment.getDescription();
