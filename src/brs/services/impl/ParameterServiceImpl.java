@@ -3,7 +3,6 @@ package brs.services.impl;
 import static brs.http.JSONResponses.HEIGHT_NOT_AVAILABLE;
 import static brs.http.JSONResponses.INCORRECT_ACCOUNT;
 import static brs.http.JSONResponses.INCORRECT_ALIAS;
-import static brs.http.JSONResponses.INCORRECT_AMOUNT;
 import static brs.http.JSONResponses.INCORRECT_ASSET;
 import static brs.http.JSONResponses.INCORRECT_ENCRYPTED_MESSAGE;
 import static brs.http.JSONResponses.INCORRECT_GOODS;
@@ -14,7 +13,6 @@ import static brs.http.JSONResponses.INCORRECT_PUBLIC_KEY;
 import static brs.http.JSONResponses.INCORRECT_RECIPIENT;
 import static brs.http.JSONResponses.MISSING_ACCOUNT;
 import static brs.http.JSONResponses.MISSING_ALIAS_OR_ALIAS_NAME;
-import static brs.http.JSONResponses.MISSING_AMOUNT;
 import static brs.http.JSONResponses.MISSING_ASSET;
 import static brs.http.JSONResponses.MISSING_GOODS;
 import static brs.http.JSONResponses.MISSING_SECRET_PHRASE;
@@ -27,7 +25,6 @@ import static brs.http.JSONResponses.UNKNOWN_GOODS;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_PARAMETER;
-import static brs.http.common.Parameters.AMOUNT_NQT_PARAMETER;
 import static brs.http.common.Parameters.ASSET_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_DATA_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_NONCE_PARAMETER;
@@ -48,10 +45,12 @@ import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 import brs.Account;
 import brs.Alias;
 import brs.Asset;
-import brs.Burst;
+import brs.Blockchain;
+import brs.BlockchainProcessor;
 import brs.BurstException;
 import brs.DigitalGoodsStore;
 import brs.Transaction;
+import brs.TransactionProcessor;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
 import brs.http.ParameterException;
@@ -77,21 +76,28 @@ public class ParameterServiceImpl implements ParameterService {
   private final AccountService accountService;
   private final AliasService aliasService;
   private final AssetService assetService;
+  private final Blockchain blockchain;
+  private final BlockchainProcessor blockchainProcessor;
+  private final TransactionProcessor transactionProcessor;
 
-  public ParameterServiceImpl(AccountService accountService, AliasService aliasService, AssetService assetService) {
+  public ParameterServiceImpl(AccountService accountService, AliasService aliasService, AssetService assetService, Blockchain blockchain, BlockchainProcessor blockchainProcessor,
+      TransactionProcessor transactionProcessor) {
     this.accountService = accountService;
     this.aliasService = aliasService;
     this.assetService = assetService;
+    this.blockchain = blockchain;
+    this.blockchainProcessor = blockchainProcessor;
+    this.transactionProcessor = transactionProcessor;
   }
 
   @Override
   public Account getAccount(HttpServletRequest req) throws BurstException {
-    String accountValue = Convert.emptyToNull(req.getParameter(ACCOUNT_PARAMETER));
-    if (accountValue == null) {
+    String accountId = Convert.emptyToNull(req.getParameter(ACCOUNT_PARAMETER));
+    if (accountId == null) {
       throw new ParameterException(MISSING_ACCOUNT);
     }
     try {
-      Account account = accountService.getAccount(Convert.parseAccountId(accountValue));
+      Account account = accountService.getAccount(Convert.parseAccountId(accountId));
       if (account == null) {
         throw new ParameterException(UNKNOWN_ACCOUNT);
       }
@@ -103,12 +109,12 @@ public class ParameterServiceImpl implements ParameterService {
 
   @Override
   public List<Account> getAccounts(HttpServletRequest req) throws ParameterException {
-    String[] accountValues = req.getParameterValues(ACCOUNT_PARAMETER);
-    if (accountValues == null || accountValues.length == 0) {
+    String[] accountIDs = req.getParameterValues(ACCOUNT_PARAMETER);
+    if (accountIDs == null || accountIDs.length == 0) {
       throw new ParameterException(MISSING_ACCOUNT);
     }
     List<Account> result = new ArrayList<>();
-    for (String accountValue : accountValues) {
+    for (String accountValue : accountIDs) {
       if (accountValue == null || accountValue.isEmpty()) {
         continue;
       }
@@ -277,7 +283,7 @@ public class ParameterServiceImpl implements ParameterService {
     if (numberOfConfirmationsValue != null) {
       try {
         int numberOfConfirmations = Integer.parseInt(numberOfConfirmationsValue);
-        if (numberOfConfirmations <= Burst.getBlockchain().getHeight()) {
+        if (numberOfConfirmations <= blockchain.getHeight()) {
           return numberOfConfirmations;
         }
         throw new ParameterException(INCORRECT_NUMBER_OF_CONFIRMATIONS);
@@ -294,10 +300,10 @@ public class ParameterServiceImpl implements ParameterService {
     if (heightValue != null) {
       try {
         int height = Integer.parseInt(heightValue);
-        if (height < 0 || height > Burst.getBlockchain().getHeight()) {
+        if (height < 0 || height > blockchain.getHeight()) {
           throw new ParameterException(INCORRECT_HEIGHT);
         }
-        if (height < Burst.getBlockchainProcessor().getMinRollbackHeight()) {
+        if (height < blockchainProcessor.getMinRollbackHeight()) {
           throw new ParameterException(HEIGHT_NOT_AVAILABLE);
         }
         return height;
@@ -316,7 +322,7 @@ public class ParameterServiceImpl implements ParameterService {
     if (transactionBytes != null) {
       try {
         byte[] bytes = Convert.parseHexString(transactionBytes);
-        return Burst.getTransactionProcessor().parseTransaction(bytes);
+        return transactionProcessor.parseTransaction(bytes);
       } catch (BurstException.ValidationException | RuntimeException e) {
         logger.debug(e.getMessage(), e);
         JSONObject response = new JSONObject();
@@ -327,7 +333,7 @@ public class ParameterServiceImpl implements ParameterService {
     } else {
       try {
         JSONObject json = (JSONObject) JSONValue.parseWithException(transactionJSON);
-        return Burst.getTransactionProcessor().parseTransaction(json);
+        return transactionProcessor.parseTransaction(json);
       } catch (BurstException.ValidationException | RuntimeException | ParseException e) {
         logger.debug(e.getMessage(), e);
         JSONObject response = new JSONObject();
