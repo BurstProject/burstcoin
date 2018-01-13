@@ -9,14 +9,34 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 import static brs.Constants.*;
-
+import static brs.http.common.Parameters.*;
 import static brs.user.JSONResponses.NOTIFY_OF_ACCEPTED_TRANSACTION;
 
 public final class SendMoney extends UserServlet.UserRequestHandler {
 
+  static final String INCORRECT_TRANSACTION_RESPONSE = "notifyOfIncorrectTransaction";
+  static final String INCORRECT_FIELD_MESSAGE = "One of the fields is filled incorrectly!";
+  static final String WRONG_SECRET_MESSAGE = "Wrong secret phrase!";
+  static final String AMOUNT_MIN_MESSAGE = "\"Amount\" must be greater than 0!";
+  static final String INVALID_FEE_MESSAGE = "\"Fee\" must be at least 1 NXT!";
+  static final String INVALID_DEADLINE_MESSAGE = "\"Deadline\" must be greater or equal to 1 minute and less than 24 hours!";
+  static final String INSUFFICIENT_FUNDS_MESSAGE = "Not enough funds!";
+
   static final SendMoney instance = new SendMoney();
 
   private SendMoney() {}
+
+  private JSONObject errorResponse(String message, String recipient, String amount, String fee, String deadline) {
+    JSONObject response = new JSONObject();
+    response.put(RESPONSE, INCORRECT_TRANSACTION_RESPONSE);
+    response.put(MESSAGE_PARAMETER, message);
+    response.put(RECIPIENT_PARAMETER, recipient);
+    response.put(AMOUNT_NXT_PARAMETER, amount);
+    response.put(FEE_NXT_PARAMETER, fee);
+    response.put(DEADLINE_PARAMETER, deadline);
+
+    return response;
+  }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req, User user) throws BurstException.ValidationException, IOException {
@@ -24,11 +44,11 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
       return null;
     }
 
-    String recipientValue = req.getParameter("recipient");
-    String amountValue = req.getParameter("amountNXT");
-    String feeValue = req.getParameter("feeNXT");
-    String deadlineValue = req.getParameter("deadline");
-    String secretPhrase = req.getParameter("secretPhrase");
+    String recipientValue = req.getParameter(RECIPIENT_PARAMETER);
+    String amountValue = req.getParameter(AMOUNT_NXT_PARAMETER);
+    String feeValue = req.getParameter(FEE_NXT_PARAMETER);
+    String deadlineValue = req.getParameter(DEADLINE_PARAMETER);
+    String secretPhrase = req.getParameter(SECRET_PHRASE_PARAMETER);
 
     long recipient;
     long amountNQT = 0;
@@ -45,79 +65,31 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
 
     } catch (RuntimeException e) {
 
-      JSONObject response = new JSONObject();
-      response.put(RESPONSE, "notifyOfIncorrectTransaction");
-      response.put("message", "One of the fields is filled incorrectly!");
-      response.put("recipient", recipientValue);
-      response.put("amountNXT", amountValue);
-      response.put("feeNXT", feeValue);
-      response.put("deadline", deadlineValue);
+      return errorResponse(INCORRECT_FIELD_MESSAGE, recipientValue, amountValue, feeValue, deadlineValue);
 
-      return response;
     }
 
     if (! user.getSecretPhrase().equals(secretPhrase)) {
 
-      JSONObject response = new JSONObject();
-      response.put(RESPONSE, "notifyOfIncorrectTransaction");
-      response.put("message", "Wrong secret phrase!");
-      response.put("recipient", recipientValue);
-      response.put("amountNXT", amountValue);
-      response.put("feeNXT", feeValue);
-      response.put("deadline", deadlineValue);
-
-      return response;
+      return errorResponse(WRONG_SECRET_MESSAGE, recipientValue, amountValue, feeValue, deadlineValue);
 
     } else if (amountNQT <= 0 || amountNQT > Constants.MAX_BALANCE_NQT) {
 
-      JSONObject response = new JSONObject();
-      response.put(RESPONSE, "notifyOfIncorrectTransaction");
-      response.put("message", "\"Amount\" must be greater than 0!");
-      response.put("recipient", recipientValue);
-      response.put("amountNXT", amountValue);
-      response.put("feeNXT", feeValue);
-      response.put("deadline", deadlineValue);
-
-      return response;
+      return errorResponse(AMOUNT_MIN_MESSAGE, recipientValue, amountValue, feeValue, deadlineValue);
 
     } else if (feeNQT < Constants.ONE_NXT || feeNQT > Constants.MAX_BALANCE_NQT) {
 
-      JSONObject response = new JSONObject();
-      response.put(RESPONSE, "notifyOfIncorrectTransaction");
-      response.put("message", "\"Fee\" must be at least 1 NXT!");
-      response.put("recipient", recipientValue);
-      response.put("amountNXT", amountValue);
-      response.put("feeNXT", feeValue);
-      response.put("deadline", deadlineValue);
-
-      return response;
+      return errorResponse(INVALID_FEE_MESSAGE, recipientValue, amountValue, feeValue, deadlineValue);
 
     } else if (deadline < 1 || deadline > 1440) {
 
-      JSONObject response = new JSONObject();
-      response.put(RESPONSE, "notifyOfIncorrectTransaction");
-      response.put("message", "\"Deadline\" must be greater or equal to 1 minute and less than 24 hours!");
-      response.put("recipient", recipientValue);
-      response.put("amountNXT", amountValue);
-      response.put("feeNXT", feeValue);
-      response.put("deadline", deadlineValue);
-
-      return response;
-
+      return errorResponse(INVALID_DEADLINE_MESSAGE, recipientValue, amountValue, feeValue, deadlineValue);
     }
 
     Account account = Account.getAccount(user.getPublicKey());
     if (account == null || Convert.safeAdd(amountNQT, feeNQT) > account.getUnconfirmedBalanceNQT()) {
 
-      JSONObject response = new JSONObject();
-      response.put(RESPONSE, "notifyOfIncorrectTransaction");
-      response.put("message", "Not enough funds!");
-      response.put("recipient", recipientValue);
-      response.put("amountNXT", amountValue);
-      response.put("feeNXT", feeValue);
-      response.put("deadline", deadlineValue);
-
-      return response;
+      return errorResponse(INSUFFICIENT_FUNDS_MESSAGE, recipientValue, amountValue, feeValue, deadlineValue);
 
     } else {
 
