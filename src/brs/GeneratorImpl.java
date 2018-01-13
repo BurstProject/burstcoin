@@ -202,7 +202,7 @@ public final class GeneratorImpl implements Generator {
 
       int scoopNum = calculateScoop(newGenSig, lastBlock.getHeight() + 1L);
 
-      deadline = calculateDeadline(accountId, nonce, newGenSig, scoopNum, lastBlock.getBaseTarget(), lastBlock.getHeight());
+      deadline = calculateDeadline(accountId, nonce, newGenSig, scoopNum, lastBlock.getBaseTarget(), lastBlock.getHeight() + 1);
     }
 
     @Override
