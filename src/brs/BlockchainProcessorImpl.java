@@ -51,9 +51,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   public static final DownloadCacheImpl DownloadCache = new DownloadCacheImpl();
 
   public static final int MAX_TIMESTAMP_DIFFERENCE = 15;
-  private static boolean oclVerify = Burst.getBooleanProperty("brs.oclVerify");
-  public static final int oclThreshold = Burst.getIntProperty("brs.oclThreshold") == 0 ? 50 : Burst.getIntProperty("brs.oclThreshold");
-  public static final int oclWaitThreshold = Burst.getIntProperty("brs.oclWaitThreshold") == 0 ? 2000 : Burst.getIntProperty("brs.oclWaitThreshold");
+  private static boolean oclVerify = Burst.getBooleanProperty("GPU.Acceleration");  // use GPU acceleration ?
+  public static final int oclThreshold = Burst.getIntProperty("GPU.Threshold") == 0 ? 50 : Burst.getIntProperty("GPU.Threshold");
+  public static final int oclWaitThreshold = Burst.getIntProperty("GPU.WaitThreshold") == 0 ? 2000 : Burst.getIntProperty("GPU.WaitThreshold");
 
   private static final Semaphore gpuUsage = new Semaphore(2);
   /** If we are more than this many blocks behind we can engage "catch-up"-mode if enabled */
