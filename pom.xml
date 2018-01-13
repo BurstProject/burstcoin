@@ -35,8 +35,6 @@
     <reflections.version>0.9.11</reflections.version>
     <kryo.version>4.0.1</kryo.version>
     <commons-lang.version>2.6</commons-lang.version>
-    <metrics.version>3.2.3</metrics.version>
-    <metrics-sql.version>3.2.1</metrics-sql.version>
     <junit.version>4.11</junit.version>
     <mockito.version>1.10.19</mockito.version>
     <powermock.version>1.6.4</powermock.version>
@@ -169,33 +167,6 @@
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
       <version>${commons-lang.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.dropwizard.metrics</groupId>
-      <artifactId>metrics-core</artifactId>
-      <version>${metrics.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.dropwizard.metrics</groupId>
-      <artifactId>metrics-jetty9</artifactId>
-      <version>${metrics.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.dropwizard.metrics</groupId>
-      <artifactId>metrics-jvm</artifactId>
-      <version>${metrics.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.dropwizard.metrics</groupId>
-      <artifactId>metrics-servlet</artifactId>
-      <version>${metrics.version}</version>
-    </dependency>
-
-    <!-- https://mvnrepository.com/artifact/com.github.gquintana.metrics/metrics-sql -->
-    <dependency>
-      <groupId>com.github.gquintana.metrics</groupId>
-      <artifactId>metrics-sql</artifactId>
-      <version>${metrics-sql.version}</version>
     </dependency>
 
     <dependency>
