@@ -18,7 +18,7 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
   static final String INCORRECT_FIELD_MESSAGE = "One of the fields is filled incorrectly!";
   static final String WRONG_SECRET_MESSAGE = "Wrong secret phrase!";
   static final String AMOUNT_MIN_MESSAGE = "\"Amount\" must be greater than 0!";
-  static final String INVALID_FEE_MESSAGE = "\"Fee\" must be at least 1 NXT!";
+  static final String INVALID_FEE_MESSAGE = "\"Fee\" must be at least 1 BURST!";
   static final String INVALID_DEADLINE_MESSAGE = "\"Deadline\" must be greater or equal to 1 minute and less than 24 hours!";
   static final String INSUFFICIENT_FUNDS_MESSAGE = "Not enough funds!";
 
