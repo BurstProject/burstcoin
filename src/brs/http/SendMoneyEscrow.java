@@ -88,7 +88,7 @@ public final class SendMoneyEscrow extends CreateTransaction {
       return response;
     }
 		
-    Long totalAmountNQT = Convert.safeAdd(amountNQT, signers.size() * Constants.ONE_NXT);
+    Long totalAmountNQT = Convert.safeAdd(amountNQT, signers.size() * Constants.ONE_BURST);
     if(sender.getBalanceNQT() < totalAmountNQT) {
       JSONObject response = new JSONObject();
       response.put(ERROR_CODE_RESPONSE, 6);

@@ -95,8 +95,8 @@ public class Parameters {
   public static final String MESSAGE_IS_TEXT_PARAMETER = "messageIsText";
   public static final String MESSAGE_PARAMETER = "message";
   public static final String UNSIGNED_TRANSACTION_JSON_PARAMETER = "unsignedTransactionJSON";
-  public static final String AMOUNT_NXT_PARAMETER = "amountNXT";
-  public static final String FEE_NXT_PARAMETER = "feeNXT";
+  public static final String AMOUNT_BURST_PARAMETER = "amountNXT";
+  public static final String FEE_BURST_PARAMETER = "feeNXT";
 
   public static boolean isFalse(String text) {
     return "false".equalsIgnoreCase(text);

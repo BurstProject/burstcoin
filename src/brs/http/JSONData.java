@@ -116,7 +116,7 @@ public final class JSONData {
     json.put("numberOfTransactions", block.getTransactions().size());
     json.put("totalAmountNQT", String.valueOf(block.getTotalAmountNQT()));
     json.put("totalFeeNQT", String.valueOf(block.getTotalFeeNQT()));
-    json.put("blockReward", Convert.toUnsignedLong(block.getBlockReward() / Constants.ONE_NXT));
+    json.put("blockReward", Convert.toUnsignedLong(block.getBlockReward() / Constants.ONE_BURST));
     json.put("payloadLength", block.getPayloadLength());
     json.put("version", block.getVersion());
     json.put("baseTarget", Convert.toUnsignedLong(block.getBaseTarget()));

@@ -31,8 +31,8 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
     response.put(RESPONSE, INCORRECT_TRANSACTION_RESPONSE);
     response.put(MESSAGE_PARAMETER, message);
     response.put(RECIPIENT_PARAMETER, recipient);
-    response.put(AMOUNT_NXT_PARAMETER, amount);
-    response.put(FEE_NXT_PARAMETER, fee);
+    response.put(AMOUNT_BURST_PARAMETER, amount);
+    response.put(FEE_BURST_PARAMETER, fee);
     response.put(DEADLINE_PARAMETER, deadline);
 
     return response;
@@ -45,8 +45,8 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
     }
 
     String recipientValue = req.getParameter(RECIPIENT_PARAMETER);
-    String amountValue = req.getParameter(AMOUNT_NXT_PARAMETER);
-    String feeValue = req.getParameter(FEE_NXT_PARAMETER);
+    String amountValue = req.getParameter(AMOUNT_BURST_PARAMETER);
+    String feeValue = req.getParameter(FEE_BURST_PARAMETER);
     String deadlineValue = req.getParameter(DEADLINE_PARAMETER);
     String secretPhrase = req.getParameter(SECRET_PHRASE_PARAMETER);
 
@@ -77,7 +77,7 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
 
       return errorResponse(AMOUNT_MIN_MESSAGE, recipientValue, amountValue, feeValue, deadlineValue);
 
-    } else if (feeNQT < Constants.ONE_NXT || feeNQT > Constants.MAX_BALANCE_NQT) {
+    } else if (feeNQT < Constants.ONE_BURST || feeNQT > Constants.MAX_BALANCE_NQT) {
 
       return errorResponse(INVALID_FEE_MESSAGE, recipientValue, amountValue, feeValue, deadlineValue);
 

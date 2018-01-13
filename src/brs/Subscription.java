@@ -40,7 +40,7 @@ public class Subscription {
   private static final Set<Long> removeSubscriptions = new HashSet<>();
 
   public static long getFee() {
-    return Constants.ONE_NXT;
+    return Constants.ONE_BURST;
   }
 
   public static BurstIterator<Subscription> getAllSubscriptions() {

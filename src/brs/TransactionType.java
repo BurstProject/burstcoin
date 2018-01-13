@@ -69,11 +69,11 @@ public abstract class TransactionType {
   private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT = 5;
 
   private static final int BASELINE_FEE_HEIGHT = 1; // At release time must be less than current block - 1440
-  private static final Fee BASELINE_FEE = new Fee(Constants.ONE_NXT, 0);
-  private static final Fee BASELINE_ASSET_ISSUANCE_FEE = new Fee(1000 * Constants.ONE_NXT, 0);
+  private static final Fee BASELINE_FEE = new Fee(Constants.ONE_BURST, 0);
+  private static final Fee BASELINE_ASSET_ISSUANCE_FEE = new Fee(1000 * Constants.ONE_BURST, 0);
   private static final int NEXT_FEE_HEIGHT = Integer.MAX_VALUE;
-  private static final Fee NEXT_FEE = new Fee(Constants.ONE_NXT, 0);
-  private static final Fee NEXT_ASSET_ISSUANCE_FEE = new Fee(1000 * Constants.ONE_NXT, 0);
+  private static final Fee NEXT_FEE = new Fee(Constants.ONE_BURST, 0);
+  private static final Fee NEXT_ASSET_ISSUANCE_FEE = new Fee(1000 * Constants.ONE_BURST, 0);
 
   public static TransactionType findTransactionType(byte type, byte subtype) {
     switch (type) {
@@ -1625,7 +1625,7 @@ public abstract class TransactionType {
             throw new BurstException.NotValidException("Reward recipient must have public key saved in blockchain: "
                                                        + transaction.getJSONObject());
           }
-          if (transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_NXT) {
+          if (transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_BURST) {
             throw new BurstException.NotValidException("Reward recipient assisnment transaction must have 0 send amount and 1 fee: "
                                                        + transaction.getJSONObject());
           }
@@ -1672,7 +1672,7 @@ public abstract class TransactionType {
         final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
           logger.trace("TransactionType ESCROW_CREATION");
           Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
-          Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
+          Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_BURST);
           if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT) {
             return false;
           }
@@ -1683,11 +1683,11 @@ public abstract class TransactionType {
         @Override
         final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
-          Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
+          Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_BURST);
           senderAccount.addToBalanceNQT(-totalAmountNQT);
           Collection<Long> signers = attachment.getSigners();
           signers.forEach(signer -> {
-              Account.addOrGetAccount(signer).addToBalanceAndUnconfirmedBalanceNQT(Constants.ONE_NXT);
+              Account.addOrGetAccount(signer).addToBalanceAndUnconfirmedBalanceNQT(Constants.ONE_BURST);
             });
           Escrow.addEscrowTransaction(senderAccount,
                                       recipientAccount,
@@ -1702,7 +1702,7 @@ public abstract class TransactionType {
         @Override
         final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
           Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
-          Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_NXT);
+          Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_BURST);
           senderAccount.addToUnconfirmedBalanceNQT(totalAmountNQT);
         }
 
@@ -1718,7 +1718,7 @@ public abstract class TransactionType {
           if (transaction.getSenderId() == transaction.getRecipientId()) {
             throw new BurstException.NotValidException("Escrow must have different sender and recipient");
           }
-          totalAmountNQT = Convert.safeAdd(totalAmountNQT, attachment.getTotalSigners() * Constants.ONE_NXT);
+          totalAmountNQT = Convert.safeAdd(totalAmountNQT, attachment.getTotalSigners() * Constants.ONE_BURST);
           if (transaction.getAmountNQT() != 0) {
             throw new BurstException.NotValidException("Transaction sent amount must be 0 for escrow");
           }
@@ -1727,7 +1727,7 @@ public abstract class TransactionType {
             {
               throw new BurstException.NotValidException("Invalid escrow creation amount");
             }
-          if (transaction.getFeeNQT() < Constants.ONE_NXT) {
+          if (transaction.getFeeNQT() < Constants.ONE_BURST) {
             throw new BurstException.NotValidException("Escrow transaction must have a fee at least 1 burst");
           }
           if (attachment.getRequiredSigners() < 1 || attachment.getRequiredSigners() > 10) {
@@ -1804,7 +1804,7 @@ public abstract class TransactionType {
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.AdvancedPaymentEscrowSign attachment = (Attachment.AdvancedPaymentEscrowSign) transaction.getAttachment();
-          if (transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_NXT) {
+          if (transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_BURST) {
             throw new BurstException.NotValidException("Escrow signing must have amount 0 and fee of 1");
           }
           if (attachment.getEscrowId() == null || attachment.getDecision() == null) {
@@ -1932,7 +1932,7 @@ public abstract class TransactionType {
              attachment.getFrequency() > Constants.BURST_SUBSCRIPTION_MAX_FREQ) {
             throw new BurstException.NotValidException("Invalid subscription frequency");
           }
-          if (transaction.getAmountNQT() < Constants.ONE_NXT || transaction.getAmountNQT() > Constants.MAX_BALANCE_NQT) {
+          if (transaction.getAmountNQT() < Constants.ONE_BURST || transaction.getAmountNQT() > Constants.MAX_BALANCE_NQT) {
             throw new BurstException.NotValidException("Subscriptions must be at least one burst");
           }
           if (transaction.getSenderId() == transaction.getRecipientId()) {
@@ -2150,7 +2150,7 @@ public abstract class TransactionType {
           }
           long requiredFee = totalPages * AT_Constants.getInstance().COST_PER_PAGE( transaction.getHeight() );
           if (transaction.getFeeNQT() <  requiredFee){
-            throw new BurstException.NotValidException("Insufficient fee for AT creation. Minimum: " + Convert.toUnsignedLong(requiredFee / Constants.ONE_NXT));
+            throw new BurstException.NotValidException("Insufficient fee for AT creation. Minimum: " + Convert.toUnsignedLong(requiredFee / Constants.ONE_BURST));
           }
           if (Burst.getBlockchain().getHeight() >= Constants.AT_FIX_BLOCK_3) {
             if (attachment.getName().length() > Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH) {
