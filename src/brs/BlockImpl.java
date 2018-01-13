@@ -62,7 +62,7 @@ public final class BlockImpl implements Block {
   @Column(name = "BASE_TARGET")
   private long baseTarget = Constants.INITIAL_BASE_TARGET;
   @Column(name = "NEXT_BLOCK_ID")
-  private volatile Long nextBlockId;
+  private volatile long nextBlockId;
   @Column(name = "HEIGHT")
   private int height = -1;
   @Column(name = "ID")
@@ -118,7 +118,7 @@ public final class BlockImpl implements Block {
 
   @ConstructorProperties({"version", "timestamp", "previous_block_id", "total_amount", "total_fee", "payload_length", "payload_hash", "generator_public_key", "generation_signature", "block_signature", "previous_block_hash", "cumulative_difficulty", "base_target", "next_block_id", "height", "id", "nonce", "ats"})
   public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget,
-      Long nextBlockId, int height, Long id, long nonce, byte[] blockATs) throws BurstException.ValidationException {
+      long nextBlockId, int height, Long id, long nonce, byte[] blockATs) throws BurstException.ValidationException {
 
     this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature, previousBlockHash, null, nonce, blockATs);
 
