@@ -80,6 +80,8 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
     }
 
     try ( DSLContext ctx = Db.getDSLContext() ) {
+      // get dbKey's for entries whose stuff newer than height would be deleted, to allow fixing
+      // their latest flag of the "potential" remaining newest entry
       SelectQuery selectForDeleteQuery = ctx.selectQuery();
       selectForDeleteQuery.addFrom(tableClass);
       selectForDeleteQuery.addConditions(tableClass.field("height", Integer.class).gt(height));
@@ -87,33 +89,39 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
         selectForDeleteQuery.addSelect(tableClass.field(column, Long.class));
       }
       selectForDeleteQuery.setDistinct(true);
-      
-
       List<DbKey> dbKeys = new ArrayList<>();
       try ( ResultSet toDeleteResultset = selectForDeleteQuery.fetchResultSet() ) {
         while ( toDeleteResultset.next() ) {
           dbKeys.add((DbKey) dbKeyFactory.newKey(toDeleteResultset));
         }
       }
+
+      // delete all entries > height
       DeleteQuery deleteQuery = ctx.deleteQuery(tableClass);
       deleteQuery.addConditions(tableClass.field("height", Integer.class).gt(height));
+      deleteQuery.execute();
 
+      // update latest flags for remaining entries, if there any remaining (per deleted dbKey)
       for (DbKey dbKey : dbKeys) {
         SelectQuery selectMaxHeightQuery = ctx.selectQuery();
         selectMaxHeightQuery.addFrom(tableClass);
         selectMaxHeightQuery.addConditions(dbKey.getPKConditions(tableClass));
-        selectMaxHeightQuery.addSelect(tableClass.field("height", Long.class).max());
-        Integer maxHeight = (Integer) ctx.fetchValue(selectMaxHeightQuery.fetchResultSet());
+        selectMaxHeightQuery.addSelect(tableClass.field("height", Integer.class).max());
+        Integer maxHeight = (Integer) ctx.fetchValue(selectMaxHeightQuery.fetchResultSet(), tableClass.field("height", Integer.class));
 
-        UpdateQuery setLatestQuery = ctx.updateQuery(tableClass);
-        setLatestQuery.addValue(
-          tableClass.field("latest", Boolean.class),
-          true
-        );
-        setLatestQuery.addConditions(dbKey.getPKConditions(tableClass));
-        setLatestQuery.addConditions(tableClass.field("height", int.class).eq(height));
-        setLatestQuery.execute();
-        //Db.getCache(table).remove(dbKey);
+        System.out.println("select max: " + selectMaxHeightQuery.getSQL(true));
+        System.out.println("    max height for: " + dbKeyFactory.getSelfJoinClause() + " should be set to " + maxHeight);
+        if ( maxHeight != null ) {
+          UpdateQuery setLatestQuery = ctx.updateQuery(tableClass);
+          setLatestQuery.addConditions(dbKey.getPKConditions(tableClass));
+          setLatestQuery.addConditions(tableClass.field("height", int.class).eq(maxHeight));
+          setLatestQuery.addValue(
+            tableClass.field("latest", Boolean.class),
+            true
+          );
+          System.out.println("        set latest by: " + setLatestQuery.getSQL(true));
+          setLatestQuery.execute();
+        }
       }
     }
     catch (SQLException e) {
