@@ -358,8 +358,8 @@ public final class BlockImpl implements Block {
     buffer.putLong(previousBlockId);
     buffer.putInt(getTransactions().size());
     if (version < 3) {
-      buffer.putInt((int) (totalAmountNQT / Constants.ONE_NXT));
-      buffer.putInt((int) (totalFeeNQT / Constants.ONE_NXT));
+      buffer.putInt((int) (totalAmountNQT / Constants.ONE_BURST));
+      buffer.putInt((int) (totalFeeNQT / Constants.ONE_BURST));
     } else {
       buffer.putLong(totalAmountNQT);
       buffer.putLong(totalFeeNQT);
@@ -520,7 +520,7 @@ public final class BlockImpl implements Block {
       return 0;
     }
     int month = this.height / 10800;
-    return BigInteger.valueOf(10000).multiply(BigInteger.valueOf(95).pow(month)).divide(BigInteger.valueOf(100).pow(month)).longValue() * Constants.ONE_NXT;
+    return BigInteger.valueOf(10000).multiply(BigInteger.valueOf(95).pow(month)).divide(BigInteger.valueOf(100).pow(month)).longValue() * Constants.ONE_BURST;
   }
 
   void setPrevious(BlockImpl previousBlock) {

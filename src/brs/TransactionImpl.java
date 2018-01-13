@@ -488,8 +488,8 @@ public final class TransactionImpl implements Transaction {
           buffer.put(new byte[32]);
         }
       } else {
-        buffer.putInt((int) (amountNQT / Constants.ONE_NXT));
-        buffer.putInt((int) (feeNQT / Constants.ONE_NXT));
+        buffer.putInt((int) (amountNQT / Constants.ONE_BURST));
+        buffer.putInt((int) (feeNQT / Constants.ONE_BURST));
         if (referencedTransactionFullHash != null) {
           buffer.putLong(Convert.fullHashToId(Convert.parseHexString(referencedTransactionFullHash)));
         } else {

@@ -51,7 +51,7 @@ public class BuyAliasTest extends AbstractTransactionTest {
 
   @Test
   public void processRequest() throws BurstException {
-    final HttpServletRequest req = QuickMocker.httpServletRequestDefaultKeys(new MockParam(AMOUNT_NQT_PARAMETER, "" + Constants.ONE_NXT));
+    final HttpServletRequest req = QuickMocker.httpServletRequestDefaultKeys(new MockParam(AMOUNT_NQT_PARAMETER, "" + Constants.ONE_BURST));
 
     super.prepareTransactionTest(req, parameterServiceMock, transactionProcessorMock, aliasService);
 

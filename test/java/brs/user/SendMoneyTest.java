@@ -1,13 +1,13 @@
 package brs.user;
 
-import static brs.Constants.ONE_NXT;
+import static brs.Constants.ONE_BURST;
 import static brs.Constants.RESPONSE;
 import static brs.common.TestConstants.FEE;
 import static brs.common.TestConstants.TEST_ACCOUNT_ID;
 import static brs.common.TestConstants.TEST_SECRET_PHRASE;
-import static brs.http.common.Parameters.AMOUNT_NXT_PARAMETER;
+import static brs.http.common.Parameters.AMOUNT_BURST_PARAMETER;
 import static brs.http.common.Parameters.DEADLINE_PARAMETER;
-import static brs.http.common.Parameters.FEE_NXT_PARAMETER;
+import static brs.http.common.Parameters.FEE_BURST_PARAMETER;
 import static brs.http.common.Parameters.MESSAGE_PARAMETER;
 import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
@@ -51,7 +51,7 @@ public class SendMoneyTest {
     private HttpServletRequest requestMock;
     private SendMoney sendMoney;
     private User user;
-    private String TRANSACTION_AMOUNT = "" + ONE_NXT;
+    private String TRANSACTION_AMOUNT = "" + ONE_BURST;
 
     @Before
     public void init() {
@@ -63,8 +63,8 @@ public class SendMoneyTest {
         user.unlockAccount(TEST_SECRET_PHRASE);
 
         when(requestMock.getParameter(eq(RECIPIENT_PARAMETER))).thenReturn("123");
-        when(requestMock.getParameter(eq(AMOUNT_NXT_PARAMETER))).thenReturn(TRANSACTION_AMOUNT);
-        when(requestMock.getParameter(eq(FEE_NXT_PARAMETER))).thenReturn(FEE);
+        when(requestMock.getParameter(eq(AMOUNT_BURST_PARAMETER))).thenReturn(TRANSACTION_AMOUNT);
+        when(requestMock.getParameter(eq(FEE_BURST_PARAMETER))).thenReturn(FEE);
         when(requestMock.getParameter(eq(DEADLINE_PARAMETER))).thenReturn("10");
         when(requestMock.getParameter(eq(SECRET_PHRASE_PARAMETER))).thenReturn(TEST_SECRET_PHRASE);
     }
@@ -98,7 +98,7 @@ public class SendMoneyTest {
 
     @Test
     public void invalidNQTAmount_Test() throws Exception {
-        when(requestMock.getParameter(eq(AMOUNT_NXT_PARAMETER))).thenReturn("0");
+        when(requestMock.getParameter(eq(AMOUNT_BURST_PARAMETER))).thenReturn("0");
 
         final JSONObject result = (JSONObject)sendMoney.processRequest(requestMock, user);
 
@@ -108,7 +108,7 @@ public class SendMoneyTest {
 
     @Test
     public void invalidFeeAmount_Test() throws Exception {
-        when(requestMock.getParameter(eq(FEE_NXT_PARAMETER))).thenReturn("0");
+        when(requestMock.getParameter(eq(FEE_BURST_PARAMETER))).thenReturn("0");
 
         final JSONObject result = (JSONObject)sendMoney.processRequest(requestMock, user);
 
