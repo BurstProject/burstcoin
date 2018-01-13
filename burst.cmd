@@ -27,20 +27,20 @@ IF NOT "%MY_CMD%" == "" (
         goto USAGE
     )
     IF "%MY_CMD%" == "load" (
-        %MY_JAVA% -cp burst.jar;conf brs.db.quicksync.LoadBinDump "$MY_OPT"
+        "%MY_JAVA%" -cp burst.jar;conf brs.db.quicksync.LoadBinDump "%MY_OPT%"
         goto DONE
     )
     IF "%MY_CMD%" == "loadsilent" (
-        %MY_JAVA% -cp burst.jar;conf brs.db.quicksync.LoadBinDump "$MY_OPT" -y
+        "%MY_JAVA%" -cp burst.jar;conf brs.db.quicksync.LoadBinDump "%MY_OPT%" -y
         goto DONE
     )
     IF "%MY_CMD%" == "dump" (
-        %MY_JAVA% -cp burst.jar;conf brs.db.quicksync.CreateBinDump "$MY_OPT"
+        "%MY_JAVA%" -cp burst.jar;conf brs.db.quicksync.CreateBinDump "%MY_OPT%"
         goto DONE
     )
     goto USAGE
 )
-%MY_JAVA% -cp burst.jar;conf brs.Burst
+"%MY_JAVA%" -cp burst.jar;conf brs.Burst
 
 goto DONE
 
