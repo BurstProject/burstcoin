@@ -85,7 +85,7 @@ public class SqlTransactionDb implements TransactionDb {
             .blockTimestamp(tr.getBlockTimestamp())
             .fullHash(tr.getFullHash());
     if (transactionType.hasRecipient()) {
-      builder.recipientId((long) tr.getRecipientId());
+      builder.recipientId(Optional.ofNullable(tr.getRecipientId()).orElse(0L));
     }
     if (tr.getHasMessage()) {
       builder.message(new Appendix.Message(buffer, tr.getVersion()));
