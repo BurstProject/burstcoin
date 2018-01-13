@@ -82,38 +82,28 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
       try (BurstIterator<? extends Transaction> transactions = Burst.getTransactionProcessor().getAllUnconfirmedTransactions()) {
         while (transactions.hasNext()) {
           Transaction transaction = transactions.next();
-          if (Arrays.equals(transaction.getSenderPublicKey(), accountPublicKey)) {
+          JSONObject myTransaction = new JSONObject();
+          myTransaction.put("index", Users.getIndex(transaction));
+          myTransaction.put("transactionTimestamp", transaction.getTimestamp());
+          myTransaction.put("deadline", transaction.getDeadline());
 
-            JSONObject myTransaction = new JSONObject();
-            myTransaction.put("index", Users.getIndex(transaction));
-            myTransaction.put("transactionTimestamp", transaction.getTimestamp());
-            myTransaction.put("deadline", transaction.getDeadline());
+          if (Arrays.equals(transaction.getSenderPublicKey(), accountPublicKey)) {
             myTransaction.put("account", Convert.toUnsignedLong(transaction.getRecipientId()));
             myTransaction.put("sentAmountNQT", transaction.getAmountNQT());
             if (accountId == transaction.getRecipientId()) {
               myTransaction.put("receivedAmountNQT", transaction.getAmountNQT());
             }
-            myTransaction.put("feeNQT", transaction.getFeeNQT());
-            myTransaction.put("numberOfConfirmations", -1);
-            myTransaction.put("id", transaction.getStringId());
-
-            myTransactions.add(myTransaction);
 
           } else if (accountId == transaction.getRecipientId()) {
-
-            JSONObject myTransaction = new JSONObject();
-            myTransaction.put("index", Users.getIndex(transaction));
-            myTransaction.put("transactionTimestamp", transaction.getTimestamp());
-            myTransaction.put("deadline", transaction.getDeadline());
             myTransaction.put("account", Convert.toUnsignedLong(transaction.getSenderId()));
             myTransaction.put("receivedAmountNQT", transaction.getAmountNQT());
-            myTransaction.put("feeNQT", transaction.getFeeNQT());
-            myTransaction.put("numberOfConfirmations", -1);
-            myTransaction.put("id", transaction.getStringId());
-
-            myTransactions.add(myTransaction);
 
           }
+
+          myTransaction.put("feeNQT", transaction.getFeeNQT());
+          myTransaction.put("numberOfConfirmations", -1);
+          myTransaction.put("id", transaction.getStringId());
+          myTransactions.add(myTransaction);
         }
       }
 
@@ -140,34 +130,26 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
       try (BurstIterator<? extends Transaction> transactionIterator = Burst.getBlockchain().getTransactions(account, (byte) -1, (byte) -1, 0)) {
         while (transactionIterator.hasNext()) {
           Transaction transaction = transactionIterator.next();
+          JSONObject myTransaction = new JSONObject();
+          myTransaction.put("index", Users.getIndex(transaction));
+          myTransaction.put("blockTimestamp", transaction.getBlockTimestamp());
+          myTransaction.put("transactionTimestamp", transaction.getTimestamp());
           if (transaction.getSenderId() == accountId) {
-            JSONObject myTransaction = new JSONObject();
-            myTransaction.put("index", Users.getIndex(transaction));
-            myTransaction.put("blockTimestamp", transaction.getBlockTimestamp());
-            myTransaction.put("transactionTimestamp", transaction.getTimestamp());
             myTransaction.put("account", Convert.toUnsignedLong(transaction.getRecipientId()));
             myTransaction.put("sentAmountNQT", transaction.getAmountNQT());
             if (accountId == transaction.getRecipientId()) {
               myTransaction.put("receivedAmountNQT", transaction.getAmountNQT());
             }
-            myTransaction.put("feeNQT", transaction.getFeeNQT());
-            myTransaction.put("numberOfConfirmations", blockchainHeight - transaction.getHeight());
-            myTransaction.put("id", transaction.getStringId());
-            myTransaction.put("timestamp", transaction.getTimestamp());
-            myTransactionsSet.add(myTransaction);
           } else if (transaction.getRecipientId() == accountId) {
-            JSONObject myTransaction = new JSONObject();
-            myTransaction.put("index", Users.getIndex(transaction));
-            myTransaction.put("blockTimestamp", transaction.getBlockTimestamp());
-            myTransaction.put("transactionTimestamp", transaction.getTimestamp());
             myTransaction.put("account", Convert.toUnsignedLong(transaction.getSenderId()));
             myTransaction.put("receivedAmountNQT", transaction.getAmountNQT());
-            myTransaction.put("feeNQT", transaction.getFeeNQT());
-            myTransaction.put("numberOfConfirmations", blockchainHeight - transaction.getHeight());
-            myTransaction.put("id", transaction.getStringId());
-            myTransaction.put("timestamp", transaction.getTimestamp());
-            myTransactionsSet.add(myTransaction);
+
           }
+          myTransaction.put("feeNQT", transaction.getFeeNQT());
+          myTransaction.put("numberOfConfirmations", blockchainHeight - transaction.getHeight());
+          myTransaction.put("id", transaction.getStringId());
+          myTransaction.put("timestamp", transaction.getTimestamp());
+          myTransactionsSet.add(myTransaction);
         }
       }
 
