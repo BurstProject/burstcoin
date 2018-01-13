@@ -45,10 +45,12 @@ import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 import brs.Account;
 import brs.Alias;
 import brs.Asset;
-import brs.Burst;
+import brs.Blockchain;
+import brs.BlockchainProcessor;
 import brs.BurstException;
 import brs.DigitalGoodsStore;
 import brs.Transaction;
+import brs.TransactionProcessor;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
 import brs.http.ParameterException;
@@ -74,11 +76,18 @@ public class ParameterServiceImpl implements ParameterService {
   private final AccountService accountService;
   private final AliasService aliasService;
   private final AssetService assetService;
+  private final Blockchain blockchain;
+  private final BlockchainProcessor blockchainProcessor;
+  private final TransactionProcessor transactionProcessor;
 
-  public ParameterServiceImpl(AccountService accountService, AliasService aliasService, AssetService assetService) {
+  public ParameterServiceImpl(AccountService accountService, AliasService aliasService, AssetService assetService, Blockchain blockchain, BlockchainProcessor blockchainProcessor,
+      TransactionProcessor transactionProcessor) {
     this.accountService = accountService;
     this.aliasService = aliasService;
     this.assetService = assetService;
+    this.blockchain = blockchain;
+    this.blockchainProcessor = blockchainProcessor;
+    this.transactionProcessor = transactionProcessor;
   }
 
   @Override
@@ -274,7 +283,7 @@ public class ParameterServiceImpl implements ParameterService {
     if (numberOfConfirmationsValue != null) {
       try {
         int numberOfConfirmations = Integer.parseInt(numberOfConfirmationsValue);
-        if (numberOfConfirmations <= Burst.getBlockchain().getHeight()) {
+        if (numberOfConfirmations <= blockchain.getHeight()) {
           return numberOfConfirmations;
         }
         throw new ParameterException(INCORRECT_NUMBER_OF_CONFIRMATIONS);
@@ -291,10 +300,10 @@ public class ParameterServiceImpl implements ParameterService {
     if (heightValue != null) {
       try {
         int height = Integer.parseInt(heightValue);
-        if (height < 0 || height > Burst.getBlockchain().getHeight()) {
+        if (height < 0 || height > blockchain.getHeight()) {
           throw new ParameterException(INCORRECT_HEIGHT);
         }
-        if (height < Burst.getBlockchainProcessor().getMinRollbackHeight()) {
+        if (height < blockchainProcessor.getMinRollbackHeight()) {
           throw new ParameterException(HEIGHT_NOT_AVAILABLE);
         }
         return height;
@@ -313,7 +322,7 @@ public class ParameterServiceImpl implements ParameterService {
     if (transactionBytes != null) {
       try {
         byte[] bytes = Convert.parseHexString(transactionBytes);
-        return Burst.getTransactionProcessor().parseTransaction(bytes);
+        return transactionProcessor.parseTransaction(bytes);
       } catch (BurstException.ValidationException | RuntimeException e) {
         logger.debug(e.getMessage(), e);
         JSONObject response = new JSONObject();
@@ -324,7 +333,7 @@ public class ParameterServiceImpl implements ParameterService {
     } else {
       try {
         JSONObject json = (JSONObject) JSONValue.parseWithException(transactionJSON);
-        return Burst.getTransactionProcessor().parseTransaction(json);
+        return transactionProcessor.parseTransaction(json);
       } catch (BurstException.ValidationException | RuntimeException | ParseException e) {
         logger.debug(e.getMessage(), e);
         JSONObject response = new JSONObject();
