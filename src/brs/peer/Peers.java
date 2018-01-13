@@ -1,8 +1,5 @@
 package brs.peer;
 
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.jetty9.InstrumentedHandler;
 import brs.*;
 import brs.util.*;
 import org.eclipse.jetty.server.Server;
@@ -280,10 +277,6 @@ public final class Peers {
           gzipFilterHolder.setAsyncSupported(true);
         }
 
-        InstrumentedHandler instrumentedPeerHandler = new InstrumentedHandler(Burst.metrics, "peer-handler");
-        instrumentedPeerHandler.setHandler(peerHandler);
-
-        peerServer.setHandler(instrumentedPeerHandler);
         peerServer.setStopAtShutdown(true);
         ThreadPool.runBeforeStart(new Runnable() {
             @Override
@@ -301,12 +294,6 @@ public final class Peers {
         peerServer = null;
         logger.info("shareMyAddress is disabled, will not start peer networking server");
       }
-
-      Burst.metrics.register(MetricRegistry.name(Peers.class, "peers", "total"),
-                             (Gauge<Integer>) () -> peers.size());
-      Burst.metrics.register(MetricRegistry.name(Peers.class, "peers", "active"),
-                             (Gauge<Integer>) () -> getActivePeers().size());
-
     }
 
     private static void init() {}

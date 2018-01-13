@@ -1,6 +1,5 @@
 package brs.http;
 
-import com.codahale.metrics.jetty9.InstrumentedHandler;
 import brs.Constants;
 import brs.Burst;
 import brs.util.Subnet;
@@ -126,9 +125,6 @@ public final class API {
         filterHolder.setAsyncSupported(true);
       }
 
-      InstrumentedHandler instrumentedApiHandler = new InstrumentedHandler(Burst.metrics, "api-handler");
-      instrumentedApiHandler.setHandler(apiHandler);
-      apiHandlers.addHandler(instrumentedApiHandler);
       apiHandlers.addHandler(new DefaultHandler());
 
       apiServer.setHandler(apiHandlers);

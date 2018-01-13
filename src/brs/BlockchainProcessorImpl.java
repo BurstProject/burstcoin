@@ -24,9 +24,6 @@ import org.json.simple.JSONStreamAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Timer;
-
 import brs.at.AT_Block;
 import brs.at.AT_Controller;
 import brs.at.AT_Exception;
@@ -95,92 +92,74 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   public static final Boolean getOclVerify() {
     return oclVerify;
   }
-  /*
-  private static void addCollectionGauge (MetricRegistry metrics, final Collection c, String name) {
-    metrics.register(MetricRegistry.name(BlockchainProcessorImpl.class, name, "size"),
-                     (Gauge<Integer>) () -> c.size());
-  }
-  
-  static {
-    addCollectionGauge(Burst.metrics, blockCache.keySet(), "BlockCache");
-    addCollectionGauge(Burst.metrics, unverified, "Unverified");
-    Burst.metrics.register(MetricRegistry.name(BlockchainProcessorImpl.class, "BlockCacheSize", "size"),
-                         (Gauge<Integer>) () -> blockCacheSize);
-  }
-  */
-  private final Timer pocTimer = Burst.metrics.timer(MetricRegistry.name(BlockchainImpl.class, "pocVerification"));
 
   private final Runnable pocVerificationThread = new Runnable() {
     @Override
     public void run() {
       for (;;) {
-        final Timer.Context context = pocTimer.time();
-        try {
-          if (oclVerify) {
-            boolean gpuAcquired = false;
-            try {
-              List<BlockImpl> blocks = new LinkedList<>();
-              synchronized (DownloadCache) {
-                if (DownloadCache.getUnverifiedSize() == 0) {
+        if (oclVerify) {
+          boolean gpuAcquired = false;
+          try {
+            List<BlockImpl> blocks = new LinkedList<>();
+            synchronized (DownloadCache) {
+              if (DownloadCache.getUnverifiedSize() == 0) {
+                return;
+              }
+              int verifiedCached = DownloadCache.size() - DownloadCache.getUnverifiedSize();
+              if (verifiedCached >= oclWaitThreshold && DownloadCache.getUnverifiedSize() < OCLPoC.getMaxItems() / 2) {
+                return;
+              }
+              if (DownloadCache.getUnverifiedSize() < oclThreshold) {
+                Long blockId = DownloadCache.GetUnverifiedBlockId(0);
+                DownloadCache.removeUnverified(blockId);
+                blocks.add(DownloadCache.GetBlock(blockId));
+              } else {
+                if (!gpuUsage.tryAcquire()) {
+                  logger.debug("already max locked");
                   return;
                 }
-                int verifiedCached = DownloadCache.size() - DownloadCache.getUnverifiedSize();
-                if (verifiedCached >= oclWaitThreshold && DownloadCache.getUnverifiedSize() < OCLPoC.getMaxItems() / 2) {
-                  return;
-                }
-                if (DownloadCache.getUnverifiedSize() < oclThreshold) {
+                gpuAcquired = true;
+                while (DownloadCache.getUnverifiedSize() > 0 && blocks.size() < OCLPoC.getMaxItems()) {
                   Long blockId = DownloadCache.GetUnverifiedBlockId(0);
                   DownloadCache.removeUnverified(blockId);
                   blocks.add(DownloadCache.GetBlock(blockId));
-                } else {
-                  if (!gpuUsage.tryAcquire()) {
-                    logger.debug("already max locked");
-                    return;
-                  }
-                  gpuAcquired = true;
-                  while (DownloadCache.getUnverifiedSize() > 0 && blocks.size() < OCLPoC.getMaxItems()) {
-                    Long blockId = DownloadCache.GetUnverifiedBlockId(0);
-                    DownloadCache.removeUnverified(blockId);
-                    blocks.add(DownloadCache.GetBlock(blockId));
-                  }
                 }
-              } // end synchronized
-              try {
-                if (blocks.size() > 1) {
-                  OCLPoC.validatePoC(blocks);
-                } else {
-                  blocks.get(0).preVerify();
-                }
-              } catch (OCLPoC.PreValidateFailException e) {
-                logger.info(e.toString(), e);
-                blacklistClean(e.getBlock(), e);
-              } catch (BlockNotAcceptedException e) {
-                logger.info(e.toString(), e);
-                blacklistClean(blocks.get(0), e);
               }
-            } finally {
-              if (gpuAcquired) {
-                gpuUsage.release();
-              }
-            }
-          } else {
-            BlockImpl block;
-            synchronized (DownloadCache) {
-              if (DownloadCache.getUnverifiedSize() == 0)
-                return;
-              Long blockId = DownloadCache.GetUnverifiedBlockId(0);
-              DownloadCache.removeUnverified(blockId);
-              block = DownloadCache.GetBlock(blockId);
-            }
+            } // end synchronized
             try {
-              block.preVerify();
-            } catch (BlockchainProcessor.BlockNotAcceptedException e) {
-              blacklistClean(block, e);
+              if (blocks.size() > 1) {
+                OCLPoC.validatePoC(blocks);
+              } else {
+                blocks.get(0).preVerify();
+              }
+            } catch (OCLPoC.PreValidateFailException e) {
+              logger.info(e.toString(), e);
+              blacklistClean(e.getBlock(), e);
+            } catch (BlockNotAcceptedException e) {
+              logger.info(e.toString(), e);
+              blacklistClean(blocks.get(0), e);
+            }
+          } finally {
+            if (gpuAcquired) {
+              gpuUsage.release();
             }
           }
-        } finally {
-          context.stop();
+        } else {
+          BlockImpl block;
+          synchronized (DownloadCache) {
+            if (DownloadCache.getUnverifiedSize() == 0)
+              return;
+            Long blockId = DownloadCache.GetUnverifiedBlockId(0);
+            DownloadCache.removeUnverified(blockId);
+            block = DownloadCache.GetBlock(blockId);
+          }
+          try {
+            block.preVerify();
+          } catch (BlockchainProcessor.BlockNotAcceptedException e) {
+            blacklistClean(block, e);
+          }
         }
+
         try {
           Thread.sleep(10);
         } catch (InterruptedException ex) {
@@ -189,7 +168,6 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       }
     }
   };
-  private final Timer blockImportTimer = Burst.metrics.timer(MetricRegistry.name(BlockchainImpl.class, "blockImport"));
   private final Runnable blockImporterThread = new Runnable() {
     @Override
     public void run() {
@@ -197,32 +175,27 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         while (true) {
           synchronized (blockchain) {
             for (;;) {
-              final Timer.Context context = blockImportTimer.time();
-              try {
-                Long lastId = blockchain.getLastBlock().getId();
-                BlockImpl currentBlock;
-                synchronized (DownloadCache) {
-                  currentBlock = DownloadCache.GetNextBlock(lastId); /* we should fetch first block in cache */
-                  if (currentBlock == null) {
-                    break;
-                  }
-                }
-                try {
-                  if (!currentBlock.isVerified()) {
-                    currentBlock.preVerify();
-                  }
-                  pushBlock(currentBlock);
-                } catch (BlockNotAcceptedException e) {
-                  logger.error("Block not accepted", e);
-                  blacklistClean(currentBlock, e);
+              Long lastId = blockchain.getLastBlock().getId();
+              BlockImpl currentBlock;
+              synchronized (DownloadCache) {
+                currentBlock = DownloadCache.GetNextBlock(lastId); /* we should fetch first block in cache */
+                if (currentBlock == null) {
                   break;
                 }
-                // Remove processed block.
-                synchronized (DownloadCache) {
-                  DownloadCache.RemoveBlock(currentBlock);
+              }
+              try {
+                if (!currentBlock.isVerified()) {
+                  currentBlock.preVerify();
                 }
-              } finally {
-                context.stop();
+                pushBlock(currentBlock);
+              } catch (BlockNotAcceptedException e) {
+                logger.error("Block not accepted", e);
+                blacklistClean(currentBlock, e);
+                break;
+              }
+              // Remove processed block.
+              synchronized (DownloadCache) {
+                DownloadCache.RemoveBlock(currentBlock);
               }
             }
           }
@@ -809,199 +782,178 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
   }
 
-  private final Timer pushBlockTimer = Burst.metrics.timer(MetricRegistry.name(BlockchainImpl.class, "pushBlock"));
-  private final Timer finishTimer = Burst.metrics.timer(MetricRegistry.name(BlockchainImpl.class, "pushBlockFinishTables"));
-  private final Timer commitTimer = Burst.metrics.timer(MetricRegistry.name(BlockchainImpl.class, "pushBlockCommit"));
-
   private void pushBlock(final BlockImpl block) throws BlockNotAcceptedException {
-    final Timer.Context context = pushBlockTimer.time();
-    try {
-      int curTime = Burst.getEpochTime();
+    int curTime = Burst.getEpochTime();
 
-      synchronized (blockchain) {
-        TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
-        BlockImpl previousLastBlock = null;
-        try {
-          Burst.getStores().beginTransaction();
-          previousLastBlock = blockchain.getLastBlock();
+    synchronized (blockchain) {
+      TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
+      BlockImpl previousLastBlock = null;
+      try {
+        Burst.getStores().beginTransaction();
+        previousLastBlock = blockchain.getLastBlock();
 
-          if (previousLastBlock.getId() != block.getPreviousBlockId()) {
-            throw new BlockOutOfOrderException("Previous block id doesn't match");
-          }
-
-          if (block.getVersion() != getBlockVersion(previousLastBlock.getHeight())) {
-            throw new BlockNotAcceptedException("Invalid version " + block.getVersion());
-          }
-
-          if (block.getVersion() != 1 && !Arrays.equals(Crypto.sha256().digest(previousLastBlock.getBytes()), block.getPreviousBlockHash())) {
-            throw new BlockNotAcceptedException("Previous block hash doesn't match");
-          }
-          if (block.getTimestamp() > curTime + MAX_TIMESTAMP_DIFFERENCE || block.getTimestamp() <= previousLastBlock.getTimestamp()) {
-            throw new BlockOutOfOrderException("Invalid timestamp: " + block.getTimestamp() + " current time is " + curTime + ", previous block timestamp is " + previousLastBlock.getTimestamp());
-          }
-          if (block.getId() == 0L || blockDb.hasBlock(block.getId())) {
-            throw new BlockNotAcceptedException("Duplicate block or invalid id");
-          }
-          if (!block.verifyGenerationSignature()) {
-            throw new BlockNotAcceptedException("Generation signature verification failed");
-          }
-          if (!block.verifyBlockSignature()) {
-            throw new BlockNotAcceptedException("Block signature verification failed");
-          }
-
-          Map<TransactionType, Set<String>> duplicates = new HashMap<>();
-          long calculatedTotalAmount = 0;
-          long calculatedTotalFee = 0;
-          MessageDigest digest = Crypto.sha256();
-
-          for (TransactionImpl transaction : block.getTransactions()) {
-
-            if (transaction.getTimestamp() > curTime + MAX_TIMESTAMP_DIFFERENCE) {
-              throw new BlockOutOfOrderException("Invalid transaction timestamp: " + transaction.getTimestamp() + ", current time is " + curTime);
-            }
-            if (transaction.getTimestamp() > block.getTimestamp() + MAX_TIMESTAMP_DIFFERENCE || transaction.getExpiration() < block.getTimestamp()) {
-              throw new TransactionNotAcceptedException("Invalid transaction timestamp " + transaction.getTimestamp() + " for transaction " + transaction.getStringId() + ", current time is " + curTime + ", block timestamp is " + block.getTimestamp(), transaction);
-            }
-            if (transactionDb.hasTransaction(transaction.getId())) {
-              throw new TransactionNotAcceptedException("Transaction " + transaction.getStringId() + " is already in the blockchain", transaction);
-            }
-            if (transaction.getReferencedTransactionFullHash() != null) {
-              if ((previousLastBlock.getHeight() < Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK && !transactionDb.hasTransaction(Convert.fullHashToId(transaction.getReferencedTransactionFullHash())))
-                  || (previousLastBlock.getHeight() >= Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK && !hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0))) {
-                throw new TransactionNotAcceptedException("Missing or invalid referenced transaction " + transaction.getReferencedTransactionFullHash() + " for transaction " + transaction.getStringId(), transaction);
-              }
-            }
-            if (transaction.getVersion() != transactionProcessor.getTransactionVersion(previousLastBlock.getHeight())) {
-              throw new TransactionNotAcceptedException("Invalid transaction version " + transaction.getVersion() + " at height " + previousLastBlock.getHeight(), transaction);
-            }
-            /*if (!transaction.verifySignature()) { // moved to preVerify
-              throw new TransactionNotAcceptedException("Signature verification failed for transaction "
-              + transaction.getStringId() + " at height " + previousLastBlock.getHeight(), transaction);
-              }*/
-            if (!transaction.verifyPublicKey()) {
-              throw new TransactionNotAcceptedException("Wrong public key in transaction " + transaction.getStringId() + " at height " + previousLastBlock.getHeight(), transaction);
-            }
-            if (Burst.getBlockchain().getHeight() >= Constants.AUTOMATED_TRANSACTION_BLOCK) {
-              if (!EconomicClustering.verifyFork(transaction)) {
-                logger.debug("Block " + block.getStringId() + " height " + (previousLastBlock.getHeight() + 1) + " contains transaction that was generated on a fork: " + transaction.getStringId() + " ecBlockHeight " + transaction.getECBlockHeight() + " ecBlockId "
-                    + Convert.toUnsignedLong(transaction.getECBlockId()));
-                throw new TransactionNotAcceptedException("Transaction belongs to a different fork", transaction);
-              }
-            }
-            if (transaction.getId() == 0L) {
-              throw new TransactionNotAcceptedException("Invalid transaction id", transaction);
-            }
-            if (transaction.isDuplicate(duplicates)) {
-              throw new TransactionNotAcceptedException("Transaction is a duplicate: " + transaction.getStringId(), transaction);
-            }
-            try {
-              transaction.validate();
-            } catch (BurstException.ValidationException e) {
-              throw new TransactionNotAcceptedException(e.getMessage(), transaction);
-            }
-
-            calculatedTotalAmount += transaction.getAmountNQT();
-
-            calculatedTotalFee += transaction.getFeeNQT();
-
-            digest.update(transaction.getBytes());
-
-          }
-
-          if (calculatedTotalAmount > block.getTotalAmountNQT() || calculatedTotalFee > block.getTotalFeeNQT()) {
-            throw new BlockNotAcceptedException("Total amount or fee don't match transaction totals");
-          }
-          if (!Arrays.equals(digest.digest(), block.getPayloadHash())) {
-            throw new BlockNotAcceptedException("Payload hash doesn't match");
-          }
-
-          long remainingAmount = Convert.safeSubtract(block.getTotalAmountNQT(), calculatedTotalAmount);
-          long remainingFee = Convert.safeSubtract(block.getTotalFeeNQT(), calculatedTotalFee);
-
-          block.setPrevious(previousLastBlock);
-          blockListeners.notify(block, Event.BEFORE_BLOCK_ACCEPT);
-          transactionProcessor.requeueAllUnconfirmedTransactions();
-          Account.flushAccountTable();
-          addBlock(block);
-          accept(block, remainingAmount, remainingFee);
-          Timer.Context finishContext = finishTimer.time();
-          derivedTables.forEach(table -> {
-              table.finish();
-            });
-          finishContext.stop();
-          Timer.Context commitContext = commitTimer.time();
-          Burst.getStores().commitTransaction();
-          commitContext.stop();
-        } catch (BlockNotAcceptedException | ArithmeticException e) {
-          Burst.getStores().rollbackTransaction();
-          blockchain.setLastBlock(previousLastBlock);
-          throw e;
-        } finally {
-          Burst.getStores().endTransaction();
+        if (previousLastBlock.getId() != block.getPreviousBlockId()) {
+          throw new BlockOutOfOrderException("Previous block id doesn't match");
         }
-        logger.debug("Successully pushed " + block.getId() + " (height " + block.getHeight() + ")");
-      } // synchronized
 
-      blockListeners.notify(block, Event.BLOCK_PUSHED);
+        if (block.getVersion() != getBlockVersion(previousLastBlock.getHeight())) {
+          throw new BlockNotAcceptedException("Invalid version " + block.getVersion());
+        }
 
-      if (block.getTimestamp() >= Burst.getEpochTime() - MAX_TIMESTAMP_DIFFERENCE) {
-        Peers.sendToSomePeers(block);
+        if (block.getVersion() != 1 && !Arrays.equals(Crypto.sha256().digest(previousLastBlock.getBytes()), block.getPreviousBlockHash())) {
+          throw new BlockNotAcceptedException("Previous block hash doesn't match");
+        }
+        if (block.getTimestamp() > curTime + MAX_TIMESTAMP_DIFFERENCE || block.getTimestamp() <= previousLastBlock.getTimestamp()) {
+          throw new BlockOutOfOrderException("Invalid timestamp: " + block.getTimestamp() + " current time is " + curTime + ", previous block timestamp is " + previousLastBlock.getTimestamp());
+        }
+        if (block.getId() == 0L || blockDb.hasBlock(block.getId())) {
+          throw new BlockNotAcceptedException("Duplicate block or invalid id");
+        }
+        if (!block.verifyGenerationSignature()) {
+          throw new BlockNotAcceptedException("Generation signature verification failed");
+        }
+        if (!block.verifyBlockSignature()) {
+          throw new BlockNotAcceptedException("Block signature verification failed");
+        }
+
+        Map<TransactionType, Set<String>> duplicates = new HashMap<>();
+        long calculatedTotalAmount = 0;
+        long calculatedTotalFee = 0;
+        MessageDigest digest = Crypto.sha256();
+
+        for (TransactionImpl transaction : block.getTransactions()) {
+
+          if (transaction.getTimestamp() > curTime + MAX_TIMESTAMP_DIFFERENCE) {
+            throw new BlockOutOfOrderException("Invalid transaction timestamp: " + transaction.getTimestamp() + ", current time is " + curTime);
+          }
+          if (transaction.getTimestamp() > block.getTimestamp() + MAX_TIMESTAMP_DIFFERENCE || transaction.getExpiration() < block.getTimestamp()) {
+            throw new TransactionNotAcceptedException("Invalid transaction timestamp " + transaction.getTimestamp() + " for transaction " + transaction.getStringId() + ", current time is " + curTime + ", block timestamp is " + block.getTimestamp(), transaction);
+          }
+          if (transactionDb.hasTransaction(transaction.getId())) {
+            throw new TransactionNotAcceptedException("Transaction " + transaction.getStringId() + " is already in the blockchain", transaction);
+          }
+          if (transaction.getReferencedTransactionFullHash() != null) {
+            if ((previousLastBlock.getHeight() < Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK && !transactionDb.hasTransaction(Convert.fullHashToId(transaction.getReferencedTransactionFullHash())))
+                || (previousLastBlock.getHeight() >= Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK && !hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0))) {
+              throw new TransactionNotAcceptedException("Missing or invalid referenced transaction " + transaction.getReferencedTransactionFullHash() + " for transaction " + transaction.getStringId(), transaction);
+            }
+          }
+          if (transaction.getVersion() != transactionProcessor.getTransactionVersion(previousLastBlock.getHeight())) {
+            throw new TransactionNotAcceptedException("Invalid transaction version " + transaction.getVersion() + " at height " + previousLastBlock.getHeight(), transaction);
+          }
+          /*if (!transaction.verifySignature()) { // moved to preVerify
+            throw new TransactionNotAcceptedException("Signature verification failed for transaction "
+            + transaction.getStringId() + " at height " + previousLastBlock.getHeight(), transaction);
+            }*/
+          if (!transaction.verifyPublicKey()) {
+            throw new TransactionNotAcceptedException("Wrong public key in transaction " + transaction.getStringId() + " at height " + previousLastBlock.getHeight(), transaction);
+          }
+          if (Burst.getBlockchain().getHeight() >= Constants.AUTOMATED_TRANSACTION_BLOCK) {
+            if (!EconomicClustering.verifyFork(transaction)) {
+              logger.debug("Block " + block.getStringId() + " height " + (previousLastBlock.getHeight() + 1) + " contains transaction that was generated on a fork: " + transaction.getStringId() + " ecBlockHeight " + transaction.getECBlockHeight() + " ecBlockId "
+                           + Convert.toUnsignedLong(transaction.getECBlockId()));
+              throw new TransactionNotAcceptedException("Transaction belongs to a different fork", transaction);
+            }
+          }
+          if (transaction.getId() == 0L) {
+            throw new TransactionNotAcceptedException("Invalid transaction id", transaction);
+          }
+          if (transaction.isDuplicate(duplicates)) {
+            throw new TransactionNotAcceptedException("Transaction is a duplicate: " + transaction.getStringId(), transaction);
+          }
+          try {
+            transaction.validate();
+          } catch (BurstException.ValidationException e) {
+            throw new TransactionNotAcceptedException(e.getMessage(), transaction);
+          }
+
+          calculatedTotalAmount += transaction.getAmountNQT();
+          calculatedTotalFee += transaction.getFeeNQT();
+
+          digest.update(transaction.getBytes());
+
+        }
+
+        if (calculatedTotalAmount > block.getTotalAmountNQT() || calculatedTotalFee > block.getTotalFeeNQT()) {
+          throw new BlockNotAcceptedException("Total amount or fee don't match transaction totals");
+        }
+        if (!Arrays.equals(digest.digest(), block.getPayloadHash())) {
+          throw new BlockNotAcceptedException("Payload hash doesn't match");
+        }
+
+        long remainingAmount = Convert.safeSubtract(block.getTotalAmountNQT(), calculatedTotalAmount);
+        long remainingFee = Convert.safeSubtract(block.getTotalFeeNQT(), calculatedTotalFee);
+
+        block.setPrevious(previousLastBlock);
+        blockListeners.notify(block, Event.BEFORE_BLOCK_ACCEPT);
+        transactionProcessor.requeueAllUnconfirmedTransactions();
+        Account.flushAccountTable();
+        addBlock(block);
+        accept(block, remainingAmount, remainingFee);
+        derivedTables.forEach(table -> {
+            table.finish();
+          });
+        Burst.getStores().commitTransaction();
+      } catch (BlockNotAcceptedException | ArithmeticException e) {
+        Burst.getStores().rollbackTransaction();
+        blockchain.setLastBlock(previousLastBlock);
+        throw e;
+      } finally {
+        Burst.getStores().endTransaction();
       }
-    } finally {
-      context.stop();
+      logger.debug("Successully pushed " + block.getId() + " (height " + block.getHeight() + ")");
+    } // synchronized
+
+    blockListeners.notify(block, Event.BLOCK_PUSHED);
+
+    if (block.getTimestamp() >= Burst.getEpochTime() - MAX_TIMESTAMP_DIFFERENCE) {
+      Peers.sendToSomePeers(block);
     }
   }
 
-  private final Timer acceptBlockTimer = Burst.metrics.timer(MetricRegistry.name(BlockchainImpl.class, "acceptBlock"));
-
   private void accept(BlockImpl block, Long remainingAmount, Long remainingFee) throws TransactionNotAcceptedException, BlockNotAcceptedException {
-    final Timer.Context context = acceptBlockTimer.time();
+    Subscription.clearRemovals();
+    TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
+    for (TransactionImpl transaction : block.getTransactions()) {
+      if (!transaction.applyUnconfirmed()) {
+        throw new TransactionNotAcceptedException("Double spending transaction: " + transaction.getStringId(), transaction);
+      }
+    }
+    long calculatedRemainingAmount = 0;
+    long calculatedRemainingFee = 0;
+    //ATs
+    AT_Block atBlock;
+    AT.clearPendingFees();
+    AT.clearPendingTransactions();
     try {
-      Subscription.clearRemovals();
-      TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
-      for (TransactionImpl transaction : block.getTransactions()) {
-        if (!transaction.applyUnconfirmed()) {
-          throw new TransactionNotAcceptedException("Double spending transaction: " + transaction.getStringId(), transaction);
-        }
-      }
-      long calculatedRemainingAmount = 0;
-      long calculatedRemainingFee = 0;
-      //ATs
-      AT_Block atBlock;
-      AT.clearPendingFees();
-      AT.clearPendingTransactions();
-      try {
-        atBlock = AT_Controller.validateATs(block.getBlockATs(), Burst.getBlockchain().getHeight());
-      } catch (NoSuchAlgorithmException e) {
-        //should never reach that point
-        throw new BlockNotAcceptedException("md5 does not exist");
-      } catch (AT_Exception e) {
-        throw new BlockNotAcceptedException("ats are not matching at block height " + Burst.getBlockchain().getHeight() + " (" + e + ")");
-      }
-      calculatedRemainingAmount += atBlock.getTotalAmount();
-      calculatedRemainingFee += atBlock.getTotalFees();
-      //ATs
-      if (Subscription.isEnabled()) {
-        calculatedRemainingFee += Subscription.applyUnconfirmed(block.getTimestamp());
-      }
-      if (remainingAmount != null && remainingAmount != calculatedRemainingAmount) {
-        throw new BlockNotAcceptedException("Calculated remaining amount doesn't add up");
-      }
-      if (remainingFee != null && remainingFee != calculatedRemainingFee) {
-        throw new BlockNotAcceptedException("Calculated remaining fee doesn't add up");
-      }
-      blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
-      block.apply();
-      Subscription.applyConfirmed(block, blockchain.getHeight());
-      if (Escrow.isEnabled()) {
-        Escrow.updateOnBlock(block, blockchain.getHeight());
-      }
-      blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
-      if (block.getTransactions().size() > 0) {
-        transactionProcessor.notifyListeners(block.getTransactions(), TransactionProcessor.Event.ADDED_CONFIRMED_TRANSACTIONS);
-      }
-    } finally {
-      context.stop();
+      atBlock = AT_Controller.validateATs(block.getBlockATs(), Burst.getBlockchain().getHeight());
+    } catch (NoSuchAlgorithmException e) {
+      //should never reach that point
+      throw new BlockNotAcceptedException("md5 does not exist");
+    } catch (AT_Exception e) {
+      throw new BlockNotAcceptedException("ats are not matching at block height " + Burst.getBlockchain().getHeight() + " (" + e + ")");
+    }
+    calculatedRemainingAmount += atBlock.getTotalAmount();
+    calculatedRemainingFee += atBlock.getTotalFees();
+    //ATs
+    if (Subscription.isEnabled()) {
+      calculatedRemainingFee += Subscription.applyUnconfirmed(block.getTimestamp());
+    }
+    if (remainingAmount != null && remainingAmount != calculatedRemainingAmount) {
+      throw new BlockNotAcceptedException("Calculated remaining amount doesn't add up");
+    }
+    if (remainingFee != null && remainingFee != calculatedRemainingFee) {
+      throw new BlockNotAcceptedException("Calculated remaining fee doesn't add up");
+    }
+    blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
+    block.apply();
+    Subscription.applyConfirmed(block, blockchain.getHeight());
+    if (Escrow.isEnabled()) {
+      Escrow.updateOnBlock(block, blockchain.getHeight());
+    }
+    blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
+    if (block.getTransactions().size() > 0) {
+      transactionProcessor.notifyListeners(block.getTransactions(), TransactionProcessor.Event.ADDED_CONFIRMED_TRANSACTIONS);
     }
   }
 

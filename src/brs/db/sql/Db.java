@@ -1,6 +1,5 @@
 package brs.db.sql;
 
-import com.github.gquintana.metrics.sql.MetricsSql;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import brs.Constants;
