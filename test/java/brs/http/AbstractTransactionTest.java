@@ -12,6 +12,7 @@ import brs.Account;
 import brs.Alias;
 import brs.Alias.Offer;
 import brs.Attachment;
+import brs.Attachment.BurstMiningRewardRecipientAssignment;
 import brs.Burst;
 import brs.BurstException;
 import brs.BurstException.NotValidException;
@@ -23,20 +24,26 @@ import brs.common.TestConstants;
 import brs.services.AliasService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONStreamAware;
 
 public class AbstractTransactionTest {
 
   public void prepareTransactionTest(HttpServletRequest req, ParameterService parameterServiceMock, TransactionProcessor transactionProcessorMock, AliasService aliasService) throws BurstException {
+    Account sellerAccount = mock(Account.class);
+    when(sellerAccount.getUnconfirmedBalanceNQT()).thenReturn(TestConstants.TEN_BURST);
+    prepareTransactionTest(req, parameterServiceMock, transactionProcessorMock, aliasService, sellerAccount);
+  }
+
+  public void prepareTransactionTest(HttpServletRequest req, ParameterService parameterServiceMock, TransactionProcessor transactionProcessorMock, AliasService aliasService, Account senderAccount) throws BurstException {
     final long mockSellerId = 123L;
     final String mockAliasName = "mockAliasName";
 
-    final Account mockBuyerAccount = mock(Account.class);
-
     final Alias mockAlias = mock(Alias.class);
-    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockBuyerAccount);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(senderAccount);
     when(mockAlias.getAccountId()).thenReturn(mockSellerId);
     when(mockAlias.getAliasName()).thenReturn(mockAliasName);
-    when(mockBuyerAccount.getUnconfirmedBalanceNQT()).thenReturn(TestConstants.TEN_BURST);
+
 
     Builder mockBuilder = mock(Builder.class);
     when(mockBuilder.referencedTransactionFullHash(anyString())).thenReturn(mockBuilder);
@@ -51,7 +58,8 @@ public class AbstractTransactionTest {
     when(transaction.getSignature()).thenReturn(new byte[5]);
     when(transaction.getType()).thenReturn(DigitalGoods.DELISTING);
 
-    when(parameterServiceMock.getAccount(eq(req))).thenReturn(mockBuyerAccount);
+    when(parameterServiceMock.getAccount(eq(req))).thenReturn(senderAccount);
     when(parameterServiceMock.getAlias(eq(req))).thenReturn(mockAlias);
   }
+
 }
