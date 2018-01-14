@@ -90,22 +90,4 @@ public class Asset {
     return decimals;
   }
 
-  public BurstIterator<Account.AccountAsset> getAccounts(int from, int to) {
-    return Account.getAssetAccounts(this.assetId, from, to);
-  }
-
-  public BurstIterator<Account.AccountAsset> getAccounts(int height, int from, int to) {
-    if (height < 0) {
-      return getAccounts(from, to);
-    }
-    return Account.getAssetAccounts(this.assetId, height, from, to);
-  }
-
-  public BurstIterator<Trade> getTrades(int from, int to) {
-    return Trade.getAssetTrades(this.assetId, from, to);
-  }
-
-  public BurstIterator<AssetTransfer> getAssetTransfers(int from, int to) {
-    return AssetTransfer.getAssetTransfers(this.assetId, from, to);
-  }
 }

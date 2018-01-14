@@ -5,6 +5,7 @@ import brs.Appendix;
 import brs.Blockchain;
 import brs.Transaction;
 import brs.crypto.Crypto;
+import brs.services.AccountService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -23,9 +24,12 @@ public final class ReadMessage extends APIServlet.APIRequestHandler {
 
   private final Blockchain blockchain;
 
-  ReadMessage(Blockchain blockchain) {
+  private final AccountService accountService;
+
+  ReadMessage(Blockchain blockchain, AccountService accountService) {
     super(new APITag[] {APITag.MESSAGES}, TRANSACTION_PARAMETER, SECRET_PHRASE_PARAMETER);
     this.blockchain = blockchain;
+    this.accountService = accountService;
   }
 
   @Override
@@ -72,7 +76,7 @@ public final class ReadMessage extends APIServlet.APIRequestHandler {
         }
       }
       if (encryptToSelfMessage != null) {
-        Account account = Account.getAccount(Crypto.getPublicKey(secretPhrase));
+        Account account = accountService.getAccount(Crypto.getPublicKey(secretPhrase));
         if (account != null) {
           try {
             byte[] decrypted = account.decryptFrom(encryptToSelfMessage.getEncryptedData(), secretPhrase);
