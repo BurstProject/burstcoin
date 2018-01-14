@@ -200,7 +200,7 @@ public final class APIServlet extends HttpServlet {
 
   }
 
-  private static final boolean enforcePost = Burst.getBooleanProperty("brs.apiServerEnforcePOST");
+  private static final boolean enforcePost = Burst.getBooleanProperty("API.ServerEnforcePOST");
 
   static Map<String, APIRequestHandler> apiRequestHandlers;
 

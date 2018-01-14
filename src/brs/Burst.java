@@ -17,9 +17,6 @@ import brs.services.impl.AssetTransferServiceImpl;
 import brs.services.impl.OrderServiceImpl;
 import brs.services.impl.ParameterServiceImpl;
 import brs.services.impl.TradeServiceImpl;
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.MetricRegistry;
-import com.github.gquintana.metrics.util.SqlObjectNameFactory;
 import brs.db.sql.Db;
 import brs.db.store.Dbs;
 import brs.db.store.Stores;
@@ -48,7 +45,6 @@ public final class Burst {
   private static final String LOG_UNDEF_NAME_DEFAULT = "{} undefined. Default: {}";
   private static final String DEFAULT_PROPERTIES_NAME = "brs-default.properties";
 
-  public static final MetricRegistry metrics = new MetricRegistry();
   private static final Logger logger = LoggerFactory.getLogger(Burst.class);
   private static final Properties defaultProperties = new Properties();
   private static final Properties properties = new Properties(defaultProperties);
@@ -268,9 +264,6 @@ public final class Burst {
 
     static {
       try {
-        final JmxReporter reporter = JmxReporter.forRegistry(metrics).createsObjectNamesWith(new SqlObjectNameFactory()).build();
-        reporter.start();
-
         long startTime = System.currentTimeMillis();
 
         LoggerConfigurator.init();

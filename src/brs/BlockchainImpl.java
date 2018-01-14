@@ -1,7 +1,5 @@
 package brs;
 
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
 import brs.db.BlockDb;
 import brs.db.BurstIterator;
 
@@ -18,10 +16,7 @@ public final class BlockchainImpl implements Blockchain {
     return instance;
   }
 
-  private BlockchainImpl() {
-    Burst.metrics.register(MetricRegistry.name(BlockchainProcessorImpl.class, "BlockChain", "height"),
-                         (Gauge<Integer>) () -> getHeight());
-  }
+  private BlockchainImpl() {}
 
   private final AtomicReference<BlockImpl> lastBlock = new AtomicReference<>();
 

@@ -1,6 +1,5 @@
 package brs.http;
 
-import com.codahale.metrics.jetty9.InstrumentedHandler;
 import brs.Constants;
 import brs.Burst;
 import brs.util.Subnet;
@@ -29,7 +28,7 @@ import java.util.Set;
 public final class API {
 
   static final Set<Subnet> allowedBotHosts;
-  static final boolean enableDebugAPI = Burst.getBooleanProperty("brs.enableDebugAPI");
+  static final boolean enableDebugAPI = Burst.getBooleanProperty("API.Debug");
   private static final Logger logger = LoggerFactory.getLogger(API.class);
   private static final int TESTNET_API_PORT = 6876;
   private static final Server apiServer;
@@ -52,14 +51,14 @@ public final class API {
       allowedBotHosts = null;
     }
 
-    boolean enableAPIServer = Burst.getBooleanProperty("brs.enableAPIServer");
+    boolean enableAPIServer = Burst.getBooleanProperty("API.Server");
     if (enableAPIServer) {
-      final int port = Constants.isTestnet ? TESTNET_API_PORT : Burst.getIntProperty("brs.apiServerPort");
-      final String host = Burst.getStringProperty("brs.apiServerHost");
+      final int port = Constants.isTestnet ? TESTNET_API_PORT : Burst.getIntProperty("API.ServerPort");
+      final String host = Burst.getStringProperty("API.ServerHost");
       apiServer = new Server();
       ServerConnector connector;
 
-      boolean enableSSL = Burst.getBooleanProperty("brs.apiSSL");
+      boolean enableSSL = Burst.getBooleanProperty("API.SSL");
       if (enableSSL) {
         logger.info("Using SSL (https) for the API server");
         HttpConfiguration https_config = new HttpConfiguration();
@@ -67,8 +66,8 @@ public final class API {
         https_config.setSecurePort(port);
         https_config.addCustomizer(new SecureRequestCustomizer());
         SslContextFactory sslContextFactory = new SslContextFactory();
-        sslContextFactory.setKeyStorePath(Burst.getStringProperty("brs.keyStorePath"));
-        sslContextFactory.setKeyStorePassword(Burst.getStringProperty("brs.keyStorePassword"));
+        sslContextFactory.setKeyStorePath(Burst.getStringProperty("API.SSL_keyStorePath"));
+        sslContextFactory.setKeyStorePassword(Burst.getStringProperty("API.SSL_keyStorePassword"));
         sslContextFactory.setExcludeCipherSuites("SSL_RSA_WITH_DES_CBC_SHA", "SSL_DHE_RSA_WITH_DES_CBC_SHA",
                                                  "SSL_DHE_DSS_WITH_DES_CBC_SHA", "SSL_RSA_EXPORT_WITH_RC4_40_MD5", "SSL_RSA_EXPORT_WITH_DES40_CBC_SHA",
                                                  "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA", "SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA");
@@ -81,14 +80,14 @@ public final class API {
 
       connector.setPort(port);
       connector.setHost(host);
-      connector.setIdleTimeout(Burst.getIntProperty("brs.apiServerIdleTimeout"));
+      connector.setIdleTimeout(Burst.getIntProperty("API.ServerIdleTimeout"));
       connector.setReuseAddress(true);
       apiServer.addConnector(connector);
 
       HandlerList apiHandlers = new HandlerList();
 
       ServletContextHandler apiHandler = new ServletContextHandler();
-      String apiResourceBase = Burst.getStringProperty("brs.apiResourceBase");
+      String apiResourceBase = Burst.getStringProperty("API.UI_Dir");
       if (apiResourceBase != null) {
         ServletHolder defaultServletHolder = new ServletHolder(new DefaultServlet());
         defaultServletHolder.setInitParameter("dirAllowed", "false");
@@ -100,7 +99,7 @@ public final class API {
         apiHandler.setWelcomeFiles(new String[]{"index.html"});
       }
 
-      String javadocResourceBase = Burst.getStringProperty("brs.javadocResourceBase");
+      String javadocResourceBase = Burst.getStringProperty("API.Doc_Dir");
       if (javadocResourceBase != null) {
         ContextHandler contextHandler = new ContextHandler("/doc");
         ResourceHandler docFileHandler = new ResourceHandler();
@@ -112,7 +111,7 @@ public final class API {
       }
 
       apiHandler.addServlet(APIServlet.class, "/burst");
-      if (Burst.getBooleanProperty("brs.enableAPIServerGZIPFilter")) {
+      if (Burst.getBooleanProperty("API.ServerGZIPFilter")) {
         FilterHolder gzipFilterHolder = apiHandler.addFilter(GzipFilter.class, "/burst", null);
         gzipFilterHolder.setInitParameter("methods", "GET,POST");
         gzipFilterHolder.setAsyncSupported(true);
@@ -120,15 +119,12 @@ public final class API {
 
       apiHandler.addServlet(APITestServlet.class, "/test");
 
-      if (Burst.getBooleanProperty("brs.apiServerCORS")) {
+      if (Burst.getBooleanProperty("API.CrossOriginFilter")) {
         FilterHolder filterHolder = apiHandler.addFilter(CrossOriginFilter.class, "/*", null);
         filterHolder.setInitParameter("allowedHeaders", "*");
         filterHolder.setAsyncSupported(true);
       }
 
-      InstrumentedHandler instrumentedApiHandler = new InstrumentedHandler(Burst.metrics, "api-handler");
-      instrumentedApiHandler.setHandler(apiHandler);
-      apiHandlers.addHandler(instrumentedApiHandler);
       apiHandlers.addHandler(new DefaultHandler());
 
       apiServer.setHandler(apiHandlers);

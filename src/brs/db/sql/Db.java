@@ -1,6 +1,5 @@
 package brs.db.sql;
 
-import com.github.gquintana.metrics.sql.MetricsSql;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import brs.Constants;
@@ -38,8 +37,6 @@ public final class Db {
   private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionCaches = new ThreadLocal<>();
   private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionBatches = new ThreadLocal<>();
   private static final TYPE DATABASE_TYPE;
-  private static final boolean enableSqlMetrics = Burst.getBooleanProperty("brs.enableSqlMetrics", false);
-
 
   static {
     String dbUrl;
@@ -204,10 +201,8 @@ public final class Db {
     }
     con = getPooledConnection();
     con.setAutoCommit(true);
-    if (enableSqlMetrics)
-      return new MeteredDbConnection(con);
-    else
-      return new DbConnection(con);
+
+    return new DbConnection(con);
   }
 
   public static final DSLContext getDSLContext() throws SQLException {
@@ -264,10 +259,7 @@ public final class Db {
       Connection con = cp.getConnection();
       con.setAutoCommit(false);
 
-      if (enableSqlMetrics)
-        con = new MeteredDbConnection(con);
-      else
-        con = new DbConnection(con);
+      con = new DbConnection(con);
 
       localConnection.set((DbConnection) con);
       transactionCaches.set(new HashMap<>());
@@ -338,13 +330,6 @@ public final class Db {
       if (jdbcUrl.contains("jdbc:h2"))
         return H2;
       throw new IllegalArgumentException("Unable to determine database type from this: '" + jdbcUrl + "'");
-    }
-  }
-
-  private static class MeteredDbConnection extends DbConnection {
-
-    private MeteredDbConnection(Connection con) {
-      super(MetricsSql.forRegistry(Burst.metrics).wrap(con));
     }
   }
 
