@@ -5,6 +5,8 @@ import java.util.TimeZone;
 
 public final class Constants {
 
+  public static final int POC2_START_BLOCK = Integer.MAX_VALUE; //change to enable PoC2 blocks
+
   public static final int BURST_DIFF_ADJUST_CHANGE_BLOCK = 2700;
 
   public static final long BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK = 6500;
@@ -25,6 +27,7 @@ public final class Constants {
   public static final long INITIAL_BASE_TARGET = 18325193796L;
   public static final long MAX_BASE_TARGET = 18325193796L;
   public static final int MAX_ROLLBACK = Burst.getIntProperty("brs.maxRollback");
+
   static {
     if (MAX_ROLLBACK < 1440) {
       throw new RuntimeException("brs.maxRollback must be at least 1440");
@@ -73,9 +76,9 @@ public final class Constants {
   public static final int PUBLIC_KEY_ANNOUNCEMENT_BLOCK = Integer.MAX_VALUE;
 
   public static final int MAX_AUTOMATED_TRANSACTION_NAME_LENGTH = 30;
-  public static final int MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH = 1000 ;
+  public static final int MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH = 1000;
   protected static final int AUTOMATED_TRANSACTION_BLOCK = 49200;
-  public static final int AT_BLOCK_PAYLOAD = MAX_PAYLOAD_LENGTH/2;
+  public static final int AT_BLOCK_PAYLOAD = MAX_PAYLOAD_LENGTH / 2;
   public static final int AT_FIX_BLOCK_2 = 67000;
   public static final int AT_FIX_BLOCK_3 = 92000;
   public static final int AT_FIX_BLOCK_4 = 255000;
@@ -85,6 +88,7 @@ public final class Constants {
   static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (isTestnet ? 50 : 100) * ONE_BURST;
 
   public static final long EPOCH_BEGINNING;
+
   static {
     Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
     calendar.set(Calendar.YEAR, 2014);
@@ -106,12 +110,11 @@ public final class Constants {
   public static final int EC_BLOCK_DISTANCE_LIMIT = 60;
   public static final int EC_CHANGE_BLOCK_1 = 67000;
 
-  
   public static final String RESPONSE = "response";
   public static final String TOKEN = "token";
   public static final String WEBSITE = "website";
   public static final String PROTOCOL = "protocol";
 
-  
-  private Constants() {} // never
+  private Constants() {
+  } // never
 }
