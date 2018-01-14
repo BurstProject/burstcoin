@@ -13,6 +13,7 @@ import brs.Trade;
 import brs.db.BurstIterator;
 import brs.db.sql.DbUtils;
 import brs.http.common.Parameters;
+import brs.services.AssetService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
@@ -23,11 +24,13 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetTrades extends APIServlet.APIRequestHandler {
 
-  private ParameterService parameterService;
+  private final ParameterService parameterService;
+  private final AssetService assetService;
 
-  GetTrades(ParameterService parameterService) {
+  GetTrades(ParameterService parameterService, AssetService assetService) {
     super(new APITag[] {APITag.AE}, ASSET_PARAMETER, ACCOUNT_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER, INCLUDE_ASSET_INFO_PARAMETER);
     this.parameterService = parameterService;
+    this.assetService = assetService;
   }
 
   @Override
@@ -46,7 +49,7 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
     try {
       if (accountId == null) {
         Asset asset = parameterService.getAsset(req);
-        trades = asset.getTrades(firstIndex, lastIndex);
+        trades = assetService.getTrades(asset.getId(), firstIndex, lastIndex);
       } else if (assetId == null) {
         Account account = parameterService.getAccount(req);
         trades = account.getTrades(firstIndex, lastIndex);

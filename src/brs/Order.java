@@ -125,23 +125,22 @@ public abstract class Order {
 
   public static class Ask extends Order {
 
-    private static final BurstKey.LongKeyFactory<Ask> askOrderDbKeyFactory =
-        Burst.getStores().getOrderStore().getAskOrderDbKeyFactory();
+    private static final BurstKey.LongKeyFactory<Ask> askOrderDbKeyFactory() {
+      return Burst.getStores().getOrderStore().getAskOrderDbKeyFactory();
+    }
 
 
-    private static final VersionedEntityTable<Ask> askOrderTable =Burst.getStores().getOrderStore().getAskOrderTable();
+    private static final VersionedEntityTable<Ask> askOrderTable() {
+      return Burst.getStores().getOrderStore().getAskOrderTable();
+    }
 
 
     public static int getCount() {
-      return askOrderTable.getCount();
+      return askOrderTable().getCount();
     }
 
     public static Ask getAskOrder(long orderId) {
-      return askOrderTable.get(askOrderDbKeyFactory.newKey(orderId));
-    }
-
-    public static BurstIterator<Ask> getAll(int from, int to) {
-      return askOrderTable.getAll(from, to);
+      return askOrderTable().get(askOrderDbKeyFactory().newKey(orderId));
     }
 
     public static BurstIterator<Ask> getAskOrdersByAccount(long accountId, int from, int to) {
@@ -166,12 +165,12 @@ public abstract class Order {
 
     static void addOrder(Transaction transaction, Attachment.ColoredCoinsAskOrderPlacement attachment) {
       Ask order = new Ask(transaction, attachment);
-      askOrderTable.insert(order);
+      askOrderTable().insert(order);
       matchOrders(attachment.getAssetId());
     }
 
     static void removeOrder(long orderId) {
-      askOrderTable.delete(getAskOrder(orderId));
+      askOrderTable().delete(getAskOrder(orderId));
     }
 
     static void init() {}
@@ -181,7 +180,7 @@ public abstract class Order {
 
     private Ask(Transaction transaction, Attachment.ColoredCoinsAskOrderPlacement attachment) {
       super(transaction, attachment);
-      this.dbKey = askOrderDbKeyFactory.newKey(super.id);
+      this.dbKey = askOrderDbKeyFactory().newKey(super.id);
     }
 
     public Ask(long id, long accountId, long assetId, long priceNQT, int creationHeight, long quantityQNT, BurstKey dbKey) {
@@ -194,9 +193,9 @@ public abstract class Order {
     private void updateQuantityQNT(long quantityQNT) {
       super.setQuantityQNT(quantityQNT);
       if (quantityQNT > 0) {
-        askOrderTable.insert(this);
+        askOrderTable().insert(this);
       } else if (quantityQNT == 0) {
-        askOrderTable.delete(this);
+        askOrderTable().delete(this);
       } else {
         throw new IllegalArgumentException("Negative quantity: " + quantityQNT
                                            + " for order: " + Convert.toUnsignedLong(getId()));
@@ -220,22 +219,20 @@ public abstract class Order {
 
   public static class Bid extends Order {
 
-    private static final BurstKey.LongKeyFactory<Bid> bidOrderDbKeyFactory =
-        Burst.getStores().getOrderStore().getBidOrderDbKeyFactory();
+    private static final BurstKey.LongKeyFactory<Bid> bidOrderDbKeyFactory() {
+      return Burst.getStores().getOrderStore().getBidOrderDbKeyFactory();
+    }
 
-    private static final VersionedEntityTable<Bid> bidOrderTable =
-        Burst.getStores().getOrderStore().getBidOrderTable();
+    private static final VersionedEntityTable<Bid> bidOrderTable() {
+      return Burst.getStores().getOrderStore().getBidOrderTable();
+    }
 
     public static int getCount() {
-      return bidOrderTable.getCount();
+      return bidOrderTable().getCount();
     }
 
     public static Bid getBidOrder(long orderId) {
-      return bidOrderTable.get(bidOrderDbKeyFactory.newKey(orderId));
-    }
-
-    public static BurstIterator<Bid> getAll(int from, int to) {
-      return bidOrderTable.getAll(from, to);
+      return bidOrderTable().get(bidOrderDbKeyFactory().newKey(orderId));
     }
 
     public static BurstIterator<Bid> getBidOrdersByAccount(long accountId, int from, int to) {
@@ -250,23 +247,18 @@ public abstract class Order {
       return Burst.getStores().getOrderStore().getBidOrdersByAccountAsset(accountId, assetId, from, to);
     }
 
-    public static BurstIterator<Bid> getSortedOrders(long assetId, int from, int to) {
-
-      return Burst.getStores().getOrderStore().getSortedBids(assetId, from, to);
-    }
-
     private static Bid getNextOrder(long assetId) {
       return Burst.getStores().getOrderStore().getNextBid(assetId);
     }
 
     static void addOrder(Transaction transaction, Attachment.ColoredCoinsBidOrderPlacement attachment) {
       Bid order = new Bid(transaction, attachment);
-      bidOrderTable.insert(order);
+      bidOrderTable().insert(order);
       matchOrders(attachment.getAssetId());
     }
 
     static void removeOrder(long orderId) {
-      bidOrderTable.delete(getBidOrder(orderId));
+      bidOrderTable().delete(getBidOrder(orderId));
     }
 
     static void init() {}
@@ -276,7 +268,7 @@ public abstract class Order {
 
     private Bid(Transaction transaction, Attachment.ColoredCoinsBidOrderPlacement attachment) {
       super(transaction, attachment);
-      this.dbKey = bidOrderDbKeyFactory.newKey(super.id);
+      this.dbKey = bidOrderDbKeyFactory().newKey(super.id);
     }
 
     public Bid(long id, long accountId, long assetId, long priceNQT, int creationHeight, long quantityQNT, BurstKey dbKey) {
@@ -287,9 +279,9 @@ public abstract class Order {
     private void updateQuantityQNT(long quantityQNT) {
       super.setQuantityQNT(quantityQNT);
       if (quantityQNT > 0) {
-        bidOrderTable.insert(this);
+        bidOrderTable().insert(this);
       } else if (quantityQNT == 0) {
-        bidOrderTable.delete(this);
+        bidOrderTable().delete(this);
       } else {
         throw new IllegalArgumentException("Negative quantity: " + quantityQNT
                                            + " for order: " + Convert.toUnsignedLong(getId()));
