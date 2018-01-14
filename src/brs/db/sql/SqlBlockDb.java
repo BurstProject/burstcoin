@@ -128,7 +128,7 @@ public class SqlBlockDb implements BlockDb {
         BLOCK.BASE_TARGET, BLOCK.HEIGHT, BLOCK.GENERATION_SIGNATURE, BLOCK.BLOCK_SIGNATURE, BLOCK.PAYLOAD_HASH,
         BLOCK.GENERATOR_ID, BLOCK.NONCE, BLOCK.ATS
       ).values(
-               block.getId(), block.getVersion(), block.getTimestamp(), block.getPreviousBlockId() == 0 ? null : block.getPreviousBlockId(), block.getTotalAmountNQT(), block.getTotalFeeNQT(),
+        block.getId(), block.getVersion(), block.getTimestamp(), block.getPreviousBlockId() == 0 ? null : block.getPreviousBlockId(), block.getTotalAmountNQT(), block.getTotalFeeNQT(),
         block.getPayloadLength(), block.getGeneratorPublicKey(), block.getPreviousBlockHash(), block.getCumulativeDifficulty().toByteArray(),
         block.getBaseTarget(), block.getHeight(), block.getGenerationSignature(), block.getBlockSignature(), block.getPayloadHash(),
         block.getGeneratorId(), block.getNonce(), block.getBlockATs()
@@ -137,7 +137,7 @@ public class SqlBlockDb implements BlockDb {
     Burst.getDbs().getTransactionDb().saveTransactions(block.getTransactions());
 
     if ( block.getPreviousBlockId() != 0 ) {
-      ctx.update(BLOCK).set(BLOCK.NEXT_BLOCK_ID, block.getId()).where(BLOCK.ID.eq(block.getPreviousBlockId()));
+      ctx.update(BLOCK).set(BLOCK.NEXT_BLOCK_ID, block.getId()).where(BLOCK.ID.eq(block.getPreviousBlockId())).execute();
     }
   }
 
@@ -166,14 +166,16 @@ public class SqlBlockDb implements BlockDb {
       blockHeightQuery.addConditions(BLOCK.field("id", Long.class).eq(blockId));
       Integer blockHeight = (Integer) ctx.fetchValue(blockHeightQuery.fetchResultSet());
 
-      UpdateQuery unlinkFromPreviousQuery = ctx.updateQuery(BLOCK);
-      unlinkFromPreviousQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
-      unlinkFromPreviousQuery.addValue(BLOCK.PREVIOUS_BLOCK_ID, (Long) null);
-      unlinkFromPreviousQuery.execute();
+      if ( blockHeight != null ) {
+        UpdateQuery unlinkFromPreviousQuery = ctx.updateQuery(BLOCK);
+        unlinkFromPreviousQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
+        unlinkFromPreviousQuery.addValue(BLOCK.PREVIOUS_BLOCK_ID, (Long) null);
+        unlinkFromPreviousQuery.execute();
 
-      DeleteQuery deleteQuery = ctx.deleteQuery(BLOCK);
-      deleteQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
-      deleteQuery.execute();
+        DeleteQuery deleteQuery = ctx.deleteQuery(BLOCK);
+        deleteQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
+        deleteQuery.execute();
+      }
     }
     catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
