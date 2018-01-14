@@ -13,8 +13,10 @@ import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.AssetService;
 import brs.services.AssetTransferService;
+import brs.services.EscrowService;
 import brs.services.OrderService;
 import brs.services.ParameterService;
+import brs.services.TradeService;
 import brs.util.JSON;
 import brs.util.Subnet;
 import java.io.IOException;
@@ -41,7 +43,8 @@ public final class APIServlet extends HttpServlet {
   private static final Logger logger = LoggerFactory.getLogger(APIServlet.class);
 
   public static void injectServices(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
-      AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService) {
+      AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
+      TradeService tradeService, EscrowService escrowService) {
     final Map<String, APIRequestHandler> map = new HashMap<>();
 
     map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService));
@@ -100,9 +103,9 @@ public final class APIServlet extends HttpServlet {
     map.put("getPeers", GetPeers.instance);
     //map.put("getPoll", GetPoll.instance);
     //map.put("getPollIds", GetPollIds.instance);
-    map.put("getState", new GetState(blockchain));
+    map.put("getState", new GetState(blockchain, tradeService, accountService, escrowService));
     map.put("getTime", GetTime.instance);
-    map.put("getTrades", new GetTrades(parameterService, assetService));
+    map.put("getTrades", new GetTrades(parameterService, assetService, tradeService));
     map.put("getAllTrades", GetAllTrades.instance);
     map.put("getAssetTransfers", new GetAssetTransfers(parameterService, accountService, assetService, assetTransferService));
     map.put("getTransaction", new GetTransaction(transactionProcessor, blockchain));

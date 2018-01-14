@@ -1,6 +1,15 @@
 package brs.http;
 
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
+import static brs.http.common.ResultFields.ACCOUNT_RESPONSE;
+import static brs.http.common.ResultFields.ASSET_BALANCER_RESPONSE;
+import static brs.http.common.ResultFields.ASSET_RESPONSE;
+import static brs.http.common.ResultFields.BALANCE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.DESCRIPTION_RESPONSE;
+import static brs.http.common.ResultFields.NAME_RESPONSE;
+import static brs.http.common.ResultFields.PUBLIC_KEY_RESPONSE;
+import static brs.http.common.ResultFields.UNCONFIRMED_ASSET_BALANCES_RESPONSE;
+import static brs.http.common.ResultFields.UNCONFIRMED_BALANCE_NQT_RESPONSE;
 
 import brs.Account;
 import brs.BurstException;
@@ -28,18 +37,17 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
     Account account = parameterService.getAccount(req);
 
     JSONObject response = JSONData.accountBalance(account);
-    JSONData.putAccount(response, "account", account.getId());
+    JSONData.putAccount(response, ACCOUNT_RESPONSE, account.getId());
 
     if (account.getPublicKey() != null) {
-      response.put("publicKey", Convert.toHexString(account.getPublicKey()));
+      response.put(PUBLIC_KEY_RESPONSE, Convert.toHexString(account.getPublicKey()));
     }
     if (account.getName() != null) {
-      response.put("name", account.getName());
+      response.put(NAME_RESPONSE, account.getName());
     }
     if (account.getDescription() != null) {
-      response.put("description", account.getDescription());
+      response.put(DESCRIPTION_RESPONSE, account.getDescription());
     }
-
 
     try (BurstIterator<Account.AccountAsset> accountAssets = account.getAssets(0, -1)) {
       JSONArray assetBalances = new JSONArray();
@@ -47,19 +55,19 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
       while (accountAssets.hasNext()) {
         Account.AccountAsset accountAsset = accountAssets.next();
         JSONObject assetBalance = new JSONObject();
-        assetBalance.put("asset", Convert.toUnsignedLong(accountAsset.getAssetId()));
-        assetBalance.put("balanceQNT", String.valueOf(accountAsset.getQuantityQNT()));
+        assetBalance.put(ASSET_RESPONSE, Convert.toUnsignedLong(accountAsset.getAssetId()));
+        assetBalance.put(BALANCE_NQT_RESPONSE, String.valueOf(accountAsset.getQuantityQNT()));
         assetBalances.add(assetBalance);
         JSONObject unconfirmedAssetBalance = new JSONObject();
-        unconfirmedAssetBalance.put("asset", Convert.toUnsignedLong(accountAsset.getAssetId()));
-        unconfirmedAssetBalance.put("unconfirmedBalanceQNT", String.valueOf(accountAsset.getUnconfirmedQuantityQNT()));
+        unconfirmedAssetBalance.put(ASSET_RESPONSE, Convert.toUnsignedLong(accountAsset.getAssetId()));
+        unconfirmedAssetBalance.put(UNCONFIRMED_BALANCE_NQT_RESPONSE, String.valueOf(accountAsset.getUnconfirmedQuantityQNT()));
         unconfirmedAssetBalances.add(unconfirmedAssetBalance);
       }
-      if (assetBalances.size() > 0) {
-        response.put("assetBalances", assetBalances);
+      if (! assetBalances.isEmpty()) {
+        response.put(ASSET_BALANCER_RESPONSE, assetBalances);
       }
-      if (unconfirmedAssetBalances.size() > 0) {
-        response.put("unconfirmedAssetBalances", unconfirmedAssetBalances);
+      if (! unconfirmedAssetBalances.isEmpty()) {
+        response.put(UNCONFIRMED_ASSET_BALANCES_RESPONSE, unconfirmedAssetBalances);
       }
     }
     return response;

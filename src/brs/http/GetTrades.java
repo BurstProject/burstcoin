@@ -15,6 +15,8 @@ import brs.db.sql.DbUtils;
 import brs.http.common.Parameters;
 import brs.services.AssetService;
 import brs.services.ParameterService;
+import brs.services.TradeService;
+import brs.services.impl.TradeServiceImpl;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -26,11 +28,13 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
   private final AssetService assetService;
+  private final TradeService tradeService;
 
-  GetTrades(ParameterService parameterService, AssetService assetService) {
+  GetTrades(ParameterService parameterService, AssetService assetService, TradeService tradeService) {
     super(new APITag[] {APITag.AE}, ASSET_PARAMETER, ACCOUNT_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER, INCLUDE_ASSET_INFO_PARAMETER);
     this.parameterService = parameterService;
     this.assetService = assetService;
+    this.tradeService = tradeService;
   }
 
   @Override
@@ -52,11 +56,11 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
         trades = assetService.getTrades(asset.getId(), firstIndex, lastIndex);
       } else if (assetId == null) {
         Account account = parameterService.getAccount(req);
-        trades = account.getTrades(firstIndex, lastIndex);
+        trades = tradeService.getAccountTrades(account.getId(), firstIndex, lastIndex);
       } else {
         Asset asset = parameterService.getAsset(req);
         Account account = parameterService.getAccount(req);
-        trades = Trade.getAccountAssetTrades(account.getId(), asset.getId(), firstIndex, lastIndex);
+        trades = tradeService.getAccountAssetTrades(account.getId(), asset.getId(), firstIndex, lastIndex);
       }
       while (trades.hasNext()) {
         tradesData.add(JSONData.trade(trades.next(), includeAssetInfo));

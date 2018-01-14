@@ -26,25 +26,12 @@ public class Trade {
     return tradeTable.getAll(from, to);
   }
 
-  public static int getCount() {
-    return tradeTable.getCount();
-  }
-
   public static boolean addListener(Listener<Trade> listener, Event eventType) {
     return listeners.addListener(listener, eventType);
   }
 
   public static boolean removeListener(Listener<Trade> listener, Event eventType) {
     return listeners.removeListener(listener, eventType);
-  }
-
-  public static BurstIterator<Trade> getAccountTrades(long accountId, int from, int to) {
-    return Burst.getStores().getTradeStore().getAssetTrades(accountId, from, to);
-  }
-
-  public static BurstIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
-    return Burst.getStores().getTradeStore().getAccountAssetTrades(accountId, assetId, from, to);
-
   }
 
   public static int getTradeCount(long assetId) {

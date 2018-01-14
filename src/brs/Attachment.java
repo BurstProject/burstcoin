@@ -1,6 +1,5 @@
 package brs;
 
-import brs.BurstException.NotValidException;
 import brs.crypto.EncryptedData;
 import brs.util.Convert;
 import org.json.simple.JSONArray;

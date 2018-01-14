@@ -16,4 +16,6 @@ public interface AccountService {
   BurstIterator<AssetTransfer> getAssetTransfers(long accountId, int from, int to);
 
   BurstIterator<RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId);
+
+  BurstIterator<Account> getAllAccounts(int from, int to);
 }

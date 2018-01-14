@@ -64,6 +64,11 @@ public class AccountServiceImpl implements AccountService {
     return accountStore.getAccountsWithRewardRecipient(recipientId);
   }
 
+  @Override
+  public BurstIterator<Account> getAllAccounts(int from, int to) {
+    return accountTable.getAll(from, to);
+  }
+
   public static long getId(byte[] publicKey) {
     byte[] publicKeyHash = Crypto.sha256().digest(publicKey);
     return Convert.fullHashToId(publicKeyHash);
