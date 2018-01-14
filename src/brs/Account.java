@@ -222,17 +222,6 @@ public class Account {
     return account;
   }
 
-  public static BurstIterator<AccountAsset> getAssetAccounts(long assetId, int from, int to) {
-    return Burst.getStores().getAccountStore().getAssetAccounts(assetId, from, to);
-  }
-
-  public static BurstIterator<AccountAsset> getAssetAccounts(long assetId, int height, int from, int to) {
-    if (height < 0) {
-      return getAssetAccounts(assetId, from, to);
-    }
-    return Burst.getStores().getAccountStore().getAssetAccounts(assetId, height, from, to);
-  }
-
   static void init() {
   }
 
@@ -334,8 +323,6 @@ public class Account {
   public BurstIterator<Trade> getTrades(int from, int to) {
     return Trade.getAccountTrades(this.id, from, to);
   }
-
-
 
   public long getAssetBalanceQNT(long assetId) {
     BurstKey newKey = Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);

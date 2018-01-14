@@ -38,10 +38,6 @@ public class Trade {
     return listeners.removeListener(listener, eventType);
   }
 
-  public static BurstIterator<Trade> getAssetTrades(long assetId, int from, int to) {
-    return Burst.getStores().getTradeStore().getAssetTrades(assetId, from, to);
-  }
-
   public static BurstIterator<Trade> getAccountTrades(long accountId, int from, int to) {
     return Burst.getStores().getTradeStore().getAssetTrades(accountId, from, to);
   }

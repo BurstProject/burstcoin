@@ -7,6 +7,7 @@ import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import brs.BurstException;
 import brs.Order;
 import brs.db.BurstIterator;
+import brs.services.OrderService;
 import brs.services.ParameterService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -16,11 +17,13 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetBidOrders extends APIServlet.APIRequestHandler {
 
-  private ParameterService parameterService;
+  private final ParameterService parameterService;
+  private final OrderService orderService;
 
-  GetBidOrders(ParameterService parameterService) {
+  GetBidOrders(ParameterService parameterService, OrderService orderService) {
     super(new APITag[] {APITag.AE}, ASSET_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
     this.parameterService = parameterService;
+    this.orderService = orderService;
   }
 
   @Override
@@ -31,7 +34,7 @@ public final class GetBidOrders extends APIServlet.APIRequestHandler {
     int lastIndex = ParameterParser.getLastIndex(req);
 
     JSONArray orders = new JSONArray();
-    try (BurstIterator<Order.Bid> bidOrders = Order.Bid.getSortedOrders(assetId, firstIndex, lastIndex)) {
+    try (BurstIterator<Order.Bid> bidOrders = orderService.getSortedBidOrders(assetId, firstIndex, lastIndex)) {
       while (bidOrders.hasNext()) {
         orders.add(JSONData.bidOrder(bidOrders.next()));
       }

@@ -14,16 +14,16 @@ public class AssetTransfer {
 
   private static final Listeners<AssetTransfer, Event> listeners = new Listeners<>();
 
-  private static final BurstKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory = Burst.getStores().getAssetTransferStore().getTransferDbKeyFactory();
+  private static final BurstKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory() {
+    return Burst.getStores().getAssetTransferStore().getTransferDbKeyFactory();
+  }
 
-  private static final EntityTable<AssetTransfer> assetTransferTable = Burst.getStores().getAssetTransferStore().getAssetTransferTable();
-
-  public static BurstIterator<AssetTransfer> getAllTransfers(int from, int to) {
-    return assetTransferTable.getAll(from, to);
+  private static final EntityTable<AssetTransfer> assetTransferTable() {
+    return Burst.getStores().getAssetTransferStore().getAssetTransferTable();
   }
 
   public static int getCount() {
-    return assetTransferTable.getCount();
+    return assetTransferTable().getCount();
   }
 
   public static boolean addListener(Listener<AssetTransfer> listener, Event eventType) {
@@ -34,21 +34,13 @@ public class AssetTransfer {
     return listeners.removeListener(listener, eventType);
   }
 
-  public static BurstIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
-    return Burst.getStores().getAssetTransferStore().getAssetTransfers(assetId, from, to);
-  }
-
-  public static BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
-    return Burst.getStores().getAssetTransferStore().getAccountAssetTransfers(accountId, assetId, from, to);
-  }
-
   public static int getTransferCount(long assetId) {
     return Burst.getStores().getAssetTransferStore().getTransferCount(assetId);
   }
 
   static AssetTransfer addAssetTransfer(Transaction transaction, Attachment.ColoredCoinsAssetTransfer attachment) {
     AssetTransfer assetTransfer = new AssetTransfer(transaction, attachment);
-    assetTransferTable.insert(assetTransfer);
+    assetTransferTable().insert(assetTransfer);
     listeners.notify(assetTransfer, Event.ASSET_TRANSFER);
     return assetTransfer;
   }
@@ -68,7 +60,7 @@ public class AssetTransfer {
 
   private AssetTransfer(Transaction transaction, Attachment.ColoredCoinsAssetTransfer attachment) {
     this.id = transaction.getId();
-    this.dbKey = transferDbKeyFactory.newKey(this.id);
+    this.dbKey = transferDbKeyFactory().newKey(this.id);
     this.height = transaction.getHeight();
     this.assetId = attachment.getAssetId();
     this.senderId = transaction.getSenderId();
