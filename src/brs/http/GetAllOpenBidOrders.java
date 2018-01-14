@@ -1,7 +1,11 @@
 package brs.http;
 
+import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
+import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+
 import brs.Order;
 import brs.db.BurstIterator;
+import brs.services.OrderService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -10,10 +14,11 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetAllOpenBidOrders extends APIServlet.APIRequestHandler {
 
-  static final GetAllOpenBidOrders instance = new GetAllOpenBidOrders();
+  private final OrderService orderService;
 
-  private GetAllOpenBidOrders() {
-    super(new APITag[] {APITag.AE}, "firstIndex", "lastIndex");
+  GetAllOpenBidOrders(OrderService orderService) {
+    super(new APITag[] {APITag.AE}, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
+    this.orderService = orderService;
   }
 
   @Override
@@ -25,7 +30,7 @@ public final class GetAllOpenBidOrders extends APIServlet.APIRequestHandler {
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
 
-    try (BurstIterator<Order.Bid> bidOrders = Order.Bid.getAll(firstIndex, lastIndex)) {
+    try (BurstIterator<Order.Bid> bidOrders = orderService.getAllBidOrders(firstIndex, lastIndex)) {
       while (bidOrders.hasNext()) {
         ordersData.add(JSONData.bidOrder(bidOrders.next()));
       }

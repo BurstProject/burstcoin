@@ -1,7 +1,9 @@
 package brs.http;
 
+import static brs.common.TestConstants.TEST_SECRET_PHRASE;
 import static brs.http.JSONResponses.MISSING_SECRET_PHRASE;
 import static brs.http.JSONResponses.UNKNOWN_ACCOUNT;
+import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -14,9 +16,6 @@ import org.junit.Test;
 public class StartForgingTest {
 
   private StartForging t;
-
-  private static final String SECRET_PHRASE_PARAMETER = "secretPhrase";
-  private static final String TEST_SECRET_PHRASE = "Secrets!";
 
   @Before
   public void setUp() {

@@ -20,18 +20,20 @@ public final class SetRewardRecipient extends CreateTransaction {
 
   private final ParameterService parameterService;
   private final Blockchain blockchain;
-	
+  private AccountService accountService;
+
   public SetRewardRecipient(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
     super(new APITag[] {APITag.ACCOUNTS, APITag.MINING, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, RECIPIENT_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
+    this.accountService = accountService;
   }
 	
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     final Account account = parameterService.getSenderAccount(req);
     Long recipient = ParameterParser.getRecipientId(req);
-    Account recipientAccount = Account.getAccount(recipient);
+    Account recipientAccount = accountService.getAccount(recipient);
     if (recipientAccount == null || recipientAccount.getPublicKey() == null) {
       JSONObject response = new JSONObject();
       response.put(ERROR_CODE_RESPONSE, 8);

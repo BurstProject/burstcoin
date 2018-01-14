@@ -1,14 +1,22 @@
 package brs;
 
 import brs.http.APIServlet;
+import brs.services.AssetAccountService;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.AssetService;
+import brs.services.AssetTransferService;
+import brs.services.OrderService;
 import brs.services.ParameterService;
+import brs.services.TradeService;
+import brs.services.impl.AssetAccountServiceImpl;
 import brs.services.impl.AccountServiceImpl;
 import brs.services.impl.AliasServiceImpl;
 import brs.services.impl.AssetServiceImpl;
+import brs.services.impl.AssetTransferServiceImpl;
+import brs.services.impl.OrderServiceImpl;
 import brs.services.impl.ParameterServiceImpl;
+import brs.services.impl.TradeServiceImpl;
 import brs.db.sql.Db;
 import brs.db.store.Dbs;
 import brs.db.store.Stores;
@@ -217,13 +225,17 @@ public final class Burst {
   public static void init() {
     Init.init();
 
+    final TradeService tradeService = new TradeServiceImpl(Burst.getStores().getTradeStore());
+    final AssetAccountService assetAccountService = new AssetAccountServiceImpl(stores.getAccountStore());
+    final AssetTransferService assetTransferService = new AssetTransferServiceImpl(stores.getAssetTransferStore());
     final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
     final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
-    final AssetService assetService = new AssetServiceImpl(stores.getAssetStore());
+    final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
     final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,
         getBlockchain(), getBlockchainProcessor(), getTransactionProcessor());
+    final OrderService orderService = new OrderServiceImpl(stores.getOrderStore());
 
-    APIServlet.injectServices(getTransactionProcessor(), getBlockchain(), getBlockchainProcessor(), parameterService, accountService, aliasService);
+    APIServlet.injectServices(getTransactionProcessor(), getBlockchain(), getBlockchainProcessor(), parameterService, accountService, aliasService, orderService, assetService, assetTransferService);
   }
 
   public static void shutdown() {
