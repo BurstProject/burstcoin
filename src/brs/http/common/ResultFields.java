@@ -1,5 +1,8 @@
 package brs.http.common;
 
+import brs.util.Convert;
+import org.json.simple.JSONObject;
+
 public class ResultFields {
 
   public static final String ERROR_CODE_RESPONSE = "errorCode";
@@ -25,5 +28,15 @@ public class ResultFields {
   public static final String SIGNATURE_HASH_RESPONSE = "signatureHash";
   public static final String VERIFY_RESPONSE = "verify";
   public static final String VALIDATE_RESPONSE = "validate";
+  public static final String PUBLIC_KEY_RESPONSE = "publicKey";
+  public static final String NAME_RESPONSE = "name";
+  public static final String DESCRIPTION_RESPONSE = "description";
+  public static final String ASSET_RESPONSE = "asset";
+  public static final String BALANCE_NQT_RESPONSE = "balanceQNT";
+  public static final String UNCONFIRMED_BALANCE_NQT_RESPONSE = "unconfirmedBalanceQNT";
+  public static final String ASSET_BALANCER_RESPONSE = "assetBalances";
+  public static final String UNCONFIRMED_ASSET_BALANCES_RESPONSE = "unconfirmedAssetBalances";
+  public static final String ACCOUNT_RESPONSE = "account";
+  public static final String REWARD_RECIPIENT_RESPONSE = "rewardRecipient";
 
 }

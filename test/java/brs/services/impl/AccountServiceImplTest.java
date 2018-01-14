@@ -158,6 +158,17 @@ public class AccountServiceImplTest {
   }
 
   @Test
+  public void getAllAccounts() {
+    final int from = 1;
+    final int to = 5;
+    final BurstIterator<Account> mockAccountsIterator = mock(BurstIterator.class);
+
+    when(accountTableMock.getAll(eq(from), eq(to))).thenReturn(mockAccountsIterator);
+
+    assertEquals(mockAccountsIterator, t.getAllAccounts(from, to));
+  }
+
+  @Test
   public void getId() {
     final byte[] publicKeyMock = new byte[1];
     publicKeyMock[0] = (byte) 1;
