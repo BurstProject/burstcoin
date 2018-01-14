@@ -23,11 +23,6 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   private final boolean multiversion;
   private final List<SortField> defaultSort;
 
-  //    private final Timer getByKeyTimer;
-  //    private final Timer getByKeyAndHeightTimer;
-  //    private final Timer getByClauseTimer;
-  //    private final Timer getByClauseAndHeightTimer;
-  //    private final Timer insertTimer;
   protected EntitySqlTable(String table, TableImpl<?> tableClass, BurstKey.Factory<T> dbKeyFactory) {
     this(table, tableClass, dbKeyFactory, false);
   }

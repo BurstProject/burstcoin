@@ -63,8 +63,12 @@ final class OCLPoC {
 
   private static final int DEFAULT_MEM_PERCENT = 50;
 
-  private static final int hashesPerEnqueue = Burst.getIntProperty("brs.oclHashesPerEnqueue") == 0 ? 1000 : Burst.getIntProperty("brs.oclHashesPerEnqueue");
-  private static final int memPercent = Burst.getIntProperty("brs.oclMemPercent") == 0 ? DEFAULT_MEM_PERCENT : Burst.getIntProperty("brs.oclMemPercent");
+  private static final int hashesPerEnqueue = Burst.getIntProperty("GPU.HashesPerEnqueue") == 0
+                                            ? 1000
+                                            : Burst.getIntProperty("GPU.HashesPerEnqueue");
+  private static final int memPercent = Burst.getIntProperty("GPU.MemPercent") == 0
+                                      ? DEFAULT_MEM_PERCENT
+                                      : Burst.getIntProperty("GPU.MemPercent");
 
   private static cl_context ctx;
   private static cl_command_queue queue;
@@ -89,7 +93,7 @@ final class OCLPoC {
 
   static {
     try {
-      boolean autoChoose = Burst.getBooleanProperty("brs.oclAuto", true);
+      boolean autoChoose = Burst.getBooleanProperty("GPU.AutoDetect", true);
       setExceptionsEnabled(true);
 
       int platformIndex;
@@ -102,9 +106,10 @@ final class OCLPoC {
         platformIndex = ac.getPlatform();
         deviceIndex = ac.getDevice();
         logger.info("Choosing Platform " + platformIndex + " - DeviceId: " + deviceIndex);
-      } else {
-        platformIndex = Burst.getIntProperty("brs.oclPlatform");
-        deviceIndex = Burst.getIntProperty("brs.oclDevice");
+      }
+      else {
+        platformIndex = Burst.getIntProperty("GPU.PlatformIdx");
+        deviceIndex = Burst.getIntProperty("GPU.DeviceIdx");
       }
 
       int[] numPlatforms = new int[1];

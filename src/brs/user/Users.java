@@ -20,7 +20,7 @@ public final class Users {
 
   private static final Logger logger = LoggerFactory.getLogger(Users.class);
 
-  private static final int TESTNET_UI_PORT=6875;
+  private static final int TESTNET_UI_PORT = 6875;
 
   private static final ConcurrentMap<String, User> users = new ConcurrentHashMap<>();
   private static final Collection<User> allUsers = Collections.unmodifiableCollection(users.values());

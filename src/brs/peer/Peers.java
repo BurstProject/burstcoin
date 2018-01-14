@@ -1,8 +1,5 @@
 package brs.peer;
 
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.jetty9.InstrumentedHandler;
 import brs.*;
 import brs.util.*;
 import org.eclipse.jetty.server.Server;
@@ -88,17 +85,17 @@ public final class Peers {
 
   static {
 
-    myPlatform = Burst.getStringProperty("brs.myPlatform");
-    myAddress = Burst.getStringProperty("brs.myAddress");
+    myPlatform = Burst.getStringProperty("P2P.myPlatform");
+    myAddress = Burst.getStringProperty("P2P.myAddress");
     if (myAddress != null && myAddress.endsWith(":" + TESTNET_PEER_PORT) && !Constants.isTestnet) {
       throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
     }
-    myPeerServerPort = Burst.getIntProperty("brs.peerServerPort");
+    myPeerServerPort = Burst.getIntProperty("P2P.Port");
     if (myPeerServerPort == TESTNET_PEER_PORT && !Constants.isTestnet) {
       throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
     }
-    shareMyAddress = Burst.getBooleanProperty("brs.shareMyAddress") && ! Constants.isOffline;
-    myHallmark = Burst.getStringProperty("brs.myHallmark");
+    shareMyAddress = Burst.getBooleanProperty("P2P.shareMyAddress") && ! Constants.isOffline;
+    myHallmark = Burst.getStringProperty("P2P.myHallmark");
     if (Peers.myHallmark != null && Peers.myHallmark.length() > 0) {
       try {
         Hallmark hallmark = Hallmark.parseHallmark(Peers.myHallmark);
@@ -110,7 +107,8 @@ public final class Peers {
         if (!hallmark.getHost().equals(host)) {
           throw new RuntimeException();
         }
-      } catch (RuntimeException | URISyntaxException e) {
+      }
+      catch (RuntimeException | URISyntaxException e) {
         logger.info("Your hallmark is invalid: " + Peers.myHallmark + " for your address: " + myAddress);
         throw new RuntimeException(e.toString(), e);
       }
@@ -123,34 +121,40 @@ public final class Peers {
         String host = uri.getHost();
         int port = uri.getPort();
         if (!Constants.isTestnet) {
-          if (port >= 0)
+          if (port >= 0) {
             json.put("announcedAddress", myAddress);
-          else
+          }
+          else {
             json.put("announcedAddress", host + (myPeerServerPort != DEFAULT_PEER_PORT ? ":" + myPeerServerPort : ""));
-        } else {
+          }
+        }
+        else {
           json.put("announcedAddress", host);
         }
-      } catch (URISyntaxException e) {
+      }
+      catch (URISyntaxException e) {
         logger.info("Your announce address is invalid: " + myAddress);
         throw new RuntimeException(e.toString(), e);
       }
     }
+
     if (Peers.myHallmark != null && Peers.myHallmark.length() > 0) {
       json.put("hallmark", Peers.myHallmark);
     }
-    json.put("application", Burst.APPLICATION);
-    json.put("version", Burst.VERSION);
-    json.put("platform", Peers.myPlatform);
+
+    json.put("application",  Burst.APPLICATION);
+    json.put("version",      Burst.VERSION);
+    json.put("platform",     Peers.myPlatform);
     json.put("shareAddress", Peers.shareMyAddress);
     logger.debug("My peer info:\n" + json.toJSONString());
     myPeerInfoResponse = JSON.prepare(json);
     json.put("requestType", "getInfo");
     myPeerInfoRequest = JSON.prepareRequest(json);
 
-    rebroadcastPeers = Collections.unmodifiableSet(new HashSet<>(Burst.getStringListProperty("brs.rebroadcastPeers")));
+    rebroadcastPeers = Collections.unmodifiableSet(new HashSet<>(Burst.getStringListProperty("P2P.rebroadcastTo")));
 
-    List<String> wellKnownPeersList = Constants.isTestnet ? Burst.getStringListProperty("brs.testnetPeers")
-        : Burst.getStringListProperty("brs.wellKnownPeers");
+    List<String> wellKnownPeersList = Constants.isTestnet ? Burst.getStringListProperty("TEST.Peers")
+        : Burst.getStringListProperty("P2P.BootstrapConnect");
     for(String rePeer : rebroadcastPeers) {
       if(!wellKnownPeersList.contains(rePeer)) {
         wellKnownPeersList.add(rePeer);
@@ -162,10 +166,10 @@ public final class Peers {
       wellKnownPeers = Collections.unmodifiableSet(new HashSet<>(wellKnownPeersList));
     }
 
-    connectWellKnownFirst = Burst.getIntProperty("brs.connectWellKnownFirst");
+    connectWellKnownFirst = Burst.getIntProperty("P2P.NumBootstrapConnections");
     connectWellKnownFinished = (connectWellKnownFirst == 0);
 
-    List<String> knownBlacklistedPeersList = Burst.getStringListProperty("brs.knownBlacklistedPeers");
+    List<String> knownBlacklistedPeersList = Burst.getStringListProperty("P2P.BlacklistedPeers");
     if (knownBlacklistedPeersList.isEmpty()) {
       knownBlacklistedPeers = Collections.emptySet();
     } else {
@@ -173,18 +177,18 @@ public final class Peers {
     }
 
     maxNumberOfConnectedPublicPeers = Burst.getIntProperty("brs.maxNumberOfConnectedPublicPeers");
-    connectTimeout = Burst.getIntProperty("brs.connectTimeout");
-    readTimeout = Burst.getIntProperty("brs.readTimeout");
-    enableHallmarkProtection = Burst.getBooleanProperty("brs.enableHallmarkProtection");
+    connectTimeout = Burst.getIntProperty("P2P.TimeoutConnect_ms");
+    readTimeout = Burst.getIntProperty("P2P.TimeoutRead_ms");
+    enableHallmarkProtection = Burst.getBooleanProperty("P2P.enableHallmarkProtection");
     pushThreshold = Burst.getIntProperty("brs.pushThreshold");
     pullThreshold = Burst.getIntProperty("brs.pullThreshold");
 
     blacklistingPeriod = Burst.getIntProperty("brs.blacklistingPeriod");
     communicationLoggingMask = Burst.getIntProperty("brs.communicationLoggingMask");
     sendToPeersLimit = Burst.getIntProperty("brs.sendToPeersLimit");
-    usePeersDb = Burst.getBooleanProperty("brs.usePeersDb") && ! Constants.isOffline;
-    savePeers = usePeersDb && Burst.getBooleanProperty("brs.savePeers");
-    getMorePeers = Burst.getBooleanProperty("brs.getMorePeers");
+    usePeersDb       = Burst.getBooleanProperty("brs.usePeersDb") && ! Constants.isOffline;
+    savePeers        = usePeersDb && Burst.getBooleanProperty("brs.savePeers");
+    getMorePeers     = Burst.getBooleanProperty("brs.getMorePeers");
     dumpPeersVersion = Burst.getStringProperty("brs.dumpPeersVersion");
 
     final List<Future<String>> unresolvedPeers = Collections.synchronizedList(new ArrayList<Future<String>>());
@@ -248,22 +252,22 @@ public final class Peers {
         ServerConnector connector = new ServerConnector(peerServer);
         final int port = Constants.isTestnet ? TESTNET_PEER_PORT : Peers.myPeerServerPort;
         connector.setPort(port);
-        final String host = Burst.getStringProperty("brs.peerServerHost");
+        final String host = Burst.getStringProperty("P2P.Listen");
         connector.setHost(host);
-        connector.setIdleTimeout(Burst.getIntProperty("brs.peerServerIdleTimeout"));
+        connector.setIdleTimeout(Burst.getIntProperty("P2P.IdleTimeout_ms"));
         connector.setReuseAddress(true);
         peerServer.addConnector(connector);
 
         ServletHolder peerServletHolder = new ServletHolder(new PeerServlet());
-        boolean isGzipEnabled = Burst.getBooleanProperty("brs.enablePeerServerGZIPFilter");
+        boolean isGzipEnabled = Burst.getBooleanProperty("P2P.GZIPFilter");
         peerServletHolder.setInitParameter("isGzipEnabled", Boolean.toString(isGzipEnabled));
         ServletHandler peerHandler = new ServletHandler();
         peerHandler.addServletWithMapping(peerServletHolder, "/*");
-        if (Burst.getBooleanProperty("brs.enablePeerServerDoSFilter")) {
+        if (Burst.getBooleanProperty("P2P.DoSFilter")) {
           FilterHolder dosFilterHolder = peerHandler.addFilterWithMapping(DoSFilter.class, "/*", FilterMapping.DEFAULT);
-          dosFilterHolder.setInitParameter("maxRequestsPerSec", Burst.getStringProperty("brs.peerServerDoSFilter.maxRequestsPerSec"));
-          dosFilterHolder.setInitParameter("delayMs", Burst.getStringProperty("brs.peerServerDoSFilter.delayMs"));
-          dosFilterHolder.setInitParameter("maxRequestMs", Burst.getStringProperty("brs.peerServerDoSFilter.maxRequestMs"));
+          dosFilterHolder.setInitParameter("maxRequestsPerSec", Burst.getStringProperty("P2P.DoSFilter.maxRequestsPerSec"));
+          dosFilterHolder.setInitParameter("delayMs",           Burst.getStringProperty("P2P.DoSFilter.delayMs"));
+          dosFilterHolder.setInitParameter("maxRequestMs",      Burst.getStringProperty("P2P.DoSFilter.maxRequestMs"));
           dosFilterHolder.setInitParameter("trackSessions", "false");
           dosFilterHolder.setAsyncSupported(true);
         }
@@ -273,10 +277,6 @@ public final class Peers {
           gzipFilterHolder.setAsyncSupported(true);
         }
 
-        InstrumentedHandler instrumentedPeerHandler = new InstrumentedHandler(Burst.metrics, "peer-handler");
-        instrumentedPeerHandler.setHandler(peerHandler);
-
-        peerServer.setHandler(instrumentedPeerHandler);
         peerServer.setStopAtShutdown(true);
         ThreadPool.runBeforeStart(new Runnable() {
             @Override
@@ -294,12 +294,6 @@ public final class Peers {
         peerServer = null;
         logger.info("shareMyAddress is disabled, will not start peer networking server");
       }
-
-      Burst.metrics.register(MetricRegistry.name(Peers.class, "peers", "total"),
-                             (Gauge<Integer>) () -> peers.size());
-      Burst.metrics.register(MetricRegistry.name(Peers.class, "peers", "active"),
-                             (Gauge<Integer>) () -> getActivePeers().size());
-
     }
 
     private static void init() {}
