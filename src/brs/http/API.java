@@ -125,6 +125,7 @@ public final class API {
         filterHolder.setAsyncSupported(true);
       }
 
+      apiHandlers.addHandler(apiHandler);
       apiHandlers.addHandler(new DefaultHandler());
 
       apiServer.setHandler(apiHandlers);
