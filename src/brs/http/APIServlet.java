@@ -62,7 +62,7 @@ public final class APIServlet extends HttpServlet {
     map.put("dgsPurchase", new DGSPurchase(parameterService, transactionProcessor, blockchain, accountService));
     map.put("dgsQuantityChange", new DGSQuantityChange(parameterService, transactionProcessor, blockchain, accountService));
     map.put("dgsRefund", new DGSRefund(parameterService, transactionProcessor, blockchain, accountService));
-    map.put("decodeHallmark", DecodeHallmark.instance);
+    map.put("decodeHallmark", new DecodeHallmark());
     map.put("decodeToken", DecodeToken.instance);
     map.put("encryptTo", new EncryptTo(parameterService));
     map.put("generateToken", GenerateToken.instance);
