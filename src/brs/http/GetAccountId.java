@@ -9,21 +9,24 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.MISSING_SECRET_PHRASE_OR_PUBLIC_KEY;
+import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
+import static brs.http.common.Parameters.PUBLIC_KEY_PARAMETER;
+import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 
 public final class GetAccountId extends APIServlet.APIRequestHandler {
 
   static final GetAccountId instance = new GetAccountId();
 
   private GetAccountId() {
-    super(new APITag[] {APITag.ACCOUNTS}, "secretPhrase", "publicKey");
+    super(new APITag[] {APITag.ACCOUNTS}, SECRET_PHRASE_PARAMETER, PUBLIC_KEY_PARAMETER);
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) {
 
     long accountId;
-    String secretPhrase = Convert.emptyToNull(req.getParameter("secretPhrase"));
-    String publicKeyString = Convert.emptyToNull(req.getParameter("publicKey"));
+    String secretPhrase = Convert.emptyToNull(req.getParameter(SECRET_PHRASE_PARAMETER));
+    String publicKeyString = Convert.emptyToNull(req.getParameter(PUBLIC_KEY_PARAMETER));
     if (secretPhrase != null) {
       byte[] publicKey = Crypto.getPublicKey(secretPhrase);
       accountId = Account.getId(publicKey);

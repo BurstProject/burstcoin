@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import static brs.Constants.*;
 
+import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 import static brs.user.JSONResponses.INVALID_SECRET_PHRASE;
 
 public final class GenerateAuthorizationToken extends UserServlet.UserRequestHandler {
@@ -19,7 +20,7 @@ public final class GenerateAuthorizationToken extends UserServlet.UserRequestHan
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req, User user) throws IOException {
-    String secretPhrase = req.getParameter("secretPhrase");
+    String secretPhrase = req.getParameter(SECRET_PHRASE_PARAMETER);
     if (! user.getSecretPhrase().equals(secretPhrase)) {
       return INVALID_SECRET_PHRASE;
     }

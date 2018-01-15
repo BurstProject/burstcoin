@@ -9,12 +9,14 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static brs.http.common.Parameters.*;
+
 public final class GetAllTrades extends APIServlet.APIRequestHandler {
 
   static final GetAllTrades instance = new GetAllTrades();
 
   private GetAllTrades() {
-    super(new APITag[] {APITag.AE}, "timestamp", "firstIndex", "lastIndex", "includeAssetInfo");
+    super(new APITag[] {APITag.AE}, TIMESTAMP_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER, INCLUDE_ASSET_INFO_PARAMETER);
   }
     
   @Override
@@ -22,7 +24,7 @@ public final class GetAllTrades extends APIServlet.APIRequestHandler {
     final int timestamp = ParameterParser.getTimestamp(req);
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
-    boolean includeAssetInfo = !"false".equalsIgnoreCase(req.getParameter("includeAssetInfo"));
+    boolean includeAssetInfo = !"false".equalsIgnoreCase(req.getParameter(INCLUDE_ASSET_INFO_PARAMETER));
 
     JSONObject response = new JSONObject();
     JSONArray trades = new JSONArray();

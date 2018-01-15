@@ -10,19 +10,20 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.INCORRECT_ASSET;
 import static brs.http.JSONResponses.UNKNOWN_ASSET;
+import static brs.http.common.Parameters.ASSETS_PARAMETER;
 
 public final class GetAssets extends APIServlet.APIRequestHandler {
 
   static final GetAssets instance = new GetAssets();
 
   private GetAssets() {
-    super(new APITag[] {APITag.AE}, "assets", "assets", "assets"); // limit to 3 for testing
+    super(new APITag[] {APITag.AE}, ASSETS_PARAMETER, ASSETS_PARAMETER, ASSETS_PARAMETER); // limit to 3 for testing
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) {
 
-    String[] assets = req.getParameterValues("assets");
+    String[] assets = req.getParameterValues(ASSETS_PARAMETER);
 
     JSONObject response = new JSONObject();
     JSONArray assetsJSONArray = new JSONArray();

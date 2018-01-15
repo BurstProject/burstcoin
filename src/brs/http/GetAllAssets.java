@@ -8,12 +8,15 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
+import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+
 public final class GetAllAssets extends APIServlet.APIRequestHandler {
 
   static final GetAllAssets instance = new GetAllAssets();
 
   private GetAllAssets() {
-    super(new APITag[] {APITag.AE}, "firstIndex", "lastIndex");
+    super(new APITag[] {APITag.AE}, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
   }
 
   @Override

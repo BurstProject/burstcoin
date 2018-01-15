@@ -1,10 +1,6 @@
 package brs.http;
 
-import static brs.http.common.Parameters.AMOUNT_NQT_PARAMETER;
-import static brs.http.common.Parameters.ESCROW_DEADLINE_PARAMETER;
-import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
-import static brs.http.common.Parameters.REQUIRED_SIGNERS_PARAMETER;
-import static brs.http.common.Parameters.SIGNERS_PARAMETER;
+import static brs.http.common.Parameters.*;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
@@ -98,7 +94,7 @@ public final class SendMoneyEscrow extends CreateTransaction {
 		
     Long deadline;
     try {
-      deadline = Convert.parseLong(req.getParameter("escrowDeadline"));
+      deadline = Convert.parseLong(req.getParameter(ESCROW_DEADLINE_PARAMETER));
       if(deadline < 1 || deadline > 7776000) {
         JSONObject response = new JSONObject();
         response.put(ERROR_CODE_RESPONSE, 4);
@@ -109,15 +105,15 @@ public final class SendMoneyEscrow extends CreateTransaction {
     catch(Exception e) {
       JSONObject response = new JSONObject();
       response.put(ERROR_CODE_RESPONSE, 4);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid escrowDeadline parameter");
+      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid " + ESCROW_DEADLINE_PARAMETER + " parameter");
       return response;
     }
-		
-    Escrow.DecisionType deadlineAction = Escrow.stringToDecision(req.getParameter("deadlineAction"));
+
+    Escrow.DecisionType deadlineAction = Escrow.stringToDecision(req.getParameter(DEADLINE_ACTION_PARAMETER));
     if(deadlineAction == null || deadlineAction == Escrow.DecisionType.UNDECIDED) {
       JSONObject response = new JSONObject();
       response.put(ERROR_CODE_RESPONSE, 4);
-      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid deadlineAction parameter");
+      response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid " + DEADLINE_ACTION_PARAMETER + " parameter");
       return response;
     }
 		
