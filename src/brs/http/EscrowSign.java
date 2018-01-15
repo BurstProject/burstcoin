@@ -51,7 +51,7 @@ public final class EscrowSign extends CreateTransaction {
       return response;
     }
 		
-    Escrow.DecisionType decision = Escrow.stringToDecision(req.getParameter("decision"));
+    Escrow.DecisionType decision = Escrow.stringToDecision(req.getParameter(DECISION_PARAMETER));
     if(decision == null) {
       JSONObject response = new JSONObject();
       response.put(ERROR_CODE_RESPONSE, 5);

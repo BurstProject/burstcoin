@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletRequest;
 import static brs.http.JSONResponses.*;
 import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_URI_PARAMETER;
+import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
+import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
 public final class SetAlias extends CreateTransaction {
 
@@ -56,8 +58,8 @@ public final class SetAlias extends CreateTransaction {
     Alias alias = Alias.getAlias(normalizedAlias);
     if (alias != null && alias.getAccountId() != account.getId()) {
       JSONObject response = new JSONObject();
-      response.put("errorCode", 8);
-      response.put("errorDescription", "\"" + aliasName + "\" is already used");
+      response.put(ERROR_CODE_RESPONSE, 8);
+      response.put(ERROR_DESCRIPTION_RESPONSE, "\"" + aliasName + "\" is already used");
       return response;
     }
 

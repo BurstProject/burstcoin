@@ -7,19 +7,20 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.*;
 import static brs.Constants.*;
+import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 
 public final class GenerateToken extends APIServlet.APIRequestHandler {
 
   static final GenerateToken instance = new GenerateToken();
 
   private GenerateToken() {
-    super(new APITag[] {APITag.TOKENS}, WEBSITE, "secretPhrase");
+    super(new APITag[] {APITag.TOKENS}, WEBSITE, SECRET_PHRASE_PARAMETER);
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) {
 
-    String secretPhrase = req.getParameter("secretPhrase");
+    String secretPhrase = req.getParameter(SECRET_PHRASE_PARAMETER);
     String website = req.getParameter(WEBSITE);
     if (secretPhrase == null) {
       return MISSING_SECRET_PHRASE;

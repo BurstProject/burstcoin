@@ -9,19 +9,22 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static brs.http.common.Parameters.ACTIVE_PARAMETER;
+import static brs.http.common.Parameters.STATE_PARAMETER;
+
 public final class GetPeers extends APIServlet.APIRequestHandler {
 
   static final GetPeers instance = new GetPeers();
 
   private GetPeers() {
-    super(new APITag[] {APITag.INFO}, "active", "state");
+    super(new APITag[] {APITag.INFO}, ACTIVE_PARAMETER, STATE_PARAMETER);
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) {
 
-    boolean active = "true".equalsIgnoreCase(req.getParameter("active"));
-    String stateValue = Convert.emptyToNull(req.getParameter("state"));
+    boolean active = "true".equalsIgnoreCase(req.getParameter(ACTIVE_PARAMETER));
+    String stateValue = Convert.emptyToNull(req.getParameter(STATE_PARAMETER));
 
     JSONArray peers = new JSONArray();
     for (Peer peer : active ? Peers.getActivePeers() : stateValue != null ? Peers.getPeers(Peer.State.valueOf(stateValue)) : Peers.getAllPeers()) {

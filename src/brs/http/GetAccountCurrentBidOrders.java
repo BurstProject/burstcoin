@@ -30,7 +30,7 @@ public final class GetAccountCurrentBidOrders extends APIServlet.APIRequestHandl
     long accountId = parameterService.getAccount(req).getId();
     long assetId = 0;
     try {
-      assetId = Convert.parseUnsignedLong(req.getParameter("asset"));
+      assetId = Convert.parseUnsignedLong(req.getParameter(ASSET_PARAMETER));
     } catch (RuntimeException e) {
       // ignore
     }
