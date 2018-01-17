@@ -2,7 +2,7 @@ package brs.http;
 
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.ResultFields.ACCOUNT_RESPONSE;
-import static brs.http.common.ResultFields.ASSET_BALANCER_RESPONSE;
+import static brs.http.common.ResultFields.ASSET_BALANCES_RESPONSE;
 import static brs.http.common.ResultFields.ASSET_RESPONSE;
 import static brs.http.common.ResultFields.BALANCE_NQT_RESPONSE;
 import static brs.http.common.ResultFields.DESCRIPTION_RESPONSE;
@@ -14,21 +14,23 @@ import static brs.http.common.ResultFields.UNCONFIRMED_BALANCE_NQT_RESPONSE;
 import brs.Account;
 import brs.BurstException;
 import brs.db.BurstIterator;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
+import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-import javax.servlet.http.HttpServletRequest;
-
 public final class GetAccount extends APIServlet.APIRequestHandler {
 
   private ParameterService parameterService;
+  private AccountService accountService;
 
-  GetAccount(ParameterService parameterService) {
+  GetAccount(ParameterService parameterService, AccountService accountService) {
     super(new APITag[] {APITag.ACCOUNTS}, ACCOUNT_PARAMETER);
     this.parameterService = parameterService;
+    this.accountService = accountService;
   }
 
   @Override
@@ -49,7 +51,7 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
       response.put(DESCRIPTION_RESPONSE, account.getDescription());
     }
 
-    try (BurstIterator<Account.AccountAsset> accountAssets = account.getAssets(0, -1)) {
+    try (BurstIterator<Account.AccountAsset> accountAssets = accountService.getAssets(account.getId(), 0, -1)) {
       JSONArray assetBalances = new JSONArray();
       JSONArray unconfirmedAssetBalances = new JSONArray();
       while (accountAssets.hasNext()) {
@@ -63,15 +65,16 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
         unconfirmedAssetBalance.put(UNCONFIRMED_BALANCE_NQT_RESPONSE, String.valueOf(accountAsset.getUnconfirmedQuantityQNT()));
         unconfirmedAssetBalances.add(unconfirmedAssetBalance);
       }
+
       if (! assetBalances.isEmpty()) {
-        response.put(ASSET_BALANCER_RESPONSE, assetBalances);
+        response.put(ASSET_BALANCES_RESPONSE, assetBalances);
       }
       if (! unconfirmedAssetBalances.isEmpty()) {
         response.put(UNCONFIRMED_ASSET_BALANCES_RESPONSE, unconfirmedAssetBalances);
       }
     }
-    return response;
 
+    return response;
   }
 
 }

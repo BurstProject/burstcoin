@@ -34,7 +34,7 @@ public class ResultFields {
   public static final String ASSET_RESPONSE = "asset";
   public static final String BALANCE_NQT_RESPONSE = "balanceQNT";
   public static final String UNCONFIRMED_BALANCE_NQT_RESPONSE = "unconfirmedBalanceQNT";
-  public static final String ASSET_BALANCER_RESPONSE = "assetBalances";
+  public static final String ASSET_BALANCES_RESPONSE = "assetBalances";
   public static final String UNCONFIRMED_ASSET_BALANCES_RESPONSE = "unconfirmedAssetBalances";
   public static final String ACCOUNT_RESPONSE = "account";
   public static final String REWARD_RECIPIENT_RESPONSE = "rewardRecipient";

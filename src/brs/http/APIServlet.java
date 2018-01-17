@@ -63,10 +63,10 @@ public final class APIServlet extends HttpServlet {
     map.put("dgsQuantityChange", new DGSQuantityChange(parameterService, transactionProcessor, blockchain, accountService));
     map.put("dgsRefund", new DGSRefund(parameterService, transactionProcessor, blockchain, accountService));
     map.put("decodeHallmark", new DecodeHallmark());
-    map.put("decodeToken", DecodeToken.instance);
+    map.put("decodeToken", new DecodeToken());
     map.put("encryptTo", new EncryptTo(parameterService));
     map.put("generateToken", GenerateToken.instance);
-    map.put("getAccount", new GetAccount(parameterService));
+    map.put("getAccount", new GetAccount(parameterService, accountService));
     map.put("getAccountBlockIds", new GetAccountBlockIds(parameterService, blockchain));
     map.put("getAccountBlocks", new GetAccountBlocks(blockchain, parameterService));
     map.put("getAccountId", GetAccountId.instance);
@@ -136,7 +136,7 @@ public final class APIServlet extends HttpServlet {
     map.put("sendMessage", new SendMessage(parameterService, transactionProcessor, blockchain, accountService));
     map.put("sendMoney", new SendMoney(parameterService, transactionProcessor, blockchain, accountService));
     map.put("setAccountInfo", new SetAccountInfo(parameterService, transactionProcessor, blockchain, accountService));
-    map.put("setAlias", new SetAlias(parameterService, transactionProcessor, blockchain, accountService));
+    map.put("setAlias", new SetAlias(parameterService, transactionProcessor, blockchain, accountService, aliasService));
     map.put("signTransaction", new SignTransaction(parameterService));
     //map.put("startForging", StartForging.instance);
     //map.put("stopForging", StopForging.instance);
