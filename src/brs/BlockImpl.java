@@ -26,7 +26,7 @@ import brs.peer.Peer;
 import brs.util.Convert;
 
 @Entity
-public final class BlockImpl implements Block {
+public class BlockImpl implements Block {
 
   private static final Logger logger = LoggerFactory.getLogger(BlockImpl.class);
   private final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
