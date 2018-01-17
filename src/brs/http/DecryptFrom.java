@@ -7,7 +7,7 @@ import static brs.http.common.Parameters.DATA_PARAMETER;
 import static brs.http.common.Parameters.DECRYPTED_MESSAGE_IS_TEXT_PARAMETER;
 import static brs.http.common.Parameters.NONCE_PARAMETER;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
-import static brs.http.common.ResultFields.DECRYPTED_MESSAGE_RESULT;
+import static brs.http.common.ResultFields.DECRYPTED_MESSAGE_RESPONSE;
 
 import brs.Account;
 import brs.BurstException;
@@ -46,7 +46,7 @@ public final class DecryptFrom extends APIServlet.APIRequestHandler {
     try {
       byte[] decrypted = account.decryptFrom(encryptedData, secretPhrase);
       JSONObject response = new JSONObject();
-      response.put(DECRYPTED_MESSAGE_RESULT, isText ? Convert.toString(decrypted) : Convert.toHexString(decrypted));
+      response.put(DECRYPTED_MESSAGE_RESPONSE, isText ? Convert.toString(decrypted) : Convert.toHexString(decrypted));
       return response;
     } catch (RuntimeException e) {
       logger.debug(e.toString());
