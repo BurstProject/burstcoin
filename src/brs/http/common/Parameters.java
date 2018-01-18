@@ -9,6 +9,7 @@ public class Parameters {
   public static final String PRICE_NQT_PARAMETER = "priceNQT";
   public static final String QUANTITY_NQT_PARAMETER = "quantityQNT";
   public static final String ASSET_PARAMETER = "asset";
+  public static final String ASSETS_PARAMETER = "assets";
   public static final String GOODS_PARAMETER = "goods";
   public static final String ORDER_PARAMETER = "order";
   public static final String QUANTITY_PARAMETER = "quantity";
@@ -98,6 +99,12 @@ public class Parameters {
   public static final String AMOUNT_BURST_PARAMETER = "amountNXT";
   public static final String FEE_BURST_PARAMETER = "feeNXT";
   public static final String HALLMARK_PARAMETER = "hallmark";
+  public static final String IN_STOCK_ONLY_PARAMETER = "inStockOnly";
+  public static final String COMPLETED_PARAMETER = "completed";
+  public static final String PEER_PARAMETER = "peer";
+  public static final String ACTIVE_PARAMETER = "active";
+  public static final String STATE_PARAMETER = "state";
+  public static final String ID_PARAMETER = "id";
 
   public static boolean isFalse(String text) {
     return "false".equalsIgnoreCase(text);

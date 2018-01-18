@@ -4,6 +4,7 @@ import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.ASSET_PARAMETER;
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+import static brs.http.common.ResultFields.ASK_ORDER_IDS_RESPONSE;
 
 import brs.BurstException;
 import brs.Order;
@@ -30,7 +31,7 @@ public final class GetAccountCurrentAskOrderIds extends APIServlet.APIRequestHan
     long accountId = parameterService.getAccount(req).getId();
     long assetId = 0;
     try {
-      assetId = Convert.parseUnsignedLong(req.getParameter("asset"));
+      assetId = Convert.parseUnsignedLong(req.getParameter(ASSET_PARAMETER));
     } catch (RuntimeException e) {
       // ignore
     }
@@ -52,7 +53,7 @@ public final class GetAccountCurrentAskOrderIds extends APIServlet.APIRequestHan
       askOrders.close();
     }
     JSONObject response = new JSONObject();
-    response.put("askOrderIds", orderIds);
+    response.put(ASK_ORDER_IDS_RESPONSE, orderIds);
     return response;
   }
 

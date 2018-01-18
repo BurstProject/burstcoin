@@ -13,6 +13,8 @@ import static brs.http.common.Parameters.DPAGES_PARAMETER;
 import static brs.http.common.Parameters.MIN_ACTIVATION_AMOUNT_NQT_PARAMETER;
 import static brs.http.common.Parameters.NAME_PARAMETER;
 import static brs.http.common.Parameters.USPAGES_PARAMETER;
+import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
+import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
 import brs.Account;
 import brs.Attachment;
@@ -70,14 +72,14 @@ public final class CreateATProgram extends CreateTransaction {
 
     byte[] creationBytes = null;
 
-    if (req.getParameter("code") != null) {
+    if (req.getParameter(CODE_PARAMETER) != null) {
       try {
-        String code = req.getParameter("code");
+        String code = req.getParameter(CODE_PARAMETER);
         if ((code.length() & 1) != 0) {
           throw new IllegalArgumentException();
         }
 
-        String data = req.getParameter("data");
+        String data = req.getParameter(DATA_PARAMETER);
         if (data == null) {
           data = "";
         }
@@ -86,15 +88,15 @@ public final class CreateATProgram extends CreateTransaction {
         }
 
         int cpages = (code.length() / 2 / 256) + (((code.length() / 2) % 256) != 0 ? 1 : 0);
-        int dpages = Integer.parseInt(req.getParameter("dpages"));
-        int cspages = Integer.parseInt(req.getParameter("cspages"));
-        int uspages = Integer.parseInt(req.getParameter("uspages"));
+        int dpages = Integer.parseInt(req.getParameter(DPAGES_PARAMETER));
+        int cspages = Integer.parseInt(req.getParameter(CSPAGES_PARAMETER));
+        int uspages = Integer.parseInt(req.getParameter(USPAGES_PARAMETER));
 
         if (dpages < 0 || cspages < 0 || uspages < 0) {
           throw new IllegalArgumentException();
         }
 
-        long minActivationAmount = Convert.parseUnsignedLong(req.getParameter("minActivationAmountNQT"));
+        long minActivationAmount = Convert.parseUnsignedLong(req.getParameter(MIN_ACTIVATION_AMOUNT_NQT_PARAMETER));
 
         int creationLength = 4; // version + reserved
         creationLength += 8; // pages
@@ -140,8 +142,8 @@ public final class CreateATProgram extends CreateTransaction {
       } catch (Exception e) {
         e.printStackTrace(System.out);
         JSONObject response = new JSONObject();
-        response.put("errorCode", 5);
-        response.put("errorDescription", "Invalid or not specified parameters");
+        response.put(ERROR_CODE_RESPONSE, 5);
+        response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid or not specified parameters");
         return response;
       }
     }

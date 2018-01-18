@@ -32,8 +32,8 @@ public final class SetAccountInfo extends CreateTransaction {
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    String name = Convert.nullToEmpty(req.getParameter("name")).trim();
-    String description = Convert.nullToEmpty(req.getParameter("description")).trim();
+    String name = Convert.nullToEmpty(req.getParameter(NAME_PARAMETER)).trim();
+    String description = Convert.nullToEmpty(req.getParameter(DESCRIPTION_PARAMETER)).trim();
 
     if (name.length() > Constants.MAX_ACCOUNT_NAME_LENGTH) {
       return INCORRECT_ACCOUNT_NAME_LENGTH;

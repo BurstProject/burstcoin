@@ -8,19 +8,20 @@ import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.MISSING_PEER;
 import static brs.http.JSONResponses.UNKNOWN_PEER;
+import static brs.http.common.Parameters.PEER_PARAMETER;
 
 public final class GetPeer extends APIServlet.APIRequestHandler {
 
   static final GetPeer instance = new GetPeer();
 
   private GetPeer() {
-    super(new APITag[] {APITag.INFO}, "peer");
+    super(new APITag[] {APITag.INFO}, PEER_PARAMETER);
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) {
 
-    String peerAddress = req.getParameter("peer");
+    String peerAddress = req.getParameter(PEER_PARAMETER);
     if (peerAddress == null) {
       return MISSING_PEER;
     }

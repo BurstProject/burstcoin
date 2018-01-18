@@ -11,6 +11,8 @@ import static brs.http.common.Parameters.HALLMARK_PARAMETER;
 
 public final class DecodeHallmark extends APIServlet.APIRequestHandler {
 
+  static final DecodeHallmark instance = new DecodeHallmark();
+
   public DecodeHallmark() {
     super(new APITag[] {APITag.TOKENS}, HALLMARK_PARAMETER);
   }
