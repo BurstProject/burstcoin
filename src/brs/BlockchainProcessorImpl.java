@@ -48,7 +48,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   public static final DownloadCacheImpl DownloadCache = new DownloadCacheImpl();
 
   public static final int MAX_TIMESTAMP_DIFFERENCE = 15;
-  private static boolean oclVerify = Burst.getBooleanProperty("GPU.Acceleration");  // use GPU acceleration ?
+  private static boolean oclVerify = Burst.getBooleanProperty("GPU.Acceleration"); // use GPU acceleration ?
   public static final int oclThreshold = Burst.getIntProperty("GPU.Threshold") == 0 ? 50 : Burst.getIntProperty("GPU.Threshold");
   public static final int oclWaitThreshold = Burst.getIntProperty("GPU.WaitThreshold") == 0 ? 2000 : Burst.getIntProperty("GPU.WaitThreshold");
 
@@ -99,6 +99,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       for (;;) {
         if (oclVerify) {
           boolean gpuAcquired = false;
+          int PoCVersion = 1;
           try {
             List<BlockImpl> blocks = new LinkedList<>();
             synchronized (DownloadCache) {
@@ -110,17 +111,26 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 return;
               }
               if (DownloadCache.getUnverifiedSize() < oclThreshold) {
+                //This will be verified with Java.
                 Long blockId = DownloadCache.GetUnverifiedBlockId(0);
                 DownloadCache.removeUnverified(blockId);
                 blocks.add(DownloadCache.GetBlock(blockId));
               } else {
+                //This will be verified with Ocl.
                 if (!gpuUsage.tryAcquire()) {
                   logger.debug("already max locked");
                   return;
                 }
                 gpuAcquired = true;
+
+                //We add blocks to ocl process in blocks list.
+                //If we change PoCVersion we process until this and do other version in next round.
+                PoCVersion = DownloadCache.getPoCVersion(DownloadCache.GetUnverifiedBlockId(0));
                 while (DownloadCache.getUnverifiedSize() > 0 && blocks.size() < OCLPoC.getMaxItems()) {
                   Long blockId = DownloadCache.GetUnverifiedBlockId(0);
+                  if (DownloadCache.getPoCVersion(blockId) != PoCVersion) {
+                    break;
+                  }
                   DownloadCache.removeUnverified(blockId);
                   blocks.add(DownloadCache.GetBlock(blockId));
                 }
@@ -128,7 +138,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             } // end synchronized
             try {
               if (blocks.size() > 1) {
-                OCLPoC.validatePoC(blocks);
+                OCLPoC.validatePoC(blocks, PoCVersion);
               } else {
                 blocks.get(0).preVerify();
               }
@@ -350,6 +360,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                   // Make sure it maps back to chain
                   if (lastBlock.getId() != block.getPreviousBlockId()) {
                     logger.debug("Discarding downloaded data. Last downloaded blocks is rubbish");
+                    logger.debug("DB blockID: " + lastBlock.getId() + " DB blockheight:" + lastBlock.getHeight() + " Downloaded previd:" + block.getPreviousBlockId());
                     return;
                   }
                   // set height and cumulative difficulty to block
@@ -362,11 +373,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                   } else {
                     // at correct height we can check if this fork even is worth processing.
                     if (chainHeight == block.getHeight() && (block.getCumulativeDifficulty().compareTo(curCumulativeDifficulty) < 0)) {
-                        // peer does not have better Cumulative difficulty at same height as us.
-                        logger.debug("Peer almost caused us to popoff blocks. Blacklisting.");
-                        peer.blacklist();
-                        forkBlocks.clear();
-                        break;
+                      // peer does not have better Cumulative difficulty at same height as us.
+                      logger.debug("Peer almost caused us to popoff blocks. Blacklisting.");
+                      peer.blacklist();
+                      forkBlocks.clear();
+                      break;
                     }
                     forkBlocks.add(block);
                   }
@@ -573,8 +584,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           List<BlockImpl> peerPoppedOffBlocks = popOffTo(forkBlock);
           pushedForkBlocks = 0;
           peerPoppedOffBlocks.forEach(block -> {
-              TransactionProcessorImpl.getInstance().processLater(block.getTransactions());
-            });
+            TransactionProcessorImpl.getInstance().processLater(block.getTransactions());
+          });
         }
 
         // if we did not push any blocks we try to restore chain.
@@ -589,9 +600,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
           }
         } else {
-            myPoppedOffBlocks.forEach(block -> {
-                TransactionProcessorImpl.getInstance().processLater(block.getTransactions());
-            });
+          myPoppedOffBlocks.forEach(block -> {
+            TransactionProcessorImpl.getInstance().processLater(block.getTransactions());
+          });
         }
       } // synchronized
       DownloadCache.ResetCache(); //Reset and set cached vars to chaindata.
@@ -626,9 +637,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           if (block.getHeight() % 1440 == 0) {
             lastTrimHeight = Math.max(block.getHeight() - Constants.MAX_ROLLBACK, 0);
             if (lastTrimHeight > 0) {
-                derivedTables.forEach(table -> {
-                    table.trim(lastTrimHeight);
-                });
+              derivedTables.forEach(table -> {
+                table.trim(lastTrimHeight);
+              });
             }
           }
         }
@@ -768,8 +779,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       List<TransactionImpl> transactions = new ArrayList<>();
       MessageDigest digest = Crypto.sha256();
       transactions.forEach(transaction -> {
-          digest.update(transaction.getBytes());
-        });
+        digest.update(transaction.getBytes());
+      });
       ByteBuffer bf = ByteBuffer.allocate(0);
       bf.order(ByteOrder.LITTLE_ENDIAN);
       byte[] byteATs = bf.array();
@@ -851,7 +862,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           if (Burst.getBlockchain().getHeight() >= Constants.AUTOMATED_TRANSACTION_BLOCK) {
             if (!EconomicClustering.verifyFork(transaction)) {
               logger.debug("Block " + block.getStringId() + " height " + (previousLastBlock.getHeight() + 1) + " contains transaction that was generated on a fork: " + transaction.getStringId() + " ecBlockHeight " + transaction.getECBlockHeight() + " ecBlockId "
-                           + Convert.toUnsignedLong(transaction.getECBlockId()));
+                  + Convert.toUnsignedLong(transaction.getECBlockId()));
               throw new TransactionNotAcceptedException("Transaction belongs to a different fork", transaction);
             }
           }
@@ -891,8 +902,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         addBlock(block);
         accept(block, remainingAmount, remainingFee);
         derivedTables.forEach(table -> {
-            table.finish();
-          });
+          table.finish();
+        });
         Burst.getStores().commitTransaction();
       } catch (BlockNotAcceptedException | ArithmeticException e) {
         Burst.getStores().rollbackTransaction();
@@ -976,8 +987,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           block = popLastBlock();
         }
         derivedTables.forEach(table -> {
-            table.rollback(commonBlock.getHeight());
-          });
+          table.rollback(commonBlock.getHeight());
+        });
         Burst.getStores().commitTransaction();
       } catch (RuntimeException e) {
         Burst.getStores().rollbackTransaction();
@@ -998,8 +1009,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     BlockImpl previousBlock = blockDb.findBlock(block.getPreviousBlockId());
     blockchain.setLastBlock(block, previousBlock);
     block.getTransactions().forEach(transaction -> {
-        transaction.unsetBlock();
-      });
+      transaction.unsetBlock();
+    });
     blockDb.deleteBlocksFrom(block.getId());
     blockListeners.notify(block, Event.BLOCK_POPPED);
     return previousBlock;
@@ -1019,7 +1030,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         return hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0);
       }
     })) {
-      while(transactions.hasNext()) {
+      while (transactions.hasNext()) {
         orderedUnconfirmedTransactions.add(transactions.next());
       }
     }
@@ -1097,10 +1108,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         try {
           Burst.getStores().beginTransaction();
           transactionProcessor.requeueAllUnconfirmedTransactions();
-            //transactionProcessor.processTransactions(newTransactions, false);
-            blockTransactions.forEach(transaction -> {
-                transaction.applyUnconfirmed();
-            });
+          //transactionProcessor.processTransactions(newTransactions, false);
+          blockTransactions.forEach(transaction -> {
+            transaction.applyUnconfirmed();
+          });
           totalFeeNQT += Subscription.calculateFees(blockTimestamp);
         } finally {
           Burst.getStores().rollbackTransaction();
@@ -1130,8 +1141,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     MessageDigest digest = Crypto.sha256();
 
     blockTransactions.forEach(transaction -> {
-        digest.update(transaction.getBytes());
-      });
+      digest.update(transaction.getBytes());
+    });
 
     byte[] payloadHash = digest.digest();
 

@@ -129,19 +129,17 @@ public final class DownloadCacheImpl {
     }
     try {
       return (BlockImpl) blockCache.get(reverseCache.get(prevBlockId));
-    }
-    finally {
+    } finally {
     }
   }
 
   public void WaitForMapToBlockChain() {
-    synchronized(this) {
+    synchronized (this) {
       while (!reverseCache.containsKey(blockchain.getLastBlock().getId())) {
         try {
           printDebug();
           this.wait(2000);
-        }
-        catch (InterruptedException ignore) {
+        } catch (InterruptedException ignore) {
           logger.trace("Interrupted: ", ignore);
           Thread.currentThread().interrupt();
         }
@@ -165,8 +163,7 @@ public final class DownloadCacheImpl {
     BlockImpl block = null;
     if (blockCache.containsKey(oldBlockId)) {
       block = (BlockImpl) blockCache.get(oldBlockId);
-    }
-    else if (blockchain.hasBlock(oldBlockId)) {
+    } else if (blockchain.hasBlock(oldBlockId)) {
       block = blockchain.getBlock(oldBlockId);
     }
     if (block == null) {
@@ -223,6 +220,10 @@ public final class DownloadCacheImpl {
     return false;
   }
 
+  public int getPoCVersion(long blockId) {
+    return (GetBlock(blockId).getHeight() >= Constants.POC2_START_BLOCK) ? 2 : 1;
+  }
+
   public BlockImpl getLastBlock() {
     if (LastBlockId != null) {
       return (BlockImpl) blockCache.get(LastBlockId);
@@ -248,8 +249,7 @@ public final class DownloadCacheImpl {
       logger.debug("revCache First block Val:" + reverseCache.get(reverseCache.keySet().toArray()[0]));
       logger.debug("BlockCache size:" + blockCache.size());
       logger.debug("revCache size:" + reverseCache.size());
-    }
-    else {
+    } else {
       logger.debug("BlockCache size:" + blockCache.size());
       logger.debug("revCache size:" + reverseCache.size());
     }
@@ -260,8 +260,7 @@ public final class DownloadCacheImpl {
       LastBlockId = blockCache.get(blockCache.keySet().toArray()[blockCache.keySet().size() - 1]).getId();
       LastHeight = blockCache.get(LastBlockId).getHeight();
       HigestCumulativeDifficulty = blockCache.get(LastBlockId).getCumulativeDifficulty();
-    }
-    else {
+    } else {
       LastBlockId = blockchain.getLastBlock().getId();
       LastHeight = blockchain.getHeight();
       HigestCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();

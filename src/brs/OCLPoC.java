@@ -63,25 +63,22 @@ final class OCLPoC {
 
   private static final int DEFAULT_MEM_PERCENT = 50;
 
-  private static final int hashesPerEnqueue = Burst.getIntProperty("GPU.HashesPerEnqueue") == 0
-                                            ? 1000
-                                            : Burst.getIntProperty("GPU.HashesPerEnqueue");
-  private static final int memPercent = Burst.getIntProperty("GPU.MemPercent") == 0
-                                      ? DEFAULT_MEM_PERCENT
-                                      : Burst.getIntProperty("GPU.MemPercent");
+  private static final int hashesPerEnqueue = Burst.getIntProperty("GPU.HashesPerEnqueue") == 0 ? 1000 : Burst.getIntProperty("GPU.HashesPerEnqueue");
+  private static final int memPercent = Burst.getIntProperty("GPU.MemPercent") == 0 ? DEFAULT_MEM_PERCENT : Burst.getIntProperty("GPU.MemPercent");
 
   private static cl_context ctx;
   private static cl_command_queue queue;
   private static cl_program program;
   private static cl_kernel genKernel;
   private static cl_kernel getKernel;
+  private static cl_kernel getKernel2;
 
   private static long maxItems;
   private static long maxGroupItems;
 
   private static final Object oclLock = new Object();
 
-  private static final long bufferPerItem = (long)MiningPlot.PLOT_SIZE + 16;
+  private static final long bufferPerItem = (long) MiningPlot.PLOT_SIZE + 16;
   private static final long memPerItem = 8 // id
       + 8 // nonce
       + bufferPerItem // buffer
@@ -106,8 +103,7 @@ final class OCLPoC {
         platformIndex = ac.getPlatform();
         deviceIndex = ac.getDevice();
         logger.info("Choosing Platform " + platformIndex + " - DeviceId: " + deviceIndex);
-      }
-      else {
+      } else {
         platformIndex = Burst.getIntProperty("GPU.PlatformIdx");
         deviceIndex = Burst.getIntProperty("GPU.DeviceIdx");
       }
@@ -170,6 +166,7 @@ final class OCLPoC {
 
       genKernel = clCreateKernel(program, "generate_scoops", null);
       getKernel = clCreateKernel(program, "get_scoops", null);
+      getKernel2 = clCreateKernel(program, "get_scoops2", null);
 
       long[] genGroupSize = new long[1];
       long[] getGroupSize = new long[1];
@@ -205,7 +202,7 @@ final class OCLPoC {
     return maxItems;
   }
 
-  public static void validatePoC(Collection<BlockImpl> blocks) {
+  public static void validatePoC(Collection<BlockImpl> blocks, int PoCVersion) {
     try {
       // logger.debug("starting ocl verify for: " + blocks.size());
 
@@ -255,9 +252,9 @@ final class OCLPoC {
         try {
           idMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 8L * blocks.size(), Pointer.to(ids), null);
           nonceMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 8L * blocks.size(), Pointer.to(nonces), null);
-          bufferMem = clCreateBuffer(ctx, CL_MEM_READ_WRITE, (long)(MiningPlot.PLOT_SIZE + 16) * blocks.size(), null, null);
+          bufferMem = clCreateBuffer(ctx, CL_MEM_READ_WRITE, (long) (MiningPlot.PLOT_SIZE + 16) * blocks.size(), null, null);
           scoopNumMem = clCreateBuffer(ctx, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 4L * blocks.size(), Pointer.to(scoopNums), null);
-          scoopOutMem = clCreateBuffer(ctx, CL_MEM_READ_WRITE, (long)MiningPlot.SCOOP_SIZE * blocks.size(), null, null);
+          scoopOutMem = clCreateBuffer(ctx, CL_MEM_READ_WRITE, (long) MiningPlot.SCOOP_SIZE * blocks.size(), null, null);
 
           int[] totalSize = new int[] { blocks.size() };
 
@@ -280,12 +277,19 @@ final class OCLPoC {
             c += st[0];
           }
 
-          clSetKernelArg(getKernel, 0, Sizeof.cl_mem, Pointer.to(scoopNumMem));
-          clSetKernelArg(getKernel, 1, Sizeof.cl_mem, Pointer.to(bufferMem));
-          clSetKernelArg(getKernel, 2, Sizeof.cl_mem, Pointer.to(scoopOutMem));
-          clSetKernelArg(getKernel, 3, Sizeof.cl_int, Pointer.to(totalSize));
-
-          clEnqueueNDRangeKernel(queue, getKernel, 1, null, new long[] { jobSize }, new long[] { maxGroupItems }, 0, null, null);
+          if (PoCVersion == 2) {
+            clSetKernelArg(getKernel2, 0, Sizeof.cl_mem, Pointer.to(scoopNumMem));
+            clSetKernelArg(getKernel2, 1, Sizeof.cl_mem, Pointer.to(bufferMem));
+            clSetKernelArg(getKernel2, 2, Sizeof.cl_mem, Pointer.to(scoopOutMem));
+            clSetKernelArg(getKernel2, 3, Sizeof.cl_int, Pointer.to(totalSize));
+            clEnqueueNDRangeKernel(queue, getKernel2, 1, null, new long[] { jobSize }, new long[] { maxGroupItems }, 0, null, null);
+          } else {
+            clSetKernelArg(getKernel, 0, Sizeof.cl_mem, Pointer.to(scoopNumMem));
+            clSetKernelArg(getKernel, 1, Sizeof.cl_mem, Pointer.to(bufferMem));
+            clSetKernelArg(getKernel, 2, Sizeof.cl_mem, Pointer.to(scoopOutMem));
+            clSetKernelArg(getKernel, 3, Sizeof.cl_int, Pointer.to(totalSize));
+            clEnqueueNDRangeKernel(queue, getKernel, 1, null, new long[] { jobSize }, new long[] { maxGroupItems }, 0, null, null);
+          }
 
           clEnqueueReadBuffer(queue, scoopOutMem, true, 0, (long) MiningPlot.SCOOP_SIZE * blocks.size(), Pointer.to(scoopsOut), 0, null, null);
         } catch (Exception e) {
@@ -316,13 +320,13 @@ final class OCLPoC {
       byte[] scoop = new byte[MiningPlot.SCOOP_SIZE];
 
       blocks.forEach((block) -> {
-          try {
-              scoopsBuffer.get(scoop);
-              block.preVerify(scoop);
-          } catch (BlockchainProcessor.BlockNotAcceptedException e) {
-              throw new PreValidateFailException("Block failed to prevalidate", e, block);
-          }
-        }); 
+        try {
+          scoopsBuffer.get(scoop);
+          block.preVerify(scoop);
+        } catch (BlockchainProcessor.BlockNotAcceptedException e) {
+          throw new PreValidateFailException("Block failed to prevalidate", e, block);
+        }
+      });
       // logger.debug("finished rest: " + blocks.size());
     } catch (CLException e) {
       // intentionally leave out of unverified cache. It won't slow it that much on one failure and avoids infinite looping on repeat failed attempts.
@@ -441,7 +445,7 @@ final class OCLPoC {
         long[] clock = new long[1];
         clGetDeviceInfo(devices[dvi], CL_DEVICE_MAX_CLOCK_FREQUENCY, Sizeof.cl_long, Pointer.to(clock), null);
 
-        long maxItemsAtOnce = Math.min(calculateMaxItemsByMem(devices[dvi]), (long)getComputeUnits(devices[dvi]) * 256);
+        long maxItemsAtOnce = Math.min(calculateMaxItemsByMem(devices[dvi]), (long) getComputeUnits(devices[dvi]) * 256);
 
         long score = maxItemsAtOnce * clock[0];
 
