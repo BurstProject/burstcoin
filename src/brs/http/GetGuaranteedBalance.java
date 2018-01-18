@@ -2,7 +2,7 @@ package brs.http;
 
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.NUMBER_OF_CONFIRMATIONS_PARAMETER;
-import static brs.http.common.ResultFields.GUARANTEED_BALANCE_NQT;
+import static brs.http.common.ResultFields.GUARANTEED_BALANCE_NQT_RESPONSE;
 
 import brs.Account;
 import brs.BurstException;
@@ -29,9 +29,10 @@ public final class GetGuaranteedBalance extends APIServlet.APIRequestHandler {
 
     JSONObject response = new JSONObject();
     if (account == null) {
-      response.put(GUARANTEED_BALANCE_NQT, "0");
-    } else {
-      response.put(GUARANTEED_BALANCE_NQT, String.valueOf(account.getBalanceNQT()));
+      response.put(GUARANTEED_BALANCE_NQT_RESPONSE, "0");
+    }
+    else {
+      response.put(GUARANTEED_BALANCE_NQT_RESPONSE, String.valueOf(account.getBalanceNQT()));
     }
 
     return response;
