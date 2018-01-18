@@ -16,6 +16,8 @@ import static brs.http.common.ResultFields.PUBLIC_KEY_RESPONSE;
 
 public final class GetAccountId extends APIServlet.APIRequestHandler {
 
+  static final GetAccountId instance = new GetAccountId();
+
   public GetAccountId() {
     super(new APITag[] {APITag.ACCOUNTS}, SECRET_PHRASE_PARAMETER, PUBLIC_KEY_PARAMETER);
   }

@@ -37,9 +37,9 @@ public final class DGSListing extends CreateTransaction {
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    String name = Convert.emptyToNull(req.getParameter("name"));
-    String description = Convert.nullToEmpty(req.getParameter("description"));
-    String tags = Convert.nullToEmpty(req.getParameter("tags"));
+    String name = Convert.emptyToNull(req.getParameter(NAME_PARAMETER));
+    String description = Convert.nullToEmpty(req.getParameter(DESCRIPTION_PARAMETER));
+    String tags = Convert.nullToEmpty(req.getParameter(TAGS_PARAMETER));
     long priceNQT = ParameterParser.getPriceNQT(req);
     int quantity = ParameterParser.getGoodsQuantity(req);
 

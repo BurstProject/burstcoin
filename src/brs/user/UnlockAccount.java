@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static brs.Constants.*;
+import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 import static brs.user.JSONResponses.LOCK_ACCOUNT;
 
 public final class UnlockAccount extends UserServlet.UserRequestHandler {
@@ -41,7 +42,7 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req, User user) throws IOException {
-    String secretPhrase = req.getParameter("secretPhrase");
+    String secretPhrase = req.getParameter(SECRET_PHRASE_PARAMETER);
     // lock all other instances of this account being unlocked
     for (User u : Users.getAllUsers()) {
       if (secretPhrase.equals(u.getSecretPhrase())) {
