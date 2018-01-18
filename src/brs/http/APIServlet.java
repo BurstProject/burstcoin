@@ -13,8 +13,10 @@ import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.AssetService;
 import brs.services.AssetTransferService;
+import brs.services.EscrowService;
 import brs.services.OrderService;
 import brs.services.ParameterService;
+import brs.services.TradeService;
 import brs.util.JSON;
 import brs.util.Subnet;
 import java.io.IOException;
@@ -41,7 +43,8 @@ public final class APIServlet extends HttpServlet {
   private static final Logger logger = LoggerFactory.getLogger(APIServlet.class);
 
   public static void injectServices(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
-      AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService) {
+      AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
+      TradeService tradeService, EscrowService escrowService) {
     final Map<String, APIRequestHandler> map = new HashMap<>();
 
     map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService));
@@ -59,14 +62,14 @@ public final class APIServlet extends HttpServlet {
     map.put("dgsPurchase", new DGSPurchase(parameterService, transactionProcessor, blockchain, accountService));
     map.put("dgsQuantityChange", new DGSQuantityChange(parameterService, transactionProcessor, blockchain, accountService));
     map.put("dgsRefund", new DGSRefund(parameterService, transactionProcessor, blockchain, accountService));
-    map.put("decodeHallmark", DecodeHallmark.instance);
-    map.put("decodeToken", DecodeToken.instance);
+    map.put("decodeHallmark", new DecodeHallmark());
+    map.put("decodeToken", new DecodeToken());
     map.put("encryptTo", new EncryptTo(parameterService));
     map.put("generateToken", GenerateToken.instance);
-    map.put("getAccount", new GetAccount(parameterService));
+    map.put("getAccount", new GetAccount(parameterService, accountService));
     map.put("getAccountBlockIds", new GetAccountBlockIds(parameterService, blockchain));
     map.put("getAccountBlocks", new GetAccountBlocks(blockchain, parameterService));
-    map.put("getAccountId", GetAccountId.instance);
+    map.put("getAccountId", new GetAccountId());
     map.put("getAccountPublicKey", new GetAccountPublicKey(parameterService));
     map.put("getAccountTransactionIds", new GetAccountTransactionIds(parameterService, blockchain));
     map.put("getAccountTransactions", new GetAccountTransactions(parameterService, blockchain));
@@ -100,9 +103,9 @@ public final class APIServlet extends HttpServlet {
     map.put("getPeers", GetPeers.instance);
     //map.put("getPoll", GetPoll.instance);
     //map.put("getPollIds", GetPollIds.instance);
-    map.put("getState", new GetState(blockchain));
+    map.put("getState", new GetState(blockchain, tradeService, accountService, escrowService));
     map.put("getTime", GetTime.instance);
-    map.put("getTrades", new GetTrades(parameterService, assetService));
+    map.put("getTrades", new GetTrades(parameterService, assetService, tradeService));
     map.put("getAllTrades", GetAllTrades.instance);
     map.put("getAssetTransfers", new GetAssetTransfers(parameterService, accountService, assetService, assetTransferService));
     map.put("getTransaction", new GetTransaction(transactionProcessor, blockchain));
@@ -133,7 +136,7 @@ public final class APIServlet extends HttpServlet {
     map.put("sendMessage", new SendMessage(parameterService, transactionProcessor, blockchain, accountService));
     map.put("sendMoney", new SendMoney(parameterService, transactionProcessor, blockchain, accountService));
     map.put("setAccountInfo", new SetAccountInfo(parameterService, transactionProcessor, blockchain, accountService));
-    map.put("setAlias", new SetAlias(parameterService, transactionProcessor, blockchain, accountService));
+    map.put("setAlias", new SetAlias(parameterService, transactionProcessor, blockchain, accountService, aliasService));
     map.put("signTransaction", new SignTransaction(parameterService));
     //map.put("startForging", StartForging.instance);
     //map.put("stopForging", StopForging.instance);

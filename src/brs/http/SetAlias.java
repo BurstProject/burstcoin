@@ -3,6 +3,7 @@ package brs.http;
 
 import brs.*;
 import brs.services.AccountService;
+import brs.services.AliasService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
@@ -20,11 +21,13 @@ public final class SetAlias extends CreateTransaction {
 
   private final ParameterService parameterService;
   private final Blockchain blockchain;
+  private final AliasService aliasService;
 
-  public SetAlias(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
+  public SetAlias(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, AliasService aliasService) {
     super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, ALIAS_NAME_PARAMETER, ALIAS_URI_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
+    this.aliasService = aliasService;
   }
 
   @Override
@@ -37,7 +40,7 @@ public final class SetAlias extends CreateTransaction {
     }
 
     aliasName = aliasName.trim();
-    if (aliasName.length() == 0 || aliasName.length() > Constants.MAX_ALIAS_LENGTH) {
+    if (aliasName.isEmpty() || aliasName.length() > Constants.MAX_ALIAS_LENGTH) {
       return INCORRECT_ALIAS_LENGTH;
     }
 
@@ -55,7 +58,7 @@ public final class SetAlias extends CreateTransaction {
 
     Account account = parameterService.getSenderAccount(req);
 
-    Alias alias = Alias.getAlias(normalizedAlias);
+    Alias alias = aliasService.getAlias(normalizedAlias);
     if (alias != null && alias.getAccountId() != account.getId()) {
       JSONObject response = new JSONObject();
       response.put(ERROR_CODE_RESPONSE, 8);

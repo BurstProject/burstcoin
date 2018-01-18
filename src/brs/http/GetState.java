@@ -6,6 +6,9 @@ import brs.*;
 import brs.db.BurstIterator;
 import brs.peer.Peer;
 import brs.peer.Peers;
+import brs.services.AccountService;
+import brs.services.EscrowService;
+import brs.services.TradeService;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -14,10 +17,16 @@ import javax.servlet.http.HttpServletRequest;
 public final class GetState extends APIServlet.APIRequestHandler {
 
   private final Blockchain blockchain;
+  private final TradeService tradeService;
+  private final AccountService accountService;
+  private final EscrowService escrowService;
 
-  GetState(Blockchain blockchain) {
+  GetState(Blockchain blockchain, TradeService tradeService, AccountService accountService, EscrowService escrowService) {
     super(new APITag[] {APITag.INFO}, INCLUDE_COUNTS_PARAMETER);
     this.blockchain = blockchain;
+    this.tradeService = tradeService;
+    this.accountService = accountService;
+    this.escrowService = escrowService;
   }
 
   @Override
@@ -33,7 +42,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
 
 
     long totalEffectiveBalance = 0;
-    try (BurstIterator<Account> accounts = Account.getAllAccounts(0, -1)) {
+    try (BurstIterator<Account> accounts = accountService.getAllAccounts(0, -1)) {
       while(accounts.hasNext()) {
         long effectiveBalanceNXT = accounts.next().getBalanceNQT();
         if (effectiveBalanceNXT > 0) {
@@ -41,7 +50,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
         }
       }
     }
-    try(BurstIterator<Escrow> escrows = Escrow.getAllEscrowTransactions()) {
+    try(BurstIterator<Escrow> escrows = escrowService.getAllEscrowTransactions()) {
       while(escrows.hasNext()) {
         totalEffectiveBalance += escrows.next().getAmountNQT();
       }
@@ -50,8 +59,8 @@ public final class GetState extends APIServlet.APIRequestHandler {
 
 
     if (!"false".equalsIgnoreCase(req.getParameter("includeCounts"))) {
-      response.put("numberOfBlocks", Burst.getBlockchain().getHeight() + 1);
-      response.put("numberOfTransactions", Burst.getBlockchain().getTransactionCount());
+      response.put("numberOfBlocks", blockchain.getHeight() + 1);
+      response.put("numberOfTransactions", blockchain.getTransactionCount());
       response.put("numberOfAccounts", Account.getCount());
       response.put("numberOfAssets", Asset.getCount());
       int askCount = Order.Ask.getCount();
@@ -59,7 +68,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
       response.put("numberOfOrders", askCount + bidCount);
       response.put("numberOfAskOrders", askCount);
       response.put("numberOfBidOrders", bidCount);
-      response.put("numberOfTrades", Trade.getCount());
+      response.put("numberOfTrades", tradeService.getCount());
       response.put("numberOfTransfers", AssetTransfer.getCount());
       response.put("numberOfAliases", Alias.getCount());
       //response.put("numberOfPolls", Poll.getCount());

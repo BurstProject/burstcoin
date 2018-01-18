@@ -1,6 +1,7 @@
 package brs.services.impl;
 
 import brs.Account;
+import brs.Account.AccountAsset;
 import brs.Account.RewardRecipientAssignment;
 import brs.AssetTransfer;
 import brs.crypto.Crypto;
@@ -60,8 +61,18 @@ public class AccountServiceImpl implements AccountService {
   }
 
   @Override
+  public BurstIterator<AccountAsset> getAssets(long accountId, int from, int to) {
+    return accountStore.getAssets(from, to, accountId);
+  }
+
+  @Override
   public BurstIterator<RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId) {
     return accountStore.getAccountsWithRewardRecipient(recipientId);
+  }
+
+  @Override
+  public BurstIterator<Account> getAllAccounts(int from, int to) {
+    return accountTable.getAll(from, to);
   }
 
   public static long getId(byte[] publicKey) {

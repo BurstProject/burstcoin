@@ -1,10 +1,31 @@
 package brs.http;
 
-import static brs.http.common.ResultFields.BALANCE_NQT;
-import static brs.http.common.ResultFields.EFFECTIVE_BALANCE_NQT;
-import static brs.http.common.ResultFields.FORGED_BALANCE_NQT;
-import static brs.http.common.ResultFields.GUARANTEED_BALANCE_NQT;
-import static brs.http.common.ResultFields.UNCONFIRMED_BALANCE_NQT;
+import static brs.http.common.ResultFields.BALANCE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.BASE_TARGET_RESPONSE;
+import static brs.http.common.ResultFields.BLOCK_RESPONSE;
+import static brs.http.common.ResultFields.BLOCK_REWARD_RESPONSE;
+import static brs.http.common.ResultFields.BLOCK_SIGNATURE_RESPONSE;
+import static brs.http.common.ResultFields.EFFECTIVE_BALANCE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.FORGED_BALANCE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.GENERATION_SIGNATURE_RESPONSE;
+import static brs.http.common.ResultFields.GENERATOR_PUBLIC_KEY_RESPONSE;
+import static brs.http.common.ResultFields.GENERATOR_RESPONSE;
+import static brs.http.common.ResultFields.GUARANTEED_BALANCE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.HEIGHT_RESPONSE;
+import static brs.http.common.ResultFields.NEXT_BLOCK_RESPONSE;
+import static brs.http.common.ResultFields.NONCE_RESPONSE;
+import static brs.http.common.ResultFields.NUMBER_OF_TRANSACTIONS_RESPONSE;
+import static brs.http.common.ResultFields.PAYLOAD_HASH_RESPONSE;
+import static brs.http.common.ResultFields.PAYLOAD_LENGTH_RESPONSE;
+import static brs.http.common.ResultFields.PREVIOUS_BLOCK_HASH_RESPONSE;
+import static brs.http.common.ResultFields.PREVIOUS_BLOCK_RESPONSE;
+import static brs.http.common.ResultFields.SCOOP_NUM_RESPONSE;
+import static brs.http.common.ResultFields.TIMESTAMP_RESPONSE;
+import static brs.http.common.ResultFields.TOTAL_AMOUNT_NQT_RESPONSE;
+import static brs.http.common.ResultFields.TOTAL_FEE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.TRANSACTIONS_RESPONSE;
+import static brs.http.common.ResultFields.UNCONFIRMED_BALANCE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.VERSION_RESPONSE;
 
 import brs.*;
 import brs.at.AT_API_Helper;
@@ -42,18 +63,18 @@ public final class JSONData {
   static JSONObject accountBalance(Account account) {
     JSONObject json = new JSONObject();
     if (account == null) {
-      json.put(BALANCE_NQT, "0");
-      json.put(UNCONFIRMED_BALANCE_NQT, "0");
-      json.put(EFFECTIVE_BALANCE_NQT,   "0");
-      json.put(FORGED_BALANCE_NQT,     "0");
-      json.put(GUARANTEED_BALANCE_NQT, "0");
+      json.put(BALANCE_NQT_RESPONSE,             "0");
+      json.put(UNCONFIRMED_BALANCE_NQT_RESPONSE, "0");
+      json.put(EFFECTIVE_BALANCE_NQT_RESPONSE,   "0");
+      json.put(FORGED_BALANCE_NQT_RESPONSE,      "0");
+      json.put(GUARANTEED_BALANCE_NQT_RESPONSE,  "0");
     }
     else {
-      json.put(BALANCE_NQT, String.valueOf(account.getBalanceNQT()));
-      json.put(UNCONFIRMED_BALANCE_NQT, String.valueOf(account.getUnconfirmedBalanceNQT()));
-      json.put(EFFECTIVE_BALANCE_NQT, String.valueOf(account.getBalanceNQT()));
-      json.put(FORGED_BALANCE_NQT, String.valueOf(account.getForgedBalanceNQT()));
-      json.put(GUARANTEED_BALANCE_NQT, String.valueOf(account.getBalanceNQT()));
+      json.put(BALANCE_NQT_RESPONSE, String.valueOf(account.getBalanceNQT()));
+      json.put(UNCONFIRMED_BALANCE_NQT_RESPONSE, String.valueOf(account.getUnconfirmedBalanceNQT()));
+      json.put(EFFECTIVE_BALANCE_NQT_RESPONSE, String.valueOf(account.getBalanceNQT()));
+      json.put(FORGED_BALANCE_NQT_RESPONSE, String.valueOf(account.getForgedBalanceNQT()));
+      json.put(GUARANTEED_BALANCE_NQT_RESPONSE, String.valueOf(account.getBalanceNQT()));
     }
     return json;
   }
@@ -106,37 +127,43 @@ public final class JSONData {
 
   static JSONObject block(Block block, boolean includeTransactions) {
     JSONObject json = new JSONObject();
-    json.put("block", block.getStringId());
-    json.put("height", block.getHeight());
-    putAccount(json, "generator", block.getGeneratorId());
-    json.put("generatorPublicKey", Convert.toHexString(block.getGeneratorPublicKey()));
-    json.put("nonce", Convert.toUnsignedLong(block.getNonce()));
-    json.put("scoopNum", block.getScoopNum());
-    json.put("timestamp", block.getTimestamp());
-    json.put("numberOfTransactions", block.getTransactions().size());
-    json.put("totalAmountNQT", String.valueOf(block.getTotalAmountNQT()));
-    json.put("totalFeeNQT", String.valueOf(block.getTotalFeeNQT()));
-    json.put("blockReward", Convert.toUnsignedLong(block.getBlockReward() / Constants.ONE_BURST));
-    json.put("payloadLength", block.getPayloadLength());
-    json.put("version", block.getVersion());
-    json.put("baseTarget", Convert.toUnsignedLong(block.getBaseTarget()));
+    json.put(BLOCK_RESPONSE, block.getStringId());
+    json.put(HEIGHT_RESPONSE, block.getHeight());
+    putAccount(json, GENERATOR_RESPONSE, block.getGeneratorId());
+    json.put(GENERATOR_PUBLIC_KEY_RESPONSE, Convert.toHexString(block.getGeneratorPublicKey()));
+    json.put(NONCE_RESPONSE, Convert.toUnsignedLong(block.getNonce()));
+    json.put(SCOOP_NUM_RESPONSE, block.getScoopNum());
+    json.put(TIMESTAMP_RESPONSE, block.getTimestamp());
+    json.put(NUMBER_OF_TRANSACTIONS_RESPONSE, block.getTransactions().size());
+    json.put(TOTAL_AMOUNT_NQT_RESPONSE, String.valueOf(block.getTotalAmountNQT()));
+    json.put(TOTAL_FEE_NQT_RESPONSE, String.valueOf(block.getTotalFeeNQT()));
+    json.put(BLOCK_REWARD_RESPONSE, Convert.toUnsignedLong(block.getBlockReward() / Constants.ONE_BURST));
+    json.put(PAYLOAD_LENGTH_RESPONSE, block.getPayloadLength());
+    json.put(VERSION_RESPONSE, block.getVersion());
+    json.put(BASE_TARGET_RESPONSE, Convert.toUnsignedLong(block.getBaseTarget()));
+
     if (block.getPreviousBlockId() != 0) {
-      json.put("previousBlock", Convert.toUnsignedLong(block.getPreviousBlockId()));
+      json.put(PREVIOUS_BLOCK_RESPONSE, Convert.toUnsignedLong(block.getPreviousBlockId()));
     }
+
     if (block.getNextBlockId() != 0) {
-      json.put("nextBlock", Convert.toUnsignedLong(block.getNextBlockId()));
+      json.put(NEXT_BLOCK_RESPONSE, Convert.toUnsignedLong(block.getNextBlockId()));
     }
-    json.put("payloadHash", Convert.toHexString(block.getPayloadHash()));
-    json.put("generationSignature", Convert.toHexString(block.getGenerationSignature()));
+
+    json.put(PAYLOAD_HASH_RESPONSE, Convert.toHexString(block.getPayloadHash()));
+    json.put(GENERATION_SIGNATURE_RESPONSE, Convert.toHexString(block.getGenerationSignature()));
+
     if (block.getVersion() > 1) {
-      json.put("previousBlockHash", Convert.toHexString(block.getPreviousBlockHash()));
+      json.put(PREVIOUS_BLOCK_HASH_RESPONSE, Convert.toHexString(block.getPreviousBlockHash()));
     }
-    json.put("blockSignature", Convert.toHexString(block.getBlockSignature()));
+
+    json.put(BLOCK_SIGNATURE_RESPONSE, Convert.toHexString(block.getBlockSignature()));
+
     JSONArray transactions = new JSONArray();
     for (Transaction transaction : block.getTransactions()) {
       transactions.add(includeTransactions ? transaction(transaction) : Convert.toUnsignedLong(transaction.getId()));
     }
-    json.put("transactions", transactions);
+    json.put(TRANSACTIONS_RESPONSE, transactions);
     return json;
   }
 

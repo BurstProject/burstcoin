@@ -141,11 +141,6 @@ public class Escrow {
   /** WATCH: Thread-Safety?! */
   private static final List<TransactionImpl> resultTransactions = Burst.getStores().getEscrowStore().getResultTransactions();
 
-  public static BurstIterator<Escrow> getAllEscrowTransactions() {
-    return escrowTable.getAll(0, -1);
-  }
-
-
   public static Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId) {
     return Burst.getStores().getEscrowStore().getEscrowTransactionsByParticipent(accountId);
   }
