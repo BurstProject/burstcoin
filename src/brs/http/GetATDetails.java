@@ -5,11 +5,13 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static brs.http.common.Parameters.AT_PARAMETER;
+
 public class GetATDetails extends APIServlet.APIRequestHandler {
   static final GetATDetails instance = new GetATDetails();
 
   private GetATDetails() {
-    super(new APITag[] {APITag.AT}, "at");
+    super(new APITag[] {APITag.AT}, AT_PARAMETER);
   }
 
   @Override
