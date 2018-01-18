@@ -420,19 +420,6 @@ public final class DigitalGoodsStore {
     return Goods.goodsTable().get(Goods.goodsDbKeyFactory().newKey(goodsId));
   }
 
-  public static BurstIterator<Goods> getAllGoods(int from, int to) {
-    return Goods.goodsTable().getAll(from, to);
-  }
-
-  public static BurstIterator<Goods> getGoodsInStock(int from, int to) {
-    return Burst.getStores().getDigitalGoodsStoreStore().getGoodsInStock(from, to);
-
-  }
-
-  public static BurstIterator<Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
-    return Burst.getStores().getDigitalGoodsStoreStore().getSellerGoods(sellerId, inStockOnly, from, to);
-  }
-
   public static BurstIterator<Purchase> getAllPurchases(int from, int to) {
     return Purchase.purchaseTable.getAll(from, to);
   }

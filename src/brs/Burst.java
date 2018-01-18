@@ -6,6 +6,7 @@ import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.AssetService;
 import brs.services.AssetTransferService;
+import brs.services.DGSGoodsStoreService;
 import brs.services.EscrowService;
 import brs.services.OrderService;
 import brs.services.ParameterService;
@@ -15,6 +16,7 @@ import brs.services.impl.AccountServiceImpl;
 import brs.services.impl.AliasServiceImpl;
 import brs.services.impl.AssetServiceImpl;
 import brs.services.impl.AssetTransferServiceImpl;
+import brs.services.impl.DGSGoodsStoreServiceImpl;
 import brs.services.impl.EscrowServiceImpl;
 import brs.services.impl.OrderServiceImpl;
 import brs.services.impl.ParameterServiceImpl;
@@ -227,6 +229,7 @@ public final class Burst {
   public static void init() {
     Init.init();
 
+    final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(Burst.getStores().getDigitalGoodsStoreStore());
     final EscrowService escrowService = new EscrowServiceImpl(Burst.getStores().getEscrowStore());
     final TradeService tradeService = new TradeServiceImpl(Burst.getStores().getTradeStore());
     final AssetAccountService assetAccountService = new AssetAccountServiceImpl(stores.getAccountStore());
@@ -239,7 +242,7 @@ public final class Burst {
     final OrderService orderService = new OrderServiceImpl(stores.getOrderStore());
 
     APIServlet.injectServices(getTransactionProcessor(), getBlockchain(), getBlockchainProcessor(), parameterService, accountService,
-        aliasService, orderService, assetService, assetTransferService, tradeService, escrowService);
+        aliasService, orderService, assetService, assetTransferService, tradeService, escrowService, digitalGoodsStoreService);
   }
 
   public static void shutdown() {
