@@ -2,6 +2,7 @@ package brs.http;
 
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+import static brs.http.common.ResultFields.OPEN_ORDERS_RESPONSE;
 
 import brs.Order;
 import brs.db.BurstIterator;
@@ -36,7 +37,7 @@ public final class GetAllOpenAskOrders extends APIServlet.APIRequestHandler {
       }
     }
 
-    response.put("openOrders", ordersData);
+    response.put(OPEN_ORDERS_RESPONSE, ordersData);
     return response;
   }
 

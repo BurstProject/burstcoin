@@ -54,5 +54,20 @@ public class ResultFields {
   public static final String PREVIOUS_BLOCK_HASH_RESPONSE = "previousBlockHash";
   public static final String BLOCK_SIGNATURE_RESPONSE = "blockSignature";
   public static final String TRANSACTIONS_RESPONSE = "transactions";
+  public static final String ASSETS_RESPONSE = "assets";
+  public static final String OPEN_ORDERS_RESPONSE = "openOrders";
+  public static final String TYPE_RESPONSE = "type";
+  public static final String ORDER_RESPONSE = "order";
+  public static final String QUANTITY_NQT_RESPONSE = "quantityNQT";
+  public static final String PRICE_NQT_RESPONSE = "priceNQT";
+  public static final String DECIMALS_RESPONSE = "decimals";
+  public static final String NUMBER_OF_TRADES_RESPONSE = "numberOfTrades";
+  public static final String NUMBER_OF_TRANSFERS_RESPONSE = "numberOfTransfers";
+  public static final String NUMBER_OF_ACCOUNTS_RESPONSE = "numberOfAccounts";
+  public static final String GOODS_RESPONSE = "good";
+  public static final String QUANTITY_RESPONSE = "quantity";
+  public static final String SELLER_RESPONSE = "seller";
+  public static final String TAGS_RESPONSE = "tags";
+  public static final String DELISTED_RESPONSE = "delisted";
 
 }
