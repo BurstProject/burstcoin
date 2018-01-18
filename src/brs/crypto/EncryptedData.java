@@ -10,7 +10,7 @@ import java.security.SecureRandom;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-public final class EncryptedData {
+public class EncryptedData {
 
   private static final ThreadLocal<SecureRandom> secureRandom = new ThreadLocal<SecureRandom>() {
       @Override

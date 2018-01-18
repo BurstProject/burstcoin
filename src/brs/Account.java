@@ -2,7 +2,6 @@ package brs;
 
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.VersionedEntityTable;
@@ -176,10 +175,6 @@ public class Account {
     return assetListeners.removeListener(listener, eventType);
   }
 
-  public static BurstIterator<Account> getAllAccounts(int from, int to) {
-    return accountTable().getAll(from, to);
-  }
-
   public static int getCount() {
     return accountTable().getCount();
   }
@@ -316,19 +311,6 @@ public class Account {
     return forgedBalanceNQT;
   }
 
-  public BurstIterator<AccountAsset> getAssets(int from, int to) {
-    return Burst.getStores().getAccountStore().getAssets(from, to, this.id);
-  }
-
-  public BurstIterator<Trade> getTrades(int from, int to) {
-    return Trade.getAccountTrades(this.id, from, to);
-  }
-
-  public long getAssetBalanceQNT(long assetId) {
-    BurstKey newKey = Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);
-    AccountAsset accountAsset = accountAssetTable().get(newKey);
-    return accountAsset == null ? 0 : accountAsset.quantityQNT;
-  }
 
   public long getUnconfirmedAssetBalanceQNT(long assetId) {
     BurstKey newKey = Burst.getStores().getAccountStore().getAccountAssetKeyFactory().newKey(this.id, assetId);

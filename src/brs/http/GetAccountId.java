@@ -9,15 +9,16 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.MISSING_SECRET_PHRASE_OR_PUBLIC_KEY;
-import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.PUBLIC_KEY_PARAMETER;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
+import static brs.http.common.ResultFields.ACCOUNT_RESPONSE;
+import static brs.http.common.ResultFields.PUBLIC_KEY_RESPONSE;
 
 public final class GetAccountId extends APIServlet.APIRequestHandler {
 
   static final GetAccountId instance = new GetAccountId();
 
-  private GetAccountId() {
+  public GetAccountId() {
     super(new APITag[] {APITag.ACCOUNTS}, SECRET_PHRASE_PARAMETER, PUBLIC_KEY_PARAMETER);
   }
 
@@ -38,8 +39,8 @@ public final class GetAccountId extends APIServlet.APIRequestHandler {
     }
 
     JSONObject response = new JSONObject();
-    JSONData.putAccount(response, "account", accountId);
-    response.put("publicKey", publicKeyString);
+    JSONData.putAccount(response, ACCOUNT_RESPONSE, accountId);
+    response.put(PUBLIC_KEY_RESPONSE, publicKeyString);
 
     return response;
   }
