@@ -11,6 +11,7 @@ import brs.BurstException;
 import brs.db.BurstIterator;
 import brs.db.sql.DbUtils;
 import brs.http.common.Parameters;
+import brs.services.DGSGoodsStoreService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -19,8 +20,11 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetDGSGoods extends APIServlet.APIRequestHandler {
 
-  public GetDGSGoods() {
+  private final DGSGoodsStoreService digitalGoodsStoreService;
+
+  public GetDGSGoods(DGSGoodsStoreService digitalGoodsStoreService) {
     super(new APITag[] {APITag.DGS}, SELLER_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER, IN_STOCK_ONLY_PARAMETER);
+    this.digitalGoodsStoreService = digitalGoodsStoreService;
   }
 
   @Override
@@ -38,12 +42,12 @@ public final class GetDGSGoods extends APIServlet.APIRequestHandler {
     try {
       if (sellerId == 0) {
         if (inStockOnly) {
-          goods = DigitalGoodsStore.getGoodsInStock(firstIndex, lastIndex);
+          goods = digitalGoodsStoreService.getGoodsInStock(firstIndex, lastIndex);
         } else {
-          goods = DigitalGoodsStore.getAllGoods(firstIndex, lastIndex);
+          goods = digitalGoodsStoreService.getAllGoods(firstIndex, lastIndex);
         }
       } else {
-        goods = DigitalGoodsStore.getSellerGoods(sellerId, inStockOnly, firstIndex, lastIndex);
+        goods = digitalGoodsStoreService.getSellerGoods(sellerId, inStockOnly, firstIndex, lastIndex);
       }
       while (goods.hasNext()) {
         DigitalGoodsStore.Goods good = goods.next();

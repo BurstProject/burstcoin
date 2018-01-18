@@ -13,6 +13,7 @@ import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.AssetService;
 import brs.services.AssetTransferService;
+import brs.services.DGSGoodsStoreService;
 import brs.services.EscrowService;
 import brs.services.OrderService;
 import brs.services.ParameterService;
@@ -44,7 +45,7 @@ public final class APIServlet extends HttpServlet {
 
   public static void injectServices(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
       AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
-      TradeService tradeService, EscrowService escrowService) {
+      TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService) {
     final Map<String, APIRequestHandler> map = new HashMap<>();
 
     map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService));
@@ -90,7 +91,7 @@ public final class APIServlet extends HttpServlet {
     map.put("getBlocks", new GetBlocks(blockchain));
     map.put("getBlockchainStatus", new GetBlockchainStatus(blockchainProcessor, blockchain));
     map.put("getConstants", GetConstants.instance);
-    map.put("getDGSGoods", GetDGSGoods.instance);
+    map.put("getDGSGoods", new GetDGSGoods(digitalGoodsStoreService));
     map.put("getDGSGood", new GetDGSGood(parameterService));
     map.put("getDGSPurchases", GetDGSPurchases.instance);
     map.put("getDGSPurchase", GetDGSPurchase.instance);
