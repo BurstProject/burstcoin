@@ -50,7 +50,7 @@ public final class DGSDelivery extends CreateTransaction {
       return ALREADY_DELIVERED;
     }
 
-    String discountValueNQT = Convert.emptyToNull(req.getParameter("discountNQT"));
+    String discountValueNQT = Convert.emptyToNull(req.getParameter(DISCOUNT_NQT_PARAMETER));
     long discountNQT = 0;
     try {
       if (discountValueNQT != null) {

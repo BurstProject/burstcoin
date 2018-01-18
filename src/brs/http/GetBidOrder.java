@@ -7,13 +7,14 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.UNKNOWN_ORDER;
+import static brs.http.common.Parameters.ORDER_PARAMETER;
 
 public final class GetBidOrder extends APIServlet.APIRequestHandler {
 
   static final GetBidOrder instance = new GetBidOrder();
 
   private GetBidOrder() {
-    super(new APITag[] {APITag.AE}, "order");
+    super(new APITag[] {APITag.AE}, ORDER_PARAMETER);
   }
 
   @Override

@@ -8,17 +8,19 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigInteger;
 
+import static brs.http.common.Parameters.ID_PARAMETER;
+
 public final class LongConvert extends APIServlet.APIRequestHandler {
 
   static final LongConvert instance = new LongConvert();
 
   private LongConvert() {
-    super(new APITag[] {APITag.UTILS}, "id");
+    super(new APITag[] {APITag.UTILS}, ID_PARAMETER);
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) {
-    String id = Convert.emptyToNull(req.getParameter("id"));
+    String id = Convert.emptyToNull(req.getParameter(ID_PARAMETER));
     if (id == null) {
       return JSON.emptyJSON;
     }
