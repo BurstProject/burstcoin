@@ -86,7 +86,7 @@ public abstract class Order {
     return priceNQT;
   }
 
-  public final long getQuantityQNT() {
+  public long getQuantityQNT() {
     return quantityQNT;
   }
 

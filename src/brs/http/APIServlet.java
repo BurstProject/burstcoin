@@ -78,10 +78,10 @@ public final class APIServlet extends HttpServlet {
     map.put("buyAlias", new BuyAlias(parameterService, transactionProcessor, blockchain, aliasService, accountService));
     map.put("getAlias", new GetAlias(parameterService));
     map.put("getAliases", new GetAliases(parameterService));
-    map.put("getAllAssets", GetAllAssets.instance);
+    map.put("getAllAssets", new GetAllAssets(assetService));
     map.put("getAsset", new GetAsset(parameterService));
     map.put("getAssets", GetAssets.instance);
-    map.put("getAssetIds", GetAssetIds.instance);
+    map.put("getAssetIds", new GetAssetIds(assetService));
     map.put("getAssetsByIssuer", new GetAssetsByIssuer(parameterService));
     map.put("getAssetAccounts", new GetAssetAccounts(parameterService, assetService));
     map.put("getBalance", new GetBalance(parameterService));

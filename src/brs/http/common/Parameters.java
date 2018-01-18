@@ -98,6 +98,7 @@ public class Parameters {
   public static final String AMOUNT_BURST_PARAMETER = "amountNXT";
   public static final String FEE_BURST_PARAMETER = "feeNXT";
   public static final String HALLMARK_PARAMETER = "hallmark";
+  public static final String IN_STOCK_ONLY_PARAMETER = "inStockOnly";
 
   public static boolean isFalse(String text) {
     return "false".equalsIgnoreCase(text);

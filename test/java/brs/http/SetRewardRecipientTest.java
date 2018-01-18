@@ -36,7 +36,6 @@ public class SetRewardRecipientTest extends AbstractTransactionTest {
   private ParameterService parameterServiceMock = mock(ParameterService.class);
   private Blockchain blockchainMock = mock(Blockchain.class);
   private AccountService accountServiceMock = mock(AccountService.class);
-  private TransactionService transactionServiceMock = mock(TransactionService.class);
   private TransactionProcessor transactionProcessorMock = mock(TransactionProcessor.class);
   private AliasService aliasServiceMock = mock(AliasService.class);
 

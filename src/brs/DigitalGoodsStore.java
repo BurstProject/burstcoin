@@ -66,12 +66,15 @@ public final class DigitalGoodsStore {
     Purchase.init();
   }
 
-  public static   class Goods {
+  public static class Goods {
 
-    private static final BurstKey.LongKeyFactory<Goods> goodsDbKeyFactory = Burst.getStores().getDigitalGoodsStoreStore().getGoodsDbKeyFactory();
+    private static final BurstKey.LongKeyFactory<Goods> goodsDbKeyFactory() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getGoodsDbKeyFactory();
+    }
 
-
-    private static final VersionedEntityTable<Goods> goodsTable = Burst.getStores().getDigitalGoodsStoreStore().getGoodsTable();
+    private static final VersionedEntityTable<Goods> goodsTable() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getGoodsTable();
+    }
 
     static void init() {}
 
@@ -103,7 +106,7 @@ public final class DigitalGoodsStore {
 
     private Goods(Transaction transaction, Attachment.DigitalGoodsListing attachment) {
       this.id = transaction.getId();
-      this.dbKey = goodsDbKeyFactory.newKey(this.id);
+      this.dbKey = goodsDbKeyFactory().newKey(this.id);
       this.sellerId = transaction.getSenderId();
       this.name = attachment.getName();
       this.description = attachment.getDescription();
@@ -151,7 +154,7 @@ public final class DigitalGoodsStore {
       } else if (quantity > Constants.MAX_DGS_LISTING_QUANTITY) {
         quantity = Constants.MAX_DGS_LISTING_QUANTITY;
       }
-      goodsTable.insert(this);
+      goodsTable().insert(this);
     }
 
     public long getPriceNQT() {
@@ -160,7 +163,7 @@ public final class DigitalGoodsStore {
 
     private void changePrice(long priceNQT) {
       this.priceNQT = priceNQT;
-      goodsTable.insert(this);
+      goodsTable().insert(this);
     }
 
     public boolean isDelisted() {
@@ -169,7 +172,7 @@ public final class DigitalGoodsStore {
 
     private void setDelisted(boolean delisted) {
       this.delisted = delisted;
-      goodsTable.insert(this);
+      goodsTable().insert(this);
     }
 
     /*
@@ -414,11 +417,11 @@ public final class DigitalGoodsStore {
   }
 
   public static Goods getGoods(long goodsId) {
-    return Goods.goodsTable.get(Goods.goodsDbKeyFactory.newKey(goodsId));
+    return Goods.goodsTable().get(Goods.goodsDbKeyFactory().newKey(goodsId));
   }
 
   public static BurstIterator<Goods> getAllGoods(int from, int to) {
-    return Goods.goodsTable.getAll(from, to);
+    return Goods.goodsTable().getAll(from, to);
   }
 
   public static BurstIterator<Goods> getGoodsInStock(int from, int to) {
@@ -471,12 +474,12 @@ public final class DigitalGoodsStore {
 
   static void listGoods(Transaction transaction, Attachment.DigitalGoodsListing attachment) {
     Goods goods = new Goods(transaction, attachment);
-    Goods.goodsTable.insert(goods);
+    Goods.goodsTable().insert(goods);
     goodsListeners.notify(goods, Event.GOODS_LISTED);
   }
 
   static void delistGoods(long goodsId) {
-    Goods goods = Goods.goodsTable.get(Goods.goodsDbKeyFactory.newKey(goodsId));
+    Goods goods = Goods.goodsTable().get(Goods.goodsDbKeyFactory().newKey(goodsId));
     if (! goods.isDelisted()) {
       goods.setDelisted(true);
       goodsListeners.notify(goods, Event.GOODS_DELISTED);
@@ -486,7 +489,7 @@ public final class DigitalGoodsStore {
   }
 
   static void changePrice(long goodsId, long priceNQT) {
-    Goods goods = Goods.goodsTable.get(Goods.goodsDbKeyFactory.newKey(goodsId));
+    Goods goods = Goods.goodsTable().get(Goods.goodsDbKeyFactory().newKey(goodsId));
     if (! goods.isDelisted()) {
       goods.changePrice(priceNQT);
       goodsListeners.notify(goods, Event.GOODS_PRICE_CHANGE);
@@ -496,7 +499,7 @@ public final class DigitalGoodsStore {
   }
 
   static void changeQuantity(long goodsId, int deltaQuantity) {
-    Goods goods = Goods.goodsTable.get(Goods.goodsDbKeyFactory.newKey(goodsId));
+    Goods goods = Goods.goodsTable().get(Goods.goodsDbKeyFactory().newKey(goodsId));
     if (! goods.isDelisted()) {
       goods.changeQuantity(deltaQuantity);
       goodsListeners.notify(goods, Event.GOODS_QUANTITY_CHANGE);
@@ -506,7 +509,7 @@ public final class DigitalGoodsStore {
   }
 
   static void purchase(Transaction transaction,  Attachment.DigitalGoodsPurchase attachment) {
-    Goods goods = Goods.goodsTable.get(Goods.goodsDbKeyFactory.newKey(attachment.getGoodsId()));
+    Goods goods = Goods.goodsTable().get(Goods.goodsDbKeyFactory().newKey(attachment.getGoodsId()));
     if (! goods.isDelisted() && attachment.getQuantity() <= goods.getQuantity() && attachment.getPriceNQT() == goods.getPriceNQT()
         && attachment.getDeliveryDeadlineTimestamp() > Burst.getBlockchain().getLastBlock().getTimestamp()) {
       goods.changeQuantity(-attachment.getQuantity());
