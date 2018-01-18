@@ -7,7 +7,6 @@ import static brs.http.common.ResultFields.ASSETS_RESPONSE;
 import brs.Asset;
 import brs.db.BurstIterator;
 import brs.services.AssetService;
-import brs.services.impl.AssetServiceImpl;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
