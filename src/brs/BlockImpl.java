@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import brs.crypto.Crypto;
-import brs.db.converter.BigIntegerConverter;
 import brs.peer.Peer;
 import brs.util.Convert;
 
@@ -56,8 +55,9 @@ public final class BlockImpl implements Block {
   private byte[] blockSignature;
 
   @Column(name = "CUMULATIVE_DIFFICULTY")
-  @javax.persistence.Convert(converter = BigIntegerConverter.class)
-  private BigInteger cumulativeDifficulty = BigInteger.ZERO;
+  private byte[] cumulativeDifficulty = BigInteger.ZERO.toByteArray();
+  //@javax.persistence.Convert(converter = BigIntegerConverter.class)
+
   @Column(name = "BASE_TARGET")
   private long baseTarget = Constants.INITIAL_BASE_TARGET;
   @Column(name = "NEXT_BLOCK_ID")
@@ -117,12 +117,31 @@ public final class BlockImpl implements Block {
 
   @ConstructorProperties({ "version", "timestamp", "previous_block_id", "total_amount", "total_fee", "payload_length", "payload_hash", "generator_public_key", "generation_signature", "block_signature", "previous_block_hash", "cumulative_difficulty", "base_target", "next_block_id", "height", "id",
       "nonce", "ats" })
-  public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget,
+  public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, byte[] cumulativeDifficulty, long baseTarget,
       long nextBlockId, int height, Long id, long nonce, byte[] blockATs) throws BurstException.ValidationException {
 
     this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature, previousBlockHash, null, nonce, blockATs);
 
-    this.cumulativeDifficulty = cumulativeDifficulty == null ? BigInteger.ZERO : cumulativeDifficulty;
+    /*  logger.debug("int version: " + version);
+    logger.debug("int timstamp: " + timestamp);
+    logger.debug("long previous_block_id: " + previousBlockId);
+    logger.debug("long total_amount: " + totalAmountNQT);
+    logger.debug("long total_fee: " + totalFeeNQT);
+    logger.debug("long payload_length: " + payloadLength);
+    logger.debug("byte payload_hash: " + payloadHash);
+    logger.debug("byte generator_public_key: " + generatorPublicKey);
+    logger.debug("byte generation_signature: " + generationSignature);
+    logger.debug("byte block_signature: " + blockSignature);
+    logger.debug("byte previous_block_hash: " + previousBlockHash);
+    logger.debug("bigint cumulative_difficulty: " + cumulativeDifficulty);
+    logger.debug("long base_target: " + baseTarget);
+    logger.debug("long next_block_id: " + nextBlockId);
+    logger.debug("int height: " + height);
+    logger.debug("Long id: " + id);
+    logger.debug("int nonce: " + nonce);
+    logger.debug("byte[] ats: " + blockATs);
+    */
+    this.cumulativeDifficulty = cumulativeDifficulty == null ? BigInteger.ZERO.toByteArray() : cumulativeDifficulty;
     this.baseTarget = baseTarget;
     this.nextBlockId = Optional.ofNullable(nextBlockId).orElse(0L);
     this.height = height;
@@ -225,7 +244,7 @@ public final class BlockImpl implements Block {
 
   @Override
   public BigInteger getCumulativeDifficulty() {
-    return cumulativeDifficulty;
+    return new BigInteger(cumulativeDifficulty);
   }
 
   @Override
@@ -541,10 +560,10 @@ public final class BlockImpl implements Block {
 
     if (this.getId() == Genesis.GENESIS_BLOCK_ID && previousBlockId == 0) {
       baseTarget = Constants.INITIAL_BASE_TARGET;
-      cumulativeDifficulty = BigInteger.ZERO;
+      cumulativeDifficulty = BigInteger.ZERO.toByteArray();
     } else if (this.height < 4) {
       baseTarget = Constants.INITIAL_BASE_TARGET;
-      cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(Constants.INITIAL_BASE_TARGET)));
+      cumulativeDifficulty = previousBlock.getCumulativeDifficulty().add(Convert.two64.divide(BigInteger.valueOf(Constants.INITIAL_BASE_TARGET))).toByteArray();
     } else if (this.height < Constants.BURST_DIFF_ADJUST_CHANGE_BLOCK) {
       Block itBlock = previousBlock;
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
@@ -574,7 +593,7 @@ public final class BlockImpl implements Block {
         newBaseTarget = twofoldCurBaseTarget;
       }
       baseTarget = newBaseTarget;
-      cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
+      cumulativeDifficulty = previousBlock.getCumulativeDifficulty().add(Convert.two64.divide(BigInteger.valueOf(baseTarget))).toByteArray();
     } else {
       Block itBlock = previousBlock;
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
@@ -615,7 +634,7 @@ public final class BlockImpl implements Block {
       }
 
       baseTarget = newBaseTarget;
-      cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
+      cumulativeDifficulty = previousBlock.getCumulativeDifficulty().add(Convert.two64.divide(BigInteger.valueOf(baseTarget))).toByteArray();
     }
   }
 
