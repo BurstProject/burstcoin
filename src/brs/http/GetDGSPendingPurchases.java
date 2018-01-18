@@ -10,13 +10,16 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.JSONResponses.MISSING_SELLER;
+import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
+import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+import static brs.http.common.Parameters.SELLER_PARAMETER;
 
 public final class GetDGSPendingPurchases extends APIServlet.APIRequestHandler {
 
   static final GetDGSPendingPurchases instance = new GetDGSPendingPurchases();
 
   private GetDGSPendingPurchases() {
-    super(new APITag[] {APITag.DGS}, "seller", "firstIndex", "lastIndex");
+    super(new APITag[] {APITag.DGS}, SELLER_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
   }
 
   @Override
