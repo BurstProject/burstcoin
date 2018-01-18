@@ -37,9 +37,9 @@ public final class IssueAsset extends CreateTransaction {
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    String name = req.getParameter("name");
-    String description = req.getParameter("description");
-    String decimalsValue = Convert.emptyToNull(req.getParameter("decimals"));
+    String name = req.getParameter(NAME_PARAMETER);
+    String description = req.getParameter(DESCRIPTION_PARAMETER);
+    String decimalsValue = Convert.emptyToNull(req.getParameter(DECIMALS_PARAMETER));
 
     if (name == null) {
       return MISSING_NAME;

@@ -10,12 +10,14 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
+import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
+
 public final class GetAccountSubscriptions extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
 
   GetAccountSubscriptions(ParameterService parameterService) {
-    super(new APITag[]{APITag.ACCOUNTS}, "account");
+    super(new APITag[]{APITag.ACCOUNTS}, ACCOUNT_PARAMETER);
     this.parameterService = parameterService;
   }
 
