@@ -144,22 +144,6 @@ final class ParameterParser {
     return null;
   }
 
-  static DigitalGoodsStore.Purchase getPurchase(HttpServletRequest req) throws ParameterException {
-    String purchaseIdString = Convert.emptyToNull(req.getParameter(PURCHASE_PARAMETER));
-    if (purchaseIdString == null) {
-      throw new ParameterException(MISSING_PURCHASE);
-    }
-    try {
-      DigitalGoodsStore.Purchase purchase = DigitalGoodsStore.getPurchase(Convert.parseUnsignedLong(purchaseIdString));
-      if (purchase == null) {
-        throw new ParameterException(INCORRECT_PURCHASE);
-      }
-      return purchase;
-    } catch (RuntimeException e) {
-      throw new ParameterException(INCORRECT_PURCHASE);
-    }
-  }
-
   static String getSecretPhrase(HttpServletRequest req) throws ParameterException {
     String secretPhrase = Convert.emptyToNull(req.getParameter(SECRET_PHRASE_PARAMETER));
     if (secretPhrase == null) {

@@ -1,6 +1,7 @@
 package brs.common;
 
 import brs.Constants;
+import brs.crypto.Crypto;
 
 public class TestConstants {
 
@@ -11,6 +12,8 @@ public class TestConstants {
   public static final String TEST_SECRET_PHRASE =  "ach wie gut dass niemand weiss dass ich Rumpelstilzchen heiss";
 
   public static final String TEST_PUBLIC_KEY = "6b223e427b2d44ef8fe2dcb64845d7d9790045167202f1849facef10398bd529";
+
+  public static final byte[] TEST_PUBLIC_KEY_BYTES = Crypto.getPublicKey(TEST_SECRET_PHRASE);
 
   public static final String TEST_ACCOUNT_NUMERIC_ID = "4297397359864028267";
 

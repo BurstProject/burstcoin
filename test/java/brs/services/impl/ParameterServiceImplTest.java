@@ -9,6 +9,7 @@ import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_DATA_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_NONCE_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPT_TO_SELF_MESSAGE_DATA;
 import static brs.http.common.Parameters.ENCRYPT_TO_SELF_MESSAGE_NONCE;
+import static brs.http.common.Parameters.GOODS_PARAMETER;
 import static brs.http.common.Parameters.HEIGHT_PARAMETER;
 import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER;
 import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_PARAMETER;
@@ -33,17 +34,18 @@ import brs.Blockchain;
 import brs.BlockchainProcessor;
 import brs.BurstException;
 import brs.BurstException.ValidationException;
+import brs.DigitalGoodsStore;
 import brs.Transaction;
 import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.common.TestConstants;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
 import brs.http.ParameterException;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.AssetService;
+import brs.services.DGSGoodsStoreService;
 import brs.util.Convert;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
@@ -58,6 +60,7 @@ public class ParameterServiceImplTest {
   private AccountService accountServiceMock;
   private AliasService aliasServiceMock;
   private AssetService assetServiceMock;
+  private DGSGoodsStoreService dgsGoodsStoreServiceMock;
   private Blockchain blockchainMock;
   private BlockchainProcessor blockchainProcessorMock;
   private TransactionProcessor transactionProcessorMock;
@@ -67,11 +70,12 @@ public class ParameterServiceImplTest {
     accountServiceMock = mock(AccountService.class);
     aliasServiceMock = mock(AliasService.class);
     assetServiceMock = mock(AssetService.class);
+    dgsGoodsStoreServiceMock = mock(DGSGoodsStoreService.class);
     blockchainMock = mock(Blockchain.class);
     blockchainProcessorMock = mock(BlockchainProcessor.class);
     transactionProcessorMock = mock(TransactionProcessor.class);
 
-    t = new ParameterServiceImpl(accountServiceMock, aliasServiceMock, assetServiceMock, blockchainMock, blockchainProcessorMock, transactionProcessorMock);
+    t = new ParameterServiceImpl(accountServiceMock, aliasServiceMock, assetServiceMock, dgsGoodsStoreServiceMock, blockchainMock, blockchainProcessorMock, transactionProcessorMock);
   }
 
   @Test
@@ -329,8 +333,41 @@ public class ParameterServiceImplTest {
   }
 
   @Test
-  public void getGoods() {
-    //TODO Write tests after DigitalGoodsStore has been refactored
+  public void getGoods() throws ParameterException {
+    final HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(GOODS_PARAMETER, "1")
+    );
+
+    final DigitalGoodsStore.Goods mockGoods = mock(DigitalGoodsStore.Goods.class);
+
+    when(dgsGoodsStoreServiceMock.getGoods(eq(1L))).thenReturn(mockGoods);
+
+    assertEquals(mockGoods, t.getGoods(req));
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getGoods_missingGoods() throws ParameterException {
+    t.getGoods(QuickMocker.httpServletRequest());
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getGoods_unknownGoods() throws ParameterException {
+    final HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(GOODS_PARAMETER, "1")
+    );
+
+    when(dgsGoodsStoreServiceMock.getGoods(eq(1L))).thenReturn(null);
+
+    t.getGoods(req);
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getGoods_incorrectGoods() throws ParameterException {
+    final HttpServletRequest req = QuickMocker.httpServletRequest(
+      new MockParam(GOODS_PARAMETER, "notANumber")
+    );
+
+    t.getGoods(req);
   }
 
   @Test

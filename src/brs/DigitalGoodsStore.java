@@ -192,28 +192,34 @@ public final class DigitalGoodsStore {
 
   public static  class Purchase {
 
-    private static final BurstKey.LongKeyFactory<Purchase> purchaseDbKeyFactory =
-        Burst.getStores().getDigitalGoodsStoreStore().getPurchaseDbKeyFactory();
+    private static final BurstKey.LongKeyFactory<Purchase> purchaseDbKeyFactory() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getPurchaseDbKeyFactory();
+    }
 
-    private static final VersionedEntityTable<Purchase> purchaseTable=
-        Burst.getStores().getDigitalGoodsStoreStore().getPurchaseTable();
+    private static final VersionedEntityTable<Purchase> purchaseTable() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getPurchaseTable();
+    }
 
 
-    private static final BurstKey.LongKeyFactory<Purchase> feedbackDbKeyFactory =
-        Burst.getStores().getDigitalGoodsStoreStore().getFeedbackDbKeyFactory();
+    private static final BurstKey.LongKeyFactory<Purchase> feedbackDbKeyFactory() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getFeedbackDbKeyFactory();
+    }
 
 
     @Deprecated
-    private static final VersionedValuesTable<Purchase, EncryptedData> feedbackTable =
-        Burst.getStores().getDigitalGoodsStoreStore().getFeedbackTable();
+    private static final VersionedValuesTable<Purchase, EncryptedData> feedbackTable() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getFeedbackTable();
+    }
 
 
-    private static final BurstKey.LongKeyFactory<Purchase> publicFeedbackDbKeyFactory =
-        Burst.getStores().getDigitalGoodsStoreStore().getPublicFeedbackDbKeyFactory();
+    private static final BurstKey.LongKeyFactory<Purchase> publicFeedbackDbKeyFactory() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getPublicFeedbackDbKeyFactory();
+    }
 
 
-    private static final VersionedValuesTable<Purchase, String> publicFeedbackTable =
-        Burst.getStores().getDigitalGoodsStoreStore().getPublicFeedbackTable();
+    private static final VersionedValuesTable<Purchase, String> publicFeedbackTable() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getPublicFeedbackTable();
+    }
 
     static void init() {}
 
@@ -241,7 +247,7 @@ public final class DigitalGoodsStore {
 
     private Purchase(Transaction transaction, Attachment.DigitalGoodsPurchase attachment, long sellerId) {
       this.id = transaction.getId();
-      this.dbKey = purchaseDbKeyFactory.newKey(this.id);
+      this.dbKey = purchaseDbKeyFactory().newKey(this.id);
       this.buyerId = transaction.getSenderId();
       this.goodsId = attachment.getGoodsId();
       this.sellerId = sellerId;
@@ -313,7 +319,7 @@ public final class DigitalGoodsStore {
 
     private void setPending(boolean isPending) {
       this.isPending = isPending;
-      purchaseTable.insert(this);
+      purchaseTable().insert(this);
     }
 
     public int getTimestamp() {
@@ -335,7 +341,7 @@ public final class DigitalGoodsStore {
     private void setEncryptedGoods(EncryptedData encryptedGoods, boolean goodsIsText) {
       this.encryptedGoods = encryptedGoods;
       this.goodsIsText = goodsIsText;
-      purchaseTable.insert(this);
+      purchaseTable().insert(this);
     }
 
     public EncryptedData getRefundNote() {
@@ -344,14 +350,14 @@ public final class DigitalGoodsStore {
 
     private void setRefundNote(EncryptedData refundNote) {
       this.refundNote = refundNote;
-      purchaseTable.insert(this);
+      purchaseTable().insert(this);
     }
 
     public List<EncryptedData> getFeedbackNotes() {
       if (!hasFeedbackNotes) {
         return null;
       }
-      feedbackNotes = feedbackTable.get(feedbackDbKeyFactory.newKey(this));
+      feedbackNotes = feedbackTable().get(feedbackDbKeyFactory().newKey(this));
       return feedbackNotes;
     }
 
@@ -361,15 +367,15 @@ public final class DigitalGoodsStore {
       }
       feedbackNotes.add(feedbackNote);
       this.hasFeedbackNotes = true;
-      purchaseTable.insert(this);
-      feedbackTable.insert(this, feedbackNotes);
+      purchaseTable().insert(this);
+      feedbackTable().insert(this, feedbackNotes);
     }
 
     public List<String> getPublicFeedback() {
       if (!hasPublicFeedbacks) {
         return null;
       }
-      publicFeedbacks =  publicFeedbackTable.get(publicFeedbackDbKeyFactory.newKey(this));
+      publicFeedbacks =  publicFeedbackTable().get(publicFeedbackDbKeyFactory().newKey(this));
       return publicFeedbacks;
     }
 
@@ -379,8 +385,8 @@ public final class DigitalGoodsStore {
       }
       publicFeedbacks.add(publicFeedback);
       this.hasPublicFeedbacks = true;
-      purchaseTable.insert(this);
-      publicFeedbackTable.insert(this, publicFeedbacks);
+      purchaseTable().insert(this);
+      publicFeedbackTable().insert(this, publicFeedbacks);
     }
 
     public long getDiscountNQT() {
@@ -389,7 +395,7 @@ public final class DigitalGoodsStore {
 
     public void setDiscountNQT(long discountNQT) {
       this.discountNQT = discountNQT;
-      purchaseTable.insert(this);
+      purchaseTable().insert(this);
     }
 
     public long getRefundNQT() {
@@ -398,7 +404,7 @@ public final class DigitalGoodsStore {
 
     public void setRefundNQT(long refundNQT) {
       this.refundNQT = refundNQT;
-      purchaseTable.insert(this);
+      purchaseTable().insert(this);
     }
 
     /*
@@ -415,29 +421,13 @@ public final class DigitalGoodsStore {
     */
 
   }
-
+//TODO Brabantian which methods can get their own service?
   public static Goods getGoods(long goodsId) {
     return Goods.goodsTable().get(Goods.goodsDbKeyFactory().newKey(goodsId));
   }
 
-  public static BurstIterator<Purchase> getAllPurchases(int from, int to) {
-    return Purchase.purchaseTable.getAll(from, to);
-  }
-
-  public static BurstIterator<Purchase> getSellerPurchases(long sellerId, int from, int to) {
-    return Burst.getStores().getDigitalGoodsStoreStore().getSellerPurchases(sellerId,  from, to);
-  }
-
-  public static BurstIterator<Purchase> getBuyerPurchases(long buyerId, int from, int to) {
-    return Burst.getStores().getDigitalGoodsStoreStore().getBuyerPurchases(buyerId,  from, to);
-  }
-
-  public static BurstIterator<Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
-    return Burst.getStores().getDigitalGoodsStoreStore().getSellerBuyerPurchases(sellerId, buyerId, from, to);
-  }
-
   public static Purchase getPurchase(long purchaseId) {
-    return Purchase.purchaseTable.get(Purchase.purchaseDbKeyFactory.newKey(purchaseId));
+    return Purchase.purchaseTable().get(Purchase.purchaseDbKeyFactory().newKey(purchaseId));
   }
 
   public static BurstIterator<Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
@@ -455,7 +445,7 @@ public final class DigitalGoodsStore {
 
   private static void addPurchase(Transaction transaction,  Attachment.DigitalGoodsPurchase attachment, long sellerId) {
     Purchase purchase = new Purchase(transaction, attachment, sellerId);
-    Purchase.purchaseTable.insert(purchase);
+    Purchase.purchaseTable().insert(purchase);
     purchaseListeners.notify(purchase, Event.PURCHASE);
   }
 
@@ -526,7 +516,7 @@ public final class DigitalGoodsStore {
   }
 
   static void refund(long sellerId, long purchaseId, long refundNQT, Appendix.EncryptedMessage encryptedMessage) {
-    Purchase purchase = Purchase.purchaseTable.get(Purchase.purchaseDbKeyFactory.newKey(purchaseId));
+    Purchase purchase = Purchase.purchaseTable().get(Purchase.purchaseDbKeyFactory().newKey(purchaseId));
     Account seller = Account.getAccount(sellerId);
     seller.addToBalanceNQT(-refundNQT);
     Account buyer = Account.getAccount(purchase.getBuyerId());
@@ -539,7 +529,7 @@ public final class DigitalGoodsStore {
   }
 
   static void feedback(long purchaseId, Appendix.EncryptedMessage encryptedMessage, Appendix.Message message) {
-    Purchase purchase = Purchase.purchaseTable.get(Purchase.purchaseDbKeyFactory.newKey(purchaseId));
+    Purchase purchase = Purchase.purchaseTable().get(Purchase.purchaseDbKeyFactory().newKey(purchaseId));
     if (encryptedMessage != null) {
       purchase.addFeedbackNote(encryptedMessage.getEncryptedData());
     }

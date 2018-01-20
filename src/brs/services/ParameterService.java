@@ -25,6 +25,8 @@ public interface ParameterService {
 
   DigitalGoodsStore.Goods getGoods(HttpServletRequest req) throws ParameterException;
 
+  DigitalGoodsStore.Purchase getPurchase(HttpServletRequest req) throws ParameterException;
+
   EncryptedData getEncryptedMessage(HttpServletRequest req, Account recipientAccount) throws ParameterException;
 
   EncryptedData getEncryptToSelfMessage(HttpServletRequest req) throws ParameterException;

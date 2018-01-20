@@ -7,20 +7,28 @@ import static brs.http.common.ResultFields.BASE_TARGET_RESPONSE;
 import static brs.http.common.ResultFields.BLOCK_RESPONSE;
 import static brs.http.common.ResultFields.BLOCK_REWARD_RESPONSE;
 import static brs.http.common.ResultFields.BLOCK_SIGNATURE_RESPONSE;
+import static brs.http.common.ResultFields.BUYER_RESPONSE;
+import static brs.http.common.ResultFields.DATA_RESPONSE;
 import static brs.http.common.ResultFields.DECIMALS_RESPONSE;
 import static brs.http.common.ResultFields.DELISTED_RESPONSE;
+import static brs.http.common.ResultFields.DELIVERY_DEADLINE_TIMESTAMP_RESPONSE;
 import static brs.http.common.ResultFields.DESCRIPTION_RESPONSE;
+import static brs.http.common.ResultFields.DISCOUNT_NQT_RESPONSE;
 import static brs.http.common.ResultFields.EFFECTIVE_BALANCE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.FEEDBACK_NOTES_RESPONSE;
 import static brs.http.common.ResultFields.FORGED_BALANCE_NQT_RESPONSE;
 import static brs.http.common.ResultFields.GENERATION_SIGNATURE_RESPONSE;
 import static brs.http.common.ResultFields.GENERATOR_PUBLIC_KEY_RESPONSE;
 import static brs.http.common.ResultFields.GENERATOR_RESPONSE;
+import static brs.http.common.ResultFields.GOODS_DATA_RESPONSE;
+import static brs.http.common.ResultFields.GOODS_IS_TEXT_RESPONSE;
 import static brs.http.common.ResultFields.GOODS_RESPONSE;
 import static brs.http.common.ResultFields.GUARANTEED_BALANCE_NQT_RESPONSE;
 import static brs.http.common.ResultFields.HEIGHT_RESPONSE;
 import static brs.http.common.ResultFields.NAME_RESPONSE;
 import static brs.http.common.ResultFields.NEXT_BLOCK_RESPONSE;
 import static brs.http.common.ResultFields.NONCE_RESPONSE;
+import static brs.http.common.ResultFields.NOTE_RESPONSE;
 import static brs.http.common.ResultFields.NUMBER_OF_ACCOUNTS_RESPONSE;
 import static brs.http.common.ResultFields.NUMBER_OF_TRADES_RESPONSE;
 import static brs.http.common.ResultFields.NUMBER_OF_TRANSACTIONS_RESPONSE;
@@ -28,11 +36,16 @@ import static brs.http.common.ResultFields.NUMBER_OF_TRANSFERS_RESPONSE;
 import static brs.http.common.ResultFields.ORDER_RESPONSE;
 import static brs.http.common.ResultFields.PAYLOAD_HASH_RESPONSE;
 import static brs.http.common.ResultFields.PAYLOAD_LENGTH_RESPONSE;
+import static brs.http.common.ResultFields.PENDING_RESPONSE;
 import static brs.http.common.ResultFields.PREVIOUS_BLOCK_HASH_RESPONSE;
 import static brs.http.common.ResultFields.PREVIOUS_BLOCK_RESPONSE;
 import static brs.http.common.ResultFields.PRICE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.PUBLIC_FEEDBACKS_RESPONSE;
+import static brs.http.common.ResultFields.PURCHASE_RESPONSE;
 import static brs.http.common.ResultFields.QUANTITY_NQT_RESPONSE;
 import static brs.http.common.ResultFields.QUANTITY_RESPONSE;
+import static brs.http.common.ResultFields.REFUND_NOTE_RESPONSE;
+import static brs.http.common.ResultFields.REFUND_NQT_RESPONSE;
 import static brs.http.common.ResultFields.SCOOP_NUM_RESPONSE;
 import static brs.http.common.ResultFields.SELLER_RESPONSE;
 import static brs.http.common.ResultFields.TAGS_RESPONSE;
@@ -186,8 +199,8 @@ public final class JSONData {
 
   static JSONObject encryptedData(EncryptedData encryptedData) {
     JSONObject json = new JSONObject();
-    json.put("data", Convert.toHexString(encryptedData.getData()));
-    json.put("nonce", Convert.toHexString(encryptedData.getNonce()));
+    json.put(DATA_RESPONSE, Convert.toHexString(encryptedData.getData()));
+    json.put(NONCE_RESPONSE, Convert.toHexString(encryptedData.getNonce()));
     return json;
   }
 
@@ -275,45 +288,45 @@ public final class JSONData {
 
   static JSONObject purchase(DigitalGoodsStore.Purchase purchase) {
     JSONObject json = new JSONObject();
-    json.put("purchase", Convert.toUnsignedLong(purchase.getId()));
-    json.put("goods", Convert.toUnsignedLong(purchase.getGoodsId()));
-    json.put("name", purchase.getName());
-    putAccount(json, "seller", purchase.getSellerId());
-    json.put("priceNQT", String.valueOf(purchase.getPriceNQT()));
-    json.put("quantity", purchase.getQuantity());
-    putAccount(json, "buyer", purchase.getBuyerId());
-    json.put("timestamp", purchase.getTimestamp());
-    json.put("deliveryDeadlineTimestamp", purchase.getDeliveryDeadlineTimestamp());
+    json.put(PURCHASE_RESPONSE, Convert.toUnsignedLong(purchase.getId()));
+    json.put(GOODS_RESPONSE, Convert.toUnsignedLong(purchase.getGoodsId()));
+    json.put(NAME_RESPONSE, purchase.getName());
+    putAccount(json, SELLER_RESPONSE, purchase.getSellerId());
+    json.put(PRICE_NQT_RESPONSE, String.valueOf(purchase.getPriceNQT()));
+    json.put(QUANTITY_RESPONSE, purchase.getQuantity());
+    putAccount(json, BUYER_RESPONSE, purchase.getBuyerId());
+    json.put(TIMESTAMP_RESPONSE, purchase.getTimestamp());
+    json.put(DELIVERY_DEADLINE_TIMESTAMP_RESPONSE, purchase.getDeliveryDeadlineTimestamp());
     if (purchase.getNote() != null) {
-      json.put("note", encryptedData(purchase.getNote()));
+      json.put(NOTE_RESPONSE, encryptedData(purchase.getNote()));
     }
-    json.put("pending", purchase.isPending());
+    json.put(PENDING_RESPONSE, purchase.isPending());
     if (purchase.getEncryptedGoods() != null) {
-      json.put("goodsData", encryptedData(purchase.getEncryptedGoods()));
-      json.put("goodsIsText", purchase.goodsIsText());
+      json.put(GOODS_DATA_RESPONSE, encryptedData(purchase.getEncryptedGoods()));
+      json.put(GOODS_IS_TEXT_RESPONSE, purchase.goodsIsText());
     }
     if (purchase.getFeedbackNotes() != null) {
       JSONArray feedbacks = new JSONArray();
       for (EncryptedData encryptedData : purchase.getFeedbackNotes()) {
         feedbacks.add(encryptedData(encryptedData));
       }
-      json.put("feedbackNotes", feedbacks);
+      json.put(FEEDBACK_NOTES_RESPONSE, feedbacks);
     }
     if (purchase.getPublicFeedback() != null) {
       JSONArray publicFeedbacks = new JSONArray();
       for (String publicFeedback : purchase.getPublicFeedback()) {
         publicFeedbacks.add(publicFeedback);
       }
-      json.put("publicFeedbacks", publicFeedbacks);
+      json.put(PUBLIC_FEEDBACKS_RESPONSE, publicFeedbacks);
     }
     if (purchase.getRefundNote() != null) {
-      json.put("refundNote", encryptedData(purchase.getRefundNote()));
+      json.put(REFUND_NOTE_RESPONSE, encryptedData(purchase.getRefundNote()));
     }
     if (purchase.getDiscountNQT() > 0) {
-      json.put("discountNQT", String.valueOf(purchase.getDiscountNQT()));
+      json.put(DISCOUNT_NQT_RESPONSE, String.valueOf(purchase.getDiscountNQT()));
     }
     if (purchase.getRefundNQT() > 0) {
-      json.put("refundNQT", String.valueOf(purchase.getRefundNQT()));
+      json.put(REFUND_NQT_RESPONSE, String.valueOf(purchase.getRefundNQT()));
     }
     return json;
   }

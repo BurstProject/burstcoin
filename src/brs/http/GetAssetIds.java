@@ -2,6 +2,7 @@ package brs.http;
 
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+import static brs.http.common.ResultFields.ASSET_IDS_RESPONSE;
 
 import brs.Asset;
 import brs.db.BurstIterator;
@@ -35,7 +36,7 @@ public final class GetAssetIds extends APIServlet.APIRequestHandler {
       }
     }
     JSONObject response = new JSONObject();
-    response.put("assetIds", assetIds);
+    response.put(ASSET_IDS_RESPONSE, assetIds);
     return response;
   }
 

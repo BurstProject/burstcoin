@@ -36,3 +36,11 @@ and the class as being responsible for domain logic. For these kind of methods, 
 A service should always be made only once in Burst.class, and passed its required dependencies, like a DB layer abstraction or potentially other services
  (prevent cyclical dependencies between services!). These services can then be passed in for example the HTTP and Peer layer, 
  where they can be called from the "usecases" these tend to form.
+ 
+##Major TODO's
+
+###Testing
+- Currently the happy paths of the AbstractTransactionTest's are limited to making sure no nullpointer exceptions, etc occur. 
+"Errors" are still returned, however, because of other issues like missing parameter, etc. 
+More scaffolding should be made to extend the happy path of these tests easier. 
+Though currently the focus of @Brabantian is on the business logic validations done in the CreateTransaction HTTP classes. 
