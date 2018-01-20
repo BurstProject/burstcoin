@@ -37,6 +37,7 @@ public class ResultFields {
   public static final String HEIGHT_RESPONSE = "height";
   public static final String GENERATOR_RESPONSE = "generator";
   public static final String GENERATOR_PUBLIC_KEY_RESPONSE = "generatorPublicKey";
+  public static final String DATA_RESPONSE = "data";
   public static final String NONCE_RESPONSE = "nonce";
   public static final String SCOOP_NUM_RESPONSE = "scoopNum";
   public static final String TIMESTAMP_RESPONSE = "timestamp";
@@ -54,5 +55,34 @@ public class ResultFields {
   public static final String PREVIOUS_BLOCK_HASH_RESPONSE = "previousBlockHash";
   public static final String BLOCK_SIGNATURE_RESPONSE = "blockSignature";
   public static final String TRANSACTIONS_RESPONSE = "transactions";
+  public static final String ASSETS_RESPONSE = "assets";
+  public static final String OPEN_ORDERS_RESPONSE = "openOrders";
+  public static final String TYPE_RESPONSE = "type";
+  public static final String ORDER_RESPONSE = "order";
+  public static final String QUANTITY_NQT_RESPONSE = "quantityNQT";
+  public static final String PRICE_NQT_RESPONSE = "priceNQT";
+  public static final String DECIMALS_RESPONSE = "decimals";
+  public static final String NUMBER_OF_TRADES_RESPONSE = "numberOfTrades";
+  public static final String NUMBER_OF_TRANSFERS_RESPONSE = "numberOfTransfers";
+  public static final String NUMBER_OF_ACCOUNTS_RESPONSE = "numberOfAccounts";
+  public static final String GOODS_RESPONSE = "good";
+  public static final String QUANTITY_RESPONSE = "quantity";
+  public static final String SELLER_RESPONSE = "seller";
+  public static final String TAGS_RESPONSE = "tags";
+  public static final String DELISTED_RESPONSE = "delisted";
+  public static final String ASSET_IDS_RESPONSE = "assetIds";
+  public static final String PURCHASE_RESPONSE = "purchase";
+  public static final String BUYER_RESPONSE = "buyer";
+  public static final String DELIVERY_DEADLINE_TIMESTAMP_RESPONSE = "deliveryDeadlineTimestamp";
+  public static final String PENDING_RESPONSE = "pending";
+  public static final String NOTE_RESPONSE = "note";
+  public static final String GOODS_DATA_RESPONSE = "goodsData";
+  public static final String GOODS_IS_TEXT_RESPONSE = "goodsIsText";
+  public static final String FEEDBACK_NOTES_RESPONSE = "feedbackNotes";
+  public static final String PUBLIC_FEEDBACKS_RESPONSE = "publicFeedbacks";
+  public static final String REFUND_NOTE_RESPONSE = "refundNote";
+  public static final String DISCOUNT_NQT_RESPONSE = "discountNQT";
+  public static final String REFUND_NQT_RESPONSE = "refundNQT";
+  public static final String PURCHASES_RESPONSE = "purchases";
 
 }

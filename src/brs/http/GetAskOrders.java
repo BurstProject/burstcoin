@@ -8,6 +8,7 @@ import static brs.http.common.ResultFields.ASK_ORDERS_RESPONSE;
 import brs.BurstException;
 import brs.Order;
 import brs.db.BurstIterator;
+import brs.services.OrderService;
 import brs.services.ParameterService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -18,10 +19,12 @@ import javax.servlet.http.HttpServletRequest;
 public final class GetAskOrders extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
+  private final OrderService orderService;
 
-  GetAskOrders(ParameterService parameterService) {
+  GetAskOrders(ParameterService parameterService, OrderService orderService) {
     super(new APITag[] {APITag.AE}, ASSET_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
     this.parameterService = parameterService;
+    this.orderService = orderService;
   }
 
   @Override
@@ -32,7 +35,7 @@ public final class GetAskOrders extends APIServlet.APIRequestHandler {
     int lastIndex = ParameterParser.getLastIndex(req);
 
     JSONArray orders = new JSONArray();
-    try (BurstIterator<Order.Ask> askOrders = Order.Ask.getSortedOrders(assetId, firstIndex, lastIndex)) {
+    try (BurstIterator<Order.Ask> askOrders = orderService.getSortedOrders(assetId, firstIndex, lastIndex)) {
       while (askOrders.hasNext()) {
         orders.add(JSONData.askOrder(askOrders.next()));
       }

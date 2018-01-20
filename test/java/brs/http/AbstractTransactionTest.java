@@ -20,6 +20,7 @@ import brs.Transaction;
 import brs.Transaction.Builder;
 import brs.TransactionProcessor;
 import brs.TransactionType.DigitalGoods;
+import brs.common.AbstractUnitTest;
 import brs.common.TestConstants;
 import brs.services.AliasService;
 import brs.services.ParameterService;
@@ -27,7 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-public class AbstractTransactionTest {
+public class AbstractTransactionTest extends AbstractUnitTest {
 
   public void prepareTransactionTest(HttpServletRequest req, ParameterService parameterServiceMock, TransactionProcessor transactionProcessorMock, AliasService aliasService) throws BurstException {
     Account sellerAccount = mock(Account.class);

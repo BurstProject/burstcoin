@@ -48,5 +48,17 @@ public class QuickMocker {
       this.key = key;
       this.value = value;
     }
+
+    public MockParam(String key, int value) {
+      this(key, "" + value);
+    }
+
+    public MockParam(String key, long value) {
+      this(key, "" + value);
+    }
+
+    public MockParam(String key, boolean value) {
+      this(key, "" + value);
+    }
   }
 }

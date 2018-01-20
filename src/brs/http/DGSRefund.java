@@ -27,7 +27,7 @@ public final class DGSRefund extends CreateTransaction {
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
     Account sellerAccount = parameterService.getSenderAccount(req);
-    DigitalGoodsStore.Purchase purchase = ParameterParser.getPurchase(req);
+    DigitalGoodsStore.Purchase purchase = parameterService.getPurchase(req);
     if (sellerAccount.getId() != purchase.getSellerId()) {
       return INCORRECT_PURCHASE;
     }

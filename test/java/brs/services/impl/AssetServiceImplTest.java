@@ -126,4 +126,16 @@ public class AssetServiceImplTest {
 
     assertEquals(mockTransferIterator, t.getAssetTransfers(assetId, from, to));
   }
+
+  @Test
+  public void getAllAssetsTest() {
+    final int from = 2;
+    final int to = 4;
+
+    final BurstIterator<Trade> mockTradeIterator = mock(BurstIterator.class);
+
+    when(mockAssetTableMock.getAll(eq(from), eq(to))).thenReturn(mockTradeIterator);
+
+    assertEquals(mockTradeIterator, t.getAllAssets(from, to));
+  }
 }

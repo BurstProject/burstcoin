@@ -29,12 +29,14 @@ import org.json.simple.JSONStreamAware;
 public final class DGSDelivery extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final AccountService accountService;
   private final Blockchain blockchain;
 
   DGSDelivery(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
     super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService,
         PURCHASE_PARAMETER, DISCOUNT_NQT_PARAMETER, GOODS_TO_ENCRYPT_PARAMETER, GOODS_IS_TEXT_PARAMETER, GOODS_DATA_PARAMETER, GOODS_NONCE_PARAMETER);
     this.parameterService = parameterService;
+    this.accountService = accountService;
     this.blockchain = blockchain;
   }
 
@@ -42,7 +44,7 @@ public final class DGSDelivery extends CreateTransaction {
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
     Account sellerAccount = parameterService.getSenderAccount(req);
-    DigitalGoodsStore.Purchase purchase = ParameterParser.getPurchase(req);
+    DigitalGoodsStore.Purchase purchase = parameterService.getPurchase(req);
     if (sellerAccount.getId() != purchase.getSellerId()) {
       return INCORRECT_PURCHASE;
     }
@@ -65,7 +67,7 @@ public final class DGSDelivery extends CreateTransaction {
       return INCORRECT_DGS_DISCOUNT;
     }
 
-    Account buyerAccount = Account.getAccount(purchase.getBuyerId());
+    Account buyerAccount = accountService.getAccount(purchase.getBuyerId());
     boolean goodsIsText = Parameters.isFalse(req.getParameter(GOODS_IS_TEXT_PARAMETER));
     EncryptedData encryptedGoods = ParameterParser.getEncryptedGoods(req);
 
@@ -74,7 +76,7 @@ public final class DGSDelivery extends CreateTransaction {
       byte[] goodsBytes;
       try {
         String plainGoods = Convert.nullToEmpty(req.getParameter(GOODS_TO_ENCRYPT_PARAMETER));
-        if (plainGoods.length() == 0) {
+        if (plainGoods.isEmpty()) {
           return INCORRECT_DGS_GOODS;
         }
         goodsBytes = goodsIsText ? Convert.toBytes(plainGoods) : Convert.parseHexString(plainGoods);

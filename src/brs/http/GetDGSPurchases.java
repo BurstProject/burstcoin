@@ -3,6 +3,8 @@ package brs.http;
 import brs.DigitalGoodsStore;
 import brs.BurstException;
 import brs.db.BurstIterator;
+import brs.http.common.Parameters;
+import brs.services.DGSGoodsStoreService;
 import brs.util.FilteringIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -11,13 +13,15 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 
 import static brs.http.common.Parameters.*;
+import static brs.http.common.ResultFields.PURCHASES_RESPONSE;
 
 public final class GetDGSPurchases extends APIServlet.APIRequestHandler {
 
-  static final GetDGSPurchases instance = new GetDGSPurchases();
+  private final DGSGoodsStoreService dgsGoodsStoreService;
 
-  private GetDGSPurchases() {
+  public GetDGSPurchases(DGSGoodsStoreService dgsGoodsStoreService) {
     super(new APITag[] {APITag.DGS}, SELLER_PARAMETER, BUYER_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER, COMPLETED_PARAMETER);
+    this.dgsGoodsStoreService = dgsGoodsStoreService;
   }
 
   @Override
@@ -27,16 +31,16 @@ public final class GetDGSPurchases extends APIServlet.APIRequestHandler {
     long buyerId = ParameterParser.getBuyerId(req);
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
-    final boolean completed = "true".equalsIgnoreCase(req.getParameter(COMPLETED_PARAMETER));
+    final boolean completed = Parameters.isTrue(req.getParameter(COMPLETED_PARAMETER));
 
 
     JSONObject response = new JSONObject();
     JSONArray purchasesJSON = new JSONArray();
-    response.put("purchases", purchasesJSON);
+    response.put(PURCHASES_RESPONSE, purchasesJSON);
 
     if (sellerId == 0 && buyerId == 0) {
       try (FilteringIterator<DigitalGoodsStore.Purchase> purchaseIterator
-           = new FilteringIterator<>(DigitalGoodsStore.getAllPurchases(0, -1),
+           = new FilteringIterator<>(dgsGoodsStoreService.getAllPurchases(0, -1),
                                      new FilteringIterator.Filter<DigitalGoodsStore.Purchase>() {
                                        @Override
                                        public boolean ok(DigitalGoodsStore.Purchase purchase) {
@@ -52,11 +56,11 @@ public final class GetDGSPurchases extends APIServlet.APIRequestHandler {
 
     BurstIterator<DigitalGoodsStore.Purchase> purchases;
     if (sellerId != 0 && buyerId == 0) {
-      purchases = DigitalGoodsStore.getSellerPurchases(sellerId, 0, -1);
+      purchases = dgsGoodsStoreService.getSellerPurchases(sellerId, 0, -1);
     } else if (sellerId == 0) {
-      purchases = DigitalGoodsStore.getBuyerPurchases(buyerId, 0, -1);
+      purchases = dgsGoodsStoreService.getBuyerPurchases(buyerId, 0, -1);
     } else {
-      purchases = DigitalGoodsStore.getSellerBuyerPurchases(sellerId, buyerId, 0, -1);
+      purchases = dgsGoodsStoreService.getSellerBuyerPurchases(sellerId, buyerId, 0, -1);
     }
     try (FilteringIterator<DigitalGoodsStore.Purchase> purchaseIterator
          = new FilteringIterator<>(purchases,
