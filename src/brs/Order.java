@@ -86,7 +86,7 @@ public abstract class Order {
     return priceNQT;
   }
 
-  public final long getQuantityQNT() {
+  public long getQuantityQNT() {
     return quantityQNT;
   }
 
@@ -134,29 +134,13 @@ public abstract class Order {
       return Burst.getStores().getOrderStore().getAskOrderTable();
     }
 
-
+//TODO move
     public static int getCount() {
       return askOrderTable().getCount();
     }
 
     public static Ask getAskOrder(long orderId) {
       return askOrderTable().get(askOrderDbKeyFactory().newKey(orderId));
-    }
-
-    public static BurstIterator<Ask> getAskOrdersByAccount(long accountId, int from, int to) {
-      return Burst.getStores().getOrderStore().getAskOrdersByAccount(accountId, from, to);
-    }
-
-    public static BurstIterator<Ask> getAskOrdersByAsset(long assetId, int from, int to) {
-      return Burst.getStores().getOrderStore().getAskOrdersByAsset(assetId, from, to);
-    }
-
-    public static BurstIterator<Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
-      return Burst.getStores().getOrderStore().getAskOrdersByAccountAsset(accountId, assetId, from, to);
-    }
-
-    public static BurstIterator<Ask> getSortedOrders(long assetId, int from, int to) {
-      return Burst.getStores().getOrderStore().getSortedAsks(assetId, from,to);
     }
 
     private static Ask getNextOrder(long assetId) {

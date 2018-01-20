@@ -59,4 +59,8 @@ public class AssetServiceImpl implements AssetService {
     return assetTransferService.getAssetTransfers(assetId, from, to);
   }
 
+  @Override
+  public BurstIterator<Asset> getAllAssets(int from, int to) {
+    return assetTable.getAll(from, to);
+  }
 }

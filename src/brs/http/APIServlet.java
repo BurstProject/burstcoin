@@ -13,6 +13,7 @@ import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.AssetService;
 import brs.services.AssetTransferService;
+import brs.services.DGSGoodsStoreService;
 import brs.services.EscrowService;
 import brs.services.OrderService;
 import brs.services.ParameterService;
@@ -44,7 +45,7 @@ public final class APIServlet extends HttpServlet {
 
   public static void injectServices(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
       AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
-      TradeService tradeService, EscrowService escrowService) {
+      TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService) {
     final Map<String, APIRequestHandler> map = new HashMap<>();
 
     map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService));
@@ -78,10 +79,10 @@ public final class APIServlet extends HttpServlet {
     map.put("buyAlias", new BuyAlias(parameterService, transactionProcessor, blockchain, aliasService, accountService));
     map.put("getAlias", new GetAlias(parameterService));
     map.put("getAliases", new GetAliases(parameterService));
-    map.put("getAllAssets", GetAllAssets.instance);
+    map.put("getAllAssets", new GetAllAssets(assetService));
     map.put("getAsset", new GetAsset(parameterService));
     map.put("getAssets", GetAssets.instance);
-    map.put("getAssetIds", GetAssetIds.instance);
+    map.put("getAssetIds", new GetAssetIds(assetService));
     map.put("getAssetsByIssuer", new GetAssetsByIssuer(parameterService));
     map.put("getAssetAccounts", new GetAssetAccounts(parameterService, assetService));
     map.put("getBalance", new GetBalance(parameterService));
@@ -90,10 +91,10 @@ public final class APIServlet extends HttpServlet {
     map.put("getBlocks", new GetBlocks(blockchain));
     map.put("getBlockchainStatus", new GetBlockchainStatus(blockchainProcessor, blockchain));
     map.put("getConstants", GetConstants.instance);
-    map.put("getDGSGoods", GetDGSGoods.instance);
+    map.put("getDGSGoods", new GetDGSGoods(digitalGoodsStoreService));
     map.put("getDGSGood", new GetDGSGood(parameterService));
-    map.put("getDGSPurchases", GetDGSPurchases.instance);
-    map.put("getDGSPurchase", GetDGSPurchase.instance);
+    map.put("getDGSPurchases", new GetDGSPurchases(digitalGoodsStoreService));
+    map.put("getDGSPurchase", new GetDGSPurchase(parameterService));
     map.put("getDGSPendingPurchases", GetDGSPendingPurchases.instance);
     map.put("getGuaranteedBalance", new GetGuaranteedBalance(parameterService));
     map.put("getECBlock", new GetECBlock(blockchain));
@@ -112,15 +113,15 @@ public final class APIServlet extends HttpServlet {
     map.put("getTransactionBytes", new GetTransactionBytes(blockchain, transactionProcessor));
     map.put("getUnconfirmedTransactionIds", new GetUnconfirmedTransactionIds(transactionProcessor));
     map.put("getUnconfirmedTransactions", new GetUnconfirmedTransactions(transactionProcessor));
-    map.put("getAccountCurrentAskOrderIds", new GetAccountCurrentAskOrderIds(parameterService));
+    map.put("getAccountCurrentAskOrderIds", new GetAccountCurrentAskOrderIds(parameterService, orderService));
     map.put("getAccountCurrentBidOrderIds", new GetAccountCurrentBidOrderIds(parameterService));
-    map.put("getAccountCurrentAskOrders", new GetAccountCurrentAskOrders(parameterService));
+    map.put("getAccountCurrentAskOrders", new GetAccountCurrentAskOrders(parameterService, orderService));
     map.put("getAccountCurrentBidOrders", new GetAccountCurrentBidOrders(parameterService));
     map.put("getAllOpenAskOrders", new GetAllOpenAskOrders(orderService));
     map.put("getAllOpenBidOrders", new GetAllOpenBidOrders(orderService));
     map.put("getAskOrder", new GetAskOrder(orderService));
-    map.put("getAskOrderIds", new GetAskOrderIds(parameterService));
-    map.put("getAskOrders", new GetAskOrders(parameterService));
+    map.put("getAskOrderIds", new GetAskOrderIds(parameterService, orderService));
+    map.put("getAskOrders", new GetAskOrders(parameterService, orderService));
     map.put("getBidOrder", GetBidOrder.instance);
     map.put("getBidOrderIds", new GetBidOrderIds(parameterService, orderService));
     map.put("getBidOrders", new GetBidOrders(parameterService, orderService));

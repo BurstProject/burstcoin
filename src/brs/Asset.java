@@ -14,10 +14,6 @@ public class Asset {
     return Burst.getStores().getAssetStore().getAssetTable();
   }
 
-  public static BurstIterator<Asset> getAllAssets(int from, int to) {
-    return assetTable().getAll(from, to);
-  }
-
   public static int getCount() {
     return assetTable().getCount();
   }

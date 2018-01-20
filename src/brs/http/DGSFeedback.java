@@ -31,7 +31,7 @@ public final class DGSFeedback extends CreateTransaction {
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
 
-    DigitalGoodsStore.Purchase purchase = ParameterParser.getPurchase(req);
+    DigitalGoodsStore.Purchase purchase = parameterService.getPurchase(req);
 
     Account buyerAccount = parameterService.getSenderAccount(req);
     if (buyerAccount.getId() != purchase.getBuyerId()) {
