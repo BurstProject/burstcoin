@@ -179,10 +179,6 @@ public class Account {
     return accountTable().getCount();
   }
 
-  public static int getAssetAccountsCount(long assetId) {
-    return Burst.getStores().getAccountStore().getAssetAccountsCount(assetId);
-  }
-
   public static Account getAccount(long id) {
     return id == 0 ? null : accountTable().get(accountBurstKeyFactory().newKey(id));
   }

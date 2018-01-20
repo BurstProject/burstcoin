@@ -34,10 +34,6 @@ public class AssetTransfer {
     return listeners.removeListener(listener, eventType);
   }
 
-  public static int getTransferCount(long assetId) {
-    return Burst.getStores().getAssetTransferStore().getTransferCount(assetId);
-  }
-
   static AssetTransfer addAssetTransfer(Transaction transaction, Attachment.ColoredCoinsAssetTransfer attachment) {
     AssetTransfer assetTransfer = new AssetTransfer(transaction, attachment);
     assetTransferTable().insert(assetTransfer);

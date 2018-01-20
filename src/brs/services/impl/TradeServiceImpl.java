@@ -35,4 +35,10 @@ public class TradeServiceImpl implements TradeService {
   public int getCount() {
     return tradeTable.getCount();
   }
+
+  @Override
+  public int getTradeCount(long assetId) {
+    return tradeStore.getTradeCount(assetId);
+  }
+
 }

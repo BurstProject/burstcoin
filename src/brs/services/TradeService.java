@@ -12,4 +12,6 @@ public interface TradeService {
   BurstIterator<Trade> getAccountTrades(long id, int from, int to);
 
   int getCount();
+
+  int getTradeCount(long assetId);
 }

@@ -242,7 +242,7 @@ public final class Burst {
     final OrderService orderService = new OrderServiceImpl(stores.getOrderStore());
 
     APIServlet.injectServices(getTransactionProcessor(), getBlockchain(), getBlockchainProcessor(), parameterService, accountService,
-        aliasService, orderService, assetService, assetTransferService, tradeService, escrowService, digitalGoodsStoreService);
+        aliasService, orderService, assetService, assetTransferService, tradeService, escrowService, digitalGoodsStoreService, assetAccountService);
   }
 
   public static void shutdown() {
