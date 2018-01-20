@@ -22,10 +22,6 @@ public class Asset {
     return assetTable().get(assetDbKeyFactory().newKey(id));
   }
 
-  public static BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
-    return Burst.getStores().getAssetStore().getAssetsIssuedBy(accountId, from, to);
-  }
-
   static void addAsset(Transaction transaction, Attachment.ColoredCoinsAssetIssuance attachment) {
     assetTable().insert(new Asset(transaction, attachment));
   }

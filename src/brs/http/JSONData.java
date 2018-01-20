@@ -109,7 +109,7 @@ public final class JSONData {
     return json;
   }
 
-  static JSONObject asset(Asset asset) {
+  static JSONObject asset(Asset asset, int tradeCount, int transferCount, int assetAccountsCount) {
     JSONObject json = new JSONObject();
     putAccount(json, ACCOUNT_RESPONSE, asset.getAccountId());
     json.put(NAME_RESPONSE, asset.getName());
@@ -117,9 +117,9 @@ public final class JSONData {
     json.put(DECIMALS_RESPONSE, asset.getDecimals());
     json.put(QUANTITY_NQT_RESPONSE, String.valueOf(asset.getQuantityQNT()));
     json.put(ASSET_RESPONSE, Convert.toUnsignedLong(asset.getId()));
-    json.put(NUMBER_OF_TRADES_RESPONSE, Trade.getTradeCount(asset.getId()));
-    json.put(NUMBER_OF_TRANSFERS_RESPONSE, AssetTransfer.getTransferCount(asset.getId()));
-    json.put(NUMBER_OF_ACCOUNTS_RESPONSE, Account.getAssetAccountsCount(asset.getId()));
+    json.put(NUMBER_OF_TRADES_RESPONSE, tradeCount);
+    json.put(NUMBER_OF_TRANSFERS_RESPONSE, transferCount);
+    json.put(NUMBER_OF_ACCOUNTS_RESPONSE, assetAccountsCount);
     return json;
   }
 

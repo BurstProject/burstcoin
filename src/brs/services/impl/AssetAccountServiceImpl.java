@@ -1,6 +1,7 @@
 package brs.services.impl;
 
 import brs.Account.AccountAsset;
+import brs.Burst;
 import brs.db.BurstIterator;
 import brs.db.store.AccountStore;
 import brs.services.AssetAccountService;
@@ -24,5 +25,10 @@ public class AssetAccountServiceImpl implements AssetAccountService {
       return getAssetAccounts(assetId, from, to);
     }
     return accountStore.getAssetAccounts(assetId, height, from, to);
+  }
+
+  @Override
+  public int getAssetAccountsCount(long assetId) {
+    return accountStore.getAssetAccountsCount(assetId);
   }
 }

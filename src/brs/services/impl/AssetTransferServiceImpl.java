@@ -1,6 +1,7 @@
 package brs.services.impl;
 
 import brs.AssetTransfer;
+import brs.Burst;
 import brs.db.BurstIterator;
 import brs.db.store.AssetTransferStore;
 import brs.services.AssetTransferService;
@@ -21,6 +22,11 @@ public class AssetTransferServiceImpl implements AssetTransferService {
   @Override
   public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
     return assetTransferStore.getAccountAssetTransfers(accountId, assetId, from, to);
+  }
+
+  @Override
+  public int getTransferCount(long assetId) {
+    return assetTransferStore.getTransferCount(assetId);
   }
 
 }

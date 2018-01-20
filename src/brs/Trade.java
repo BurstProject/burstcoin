@@ -34,10 +34,6 @@ public class Trade {
     return listeners.removeListener(listener, eventType);
   }
 
-  public static int getTradeCount(long assetId) {
-    return Burst.getStores().getTradeStore().getTradeCount(assetId);
-  }
-
   static Trade addTrade(long assetId, Block block, Order.Ask askOrder, Order.Bid bidOrder) {
     Trade trade = new Trade(assetId, block, askOrder, bidOrder);
     tradeTable.insert(trade);

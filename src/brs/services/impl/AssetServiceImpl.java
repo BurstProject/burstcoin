@@ -3,6 +3,7 @@ package brs.services.impl;
 import brs.Account.AccountAsset;
 import brs.Asset;
 import brs.AssetTransfer;
+import brs.Burst;
 import brs.Trade;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
@@ -15,6 +16,7 @@ import brs.services.TradeService;
 
 public class AssetServiceImpl implements AssetService {
 
+  private final AssetStore assetStore;
   private final AssetAccountService assetAccountService;
   private final TradeService tradeService;
   private final AssetTransferService assetTransferService;
@@ -26,6 +28,7 @@ public class AssetServiceImpl implements AssetService {
   public AssetServiceImpl(AssetAccountService assetAccountService, TradeService tradeService, AssetStore assetStore, AssetTransferService assetTransferService) {
     this.assetAccountService = assetAccountService;
     this.tradeService = tradeService;
+    this.assetStore = assetStore;
     this.assetTable = assetStore.getAssetTable();
     this.assetDbKeyFactory = assetStore.getAssetDbKeyFactory();
     this.assetTransferService = assetTransferService;
@@ -63,4 +66,10 @@ public class AssetServiceImpl implements AssetService {
   public BurstIterator<Asset> getAllAssets(int from, int to) {
     return assetTable.getAll(from, to);
   }
+
+  @Override
+  public BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
+    return assetStore.getAssetsIssuedBy(accountId, from, to);
+  }
+
 }
