@@ -4,6 +4,7 @@ import brs.BlockImpl;
 import brs.BurstException;
 import java.sql.ResultSet;
 import org.jooq.DSLContext;
+import brs.schema.tables.records.BlockRecord;
 
 public interface BlockDb {
   BlockImpl findBlock(long blockId);
@@ -19,6 +20,8 @@ public interface BlockDb {
   BlockImpl findLastBlock(int timestamp);
 
   BlockImpl loadBlock(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException;
+
+  BlockImpl loadBlock(BlockRecord r) throws BurstException.ValidationException;
 
   void saveBlock(DSLContext ctx, BlockImpl block);
 
