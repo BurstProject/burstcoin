@@ -19,21 +19,22 @@ import static brs.http.common.Parameters.PURCHASE_PARAMETER;
 public final class DGSFeedback extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final AccountService accountService;
   private final Blockchain blockchain;
 
   DGSFeedback(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
     super(new APITag[] {APITag.DGS, APITag.CREATE_TRANSACTION},
         parameterService, transactionProcessor, blockchain, accountService, PURCHASE_PARAMETER);
     this.parameterService = parameterService;
+    this.accountService = accountService;
     this.blockchain = blockchain;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
-
     DigitalGoodsStore.Purchase purchase = parameterService.getPurchase(req);
-
     Account buyerAccount = parameterService.getSenderAccount(req);
+
     if (buyerAccount.getId() != purchase.getBuyerId()) {
       return INCORRECT_PURCHASE;
     }
@@ -41,8 +42,9 @@ public final class DGSFeedback extends CreateTransaction {
       return GOODS_NOT_DELIVERED;
     }
 
-    Account sellerAccount = Account.getAccount(purchase.getSellerId());
+    Account sellerAccount = accountService.getAccount(purchase.getSellerId());
     Attachment attachment = new Attachment.DigitalGoodsFeedback(purchase.getId(), blockchain.getHeight());
+
     return createTransaction(req, buyerAccount, sellerAccount.getId(), 0, attachment);
   }
 
