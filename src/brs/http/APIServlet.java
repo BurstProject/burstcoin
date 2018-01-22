@@ -18,6 +18,7 @@ import brs.services.DGSGoodsStoreService;
 import brs.services.EscrowService;
 import brs.services.OrderService;
 import brs.services.ParameterService;
+import brs.services.SubscriptionService;
 import brs.services.TradeService;
 import brs.util.JSON;
 import brs.util.Subnet;
@@ -46,7 +47,8 @@ public final class APIServlet extends HttpServlet {
 
   public static void injectServices(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
       AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
-      TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService) {
+      TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService,
+      SubscriptionService subscriptionService) {
     final Map<String, APIRequestHandler> map = new HashMap<>();
 
     map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService));
@@ -154,10 +156,10 @@ public final class APIServlet extends HttpServlet {
     map.put("getEscrowTransaction", new GetEscrowTransaction(escrowService));
     map.put("getAccountEscrowTransactions", new GetAccountEscrowTransactions(parameterService));
     map.put("sendMoneySubscription", new SendMoneySubscription(parameterService, transactionProcessor, blockchain, accountService));
-    map.put("subscriptionCancel", new SubscriptionCancel(parameterService, transactionProcessor, blockchain, accountService));
-    map.put("getSubscription", GetSubscription.instance);
-    map.put("getAccountSubscriptions", new GetAccountSubscriptions(parameterService));
-    map.put("getSubscriptionsToAccount", new GetSubscriptionsToAccount(parameterService));
+    map.put("subscriptionCancel", new SubscriptionCancel(parameterService, transactionProcessor, blockchain, accountService, subscriptionService));
+    map.put("getSubscription", new GetSubscription(subscriptionService));
+    map.put("getAccountSubscriptions", new GetAccountSubscriptions(parameterService, subscriptionService));
+    map.put("getSubscriptionsToAccount", new GetSubscriptionsToAccount(parameterService, subscriptionService));
     map.put("createATProgram", new CreateATProgram(parameterService, transactionProcessor, blockchain, accountService));
     map.put("getAT", GetAT.instance);
     map.put("getATDetails", GetATDetails.instance);

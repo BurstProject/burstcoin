@@ -2,6 +2,7 @@ package brs.http;
 
 import brs.BurstException;
 import brs.Subscription;
+import brs.services.SubscriptionService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -14,10 +15,11 @@ import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
 public final class GetSubscription extends APIServlet.APIRequestHandler {
 	
-  static final GetSubscription instance = new GetSubscription();
-	
-  private GetSubscription() {
+  private final SubscriptionService subscriptionService;
+
+  GetSubscription(SubscriptionService subscriptionService) {
     super(new APITag[] {APITag.ACCOUNTS}, SUBSCRIPTION_PARAMETER);
+    this.subscriptionService = subscriptionService;
   }
 	
   @Override
@@ -33,7 +35,7 @@ public final class GetSubscription extends APIServlet.APIRequestHandler {
       return response;
     }
 		
-    Subscription subscription = Subscription.getSubscription(subscriptionId);
+    Subscription subscription = subscriptionService.getSubscription(subscriptionId);
 
     if(subscription == null) {
       JSONObject response = new JSONObject();

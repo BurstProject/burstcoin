@@ -12,6 +12,7 @@ import brs.Subscription;
 import brs.TransactionProcessor;
 import brs.services.AccountService;
 import brs.services.ParameterService;
+import brs.services.SubscriptionService;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
@@ -20,12 +21,15 @@ import org.json.simple.JSONStreamAware;
 public final class SubscriptionCancel extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final SubscriptionService subscriptionService;
   private final Blockchain blockchain;
 
-  public SubscriptionCancel(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
+  public SubscriptionCancel(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService,
+      SubscriptionService subscriptionService) {
     super(new APITag[]{APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, SUBSCRIPTION_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
+    this.subscriptionService = subscriptionService;
   }
 
   @Override
@@ -50,7 +54,7 @@ public final class SubscriptionCancel extends CreateTransaction {
       return response;
     }
 
-    Subscription subscription = Subscription.getSubscription(subscriptionId);
+    Subscription subscription = subscriptionService.getSubscription(subscriptionId);
     if (subscription == null) {
       JSONObject response = new JSONObject();
       response.put(ERROR_CODE_RESPONSE, 5);
