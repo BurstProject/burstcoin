@@ -22,10 +22,6 @@ public class AssetTransfer {
     return Burst.getStores().getAssetTransferStore().getAssetTransferTable();
   }
 
-  public static int getCount() {
-    return assetTransferTable().getCount();
-  }
-
   public static boolean addListener(Listener<AssetTransfer> listener, Event eventType) {
     return listeners.addListener(listener, eventType);
   }

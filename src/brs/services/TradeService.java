@@ -14,4 +14,6 @@ public interface TradeService {
   int getCount();
 
   int getTradeCount(long assetId);
+
+  BurstIterator<Trade> getAllTrades(int from, int to);
 }

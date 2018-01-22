@@ -205,24 +205,19 @@ public final class DigitalGoodsStore {
       return Burst.getStores().getDigitalGoodsStoreStore().getFeedbackDbKeyFactory();
     }
 
-
-    @Deprecated
     private static final VersionedValuesTable<Purchase, EncryptedData> feedbackTable() {
       return Burst.getStores().getDigitalGoodsStoreStore().getFeedbackTable();
     }
 
-
     private static final BurstKey.LongKeyFactory<Purchase> publicFeedbackDbKeyFactory() {
       return Burst.getStores().getDigitalGoodsStoreStore().getPublicFeedbackDbKeyFactory();
     }
-
 
     private static final VersionedValuesTable<Purchase, String> publicFeedbackTable() {
       return Burst.getStores().getDigitalGoodsStoreStore().getPublicFeedbackTable();
     }
 
     static void init() {}
-
 
     private final long id;
     public final BurstKey dbKey;
@@ -407,31 +402,14 @@ public final class DigitalGoodsStore {
       purchaseTable().insert(this);
     }
 
-    /*
-      @Override
-      public int compareTo(Purchase other) {
-      if (this.timestamp < other.timestamp) {
-      return 1;
-      }
-      if (this.timestamp > other.timestamp) {
-      return -1;
-      }
-      return Long.compare(this.id, other.id);
-      }
-    */
-
   }
-//TODO Brabantian which methods can get their own service?
+
   public static Goods getGoods(long goodsId) {
     return Goods.goodsTable().get(Goods.goodsDbKeyFactory().newKey(goodsId));
   }
 
   public static Purchase getPurchase(long purchaseId) {
     return Purchase.purchaseTable().get(Purchase.purchaseDbKeyFactory().newKey(purchaseId));
-  }
-
-  public static BurstIterator<Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
-    return Burst.getStores().getDigitalGoodsStoreStore().getPendingSellerPurchases(sellerId, from, to);
   }
 
   static Purchase getPendingPurchase(long purchaseId) {

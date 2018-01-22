@@ -34,6 +34,7 @@ public final class GetSubscription extends APIServlet.APIRequestHandler {
     }
 		
     Subscription subscription = Subscription.getSubscription(subscriptionId);
+
     if(subscription == null) {
       JSONObject response = new JSONObject();
       response.put(ERROR_CODE_RESPONSE, 5);

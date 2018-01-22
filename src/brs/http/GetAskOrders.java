@@ -35,7 +35,7 @@ public final class GetAskOrders extends APIServlet.APIRequestHandler {
     int lastIndex = ParameterParser.getLastIndex(req);
 
     JSONArray orders = new JSONArray();
-    try (BurstIterator<Order.Ask> askOrders = orderService.getSortedOrders(assetId, firstIndex, lastIndex)) {
+    try (BurstIterator<Order.Ask> askOrders = orderService.getSortedAskOrders(assetId, firstIndex, lastIndex)) {
       while (askOrders.hasNext()) {
         orders.add(JSONData.askOrder(askOrders.next()));
       }

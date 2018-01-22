@@ -3,6 +3,7 @@ package brs.http;
 import brs.DigitalGoodsStore;
 import brs.BurstException;
 import brs.db.BurstIterator;
+import brs.services.DGSGoodsStoreService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -16,10 +17,11 @@ import static brs.http.common.Parameters.SELLER_PARAMETER;
 
 public final class GetDGSPendingPurchases extends APIServlet.APIRequestHandler {
 
-  static final GetDGSPendingPurchases instance = new GetDGSPendingPurchases();
+  private final DGSGoodsStoreService dgsGoodStoreService;
 
-  private GetDGSPendingPurchases() {
+  GetDGSPendingPurchases(DGSGoodsStoreService dgsGoodStoreService) {
     super(new APITag[] {APITag.DGS}, SELLER_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
+    this.dgsGoodStoreService = dgsGoodStoreService;
   }
 
   @Override
@@ -35,7 +37,7 @@ public final class GetDGSPendingPurchases extends APIServlet.APIRequestHandler {
     JSONObject response = new JSONObject();
     JSONArray purchasesJSON = new JSONArray();
 
-    try (BurstIterator<DigitalGoodsStore.Purchase> purchases = DigitalGoodsStore.getPendingSellerPurchases(sellerId, firstIndex, lastIndex)) {
+    try (BurstIterator<DigitalGoodsStore.Purchase> purchases = dgsGoodStoreService.getPendingSellerPurchases(sellerId, firstIndex, lastIndex)) {
       while (purchases.hasNext()) {
         purchasesJSON.add(JSONData.purchase(purchases.next()));
       }

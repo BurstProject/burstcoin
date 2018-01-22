@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 import brs.Account.AccountAsset;
 import brs.db.BurstIterator;
 import brs.db.store.AccountStore;
-import brs.services.AccountService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -64,5 +63,12 @@ public class AssetAccountServiceImplTest {
     when(mockAccountStore.getAssetAccounts(eq(assetId), eq(from), eq(to))).thenReturn(mockAccountIterator);
 
     assertEquals(mockAccountIterator, t.getAssetAccounts(assetId, height, from, to));
+  }
+
+  @Test
+  public void getAssetAccountsCount() {
+    when(mockAccountStore.getAssetAccountsCount(eq(123L))).thenReturn(5);
+
+    assertEquals(5L, t.getAssetAccountsCount(123));
   }
 }

@@ -1,10 +1,8 @@
 package brs;
 
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.util.Convert;
-
 
 public abstract class Order {
 
@@ -134,11 +132,6 @@ public abstract class Order {
       return Burst.getStores().getOrderStore().getAskOrderTable();
     }
 
-//TODO move
-    public static int getCount() {
-      return askOrderTable().getCount();
-    }
-
     public static Ask getAskOrder(long orderId) {
       return askOrderTable().get(askOrderDbKeyFactory().newKey(orderId));
     }
@@ -211,24 +204,12 @@ public abstract class Order {
       return Burst.getStores().getOrderStore().getBidOrderTable();
     }
 
-    public static int getCount() {
+    public static int getBidCount() {
       return bidOrderTable().getCount();
     }
 
     public static Bid getBidOrder(long orderId) {
       return bidOrderTable().get(bidOrderDbKeyFactory().newKey(orderId));
-    }
-
-    public static BurstIterator<Bid> getBidOrdersByAccount(long accountId, int from, int to) {
-      return Burst.getStores().getOrderStore().getBidOrdersByAccount(accountId, from,to);
-    }
-
-    public static BurstIterator<Bid> getBidOrdersByAsset(long assetId, int from, int to) {
-      return Burst.getStores().getOrderStore().getBidOrdersByAsset(assetId, from, to);
-    }
-
-    public static BurstIterator<Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
-      return Burst.getStores().getOrderStore().getBidOrdersByAccountAsset(accountId, assetId, from, to);
     }
 
     private static Bid getNextOrder(long assetId) {
@@ -271,18 +252,5 @@ public abstract class Order {
                                            + " for order: " + Convert.toUnsignedLong(getId()));
       }
     }
-
-    /*
-      @Override
-      public int compareTo(Bid o) {
-      if (this.getPriceNQT() > o.getPriceNQT()) {
-      return -1;
-      } else if (this.getPriceNQT() < o.getPriceNQT()) {
-      return 1;
-      } else {
-      return super.compareTo(o);
-      }
-      }
-    */
   }
 }

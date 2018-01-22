@@ -6,4 +6,6 @@ import brs.db.BurstIterator;
 public interface EscrowService {
 
   BurstIterator<Escrow> getAllEscrowTransactions();
+
+  Escrow getEscrowTransaction(Long id);
 }

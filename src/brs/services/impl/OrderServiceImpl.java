@@ -1,6 +1,5 @@
 package brs.services.impl;
 
-import brs.Burst;
 import brs.Order.Ask;
 import brs.Order.Bid;
 import brs.db.BurstIterator;
@@ -61,9 +60,28 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public BurstIterator<Ask> getSortedOrders(long assetId, int from, int to) {
-    return orderStore.getSortedAsks(assetId, from,to);
+  public BurstIterator<Ask> getSortedAskOrders(long assetId, int from, int to) {
+    return orderStore.getSortedAsks(assetId, from, to);
   }
 
+  @Override
+  public int getBidCount() {
+    return bidOrderTable.getCount();
+  }
+
+  @Override
+  public int getAskCount() {
+    return askOrderTable.getCount();
+  }
+
+  @Override
+  public BurstIterator<Bid> getBidOrdersByAccount(long accountId, int from, int to) {
+    return orderStore.getBidOrdersByAccount(accountId, from, to);
+  }
+
+  @Override
+  public BurstIterator<Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
+    return orderStore.getBidOrdersByAccountAsset(accountId, assetId, from, to);
+  }
 
 }

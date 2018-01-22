@@ -1,7 +1,6 @@
 package brs;
 
 import brs.db.EntityTable;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 
 public class Asset {

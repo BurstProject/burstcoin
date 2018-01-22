@@ -2,6 +2,7 @@ package brs.http;
 
 import brs.BurstException;
 import brs.Order;
+import brs.services.OrderService;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,19 +12,22 @@ import static brs.http.common.Parameters.ORDER_PARAMETER;
 
 public final class GetBidOrder extends APIServlet.APIRequestHandler {
 
-  static final GetBidOrder instance = new GetBidOrder();
+  private final OrderService orderService;
 
-  private GetBidOrder() {
+  GetBidOrder(OrderService orderService) {
     super(new APITag[] {APITag.AE}, ORDER_PARAMETER);
+    this.orderService = orderService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     long orderId = ParameterParser.getOrderId(req);
-    Order.Bid bidOrder = Order.Bid.getBidOrder(orderId);
+    Order.Bid bidOrder = orderService.getBidOrder(orderId);
+
     if (bidOrder == null) {
       return UNKNOWN_ORDER;
     }
+
     return JSONData.bidOrder(bidOrder);
   }
 

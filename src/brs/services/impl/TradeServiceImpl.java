@@ -41,4 +41,9 @@ public class TradeServiceImpl implements TradeService {
     return tradeStore.getTradeCount(assetId);
   }
 
+  @Override
+  public BurstIterator<Trade> getAllTrades(int from, int to) {
+    return tradeTable.getAll(from, to);
+  }
+
 }
