@@ -3,7 +3,6 @@ package brs.services.impl;
 import brs.Account.AccountAsset;
 import brs.Asset;
 import brs.AssetTransfer;
-import brs.Burst;
 import brs.Trade;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;

@@ -1,7 +1,6 @@
 package brs.services.impl;
 
 import brs.Account.AccountAsset;
-import brs.Burst;
 import brs.db.BurstIterator;
 import brs.db.store.AccountStore;
 import brs.services.AssetAccountService;

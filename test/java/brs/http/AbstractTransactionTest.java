@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-public class AbstractTransactionTest extends AbstractUnitTest {
+public abstract class AbstractTransactionTest extends AbstractUnitTest {
 
   public void prepareTransactionTest(HttpServletRequest req, ParameterService parameterServiceMock, TransactionProcessor transactionProcessorMock, AliasService aliasService) throws BurstException {
     Account sellerAccount = mock(Account.class);

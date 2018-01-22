@@ -1,7 +1,6 @@
 package brs;
 
 import brs.db.EntityTable;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.util.Convert;
 import brs.util.Listener;
@@ -16,10 +15,13 @@ public class Trade {
 
   private static final Listeners<Trade,Event> listeners = new Listeners<>();
 
-  private static final BurstKey.LinkKeyFactory<Trade> tradeDbKeyFactory =
-      Burst.getStores().getTradeStore().getTradeDbKeyFactory();
+  private static final BurstKey.LinkKeyFactory<Trade> tradeDbKeyFactory() {
+    return Burst.getStores().getTradeStore().getTradeDbKeyFactory();
+  }
 
-  private static final EntityTable<Trade> tradeTable = Burst.getStores().getTradeStore().getTradeTable();
+  private static final EntityTable<Trade> tradeTable() {
+    return Burst.getStores().getTradeStore().getTradeTable();
+  }
 
   public static boolean addListener(Listener<Trade> listener, Event eventType) {
     return listeners.addListener(listener, eventType);
@@ -31,7 +33,7 @@ public class Trade {
 
   static Trade addTrade(long assetId, Block block, Order.Ask askOrder, Order.Bid bidOrder) {
     Trade trade = new Trade(assetId, block, askOrder, bidOrder);
-    tradeTable.insert(trade);
+    tradeTable().insert(trade);
     listeners.notify(trade, Event.TRADE);
     return trade;
   }
@@ -84,7 +86,7 @@ public class Trade {
     this.bidOrderHeight = bidOrder.getHeight();
     this.sellerId = askOrder.getAccountId();
     this.buyerId = bidOrder.getAccountId();
-    this.dbKey =  tradeDbKeyFactory.newKey(this.askOrderId, this.bidOrderId);
+    this.dbKey =  tradeDbKeyFactory().newKey(this.askOrderId, this.bidOrderId);
     this.quantityQNT = Math.min(askOrder.getQuantityQNT(), bidOrder.getQuantityQNT());
     this.isBuy = askOrderHeight < bidOrderHeight || (askOrderHeight == bidOrderHeight && askOrderId < bidOrderId);
     this.priceNQT = isBuy ? askOrder.getPriceNQT() : bidOrder.getPriceNQT();
