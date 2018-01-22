@@ -11,7 +11,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
-import brs.Block;
 import brs.BlockImpl;
 import brs.Blockchain;
 import brs.BurstException;
@@ -21,7 +20,6 @@ import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.ParameterService;
 import java.util.Arrays;
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

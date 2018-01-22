@@ -14,6 +14,7 @@ import static brs.http.JSONResponses.MISSING_SELLER;
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.SELLER_PARAMETER;
+import static brs.http.common.ResultFields.PURCHASES_RESPONSE;
 
 public final class GetDGSPendingPurchases extends APIServlet.APIRequestHandler {
 
@@ -26,11 +27,12 @@ public final class GetDGSPendingPurchases extends APIServlet.APIRequestHandler {
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
-
     long sellerId = ParameterParser.getSellerId(req);
+
     if (sellerId == 0) {
       return MISSING_SELLER;
     }
+
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
 
@@ -43,7 +45,7 @@ public final class GetDGSPendingPurchases extends APIServlet.APIRequestHandler {
       }
     }
 
-    response.put("purchases", purchasesJSON);
+    response.put(PURCHASES_RESPONSE, purchasesJSON);
     return response;
   }
 
