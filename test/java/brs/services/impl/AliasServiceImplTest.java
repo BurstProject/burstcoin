@@ -76,4 +76,10 @@ public class AliasServiceImplTest {
 
     assertEquals(mockOffer, t.getOffer(mockAlias));
   }
+
+  @Test
+  public void getAliasCount() {
+    when(aliasTableMock.getCount()).thenReturn(5);
+    assertEquals(5L, t.getAliasCount());
+  }
 }

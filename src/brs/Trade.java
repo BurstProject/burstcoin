@@ -21,11 +21,6 @@ public class Trade {
 
   private static final EntityTable<Trade> tradeTable = Burst.getStores().getTradeStore().getTradeTable();
 
-
-  public static BurstIterator<Trade> getAllTrades(int from, int to) {
-    return tradeTable.getAll(from, to);
-  }
-
   public static boolean addListener(Listener<Trade> listener, Event eventType) {
     return listeners.addListener(listener, eventType);
   }

@@ -6,13 +6,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Trade;
+import brs.common.AbstractUnitTest;
 import brs.db.BurstIterator;
 import brs.db.sql.EntitySqlTable;
 import brs.db.store.TradeStore;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TradeServiceImplTest {
+public class TradeServiceImplTest extends AbstractUnitTest {
 
   private TradeServiceImpl t;
 
@@ -76,5 +77,27 @@ public class TradeServiceImplTest {
     when(mockTradeTable.getCount()).thenReturn(count);
 
     assertEquals(count, t.getCount());
+  }
+
+  @Test
+  public void getTradeCount() {
+    final long assetId = 123L;
+    final int count = 5;
+
+    when(mockTradeStore.getTradeCount(eq(assetId))).thenReturn(count);
+
+    assertEquals(count, t.getTradeCount(assetId));
+  }
+
+  @Test
+  public void getAllTrades() {
+    final int from = 1;
+    final int to = 2;
+
+    final BurstIterator<Trade> mockTradeIterator = mockBurstIterator();
+
+    when(mockTradeTable.getAll(eq(from), eq(to))).thenReturn(mockTradeIterator);
+
+    assertEquals(mockTradeIterator, t.getAllTrades(from, to));
   }
 }

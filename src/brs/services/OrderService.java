@@ -20,5 +20,13 @@ public interface OrderService {
 
   BurstIterator<Ask> getAskOrdersByAccountAsset(long accountId, long assetId, int from, int to);
 
-  BurstIterator<Ask> getSortedOrders(long assetId, int from, int to);
+  BurstIterator<Ask> getSortedAskOrders(long assetId, int from, int to);
+
+  int getBidCount();
+
+  int getAskCount();
+
+  BurstIterator<Bid> getBidOrdersByAccount(long accountId, int from, int to);
+
+  BurstIterator<Bid> getBidOrdersByAccountAsset(long accountId, long assetId, int from, int to);
 }
