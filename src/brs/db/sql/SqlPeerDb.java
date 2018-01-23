@@ -24,7 +24,7 @@ public class SqlPeerDb implements PeerDb {
     @Override public void deletePeers(Collection<String> peers) {
         try (DSLContext ctx = Db.getDSLContext()) {
             for (String peer : peers) {
-                ctx.deleteFrom(PEER).where(PEER.ADDRESS.eq(peer));
+              ctx.deleteFrom(PEER).where(PEER.ADDRESS.eq(peer)).execute();
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
