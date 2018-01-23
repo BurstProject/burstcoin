@@ -59,6 +59,7 @@ case "$MY_CMD" in
         ;;
     "test")
 	mvn -Dtest=$2 test
+        ;;
     *)
         usage
         ;;
