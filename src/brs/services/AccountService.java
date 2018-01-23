@@ -8,7 +8,7 @@ import brs.db.BurstIterator;
 
 public interface AccountService {
 
-  abstract Account getAccount(long id);
+  Account getAccount(long id);
 
   Account getAccount(long id, int height);
 
@@ -21,4 +21,6 @@ public interface AccountService {
   BurstIterator<RewardRecipientAssignment> getAccountsWithRewardRecipient(Long recipientId);
 
   BurstIterator<Account> getAllAccounts(int from, int to);
+
+  Account addOrGetAccount(long id);
 }

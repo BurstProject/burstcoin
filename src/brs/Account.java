@@ -230,7 +230,7 @@ public class Account {
   protected String description;
 
 
-  protected Account(long id) {
+  public Account(long id) {
     if (id != Crypto.rsDecode(Crypto.rsEncode(id))) {
       logger.log(Level.INFO, "CRITICAL ERROR: Reed-Solomon encoding fails for {0}", id);
     }

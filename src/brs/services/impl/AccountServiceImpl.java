@@ -75,6 +75,16 @@ public class AccountServiceImpl implements AccountService {
     return accountTable.getAll(from, to);
   }
 
+  @Override
+  public Account addOrGetAccount(long id) {
+    Account account = accountTable.get(accountBurstKeyFactory.newKey(id));
+    if (account == null) {
+      account = new Account(id);
+      accountTable.insert(account);
+    }
+    return account;
+  }
+
   public static long getId(byte[] publicKey) {
     byte[] publicKeyHash = Crypto.sha256().digest(publicKey);
     return Convert.fullHashToId(publicKeyHash);

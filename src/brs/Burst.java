@@ -1,6 +1,9 @@
 package brs;
 
+import brs.AT.HandleATBlockTransactionsListener;
+import brs.DigitalGoodsStore.DevNullListener;
 import brs.http.APIServlet;
+import brs.services.ATService;
 import brs.services.AssetAccountService;
 import brs.services.AccountService;
 import brs.services.AliasService;
@@ -12,6 +15,7 @@ import brs.services.OrderService;
 import brs.services.ParameterService;
 import brs.services.SubscriptionService;
 import brs.services.TradeService;
+import brs.services.impl.ATServiceImpl;
 import brs.services.impl.AssetAccountServiceImpl;
 import brs.services.impl.AccountServiceImpl;
 import brs.services.impl.AliasServiceImpl;
@@ -231,6 +235,7 @@ public final class Burst {
   public static void init() {
     Init.init();
 
+    final ATService atService = new ATServiceImpl(Burst.getStores().getAtStore());
     final SubscriptionService subscriptionService = new SubscriptionServiceImpl(Burst.getStores().getSubscriptionStore());
     final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(Burst.getStores().getDigitalGoodsStoreStore());
     final EscrowService escrowService = new EscrowServiceImpl(Burst.getStores().getEscrowStore());
@@ -241,11 +246,21 @@ public final class Burst {
     final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
     final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
     final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,
-        digitalGoodsStoreService, getBlockchain(), getBlockchainProcessor(), getTransactionProcessor());
+        digitalGoodsStoreService, getBlockchain(), getBlockchainProcessor(), getTransactionProcessor(), atService);
     final OrderService orderService = new OrderServiceImpl(stores.getOrderStore());
 
     APIServlet.injectServices(getTransactionProcessor(), getBlockchain(), getBlockchainProcessor(), parameterService, accountService,
-        aliasService, orderService, assetService, assetTransferService, tradeService, escrowService, digitalGoodsStoreService, assetAccountService, subscriptionService);
+        aliasService, orderService, assetService, assetTransferService, tradeService, escrowService, digitalGoodsStoreService, assetAccountService, subscriptionService, atService);
+
+    addBlockchainListeners(Burst.getBlockchainProcessor(), accountService, digitalGoodsStoreService, getBlockchain(), Burst.getDbs().getTransactionDb());
+  }
+
+  private static void addBlockchainListeners(BlockchainProcessor blockchainProcessor, AccountService accountService, DGSGoodsStoreService goodsService, Blockchain blockchain, TransactionDb transactionDb) {
+    final HandleATBlockTransactionsListener handleATBlockTransactionListener = new HandleATBlockTransactionsListener(accountService, blockchain, transactionDb);
+    final DevNullListener devNullListener = new DevNullListener(accountService, goodsService);
+
+    blockchainProcessor.addListener(handleATBlockTransactionListener, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
+    blockchainProcessor.addListener(devNullListener, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
   }
 
   public static void shutdown() {

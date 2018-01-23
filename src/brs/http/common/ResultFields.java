@@ -100,5 +100,7 @@ public class ResultFields {
   public static final String ID_RS_RESPONSE = "idRS";
   public static final String DECISION_RESPONSE = "decision";
   public static final String SIGNERS_RESPONSE = "signers";
+  public static final String ATS_RESPONSE = "ats";
+  public static final String AT_IDS_RESPONSE = "atIds";
 
 }

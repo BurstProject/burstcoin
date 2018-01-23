@@ -9,6 +9,7 @@ import brs.BlockchainProcessor;
 import brs.Burst;
 import brs.BurstException;
 import brs.TransactionProcessor;
+import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.AssetAccountService;
@@ -48,7 +49,7 @@ public final class APIServlet extends HttpServlet {
   public static void injectServices(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
       AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
       TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService,
-      SubscriptionService subscriptionService) {
+      SubscriptionService subscriptionService, ATService atService) {
     final Map<String, APIRequestHandler> map = new HashMap<>();
 
     map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService));
@@ -161,11 +162,11 @@ public final class APIServlet extends HttpServlet {
     map.put("getAccountSubscriptions", new GetAccountSubscriptions(parameterService, subscriptionService));
     map.put("getSubscriptionsToAccount", new GetSubscriptionsToAccount(parameterService, subscriptionService));
     map.put("createATProgram", new CreateATProgram(parameterService, transactionProcessor, blockchain, accountService));
-    map.put("getAT", GetAT.instance);
-    map.put("getATDetails", GetATDetails.instance);
-    map.put("getATIds", GetATIds.instance);
+    map.put("getAT", new GetAT(parameterService));
+    map.put("getATDetails", new GetATDetails(parameterService));
+    map.put("getATIds", new GetATIds(atService));
     map.put("getATLong", GetATLong.instance);
-    map.put("getAccountATs", new GetAccountATs(parameterService));
+    map.put("getAccountATs", new GetAccountATs(parameterService, atService));
 
     if (API.enableDebugAPI) {
       map.put("clearUnconfirmedTransactions", new ClearUnconfirmedTransactions(transactionProcessor));

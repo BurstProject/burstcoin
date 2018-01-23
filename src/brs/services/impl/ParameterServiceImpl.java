@@ -4,6 +4,7 @@ import static brs.http.JSONResponses.HEIGHT_NOT_AVAILABLE;
 import static brs.http.JSONResponses.INCORRECT_ACCOUNT;
 import static brs.http.JSONResponses.INCORRECT_ALIAS;
 import static brs.http.JSONResponses.INCORRECT_ASSET;
+import static brs.http.JSONResponses.INCORRECT_AT;
 import static brs.http.JSONResponses.INCORRECT_ENCRYPTED_MESSAGE;
 import static brs.http.JSONResponses.INCORRECT_GOODS;
 import static brs.http.JSONResponses.INCORRECT_HEIGHT;
@@ -15,6 +16,7 @@ import static brs.http.JSONResponses.INCORRECT_RECIPIENT;
 import static brs.http.JSONResponses.MISSING_ACCOUNT;
 import static brs.http.JSONResponses.MISSING_ALIAS_OR_ALIAS_NAME;
 import static brs.http.JSONResponses.MISSING_ASSET;
+import static brs.http.JSONResponses.MISSING_AT;
 import static brs.http.JSONResponses.MISSING_GOODS;
 import static brs.http.JSONResponses.MISSING_PURCHASE;
 import static brs.http.JSONResponses.MISSING_SECRET_PHRASE;
@@ -23,11 +25,13 @@ import static brs.http.JSONResponses.MISSING_TRANSACTION_BYTES_OR_JSON;
 import static brs.http.JSONResponses.UNKNOWN_ACCOUNT;
 import static brs.http.JSONResponses.UNKNOWN_ALIAS;
 import static brs.http.JSONResponses.UNKNOWN_ASSET;
+import static brs.http.JSONResponses.UNKNOWN_AT;
 import static brs.http.JSONResponses.UNKNOWN_GOODS;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_PARAMETER;
 import static brs.http.common.Parameters.ASSET_PARAMETER;
+import static brs.http.common.Parameters.AT_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_DATA_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_NONCE_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPT_TO_SELF_MESSAGE_DATA;
@@ -45,6 +49,7 @@ import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 
+import brs.AT;
 import brs.Account;
 import brs.Alias;
 import brs.Asset;
@@ -58,6 +63,7 @@ import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
 import brs.http.ParameterException;
 import brs.http.common.Parameters;
+import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.AssetService;
@@ -84,10 +90,11 @@ public class ParameterServiceImpl implements ParameterService {
   private final Blockchain blockchain;
   private final BlockchainProcessor blockchainProcessor;
   private final TransactionProcessor transactionProcessor;
+  private final ATService atService;
 
   public ParameterServiceImpl(AccountService accountService, AliasService aliasService, AssetService assetService, DGSGoodsStoreService dgsGoodsStoreService, Blockchain blockchain,
       BlockchainProcessor blockchainProcessor,
-      TransactionProcessor transactionProcessor) {
+      TransactionProcessor transactionProcessor, ATService atService) {
     this.accountService = accountService;
     this.aliasService = aliasService;
     this.assetService = assetService;
@@ -95,6 +102,7 @@ public class ParameterServiceImpl implements ParameterService {
     this.blockchain = blockchain;
     this.blockchainProcessor = blockchainProcessor;
     this.transactionProcessor = transactionProcessor;
+    this.atService = atService;
   }
 
   @Override
@@ -368,4 +376,22 @@ public class ParameterServiceImpl implements ParameterService {
     }
   }
 
+  @Override
+  public AT getAT(HttpServletRequest req) throws ParameterException {
+    String atValue = Convert.emptyToNull(req.getParameter(AT_PARAMETER));
+    if (atValue == null) {
+      throw new ParameterException(MISSING_AT);
+    }
+    AT at;
+    try {
+      Long atId = Convert.parseUnsignedLong(atValue);
+      at = atService.getAT(atId);
+    } catch (RuntimeException e) {
+      throw new ParameterException(INCORRECT_AT);
+    }
+    if (at == null) {
+      throw new ParameterException(UNKNOWN_AT);
+    }
+    return at;
+  }
 }
