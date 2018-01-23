@@ -42,6 +42,7 @@ import brs.common.QuickMocker.MockParam;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
 import brs.http.ParameterException;
+import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.AssetService;
@@ -64,6 +65,7 @@ public class ParameterServiceImplTest {
   private Blockchain blockchainMock;
   private BlockchainProcessor blockchainProcessorMock;
   private TransactionProcessor transactionProcessorMock;
+  private ATService atServiceMock;
 
   @Before
   public void setUp() {
@@ -74,8 +76,9 @@ public class ParameterServiceImplTest {
     blockchainMock = mock(Blockchain.class);
     blockchainProcessorMock = mock(BlockchainProcessor.class);
     transactionProcessorMock = mock(TransactionProcessor.class);
+    atServiceMock = mock(ATService.class);
 
-    t = new ParameterServiceImpl(accountServiceMock, aliasServiceMock, assetServiceMock, dgsGoodsStoreServiceMock, blockchainMock, blockchainProcessorMock, transactionProcessorMock);
+    t = new ParameterServiceImpl(accountServiceMock, aliasServiceMock, assetServiceMock, dgsGoodsStoreServiceMock, blockchainMock, blockchainProcessorMock, transactionProcessorMock, atServiceMock);
   }
 
   @Test

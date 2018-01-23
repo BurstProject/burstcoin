@@ -6,6 +6,8 @@ import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
 //import brs.db.sql.*;
+import brs.services.AccountService;
+import brs.services.DGSGoodsStoreService;
 import brs.util.Convert;
 import brs.util.Listener;
 import brs.util.Listeners;
@@ -24,22 +26,30 @@ public final class DigitalGoodsStore {
     PURCHASE, DELIVERY, REFUND, FEEDBACK
   }
 
-  static {
-    Burst.getBlockchainProcessor().addListener(new Listener<Block>() {
-        @Override
-        public void notify(Block block) {
-          try (BurstIterator<Purchase> purchases = getExpiredPendingPurchases(block.getTimestamp())) {
-            while (purchases.hasNext()) {
-              Purchase purchase = purchases.next();
-              Account buyer = Account.getAccount(purchase.getBuyerId());
-              buyer.addToUnconfirmedBalanceNQT(Convert.safeMultiply(purchase.getQuantity(), purchase.getPriceNQT()));
-              getGoods(purchase.getGoodsId()).changeQuantity(purchase.getQuantity());
-              purchase.setPending(false);
-            }
-          }
+  static class DevNullListener implements Listener<Block> {
+
+    private final AccountService accountService;
+    private final DGSGoodsStoreService goodsService;
+
+    DevNullListener(AccountService accountService, DGSGoodsStoreService goodsService) {
+      this.accountService = accountService;
+      this.goodsService = goodsService;
+    }
+
+    @Override
+    public void notify(Block block) {
+      try (BurstIterator<Purchase> purchases = getExpiredPendingPurchases(block.getTimestamp())) {
+        while (purchases.hasNext()) {
+          Purchase purchase = purchases.next();
+          Account buyer = accountService.getAccount(purchase.getBuyerId());
+          buyer.addToUnconfirmedBalanceNQT(Convert.safeMultiply(purchase.getQuantity(), purchase.getPriceNQT()));
+          goodsService.getGoods(purchase.getGoodsId()).changeQuantity(purchase.getQuantity());
+          purchase.setPending(false);
         }
-      }, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
+      }
+    }
   }
+
 
   private static final Listeners<Goods,Event> goodsListeners = new Listeners<>();
 

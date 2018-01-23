@@ -228,25 +228,6 @@ final class ParameterParser {
   private ParameterParser() {
   } // never
 
-
-  static AT getAT(HttpServletRequest req) throws ParameterException {
-    String atValue = Convert.emptyToNull(req.getParameter(AT_PARAMETER));
-    if (atValue == null) {
-      throw new ParameterException(MISSING_AT);
-    }
-    AT at;
-    try {
-      Long atId = Convert.parseUnsignedLong(atValue);
-      at = AT.getAT(atId);
-    } catch (RuntimeException e) {
-      throw new ParameterException(INCORRECT_AT);
-    }
-    if (at == null) {
-      throw new ParameterException(UNKNOWN_AT);
-    }
-    return at;
-  }
-
   public static byte[] getCreationBytes(HttpServletRequest req) throws ParameterException {
     try {
       return Convert.parseHexString(req.getParameter(CREATION_BYTES_PARAMETER));
