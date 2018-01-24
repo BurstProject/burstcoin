@@ -17,7 +17,6 @@ import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.services.AccountService;
 import brs.services.AliasService;
-import brs.services.OrderService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
@@ -52,7 +51,7 @@ public class SetAliasTest extends AbstractTransactionTest {
         new MockParam(ALIAS_URI_PARAMETER, "aliasUrl")
     );
 
-    prepareTransactionTest(req, parameterServiceMock, transactionProcessorMock, aliasServiceMock, mockSenderAccount);
+    prepareTransactionTest(req, parameterServiceMock, transactionProcessorMock, mockSenderAccount);
 
     t.processRequest(req);
   }

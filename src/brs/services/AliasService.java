@@ -10,4 +10,6 @@ public interface AliasService {
   Alias getAlias(String aliasName);
 
   Offer getOffer(Alias alias);
+
+  long getAliasCount();
 }

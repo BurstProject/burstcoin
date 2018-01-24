@@ -61,4 +61,9 @@ public class DGSGoodsStoreServiceImpl implements DGSGoodsStoreService {
   public BurstIterator<Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
     return digitalGoodsStoreStore.getSellerBuyerPurchases(sellerId, buyerId, from, to);
   }
+
+  @Override
+  public BurstIterator<Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
+    return digitalGoodsStoreStore.getPendingSellerPurchases(sellerId, from, to);
+  }
 }

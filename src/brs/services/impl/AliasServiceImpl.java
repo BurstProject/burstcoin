@@ -36,4 +36,9 @@ public class AliasServiceImpl implements AliasService {
     return offerTable.get(offerDbKeyFactory.newKey(alias.getId()));
   }
 
+  @Override
+  public long getAliasCount() {
+    return aliasTable.getCount();
+  }
+
 }

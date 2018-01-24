@@ -179,10 +179,6 @@ public class Account {
     return accountTable().getCount();
   }
 
-  public static int getAssetAccountsCount(long assetId) {
-    return Burst.getStores().getAccountStore().getAssetAccountsCount(assetId);
-  }
-
   public static Account getAccount(long id) {
     return id == 0 ? null : accountTable().get(accountBurstKeyFactory().newKey(id));
   }
@@ -234,7 +230,7 @@ public class Account {
   protected String description;
 
 
-  protected Account(long id) {
+  public Account(long id) {
     if (id != Crypto.rsDecode(Crypto.rsEncode(id))) {
       logger.log(Level.INFO, "CRITICAL ERROR: Reed-Solomon encoding fails for {0}", id);
     }

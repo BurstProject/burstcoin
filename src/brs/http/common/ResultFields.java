@@ -60,6 +60,7 @@ public class ResultFields {
   public static final String TYPE_RESPONSE = "type";
   public static final String ORDER_RESPONSE = "order";
   public static final String QUANTITY_NQT_RESPONSE = "quantityNQT";
+  public static final String UNCONFIRMED_QUANTITY_NQT_RESPONSE = "unconfirmedQuantityNQT";
   public static final String PRICE_NQT_RESPONSE = "priceNQT";
   public static final String DECIMALS_RESPONSE = "decimals";
   public static final String NUMBER_OF_TRADES_RESPONSE = "numberOfTrades";
@@ -84,5 +85,22 @@ public class ResultFields {
   public static final String DISCOUNT_NQT_RESPONSE = "discountNQT";
   public static final String REFUND_NQT_RESPONSE = "refundNQT";
   public static final String PURCHASES_RESPONSE = "purchases";
+  public static final String ALIAS_NAME_RESPONSE = "aliasNameResponse";
+  public static final String ALIAS_URI_RESPONSE = "aliasURI";
+  public static final String ALIAS_RESPONSE = "alias";
+  public static final String ID_RESPONSE = "id";
+  public static final String SENDER_RESPONSE = "sender";
+  public static final String SENDER_RS_RESPONSE = "senderRS";
+  public static final String RECIPIENT_RESPONSE = "recipient";
+  public static final String RECIPIENT_RS_RESPONSE = "recipientRS";
+  public static final String AMOUNT_NQT_RESPONSE = "amountNQT";
+  public static final String REQUIRED_SIGNERS_RESPONSE = "requiredSigners";
+  public static final String DEADLINE_RESPONSE = "deadline";
+  public static final String DEADLINE_ACTION_RESPONSE = "deadlineAction";
+  public static final String ID_RS_RESPONSE = "idRS";
+  public static final String DECISION_RESPONSE = "decision";
+  public static final String SIGNERS_RESPONSE = "signers";
+  public static final String ATS_RESPONSE = "ats";
+  public static final String AT_IDS_RESPONSE = "atIds";
 
 }

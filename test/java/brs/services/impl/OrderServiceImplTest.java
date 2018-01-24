@@ -104,4 +104,85 @@ public class OrderServiceImplTest {
 
     assertEquals(mockBidIterator, t.getSortedBidOrders(assetId, from, to));
   }
+
+  @Test
+  public void getAskOrdersByAccount() {
+    final long accountId = 123l;
+    final int from = 1;
+    final int to = 5;
+
+    final BurstIterator<Ask> mockAskIterator = mock(BurstIterator.class);
+
+    when(orderStoreMock.getAskOrdersByAccount(eq(accountId), eq(from), eq(to))).thenReturn(mockAskIterator);
+
+    assertEquals(mockAskIterator, t.getAskOrdersByAccount(accountId, from, to));
+  }
+
+  @Test
+  public void getAskOrdersByAccountAsset() {
+    final long accountId = 123l;
+    final long assetId = 456l;
+    final int from = 1;
+    final int to = 5;
+
+    final BurstIterator<Ask> mockAskIterator = mock(BurstIterator.class);
+
+    when(orderStoreMock.getAskOrdersByAccountAsset(eq(accountId), eq(assetId), eq(from), eq(to))).thenReturn(mockAskIterator);
+
+    assertEquals(mockAskIterator, t.getAskOrdersByAccountAsset(accountId, assetId, from, to));
+  }
+
+  @Test
+  public void getSortedAskOrders() {
+    final long assetId = 456l;
+    final int from = 1;
+    final int to = 5;
+
+    final BurstIterator<Ask> mockAskIterator = mock(BurstIterator.class);
+
+    when(orderStoreMock.getSortedAsks(eq(assetId), eq(from), eq(to))).thenReturn(mockAskIterator);
+
+    assertEquals(mockAskIterator, t.getSortedAskOrders(assetId, from, to));
+  }
+
+  @Test
+  public void getBidCount() {
+    when(mockBidOrderTable.getCount()).thenReturn(5);
+
+    assertEquals(5, t.getBidCount());
+  }
+
+  @Test
+  public void getAskCount() {
+    when(mockAskOrderTable.getCount()).thenReturn(5);
+
+    assertEquals(5, t.getAskCount());
+  }
+
+  @Test
+  public void getBidOrdersByAccount() {
+    final long accountId = 456l;
+    final int from = 1;
+    final int to = 5;
+
+    final BurstIterator<Bid> mockBidIterator = mock(BurstIterator.class);
+
+    when(orderStoreMock.getBidOrdersByAccount(eq(accountId), eq(from), eq(to))).thenReturn(mockBidIterator);
+
+    assertEquals(mockBidIterator, t.getBidOrdersByAccount(accountId, from, to));
+  }
+
+  @Test
+  public void getBidOrdersByAccountAsset() {
+    final long accountId = 123L;
+    final long assetId = 456l;
+    final int from = 1;
+    final int to = 5;
+
+    final BurstIterator<Bid> mockBidIterator = mock(BurstIterator.class);
+
+    when(orderStoreMock.getBidOrdersByAccountAsset(eq(accountId), eq(assetId), eq(from), eq(to))).thenReturn(mockBidIterator);
+
+    assertEquals(mockBidIterator, t.getBidOrdersByAccountAsset(accountId, assetId, from, to));
+  }
 }

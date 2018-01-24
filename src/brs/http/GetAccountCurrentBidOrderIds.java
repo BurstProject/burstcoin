@@ -8,6 +8,7 @@ import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import brs.BurstException;
 import brs.Order;
 import brs.db.BurstIterator;
+import brs.services.OrderService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
@@ -19,10 +20,12 @@ import javax.servlet.http.HttpServletRequest;
 public final class GetAccountCurrentBidOrderIds extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
+  private final OrderService orderService;
 
-  GetAccountCurrentBidOrderIds(ParameterService parameterService) {
+  GetAccountCurrentBidOrderIds(ParameterService parameterService, OrderService orderService) {
     super(new APITag[] {APITag.ACCOUNTS, APITag.AE}, ACCOUNT_PARAMETER, ASSET_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
     this.parameterService = parameterService;
+    this.orderService = orderService;
   }
 
   @Override
@@ -40,9 +43,9 @@ public final class GetAccountCurrentBidOrderIds extends APIServlet.APIRequestHan
 
     BurstIterator<Order.Bid> bidOrders;
     if (assetId == 0) {
-      bidOrders = Order.Bid.getBidOrdersByAccount(accountId, firstIndex, lastIndex);
+      bidOrders = orderService.getBidOrdersByAccount(accountId, firstIndex, lastIndex);
     } else {
-      bidOrders = Order.Bid.getBidOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex);
+      bidOrders = orderService.getBidOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex);
     }
     JSONArray orderIds = new JSONArray();
     try {
