@@ -798,87 +798,6 @@ var NRS = (function(NRS, $, undefined) {
 		}
 	}
 
-	NRS.setupClipboardFunctionality = function() {
-		var elements = "#asset_id_dropdown .dropdown-menu a, #account_id_dropdown .dropdown-menu a";
-
-		if (NRS.isLocalHost) {
-			$("#account_id_dropdown li.remote_only, #asset_info_dropdown li.remote_only").remove();
-		}
-
-		var $el = $(elements);
-
-		if (NRS.inApp) {
-			$el.on("click", function() {
-				parent.postMessage({
-					"type": "copy",
-					"text": NRS.getClipboardText($(this).data("type"))
-				}, "*");
-
-				$.growl($.t("success_clipboard_copy"), {
-					"type": "success"
-				});
-			});
-		} else {
-			if ($el.hasClass("dropdown-toggle")) {
-				$el.removeClass("dropdown-toggle").data("toggle", "");
-				$el.parent().remove(".dropdown-menu");
-			}
-			
-			var FlashEnabled = false;
-			try{
-				if(new ActiveXObject('ShockwaveFlash.ShockwaveFlash')){
-					FlashEnabled=true;
-				}
-			}catch(e){
-				if(navigator.mimeTypes ['application/x-shockwave-flash'] !== undefined){
-					FlashEnabled=true;
-				}
-			}
-					
-			if (!FlashEnabled) {
-				$el.on("click", function() {	
-					var text = NRS.getClipboardText($(this).data("type"));
-					var copyElement = document.createElement('input');      
-					copyElement.setAttribute('type', 'text');   
-					copyElement.setAttribute('value', text);    
-					copyElement = document.body.appendChild(copyElement);   
-					copyElement.select();   
-					var result = document.execCommand('copy');   
-					copyElement.remove();
-					if(result){
-						$.growl($.t("success_clipboard_copy"), {
-							"type": "success"
-						});
-					}
-				});
-			}else{
-				var clipboard = new ZeroClipboard($el, {
-					moviePath: "js/3rdparty/zeroclipboard.swf"
-				});
-				clipboard.on("dataRequested", function(client, args) {
-					client.setText(NRS.getClipboardText($(this).data("type")));
-				});
-				clipboard.on("complete", function(client, args) {
-					$.growl($.t("success_clipboard_copy"), {
-						"type": "success"
-					});
-				});
-				clipboard.on("noflash", function(client, args) {
-					$("#account_id_dropdown .dropdown-menu, #asset_id_dropdown .dropdown-menu").remove();
-					$("#account_id_dropdown, #asset_id").data("toggle", "");
-					$.growl($.t("error_clipboard_copy_noflash"), {
-						"type": "danger"
-					});
-				});
-				clipboard.on("wrongflash", function(client, args) {
-					$("#account_id_dropdown .dropdown-menu, #asset_id_dropdown .dropdown-menu").remove();
-					$("#account_id_dropdown, #asset_id").data("toggle", "");
-					$.growl($.t("error_clipboard_copy_wrongflash"));
-				});
-			}
-		}
-	}
-
 	NRS.getClipboardText = function(type) {
 		switch (type) {
 			case "account_id":
@@ -902,6 +821,52 @@ var NRS = (function(NRS, $, undefined) {
 			default:
 				return "";
 				break;
+		}
+	}
+
+	NRS.setupClipboardFunctionality = function() {
+		var elements = "#asset_id_dropdown .dropdown-menu a, #account_id_dropdown .dropdown-menu a";
+
+		if (NRS.isLocalHost) {
+			$("#account_id_dropdown li.remote_only, #asset_info_dropdown li.remote_only").remove();
+		}
+
+		var $el = $(elements);
+
+		if (NRS.inApp) {
+			$el.on("click", function() {
+				parent.postMessage({
+					"type": "copy",
+					"text": NRS.getClipboardText($(this).data("type"))
+				}, "*");
+
+				$.growl($.t("success_clipboard_copy"), {
+					"type": "success"
+				});
+			});
+		} else {
+			var clipboard = new Clipboard('.copy_link', {
+				text: function(trigger) {
+					return NRS.getClipboardText(trigger.getAttribute('data-type'));
+				}
+			});
+
+			if ($el.hasClass("dropdown-toggle")) {
+				$el.removeClass("dropdown-toggle").data("toggle", "");
+				$el.parent().remove(".dropdown-menu");
+			}
+
+			clipboard.on('success', function(e) {
+				$.growl($.t("success_clipboard_copy"), {
+					"type": "success"
+				});
+			});
+
+			clipboard.on('error', function(e) {
+				$("#account_id_dropdown .dropdown-menu, #asset_id_dropdown .dropdown-menu").remove();
+				$("#account_id_dropdown, #asset_id").data("toggle", "");
+				$.growl($.t("error_clipboard_copy"));
+			});
 		}
 	}
 
