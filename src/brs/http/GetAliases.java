@@ -6,7 +6,9 @@ import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
 
 import brs.Alias;
+import brs.Alias.Offer;
 import brs.BurstException;
+import brs.services.AliasService;
 import brs.services.ParameterService;
 import brs.util.FilteringIterator;
 import javax.servlet.http.HttpServletRequest;
@@ -17,10 +19,12 @@ import org.json.simple.JSONStreamAware;
 public final class GetAliases extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
+  private final AliasService aliasService;
 
-  GetAliases(ParameterService parameterService) {
+  GetAliases(ParameterService parameterService, AliasService aliasService) {
     super(new APITag[]{APITag.ALIASES}, TIMESTAMP_PARAMETER, ACCOUNT_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
     this.parameterService = parameterService;
+    this.aliasService = aliasService;
   }
 
   @Override
@@ -39,7 +43,10 @@ public final class GetAliases extends APIServlet.APIRequestHandler {
           }
         }, firstIndex, lastIndex)) {
       while (aliasIterator.hasNext()) {
-        aliases.add(JSONData.alias(aliasIterator.next()));
+        final Alias alias = aliasIterator.next();
+        final Offer offer = aliasService.getOffer(alias);
+
+        aliases.add(JSONData.alias(alias, offer));
       }
     }
 

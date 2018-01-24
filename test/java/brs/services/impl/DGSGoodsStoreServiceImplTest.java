@@ -7,6 +7,8 @@ import static org.mockito.Mockito.when;
 
 import brs.DigitalGoodsStore;
 import brs.DigitalGoodsStore.Goods;
+import brs.DigitalGoodsStore.Purchase;
+import brs.common.AbstractUnitTest;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
@@ -15,7 +17,7 @@ import brs.db.store.DigitalGoodsStoreStore;
 import org.junit.Before;
 import org.junit.Test;
 
-public class DGSGoodsStoreServiceImplTest {
+public class DGSGoodsStoreServiceImplTest extends AbstractUnitTest {
 
   private DGSGoodsStoreServiceImpl t;
 
@@ -130,6 +132,16 @@ public class DGSGoodsStoreServiceImplTest {
     when(mockDigitalGoodsStoreStore.getSellerBuyerPurchases( eq(sellerId), eq(buyerId), eq(from), eq(to))).thenReturn(mockIterator);
 
     assertEquals(mockIterator, t.getSellerBuyerPurchases(sellerId, buyerId, from, to));
+  }
+
+  @Test
+  public void getPendingSellerPurchases() {
+    final long sellerId = 123L;
+    final int from = 1;
+    final int to = 2;
+
+    BurstIterator<Purchase> mockPurchaseIterator = mockBurstIterator();
+    when(mockDigitalGoodsStoreStore.getPendingSellerPurchases(eq(sellerId), eq(from), eq(to))).thenReturn(mockPurchaseIterator);
   }
 
 }

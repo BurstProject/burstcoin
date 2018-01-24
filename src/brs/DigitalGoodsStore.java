@@ -6,6 +6,8 @@ import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
 //import brs.db.sql.*;
+import brs.services.AccountService;
+import brs.services.DGSGoodsStoreService;
 import brs.util.Convert;
 import brs.util.Listener;
 import brs.util.Listeners;
@@ -24,22 +26,30 @@ public final class DigitalGoodsStore {
     PURCHASE, DELIVERY, REFUND, FEEDBACK
   }
 
-  static {
-    Burst.getBlockchainProcessor().addListener(new Listener<Block>() {
-        @Override
-        public void notify(Block block) {
-          try (BurstIterator<Purchase> purchases = getExpiredPendingPurchases(block.getTimestamp())) {
-            while (purchases.hasNext()) {
-              Purchase purchase = purchases.next();
-              Account buyer = Account.getAccount(purchase.getBuyerId());
-              buyer.addToUnconfirmedBalanceNQT(Convert.safeMultiply(purchase.getQuantity(), purchase.getPriceNQT()));
-              getGoods(purchase.getGoodsId()).changeQuantity(purchase.getQuantity());
-              purchase.setPending(false);
-            }
-          }
+  static class DevNullListener implements Listener<Block> {
+
+    private final AccountService accountService;
+    private final DGSGoodsStoreService goodsService;
+
+    DevNullListener(AccountService accountService, DGSGoodsStoreService goodsService) {
+      this.accountService = accountService;
+      this.goodsService = goodsService;
+    }
+
+    @Override
+    public void notify(Block block) {
+      try (BurstIterator<Purchase> purchases = getExpiredPendingPurchases(block.getTimestamp())) {
+        while (purchases.hasNext()) {
+          Purchase purchase = purchases.next();
+          Account buyer = accountService.getAccount(purchase.getBuyerId());
+          buyer.addToUnconfirmedBalanceNQT(Convert.safeMultiply(purchase.getQuantity(), purchase.getPriceNQT()));
+          goodsService.getGoods(purchase.getGoodsId()).changeQuantity(purchase.getQuantity());
+          purchase.setPending(false);
         }
-      }, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
+      }
+    }
   }
+
 
   private static final Listeners<Goods,Event> goodsListeners = new Listeners<>();
 
@@ -205,24 +215,19 @@ public final class DigitalGoodsStore {
       return Burst.getStores().getDigitalGoodsStoreStore().getFeedbackDbKeyFactory();
     }
 
-
-    @Deprecated
     private static final VersionedValuesTable<Purchase, EncryptedData> feedbackTable() {
       return Burst.getStores().getDigitalGoodsStoreStore().getFeedbackTable();
     }
 
-
     private static final BurstKey.LongKeyFactory<Purchase> publicFeedbackDbKeyFactory() {
       return Burst.getStores().getDigitalGoodsStoreStore().getPublicFeedbackDbKeyFactory();
     }
-
 
     private static final VersionedValuesTable<Purchase, String> publicFeedbackTable() {
       return Burst.getStores().getDigitalGoodsStoreStore().getPublicFeedbackTable();
     }
 
     static void init() {}
-
 
     private final long id;
     public final BurstKey dbKey;
@@ -407,31 +412,14 @@ public final class DigitalGoodsStore {
       purchaseTable().insert(this);
     }
 
-    /*
-      @Override
-      public int compareTo(Purchase other) {
-      if (this.timestamp < other.timestamp) {
-      return 1;
-      }
-      if (this.timestamp > other.timestamp) {
-      return -1;
-      }
-      return Long.compare(this.id, other.id);
-      }
-    */
-
   }
-//TODO Brabantian which methods can get their own service?
+
   public static Goods getGoods(long goodsId) {
     return Goods.goodsTable().get(Goods.goodsDbKeyFactory().newKey(goodsId));
   }
 
   public static Purchase getPurchase(long purchaseId) {
     return Purchase.purchaseTable().get(Purchase.purchaseDbKeyFactory().newKey(purchaseId));
-  }
-
-  public static BurstIterator<Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
-    return Burst.getStores().getDigitalGoodsStoreStore().getPendingSellerPurchases(sellerId, from, to);
   }
 
   static Purchase getPendingPurchase(long purchaseId) {

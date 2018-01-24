@@ -15,7 +15,7 @@ import java.util.Set;
 public class Subscription {
 
   // WATCH
-  private   final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
+  private final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
   public static boolean isEnabled() {
     if(Burst.getBlockchain().getLastBlock().getHeight() >= Constants.BURST_SUBSCRIPTION_START_BLOCK) {
       return true;
@@ -29,11 +29,13 @@ public class Subscription {
     return false;
   }
 
-  private static final BurstKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory  =
-      Burst.getStores().getSubscriptionStore().getSubscriptionDbKeyFactory();
+  private static final BurstKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory() {
+    return Burst.getStores().getSubscriptionStore().getSubscriptionDbKeyFactory();
+  }
 
-  private static final VersionedEntityTable<Subscription> subscriptionTable =
-      Burst.getStores().getSubscriptionStore().getSubscriptionTable();
+  private static final VersionedEntityTable<Subscription> subscriptionTable() {
+    return Burst.getStores().getSubscriptionStore().getSubscriptionTable();
+  }
 
   private static final List<TransactionImpl> paymentTransactions = new ArrayList<>();
   private static final List<Subscription> appliedSubscriptions = new ArrayList<>();
@@ -43,26 +45,8 @@ public class Subscription {
     return Constants.ONE_BURST;
   }
 
-  public static BurstIterator<Subscription> getAllSubscriptions() {
-    return subscriptionTable.getAll(0, -1);
-  }
-
-
-
-  public static BurstIterator<Subscription> getSubscriptionsByParticipant(Long accountId) {
-    return Burst.getStores().getSubscriptionStore().getSubscriptionsByParticipant(accountId);
-  }
-
-  public static BurstIterator<Subscription> getIdSubscriptions(Long accountId) {
-    return Burst.getStores().getSubscriptionStore().getIdSubscriptions(accountId);
-  }
-
-  public static BurstIterator<Subscription> getSubscriptionsToId(Long accountId) {
-    return Burst.getStores().getSubscriptionStore().getSubscriptionsToId(accountId);
-  }
-
   public static Subscription getSubscription(Long id) {
-    return subscriptionTable.get(subscriptionDbKeyFactory.newKey(id));
+    return subscriptionTable().get(subscriptionDbKeyFactory().newKey(id));
   }
 
   public static void addSubscription(Account sender,
@@ -78,13 +62,13 @@ public class Subscription {
                                                  frequency,
                                                  startTimestamp);
 
-    subscriptionTable.insert(subscription);
+    subscriptionTable().insert(subscription);
   }
 
   public static void removeSubscription(Long id) {
-    Subscription subscription = subscriptionTable.get(subscriptionDbKeyFactory.newKey(id));
+    Subscription subscription = subscriptionTable().get(subscriptionDbKeyFactory().newKey(id));
     if(subscription != null) {
-      subscriptionTable.delete(subscription);
+      subscriptionTable().delete(subscription);
     }
   }
 
@@ -144,17 +128,11 @@ public class Subscription {
     return totalFees;
   }
 
-  /*public static void undoUnconfirmed(List<Subscription> subscriptions) {
-    for(Subscription subscription : subscriptions) {
-    subscription.undoUnconfirmed();
-    }
-    }*/
-
   public static void applyConfirmed(Block block, int blockchainHeight) {
     paymentTransactions.clear();
     for(Subscription subscription : appliedSubscriptions) {
       subscription.apply(block, blockchainHeight);
-      subscriptionTable.insert(subscription);
+      subscriptionTable().insert(subscription);
     }
     if(paymentTransactions.size() > 0) {
       Burst.getDbs().getTransactionDb().saveTransactions( paymentTransactions);
@@ -181,7 +159,7 @@ public class Subscription {
     this.senderId = senderId;
     this.recipientId = recipientId;
     this.id = id;
-    this.dbKey = subscriptionDbKeyFactory.newKey(this.id);
+    this.dbKey = subscriptionDbKeyFactory().newKey(this.id);
     this.amountNQT = amountNQT;
     this.frequency  = frequency;
     this.timeNext = timeStart + frequency;

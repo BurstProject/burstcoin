@@ -57,10 +57,6 @@ public class Alias {
     return Burst.getStores().getAliasStore().getOfferTable();
   }
 
-  public static int getCount() {
-    return aliasTable().getCount();
-  }
-
   public static BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
     return Burst.getStores().getAliasStore().getAliasesByOwner(accountId, from, to);
   }

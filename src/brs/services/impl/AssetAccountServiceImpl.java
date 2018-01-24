@@ -25,4 +25,9 @@ public class AssetAccountServiceImpl implements AssetAccountService {
     }
     return accountStore.getAssetAccounts(assetId, height, from, to);
   }
+
+  @Override
+  public int getAssetAccountsCount(long assetId) {
+    return accountStore.getAssetAccountsCount(assetId);
+  }
 }

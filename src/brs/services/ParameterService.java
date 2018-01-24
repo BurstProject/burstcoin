@@ -1,5 +1,6 @@
 package brs.services;
 
+import brs.AT;
 import brs.Account;
 import brs.Alias;
 import brs.Asset;
@@ -38,4 +39,6 @@ public interface ParameterService {
   int getHeight(HttpServletRequest req) throws ParameterException;
 
   Transaction parseTransaction(String transactionBytes, String transactionJSON) throws ParameterException;
+
+  AT getAT(HttpServletRequest req) throws ParameterException;
 }

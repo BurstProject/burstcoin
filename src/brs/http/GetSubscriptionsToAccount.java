@@ -7,6 +7,7 @@ import brs.BurstException;
 import brs.Subscription;
 import brs.db.BurstIterator;
 import brs.services.ParameterService;
+import brs.services.SubscriptionService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -16,10 +17,12 @@ import javax.servlet.http.HttpServletRequest;
 public final class GetSubscriptionsToAccount extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
+  private final SubscriptionService subscriptionService;
 
-  GetSubscriptionsToAccount(ParameterService parameterService) {
+  GetSubscriptionsToAccount(ParameterService parameterService, SubscriptionService subscriptionService) {
     super(new APITag[] {APITag.ACCOUNTS}, ACCOUNT_PARAMETER);
     this.parameterService = parameterService;
+    this.subscriptionService = subscriptionService;
   }
 	
   @Override
@@ -30,7 +33,7 @@ public final class GetSubscriptionsToAccount extends APIServlet.APIRequestHandle
 		
     JSONArray subscriptions = new JSONArray();
 
-    BurstIterator<Subscription> accountSubscriptions = Subscription.getSubscriptionsToId(account.getId());
+    BurstIterator<Subscription> accountSubscriptions = subscriptionService.getSubscriptionsToId(account.getId());
 		
     while(accountSubscriptions.hasNext()) {
       subscriptions.add(JSONData.subscription(accountSubscriptions.next()));

@@ -1,6 +1,10 @@
 package brs.http;
 
 import static brs.http.common.ResultFields.ACCOUNT_RESPONSE;
+import static brs.http.common.ResultFields.ALIAS_NAME_RESPONSE;
+import static brs.http.common.ResultFields.ALIAS_RESPONSE;
+import static brs.http.common.ResultFields.ALIAS_URI_RESPONSE;
+import static brs.http.common.ResultFields.AMOUNT_NQT_RESPONSE;
 import static brs.http.common.ResultFields.ASSET_RESPONSE;
 import static brs.http.common.ResultFields.BALANCE_NQT_RESPONSE;
 import static brs.http.common.ResultFields.BASE_TARGET_RESPONSE;
@@ -9,7 +13,10 @@ import static brs.http.common.ResultFields.BLOCK_REWARD_RESPONSE;
 import static brs.http.common.ResultFields.BLOCK_SIGNATURE_RESPONSE;
 import static brs.http.common.ResultFields.BUYER_RESPONSE;
 import static brs.http.common.ResultFields.DATA_RESPONSE;
+import static brs.http.common.ResultFields.DEADLINE_ACTION_RESPONSE;
+import static brs.http.common.ResultFields.DEADLINE_RESPONSE;
 import static brs.http.common.ResultFields.DECIMALS_RESPONSE;
+import static brs.http.common.ResultFields.DECISION_RESPONSE;
 import static brs.http.common.ResultFields.DELISTED_RESPONSE;
 import static brs.http.common.ResultFields.DELIVERY_DEADLINE_TIMESTAMP_RESPONSE;
 import static brs.http.common.ResultFields.DESCRIPTION_RESPONSE;
@@ -25,6 +32,8 @@ import static brs.http.common.ResultFields.GOODS_IS_TEXT_RESPONSE;
 import static brs.http.common.ResultFields.GOODS_RESPONSE;
 import static brs.http.common.ResultFields.GUARANTEED_BALANCE_NQT_RESPONSE;
 import static brs.http.common.ResultFields.HEIGHT_RESPONSE;
+import static brs.http.common.ResultFields.ID_RESPONSE;
+import static brs.http.common.ResultFields.ID_RS_RESPONSE;
 import static brs.http.common.ResultFields.NAME_RESPONSE;
 import static brs.http.common.ResultFields.NEXT_BLOCK_RESPONSE;
 import static brs.http.common.ResultFields.NONCE_RESPONSE;
@@ -44,10 +53,16 @@ import static brs.http.common.ResultFields.PUBLIC_FEEDBACKS_RESPONSE;
 import static brs.http.common.ResultFields.PURCHASE_RESPONSE;
 import static brs.http.common.ResultFields.QUANTITY_NQT_RESPONSE;
 import static brs.http.common.ResultFields.QUANTITY_RESPONSE;
+import static brs.http.common.ResultFields.RECIPIENT_RESPONSE;
+import static brs.http.common.ResultFields.RECIPIENT_RS_RESPONSE;
 import static brs.http.common.ResultFields.REFUND_NOTE_RESPONSE;
 import static brs.http.common.ResultFields.REFUND_NQT_RESPONSE;
+import static brs.http.common.ResultFields.REQUIRED_SIGNERS_RESPONSE;
 import static brs.http.common.ResultFields.SCOOP_NUM_RESPONSE;
 import static brs.http.common.ResultFields.SELLER_RESPONSE;
+import static brs.http.common.ResultFields.SENDER_RESPONSE;
+import static brs.http.common.ResultFields.SENDER_RS_RESPONSE;
+import static brs.http.common.ResultFields.SIGNERS_RESPONSE;
 import static brs.http.common.ResultFields.TAGS_RESPONSE;
 import static brs.http.common.ResultFields.TIMESTAMP_RESPONSE;
 import static brs.http.common.ResultFields.TOTAL_AMOUNT_NQT_RESPONSE;
@@ -55,9 +70,11 @@ import static brs.http.common.ResultFields.TOTAL_FEE_NQT_RESPONSE;
 import static brs.http.common.ResultFields.TRANSACTIONS_RESPONSE;
 import static brs.http.common.ResultFields.TYPE_RESPONSE;
 import static brs.http.common.ResultFields.UNCONFIRMED_BALANCE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.UNCONFIRMED_QUANTITY_NQT_RESPONSE;
 import static brs.http.common.ResultFields.VERSION_RESPONSE;
 
 import brs.*;
+import brs.Alias.Offer;
 import brs.at.AT_API_Helper;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
@@ -73,18 +90,18 @@ import java.nio.ByteOrder;
 
 public final class JSONData {
 
-  static JSONObject alias(Alias alias) {
+  static JSONObject alias(Alias alias, Offer offer) {
     JSONObject json = new JSONObject();
-    putAccount(json, "account", alias.getAccountId());
-    json.put("aliasName", alias.getAliasName());
-    json.put("aliasURI", alias.getAliasURI());
-    json.put("timestamp", alias.getTimestamp());
-    json.put("alias", Convert.toUnsignedLong(alias.getId()));
-    Alias.Offer offer = Alias.getOffer(alias);
+    putAccount(json, ACCOUNT_RESPONSE, alias.getAccountId());
+    json.put(ALIAS_NAME_RESPONSE, alias.getAliasName());
+    json.put(ALIAS_URI_RESPONSE, alias.getAliasURI());
+    json.put(TIMESTAMP_RESPONSE, alias.getTimestamp());
+    json.put(ALIAS_RESPONSE, Convert.toUnsignedLong(alias.getId()));
+
     if (offer != null) {
-      json.put("priceNQT", String.valueOf(offer.getPriceNQT()));
+      json.put(PRICE_NQT_RESPONSE, String.valueOf(offer.getPriceNQT()));
       if (offer.getBuyerId() != 0) {
-        json.put("buyer", Convert.toUnsignedLong(offer.getBuyerId()));
+        json.put(BUYER_RESPONSE, Convert.toUnsignedLong(offer.getBuyerId()));
       }
     }
     return json;
@@ -109,7 +126,7 @@ public final class JSONData {
     return json;
   }
 
-  static JSONObject asset(Asset asset) {
+  static JSONObject asset(Asset asset, int tradeCount, int transferCount, int assetAccountsCount) {
     JSONObject json = new JSONObject();
     putAccount(json, ACCOUNT_RESPONSE, asset.getAccountId());
     json.put(NAME_RESPONSE, asset.getName());
@@ -117,18 +134,18 @@ public final class JSONData {
     json.put(DECIMALS_RESPONSE, asset.getDecimals());
     json.put(QUANTITY_NQT_RESPONSE, String.valueOf(asset.getQuantityQNT()));
     json.put(ASSET_RESPONSE, Convert.toUnsignedLong(asset.getId()));
-    json.put(NUMBER_OF_TRADES_RESPONSE, Trade.getTradeCount(asset.getId()));
-    json.put(NUMBER_OF_TRANSFERS_RESPONSE, AssetTransfer.getTransferCount(asset.getId()));
-    json.put(NUMBER_OF_ACCOUNTS_RESPONSE, Account.getAssetAccountsCount(asset.getId()));
+    json.put(NUMBER_OF_TRADES_RESPONSE, tradeCount);
+    json.put(NUMBER_OF_TRANSFERS_RESPONSE, transferCount);
+    json.put(NUMBER_OF_ACCOUNTS_RESPONSE, assetAccountsCount);
     return json;
   }
 
   static JSONObject accountAsset(Account.AccountAsset accountAsset) {
     JSONObject json = new JSONObject();
-    putAccount(json, "account", accountAsset.getAccountId());
-    json.put("asset", Convert.toUnsignedLong(accountAsset.getAssetId()));
-    json.put("quantityQNT", String.valueOf(accountAsset.getQuantityQNT()));
-    json.put("unconfirmedQuantityQNT", String.valueOf(accountAsset.getUnconfirmedQuantityQNT()));
+    putAccount(json, ACCOUNT_RESPONSE, accountAsset.getAccountId());
+    json.put(ASSET_RESPONSE, Convert.toUnsignedLong(accountAsset.getAssetId()));
+    json.put(QUANTITY_NQT_RESPONSE, String.valueOf(accountAsset.getQuantityQNT()));
+    json.put(UNCONFIRMED_QUANTITY_NQT_RESPONSE, String.valueOf(accountAsset.getUnconfirmedQuantityQNT()));
     return json;
   }
 
@@ -140,7 +157,7 @@ public final class JSONData {
 
   static JSONObject bidOrder(Order.Bid order) {
     JSONObject json = order(order);
-    json.put("type", "bid");
+    json.put(TYPE_RESPONSE, "bid");
     return json;
   }
 
@@ -206,15 +223,15 @@ public final class JSONData {
 
   static JSONObject escrowTransaction(Escrow escrow) {
     JSONObject json = new JSONObject();
-    json.put("id", Convert.toUnsignedLong(escrow.getId()));
-    json.put("sender", Convert.toUnsignedLong(escrow.getSenderId()));
-    json.put("senderRS", Convert.rsAccount(escrow.getSenderId()));
-    json.put("recipient", Convert.toUnsignedLong(escrow.getRecipientId()));
-    json.put("recipientRS", Convert.rsAccount(escrow.getRecipientId()));
-    json.put("amountNQT", Convert.toUnsignedLong(Escrow.getEscrowTransaction(escrow.getId()).getAmountNQT()));
-    json.put("requiredSigners", escrow.getRequiredSigners());
-    json.put("deadline", escrow.getDeadline());
-    json.put("deadlineAction", Escrow.decisionToString(escrow.getDeadlineAction()));
+    json.put(ID_RESPONSE, Convert.toUnsignedLong(escrow.getId()));
+    json.put(SENDER_RESPONSE, Convert.toUnsignedLong(escrow.getSenderId()));
+    json.put(SENDER_RS_RESPONSE, Convert.rsAccount(escrow.getSenderId()));
+    json.put(RECIPIENT_RESPONSE, Convert.toUnsignedLong(escrow.getRecipientId()));
+    json.put(RECIPIENT_RS_RESPONSE, Convert.rsAccount(escrow.getRecipientId()));
+    json.put(AMOUNT_NQT_RESPONSE, Convert.toUnsignedLong(escrow.getAmountNQT()));
+    json.put(REQUIRED_SIGNERS_RESPONSE, escrow.getRequiredSigners());
+    json.put(DEADLINE_RESPONSE, escrow.getDeadline());
+    json.put(DEADLINE_ACTION_RESPONSE, Escrow.decisionToString(escrow.getDeadlineAction()));
 
     JSONArray signers = new JSONArray();
     BurstIterator<Escrow.Decision> decisions = escrow.getDecisions();
@@ -225,12 +242,12 @@ public final class JSONData {
         continue;
       }
       JSONObject signerDetails = new JSONObject();
-      signerDetails.put("id", Convert.toUnsignedLong(decision.getAccountId()));
-      signerDetails.put("idRS", Convert.rsAccount(decision.getAccountId()));
-      signerDetails.put("decision", Escrow.decisionToString(decision.getDecision()));
+      signerDetails.put(ID_RESPONSE, Convert.toUnsignedLong(decision.getAccountId()));
+      signerDetails.put(ID_RS_RESPONSE, Convert.rsAccount(decision.getAccountId()));
+      signerDetails.put(DECISION_RESPONSE, Escrow.decisionToString(decision.getDecision()));
       signers.add(signerDetails);
     }
-    json.put("signers", signers);
+    json.put(SIGNERS_RESPONSE, signers);
     return json;
   }
 
