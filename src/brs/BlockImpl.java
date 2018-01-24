@@ -1,6 +1,5 @@
 package brs;
 
-import java.beans.ConstructorProperties;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -11,7 +10,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

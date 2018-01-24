@@ -1686,9 +1686,7 @@ public abstract class TransactionType {
           Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_BURST);
           senderAccount.addToBalanceNQT(-totalAmountNQT);
           Collection<Long> signers = attachment.getSigners();
-          signers.forEach(signer -> {
-              Account.addOrGetAccount(signer).addToBalanceAndUnconfirmedBalanceNQT(Constants.ONE_BURST);
-            });
+          signers.forEach(signer -> Account.addOrGetAccount(signer).addToBalanceAndUnconfirmedBalanceNQT(Constants.ONE_BURST));
           Escrow.addEscrowTransaction(senderAccount,
                                       recipientAccount,
                                       transaction.getId(),

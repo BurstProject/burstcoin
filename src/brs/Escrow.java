@@ -195,9 +195,7 @@ public class Escrow {
       decisions.add(decision);
     }
 
-    decisions.forEach(decision -> {
-        decisionTable().delete(decision);
-      });
+    decisions.forEach(decision -> decisionTable().delete(decision));
     escrowTable().delete(escrow);
   }
 

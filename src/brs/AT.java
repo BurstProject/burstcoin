@@ -269,16 +269,6 @@ public final class AT extends AT_Machine_State {
     atStateTable.insert(state);
   }
 
-
-  private static void deleteAT( AT at ) {
-    ATState atState = atStateTable.get(atStateDbKeyFactory.newKey(AT_API_Helper.getLong(at.getId())));
-    if (atState != null) {
-      atStateTable.delete(atState);
-    }
-    atTable.delete(at);
-    //TODO: release account
-  }
-
   public static List< Long > getOrderedATs(){
     return Burst.getStores().getAtStore().getOrderedATs();
   }
