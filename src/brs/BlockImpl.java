@@ -11,15 +11,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import brs.crypto.Crypto;
 import brs.peer.Peer;
 import brs.util.Convert;
@@ -44,6 +41,7 @@ public class BlockImpl implements Block {
   private byte[] blockSignature;
 
   private BigInteger cumulativeDifficulty = BigInteger.ZERO;
+
   private long baseTarget = Constants.INITIAL_BASE_TARGET;
   private volatile long nextBlockId;
   private int height = -1;
@@ -59,11 +57,14 @@ public class BlockImpl implements Block {
   private Peer downloadedFrom = null;
   private int byteLength = 0;
 
-  BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions, long nonce,
-      byte[] blockATs) throws BurstException.ValidationException {
+  BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT,
+      int payloadLength, byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature,
+      byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions,
+      long nonce, byte[] blockATs) throws BurstException.ValidationException {
 
     if (payloadLength > Constants.MAX_PAYLOAD_LENGTH || payloadLength < 0) {
-      throw new BurstException.NotValidException("attempted to create a block with payloadLength " + payloadLength);
+      throw new BurstException.NotValidException(
+          "attempted to create a block with payloadLength " + payloadLength);
     }
 
     this.version = version;
@@ -81,7 +82,8 @@ public class BlockImpl implements Block {
     if (transactions != null) {
       this.blockTransactions = Collections.unmodifiableList(transactions);
       if (blockTransactions.size() > Constants.MAX_NUMBER_OF_TRANSACTIONS) {
-        throw new BurstException.NotValidException("attempted to create a block with " + blockTransactions.size() + " transactions");
+        throw new BurstException.NotValidException(
+            "attempted to create a block with " + blockTransactions.size() + " transactions");
       }
       long previousId = 0;
       for (Transaction transaction : this.blockTransactions) {
@@ -190,7 +192,8 @@ public class BlockImpl implements Block {
   @Override
   public List<TransactionImpl> getTransactions() {
     if (blockTransactions == null) {
-      this.blockTransactions = Collections.unmodifiableList(transactionDb.findBlockTransactions(getId()));
+      this.blockTransactions =
+          Collections.unmodifiableList(transactionDb.findBlockTransactions(getId()));
       this.blockTransactions.forEach(transaction -> transaction.setBlock(this));
     }
     return blockTransactions;
@@ -203,7 +206,7 @@ public class BlockImpl implements Block {
 
   @Override
   public BigInteger getCumulativeDifficulty() {
-    return cumulativeDifficulty;
+    return new BigInteger(cumulativeDifficulty);
   }
 
   @Override
@@ -227,7 +230,8 @@ public class BlockImpl implements Block {
         throw new IllegalStateException("Block is not signed yet");
       }
       byte[] hash = Crypto.sha256().digest(getBytes());
-      BigInteger bigInteger = new BigInteger(1, new byte[] { hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0] });
+      BigInteger bigInteger = new BigInteger(1,
+          new byte[] {hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
       id = bigInteger.longValue();
       stringId = bigInteger.toString();
     }
@@ -306,22 +310,29 @@ public class BlockImpl implements Block {
       long totalFeeNQT = Convert.parseLong(blockData.get("totalFeeNQT"));
       int payloadLength = ((Long) blockData.get("payloadLength")).intValue();
       byte[] payloadHash = Convert.parseHexString((String) blockData.get("payloadHash"));
-      byte[] generatorPublicKey = Convert.parseHexString((String) blockData.get("generatorPublicKey"));
-      byte[] generationSignature = Convert.parseHexString((String) blockData.get("generationSignature"));
+      byte[] generatorPublicKey =
+          Convert.parseHexString((String) blockData.get("generatorPublicKey"));
+      byte[] generationSignature =
+          Convert.parseHexString((String) blockData.get("generationSignature"));
       byte[] blockSignature = Convert.parseHexString((String) blockData.get("blockSignature"));
-      byte[] previousBlockHash = version == 1 ? null : Convert.parseHexString((String) blockData.get("previousBlockHash"));
+      byte[] previousBlockHash =
+          version == 1 ? null : Convert.parseHexString((String) blockData.get("previousBlockHash"));
       Long nonce = Convert.parseUnsignedLong((String) blockData.get("nonce"));
 
       SortedMap<Long, TransactionImpl> blockTransactions = new TreeMap<>();
       JSONArray transactionsData = (JSONArray) blockData.get("transactions");
       for (Object transactionData : transactionsData) {
-        TransactionImpl transaction = TransactionImpl.parseTransaction((JSONObject) transactionData);
+        TransactionImpl transaction =
+            TransactionImpl.parseTransaction((JSONObject) transactionData);
         if (blockTransactions.put(transaction.getId(), transaction) != null) {
-          throw new BurstException.NotValidException("Block contains duplicate transactions: " + transaction.getStringId());
+          throw new BurstException.NotValidException(
+              "Block contains duplicate transactions: " + transaction.getStringId());
         }
       }
       byte[] blockATs = Convert.parseHexString((String) blockData.get("blockATs"));
-      return new BlockImpl(version, timestamp, previousBlock, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature, previousBlockHash, new ArrayList<>(blockTransactions.values()), nonce, blockATs);
+      return new BlockImpl(version, timestamp, previousBlock, totalAmountNQT, totalFeeNQT,
+          payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature,
+          previousBlockHash, new ArrayList<>(blockTransactions.values()), nonce, blockATs);
     } catch (BurstException.ValidationException | RuntimeException e) {
       logger.debug("Failed to parse block: " + blockData.toJSONString());
       throw e;
@@ -329,7 +340,8 @@ public class BlockImpl implements Block {
   }
 
   byte[] getBytes() {
-    ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + 8 + 4 + (version < 3 ? (4 + 4) : (8 + 8)) + 4 + 32 + 32 + (32 + 32) + 8 + (blockATs != null ? blockATs.length : 0) + 64);
+    ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + 8 + 4 + (version < 3 ? (4 + 4) : (8 + 8)) + 4
+        + 32 + 32 + (32 + 32) + 8 + (blockATs != null ? blockATs.length : 0) + 64);
     buffer.order(ByteOrder.LITTLE_ENDIAN);
     buffer.putInt(version);
     buffer.putInt(timestamp);
@@ -353,7 +365,8 @@ public class BlockImpl implements Block {
     if (blockATs != null)
       buffer.put(blockATs);
     if (buffer.limit() - buffer.position() < blockSignature.length)
-      logger.error("Something is too large here - buffer should have " + blockSignature.length + " bytes left but only has " + (buffer.limit() - buffer.position()));
+      logger.error("Something is too large here - buffer should have " + blockSignature.length
+          + " bytes left but only has " + (buffer.limit() - buffer.position()));
     buffer.put(blockSignature);
     return buffer.array();
   }
@@ -375,7 +388,8 @@ public class BlockImpl implements Block {
 
       BlockImpl previousBlock = (BlockImpl) Burst.getBlockchain().getBlock(this.previousBlockId);
       if (previousBlock == null) {
-        throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing");
+        throw new BlockchainProcessor.BlockOutOfOrderException(
+            "Can't verify signature because previous block is missing");
       }
 
       byte[] data = getBytes();
@@ -386,7 +400,8 @@ public class BlockImpl implements Block {
       Account genAccount = Account.getAccount(generatorPublicKey);
       Account.RewardRecipientAssignment rewardAssignment;
       rewardAssignment = genAccount == null ? null : genAccount.getRewardRecipientAssignment();
-      if (genAccount == null || rewardAssignment == null || previousBlock.getHeight() + 1 < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
+      if (genAccount == null || rewardAssignment == null || previousBlock.getHeight()
+          + 1 < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
         publicKey = generatorPublicKey;
       } else {
         if (previousBlock.getHeight() + 1 >= rewardAssignment.getFromHeight()) {
@@ -412,7 +427,8 @@ public class BlockImpl implements Block {
       BlockImpl previousBlock = (BlockImpl) Burst.getBlockchain().getBlock(this.previousBlockId);
 
       if (previousBlock == null) {
-        throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify generation signature because previous block is missing");
+        throw new BlockchainProcessor.BlockOutOfOrderException(
+            "Can't verify generation signature because previous block is missing");
       }
 
       // In case the verifier-Threads are not done with this yet - do it yourself.
@@ -421,7 +437,8 @@ public class BlockImpl implements Block {
           preVerify();
       }
 
-      byte[] correctGenerationSignature = Burst.getGenerator().calculateGenerationSignature(previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
+      byte[] correctGenerationSignature = Burst.getGenerator().calculateGenerationSignature(
+          previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
       if (!Arrays.equals(generationSignature, correctGenerationSignature)) {
         return false;
       }
@@ -452,9 +469,11 @@ public class BlockImpl implements Block {
       try {
         // Pre-verify poc:
         if (scoopData == null) {
-          this.pocTime = Burst.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, getScoopNum(), this.getHeight());
+          this.pocTime = Burst.getGenerator().calculateHit(getGeneratorId(), nonce,
+              generationSignature, getScoopNum(), this.getHeight());
         } else {
-          this.pocTime = Burst.getGenerator().calculateHit(getGeneratorId(), nonce, generationSignature, scoopData);
+          this.pocTime = Burst.getGenerator().calculateHit(getGeneratorId(), nonce,
+              generationSignature, scoopData);
         }
       } catch (RuntimeException e) {
         logger.info("Error pre-verifying block generation signature", e);
@@ -463,8 +482,11 @@ public class BlockImpl implements Block {
 
       for (TransactionImpl transaction : getTransactions()) {
         if (!transaction.verifySignature()) {
-          logger.info("Bad transaction signature during block pre-verification for tx: " + Convert.toUnsignedLong(transaction.getId()) + " at block height: " + getHeight());
-          throw new BlockchainProcessor.TransactionNotAcceptedException("Invalid signature for tx: " + Convert.toUnsignedLong(transaction.getId()) + "at block height: " + getHeight(), transaction);
+          logger.info("Bad transaction signature during block pre-verification for tx: "
+              + Convert.toUnsignedLong(transaction.getId()) + " at block height: " + getHeight());
+          throw new BlockchainProcessor.TransactionNotAcceptedException("Invalid signature for tx: "
+              + Convert.toUnsignedLong(transaction.getId()) + "at block height: " + getHeight(),
+              transaction);
         }
       }
     }
@@ -478,7 +500,8 @@ public class BlockImpl implements Block {
       generatorAccount.addToForgedBalanceNQT(totalFeeNQT + getBlockReward());
     } else {
       Account rewardAccount;
-      Account.RewardRecipientAssignment rewardAssignment = generatorAccount.getRewardRecipientAssignment();
+      Account.RewardRecipientAssignment rewardAssignment =
+          generatorAccount.getRewardRecipientAssignment();
       if (rewardAssignment == null) {
         rewardAccount = generatorAccount;
       } else if (height >= rewardAssignment.getFromHeight()) {
@@ -498,7 +521,8 @@ public class BlockImpl implements Block {
       return 0;
     }
     int month = this.height / 10800;
-    return BigInteger.valueOf(10000).multiply(BigInteger.valueOf(95).pow(month)).divide(BigInteger.valueOf(100).pow(month)).longValue() * Constants.ONE_BURST;
+    return BigInteger.valueOf(10000).multiply(BigInteger.valueOf(95).pow(month))
+        .divide(BigInteger.valueOf(100).pow(month)).longValue() * Constants.ONE_BURST;
   }
 
   void setPrevious(BlockImpl previousBlock) {
@@ -519,10 +543,12 @@ public class BlockImpl implements Block {
 
     if (this.getId() == Genesis.GENESIS_BLOCK_ID && previousBlockId == 0) {
       baseTarget = Constants.INITIAL_BASE_TARGET;
-      cumulativeDifficulty = BigInteger.ZERO;
+      cumulativeDifficulty = BigInteger.ZERO.toByteArray();
     } else if (this.height < 4) {
       baseTarget = Constants.INITIAL_BASE_TARGET;
-      cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(Constants.INITIAL_BASE_TARGET)));
+      cumulativeDifficulty = previousBlock.getCumulativeDifficulty()
+          .add(Convert.two64.divide(BigInteger.valueOf(Constants.INITIAL_BASE_TARGET)))
+          .toByteArray();
     } else if (this.height < Constants.BURST_DIFF_ADJUST_CHANGE_BLOCK) {
       Block itBlock = previousBlock;
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
@@ -534,7 +560,8 @@ public class BlockImpl implements Block {
       long difTime = (long) this.timestamp - itBlock.getTimestamp();
 
       long curBaseTarget = avgBaseTarget.longValue();
-      long newBaseTarget = BigInteger.valueOf(curBaseTarget).multiply(BigInteger.valueOf(difTime)).divide(BigInteger.valueOf(240L * 4)).longValue();
+      long newBaseTarget = BigInteger.valueOf(curBaseTarget).multiply(BigInteger.valueOf(difTime))
+          .divide(BigInteger.valueOf(240L * 4)).longValue();
       if (newBaseTarget < 0 || newBaseTarget > Constants.MAX_BASE_TARGET) {
         newBaseTarget = Constants.MAX_BASE_TARGET;
       }
@@ -552,7 +579,8 @@ public class BlockImpl implements Block {
         newBaseTarget = twofoldCurBaseTarget;
       }
       baseTarget = newBaseTarget;
-      cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
+      cumulativeDifficulty = previousBlock.getCumulativeDifficulty()
+          .add(Convert.two64.divide(BigInteger.valueOf(baseTarget))).toByteArray();
     } else {
       Block itBlock = previousBlock;
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
@@ -560,7 +588,9 @@ public class BlockImpl implements Block {
       do {
         itBlock = BlockchainProcessorImpl.DownloadCache.GetBlock(itBlock.getPreviousBlockId());
         blockCounter++;
-        avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter)).add(BigInteger.valueOf(itBlock.getBaseTarget()))).divide(BigInteger.valueOf(blockCounter + 1L));
+        avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter))
+            .add(BigInteger.valueOf(itBlock.getBaseTarget())))
+                .divide(BigInteger.valueOf(blockCounter + 1L));
       } while (blockCounter < 24);
       long difTime = (long) this.timestamp - itBlock.getTimestamp();
       long targetTimespan = 24L * 4 * 60;
@@ -574,7 +604,8 @@ public class BlockImpl implements Block {
       }
 
       long curBaseTarget = previousBlock.getBaseTarget();
-      long newBaseTarget = avgBaseTarget.multiply(BigInteger.valueOf(difTime)).divide(BigInteger.valueOf(targetTimespan)).longValue();
+      long newBaseTarget = avgBaseTarget.multiply(BigInteger.valueOf(difTime))
+          .divide(BigInteger.valueOf(targetTimespan)).longValue();
 
       if (newBaseTarget < 0 || newBaseTarget > Constants.MAX_BASE_TARGET) {
         newBaseTarget = Constants.MAX_BASE_TARGET;
@@ -593,7 +624,8 @@ public class BlockImpl implements Block {
       }
 
       baseTarget = newBaseTarget;
-      cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
+      cumulativeDifficulty = previousBlock.getCumulativeDifficulty()
+          .add(Convert.two64.divide(BigInteger.valueOf(baseTarget))).toByteArray();
     }
   }
 
