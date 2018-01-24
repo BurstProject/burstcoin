@@ -221,7 +221,7 @@ public final class DownloadCacheImpl {
 
   public int getPoCVersion(long blockId) {
     BlockImpl blockImpl = GetBlock(blockId);
-    return (blockImpl == null && blockImpl.getHeight() < Constants.POC2_START_BLOCK) ? 1 : 2;
+    return (blockImpl == null || blockImpl.getHeight() < Constants.POC2_START_BLOCK) ? 1 : 2;
   }
 
   public BlockImpl getLastBlock() {
