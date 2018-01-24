@@ -1386,7 +1386,7 @@ public interface Attachment extends Appendix {
       buffer.put(this.requiredSigners);
       byte totalSigners = (byte) this.signers.size();
       buffer.put(totalSigners);
-      this.signers.forEach(id -> buffer.putLong(id));
+      this.signers.forEach(buffer::putLong);
     }
 
     @Override

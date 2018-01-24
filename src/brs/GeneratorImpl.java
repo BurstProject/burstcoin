@@ -66,10 +66,6 @@ public final class GeneratorImpl implements Generator {
     ThreadPool.scheduleThread("GenerateBlocks", generateBlockThread, 500, TimeUnit.MILLISECONDS);
   }
 
-  @Override
-  public void init() {
-  }
-
   void clear() {
   }
 
@@ -247,11 +243,6 @@ public final class GeneratorImpl implements Generator {
     @Override
     public boolean removeListener(Listener<GeneratorState> listener, Event eventType) {
       return listeners.removeListener(listener, eventType);
-    }
-
-    @Override
-    public void init() {
-
     }
 
     @Override

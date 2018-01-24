@@ -213,10 +213,6 @@ public class Account {
     return account;
   }
 
-  static void init() {
-  }
-
-
   public final long id;
   public final BurstKey nxtKey;
   protected final int creationHeight;
