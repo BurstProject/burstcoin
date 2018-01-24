@@ -41,13 +41,13 @@ public final class GetAccountTransactions extends APIServlet.APIRequestHandler {
     byte type;
     byte subtype;
     try {
-      type = Byte.parseByte(req.getParameter("type"));
+      type = Byte.parseByte(req.getParameter(TYPE_PARAMETER));
     }
     catch (NumberFormatException e) {
       type = -1;
     }
     try {
-      subtype = Byte.parseByte(req.getParameter("subtype"));
+      subtype = Byte.parseByte(req.getParameter(SUBTYPE_PARAMETER));
     }
     catch (NumberFormatException e) {
       subtype = -1;

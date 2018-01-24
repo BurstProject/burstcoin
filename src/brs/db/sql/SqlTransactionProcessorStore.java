@@ -56,7 +56,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
             transaction.getId(), transaction.getHeight(), transaction.getFeeNQT() / transaction.getSize(),
             transaction.getTimestamp(), transaction.getExpiration(), transaction.getBytes(),
             Burst.getBlockchain().getHeight()
-          );
+          ).execute();
         }
 
         @Override

@@ -247,6 +247,11 @@
   <build>
     <sourceDirectory>src</sourceDirectory>
     <testSourceDirectory>test/java</testSourceDirectory>
+    <testResources>
+      <testResource>
+        <directory>${project.basedir}/conf</directory>
+      </testResource>
+    </testResources>
 
     <pluginManagement>
       <plugins>

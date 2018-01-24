@@ -448,7 +448,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
         JSONObject response = peer.send(JSON.prepareRequest(milestoneBlockIdsRequest));
         if (response == null) {
-          logger.debug("Got null respose in getCommonMilestoneBlockId");
+          logger.debug("Got null response in getCommonMilestoneBlockId");
           return 0;
         }
         JSONArray milestoneBlockIds = (JSONArray) response.get("milestoneBlockIds");
@@ -967,7 +967,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       } finally {
         Burst.getStores().endTransaction();
       }
-      logger.debug("Successully pushed " + block.getId() + " (height " + block.getHeight() + ")");
+      logger.debug("Successfully pushed " + block.getId() + " (height " + block.getHeight() + ")");
     } // synchronized
 
     blockListeners.notify(block, Event.BLOCK_PUSHED);

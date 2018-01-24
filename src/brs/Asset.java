@@ -1,7 +1,6 @@
 package brs;
 
 import brs.db.EntityTable;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
 
 public class Asset {
@@ -14,20 +13,12 @@ public class Asset {
     return Burst.getStores().getAssetStore().getAssetTable();
   }
 
-  public static BurstIterator<Asset> getAllAssets(int from, int to) {
-    return assetTable().getAll(from, to);
-  }
-
   public static int getCount() {
     return assetTable().getCount();
   }
 
   public static Asset getAsset(long id) {
     return assetTable().get(assetDbKeyFactory().newKey(id));
-  }
-
-  public static BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
-    return Burst.getStores().getAssetStore().getAssetsIssuedBy(accountId, from, to);
   }
 
   static void addAsset(Transaction transaction, Attachment.ColoredCoinsAssetIssuance attachment) {

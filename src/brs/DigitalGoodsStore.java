@@ -6,6 +6,8 @@ import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
 //import brs.db.sql.*;
+import brs.services.AccountService;
+import brs.services.DGSGoodsStoreService;
 import brs.util.Convert;
 import brs.util.Listener;
 import brs.util.Listeners;
@@ -24,22 +26,30 @@ public final class DigitalGoodsStore {
     PURCHASE, DELIVERY, REFUND, FEEDBACK
   }
 
-  static {
-    Burst.getBlockchainProcessor().addListener(new Listener<Block>() {
-        @Override
-        public void notify(Block block) {
-          try (BurstIterator<Purchase> purchases = getExpiredPendingPurchases(block.getTimestamp())) {
-            while (purchases.hasNext()) {
-              Purchase purchase = purchases.next();
-              Account buyer = Account.getAccount(purchase.getBuyerId());
-              buyer.addToUnconfirmedBalanceNQT(Convert.safeMultiply(purchase.getQuantity(), purchase.getPriceNQT()));
-              getGoods(purchase.getGoodsId()).changeQuantity(purchase.getQuantity());
-              purchase.setPending(false);
-            }
-          }
+  static class DevNullListener implements Listener<Block> {
+
+    private final AccountService accountService;
+    private final DGSGoodsStoreService goodsService;
+
+    DevNullListener(AccountService accountService, DGSGoodsStoreService goodsService) {
+      this.accountService = accountService;
+      this.goodsService = goodsService;
+    }
+
+    @Override
+    public void notify(Block block) {
+      try (BurstIterator<Purchase> purchases = getExpiredPendingPurchases(block.getTimestamp())) {
+        while (purchases.hasNext()) {
+          Purchase purchase = purchases.next();
+          Account buyer = accountService.getAccount(purchase.getBuyerId());
+          buyer.addToUnconfirmedBalanceNQT(Convert.safeMultiply(purchase.getQuantity(), purchase.getPriceNQT()));
+          goodsService.getGoods(purchase.getGoodsId()).changeQuantity(purchase.getQuantity());
+          purchase.setPending(false);
         }
-      }, BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
+      }
+    }
   }
+
 
   private static final Listeners<Goods,Event> goodsListeners = new Listeners<>();
 
@@ -66,12 +76,15 @@ public final class DigitalGoodsStore {
     Purchase.init();
   }
 
-  public static   class Goods {
+  public static class Goods {
 
-    private static final BurstKey.LongKeyFactory<Goods> goodsDbKeyFactory = Burst.getStores().getDigitalGoodsStoreStore().getGoodsDbKeyFactory();
+    private static final BurstKey.LongKeyFactory<Goods> goodsDbKeyFactory() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getGoodsDbKeyFactory();
+    }
 
-
-    private static final VersionedEntityTable<Goods> goodsTable = Burst.getStores().getDigitalGoodsStoreStore().getGoodsTable();
+    private static final VersionedEntityTable<Goods> goodsTable() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getGoodsTable();
+    }
 
     static void init() {}
 
@@ -103,7 +116,7 @@ public final class DigitalGoodsStore {
 
     private Goods(Transaction transaction, Attachment.DigitalGoodsListing attachment) {
       this.id = transaction.getId();
-      this.dbKey = goodsDbKeyFactory.newKey(this.id);
+      this.dbKey = goodsDbKeyFactory().newKey(this.id);
       this.sellerId = transaction.getSenderId();
       this.name = attachment.getName();
       this.description = attachment.getDescription();
@@ -151,7 +164,7 @@ public final class DigitalGoodsStore {
       } else if (quantity > Constants.MAX_DGS_LISTING_QUANTITY) {
         quantity = Constants.MAX_DGS_LISTING_QUANTITY;
       }
-      goodsTable.insert(this);
+      goodsTable().insert(this);
     }
 
     public long getPriceNQT() {
@@ -160,7 +173,7 @@ public final class DigitalGoodsStore {
 
     private void changePrice(long priceNQT) {
       this.priceNQT = priceNQT;
-      goodsTable.insert(this);
+      goodsTable().insert(this);
     }
 
     public boolean isDelisted() {
@@ -169,7 +182,7 @@ public final class DigitalGoodsStore {
 
     private void setDelisted(boolean delisted) {
       this.delisted = delisted;
-      goodsTable.insert(this);
+      goodsTable().insert(this);
     }
 
     /*
@@ -189,31 +202,32 @@ public final class DigitalGoodsStore {
 
   public static  class Purchase {
 
-    private static final BurstKey.LongKeyFactory<Purchase> purchaseDbKeyFactory =
-        Burst.getStores().getDigitalGoodsStoreStore().getPurchaseDbKeyFactory();
+    private static final BurstKey.LongKeyFactory<Purchase> purchaseDbKeyFactory() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getPurchaseDbKeyFactory();
+    }
 
-    private static final VersionedEntityTable<Purchase> purchaseTable=
-        Burst.getStores().getDigitalGoodsStoreStore().getPurchaseTable();
-
-
-    private static final BurstKey.LongKeyFactory<Purchase> feedbackDbKeyFactory =
-        Burst.getStores().getDigitalGoodsStoreStore().getFeedbackDbKeyFactory();
+    private static final VersionedEntityTable<Purchase> purchaseTable() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getPurchaseTable();
+    }
 
 
-    @Deprecated
-    private static final VersionedValuesTable<Purchase, EncryptedData> feedbackTable =
-        Burst.getStores().getDigitalGoodsStoreStore().getFeedbackTable();
+    private static final BurstKey.LongKeyFactory<Purchase> feedbackDbKeyFactory() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getFeedbackDbKeyFactory();
+    }
 
+    private static final VersionedValuesTable<Purchase, EncryptedData> feedbackTable() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getFeedbackTable();
+    }
 
-    private static final BurstKey.LongKeyFactory<Purchase> publicFeedbackDbKeyFactory =
-        Burst.getStores().getDigitalGoodsStoreStore().getPublicFeedbackDbKeyFactory();
+    private static final BurstKey.LongKeyFactory<Purchase> publicFeedbackDbKeyFactory() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getPublicFeedbackDbKeyFactory();
+    }
 
-
-    private static final VersionedValuesTable<Purchase, String> publicFeedbackTable =
-        Burst.getStores().getDigitalGoodsStoreStore().getPublicFeedbackTable();
+    private static final VersionedValuesTable<Purchase, String> publicFeedbackTable() {
+      return Burst.getStores().getDigitalGoodsStoreStore().getPublicFeedbackTable();
+    }
 
     static void init() {}
-
 
     private final long id;
     public final BurstKey dbKey;
@@ -238,7 +252,7 @@ public final class DigitalGoodsStore {
 
     private Purchase(Transaction transaction, Attachment.DigitalGoodsPurchase attachment, long sellerId) {
       this.id = transaction.getId();
-      this.dbKey = purchaseDbKeyFactory.newKey(this.id);
+      this.dbKey = purchaseDbKeyFactory().newKey(this.id);
       this.buyerId = transaction.getSenderId();
       this.goodsId = attachment.getGoodsId();
       this.sellerId = sellerId;
@@ -310,7 +324,7 @@ public final class DigitalGoodsStore {
 
     private void setPending(boolean isPending) {
       this.isPending = isPending;
-      purchaseTable.insert(this);
+      purchaseTable().insert(this);
     }
 
     public int getTimestamp() {
@@ -332,7 +346,7 @@ public final class DigitalGoodsStore {
     private void setEncryptedGoods(EncryptedData encryptedGoods, boolean goodsIsText) {
       this.encryptedGoods = encryptedGoods;
       this.goodsIsText = goodsIsText;
-      purchaseTable.insert(this);
+      purchaseTable().insert(this);
     }
 
     public EncryptedData getRefundNote() {
@@ -341,14 +355,14 @@ public final class DigitalGoodsStore {
 
     private void setRefundNote(EncryptedData refundNote) {
       this.refundNote = refundNote;
-      purchaseTable.insert(this);
+      purchaseTable().insert(this);
     }
 
     public List<EncryptedData> getFeedbackNotes() {
       if (!hasFeedbackNotes) {
         return null;
       }
-      feedbackNotes = feedbackTable.get(feedbackDbKeyFactory.newKey(this));
+      feedbackNotes = feedbackTable().get(feedbackDbKeyFactory().newKey(this));
       return feedbackNotes;
     }
 
@@ -358,15 +372,15 @@ public final class DigitalGoodsStore {
       }
       feedbackNotes.add(feedbackNote);
       this.hasFeedbackNotes = true;
-      purchaseTable.insert(this);
-      feedbackTable.insert(this, feedbackNotes);
+      purchaseTable().insert(this);
+      feedbackTable().insert(this, feedbackNotes);
     }
 
     public List<String> getPublicFeedback() {
       if (!hasPublicFeedbacks) {
         return null;
       }
-      publicFeedbacks =  publicFeedbackTable.get(publicFeedbackDbKeyFactory.newKey(this));
+      publicFeedbacks =  publicFeedbackTable().get(publicFeedbackDbKeyFactory().newKey(this));
       return publicFeedbacks;
     }
 
@@ -376,8 +390,8 @@ public final class DigitalGoodsStore {
       }
       publicFeedbacks.add(publicFeedback);
       this.hasPublicFeedbacks = true;
-      purchaseTable.insert(this);
-      publicFeedbackTable.insert(this, publicFeedbacks);
+      purchaseTable().insert(this);
+      publicFeedbackTable().insert(this, publicFeedbacks);
     }
 
     public long getDiscountNQT() {
@@ -386,7 +400,7 @@ public final class DigitalGoodsStore {
 
     public void setDiscountNQT(long discountNQT) {
       this.discountNQT = discountNQT;
-      purchaseTable.insert(this);
+      purchaseTable().insert(this);
     }
 
     public long getRefundNQT() {
@@ -395,63 +409,17 @@ public final class DigitalGoodsStore {
 
     public void setRefundNQT(long refundNQT) {
       this.refundNQT = refundNQT;
-      purchaseTable.insert(this);
+      purchaseTable().insert(this);
     }
-
-    /*
-      @Override
-      public int compareTo(Purchase other) {
-      if (this.timestamp < other.timestamp) {
-      return 1;
-      }
-      if (this.timestamp > other.timestamp) {
-      return -1;
-      }
-      return Long.compare(this.id, other.id);
-      }
-    */
 
   }
 
   public static Goods getGoods(long goodsId) {
-    return Goods.goodsTable.get(Goods.goodsDbKeyFactory.newKey(goodsId));
-  }
-
-  public static BurstIterator<Goods> getAllGoods(int from, int to) {
-    return Goods.goodsTable.getAll(from, to);
-  }
-
-  public static BurstIterator<Goods> getGoodsInStock(int from, int to) {
-    return Burst.getStores().getDigitalGoodsStoreStore().getGoodsInStock(from, to);
-
-  }
-
-  public static BurstIterator<Goods> getSellerGoods(final long sellerId, final boolean inStockOnly, int from, int to) {
-    return Burst.getStores().getDigitalGoodsStoreStore().getSellerGoods(sellerId, inStockOnly, from, to);
-  }
-
-  public static BurstIterator<Purchase> getAllPurchases(int from, int to) {
-    return Purchase.purchaseTable.getAll(from, to);
-  }
-
-  public static BurstIterator<Purchase> getSellerPurchases(long sellerId, int from, int to) {
-    return Burst.getStores().getDigitalGoodsStoreStore().getSellerPurchases(sellerId,  from, to);
-  }
-
-  public static BurstIterator<Purchase> getBuyerPurchases(long buyerId, int from, int to) {
-    return Burst.getStores().getDigitalGoodsStoreStore().getBuyerPurchases(buyerId,  from, to);
-  }
-
-  public static BurstIterator<Purchase> getSellerBuyerPurchases(final long sellerId, final long buyerId, int from, int to) {
-    return Burst.getStores().getDigitalGoodsStoreStore().getSellerBuyerPurchases(sellerId, buyerId, from, to);
+    return Goods.goodsTable().get(Goods.goodsDbKeyFactory().newKey(goodsId));
   }
 
   public static Purchase getPurchase(long purchaseId) {
-    return Purchase.purchaseTable.get(Purchase.purchaseDbKeyFactory.newKey(purchaseId));
-  }
-
-  public static BurstIterator<Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
-    return Burst.getStores().getDigitalGoodsStoreStore().getPendingSellerPurchases(sellerId, from, to);
+    return Purchase.purchaseTable().get(Purchase.purchaseDbKeyFactory().newKey(purchaseId));
   }
 
   static Purchase getPendingPurchase(long purchaseId) {
@@ -465,18 +433,18 @@ public final class DigitalGoodsStore {
 
   private static void addPurchase(Transaction transaction,  Attachment.DigitalGoodsPurchase attachment, long sellerId) {
     Purchase purchase = new Purchase(transaction, attachment, sellerId);
-    Purchase.purchaseTable.insert(purchase);
+    Purchase.purchaseTable().insert(purchase);
     purchaseListeners.notify(purchase, Event.PURCHASE);
   }
 
   static void listGoods(Transaction transaction, Attachment.DigitalGoodsListing attachment) {
     Goods goods = new Goods(transaction, attachment);
-    Goods.goodsTable.insert(goods);
+    Goods.goodsTable().insert(goods);
     goodsListeners.notify(goods, Event.GOODS_LISTED);
   }
 
   static void delistGoods(long goodsId) {
-    Goods goods = Goods.goodsTable.get(Goods.goodsDbKeyFactory.newKey(goodsId));
+    Goods goods = Goods.goodsTable().get(Goods.goodsDbKeyFactory().newKey(goodsId));
     if (! goods.isDelisted()) {
       goods.setDelisted(true);
       goodsListeners.notify(goods, Event.GOODS_DELISTED);
@@ -486,7 +454,7 @@ public final class DigitalGoodsStore {
   }
 
   static void changePrice(long goodsId, long priceNQT) {
-    Goods goods = Goods.goodsTable.get(Goods.goodsDbKeyFactory.newKey(goodsId));
+    Goods goods = Goods.goodsTable().get(Goods.goodsDbKeyFactory().newKey(goodsId));
     if (! goods.isDelisted()) {
       goods.changePrice(priceNQT);
       goodsListeners.notify(goods, Event.GOODS_PRICE_CHANGE);
@@ -496,7 +464,7 @@ public final class DigitalGoodsStore {
   }
 
   static void changeQuantity(long goodsId, int deltaQuantity) {
-    Goods goods = Goods.goodsTable.get(Goods.goodsDbKeyFactory.newKey(goodsId));
+    Goods goods = Goods.goodsTable().get(Goods.goodsDbKeyFactory().newKey(goodsId));
     if (! goods.isDelisted()) {
       goods.changeQuantity(deltaQuantity);
       goodsListeners.notify(goods, Event.GOODS_QUANTITY_CHANGE);
@@ -506,7 +474,7 @@ public final class DigitalGoodsStore {
   }
 
   static void purchase(Transaction transaction,  Attachment.DigitalGoodsPurchase attachment) {
-    Goods goods = Goods.goodsTable.get(Goods.goodsDbKeyFactory.newKey(attachment.getGoodsId()));
+    Goods goods = Goods.goodsTable().get(Goods.goodsDbKeyFactory().newKey(attachment.getGoodsId()));
     if (! goods.isDelisted() && attachment.getQuantity() <= goods.getQuantity() && attachment.getPriceNQT() == goods.getPriceNQT()
         && attachment.getDeliveryDeadlineTimestamp() > Burst.getBlockchain().getLastBlock().getTimestamp()) {
       goods.changeQuantity(-attachment.getQuantity());
@@ -536,7 +504,7 @@ public final class DigitalGoodsStore {
   }
 
   static void refund(long sellerId, long purchaseId, long refundNQT, Appendix.EncryptedMessage encryptedMessage) {
-    Purchase purchase = Purchase.purchaseTable.get(Purchase.purchaseDbKeyFactory.newKey(purchaseId));
+    Purchase purchase = Purchase.purchaseTable().get(Purchase.purchaseDbKeyFactory().newKey(purchaseId));
     Account seller = Account.getAccount(sellerId);
     seller.addToBalanceNQT(-refundNQT);
     Account buyer = Account.getAccount(purchase.getBuyerId());
@@ -549,7 +517,7 @@ public final class DigitalGoodsStore {
   }
 
   static void feedback(long purchaseId, Appendix.EncryptedMessage encryptedMessage, Appendix.Message message) {
-    Purchase purchase = Purchase.purchaseTable.get(Purchase.purchaseDbKeyFactory.newKey(purchaseId));
+    Purchase purchase = Purchase.purchaseTable().get(Purchase.purchaseDbKeyFactory().newKey(purchaseId));
     if (encryptedMessage != null) {
       purchase.addFeedbackNote(encryptedMessage.getEncryptedData());
     }

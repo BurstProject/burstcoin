@@ -15,19 +15,21 @@ import static brs.http.common.Parameters.REFUND_NQT_PARAMETER;
 public final class DGSRefund extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final AccountService accountService;
   private final Blockchain blockchain;
 
   DGSRefund(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
     super(new APITag[] {APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, PURCHASE_PARAMETER, REFUND_NQT_PARAMETER);
     this.parameterService = parameterService;
+    this.accountService = accountService;
     this.blockchain = blockchain;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
-
     Account sellerAccount = parameterService.getSenderAccount(req);
-    DigitalGoodsStore.Purchase purchase = ParameterParser.getPurchase(req);
+    DigitalGoodsStore.Purchase purchase = parameterService.getPurchase(req);
+
     if (sellerAccount.getId() != purchase.getSellerId()) {
       return INCORRECT_PURCHASE;
     }
@@ -51,7 +53,7 @@ public final class DGSRefund extends CreateTransaction {
       return INCORRECT_DGS_REFUND;
     }
 
-    Account buyerAccount = Account.getAccount(purchase.getBuyerId());
+    Account buyerAccount = accountService.getAccount(purchase.getBuyerId());
 
     Attachment attachment = new Attachment.DigitalGoodsRefund(purchase.getId(), refundNQT, blockchain.getHeight());
     return createTransaction(req, sellerAccount, buyerAccount.getId(), 0, attachment);

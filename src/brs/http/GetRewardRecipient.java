@@ -1,6 +1,7 @@
 package brs.http;
 
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
+import static brs.http.common.ResultFields.REWARD_RECIPIENT_RESPONSE;
 
 import brs.Account;
 import brs.Blockchain;
@@ -31,11 +32,11 @@ public final class GetRewardRecipient extends APIServlet.APIRequestHandler {
     Account.RewardRecipientAssignment assignment = account.getRewardRecipientAssignment();
     long height = blockchain.getLastBlock().getHeight();
     if (account == null || assignment == null) {
-      response.put("rewardRecipient", Convert.toUnsignedLong(account.getId()));
+      response.put(REWARD_RECIPIENT_RESPONSE, Convert.toUnsignedLong(account.getId()));
     } else if (assignment.getFromHeight() > height + 1) {
-      response.put("rewardRecipient", Convert.toUnsignedLong(assignment.getPrevRecipientId()));
+      response.put(REWARD_RECIPIENT_RESPONSE, Convert.toUnsignedLong(assignment.getPrevRecipientId()));
     } else {
-      response.put("rewardRecipient", Convert.toUnsignedLong(assignment.getRecipientId()));
+      response.put(REWARD_RECIPIENT_RESPONSE, Convert.toUnsignedLong(assignment.getRecipientId()));
     }
 
     return response;

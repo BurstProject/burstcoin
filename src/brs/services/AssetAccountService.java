@@ -8,4 +8,6 @@ public interface AssetAccountService {
   BurstIterator<AccountAsset> getAssetAccounts(long assetId, int from, int to);
 
   BurstIterator<AccountAsset> getAssetAccounts(long assetId, int height, int from, int to);
+
+  int getAssetAccountsCount(long assetId);
 }

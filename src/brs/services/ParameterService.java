@@ -1,5 +1,6 @@
 package brs.services;
 
+import brs.AT;
 import brs.Account;
 import brs.Alias;
 import brs.Asset;
@@ -25,6 +26,8 @@ public interface ParameterService {
 
   DigitalGoodsStore.Goods getGoods(HttpServletRequest req) throws ParameterException;
 
+  DigitalGoodsStore.Purchase getPurchase(HttpServletRequest req) throws ParameterException;
+
   EncryptedData getEncryptedMessage(HttpServletRequest req, Account recipientAccount) throws ParameterException;
 
   EncryptedData getEncryptToSelfMessage(HttpServletRequest req) throws ParameterException;
@@ -36,4 +39,6 @@ public interface ParameterService {
   int getHeight(HttpServletRequest req) throws ParameterException;
 
   Transaction parseTransaction(String transactionBytes, String transactionJSON) throws ParameterException;
+
+  AT getAT(HttpServletRequest req) throws ParameterException;
 }
