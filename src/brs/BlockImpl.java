@@ -363,8 +363,9 @@ public class BlockImpl implements Block {
     if (blockATs != null)
       buffer.put(blockATs);
     if (buffer.limit() - buffer.position() < blockSignature.length)
-      logger.error("Something is too large here - buffer should have " + blockSignature.length
-          + " bytes left but only has " + (buffer.limit() - buffer.position()));
+      logger.error("Something is too large here - buffer should have {} bytes left but only has {}",
+                   blockSignature.length,
+                   (buffer.limit() - buffer.position()));
     buffer.put(blockSignature);
     return buffer.array();
   }
@@ -480,8 +481,8 @@ public class BlockImpl implements Block {
 
       for (TransactionImpl transaction : getTransactions()) {
         if (!transaction.verifySignature()) {
-          logger.info("Bad transaction signature during block pre-verification for tx: "
-              + Convert.toUnsignedLong(transaction.getId()) + " at block height: " + getHeight());
+          logger.info("Bad transaction signature during block pre-verification for tx: {} at block height: {}",
+                      Convert.toUnsignedLong(transaction.getId()), getHeight());
           throw new BlockchainProcessor.TransactionNotAcceptedException("Invalid signature for tx: "
               + Convert.toUnsignedLong(transaction.getId()) + "at block height: " + getHeight(),
               transaction);
@@ -510,7 +511,7 @@ public class BlockImpl implements Block {
       rewardAccount.addToBalanceAndUnconfirmedBalanceNQT(totalFeeNQT + getBlockReward());
       rewardAccount.addToForgedBalanceNQT(totalFeeNQT + getBlockReward());
     }
-    getTransactions().forEach(transaction -> transaction.apply());
+    getTransactions().forEach(TransactionImpl::apply);
   }
 
   @Override

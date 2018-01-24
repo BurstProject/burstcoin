@@ -300,8 +300,6 @@ public final class Burst {
         TransactionProcessorImpl.getInstance();
         BlockchainProcessorImpl.getInstance();
 
-
-        Account.init();
         Alias.init();
         Asset.init();
         DigitalGoodsStore.init();
@@ -309,7 +307,6 @@ public final class Burst {
         Trade.init();
         AssetTransfer.init();
         Peers.init();
-        getGenerator().init();
         API.init();
         Users.init();
         DebugTrace.init();
@@ -331,16 +328,6 @@ public final class Burst {
         }
         if (getBooleanProperty("brs.mockMining")) {
           setGenerator(new GeneratorImpl.MockGeneratorImpl());
-        }
-
-        if (BlockchainProcessorImpl.getOclVerify()) {
-          try {
-            OCLPoC.init();
-          }
-          catch (OCLPoC.OCLCheckerException e) {
-            logger.error("Error initializing OpenCL, disabling ocl verify: " + e.getMessage());
-            BlockchainProcessorImpl.setOclVerify(false);
-          }
         }
       }
       catch (Exception e) {

@@ -62,7 +62,7 @@ final class OCLPoC {
 
   private static final int hashesPerEnqueue = Burst.getIntProperty("GPU.HashesPerEnqueue") == 0
       ? 1000 : Burst.getIntProperty("GPU.HashesPerEnqueue");
-  private static final int memPercent = Burst.getIntProperty("GPU.MemPercent") == 0
+  private static final int MEM_PERCENT = Burst.getIntProperty("GPU.MemPercent") == 0
       ? DEFAULT_MEM_PERCENT : Burst.getIntProperty("GPU.MemPercent");
 
   private static cl_context ctx;
@@ -83,8 +83,6 @@ final class OCLPoC {
       + bufferPerItem // buffer
       + 4 // scoop num
       + MiningPlot.SCOOP_SIZE; // output scoop
-
-  static void init() {}
 
   static {
     try {
@@ -399,8 +397,8 @@ final class OCLPoC {
     clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE, 8, Pointer.to(globalMemSize), null);
     clGetDeviceInfo(device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, 8, Pointer.to(maxMemAllocSize), null);
 
-    long maxItemsByGlobalMemSize = (globalMemSize[0] * memPercent / 100) / memPerItem;
-    long maxItemsByMaxAllocSize = (maxMemAllocSize[0] * memPercent / 100) / bufferPerItem;
+    long maxItemsByGlobalMemSize = (globalMemSize[0] * MEM_PERCENT / 100) / memPerItem;
+    long maxItemsByMaxAllocSize = (maxMemAllocSize[0] * MEM_PERCENT / 100) / bufferPerItem;
 
     logger.debug("Global Memory:" + globalMemSize[0]);
     logger.debug("Max alloc Memory:" + maxMemAllocSize[0]);

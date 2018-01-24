@@ -48,7 +48,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   public static final int MAX_TIMESTAMP_DIFFERENCE = 15;
   private static boolean oclVerify = Burst.getBooleanProperty("GPU.Acceleration"); // use GPU
                                                                                    // acceleration ?
-  public static final int oclThreshold =
+  public static final int OCL_THRESHOLD =
       Burst.getIntProperty("GPU.Threshold") == 0 ? 50 : Burst.getIntProperty("GPU.Threshold");
   public static final int oclWaitThreshold = Burst.getIntProperty("GPU.WaitThreshold") == 0 ? 2000
       : Burst.getIntProperty("GPU.WaitThreshold");
@@ -100,7 +100,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       for (;;) {
         if (oclVerify) {
           boolean gpuAcquired = false;
-          int PoCVersion = 1;
+          int poCVersion = 1;
           try {
             List<BlockImpl> blocks = new LinkedList<>();
             synchronized (DownloadCache) {
@@ -112,7 +112,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                   && DownloadCache.getUnverifiedSize() < OCLPoC.getMaxItems() / 2) {
                 return;
               }
-              if (DownloadCache.getUnverifiedSize() < oclThreshold) {
+              if (DownloadCache.getUnverifiedSize() < OCL_THRESHOLD) {
                 // This will be verified with Java.
                 Long blockId = DownloadCache.GetUnverifiedBlockId(0);
                 DownloadCache.removeUnverified(blockId);
@@ -126,12 +126,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 gpuAcquired = true;
 
                 // We add blocks to ocl process in blocks list.
-                // If we change PoCVersion we process until this and do other version in next round.
-                PoCVersion = DownloadCache.getPoCVersion(DownloadCache.GetUnverifiedBlockId(0));
+                // If we change poCVersion we process until this and do other version in next round.
+                poCVersion = DownloadCache.getPoCVersion(DownloadCache.GetUnverifiedBlockId(0));
                 while (DownloadCache.getUnverifiedSize() > 0
                     && blocks.size() < OCLPoC.getMaxItems()) {
                   Long blockId = DownloadCache.GetUnverifiedBlockId(0);
-                  if (DownloadCache.getPoCVersion(blockId) != PoCVersion) {
+                  if (DownloadCache.getPoCVersion(blockId) != poCVersion) {
                     break;
                   }
                   DownloadCache.removeUnverified(blockId);
@@ -141,7 +141,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             } // end synchronized
             try {
               if (blocks.size() > 1) {
-                OCLPoC.validatePoC(blocks, PoCVersion);
+                OCLPoC.validatePoC(blocks, poCVersion);
               } else {
                 blocks.get(0).preVerify();
               }
@@ -403,7 +403,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
               } // end block loop
 
               logger.trace("Unverified blocks: " + DownloadCache.getUnverifiedSize());
-              logger.trace("Blocks in cache: " + DownloadCache.size());
+              logger.trace("Blocks in cache: {}", DownloadCache.size());
               logger.trace("Bytes in cache: " + DownloadCache.getBlockCacheSize());
             } // end synchronized
             if (forkBlocks.size() > 0) {

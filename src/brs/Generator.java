@@ -11,8 +11,6 @@ public interface Generator {
     GENERATION_DEADLINE, START_FORGING, STOP_FORGING
   }
 
-  void init();
-
   boolean addListener(Listener<GeneratorState> listener, Event eventType);
 
   boolean removeListener(Listener<GeneratorState> listener, Event eventType);
