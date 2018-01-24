@@ -206,7 +206,7 @@ public class BlockImpl implements Block {
 
   @Override
   public BigInteger getCumulativeDifficulty() {
-    return new BigInteger(cumulativeDifficulty);
+    return cumulativeDifficulty;
   }
 
   @Override
@@ -543,12 +543,11 @@ public class BlockImpl implements Block {
 
     if (this.getId() == Genesis.GENESIS_BLOCK_ID && previousBlockId == 0) {
       baseTarget = Constants.INITIAL_BASE_TARGET;
-      cumulativeDifficulty = BigInteger.ZERO.toByteArray();
+      cumulativeDifficulty = BigInteger.ZERO;
     } else if (this.height < 4) {
       baseTarget = Constants.INITIAL_BASE_TARGET;
       cumulativeDifficulty = previousBlock.getCumulativeDifficulty()
-          .add(Convert.two64.divide(BigInteger.valueOf(Constants.INITIAL_BASE_TARGET)))
-          .toByteArray();
+          .add(Convert.two64.divide(BigInteger.valueOf(Constants.INITIAL_BASE_TARGET)));
     } else if (this.height < Constants.BURST_DIFF_ADJUST_CHANGE_BLOCK) {
       Block itBlock = previousBlock;
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
@@ -580,7 +579,7 @@ public class BlockImpl implements Block {
       }
       baseTarget = newBaseTarget;
       cumulativeDifficulty = previousBlock.getCumulativeDifficulty()
-          .add(Convert.two64.divide(BigInteger.valueOf(baseTarget))).toByteArray();
+        .add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
     } else {
       Block itBlock = previousBlock;
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
@@ -625,7 +624,7 @@ public class BlockImpl implements Block {
 
       baseTarget = newBaseTarget;
       cumulativeDifficulty = previousBlock.getCumulativeDifficulty()
-          .add(Convert.two64.divide(BigInteger.valueOf(baseTarget))).toByteArray();
+        .add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
     }
   }
 

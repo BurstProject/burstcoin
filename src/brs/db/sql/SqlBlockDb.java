@@ -16,9 +16,17 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.math.BigInteger;
+import brs.BlockImpl;
+import brs.db.BlockDb;
+import brs.BurstException;
+import brs.Burst;
 
 import static brs.schema.Tables.BLOCK;
 import brs.schema.tables.records.BlockRecord;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SqlBlockDb implements BlockDb {
 
