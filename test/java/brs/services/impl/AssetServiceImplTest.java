@@ -8,8 +8,8 @@ import static org.mockito.Mockito.when;
 import brs.Account.AccountAsset;
 import brs.Asset;
 import brs.AssetTransfer;
-import brs.Burst;
 import brs.Trade;
+import brs.common.AbstractUnitTest;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
@@ -21,7 +21,7 @@ import brs.services.TradeService;
 import org.junit.Before;
 import org.junit.Test;
 
-public class AssetServiceImplTest {
+public class AssetServiceImplTest extends AbstractUnitTest {
 
   private AssetServiceImpl t;
 
@@ -125,5 +125,29 @@ public class AssetServiceImplTest {
     when(mockAssetTransferService.getAssetTransfers(eq(assetId), eq(from), eq(to))).thenReturn(mockTransferIterator);
 
     assertEquals(mockTransferIterator, t.getAssetTransfers(assetId, from, to));
+  }
+
+  @Test
+  public void getAllAssetsTest() {
+    final int from = 2;
+    final int to = 4;
+
+    final BurstIterator<Trade> mockTradeIterator = mock(BurstIterator.class);
+
+    when(mockAssetTableMock.getAll(eq(from), eq(to))).thenReturn(mockTradeIterator);
+
+    assertEquals(mockTradeIterator, t.getAllAssets(from, to));
+  }
+
+  @Test
+  public void getAssetsIssuesBy() {
+    long accountId = 123L;
+    int from = 1;
+    int to = 2;
+
+    BurstIterator<Asset> mockAssetIterator = mockBurstIterator();
+    when(mockAssetStore.getAssetsIssuedBy(eq(accountId), eq(from), eq(to))).thenReturn(mockAssetIterator);
+
+    assertEquals(mockAssetIterator, t.getAssetsIssuedBy(accountId, from, to));
   }
 }

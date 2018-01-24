@@ -11,12 +11,14 @@ import org.jooq.DeleteQuery;
 import org.jooq.SelectQuery;
 import org.jooq.UpdateQuery;
 import org.jooq.impl.TableImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import brs.BlockImpl;
-import brs.Burst;
-import brs.BurstException;
-import brs.db.BlockDb;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static brs.schema.Tables.BLOCK;
+import brs.schema.tables.records.BlockRecord;
 
 public class SqlBlockDb implements BlockDb {
 
@@ -24,16 +26,21 @@ public class SqlBlockDb implements BlockDb {
 
   public BlockImpl findBlock(long blockId) {
     try (DSLContext ctx = Db.getDSLContext()) {
-      return ctx.selectFrom(BLOCK).where(BLOCK.ID.eq(blockId)).fetchAny().into(BlockImpl.class);
-    } catch (SQLException e) {
+      return loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.ID.eq(blockId)).fetchAny());
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
+    }
+    catch (BurstException.ValidationException e) {
+      throw new RuntimeException("Block already in database, id = " + blockId + ", does not pass validation!", e);
     }
   }
 
   public boolean hasBlock(long blockId) {
     try (DSLContext ctx = Db.getDSLContext()) {
       return ctx.fetchExists(ctx.selectOne().from(BLOCK).where(BLOCK.ID.eq(blockId)));
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
@@ -52,63 +59,65 @@ public class SqlBlockDb implements BlockDb {
 
   public BlockImpl findBlockAtHeight(int height) {
     try (DSLContext ctx = Db.getDSLContext()) {
-      BlockImpl block =
-          ctx.selectFrom(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchAny().into(BlockImpl.class);
+      BlockImpl block = loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchAny());
       if (block == null) {
-        throw new RuntimeException("Block at height " + height + " not found in database!");
+          throw new RuntimeException("Block at height " + height + " not found in database!");
       }
       return block;
-    } catch (Exception e) {
+    }
+    catch (SQLException e) {
+      throw new RuntimeException(e.toString(), e);
+    }
+    catch (BurstException.ValidationException e) {
       throw new RuntimeException(e.toString(), e);
     }
   }
 
   public BlockImpl findLastBlock() {
     try (DSLContext ctx = Db.getDSLContext()) {
-      return ctx.selectFrom(BLOCK).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchAny()
-          .into(BlockImpl.class);
-    } catch (SQLException e) {
+      return loadBlock(ctx.selectFrom(BLOCK).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchAny());
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
-    } catch (Exception e) {
+    }
+    catch (BurstException.ValidationException e) {
       throw new RuntimeException("Last block already in database does not pass validation!", e);
     }
   }
 
   public BlockImpl findLastBlock(int timestamp) {
     try (DSLContext ctx = Db.getDSLContext()) {
-      return ctx.selectFrom(BLOCK).where(BLOCK.TIMESTAMP.lessOrEqual(timestamp))
-          .orderBy(BLOCK.DB_ID.desc()).limit(1).fetchAny().into(BlockImpl.class);
-    } catch (SQLException e) {
+      return loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.TIMESTAMP.lessOrEqual(timestamp)).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchAny());
+    }
+    catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
-    } catch (Exception e) {
-      throw new RuntimeException(
-          "Block already in database at timestamp " + timestamp + " does not pass validation!", e);
+    }
+    catch (BurstException.ValidationException e) {
+      throw new RuntimeException("Block already in database at timestamp " + timestamp + " does not pass validation!", e);
     }
   }
 
   public BlockImpl loadBlock(DSLContext ctx, ResultSet rs)
       throws BurstException.ValidationException {
     try {
-      int version = rs.getInt("version");
-      int timestamp = rs.getInt("timestamp");
-      long previousBlockId = rs.getLong("previous_block_id");
-      long totalAmountNQT = rs.getLong("total_amount");
-      long totalFeeNQT = rs.getLong("total_fee");
-      int payloadLength = rs.getInt("payload_length");
-      byte[] generatorPublicKey = rs.getBytes("generator_public_key");
-      byte[] previousBlockHash = rs.getBytes("previous_block_hash");
-      byte[] cumulativeDifficulty = rs.getBytes("cumulative_difficulty");
-      long baseTarget = rs.getLong("base_target");
-      long nextBlockId = rs.getLong("next_block_id");
-      int height = rs.getInt("height");
-      byte[] generationSignature = rs.getBytes("generation_signature");
-      byte[] blockSignature = rs.getBytes("block_signature");
-      byte[] payloadHash = rs.getBytes("payload_hash");
-
-      long id = rs.getLong("id");
-      long nonce = rs.getLong("nonce");
-
-      byte[] blockATs = rs.getBytes("ats");
+      int version                     = rs.getInt("version");
+      int timestamp                   = rs.getInt("timestamp");
+      long previousBlockId            = rs.getLong("previous_block_id");
+      long totalAmountNQT             = rs.getLong("total_amount");
+      long totalFeeNQT                = rs.getLong("total_fee");
+      int payloadLength               = rs.getInt("payload_length");
+      byte[] generatorPublicKey       = rs.getBytes("generator_public_key");
+      byte[] previousBlockHash        = rs.getBytes("previous_block_hash");
+      BigInteger cumulativeDifficulty = new BigInteger(rs.getBytes("cumulative_difficulty"));
+      long baseTarget                 = rs.getLong("base_target");
+      long nextBlockId                = rs.getLong("next_block_id");
+      int height                      = rs.getInt("height");
+      byte[] generationSignature      = rs.getBytes("generation_signature");
+      byte[] blockSignature           = rs.getBytes("block_signature");
+      byte[] payloadHash              = rs.getBytes("payload_hash");
+      long id                         = rs.getLong("id");
+      long nonce                      = rs.getLong("nonce");
+      byte[] blockATs                 = rs.getBytes("ats");
 
       return new BlockImpl(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT,
           payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature,
@@ -117,6 +126,31 @@ public class SqlBlockDb implements BlockDb {
     } catch (SQLException e) {
       throw new RuntimeException(e.toString(), e);
     }
+  }
+
+  public BlockImpl loadBlock(BlockRecord r) throws BurstException.ValidationException {
+    int version                     = r.getVersion();
+    int timestamp                   = r.getTimestamp();
+    long previousBlockId            = Optional.ofNullable(r.getPreviousBlockId()).orElse(0L);
+    long totalAmountNQT             = r.getTotalAmount();
+    long totalFeeNQT                = r.getTotalFee();
+    int payloadLength               = r.getPayloadLength();
+    byte[] generatorPublicKey       = r.getGeneratorPublicKey();
+    byte[] previousBlockHash        = r.getPreviousBlockHash();
+    BigInteger cumulativeDifficulty = new BigInteger(r.getCumulativeDifficulty());
+    long baseTarget                 = r.getBaseTarget();
+    long nextBlockId                = Optional.ofNullable(r.getNextBlockId()).orElse(0L);
+    int height                      = r.getHeight();
+    byte[] generationSignature      = r.getGenerationSignature();
+    byte[] blockSignature           = r.getBlockSignature();
+    byte[] payloadHash              = r.getPayloadHash();
+    long id                         = r.getId();
+    long nonce                      = r.getNonce();
+    byte[] blockATs                 = r.getAts();
+
+    return new BlockImpl(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
+                         generatorPublicKey, generationSignature, blockSignature, previousBlockHash,
+                         cumulativeDifficulty, baseTarget, nextBlockId, height, id, nonce, blockATs);
   }
 
   public void saveBlock(DSLContext ctx, BlockImpl block) {

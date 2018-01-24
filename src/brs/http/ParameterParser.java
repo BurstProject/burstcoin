@@ -8,7 +8,6 @@ import static brs.http.JSONResponses.INCORRECT_DGS_ENCRYPTED_GOODS;
 import static brs.http.JSONResponses.INCORRECT_FEE;
 import static brs.http.JSONResponses.INCORRECT_ORDER;
 import static brs.http.JSONResponses.INCORRECT_PRICE;
-import static brs.http.JSONResponses.INCORRECT_PURCHASE;
 import static brs.http.JSONResponses.INCORRECT_QUANTITY;
 import static brs.http.JSONResponses.INCORRECT_RECIPIENT;
 import static brs.http.JSONResponses.INCORRECT_TIMESTAMP;
@@ -17,11 +16,9 @@ import static brs.http.JSONResponses.MISSING_AT;
 import static brs.http.JSONResponses.MISSING_FEE;
 import static brs.http.JSONResponses.MISSING_ORDER;
 import static brs.http.JSONResponses.MISSING_PRICE;
-import static brs.http.JSONResponses.MISSING_PURCHASE;
 import static brs.http.JSONResponses.MISSING_QUANTITY;
 import static brs.http.JSONResponses.MISSING_RECIPIENT;
 import static brs.http.JSONResponses.MISSING_SECRET_PHRASE;
-import static brs.http.JSONResponses.MISSING_TRANSACTION_BYTES_OR_JSON;
 import static brs.http.JSONResponses.UNKNOWN_AT;
 import static brs.http.common.Parameters.AMOUNT_NQT_PARAMETER;
 import static brs.http.common.Parameters.AT_PARAMETER;
@@ -35,7 +32,6 @@ import static brs.http.common.Parameters.HEX_STRING_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.ORDER_PARAMETER;
 import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
-import static brs.http.common.Parameters.PURCHASE_PARAMETER;
 import static brs.http.common.Parameters.QUANTITY_NQT_PARAMETER;
 import static brs.http.common.Parameters.QUANTITY_PARAMETER;
 import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
@@ -45,7 +41,6 @@ import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
 
 import brs.AT;
 import brs.Constants;
-import brs.DigitalGoodsStore;
 import brs.crypto.EncryptedData;
 import brs.http.common.Parameters;
 import brs.util.Convert;
@@ -144,22 +139,6 @@ final class ParameterParser {
     return null;
   }
 
-  static DigitalGoodsStore.Purchase getPurchase(HttpServletRequest req) throws ParameterException {
-    String purchaseIdString = Convert.emptyToNull(req.getParameter(PURCHASE_PARAMETER));
-    if (purchaseIdString == null) {
-      throw new ParameterException(MISSING_PURCHASE);
-    }
-    try {
-      DigitalGoodsStore.Purchase purchase = DigitalGoodsStore.getPurchase(Convert.parseUnsignedLong(purchaseIdString));
-      if (purchase == null) {
-        throw new ParameterException(INCORRECT_PURCHASE);
-      }
-      return purchase;
-    } catch (RuntimeException e) {
-      throw new ParameterException(INCORRECT_PURCHASE);
-    }
-  }
-
   static String getSecretPhrase(HttpServletRequest req) throws ParameterException {
     String secretPhrase = Convert.emptyToNull(req.getParameter(SECRET_PHRASE_PARAMETER));
     if (secretPhrase == null) {
@@ -248,25 +227,6 @@ final class ParameterParser {
 
   private ParameterParser() {
   } // never
-
-
-  static AT getAT(HttpServletRequest req) throws ParameterException {
-    String atValue = Convert.emptyToNull(req.getParameter(AT_PARAMETER));
-    if (atValue == null) {
-      throw new ParameterException(MISSING_AT);
-    }
-    AT at;
-    try {
-      Long atId = Convert.parseUnsignedLong(atValue);
-      at = AT.getAT(atId);
-    } catch (RuntimeException e) {
-      throw new ParameterException(INCORRECT_AT);
-    }
-    if (at == null) {
-      throw new ParameterException(UNKNOWN_AT);
-    }
-    return at;
-  }
 
   public static byte[] getCreationBytes(HttpServletRequest req) throws ParameterException {
     try {

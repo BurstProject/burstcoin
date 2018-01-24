@@ -9,17 +9,15 @@ import static brs.Constants.*;
 
 public final class DecodeToken extends APIServlet.APIRequestHandler {
 
-  static final DecodeToken instance = new DecodeToken();
-
-  private DecodeToken() {
+  public DecodeToken() {
     super(new APITag[] {APITag.TOKENS}, WEBSITE, TOKEN);
   }
 
   @Override
   public JSONStreamAware processRequest(HttpServletRequest req) {
-
     String website = req.getParameter(WEBSITE);
     String tokenString = req.getParameter(TOKEN);
+
     if (website == null) {
       return MISSING_WEBSITE;
     } else if (tokenString == null) {
@@ -27,14 +25,10 @@ public final class DecodeToken extends APIServlet.APIRequestHandler {
     }
 
     try {
-
       Token token = Token.parseToken(tokenString, website.trim());
-
       return JSONData.token(token);
-
     } catch (RuntimeException e) {
       return INCORRECT_WEBSITE;
     }
   }
-
 }

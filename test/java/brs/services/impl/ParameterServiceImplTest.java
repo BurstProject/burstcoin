@@ -5,15 +5,22 @@ import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_PARAMETER;
 import static brs.http.common.Parameters.ASSET_PARAMETER;
+import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_DATA_PARAMETER;
+import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_NONCE_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPT_TO_SELF_MESSAGE_DATA;
 import static brs.http.common.Parameters.ENCRYPT_TO_SELF_MESSAGE_NONCE;
+import static brs.http.common.Parameters.GOODS_PARAMETER;
 import static brs.http.common.Parameters.HEIGHT_PARAMETER;
+import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER;
+import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_PARAMETER;
+import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_TO_SELF_IS_TEXT_PARAMETER;
 import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_TO_SELF_PARAMETER;
 import static brs.http.common.Parameters.NUMBER_OF_CONFIRMATIONS_PARAMETER;
 import static brs.http.common.Parameters.PUBLIC_KEY_PARAMETER;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -27,6 +34,7 @@ import brs.Blockchain;
 import brs.BlockchainProcessor;
 import brs.BurstException;
 import brs.BurstException.ValidationException;
+import brs.DigitalGoodsStore;
 import brs.Transaction;
 import brs.TransactionProcessor;
 import brs.common.QuickMocker;
@@ -34,9 +42,11 @@ import brs.common.QuickMocker.MockParam;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
 import brs.http.ParameterException;
+import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.AssetService;
+import brs.services.DGSGoodsStoreService;
 import brs.util.Convert;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
@@ -51,20 +61,24 @@ public class ParameterServiceImplTest {
   private AccountService accountServiceMock;
   private AliasService aliasServiceMock;
   private AssetService assetServiceMock;
+  private DGSGoodsStoreService dgsGoodsStoreServiceMock;
   private Blockchain blockchainMock;
   private BlockchainProcessor blockchainProcessorMock;
   private TransactionProcessor transactionProcessorMock;
+  private ATService atServiceMock;
 
   @Before
   public void setUp() {
     accountServiceMock = mock(AccountService.class);
     aliasServiceMock = mock(AliasService.class);
     assetServiceMock = mock(AssetService.class);
+    dgsGoodsStoreServiceMock = mock(DGSGoodsStoreService.class);
     blockchainMock = mock(Blockchain.class);
     blockchainProcessorMock = mock(BlockchainProcessor.class);
     transactionProcessorMock = mock(TransactionProcessor.class);
+    atServiceMock = mock(ATService.class);
 
-    t = new ParameterServiceImpl(accountServiceMock, aliasServiceMock, assetServiceMock, blockchainMock, blockchainProcessorMock, transactionProcessorMock);
+    t = new ParameterServiceImpl(accountServiceMock, aliasServiceMock, assetServiceMock, dgsGoodsStoreServiceMock, blockchainMock, blockchainProcessorMock, transactionProcessorMock, atServiceMock);
   }
 
   @Test
@@ -322,13 +336,175 @@ public class ParameterServiceImplTest {
   }
 
   @Test
-  public void getGoods() {
-    //TODO Write tests after DigitalGoodsStore has been refactored
+  public void getGoods() throws ParameterException {
+    final HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(GOODS_PARAMETER, "1")
+    );
+
+    final DigitalGoodsStore.Goods mockGoods = mock(DigitalGoodsStore.Goods.class);
+
+    when(dgsGoodsStoreServiceMock.getGoods(eq(1L))).thenReturn(mockGoods);
+
+    assertEquals(mockGoods, t.getGoods(req));
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getGoods_missingGoods() throws ParameterException {
+    t.getGoods(QuickMocker.httpServletRequest());
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getGoods_unknownGoods() throws ParameterException {
+    final HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(GOODS_PARAMETER, "1")
+    );
+
+    when(dgsGoodsStoreServiceMock.getGoods(eq(1L))).thenReturn(null);
+
+    t.getGoods(req);
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getGoods_incorrectGoods() throws ParameterException {
+    final HttpServletRequest req = QuickMocker.httpServletRequest(
+      new MockParam(GOODS_PARAMETER, "notANumber")
+    );
+
+    t.getGoods(req);
   }
 
   @Test
-  public void getEncryptedMessage() {
-    //TODO Brabantian Write tests
+  public void getEncryptMessage_isNotText() throws ParameterException {
+    HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(MESSAGE_TO_ENCRYPT_PARAMETER, "beef123"),
+        new MockParam(SECRET_PHRASE_PARAMETER, TEST_SECRET_PHRASE),
+        new MockParam(MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER, "false"));
+
+    final Account mockRecipientAccount = mock(Account.class);
+
+    EncryptedData encryptedDataMock = mock(EncryptedData.class);
+
+    when(mockRecipientAccount.encryptTo(eq(Convert.parseHexString("beef123")), eq(TEST_SECRET_PHRASE))).thenReturn(encryptedDataMock);
+
+    assertEquals(encryptedDataMock, t.getEncryptedMessage(req, mockRecipientAccount));
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getEncryptMessage_missingRecipientParameterException() throws ParameterException {
+    HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(MESSAGE_TO_ENCRYPT_PARAMETER, "beef123"),
+        new MockParam(SECRET_PHRASE_PARAMETER, TEST_SECRET_PHRASE),
+        new MockParam(MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER, "false"));
+
+    EncryptedData encryptedDataMock = mock(EncryptedData.class);
+
+    assertEquals(encryptedDataMock, t.getEncryptedMessage(req, null));
+  }
+
+  @Test
+  public void getEncryptMessage_isText() throws ParameterException {
+    HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(MESSAGE_TO_ENCRYPT_PARAMETER, "message"),
+        new MockParam(SECRET_PHRASE_PARAMETER, TEST_SECRET_PHRASE),
+        new MockParam(MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER, "true"));
+
+    final Account mockRecipientAccount = mock(Account.class);
+
+    EncryptedData encryptedDataMock = mock(EncryptedData.class);
+
+    when(mockRecipientAccount.encryptTo(eq(Convert.toBytes("message")), eq(TEST_SECRET_PHRASE))).thenReturn(encryptedDataMock);
+
+    assertEquals(encryptedDataMock, t.getEncryptedMessage(req, mockRecipientAccount));
+  }
+
+  @Test
+  public void getEncryptMessage_encryptMessageAndNonce() throws ParameterException {
+    HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(ENCRYPTED_MESSAGE_DATA_PARAMETER, "abc"),
+        new MockParam(ENCRYPTED_MESSAGE_NONCE_PARAMETER, "123"));
+
+    EncryptedData result = t.getEncryptedMessage(req, null);
+
+    assertEquals((byte) -85, result.getData()[0]);
+    assertEquals((byte) 18, result.getNonce()[0]);
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getEncryptMessage_encryptMessageAndNonce_runtimeExceptionIncorrectEncryptedMessage() throws ParameterException {
+    HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(ENCRYPTED_MESSAGE_DATA_PARAMETER, "zz"),
+        new MockParam(ENCRYPTED_MESSAGE_NONCE_PARAMETER, "123"));
+
+    t.getEncryptedMessage(req, null);
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getEncryptMessage_encryptionRuntimeExceptionParameterException() throws ParameterException {
+    HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(MESSAGE_TO_ENCRYPT_PARAMETER, "invalidHexNumber"),
+        new MockParam(SECRET_PHRASE_PARAMETER, TEST_SECRET_PHRASE),
+        new MockParam(MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER, "false"));
+
+    final Account mockAccount = mock(Account.class);
+    when(accountServiceMock.getAccount(eq(Crypto.getPublicKey(TEST_SECRET_PHRASE)))).thenReturn(mockAccount);
+
+    t.getEncryptedMessage(req, mockAccount);
+  }
+
+  @Test
+  public void getEncryptMessage_messageToSelf_messageNullReturnsNull() throws ParameterException {
+    assertNull(t.getEncryptedMessage(QuickMocker.httpServletRequest(), null));
+  }
+
+  @Test
+  public void getEncryptToSelfMessage_isNotText() throws ParameterException {
+    HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(MESSAGE_TO_ENCRYPT_TO_SELF_PARAMETER, "beef123"),
+        new MockParam(SECRET_PHRASE_PARAMETER, TEST_SECRET_PHRASE),
+        new MockParam(MESSAGE_TO_ENCRYPT_TO_SELF_IS_TEXT_PARAMETER, "false"));
+
+    final Account mockAccount = mock(Account.class);
+    when(accountServiceMock.getAccount(eq(Crypto.getPublicKey(TEST_SECRET_PHRASE)))).thenReturn(mockAccount);
+
+    EncryptedData encryptedDataMock = mock(EncryptedData.class);
+
+    when(mockAccount.encryptTo(eq(Convert.parseHexString("beef123")), eq(TEST_SECRET_PHRASE))).thenReturn(encryptedDataMock);
+
+    assertEquals(encryptedDataMock, t.getEncryptToSelfMessage(req));
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getEncryptToSelfMessage_isNotText_notHexParameterException() throws ParameterException {
+    HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(MESSAGE_TO_ENCRYPT_TO_SELF_PARAMETER, "zzz"),
+        new MockParam(SECRET_PHRASE_PARAMETER, TEST_SECRET_PHRASE),
+        new MockParam(MESSAGE_TO_ENCRYPT_TO_SELF_IS_TEXT_PARAMETER, "false"));
+
+    final Account mockAccount = mock(Account.class);
+    when(accountServiceMock.getAccount(eq(Crypto.getPublicKey(TEST_SECRET_PHRASE)))).thenReturn(mockAccount);
+
+    EncryptedData encryptedDataMock = mock(EncryptedData.class);
+
+    when(mockAccount.encryptTo(eq(Convert.parseHexString("beef123")), eq(TEST_SECRET_PHRASE))).thenReturn(encryptedDataMock);
+
+    assertEquals(encryptedDataMock, t.getEncryptToSelfMessage(req));
+  }
+
+  @Test
+  public void getEncryptToSelfMessage_encryptMessageToSelf_isText() throws ParameterException {
+    HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(MESSAGE_TO_ENCRYPT_TO_SELF_PARAMETER, "message"),
+        new MockParam(SECRET_PHRASE_PARAMETER, TEST_SECRET_PHRASE),
+        new MockParam(MESSAGE_TO_ENCRYPT_TO_SELF_IS_TEXT_PARAMETER, "true"));
+
+    final Account mockAccount = mock(Account.class);
+    when(accountServiceMock.getAccount(eq(Crypto.getPublicKey(TEST_SECRET_PHRASE)))).thenReturn(mockAccount);
+
+    EncryptedData encryptedDataMock = mock(EncryptedData.class);
+
+    when(mockAccount.encryptTo(eq(Convert.toBytes("message")), eq(TEST_SECRET_PHRASE))).thenReturn(encryptedDataMock);
+
+    assertEquals(encryptedDataMock, t.getEncryptToSelfMessage(req));
   }
 
   @Test
@@ -352,9 +528,22 @@ public class ParameterServiceImplTest {
     t.getEncryptToSelfMessage(req);
   }
 
+  @Test(expected = ParameterException.class)
+  public void getEncryptToSelfMessage_encryptionRuntimeExceptionParameterException() throws ParameterException {
+    HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(MESSAGE_TO_ENCRYPT_TO_SELF_PARAMETER, "invalidHexNumber"),
+        new MockParam(SECRET_PHRASE_PARAMETER, TEST_SECRET_PHRASE),
+        new MockParam(MESSAGE_TO_ENCRYPT_TO_SELF_IS_TEXT_PARAMETER, "false"));
+
+    final Account mockAccount = mock(Account.class);
+    when(accountServiceMock.getAccount(eq(Crypto.getPublicKey(TEST_SECRET_PHRASE)))).thenReturn(mockAccount);
+
+    t.getEncryptToSelfMessage(req);
+  }
+
   @Test
-  public void getEncryptToSelfMessage_encryptionRuntimeExceptionParameterException() {
-    //TODO Brabantian Write tests
+  public void getEncryptToSelfMessage_messageToSelf_messageNullReturnsNull() throws ParameterException {
+    assertNull(t.getEncryptToSelfMessage(QuickMocker.httpServletRequest()));
   }
 
   @Test

@@ -5,6 +5,7 @@ import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.INCLUDE_TRANSACTIONS_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
+import static brs.http.common.ResultFields.BLOCKS_RESPONSE;
 
 import brs.Account;
 import brs.Block;
@@ -21,12 +22,12 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetAccountBlocks extends APIServlet.APIRequestHandler {
 
-  private final Blockchain blockChain;
+  private final Blockchain blockchain;
   private final ParameterService parameterService;
 
-  GetAccountBlocks(Blockchain blockChain, ParameterService parameterService) {
+  GetAccountBlocks(Blockchain blockchain, ParameterService parameterService) {
     super(new APITag[] {APITag.ACCOUNTS}, ACCOUNT_PARAMETER, TIMESTAMP_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER, INCLUDE_TRANSACTIONS_PARAMETER);
-    this.blockChain = blockChain;
+    this.blockchain = blockchain;
     this.parameterService = parameterService;
   }
 
@@ -41,7 +42,7 @@ public final class GetAccountBlocks extends APIServlet.APIRequestHandler {
     boolean includeTransactions = Parameters.isTrue(req.getParameter(INCLUDE_TRANSACTIONS_PARAMETER));
 
     JSONArray blocks = new JSONArray();
-    try (BurstIterator<? extends Block> iterator = blockChain.getBlocks(account, timestamp, firstIndex, lastIndex)) {
+    try (BurstIterator<? extends Block> iterator = blockchain.getBlocks(account, timestamp, firstIndex, lastIndex)) {
       while (iterator.hasNext()) {
         Block block = iterator.next();
         blocks.add(JSONData.block(block, includeTransactions));
@@ -49,7 +50,7 @@ public final class GetAccountBlocks extends APIServlet.APIRequestHandler {
     }
 
     JSONObject response = new JSONObject();
-    response.put("blocks", blocks);
+    response.put(BLOCKS_RESPONSE, blocks);
 
     return response;
   }

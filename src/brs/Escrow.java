@@ -99,7 +99,7 @@ public class Escrow {
     protected Decision(Long escrowId, Long accountId, DecisionType decision) {
       this.escrowId = escrowId;
       this.accountId = accountId;
-      this.dbKey = decisionDbKeyFactory.newKey(this.escrowId, this.accountId);
+      this.dbKey = decisionDbKeyFactory().newKey(this.escrowId, this.accountId);
       this.decision = decision;
     }
 
@@ -121,37 +121,38 @@ public class Escrow {
     }
   }
 
-  private static final BurstKey.LongKeyFactory<Escrow> escrowDbKeyFactory =
-      Burst.getStores().getEscrowStore().getEscrowDbKeyFactory();
-
-
-  private static final VersionedEntityTable<Escrow> escrowTable =
-      Burst.getStores().getEscrowStore().getEscrowTable();
-
-
-  private static final BurstKey.LinkKeyFactory<Decision> decisionDbKeyFactory =
-      Burst.getStores().getEscrowStore().getDecisionDbKeyFactory();
-
-
-  private static final VersionedEntityTable<Decision> decisionTable =
-      Burst.getStores().getEscrowStore().getDecisionTable();
-
-  /** WATCH: Thread-Safety?! */
-  private static final ConcurrentSkipListSet<Long> updatedEscrowIds = Burst.getStores().getEscrowStore().getUpdatedEscrowIds();
-  /** WATCH: Thread-Safety?! */
-  private static final List<TransactionImpl> resultTransactions = Burst.getStores().getEscrowStore().getResultTransactions();
-
-  public static BurstIterator<Escrow> getAllEscrowTransactions() {
-    return escrowTable.getAll(0, -1);
+  private static final BurstKey.LongKeyFactory<Escrow> escrowDbKeyFactory() {
+    return Burst.getStores().getEscrowStore().getEscrowDbKeyFactory();
   }
 
+  private static final VersionedEntityTable<Escrow> escrowTable() {
+    return Burst.getStores().getEscrowStore().getEscrowTable();
+  }
+
+  private static final BurstKey.LinkKeyFactory<Decision> decisionDbKeyFactory() {
+    return Burst.getStores().getEscrowStore().getDecisionDbKeyFactory();
+  }
+
+  private static final VersionedEntityTable<Decision> decisionTable() {
+    return Burst.getStores().getEscrowStore().getDecisionTable();
+  }
+
+  /** WATCH: Thread-Safety?! */
+  private static final ConcurrentSkipListSet<Long> updatedEscrowIds() {
+    return Burst.getStores().getEscrowStore().getUpdatedEscrowIds();
+  }
+
+  /** WATCH: Thread-Safety?! */
+  private static final List<TransactionImpl> resultTransactions() {
+    return Burst.getStores().getEscrowStore().getResultTransactions();
+  }
 
   public static Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId) {
     return Burst.getStores().getEscrowStore().getEscrowTransactionsByParticipent(accountId);
   }
 
   public static Escrow getEscrowTransaction(Long id) {
-    return escrowTable.get(escrowDbKeyFactory.newKey(id));
+    return escrowTable().get(escrowDbKeyFactory().newKey(id));
   }
 
   public static void addEscrowTransaction(Account sender,
@@ -169,20 +170,20 @@ public class Escrow {
                                              requiredSigners,
                                              deadline,
                                              deadlineAction);
-    escrowTable.insert(newEscrowTransaction);
+    escrowTable().insert(newEscrowTransaction);
 
     Decision senderDecision = new Decision(id, sender.getId(), DecisionType.UNDECIDED);
-    decisionTable.insert(senderDecision);
+    decisionTable().insert(senderDecision);
     Decision recipientDecision = new Decision(id, recipient.getId(), DecisionType.UNDECIDED);
-    decisionTable.insert(recipientDecision);
+    decisionTable().insert(recipientDecision);
     for(Long signer : signers) {
       Decision decision = new Decision(id, signer, DecisionType.UNDECIDED);
-      decisionTable.insert(decision);
+      decisionTable().insert(decision);
     }
   }
 
   public static void removeEscrowTransaction(Long id) {
-    Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(id));
+    Escrow escrow = escrowTable().get(escrowDbKeyFactory().newKey(id));
     if(escrow == null) {
       return;
     }
@@ -195,9 +196,9 @@ public class Escrow {
     }
 
     decisions.forEach(decision -> {
-        decisionTable.delete(decision);
+        decisionTable().delete(decision);
       });
-    escrowTable.delete(escrow);
+    escrowTable().delete(escrow);
   }
 
 
@@ -226,7 +227,7 @@ public class Escrow {
     this.senderId = sender.getId();
     this.recipientId = recipient.getId();
     this.id = id;
-    this.dbKey = escrowDbKeyFactory.newKey(this.id);
+    this.dbKey = escrowDbKeyFactory().newKey(this.id);
     this.amountNQT = amountNQT;
     this.requiredSigners = requiredSigners;
     this.deadline = deadline;
@@ -278,11 +279,11 @@ public class Escrow {
   }
 
   public boolean isIdSigner(Long id) {
-    return decisionTable.get(decisionDbKeyFactory.newKey(this.id, id)) != null;
+    return decisionTable().get(decisionDbKeyFactory().newKey(this.id, id)) != null;
   }
 
   public Decision getIdDecision(Long id) {
-    return decisionTable.get(decisionDbKeyFactory.newKey(this.id, id));
+    return decisionTable().get(decisionDbKeyFactory().newKey(this.id, id));
   }
 
   public synchronized void sign(Long id, DecisionType decision) {
@@ -294,25 +295,25 @@ public class Escrow {
       return;
     }
 
-    Decision decisionChange = decisionTable.get(decisionDbKeyFactory.newKey(this.id, id));
+    Decision decisionChange = decisionTable().get(decisionDbKeyFactory().newKey(this.id, id));
     if(decisionChange == null) {
       return;
     }
     decisionChange.setDecision(decision);
 
-    decisionTable.insert(decisionChange);
+    decisionTable().insert(decisionChange);
 
-    if(!updatedEscrowIds.contains(this.id)) {
-      updatedEscrowIds.add(this.id);
+    if(!updatedEscrowIds().contains(this.id)) {
+      updatedEscrowIds().add(this.id);
     }
   }
 
   public DecisionType checkComplete() {
-    Decision senderDecision = decisionTable.get(decisionDbKeyFactory.newKey(id, senderId));
+    Decision senderDecision = decisionTable().get(decisionDbKeyFactory().newKey(id, senderId));
     if(senderDecision.getDecision() == DecisionType.RELEASE) {
       return DecisionType.RELEASE;
     }
-    Decision recipientDecision = decisionTable.get(decisionDbKeyFactory.newKey(id, recipientId));
+    Decision recipientDecision = decisionTable().get(decisionDbKeyFactory().newKey(id, recipientId));
     if(recipientDecision.getDecision() == DecisionType.REFUND) {
       return DecisionType.REFUND;
     }
@@ -399,7 +400,7 @@ public class Escrow {
     }
 
     if(!Burst.getDbs().getTransactionDb().hasTransaction(transaction.getId())) {
-      resultTransactions.add(transaction);
+      resultTransactions().add(transaction);
     }
   }
 }

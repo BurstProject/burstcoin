@@ -1,10 +1,10 @@
 package brs.http;
 
-import static brs.http.common.ResultFields.BALANCE_NQT;
-import static brs.http.common.ResultFields.EFFECTIVE_BALANCE_NQT;
-import static brs.http.common.ResultFields.FORGED_BALANCE_NQT;
-import static brs.http.common.ResultFields.GUARANTEED_BALANCE_NQT;
-import static brs.http.common.ResultFields.UNCONFIRMED_BALANCE_NQT;
+import static brs.http.common.ResultFields.BALANCE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.EFFECTIVE_BALANCE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.FORGED_BALANCE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.GUARANTEED_BALANCE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.UNCONFIRMED_BALANCE_NQT_RESPONSE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -44,11 +44,11 @@ public class GetBalanceTest {
 
     JSONObject result = (JSONObject) t.processRequest(req);
 
-    assertEquals("1", result.get(BALANCE_NQT));
-    assertEquals("2", result.get(UNCONFIRMED_BALANCE_NQT));
-    assertEquals("1", result.get(EFFECTIVE_BALANCE_NQT));
-    assertEquals("3", result.get(FORGED_BALANCE_NQT));
-    assertEquals("1", result.get(GUARANTEED_BALANCE_NQT));
+    assertEquals("1", result.get(BALANCE_NQT_RESPONSE));
+    assertEquals("2", result.get(UNCONFIRMED_BALANCE_NQT_RESPONSE));
+    assertEquals("1", result.get(EFFECTIVE_BALANCE_NQT_RESPONSE));
+    assertEquals("3", result.get(FORGED_BALANCE_NQT_RESPONSE));
+    assertEquals("1", result.get(GUARANTEED_BALANCE_NQT_RESPONSE));
   }
 
   @Test
@@ -59,10 +59,10 @@ public class GetBalanceTest {
 
     JSONObject result = (JSONObject) t.processRequest(req);
 
-    assertEquals("0", result.get(BALANCE_NQT));
-    assertEquals("0", result.get(UNCONFIRMED_BALANCE_NQT));
-    assertEquals("0", result.get(EFFECTIVE_BALANCE_NQT));
-    assertEquals("0", result.get(FORGED_BALANCE_NQT));
-    assertEquals("0", result.get(GUARANTEED_BALANCE_NQT));
+    assertEquals("0", result.get(BALANCE_NQT_RESPONSE));
+    assertEquals("0", result.get(UNCONFIRMED_BALANCE_NQT_RESPONSE));
+    assertEquals("0", result.get(EFFECTIVE_BALANCE_NQT_RESPONSE));
+    assertEquals("0", result.get(FORGED_BALANCE_NQT_RESPONSE));
+    assertEquals("0", result.get(GUARANTEED_BALANCE_NQT_RESPONSE));
   }
 }

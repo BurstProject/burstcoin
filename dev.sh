@@ -13,6 +13,7 @@ usage: $0 [command] [arguments]
 
   sonarcube        update sonarcube
   debug		   start connecting to remote debuger on port 8000
+  test [name]      run a specific test
 EOF
 }
 
@@ -55,6 +56,9 @@ case "$MY_CMD" in
         ;;
     "debug")
         mvn exec:exec -Dexec.executable=java "-Dexec.args=-classpath %classpath:conf -agentlib:jdwp=transport=dt_socket,server=n,address=127.0.0.1:8000,suspend=y -Dgreeting=\"Hello\" brs.Burst"
+        ;;
+    "test")
+	mvn -Dtest=$2 test
         ;;
     *)
         usage

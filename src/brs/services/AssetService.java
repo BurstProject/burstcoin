@@ -17,4 +17,8 @@ public interface AssetService {
   BurstIterator<Trade> getTrades(long assetId, int from, int to);
 
   BurstIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to);
+
+  BurstIterator<Asset> getAllAssets(int from, int to);
+
+  BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to);
 }

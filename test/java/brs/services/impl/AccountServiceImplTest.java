@@ -1,6 +1,7 @@
 package brs.services.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -148,6 +149,17 @@ public class AccountServiceImplTest {
   }
 
   @Test
+  public void getAssets() {
+    final long accountId = 123L;
+    final int from = 2;
+    final int to = 3;
+
+    t.getAssets(accountId, from, to);
+
+    verify(accountStoreMock).getAssets(eq(from), eq(to), eq(accountId));
+  }
+
+  @Test
   public void getAccountsWithRewardRecipient() {
     final Long recipientId = 123l;
     final BurstIterator<RewardRecipientAssignment> mockAccountsIterator = mock(BurstIterator.class);
@@ -158,9 +170,20 @@ public class AccountServiceImplTest {
   }
 
   @Test
+  public void getAllAccounts() {
+    final int from = 1;
+    final int to = 5;
+    final BurstIterator<Account> mockAccountsIterator = mock(BurstIterator.class);
+
+    when(accountTableMock.getAll(eq(from), eq(to))).thenReturn(mockAccountsIterator);
+
+    assertEquals(mockAccountsIterator, t.getAllAccounts(from, to));
+  }
+
+  @Test
   public void getId() {
     final byte[] publicKeyMock = new byte[1];
     publicKeyMock[0] = (byte) 1;
-    assertEquals(-4227678059763665589L,  AccountServiceImpl.getId(publicKeyMock));
+    assertEquals(-4227678059763665589L, AccountServiceImpl.getId(publicKeyMock));
   }
 }

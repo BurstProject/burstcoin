@@ -37,7 +37,7 @@ public final class SendMoneySubscription extends CreateTransaction {
 		
     int frequency;
     try {
-      frequency = Integer.parseInt(req.getParameter("frequency"));
+      frequency = Integer.parseInt(req.getParameter(FREQUENCY_PARAMETER));
     }
     catch(Exception e) {
       JSONObject response = new JSONObject();

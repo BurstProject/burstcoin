@@ -12,6 +12,7 @@ import brs.Escrow;
 import brs.BurstException;
 import brs.TransactionProcessor;
 import brs.services.AccountService;
+import brs.services.EscrowService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
@@ -22,12 +23,14 @@ import javax.servlet.http.HttpServletRequest;
 public final class EscrowSign extends CreateTransaction {
 	
   private final ParameterService parameterService;
+  private final EscrowService escrowService;
   private final Blockchain blockchain;
 	
-  EscrowSign(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
+  EscrowSign(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, EscrowService escrowService) {
     super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, ESCROW_PARAMETER, DECISION_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
+    this.escrowService = escrowService;
   }
 	
   @Override
@@ -43,7 +46,7 @@ public final class EscrowSign extends CreateTransaction {
       return response;
     }
 		
-    Escrow escrow = Escrow.getEscrowTransaction(escrowId);
+    Escrow escrow = escrowService.getEscrowTransaction(escrowId);
     if(escrow == null) {
       JSONObject response = new JSONObject();
       response.put(ERROR_CODE_RESPONSE, 5);
@@ -51,7 +54,7 @@ public final class EscrowSign extends CreateTransaction {
       return response;
     }
 		
-    Escrow.DecisionType decision = Escrow.stringToDecision(req.getParameter("decision"));
+    Escrow.DecisionType decision = Escrow.stringToDecision(req.getParameter(DECISION_PARAMETER));
     if(decision == null) {
       JSONObject response = new JSONObject();
       response.put(ERROR_CODE_RESPONSE, 5);

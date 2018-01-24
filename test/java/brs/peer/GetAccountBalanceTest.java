@@ -1,7 +1,7 @@
 package brs.peer;
 
 import static brs.common.TestConstants.TEST_ACCOUNT_ID;
-import static brs.common.TestConstants.TEST_ACCOUNT_ID_PARSED;
+import static brs.common.TestConstants.TEST_ACCOUNT_NUMERIC_ID_PARSED;
 import static brs.peer.GetAccountBalance.ACCOUNT_ID_PARAMETER_FIELD;
 import static brs.peer.GetAccountBalance.BALANCE_NQT_RESPONSE_FIELD;
 import static org.junit.Assert.assertEquals;
@@ -41,7 +41,7 @@ public class GetAccountBalanceTest {
     Account mockAccount = mock(Account.class);
     when(mockAccount.getBalanceNQT()).thenReturn(mockBalanceNQT);
 
-    when(Account.getAccount(eq(TEST_ACCOUNT_ID_PARSED))).thenReturn(mockAccount);
+    when(Account.getAccount(eq(TEST_ACCOUNT_NUMERIC_ID_PARSED))).thenReturn(mockAccount);
 
     final JSONObject result = (JSONObject) t.processRequest(req, peer);
 
@@ -56,7 +56,7 @@ public class GetAccountBalanceTest {
     req.put(ACCOUNT_ID_PARAMETER_FIELD, TEST_ACCOUNT_ID);
     final Peer peer = mock(Peer.class);
 
-    when(Account.getAccount(eq(TEST_ACCOUNT_ID_PARSED))).thenReturn(null);
+    when(Account.getAccount(eq(TEST_ACCOUNT_NUMERIC_ID_PARSED))).thenReturn(null);
 
     final JSONObject result = (JSONObject) t.processRequest(req, peer);
 
