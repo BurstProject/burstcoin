@@ -109,8 +109,6 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
         selectMaxHeightQuery.addSelect(tableClass.field("height", Integer.class).max());
         Integer maxHeight = (Integer) ctx.fetchValue(selectMaxHeightQuery.fetchResultSet(), tableClass.field("height", Integer.class));
 
-        System.out.println("select max: " + selectMaxHeightQuery.getSQL(true));
-        System.out.println("    max height for: " + dbKeyFactory.getSelfJoinClause() + " should be set to " + maxHeight);
         if ( maxHeight != null ) {
           UpdateQuery setLatestQuery = ctx.updateQuery(tableClass);
           setLatestQuery.addConditions(dbKey.getPKConditions(tableClass));
@@ -119,7 +117,6 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
             tableClass.field("latest", Boolean.class),
             true
           );
-          System.out.println("        set latest by: " + setLatestQuery.getSQL(true));
           setLatestQuery.execute();
         }
       }

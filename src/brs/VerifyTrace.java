@@ -101,9 +101,7 @@ public final class VerifyTrace {
         String accountId = mapEntry.getKey();
         Map<String,Long> accountValues = mapEntry.getValue();
         System.out.println("account: " + accountId);
-        balanceHeaders.forEach(balanceHeader -> {
-            System.out.println(balanceHeader + ": " + nullToZero(accountValues.get(balanceHeader)));
-          });
+        balanceHeaders.forEach(balanceHeader -> System.out.println(balanceHeader + ": " + nullToZero(accountValues.get(balanceHeader))));
         System.out.println("totals:");
         long totalDelta = 0;
         for (String header : deltaHeaders) {

@@ -137,9 +137,7 @@ public class Subscription {
     if(paymentTransactions.size() > 0) {
       Burst.getDbs().getTransactionDb().saveTransactions( paymentTransactions);
     }
-    removeSubscriptions.forEach(subscription -> {
-        removeSubscription(subscription);
-      });
+    removeSubscriptions.forEach(subscription -> removeSubscription(subscription));
   }
 
   public final Long senderId;

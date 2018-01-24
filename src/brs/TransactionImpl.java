@@ -502,9 +502,7 @@ public final class TransactionImpl implements Transaction {
         buffer.putInt(ecBlockHeight);
         buffer.putLong(ecBlockId);
       }
-      appendages.forEach(appendage -> {
-          appendage.putBytes(buffer);
-        });
+      appendages.forEach(appendage -> appendage.putBytes(buffer));
       return buffer.array();
     } catch (RuntimeException e) {
       logger.debug("Failed to get transaction bytes for transaction: " + getJSONObject().toJSONString());
