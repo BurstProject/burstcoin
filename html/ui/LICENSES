@@ -10,7 +10,7 @@ jquery.rss.js - MIT - https://github.com/sdepold/jquery-rss
 webdb.js - MIT - http://github.com/haas85/webdb
 passphrasegenerator.js - custom - based on https://github.com/michenriksen/diceware (UNLICENSE) and https://github.com/ggozad/mnemonic.js (MIT)
 seedrandom.js - MIT - https://github.com/davidbau/seedrandom
-ZeroClipboard.js/.swf - MIT - http://zeroclipboard.org/
+clipboard.js - MIT - https://clipboardjs.com/
 signing/converters.js - MIT - https://github.com/Jaguar0625/JavaScriptNrs + https://github.com/jscud/jsBytes/
 signing/crypto.js - MIT - https://github.com/Jaguar0625/JavaScriptNrs
 signing/curve25519.js - MIT - https://github.com/Jaguar0625/JavaScriptNrs

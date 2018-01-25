@@ -8,7 +8,7 @@
  * @depends {3rdparty/webdb.js}
  * @depends {3rdparty/ajaxmultiqueue.js}
  * @depends {3rdparty/growl.js}
- * @depends {3rdparty/zeroclipboard.js}
+ * @depends {3rdparty/clipboard.js}
  * @depends {crypto/curve25519.js}
  * @depends {crypto/curve25519_.js}
  * @depends {crypto/passphrasegenerator.js}
