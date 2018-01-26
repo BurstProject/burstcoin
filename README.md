@@ -78,8 +78,8 @@ initialize your database with these statements:
 
 ```
 echo "CREATE DATABASE burstwallet; 
-      CREATE USER 'burstwallet'@'localhost' IDENTIFIED BY 'yourpassword';
-      GRANT ALL PRIVILEGES ON burstwallet.* TO 'burstwallet'@'localhost';" | mysql -uroot
+      CREATE USER 'brs_user'@'localhost' IDENTIFIED BY 'yourpassword';
+      GRANT ALL PRIVILEGES ON burstwallet.* TO 'brs_user'@'localhost';" | mysql -uroot
 mysql -uroot burstwallet < init-mysql.sql
 ```
 
@@ -89,7 +89,7 @@ Now you need to add the following stuff to your conf/brs.properties:
 
 ```
 brs.dbUrl=jdbc:mariadb://localhost:3306/burstwallet
-brs.dbUsername=burstwallet
+brs.dbUsername=brs_user
 brs.dbPassword=yourpassword
 ```
 
