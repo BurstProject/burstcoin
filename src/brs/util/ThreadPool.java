@@ -74,7 +74,7 @@ public final class ThreadPool {
     runAll(lastBeforeStartJobs);
     lastBeforeStartJobs = null;
 
-    int cores = Burst.getIntProperty("Burst.cpuCores", Runtime.getRuntime().availableProcessors());
+    int cores = Burst.getIntProperty("CPU.NumCores", Runtime.getRuntime().availableProcessors());
     if (cores <= 0) {
         logger.warn("Cannot use 0 cores - defaulting to all available");
         cores = Runtime.getRuntime().availableProcessors();
