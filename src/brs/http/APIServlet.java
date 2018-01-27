@@ -111,7 +111,7 @@ public final class APIServlet extends HttpServlet {
     map.put("getState", new GetState(blockchain, tradeService, accountService, escrowService, orderService, assetTransferService, aliasService));
     map.put("getTime", GetTime.instance);
     map.put("getTrades", new GetTrades(parameterService, assetService, tradeService));
-    map.put("getAllTrades", new GetAllTrades(tradeService));
+    map.put("getAllTrades", new GetAllTrades(tradeService, assetService));
     map.put("getAssetTransfers", new GetAssetTransfers(parameterService, accountService, assetService, assetTransferService));
     map.put("getTransaction", new GetTransaction(transactionProcessor, blockchain));
     map.put("getTransactionBytes", new GetTransactionBytes(blockchain, transactionProcessor));
@@ -162,11 +162,11 @@ public final class APIServlet extends HttpServlet {
     map.put("getAccountSubscriptions", new GetAccountSubscriptions(parameterService, subscriptionService));
     map.put("getSubscriptionsToAccount", new GetSubscriptionsToAccount(parameterService, subscriptionService));
     map.put("createATProgram", new CreateATProgram(parameterService, transactionProcessor, blockchain, accountService));
-    map.put("getAT", new GetAT(parameterService));
-    map.put("getATDetails", new GetATDetails(parameterService));
+    map.put("getAT", new GetAT(parameterService, accountService));
+    map.put("getATDetails", new GetATDetails(parameterService, accountService));
     map.put("getATIds", new GetATIds(atService));
     map.put("getATLong", GetATLong.instance);
-    map.put("getAccountATs", new GetAccountATs(parameterService, atService));
+    map.put("getAccountATs", new GetAccountATs(parameterService, atService, accountService));
 
     if (API.enableDebugAPI) {
       map.put("clearUnconfirmedTransactions", new ClearUnconfirmedTransactions(transactionProcessor));

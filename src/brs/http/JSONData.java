@@ -5,13 +5,21 @@ import static brs.http.common.ResultFields.ALIAS_NAME_RESPONSE;
 import static brs.http.common.ResultFields.ALIAS_RESPONSE;
 import static brs.http.common.ResultFields.ALIAS_URI_RESPONSE;
 import static brs.http.common.ResultFields.AMOUNT_NQT_RESPONSE;
+import static brs.http.common.ResultFields.ASK_ORDER_HEIGHT_RESPONSE;
+import static brs.http.common.ResultFields.ASK_ORDER_RESPONSE;
 import static brs.http.common.ResultFields.ASSET_RESPONSE;
+import static brs.http.common.ResultFields.ASSET_TRANSFER_RESPONSE;
+import static brs.http.common.ResultFields.ATTACHMENT_RESPONSE;
 import static brs.http.common.ResultFields.BALANCE_NQT_RESPONSE;
 import static brs.http.common.ResultFields.BASE_TARGET_RESPONSE;
+import static brs.http.common.ResultFields.BID_ORDER_HEIGHT_RESPONSE;
+import static brs.http.common.ResultFields.BID_ORDER_RESPONSE;
 import static brs.http.common.ResultFields.BLOCK_RESPONSE;
 import static brs.http.common.ResultFields.BLOCK_REWARD_RESPONSE;
 import static brs.http.common.ResultFields.BLOCK_SIGNATURE_RESPONSE;
+import static brs.http.common.ResultFields.BLOCK_TIMESTAMP_RESPONSE;
 import static brs.http.common.ResultFields.BUYER_RESPONSE;
+import static brs.http.common.ResultFields.CONFIRMATIONS_RESPONSE;
 import static brs.http.common.ResultFields.DATA_RESPONSE;
 import static brs.http.common.ResultFields.DEADLINE_ACTION_RESPONSE;
 import static brs.http.common.ResultFields.DEADLINE_RESPONSE;
@@ -21,9 +29,14 @@ import static brs.http.common.ResultFields.DELISTED_RESPONSE;
 import static brs.http.common.ResultFields.DELIVERY_DEADLINE_TIMESTAMP_RESPONSE;
 import static brs.http.common.ResultFields.DESCRIPTION_RESPONSE;
 import static brs.http.common.ResultFields.DISCOUNT_NQT_RESPONSE;
+import static brs.http.common.ResultFields.EC_BLOCK_HEIGHT_RESPONSE;
+import static brs.http.common.ResultFields.EC_BLOCK_ID_RESPONSE;
 import static brs.http.common.ResultFields.EFFECTIVE_BALANCE_NQT_RESPONSE;
 import static brs.http.common.ResultFields.FEEDBACK_NOTES_RESPONSE;
+import static brs.http.common.ResultFields.FEE_NQT_RESPONSE;
 import static brs.http.common.ResultFields.FORGED_BALANCE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.FREQUENCY_RESPONSE;
+import static brs.http.common.ResultFields.FULL_HASH_RESPONSE;
 import static brs.http.common.ResultFields.GENERATION_SIGNATURE_RESPONSE;
 import static brs.http.common.ResultFields.GENERATOR_PUBLIC_KEY_RESPONSE;
 import static brs.http.common.ResultFields.GENERATOR_RESPONSE;
@@ -55,19 +68,27 @@ import static brs.http.common.ResultFields.QUANTITY_NQT_RESPONSE;
 import static brs.http.common.ResultFields.QUANTITY_RESPONSE;
 import static brs.http.common.ResultFields.RECIPIENT_RESPONSE;
 import static brs.http.common.ResultFields.RECIPIENT_RS_RESPONSE;
+import static brs.http.common.ResultFields.REFERENCED_TRANSACTION_FULL_HASH_RESPONSE;
 import static brs.http.common.ResultFields.REFUND_NOTE_RESPONSE;
 import static brs.http.common.ResultFields.REFUND_NQT_RESPONSE;
 import static brs.http.common.ResultFields.REQUIRED_SIGNERS_RESPONSE;
 import static brs.http.common.ResultFields.SCOOP_NUM_RESPONSE;
 import static brs.http.common.ResultFields.SELLER_RESPONSE;
+import static brs.http.common.ResultFields.SENDER_PUBLIC_KEY_RESPONSE;
 import static brs.http.common.ResultFields.SENDER_RESPONSE;
 import static brs.http.common.ResultFields.SENDER_RS_RESPONSE;
+import static brs.http.common.ResultFields.SIGNATURE_HASH_RESPONSE;
+import static brs.http.common.ResultFields.SIGNATURE_RESPONSE;
 import static brs.http.common.ResultFields.SIGNERS_RESPONSE;
+import static brs.http.common.ResultFields.SUBTYPE_RESPONSE;
 import static brs.http.common.ResultFields.TAGS_RESPONSE;
 import static brs.http.common.ResultFields.TIMESTAMP_RESPONSE;
+import static brs.http.common.ResultFields.TIME_NEXT_RESPONSE;
 import static brs.http.common.ResultFields.TOTAL_AMOUNT_NQT_RESPONSE;
 import static brs.http.common.ResultFields.TOTAL_FEE_NQT_RESPONSE;
+import static brs.http.common.ResultFields.TRADE_TYPE_RESPONSE;
 import static brs.http.common.ResultFields.TRANSACTIONS_RESPONSE;
+import static brs.http.common.ResultFields.TRANSACTION_RESPONSE;
 import static brs.http.common.ResultFields.TYPE_RESPONSE;
 import static brs.http.common.ResultFields.UNCONFIRMED_BALANCE_NQT_RESPONSE;
 import static brs.http.common.ResultFields.UNCONFIRMED_QUANTITY_NQT_RESPONSE;
@@ -81,6 +102,7 @@ import brs.crypto.EncryptedData;
 import brs.peer.Hallmark;
 import brs.peer.Peer;
 import brs.db.BurstIterator;
+import brs.services.AccountService;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -172,7 +194,7 @@ public final class JSONData {
     return json;
   }
 
-  static JSONObject block(Block block, boolean includeTransactions) {
+  static JSONObject block(Block block, boolean includeTransactions, int currentBlockchainHeight) {
     JSONObject json = new JSONObject();
     json.put(BLOCK_RESPONSE, block.getStringId());
     json.put(HEIGHT_RESPONSE, block.getHeight());
@@ -208,7 +230,7 @@ public final class JSONData {
 
     JSONArray transactions = new JSONArray();
     for (Transaction transaction : block.getTransactions()) {
-      transactions.add(includeTransactions ? transaction(transaction) : Convert.toUnsignedLong(transaction.getId()));
+      transactions.add(includeTransactions ? transaction(transaction, currentBlockchainHeight) : Convert.toUnsignedLong(transaction.getId()));
     }
     json.put(TRANSACTIONS_RESPONSE, transactions);
     return json;
@@ -350,80 +372,79 @@ public final class JSONData {
 
   static JSONObject subscription(Subscription subscription) {
     JSONObject json = new JSONObject();
-    json.put("id", Convert.toUnsignedLong(subscription.getId()));
-    putAccount(json, "sender", subscription.getSenderId());
-    putAccount(json, "recipient", subscription.getRecipientId());
-    json.put("amountNQT", Convert.toUnsignedLong(subscription.getAmountNQT()));
-    json.put("frequency", subscription.getFrequency());
-    json.put("timeNext", subscription.getTimeNext());
+    json.put(ID_RESPONSE, Convert.toUnsignedLong(subscription.getId()));
+    putAccount(json, SENDER_RESPONSE, subscription.getSenderId());
+    putAccount(json, RECIPIENT_RESPONSE, subscription.getRecipientId());
+    json.put(AMOUNT_NQT_RESPONSE, Convert.toUnsignedLong(subscription.getAmountNQT()));
+    json.put(FREQUENCY_RESPONSE, subscription.getFrequency());
+    json.put(TIME_NEXT_RESPONSE, subscription.getTimeNext());
     return json;
   }
 
-  static JSONObject trade(Trade trade, boolean includeAssetInfo) {
+  static JSONObject trade(Trade trade, Asset asset) {
     JSONObject json = new JSONObject();
-    json.put("timestamp", trade.getTimestamp());
-    json.put("quantityQNT", String.valueOf(trade.getQuantityQNT()));
-    json.put("priceNQT", String.valueOf(trade.getPriceNQT()));
-    json.put("asset", Convert.toUnsignedLong(trade.getAssetId()));
-    json.put("askOrder", Convert.toUnsignedLong(trade.getAskOrderId()));
-    json.put("bidOrder", Convert.toUnsignedLong(trade.getBidOrderId()));
-    json.put("askOrderHeight", trade.getAskOrderHeight());
-    json.put("bidOrderHeight", trade.getBidOrderHeight());
-    putAccount(json, "seller", trade.getSellerId());
-    putAccount(json, "buyer", trade.getBuyerId());
-    json.put("block", Convert.toUnsignedLong(trade.getBlockId()));
-    json.put("height", trade.getHeight());
-    json.put("tradeType", trade.isBuy() ? "buy" : "sell");
-    if (includeAssetInfo) {
-      Asset asset = Asset.getAsset(trade.getAssetId());
-      json.put("name", asset.getName());
-      json.put("decimals", asset.getDecimals());
+    json.put(TIMESTAMP_RESPONSE, trade.getTimestamp());
+    json.put(QUANTITY_NQT_RESPONSE, String.valueOf(trade.getQuantityQNT()));
+    json.put(PRICE_NQT_RESPONSE, String.valueOf(trade.getPriceNQT()));
+    json.put(ASSET_RESPONSE, Convert.toUnsignedLong(trade.getAssetId()));
+    json.put(ASK_ORDER_RESPONSE, Convert.toUnsignedLong(trade.getAskOrderId()));
+    json.put(BID_ORDER_RESPONSE, Convert.toUnsignedLong(trade.getBidOrderId()));
+    json.put(ASK_ORDER_HEIGHT_RESPONSE, trade.getAskOrderHeight());
+    json.put(BID_ORDER_HEIGHT_RESPONSE, trade.getBidOrderHeight());
+    putAccount(json, SELLER_RESPONSE, trade.getSellerId());
+    putAccount(json, BUYER_RESPONSE, trade.getBuyerId());
+    json.put(BLOCK_RESPONSE, Convert.toUnsignedLong(trade.getBlockId()));
+    json.put(HEIGHT_RESPONSE, trade.getHeight());
+    json.put(TRADE_TYPE_RESPONSE, trade.isBuy() ? "buy" : "sell");
+    if (asset != null) {
+      json.put(NAME_RESPONSE, asset.getName());
+      json.put(DECIMALS_RESPONSE, asset.getDecimals());
     }
     return json;
   }
 
-  static JSONObject assetTransfer(AssetTransfer assetTransfer, boolean includeAssetInfo) {
+  static JSONObject assetTransfer(AssetTransfer assetTransfer, Asset asset) {
     JSONObject json = new JSONObject();
-    json.put("assetTransfer", Convert.toUnsignedLong(assetTransfer.getId()));
-    json.put("asset", Convert.toUnsignedLong(assetTransfer.getAssetId()));
-    putAccount(json, "sender", assetTransfer.getSenderId());
-    putAccount(json, "recipient", assetTransfer.getRecipientId());
-    json.put("quantityQNT", String.valueOf(assetTransfer.getQuantityQNT()));
-    json.put("height", assetTransfer.getHeight());
-    json.put("timestamp", assetTransfer.getTimestamp());
-    if (includeAssetInfo) {
-      Asset asset = Asset.getAsset(assetTransfer.getAssetId());
-      json.put("name", asset.getName());
-      json.put("decimals", asset.getDecimals());
+    json.put(ASSET_TRANSFER_RESPONSE, Convert.toUnsignedLong(assetTransfer.getId()));
+    json.put(ASSET_RESPONSE, Convert.toUnsignedLong(assetTransfer.getAssetId()));
+    putAccount(json, SENDER_RESPONSE, assetTransfer.getSenderId());
+    putAccount(json, RECIPIENT_RESPONSE, assetTransfer.getRecipientId());
+    json.put(QUANTITY_NQT_RESPONSE, String.valueOf(assetTransfer.getQuantityQNT()));
+    json.put(HEIGHT_RESPONSE, assetTransfer.getHeight());
+    json.put(TIMESTAMP_RESPONSE, assetTransfer.getTimestamp());
+    if (asset != null) {
+      json.put(NAME_RESPONSE, asset.getName());
+      json.put(DECIMALS_RESPONSE, asset.getDecimals());
     }
+
     return json;
   }
 
   static JSONObject unconfirmedTransaction(Transaction transaction) {
     JSONObject json = new JSONObject();
-    json.put("type", transaction.getType().getType());
-    json.put("subtype", transaction.getType().getSubtype());
-    json.put("timestamp", transaction.getTimestamp());
-    json.put("deadline", transaction.getDeadline());
-    json.put("senderPublicKey", Convert.toHexString(transaction.getSenderPublicKey()));
+    json.put(TYPE_RESPONSE, transaction.getType().getType());
+    json.put(SUBTYPE_RESPONSE, transaction.getType().getSubtype());
+    json.put(TIMESTAMP_RESPONSE, transaction.getTimestamp());
+    json.put(DEADLINE_RESPONSE, transaction.getDeadline());
+    json.put(SENDER_PUBLIC_KEY_RESPONSE, Convert.toHexString(transaction.getSenderPublicKey()));
     if (transaction.getRecipientId() != 0) {
-      putAccount(json, "recipient", transaction.getRecipientId());
+      putAccount(json, RECIPIENT_RESPONSE, transaction.getRecipientId());
     }
-    json.put("amountNQT", String.valueOf(transaction.getAmountNQT()));
-    json.put("feeNQT", String.valueOf(transaction.getFeeNQT()));
+    json.put(AMOUNT_NQT_RESPONSE, String.valueOf(transaction.getAmountNQT()));
+    json.put(FEE_NQT_RESPONSE, String.valueOf(transaction.getFeeNQT()));
     if (transaction.getReferencedTransactionFullHash() != null) {
-      json.put("referencedTransactionFullHash", transaction.getReferencedTransactionFullHash());
+      json.put(REFERENCED_TRANSACTION_FULL_HASH_RESPONSE, transaction.getReferencedTransactionFullHash());
     }
     byte[] signature = Convert.emptyToNull(transaction.getSignature());
     if (signature != null) {
-      json.put("signature", Convert.toHexString(signature));
-      json.put("signatureHash", Convert.toHexString(Crypto.sha256().digest(signature)));
-      json.put("fullHash", transaction.getFullHash());
-      json.put("transaction", transaction.getStringId());
+      json.put(SIGNATURE_RESPONSE, Convert.toHexString(signature));
+      json.put(SIGNATURE_HASH_RESPONSE, Convert.toHexString(Crypto.sha256().digest(signature)));
+      json.put(FULL_HASH_RESPONSE, transaction.getFullHash());
+      json.put(TRANSACTION_RESPONSE, transaction.getStringId());
     }
     else if (!transaction.getType().isSigned()) {
-      json.put("fullHash", transaction.getFullHash());
-      json.put("transaction", transaction.getStringId());
+      json.put(FULL_HASH_RESPONSE, transaction.getFullHash());
+      json.put(TRANSACTION_RESPONSE, transaction.getStringId());
     }
     JSONObject attachmentJSON = new JSONObject();
     for (Appendix appendage : transaction.getAppendages()) {
@@ -431,44 +452,44 @@ public final class JSONData {
     }
     if (! attachmentJSON.isEmpty()) {
       modifyAttachmentJSON(attachmentJSON);
-      json.put("attachment", attachmentJSON);
+      json.put(ATTACHMENT_RESPONSE, attachmentJSON);
     }
-    putAccount(json, "sender", transaction.getSenderId());
-    json.put("height", transaction.getHeight());
-    json.put("version", transaction.getVersion());
+    putAccount(json, SENDER_RESPONSE, transaction.getSenderId());
+    json.put(HEIGHT_RESPONSE, transaction.getHeight());
+    json.put(VERSION_RESPONSE, transaction.getVersion());
     if (transaction.getVersion() > 0) {
-      json.put("ecBlockId", Convert.toUnsignedLong(transaction.getECBlockId()));
-      json.put("ecBlockHeight", transaction.getECBlockHeight());
+      json.put(EC_BLOCK_ID_RESPONSE, Convert.toUnsignedLong(transaction.getECBlockId()));
+      json.put(EC_BLOCK_HEIGHT_RESPONSE, transaction.getECBlockHeight());
     }
 
     return json;
   }
 
-  public static JSONObject transaction(Transaction transaction) {
+  public static JSONObject transaction(Transaction transaction, int currentBlockchainHeight) {
     JSONObject json = unconfirmedTransaction(transaction);
-    json.put("block", Convert.toUnsignedLong(transaction.getBlockId()));
-    json.put("confirmations", Burst.getBlockchain().getHeight() - transaction.getHeight());
-    json.put("blockTimestamp", transaction.getBlockTimestamp());
+    json.put(BLOCK_RESPONSE, Convert.toUnsignedLong(transaction.getBlockId()));
+    json.put(CONFIRMATIONS_RESPONSE, currentBlockchainHeight - transaction.getHeight());
+    json.put(BLOCK_TIMESTAMP_RESPONSE, transaction.getBlockTimestamp());
     return json;
   }
 
   // ugly, hopefully temporary
   private static void modifyAttachmentJSON(JSONObject json) {
-    Long quantityQNT = (Long) json.remove("quantityQNT");
+    Long quantityQNT = (Long) json.remove(QUANTITY_NQT_RESPONSE);
     if (quantityQNT != null) {
-      json.put("quantityQNT", String.valueOf(quantityQNT));
+      json.put(QUANTITY_NQT_RESPONSE, String.valueOf(quantityQNT));
     }
-    Long priceNQT = (Long) json.remove("priceNQT");
+    Long priceNQT = (Long) json.remove(PRICE_NQT_RESPONSE);
     if (priceNQT != null) {
-      json.put("priceNQT", String.valueOf(priceNQT));
+      json.put(PRICE_NQT_RESPONSE, String.valueOf(priceNQT));
     }
-    Long discountNQT = (Long) json.remove("discountNQT");
+    Long discountNQT = (Long) json.remove(DISCOUNT_NQT_RESPONSE);
     if (discountNQT != null) {
-      json.put("discountNQT", String.valueOf(discountNQT));
+      json.put(DISCOUNT_NQT_RESPONSE, String.valueOf(discountNQT));
     }
-    Long refundNQT = (Long) json.remove("refundNQT");
+    Long refundNQT = (Long) json.remove(REFUND_NQT_RESPONSE);
     if (refundNQT != null) {
-      json.put("refundNQT", String.valueOf(refundNQT));
+      json.put(REFUND_NQT_RESPONSE, String.valueOf(refundNQT));
     }
   }
 
@@ -477,7 +498,8 @@ public final class JSONData {
     json.put(name + "RS", Convert.rsAccount(accountId));
   }
 
-  static JSONObject at(AT at) {
+  //TODO refactor the accountservice out of this :-)
+  static JSONObject at(AT at, AccountService accountService) {
     JSONObject json = new JSONObject();
     ByteBuffer bf = ByteBuffer.allocate( 8 );
     bf.order( ByteOrder.LITTLE_ENDIAN );
@@ -497,7 +519,7 @@ public final class JSONData {
     json.put("creatorRS", Convert.rsAccount(AT_API_Helper.getLong(at.getCreator())));
     json.put("machineCode", Convert.toHexString(at.getApCode()));
     json.put("machineData", Convert.toHexString(at.getApData()));
-    json.put("balanceNQT", Convert.toUnsignedLong(Account.getAccount(id).getBalanceNQT()));
+    json.put("balanceNQT", Convert.toUnsignedLong(accountService.getAccount(id).getBalanceNQT()));
     json.put("prevBalanceNQT", Convert.toUnsignedLong(at.getP_balance()));
     json.put("nextBlock", at.nextHeight());
     json.put("frozen", at.freezeOnSameBalance());

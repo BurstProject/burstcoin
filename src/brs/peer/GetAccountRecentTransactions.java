@@ -28,7 +28,7 @@ public class GetAccountRecentTransactions extends PeerServlet.PeerRequestHandler
         BurstIterator<? extends Transaction> iterator = Burst.getBlockchain().getTransactions(account, 0, (byte)-1, (byte)0, 0, 0, 9);
         while(iterator.hasNext()) {
           Transaction transaction = iterator.next();
-          transactions.add(brs.http.JSONData.transaction(transaction));
+          transactions.add(brs.http.JSONData.transaction(transaction, Burst.getBlockchain().getHeight()));
         }
       }
       response.put("transactions", transactions);
