@@ -612,9 +612,7 @@ public final class TransactionImpl implements Transaction {
     json.put("ecBlockId", Convert.toUnsignedLong(ecBlockId));
     json.put("signature", Convert.toHexString(signature));
     JSONObject attachmentJSON = new JSONObject();
-    appendages.forEach(appendage -> {
-        attachmentJSON.putAll(appendage.getJSONObject());
-      });
+    appendages.forEach(appendage -> attachmentJSON.putAll(appendage.getJSONObject()));
     //if (! attachmentJSON.isEmpty()) {
     json.put("attachment", attachmentJSON);
     //}

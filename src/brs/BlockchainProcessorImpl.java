@@ -591,9 +591,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           peer.blacklist();
           List<BlockImpl> peerPoppedOffBlocks = popOffTo(forkBlock);
           pushedForkBlocks = 0;
-          peerPoppedOffBlocks.forEach(block -> {
-            TransactionProcessorImpl.getInstance().processLater(block.getTransactions());
-          });
+          peerPoppedOffBlocks.forEach(block -> TransactionProcessorImpl.getInstance().processLater(block.getTransactions()));
         }
 
         // if we did not push any blocks we try to restore chain.
@@ -610,9 +608,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
           }
         } else {
-          myPoppedOffBlocks.forEach(block -> {
-            TransactionProcessorImpl.getInstance().processLater(block.getTransactions());
-          });
+          myPoppedOffBlocks.forEach(block -> TransactionProcessorImpl.getInstance().processLater(block.getTransactions()));
         }
       } // synchronized
       DownloadCache.ResetCache(); // Reset and set cached vars to chaindata.
@@ -639,9 +635,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (block.getHeight() % 1440 == 0) {
           lastTrimHeight = Math.max(block.getHeight() - Constants.MAX_ROLLBACK, 0);
           if (lastTrimHeight > 0) {
-            derivedTables.forEach(table -> {
-              table.trim(lastTrimHeight);
-            });
+            derivedTables.forEach(table -> table.trim(lastTrimHeight));
           }
         }
       }, Event.AFTER_BLOCK_APPLY);
@@ -778,9 +772,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     try {
       List<TransactionImpl> transactions = new ArrayList<>();
       MessageDigest digest = Crypto.sha256();
-      transactions.forEach(transaction -> {
-        digest.update(transaction.getBytes());
-      });
+      transactions.forEach(transaction -> digest.update(transaction.getBytes()));
       ByteBuffer bf = ByteBuffer.allocate(0);
       bf.order(ByteOrder.LITTLE_ENDIAN);
       byte[] byteATs = bf.array();
@@ -1024,9 +1016,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           poppedOffBlocks.add(block);
           block = popLastBlock();
         }
-        derivedTables.forEach(table -> {
-          table.rollback(commonBlock.getHeight());
-        });
+        derivedTables.forEach(table -> table.rollback(commonBlock.getHeight()));
         Burst.getStores().commitTransaction();
       } catch (RuntimeException e) {
         Burst.getStores().rollbackTransaction();
@@ -1179,9 +1169,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     MessageDigest digest = Crypto.sha256();
 
-    blockTransactions.forEach(transaction -> {
-      digest.update(transaction.getBytes());
-    });
+    blockTransactions.forEach(transaction -> digest.update(transaction.getBytes()));
 
     byte[] payloadHash = digest.digest();
 
