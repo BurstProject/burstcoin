@@ -91,9 +91,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
   @Override
   public void processLater(Collection<TransactionImpl> transactions) {
     synchronized (BlockchainImpl.getInstance()) {
-      for (TransactionImpl transaction : transactions) {
-        lostTransactions.add(transaction);
-      }
+      lostTransactions.addAll(transactions);
     }
   }
 

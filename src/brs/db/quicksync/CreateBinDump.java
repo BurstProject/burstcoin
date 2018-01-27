@@ -109,9 +109,7 @@ public class CreateBinDump {
           List<String> columns = new ArrayList<>();
           boolean hasDbId = false;
 
-          for (Field field : ReflectionUtils.getAllFields(clazz)) {
-            fields.add(field);
-          }
+          fields.addAll(ReflectionUtils.getAllFields(clazz));
           Collections.sort(fields, Comparator.comparing(Field::getName));
           for (Field field : fields) {
             String columnName = BinDumps.getColumnName(field);
