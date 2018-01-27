@@ -39,7 +39,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
       countQuery.addFrom(tableClass);
       countQuery.addConditions(dbKey.getPKConditions(tableClass));
       countQuery.addConditions(tableClass.field("height", Integer.class).lt(Burst.getBlockchain().getHeight()));
-      if ( countQuery.fetchCount() > 0 ) {
+      if ( ctx.fetchCount(countQuery) > 0 ) {
         UpdateQuery updateQuery = ctx.updateQuery(tableClass);
         updateQuery.addValue(
           tableClass.field("latest", Boolean.class),
