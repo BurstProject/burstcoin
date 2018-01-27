@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Subscription {
 
@@ -146,7 +147,7 @@ public class Subscription {
   public final BurstKey dbKey;
   public final Long amountNQT;
   public final int frequency;
-  private volatile int timeNext;
+  private AtomicInteger timeNext;
 
   private Subscription(Long senderId,
                        Long recipientId,
@@ -160,7 +161,7 @@ public class Subscription {
     this.dbKey = subscriptionDbKeyFactory().newKey(this.id);
     this.amountNQT = amountNQT;
     this.frequency  = frequency;
-    this.timeNext = timeStart + frequency;
+    this.timeNext = new AtomicInteger(timeStart + frequency);
   }
   protected Subscription(Long senderId,
                          Long recipientId,
@@ -176,7 +177,7 @@ public class Subscription {
     this.dbKey = dbKey;
     this.amountNQT = amountNQT;
     this.frequency  = frequency;
-    this.timeNext = timeNext;
+    this.timeNext = new AtomicInteger(timeNext);
   }
 
   public Long getSenderId() {
@@ -200,7 +201,7 @@ public class Subscription {
   }
 
   public int getTimeNext() {
-    return timeNext;
+    return timeNext.get();
   }
 
   private boolean applyUnconfirmed() {
@@ -236,7 +237,7 @@ public class Subscription {
     TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte) 1,
                                                                           sender.getPublicKey(), amountNQT,
                                                                           getFee(),
-                                                                          timeNext, (short)1440, attachment);
+                                                                          timeNext.get(), (short)1440, attachment);
 
     try {
       builder.senderId(senderId)
@@ -254,6 +255,6 @@ public class Subscription {
       throw new RuntimeException("Failed to build subscription payment transaction", e);
     }
 
-    timeNext += frequency;
+    timeNext.getAndAdd(frequency);
   }
 }
