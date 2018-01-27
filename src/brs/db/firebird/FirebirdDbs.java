@@ -52,7 +52,7 @@ public class FirebirdDbs implements Dbs {
   }
 
   @Override
-  public void disableForeignKeyChecks(Connection con) throws SQLException {
+  public void disableForeignKeyChecks(Connection con) {
     // This is a very very ugly and dangerous operation
     apply("ALTER TABLE \"transaction\" DROP CONSTRAINT \"constraint_ff\";");
     apply("ALTER TABLE \"block\" DROP CONSTRAINT \"constraint_3c5\";");

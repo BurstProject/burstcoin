@@ -16,7 +16,7 @@ public final class GetATLong extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JSONStreamAware processRequest(HttpServletRequest req) {
     return JSONData.hex2long(ParameterParser.getATLong(req));
   }
     

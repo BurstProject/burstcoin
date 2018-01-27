@@ -46,7 +46,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
         }
 
         @Override
-        protected void save(DSLContext ctx, TransactionImpl transaction) throws SQLException {
+        protected void save(DSLContext ctx, TransactionImpl transaction) {
           ctx.insertInto(
             UNCONFIRMED_TRANSACTION,
             UNCONFIRMED_TRANSACTION.ID, UNCONFIRMED_TRANSACTION.TRANSACTION_HEIGHT, UNCONFIRMED_TRANSACTION.FEE_PER_BYTE,

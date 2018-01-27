@@ -39,7 +39,7 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req, User user) throws BurstException.ValidationException, IOException {
+  JSONStreamAware processRequest(HttpServletRequest req, User user) throws BurstException.ValidationException {
     if (user.getSecretPhrase() == null) {
       return null;
     }

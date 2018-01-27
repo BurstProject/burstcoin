@@ -257,7 +257,7 @@ public interface Appendix {
       super(buffer, transactionVersion);
     }
 
-    public EncryptedMessage(JSONObject attachmentData) throws BurstException.NotValidException {
+    public EncryptedMessage(JSONObject attachmentData) {
       super(attachmentData, (JSONObject)attachmentData.get("encryptedMessage"));
     }
 
@@ -303,7 +303,7 @@ public interface Appendix {
       super(buffer, transactionVersion);
     }
 
-    public EncryptToSelfMessage(JSONObject attachmentData) throws BurstException.NotValidException {
+    public EncryptToSelfMessage(JSONObject attachmentData) {
       super(attachmentData, (JSONObject)attachmentData.get("encryptToSelfMessage"));
     }
 

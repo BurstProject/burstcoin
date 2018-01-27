@@ -33,7 +33,7 @@ public final class ReadMessage extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws ParameterException {
+  JSONStreamAware processRequest(HttpServletRequest req) {
 
     String transactionIdString = Convert.emptyToNull(req.getParameter(TRANSACTION_PARAMETER));
     if (transactionIdString == null) {

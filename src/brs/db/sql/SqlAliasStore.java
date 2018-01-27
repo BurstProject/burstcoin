@@ -95,7 +95,7 @@ public class SqlAliasStore implements AliasStore {
     }
   }
 
-  protected void saveAlias(DSLContext ctx, Alias alias) throws SQLException {
+  protected void saveAlias(DSLContext ctx, Alias alias) {
     ctx.insertInto(ALIAS).
       set(ALIAS.ID, alias.getId()).
       set(ALIAS.ACCOUNT_ID, alias.getAccountId()).

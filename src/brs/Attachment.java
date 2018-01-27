@@ -1685,7 +1685,7 @@ public interface Attachment extends Appendix {
 
     }
 
-    AutomatedTransactionsCreation(JSONObject attachmentData) throws BurstException.NotValidException {
+    AutomatedTransactionsCreation(JSONObject attachmentData) {
       super(attachmentData);
 
       this.name = ( String ) attachmentData.get( "name" );

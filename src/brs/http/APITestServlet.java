@@ -193,7 +193,7 @@ public class APITestServlet extends HttpServlet {
     return buf.toString();
   }
 
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
 
     resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
     resp.setHeader("Pragma", "no-cache");

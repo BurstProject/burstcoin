@@ -204,7 +204,7 @@ public final class Db {
     return new DbConnection(con);
   }
 
-  public static final DSLContext getDSLContext() throws SQLException {
+  public static final DSLContext getDSLContext() {
     Connection con     = localConnection.get();
     SQLDialect dialect =  DATABASE_TYPE == TYPE.H2 ? SQLDialect.H2 : DATABASE_TYPE == TYPE.FIREBIRD ? SQLDialect.FIREBIRD : SQLDialect.MARIADB;
     Settings settings  = new Settings();
@@ -331,7 +331,7 @@ public final class Db {
     }
 
     @Override
-    public void setAutoCommit(boolean autoCommit) throws SQLException {
+    public void setAutoCommit(boolean autoCommit) {
       throw new UnsupportedOperationException("Use Db.beginTransaction() to start a new transaction");
     }
 
