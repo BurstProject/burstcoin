@@ -149,13 +149,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                     }
                   }
 
-                  Iterator<Long> it = lostTransactionHeights.keySet().iterator();
-                  while(it.hasNext()) {
-                    long id = it.next();
-                    if(getUnconfirmedTransaction(id) == null) {
-                      it.remove();
-                    }
-                  }
+                    lostTransactionHeights.keySet().removeIf(id -> getUnconfirmedTransaction(id) == null);
                 }
 
                 lostTransactions.clear();
