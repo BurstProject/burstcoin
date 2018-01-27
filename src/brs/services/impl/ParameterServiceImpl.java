@@ -236,7 +236,7 @@ public class ParameterServiceImpl implements ParameterService {
       throw new ParameterException(MISSING_PURCHASE);
     }
     try {
-      DigitalGoodsStore.Purchase purchase = DigitalGoodsStore.getPurchase(Convert.parseUnsignedLong(purchaseIdString));
+      DigitalGoodsStore.Purchase purchase = dgsGoodsStoreService.getPurchase(Convert.parseUnsignedLong(purchaseIdString));
       if (purchase == null) {
         throw new ParameterException(INCORRECT_PURCHASE);
       }

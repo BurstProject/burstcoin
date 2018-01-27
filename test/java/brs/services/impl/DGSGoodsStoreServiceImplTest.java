@@ -56,7 +56,7 @@ public class DGSGoodsStoreServiceImplTest extends AbstractUnitTest {
     final int from = 1;
     final int to = 2;
 
-    final BurstIterator<DigitalGoodsStore.Goods> mockIterator = mock(BurstIterator.class);
+    final BurstIterator<DigitalGoodsStore.Goods> mockIterator = mockBurstIterator();
     when(mockGoodsTable.getAll(eq(from), eq(to))).thenReturn(mockIterator);
 
     assertEquals(mockIterator, t.getAllGoods(from, to));
@@ -67,7 +67,7 @@ public class DGSGoodsStoreServiceImplTest extends AbstractUnitTest {
     final int from = 1;
     final int to = 2;
 
-    final BurstIterator<DigitalGoodsStore.Goods> mockIterator = mock(BurstIterator.class);
+    final BurstIterator<DigitalGoodsStore.Goods> mockIterator = mockBurstIterator();
     when(mockDigitalGoodsStoreStore.getGoodsInStock(eq(from), eq(to))).thenReturn(mockIterator);
 
     assertEquals(mockIterator, t.getGoodsInStock(from, to));
@@ -80,7 +80,7 @@ public class DGSGoodsStoreServiceImplTest extends AbstractUnitTest {
     final int from = 1;
     final int to = 2;
 
-    final BurstIterator<DigitalGoodsStore.Goods> mockIterator = mock(BurstIterator.class);
+    final BurstIterator<DigitalGoodsStore.Goods> mockIterator = mockBurstIterator();
     when(mockDigitalGoodsStoreStore.getSellerGoods(eq(sellerId), eq(inStockOnly), eq(from), eq(to))).thenReturn(mockIterator);
 
     assertEquals(mockIterator, t.getSellerGoods(sellerId, inStockOnly, from, to));
@@ -91,7 +91,7 @@ public class DGSGoodsStoreServiceImplTest extends AbstractUnitTest {
     final int from = 1;
     final int to = 2;
 
-    final BurstIterator<DigitalGoodsStore.Purchase> mockIterator = mock(BurstIterator.class);
+    final BurstIterator<DigitalGoodsStore.Purchase> mockIterator = mockBurstIterator();
     when(mockPurchaseTable.getAll(eq(from), eq(to))).thenReturn(mockIterator);
 
     assertEquals(mockIterator, t.getAllPurchases(from, to));
@@ -103,7 +103,7 @@ public class DGSGoodsStoreServiceImplTest extends AbstractUnitTest {
     final int from = 2;
     final int to = 3;
 
-    final BurstIterator<DigitalGoodsStore.Purchase> mockIterator = mock(BurstIterator.class);
+    final BurstIterator<DigitalGoodsStore.Purchase> mockIterator = mockBurstIterator();
     when(mockDigitalGoodsStoreStore.getSellerPurchases(eq(sellerId), eq(from), eq(to))).thenReturn(mockIterator);
 
     assertEquals(mockIterator, t.getSellerPurchases(sellerId, from, to));
@@ -115,7 +115,7 @@ public class DGSGoodsStoreServiceImplTest extends AbstractUnitTest {
     final int from = 2;
     final int to = 3;
 
-    final BurstIterator<DigitalGoodsStore.Purchase> mockIterator = mock(BurstIterator.class);
+    final BurstIterator<DigitalGoodsStore.Purchase> mockIterator = mockBurstIterator();
     when(mockDigitalGoodsStoreStore.getBuyerPurchases(eq(buyerId), eq(from), eq(to))).thenReturn(mockIterator);
 
     assertEquals(mockIterator, t.getBuyerPurchases(buyerId, from, to));
@@ -128,7 +128,7 @@ public class DGSGoodsStoreServiceImplTest extends AbstractUnitTest {
     final int from = 3;
     final int to = 4;
 
-    final BurstIterator<DigitalGoodsStore.Purchase> mockIterator = mock(BurstIterator.class);
+    final BurstIterator<DigitalGoodsStore.Purchase> mockIterator = mockBurstIterator();
     when(mockDigitalGoodsStoreStore.getSellerBuyerPurchases( eq(sellerId), eq(buyerId), eq(from), eq(to))).thenReturn(mockIterator);
 
     assertEquals(mockIterator, t.getSellerBuyerPurchases(sellerId, buyerId, from, to));
@@ -142,6 +142,8 @@ public class DGSGoodsStoreServiceImplTest extends AbstractUnitTest {
 
     BurstIterator<Purchase> mockPurchaseIterator = mockBurstIterator();
     when(mockDigitalGoodsStoreStore.getPendingSellerPurchases(eq(sellerId), eq(from), eq(to))).thenReturn(mockPurchaseIterator);
+
+    assertEquals(mockPurchaseIterator, t.getPendingSellerPurchases(sellerId, from, to));
   }
 
 }
