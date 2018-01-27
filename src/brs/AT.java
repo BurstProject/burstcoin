@@ -43,9 +43,9 @@ public class AT extends AT_Machine_State {
 
     @Override
       public void notify(Block block) {
-        pendingFees.entrySet().forEach(entry -> {
-          Account atAccount = accountService.getAccount(entry.getKey());
-          atAccount.addToBalanceAndUnconfirmedBalanceNQT(-entry.getValue());
+        pendingFees.forEach((key, value) -> {
+          Account atAccount = accountService.getAccount(key);
+          atAccount.addToBalanceAndUnconfirmedBalanceNQT(-value);
         });
 
         List<TransactionImpl> transactions = new ArrayList<>();
