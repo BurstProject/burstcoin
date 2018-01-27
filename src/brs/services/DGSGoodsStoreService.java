@@ -23,4 +23,6 @@ public interface DGSGoodsStoreService {
   BurstIterator<Purchase> getSellerBuyerPurchases(long sellerId, long buyerId, int from, int to);
 
   BurstIterator<Purchase> getPendingSellerPurchases(long sellerId, int from, int to);
+
+  Purchase getPurchase(long purchaseId);
 }

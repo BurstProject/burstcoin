@@ -55,7 +55,7 @@ public final class GetTransaction extends APIServlet.APIRequestHandler {
       }
       return JSONData.unconfirmedTransaction(transaction);
     } else {
-      return JSONData.transaction(transaction);
+      return JSONData.transaction(transaction, blockchain.getHeight());
     }
 
   }

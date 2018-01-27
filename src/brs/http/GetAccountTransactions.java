@@ -7,6 +7,7 @@ import static brs.http.common.Parameters.NUMBER_OF_CONFIRMATIONS_PARAMETER;
 import static brs.http.common.Parameters.SUBTYPE_PARAMETER;
 import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
 import static brs.http.common.Parameters.TYPE_PARAMETER;
+import static brs.http.common.ResultFields.TRANSACTIONS_RESPONSE;
 
 import brs.Account;
 import brs.Blockchain;
@@ -68,12 +69,12 @@ public final class GetAccountTransactions extends APIServlet.APIRequestHandler {
                                                                                                firstIndex, lastIndex)) {
       while (iterator.hasNext()) {
         Transaction transaction = iterator.next();
-        transactions.add(JSONData.transaction(transaction));
+        transactions.add(JSONData.transaction(transaction, blockchain.getHeight()));
       }
     }
 
     JSONObject response = new JSONObject();
-    response.put("transactions", transactions);
+    response.put(TRANSACTIONS_RESPONSE, transactions);
     return response;
 
   }

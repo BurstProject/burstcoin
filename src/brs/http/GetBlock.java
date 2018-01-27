@@ -2,7 +2,6 @@ package brs.http;
 
 import brs.Block;
 import brs.Blockchain;
-import brs.Burst;
 import brs.http.common.Parameters;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
@@ -26,11 +25,11 @@ public final class GetBlock extends APIServlet.APIRequestHandler {
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) {
-
-    Block blockData;
     String blockValue = Convert.emptyToNull(req.getParameter(BLOCK_PARAMETER));
     String heightValue = Convert.emptyToNull(req.getParameter(HEIGHT_PARAMETER));
     String timestampValue = Convert.emptyToNull(req.getParameter(TIMESTAMP_PARAMETER));
+
+    Block blockData;
     if (blockValue != null) {
       try {
         blockData = blockchain.getBlock(Convert.parseUnsignedLong(blockValue));
@@ -67,7 +66,7 @@ public final class GetBlock extends APIServlet.APIRequestHandler {
 
     boolean includeTransactions = Parameters.isTrue(req.getParameter(INCLUDE_TRANSACTIONS_PARAMETER));
 
-    return JSONData.block(blockData, includeTransactions);
+    return JSONData.block(blockData, includeTransactions, blockchain.getHeight());
 
   }
 

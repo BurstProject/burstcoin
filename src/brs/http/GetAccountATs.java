@@ -7,6 +7,7 @@ import brs.AT;
 import brs.Account;
 import brs.BurstException;
 import brs.services.ATService;
+import brs.services.AccountService;
 import brs.services.ParameterService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -19,11 +20,13 @@ public final class GetAccountATs extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
   private final ATService atService;
+  private final AccountService accountService;
 
-  GetAccountATs(ParameterService parameterService, ATService atService) {
+  GetAccountATs(ParameterService parameterService, ATService atService, AccountService accountService) {
     super(new APITag[] {APITag.AT, APITag.ACCOUNTS}, ACCOUNT_PARAMETER);
     this.parameterService = parameterService;
     this.atService = atService;
+    this.accountService = accountService;
   }
 	
   @Override
@@ -33,7 +36,7 @@ public final class GetAccountATs extends APIServlet.APIRequestHandler {
     List<Long> atIds = atService.getATsIssuedBy(account.getId());
     JSONArray ats = new JSONArray();
     for(long atId : atIds) {
-      ats.add(JSONData.at(AT.getAT(atId)));
+      ats.add(JSONData.at(atService.getAT(atId), accountService));
     }
 		
     JSONObject response = new JSONObject();
