@@ -51,9 +51,9 @@ public final class SendMoney extends UserServlet.UserRequestHandler {
     String secretPhrase = req.getParameter(SECRET_PHRASE_PARAMETER);
 
     long recipient;
-    long amountNQT = 0;
-    long feeNQT = 0;
-    short deadline = 0;
+    long amountNQT;
+    long feeNQT;
+    short deadline;
 
     try {
 

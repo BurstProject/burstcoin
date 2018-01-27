@@ -178,11 +178,11 @@ public final class TransactionImpl implements Transaction {
   private final List<? extends Appendix.AbstractAppendix> appendages;
   private final int appendagesSize;
 
-  private volatile int height = Integer.MAX_VALUE;
+  private volatile int height;
   private volatile long blockId;
   private volatile Block block;
   private volatile byte[] signature;
-  private volatile int blockTimestamp = -1;
+  private volatile int blockTimestamp;
   private volatile long id;
   private volatile String stringId;
   private volatile long senderId;

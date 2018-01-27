@@ -124,7 +124,7 @@ public abstract class AT_Controller {
     if (creation == null)
       throw new AT_Exception( "Creation bytes cannot be null" );
 
-    int totalPages = 0;
+    int totalPages;
     try {
       ByteBuffer b = ByteBuffer.allocate( creation.length );
       b.order( ByteOrder.LITTLE_ENDIAN );
@@ -318,7 +318,7 @@ public abstract class AT_Controller {
     boolean validated = true;
     long totalFee = 0;
     MessageDigest digest = MessageDigest.getInstance( "MD5" );
-    byte[] md5 = null;
+    byte[] md5;
     long totalAmount = 0;
 
     for ( ByteBuffer atIdBuffer : ats.keySet() ) {
