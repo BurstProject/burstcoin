@@ -497,7 +497,9 @@ final class H2DbVersion {
         apply("ALTER TABLE account DROP COLUMN IF EXISTS next_lessee_id");
       case 163:
         apply("ALTER TABLE transaction ALTER COLUMN referenced_transaction_full_hash RENAME TO referenced_transaction_fullhash");
-      case 164:
+      case 173:
+        apply("UPDATE \"version\" SET \"next_update\" = '173';");
+      case 174:
         return;
       default:
         throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");
