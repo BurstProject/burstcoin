@@ -1,6 +1,5 @@
 package brs.db.sql;
 
-import static brs.schema.Tables.BLOCK;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -11,7 +10,7 @@ import org.jooq.DeleteQuery;
 import org.jooq.SelectQuery;
 import org.jooq.UpdateQuery;
 import org.jooq.impl.TableImpl;
-import java.lang.reflect.Field;
+
 import java.util.Optional;
 import java.math.BigInteger;
 import brs.BlockImpl;

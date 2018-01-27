@@ -3,7 +3,6 @@ package brs.http;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.ResultFields.ATS_RESPONSE;
 
-import brs.AT;
 import brs.Account;
 import brs.BurstException;
 import brs.services.ATService;

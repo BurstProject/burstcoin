@@ -5,7 +5,6 @@ import static brs.http.common.Parameters.HEIGHT_PARAMETER;
 
 import brs.Account;
 import brs.Blockchain;
-import brs.Burst;
 import brs.BurstException;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
