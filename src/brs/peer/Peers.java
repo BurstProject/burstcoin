@@ -812,7 +812,7 @@ public final class Peers {
 
   public static Peer getAnyPeer(Peer.State state, boolean applyPullThreshold) {
 
-    if(connectWellKnownFinished == false) {
+    if(!connectWellKnownFinished) {
       int wellKnownConnected = 0;
       for(Peer peer : peers.values()) {
         if(peer.isWellKnown() && peer.getState() == Peer.State.CONNECTED) {

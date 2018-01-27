@@ -83,10 +83,7 @@ public class Escrow {
     }
 
     Alias escrowEnabled = Alias.getAlias("featureescrow");
-    if(escrowEnabled != null && escrowEnabled.getAliasURI().equals("enabled")) {
-      return true;
-    }
-    return false;
+      return escrowEnabled != null && escrowEnabled.getAliasURI().equals("enabled");
   }
 
   public static class Decision {

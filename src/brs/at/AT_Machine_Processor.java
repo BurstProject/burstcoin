@@ -142,11 +142,7 @@ public class AT_Machine_Processor{
       return false;
     }
 
-    if (is_code && addr>=machineData.getCsize()) {
-      return false;
-    }
-
-    return true;
+    return !is_code || addr < machineData.getCsize();
   }
 
   private class Fun {
