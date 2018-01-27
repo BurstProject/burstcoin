@@ -8,7 +8,7 @@ public interface Time {
 
   int getTime();
 
-  public static final class EpochTime implements Time {
+  final class EpochTime implements Time {
 
     public int getTime() {
       return (int)((System.currentTimeMillis() - Constants.EPOCH_BEGINNING + 500) / 1000);
@@ -16,7 +16,7 @@ public interface Time {
 
   }
 
-  public static final class ConstantTime implements Time {
+  final class ConstantTime implements Time {
 
     private final int time;
 
@@ -30,7 +30,7 @@ public interface Time {
 
   }
 
-  public static final class FasterTime implements Time {
+  final class FasterTime implements Time {
 
     private final int multiplier;
     private final long systemStartTime;
@@ -51,7 +51,7 @@ public interface Time {
 
   }
 
-  public static final class CounterTime implements Time {
+  final class CounterTime implements Time {
 
     private final AtomicInteger counter;
 

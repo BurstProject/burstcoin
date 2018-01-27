@@ -13,7 +13,7 @@ import org.jooq.SelectQuery;
 
 public interface DbKey extends BurstKey {
 
-  public static abstract class Factory<T> implements BurstKey.Factory<T> {
+  abstract class Factory<T> implements BurstKey.Factory<T> {
 
     private final String pkClause;
     private final String[] pkColumns;
@@ -57,7 +57,7 @@ public interface DbKey extends BurstKey {
 
   long[] getPKValues();
 
-  public static abstract class LongKeyFactory<T> extends Factory<T> implements BurstKey.LongKeyFactory<T> {
+  abstract class LongKeyFactory<T> extends Factory<T> implements BurstKey.LongKeyFactory<T> {
 
     private final String idColumn;
 
@@ -91,7 +91,7 @@ public interface DbKey extends BurstKey {
     }
   }
 
-  public static abstract class LinkKeyFactory<T> extends Factory<T> implements BurstKey.LinkKeyFactory<T> {
+  abstract class LinkKeyFactory<T> extends Factory<T> implements BurstKey.LinkKeyFactory<T> {
 
     private final String idColumnA;
     private final String idColumnB;
@@ -132,7 +132,7 @@ public interface DbKey extends BurstKey {
     }
   }
 
-  static final class LongKey implements DbKey {
+  final class LongKey implements DbKey {
 
     private final long id;
     private final String idColumn;
@@ -167,7 +167,7 @@ public interface DbKey extends BurstKey {
     
   }
 
-  static final class LinkKey implements DbKey {
+  final class LinkKey implements DbKey {
 
     private final long idA;
     private final long idB;

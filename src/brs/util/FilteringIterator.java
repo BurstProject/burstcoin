@@ -7,7 +7,7 @@ import java.util.NoSuchElementException;
 
 public final class FilteringIterator<T> implements Iterator<T>, AutoCloseable {
 
-  public static interface Filter<T> {
+  public interface Filter<T> {
     boolean ok(T t);
   }
 
