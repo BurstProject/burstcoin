@@ -22,6 +22,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.jooq.impl.DSL;
 import org.jooq.DSLContext;
@@ -82,7 +83,7 @@ public final class Db {
           if ( jnaPath == null || jnaPath.isEmpty() ) {
             Path path = Paths.get(
                                   "lib/firebird/"
-                                  + ( System.getProperty("sun.arch.data.model") == "32" ? "32" : "64" )
+                                  + (Objects.equals(System.getProperty("sun.arch.data.model"), "32") ? "32" : "64" )
                                   + "/"
                                   ).toAbsolutePath();
             System.setProperty("jna.library.path", path.toString());
