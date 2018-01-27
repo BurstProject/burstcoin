@@ -176,7 +176,7 @@ public final class Db {
   public static void shutdown() {
     if (DATABASE_TYPE == TYPE.H2) {
       logger.info("Compacting database - this may take a while");
-      try ( Connection con = cp.getConnection(); Statement stmt = con.createStatement(); ) {
+      try ( Connection con = cp.getConnection(); Statement stmt = con.createStatement() ) {
         stmt.execute("SHUTDOWN COMPACT");
       }
       catch (SQLException e) {
