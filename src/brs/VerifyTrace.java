@@ -50,16 +50,8 @@ public final class VerifyTrace {
           valueMap.put(headers[i], values[i]);
         }
         String accountId = valueMap.get("account");
-        Map<String,Long> accountTotals = totals.get(accountId);
-        if (accountTotals == null) {
-          accountTotals = new HashMap<>();
-          totals.put(accountId, accountTotals);
-        }
-        Map<String,Map<String,Long>> accountAssetMap = accountAssetTotals.get(accountId);
-        if (accountAssetMap == null) {
-          accountAssetMap = new HashMap<>();
-          accountAssetTotals.put(accountId, accountAssetMap);
-        }
+        Map<String, Long> accountTotals = totals.computeIfAbsent(accountId, k -> new HashMap<>());
+        Map<String, Map<String, Long>> accountAssetMap = accountAssetTotals.computeIfAbsent(accountId, k -> new HashMap<>());
         if ("asset issuance".equals(valueMap.get("event"))) {
           String assetId = valueMap.get("asset");
           issuedAssetQuantities.put(assetId, Long.parseLong(valueMap.get("asset quantity")));
@@ -77,19 +69,11 @@ public final class VerifyTrace {
             accountTotals.put(header, Convert.safeAdd(previousValue, Long.parseLong(value)));
           } else if (isAssetQuantity(header)) {
             String assetId = valueMap.get("asset");
-            Map<String,Long> assetTotals = accountAssetMap.get(assetId);
-            if (assetTotals == null) {
-              assetTotals = new HashMap<>();
-              accountAssetMap.put(assetId, assetTotals);
-            }
+            Map<String, Long> assetTotals = accountAssetMap.computeIfAbsent(assetId, k -> new HashMap<>());
             assetTotals.put(header, Long.parseLong(value));
           } else if (isDeltaAssetQuantity(header)) {
             String assetId = valueMap.get("asset");
-            Map<String,Long> assetTotals = accountAssetMap.get(assetId);
-            if (assetTotals == null) {
-              assetTotals = new HashMap<>();
-              accountAssetMap.put(assetId, assetTotals);
-            }
+            Map<String, Long> assetTotals = accountAssetMap.computeIfAbsent(assetId, k -> new HashMap<>());
             long previousValue = nullToZero(assetTotals.get(header));
             assetTotals.put(header, Convert.safeAdd(previousValue, Long.parseLong(value)));
           }

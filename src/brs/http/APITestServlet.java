@@ -165,12 +165,8 @@ public class APITestServlet extends HttpServlet {
       final String requestType = entry.getKey();
       final Set<APITag> apiTags = entry.getValue().getAPITags();
       for (APITag apiTag : apiTags) {
-        SortedSet<String> set = r.get(apiTag.name());
-        if (set == null) {
-          set = new TreeSet<>();
-          r.put(apiTag.name(), set);
-        }
-        set.add(requestType);
+          SortedSet<String> set = r.computeIfAbsent(apiTag.name(), k -> new TreeSet<>());
+          set.add(requestType);
       }
     }
     return r;

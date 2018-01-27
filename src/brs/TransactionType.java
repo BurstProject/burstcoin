@@ -248,12 +248,8 @@ public abstract class TransactionType {
   }
 
   static boolean isDuplicate(TransactionType uniqueType, String key, Map<TransactionType, Set<String>> duplicates) {
-    Set<String> typeDuplicates = duplicates.get(uniqueType);
-    if (typeDuplicates == null) {
-      typeDuplicates = new HashSet<>();
-      duplicates.put(uniqueType, typeDuplicates);
-    }
-    return ! typeDuplicates.add(key);
+      Set<String> typeDuplicates = duplicates.computeIfAbsent(uniqueType, k -> new HashSet<>());
+      return ! typeDuplicates.add(key);
   }
 
   public abstract boolean hasRecipient();

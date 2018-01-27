@@ -116,21 +116,13 @@ public final class Users {
   }
 
   static int getIndex(Block block) {
-    Integer index = blockIndexMap.get(block.getId());
-    if (index == null) {
-      index = blockCounter.incrementAndGet();
-      blockIndexMap.put(block.getId(), index);
-    }
-    return index;
+      Integer index = blockIndexMap.computeIfAbsent(block.getId(), k -> blockCounter.incrementAndGet());
+      return index;
   }
 
   static int getIndex(Transaction transaction) {
-    Integer index = transactionIndexMap.get(transaction.getId());
-    if (index == null) {
-      index = transactionCounter.incrementAndGet();
-      transactionIndexMap.put(transaction.getId(), index);
-    }
-    return index;
+      Integer index = transactionIndexMap.computeIfAbsent(transaction.getId(), k -> transactionCounter.incrementAndGet());
+      return index;
   }
 
   public static void init() {}

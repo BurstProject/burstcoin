@@ -226,24 +226,16 @@ public final class Db {
     if (!isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-    Map<DbKey, Object> cacheMap = transactionCaches.get().get(tableName);
-    if (cacheMap == null) {
-      cacheMap = new HashMap<>();
-      transactionCaches.get().put(tableName, cacheMap);
-    }
-    return cacheMap;
+      Map<DbKey, Object> cacheMap = transactionCaches.get().computeIfAbsent(tableName, k -> new HashMap<>());
+      return cacheMap;
   }
 
   static Map<DbKey, Object> getBatch(String tableName) {
     if (!isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-    Map<DbKey, Object> batchMap = transactionBatches.get().get(tableName);
-    if (batchMap == null) {
-      batchMap = new HashMap<>();
-      transactionBatches.get().put(tableName, batchMap);
-    }
-    return batchMap;
+      Map<DbKey, Object> batchMap = transactionBatches.get().computeIfAbsent(tableName, k -> new HashMap<>());
+      return batchMap;
   }
 
   public static boolean isInTransaction() {
