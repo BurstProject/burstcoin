@@ -144,8 +144,7 @@ public interface DbKey extends BurstKey {
 
     @Override
     public long[] getPKValues() {
-      long[] values = {id};
-      return values;
+        return new long[]{id};
     }
 
     @Override
@@ -183,8 +182,7 @@ public interface DbKey extends BurstKey {
 
     @Override
     public long[] getPKValues() {
-      long[] values = {idA, idB};
-      return values;
+        return new long[]{idA, idB};
     }
 
     @Override

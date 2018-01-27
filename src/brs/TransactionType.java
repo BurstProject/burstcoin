@@ -2111,9 +2111,8 @@ public abstract class TransactionType {
                                                   byte transactionVersion) throws NotValidException {
           // TODO Auto-generated method stub
           //System.out.println("parsing byte AT attachment");
-          AutomatedTransactionsCreation attachment = new Attachment.AutomatedTransactionsCreation(buffer,transactionVersion);
           //System.out.println("byte AT attachment parsed");
-          return attachment;
+          return new AutomatedTransactionsCreation(buffer,transactionVersion);
         }
 
         @Override
@@ -2121,9 +2120,8 @@ public abstract class TransactionType {
           throws NotValidException {
           // TODO Auto-generated method stub
           //System.out.println("parsing at attachment");
-          Attachment.AutomatedTransactionsCreation atCreateAttachment = new Attachment.AutomatedTransactionsCreation(attachmentData);
-          //System.out.println("attachment parsed");
-          return atCreateAttachment;
+            //System.out.println("attachment parsed");
+          return new AutomatedTransactionsCreation(attachmentData);
         }
 
         @Override

@@ -303,9 +303,7 @@ public abstract class AT_Controller {
       logger.info("NoSuchAlgorithmException: ", e);
     }
 
-    AT_Block atBlock = new AT_Block( totalFee, totalAmount, bytesForBlock );
-
-    return atBlock;
+      return new AT_Block( totalFee, totalAmount, bytesForBlock );
   }
 
   public static AT_Block validateATs( byte[] blockATs, int blockHeight ) throws NoSuchAlgorithmException, AT_Exception {
@@ -385,9 +383,8 @@ public abstract class AT_Controller {
     for ( AT at : processedATs ) {
         at.saveState();
       }
-    AT_Block atBlock = new AT_Block( totalFee, totalAmount, new byte[ 1 ], validated );
 
-    return atBlock;
+      return new AT_Block( totalFee, totalAmount, new byte[ 1 ], validated );
   }
 
   public static LinkedHashMap< ByteBuffer, byte[] > getATsFromBlock( byte[] blockATs ) throws AT_Exception {

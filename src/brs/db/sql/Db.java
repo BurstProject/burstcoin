@@ -189,8 +189,7 @@ public final class Db {
   }
 
   private static Connection getPooledConnection() throws SQLException {
-    Connection con = cp.getConnection();
-    return con;
+      return cp.getConnection();
   }
 
   public static Connection getConnection() throws SQLException {
