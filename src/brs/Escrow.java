@@ -14,7 +14,7 @@ public class Escrow {
     UNDECIDED,
     RELEASE,
     REFUND,
-    SPLIT;
+    SPLIT
   }
 
   public static String decisionToString(DecisionType decision) {
