@@ -239,8 +239,7 @@ final class ParameterParser {
     bf.order(ByteOrder.LITTLE_ENDIAN);
     bf.put(Convert.parseHexString(hex));
 
-    String ret = Convert.toUnsignedLong(bf.getLong(0));
-    return ret;
+      return Convert.toUnsignedLong(bf.getLong(0));
   }
 
   public static long getAmountNQT(HttpServletRequest req) throws ParameterException {
