@@ -72,7 +72,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
         }
 
         @Override
-        protected void save(DSLContext ctx, DigitalGoodsStore.Purchase purchase, EncryptedData encryptedData) throws SQLException {
+        protected void save(DSLContext ctx, DigitalGoodsStore.Purchase purchase, EncryptedData encryptedData) {
           byte[] data  = null;
           byte[] nonce = null;
           if ( encryptedData.getData() != null ) {

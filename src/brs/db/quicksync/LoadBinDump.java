@@ -134,7 +134,7 @@ public class LoadBinDump {
   }
 
   public static void load(Path path) throws
-    IOException, URISyntaxException, ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException {
+    IOException, SQLException, IllegalAccessException {
 
     Kryo kryo = new Kryo();
     long start = System.currentTimeMillis();

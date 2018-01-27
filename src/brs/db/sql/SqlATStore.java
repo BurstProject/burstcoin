@@ -41,7 +41,7 @@ public class SqlATStore implements ATStore {
     };
   private final VersionedEntityTable<brs.AT> atTable = new VersionedEntitySqlTable<brs.AT>("at", brs.schema.Tables.AT, atDbKeyFactory) {
       @Override
-      protected brs.AT load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected brs.AT load(DSLContext ctx, ResultSet rs) {
         //return new AT(rs);
         throw new RuntimeException("AT attempted to be created with atTable.load");
       }
@@ -104,7 +104,7 @@ public class SqlATStore implements ATStore {
     );
   }
 
-  protected void saveAT(DSLContext ctx, brs.AT at) throws SQLException {
+  protected void saveAT(DSLContext ctx, brs.AT at) {
     ctx.insertInto(
       AT,
       AT.ID, AT.CREATOR_ID, AT.NAME, AT.DESCRIPTION,

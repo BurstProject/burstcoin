@@ -947,7 +947,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   private void accept(BlockImpl block, Long remainingAmount, Long remainingFee)
-      throws TransactionNotAcceptedException, BlockNotAcceptedException {
+      throws BlockNotAcceptedException {
     Subscription.clearRemovals();
     TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
     for (TransactionImpl transaction : block.getTransactions()) {

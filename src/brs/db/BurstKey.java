@@ -8,7 +8,7 @@ public interface BurstKey {
   interface Factory<T> {
     BurstKey newKey(T t);
 
-    BurstKey newKey(ResultSet rs) throws SQLException;
+    BurstKey newKey(ResultSet rs);
   }
 
   long[] getPKValues();

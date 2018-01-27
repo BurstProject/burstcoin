@@ -104,7 +104,7 @@ public class SqlTradeStore implements TradeStore {
     }
   }
 
-  protected void saveTrade(DSLContext ctx, Trade trade) throws SQLException {
+  protected void saveTrade(DSLContext ctx, Trade trade) {
     ctx.insertInto(
       TRADE,
       TRADE.ASSET_ID, TRADE.BLOCK_ID, TRADE.ASK_ORDER_ID, TRADE.BID_ORDER_ID, TRADE.ASK_ORDER_HEIGHT,

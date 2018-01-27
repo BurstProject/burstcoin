@@ -23,7 +23,7 @@ public final class GetSubscription extends APIServlet.APIRequestHandler {
   }
 	
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JSONStreamAware processRequest(HttpServletRequest req) {
     Long subscriptionId;
     try {
       subscriptionId = Convert.parseUnsignedLong(Convert.emptyToNull(req.getParameter(SUBSCRIPTION_PARAMETER)));

@@ -29,7 +29,7 @@ public interface DbKey extends BurstKey {
 
     public abstract BurstKey newKey(T t);
 
-    public abstract BurstKey newKey(ResultSet rs) throws SQLException;
+    public abstract BurstKey newKey(ResultSet rs);
 
     public final String getPKClause() {
       return pkClause;
