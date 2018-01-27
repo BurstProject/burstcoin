@@ -5,7 +5,6 @@ import static brs.http.common.ResultFields.REWARD_RECIPIENT_RESPONSE;
 
 import brs.Account;
 import brs.Blockchain;
-import brs.Burst;
 import brs.BurstException;
 import brs.services.ParameterService;
 import brs.util.Convert;

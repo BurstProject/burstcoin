@@ -9,8 +9,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 
 public final class GetConstants extends APIServlet.APIRequestHandler {

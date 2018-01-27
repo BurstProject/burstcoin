@@ -4,14 +4,12 @@ import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.NUMBER_OF_CONFIRMATIONS_PARAMETER;
-import static brs.http.common.Parameters.SUBSCRIPTION_PARAMETER;
 import static brs.http.common.Parameters.SUBTYPE_PARAMETER;
 import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
 import static brs.http.common.Parameters.TYPE_PARAMETER;
 
 import brs.Account;
 import brs.Blockchain;
-import brs.Burst;
 import brs.BurstException;
 import brs.Transaction;
 import brs.db.BurstIterator;
