@@ -23,6 +23,13 @@ import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.*;
 
+import org.bitlet.weupnp.GatewayDevice;
+import org.bitlet.weupnp.GatewayDiscover;
+import org.bitlet.weupnp.PortMappingEntry;
+import java.io.IOException;
+import org.xml.sax.SAXException;
+import javax.xml.parsers.ParserConfigurationException;
+
 public final class Peers {
 
   private static final Logger logger = LoggerFactory.getLogger(Peers.class);
@@ -86,7 +93,20 @@ public final class Peers {
   static {
 
     myPlatform = Burst.getStringProperty("P2P.myPlatform");
-    myAddress = Burst.getStringProperty("P2P.myAddress");
+    if ( Burst.getStringProperty("P2P.myAddress") != null && Burst.getStringProperty("P2P.myAddress").trim().length() == 0 && Init.gateway != null ) {
+      String externalIPAddress = null;
+      try {
+        externalIPAddress = Init.gateway.getExternalIPAddress();
+      }
+      catch (IOException|SAXException e) {
+        logger.info("Can't get gateways IP adress");
+      }
+      myAddress = externalIPAddress;
+    }
+    else {
+      myAddress = Burst.getStringProperty("P2P.myAddress");
+    }
+
     if (myAddress != null && myAddress.endsWith(":" + TESTNET_PEER_PORT) && !Constants.isTestnet) {
       throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
     }
@@ -245,12 +265,14 @@ public final class Peers {
   private static class Init {
 
     private static final Server peerServer;
+    private static final GatewayDevice gateway;
+    private static final Integer port;
 
     static {
       if (Peers.shareMyAddress) {
         peerServer = new Server();
         ServerConnector connector = new ServerConnector(peerServer);
-        final int port = Constants.isTestnet ? TESTNET_PEER_PORT : Peers.myPeerServerPort;
+        port = Constants.isTestnet ? TESTNET_PEER_PORT : Peers.myPeerServerPort;
         connector.setPort(port);
         final String host = Burst.getStringProperty("P2P.Listen");
         connector.setHost(host);
@@ -277,6 +299,36 @@ public final class Peers {
           gzipFilterHolder.setAsyncSupported(true);
         }
 
+        GatewayDiscover gatewayDiscover = new GatewayDiscover();
+        try {
+          gatewayDiscover.discover();
+        }
+        catch (IOException|SAXException|ParserConfigurationException e) {
+        }
+        logger.trace("Looking for Gateway Devices");
+        gateway = gatewayDiscover.getValidGateway();
+
+        if (gateway != null) {
+          try {
+            InetAddress localAddress = gateway.getLocalAddress();
+            String externalIPAddress = gateway.getExternalIPAddress();
+            logger.info("Attempting to map {0}:{1} -> {2}:{3} on Gateway {0} ({1})",
+                        new Object[]{externalIPAddress, port, localAddress, port, gateway.getModelName(), gateway.getModelDescription()});
+            
+            if (!gateway.getSpecificPortMappingEntry(port, "TCP", new PortMappingEntry())) {
+              logger.info("Port was already mapped. Aborting test.");    
+            }
+            else {
+              if (gateway.addPortMapping(port, port, localAddress.getHostAddress(), "TCP", "burstcoin")) {
+                logger.info("UPNP Mapping successful");
+              }
+            }
+          }
+          catch (IOException|SAXException e) {
+            logger.error("Can't start UPNP", e);
+          }
+        }
+
         peerServer.setStopAtShutdown(true);
         ThreadPool.runBeforeStart(new Runnable() {
             @Override
@@ -284,14 +336,18 @@ public final class Peers {
               try {
                 peerServer.start();
                 logger.info("Started peer networking server at " + host + ":" + port);
-              } catch (Exception e) {
+              }
+              catch (Exception e) {
                 logger.error("Failed to start peer networking server", e);
                 throw new RuntimeException(e.toString(), e);
               }
             }
           }, true);
-      } else {
+      }
+      else {
         peerServer = null;
+        gateway    = null;
+        port       = null;
         logger.info("shareMyAddress is disabled, will not start peer networking server");
       }
     }
@@ -497,6 +553,14 @@ public final class Peers {
         logger.info("Failed to stop peer server", e);
       }
     }
+    if ( Init.gateway != null ) {
+      try {
+        Init.gateway.deletePortMapping(Init.port, "TCP");
+      }
+      catch ( Exception e) {
+        logger.info("Failed to remove UPNP rule from gateway", e);
+      }
+    }
     if (dumpPeersVersion != null) {
       StringBuilder buf = new StringBuilder();
       for (Map.Entry<String,String> entry : announcedAddresses.entrySet()) {
@@ -537,7 +601,7 @@ public final class Peers {
     }
     return activePeers;
   }
-    
+
   public static Collection<? extends Peer> getPeers(Peer.State state) {
     List<PeerImpl> peerList = new ArrayList<>();
     for (PeerImpl peer : peers.values()) {

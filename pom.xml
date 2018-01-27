@@ -41,7 +41,11 @@
     <hsqldb.version>2.4.0</hsqldb.version>
     <jacoco.version>0.7.9</jacoco.version>
     <jooq.version>3.10.0</jooq.version>
+<<<<<<< HEAD
     <jaxb.version>2.3.0</jaxb.version>
+=======
+    <weupnp.version>0.1.4</weupnp.version>
+>>>>>>> implemented UPNP - still needs some integrational testing
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -243,7 +247,6 @@
       <artifactId>javax.persistence</artifactId>
       <version>2.2.0</version>
     </dependency>
-
     <dependency>
       <groupId>javax.xml.bind</groupId>
       <artifactId>jaxb-api</artifactId>
@@ -258,6 +261,10 @@
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-impl</artifactId>
       <version>${jaxb.version}</version>
+    <dependency>
+      <groupId>org.bitlet</groupId>
+      <artifactId>weupnp</artifactId>
+      <version>${weupnp.version}</version>
     </dependency>
   </dependencies>
 
