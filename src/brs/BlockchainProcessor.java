@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface BlockchainProcessor extends Observable<Block,BlockchainProcessor.Event> {
 
-  public enum Event {
+  enum Event {
     BLOCK_PUSHED, BLOCK_POPPED, BLOCK_GENERATED, BLOCK_SCANNED,
     RESCAN_BEGIN, RESCAN_END,
     BEFORE_BLOCK_ACCEPT,
@@ -39,7 +39,7 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
   void registerDerivedTable(DerivedTable table);
 
 
-  public static class BlockNotAcceptedException extends BurstException {
+  class BlockNotAcceptedException extends BurstException {
 
     BlockNotAcceptedException(String message) {
       super(message);
@@ -47,7 +47,7 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
 
   }
 
-  public static class TransactionNotAcceptedException extends BlockNotAcceptedException {
+  class TransactionNotAcceptedException extends BlockNotAcceptedException {
 
     private final TransactionImpl transaction;
 
@@ -62,7 +62,7 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
 
   }
 
-  public static class BlockOutOfOrderException extends BlockNotAcceptedException {
+  class BlockOutOfOrderException extends BlockNotAcceptedException {
 
     BlockOutOfOrderException(String message) {
       super(message);
