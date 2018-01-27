@@ -217,13 +217,10 @@ public final class Peers {
 
         private void loadPeers(Collection<String> addresses) {
           for (final String address : addresses) {
-            Future<String> unresolvedAddress = sendToPeersService.submit(new Callable<String>() {
-                @Override
-                public String call() {
-                  Peer peer = Peers.addPeer(address);
-                  return peer == null ? address : null;
-                }
-              });
+            Future<String> unresolvedAddress = sendToPeersService.submit(() -> {
+              Peer peer = Peers.addPeer(address);
+              return peer == null ? address : null;
+            });
             unresolvedPeers.add(unresolvedAddress);
           }
         }
@@ -240,25 +237,22 @@ public final class Peers {
         }
       }, false);
 
-    ThreadPool.runAfterStart(new Runnable() {
-        @Override
-        public void run() {
-          for (Future<String> unresolvedPeer : unresolvedPeers) {
-            try {
-              String badAddress = unresolvedPeer.get(5, TimeUnit.SECONDS);
-              if (badAddress != null) {
-                logger.debug("Failed to resolve peer address: " + badAddress);
-              }
-            } catch (InterruptedException e) {
-              Thread.currentThread().interrupt();
-            } catch (ExecutionException e) {
-              logger.debug("Failed to add peer", e);
-            } catch (TimeoutException e) {
-            }
+    ThreadPool.runAfterStart(() -> {
+      for (Future<String> unresolvedPeer : unresolvedPeers) {
+        try {
+          String badAddress = unresolvedPeer.get(5, TimeUnit.SECONDS);
+          if (badAddress != null) {
+            logger.debug("Failed to resolve peer address: " + badAddress);
           }
-          logger.debug("Known peers: " + peers.size());
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+          logger.debug("Failed to add peer", e);
+        } catch (TimeoutException e) {
         }
-      });
+      }
+      logger.debug("Known peers: " + peers.size());
+    });
 
   }
 
@@ -358,64 +352,54 @@ public final class Peers {
 
   }
 
-  private static final Runnable peerUnBlacklistingThread = new Runnable() {
+  private static final Runnable peerUnBlacklistingThread = () -> {
 
-      @Override
-      public void run() {
+    try {
+      try {
 
-        try {
-          try {
-
-            long curTime = System.currentTimeMillis();
-            for (PeerImpl peer : peers.values()) {
-              peer.updateBlacklistedStatus(curTime);
-            }
-
-          } catch (Exception e) {
-            logger.debug("Error un-blacklisting peer", e);
-          }
-        } catch (Throwable t) {
-          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-          System.exit(1);
+        long curTime = System.currentTimeMillis();
+        for (PeerImpl peer : peers.values()) {
+          peer.updateBlacklistedStatus(curTime);
         }
 
+      } catch (Exception e) {
+        logger.debug("Error un-blacklisting peer", e);
       }
+    } catch (Throwable t) {
+      logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+      System.exit(1);
+    }
 
-    };
+  };
 
-  private static final Runnable peerConnectingThread = new Runnable() {
+  private static final Runnable peerConnectingThread = () -> {
 
-      @Override
-      public void run() {
+    try {
+      try {
 
-        try {
-          try {
-
-            if (getNumberOfConnectedPublicPeers() < Peers.maxNumberOfConnectedPublicPeers) {
-              PeerImpl peer = (PeerImpl)getAnyPeer(ThreadLocalRandom.current().nextInt(2) == 0 ? Peer.State.NON_CONNECTED : Peer.State.DISCONNECTED, false);
-              if (peer != null) {
-                peer.connect();
-              }
-            }
-
-            int now = Burst.getEpochTime();
-            for (PeerImpl peer : peers.values()) {
-              if (peer.getState() == Peer.State.CONNECTED && now - peer.getLastUpdated() > 3600) {
-                peer.connect();
-              }
-            }
-
-          } catch (Exception e) {
-            logger.debug("Error connecting to peer", e);
+        if (getNumberOfConnectedPublicPeers() < Peers.maxNumberOfConnectedPublicPeers) {
+          PeerImpl peer = (PeerImpl)getAnyPeer(ThreadLocalRandom.current().nextInt(2) == 0 ? Peer.State.NON_CONNECTED : Peer.State.DISCONNECTED, false);
+          if (peer != null) {
+            peer.connect();
           }
-        } catch (Throwable t) {
-          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-          System.exit(1);
         }
 
-      }
+        int now = Burst.getEpochTime();
+        for (PeerImpl peer : peers.values()) {
+          if (peer.getState() == Peer.State.CONNECTED && now - peer.getLastUpdated() > 3600) {
+            peer.connect();
+          }
+        }
 
-    };
+      } catch (Exception e) {
+        logger.debug("Error connecting to peer", e);
+      }
+    } catch (Throwable t) {
+      logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+      System.exit(1);
+    }
+
+  };
 
   private static final Runnable getMorePeersThread = new Runnable() {
 
@@ -519,16 +503,13 @@ public final class Peers {
     };
 
   static {
-    Account.addListener(new Listener<Account>() {
-        @Override
-        public void notify(Account account) {
-          for (PeerImpl peer : Peers.peers.values()) {
-            if (peer.getHallmark() != null && peer.getHallmark().getAccountId() == account.getId()) {
-              Peers.listeners.notify(peer, Peers.Event.WEIGHT);
-            }
-          }
+    Account.addListener(account -> {
+      for (PeerImpl peer : Peers.peers.values()) {
+        if (peer.getHallmark() != null && peer.getHallmark().getAccountId() == account.getId()) {
+          Peers.listeners.notify(peer, Event.WEIGHT);
         }
-      }, Account.Event.BALANCE);
+      }
+    }, Account.Event.BALANCE);
   }
 
   static {
@@ -719,50 +700,42 @@ public final class Peers {
 
   private static void sendToSomePeers(final JSONObject request) {
 
-    sendingService.submit(new Runnable() {
-        @Override
-        public void run() {
-          final JSONStreamAware jsonRequest = JSON.prepareRequest(request);
+    sendingService.submit(() -> {
+      final JSONStreamAware jsonRequest = JSON.prepareRequest(request);
 
-          int successful = 0;
-          List<Future<JSONObject>> expectedResponses = new ArrayList<>();
-          for (final Peer peer : peers.values()) {
+      int successful = 0;
+      List<Future<JSONObject>> expectedResponses = new ArrayList<>();
+      for (final Peer peer : peers.values()) {
 
-            if (Peers.enableHallmarkProtection && peer.getWeight() < Peers.pushThreshold) {
-              continue;
-            }
-
-            if (!peer.isBlacklisted() && peer.getState() == Peer.State.CONNECTED && peer.getAnnouncedAddress() != null) {
-              Future<JSONObject> futureResponse = sendToPeersService.submit(new Callable<JSONObject>() {
-                  @Override
-                  public JSONObject call() {
-                    return peer.send(jsonRequest);
-                  }
-                });
-              expectedResponses.add(futureResponse);
-            }
-            if (expectedResponses.size() >= Peers.sendToPeersLimit - successful) {
-              for (Future<JSONObject> future : expectedResponses) {
-                try {
-                  JSONObject response = future.get();
-                  if (response != null && response.get("error") == null) {
-                    successful += 1;
-                  }
-                } catch (InterruptedException e) {
-                  Thread.currentThread().interrupt();
-                } catch (ExecutionException e) {
-                  logger.debug("Error in sendToSomePeers", e);
-                }
-
-              }
-              expectedResponses.clear();
-            }
-            if (successful >= Peers.sendToPeersLimit) {
-              return;
-            }
-          }
+        if (Peers.enableHallmarkProtection && peer.getWeight() < Peers.pushThreshold) {
+          continue;
         }
-      });
+
+        if (!peer.isBlacklisted() && peer.getState() == Peer.State.CONNECTED && peer.getAnnouncedAddress() != null) {
+          Future<JSONObject> futureResponse = sendToPeersService.submit(() -> peer.send(jsonRequest));
+          expectedResponses.add(futureResponse);
+        }
+        if (expectedResponses.size() >= Peers.sendToPeersLimit - successful) {
+          for (Future<JSONObject> future : expectedResponses) {
+            try {
+              JSONObject response = future.get();
+              if (response != null && response.get("error") == null) {
+                successful += 1;
+              }
+            } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+              logger.debug("Error in sendToSomePeers", e);
+            }
+
+          }
+          expectedResponses.clear();
+        }
+        if (successful >= Peers.sendToPeersLimit) {
+          return;
+        }
+      }
+    });
   }
 
   public static void rebroadcastTransactions(List<Transaction> transactions) {
@@ -788,23 +761,15 @@ public final class Peers {
 
     final JSONObject requestFinal = request;
 
-    sendingService.submit(new Runnable() {
-        @Override
-        public void run() {
-          final JSONStreamAware jsonRequest = JSON.prepareRequest(requestFinal);
+    sendingService.submit(() -> {
+      final JSONStreamAware jsonRequest = JSON.prepareRequest(requestFinal);
 
-          for (final Peer peer : peers.values()) {
-            if(peer.isRebroadcastTarget()) {
-              sendToPeersService.submit(new Callable<JSONObject>() {
-                  @Override
-                  public JSONObject call() {
-                    return peer.send(jsonRequest);
-                  }
-                });
-            }
-          }
+      for (final Peer peer : peers.values()) {
+        if(peer.isRebroadcastTarget()) {
+          sendToPeersService.submit(() -> peer.send(jsonRequest));
         }
-      });
+      }
+    });
 
     sendToSomePeers(request); // send to some normal peers too
   }

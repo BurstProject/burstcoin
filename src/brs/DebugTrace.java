@@ -32,64 +32,24 @@ public final class DebugTrace {
       accountIds.add(Convert.parseUnsignedLong(accountId));
     }
     final DebugTrace debugTrace = addDebugTrace(accountIds, logName);
-    Burst.getBlockchainProcessor().addListener(new Listener<Block>() {
-        @Override
-        public void notify(Block block) {
-          debugTrace.resetLog();
-        }
-      }, BlockchainProcessor.Event.RESCAN_BEGIN);
+    Burst.getBlockchainProcessor().addListener(block -> debugTrace.resetLog(), BlockchainProcessor.Event.RESCAN_BEGIN);
     logger.debug("Debug tracing of " + (accountIdStrings.contains("*") ? "ALL"
                                         : String.valueOf(accountIds.size())) + " accounts enabled");
   }
 
   public static DebugTrace addDebugTrace(Set<Long> accountIds, String logName) {
     final DebugTrace debugTrace = new DebugTrace(accountIds, logName);
-    Trade.addListener(new Listener<Trade>() {
-        @Override
-        public void notify(Trade trade) {
-          debugTrace.trace(trade);
-        }
-      }, Trade.Event.TRADE);
-    Account.addListener(new Listener<Account>() {
-        @Override
-        public void notify(Account account) {
-          debugTrace.trace(account, false);
-        }
-      }, Account.Event.BALANCE);
+    Trade.addListener(trade -> debugTrace.trace(trade), Trade.Event.TRADE);
+    Account.addListener(account -> debugTrace.trace(account, false), Account.Event.BALANCE);
     if (LOG_UNCONFIRMED) {
-      Account.addListener(new Listener<Account>() {
-          @Override
-          public void notify(Account account) {
-            debugTrace.trace(account, true);
-          }
-        }, Account.Event.UNCONFIRMED_BALANCE);
+      Account.addListener(account -> debugTrace.trace(account, true), Account.Event.UNCONFIRMED_BALANCE);
     }
-    Account.addAssetListener(new Listener<Account.AccountAsset>() {
-        @Override
-        public void notify(Account.AccountAsset accountAsset) {
-          debugTrace.trace(accountAsset, false);
-        }
-      }, Account.Event.ASSET_BALANCE);
+    Account.addAssetListener(accountAsset -> debugTrace.trace(accountAsset, false), Account.Event.ASSET_BALANCE);
     if (LOG_UNCONFIRMED) {
-      Account.addAssetListener(new Listener<Account.AccountAsset>() {
-          @Override
-          public void notify(Account.AccountAsset accountAsset) {
-            debugTrace.trace(accountAsset, true);
-          }
-        }, Account.Event.UNCONFIRMED_ASSET_BALANCE);
+      Account.addAssetListener(accountAsset -> debugTrace.trace(accountAsset, true), Account.Event.UNCONFIRMED_ASSET_BALANCE);
     }
-    Burst.getBlockchainProcessor().addListener(new Listener<Block>() {
-        @Override
-        public void notify(Block block) {
-          debugTrace.traceBeforeAccept(block);
-        }
-      }, BlockchainProcessor.Event.BEFORE_BLOCK_ACCEPT);
-    Burst.getBlockchainProcessor().addListener(new Listener<Block>() {
-        @Override
-        public void notify(Block block) {
-          debugTrace.trace(block);
-        }
-      }, BlockchainProcessor.Event.BEFORE_BLOCK_APPLY);
+    Burst.getBlockchainProcessor().addListener(block -> debugTrace.traceBeforeAccept(block), BlockchainProcessor.Event.BEFORE_BLOCK_ACCEPT);
+    Burst.getBlockchainProcessor().addListener(block -> debugTrace.trace(block), BlockchainProcessor.Event.BEFORE_BLOCK_APPLY);
     return debugTrace;
   }
 

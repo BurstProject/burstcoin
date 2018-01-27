@@ -77,13 +77,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   private volatile boolean forceScan = Burst.getBooleanProperty("brs.forceScan");
   private volatile boolean validateAtScan = Burst.getBooleanProperty("brs.forceValidate");
 
-  private final Runnable debugInfoThread = new Runnable() {
-    @Override
-    public void run() {
-      logger.info("Unverified blocks: " + DownloadCache.getUnverifiedSize());
-      logger.info("Blocks in cache: " + DownloadCache.size());
-      logger.info("Bytes in cache: " + DownloadCache.getBlockCacheSize());
-    }
+  private final Runnable debugInfoThread = () -> {
+    logger.info("Unverified blocks: " + DownloadCache.getUnverifiedSize());
+    logger.info("Blocks in cache: " + DownloadCache.size());
+    logger.info("Bytes in cache: " + DownloadCache.getBlockCacheSize());
   };
 
   public static final void setOclVerify(Boolean b) {
@@ -94,137 +91,131 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     return oclVerify;
   }
 
-  private final Runnable pocVerificationThread = new Runnable() {
-    @Override
-    public void run() {
-      for (;;) {
-        if (oclVerify) {
-          boolean gpuAcquired = false;
-          int poCVersion = 1;
-          try {
-            List<BlockImpl> blocks = new LinkedList<>();
-            synchronized (DownloadCache) {
-              if (DownloadCache.getUnverifiedSize() == 0) {
+  private final Runnable pocVerificationThread = () -> {
+    for (;;) {
+      if (oclVerify) {
+        boolean gpuAcquired = false;
+        int poCVersion = 1;
+        try {
+          List<BlockImpl> blocks = new LinkedList<>();
+          synchronized (DownloadCache) {
+            if (DownloadCache.getUnverifiedSize() == 0) {
+              return;
+            }
+            int verifiedCached = DownloadCache.size() - DownloadCache.getUnverifiedSize();
+            if (verifiedCached >= oclWaitThreshold
+                && DownloadCache.getUnverifiedSize() < OCLPoC.getMaxItems() / 2) {
+              return;
+            }
+            if (DownloadCache.getUnverifiedSize() < OCL_THRESHOLD) {
+              // This will be verified with Java.
+              Long blockId = DownloadCache.GetUnverifiedBlockId(0);
+              DownloadCache.removeUnverified(blockId);
+              blocks.add(DownloadCache.GetBlock(blockId));
+            } else {
+              // This will be verified with Ocl.
+              if (!gpuUsage.tryAcquire()) {
+                logger.debug("already max locked");
                 return;
               }
-              int verifiedCached = DownloadCache.size() - DownloadCache.getUnverifiedSize();
-              if (verifiedCached >= oclWaitThreshold
-                  && DownloadCache.getUnverifiedSize() < OCLPoC.getMaxItems() / 2) {
-                return;
-              }
-              if (DownloadCache.getUnverifiedSize() < OCL_THRESHOLD) {
-                // This will be verified with Java.
+              gpuAcquired = true;
+
+              // We add blocks to ocl process in blocks list.
+              // If we change poCVersion we process until this and do other version in next round.
+              poCVersion = DownloadCache.getPoCVersion(DownloadCache.GetUnverifiedBlockId(0));
+              while (DownloadCache.getUnverifiedSize() > 0
+                  && blocks.size() < OCLPoC.getMaxItems()) {
                 Long blockId = DownloadCache.GetUnverifiedBlockId(0);
+                if (DownloadCache.getPoCVersion(blockId) != poCVersion) {
+                  break;
+                }
                 DownloadCache.removeUnverified(blockId);
                 blocks.add(DownloadCache.GetBlock(blockId));
-              } else {
-                // This will be verified with Ocl.
-                if (!gpuUsage.tryAcquire()) {
-                  logger.debug("already max locked");
-                  return;
-                }
-                gpuAcquired = true;
-
-                // We add blocks to ocl process in blocks list.
-                // If we change poCVersion we process until this and do other version in next round.
-                poCVersion = DownloadCache.getPoCVersion(DownloadCache.GetUnverifiedBlockId(0));
-                while (DownloadCache.getUnverifiedSize() > 0
-                    && blocks.size() < OCLPoC.getMaxItems()) {
-                  Long blockId = DownloadCache.GetUnverifiedBlockId(0);
-                  if (DownloadCache.getPoCVersion(blockId) != poCVersion) {
-                    break;
-                  }
-                  DownloadCache.removeUnverified(blockId);
-                  blocks.add(DownloadCache.GetBlock(blockId));
-                }
               }
-            } // end synchronized
-            try {
-              if (blocks.size() > 1) {
-                OCLPoC.validatePoC(blocks, poCVersion);
-              } else {
-                blocks.get(0).preVerify();
-              }
-            } catch (OCLPoC.PreValidateFailException e) {
-              logger.info(e.toString(), e);
-              blacklistClean(e.getBlock(), e);
-            } catch (BlockNotAcceptedException e) {
-              logger.info(e.toString(), e);
-              blacklistClean(blocks.get(0), e);
             }
-          } finally {
-            if (gpuAcquired) {
-              gpuUsage.release();
-            }
-          }
-        } else {
-          BlockImpl block;
-          synchronized (DownloadCache) {
-            if (DownloadCache.getUnverifiedSize() == 0)
-              return;
-            Long blockId = DownloadCache.GetUnverifiedBlockId(0);
-            DownloadCache.removeUnverified(blockId);
-            block = DownloadCache.GetBlock(blockId);
-          }
+          } // end synchronized
           try {
-            block.preVerify();
-          } catch (BlockchainProcessor.BlockNotAcceptedException e) {
-            blacklistClean(block, e);
+            if (blocks.size() > 1) {
+              OCLPoC.validatePoC(blocks, poCVersion);
+            } else {
+              blocks.get(0).preVerify();
+            }
+          } catch (OCLPoC.PreValidateFailException e) {
+            logger.info(e.toString(), e);
+            blacklistClean(e.getBlock(), e);
+          } catch (BlockNotAcceptedException e) {
+            logger.info(e.toString(), e);
+            blacklistClean(blocks.get(0), e);
+          }
+        } finally {
+          if (gpuAcquired) {
+            gpuUsage.release();
+          }
+        }
+      } else {
+        BlockImpl block;
+        synchronized (DownloadCache) {
+          if (DownloadCache.getUnverifiedSize() == 0)
+            return;
+          Long blockId = DownloadCache.GetUnverifiedBlockId(0);
+          DownloadCache.removeUnverified(blockId);
+          block = DownloadCache.GetBlock(blockId);
+        }
+        try {
+          block.preVerify();
+        } catch (BlockNotAcceptedException e) {
+          blacklistClean(block, e);
+        }
+      }
+
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+      }
+    }
+  };
+  private final Runnable blockImporterThread = () -> {
+    try {
+      while (true) {
+        synchronized (blockchain) {
+          for (;;) {
+            Long lastId = blockchain.getLastBlock().getId();
+            BlockImpl currentBlock;
+            synchronized (DownloadCache) {
+              currentBlock =
+                  DownloadCache.GetNextBlock(lastId); /* we should fetch first block in cache */
+              if (currentBlock == null) {
+                break;
+              }
+            }
+            try {
+              if (!currentBlock.isVerified()) {
+                currentBlock.preVerify();
+              }
+              pushBlock(currentBlock);
+            } catch (BlockNotAcceptedException e) {
+              logger.error("Block not accepted", e);
+              blacklistClean(currentBlock, e);
+              break;
+            }
+            // Remove processed block.
+            synchronized (DownloadCache) {
+              DownloadCache.RemoveBlock(currentBlock);
+            }
           }
         }
 
+        // threadsleep?
         try {
           Thread.sleep(10);
         } catch (InterruptedException ex) {
           Thread.currentThread().interrupt();
         }
-      }
-    }
-  };
-  private final Runnable blockImporterThread = new Runnable() {
-    @Override
-    public void run() {
-      try {
-        while (true) {
-          synchronized (blockchain) {
-            for (;;) {
-              Long lastId = blockchain.getLastBlock().getId();
-              BlockImpl currentBlock;
-              synchronized (DownloadCache) {
-                currentBlock =
-                    DownloadCache.GetNextBlock(lastId); /* we should fetch first block in cache */
-                if (currentBlock == null) {
-                  break;
-                }
-              }
-              try {
-                if (!currentBlock.isVerified()) {
-                  currentBlock.preVerify();
-                }
-                pushBlock(currentBlock);
-              } catch (BlockNotAcceptedException e) {
-                logger.error("Block not accepted", e);
-                blacklistClean(currentBlock, e);
-                break;
-              }
-              // Remove processed block.
-              synchronized (DownloadCache) {
-                DownloadCache.RemoveBlock(currentBlock);
-              }
-            }
-          }
 
-          // threadsleep?
-          try {
-            Thread.sleep(10);
-          } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-          }
-
-        }
-      } catch (Throwable exception) {
-        logger.error("Uncaught exception in blockImporterThread", exception);
       }
+    } catch (Throwable exception) {
+      logger.error("Uncaught exception in blockImporterThread", exception);
     }
   };
 
@@ -630,36 +621,27 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private BlockchainProcessorImpl() {
 
-    blockListeners.addListener(new Listener<Block>() {
-      @Override
-      public void notify(Block block) {
-        if (block.getHeight() % 5000 == 0) {
-          logger.info("processed block " + block.getHeight());
-        }
+    blockListeners.addListener(block -> {
+      if (block.getHeight() % 5000 == 0) {
+        logger.info("processed block " + block.getHeight());
       }
     }, Event.BLOCK_SCANNED);
 
-    blockListeners.addListener(new Listener<Block>() {
-      @Override
-      public void notify(Block block) {
-        if (block.getHeight() % 5000 == 0) {
-          logger.info("processed block " + block.getHeight());
-          // Db.analyzeTables(); no-op
-        }
+    blockListeners.addListener(block -> {
+      if (block.getHeight() % 5000 == 0) {
+        logger.info("processed block " + block.getHeight());
+        // Db.analyzeTables(); no-op
       }
     }, Event.BLOCK_PUSHED);
 
     if (trimDerivedTables) {
-      blockListeners.addListener(new Listener<Block>() {
-        @Override
-        public void notify(Block block) {
-          if (block.getHeight() % 1440 == 0) {
-            lastTrimHeight = Math.max(block.getHeight() - Constants.MAX_ROLLBACK, 0);
-            if (lastTrimHeight > 0) {
-              derivedTables.forEach(table -> {
-                table.trim(lastTrimHeight);
-              });
-            }
+      blockListeners.addListener(block -> {
+        if (block.getHeight() % 1440 == 0) {
+          lastTrimHeight = Math.max(block.getHeight() - Constants.MAX_ROLLBACK, 0);
+          if (lastTrimHeight > 0) {
+            derivedTables.forEach(table -> {
+              table.trim(lastTrimHeight);
+            });
           }
         }
       }, Event.AFTER_BLOCK_APPLY);
@@ -672,13 +654,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     // }
     // }, Event.RESCAN_END);
 
-    ThreadPool.runBeforeStart(new Runnable() {
-      @Override
-      public void run() {
-        addGenesisBlock();
-        if (forceScan) {
-          scan(0);
-        }
+    ThreadPool.runBeforeStart(() -> {
+      addGenesisBlock();
+      if (forceScan) {
+        scan(0);
       }
     }, false);
 
@@ -1088,12 +1067,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     List<TransactionImpl> orderedUnconfirmedTransactions = new ArrayList<>();
     try (FilteringIterator<TransactionImpl> transactions =
         new FilteringIterator<>(transactionProcessor.getAllUnconfirmedTransactions(),
-            new FilteringIterator.Filter<TransactionImpl>() {
-              @Override
-              public boolean ok(TransactionImpl transaction) {
-                return hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0);
-              }
-            })) {
+                transaction -> hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0))) {
       while (transactions.hasNext()) {
         orderedUnconfirmedTransactions.add(transactions.next());
       }

@@ -30,34 +30,29 @@ public final class GeneratorImpl implements Generator {
   private static final ConcurrentMap<Long, GeneratorStateImpl> generators = new ConcurrentHashMap<>();
   private static final Collection<? extends GeneratorState> allGenerators = Collections.unmodifiableCollection(generators.values());
 
-  private static final Runnable generateBlockThread = new Runnable() {
+  private static final Runnable generateBlockThread = () -> {
 
-    @Override
-    public void run() {
-
-      try {
-        if (Burst.getBlockchainProcessor().isScanning()) {
-          return;
-        }
-        try {
-          long currentBlock = Burst.getBlockchain().getLastBlock().getHeight();
-          Iterator<Entry<Long, GeneratorStateImpl>> it = generators.entrySet().iterator();
-          while (it.hasNext()) {
-            Entry<Long, GeneratorStateImpl> generator = it.next();
-            if (currentBlock < generator.getValue().getBlock()) {
-              generator.getValue().forge();
-            } else {
-              it.remove();
-            }
-          }
-        } catch (BlockchainProcessor.BlockNotAcceptedException e) {
-          logger.debug("Error in block generation thread", e);
-        }
-      } catch (Throwable t) {
-        logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-        System.exit(1);
+    try {
+      if (Burst.getBlockchainProcessor().isScanning()) {
+        return;
       }
-
+      try {
+        long currentBlock = Burst.getBlockchain().getLastBlock().getHeight();
+        Iterator<Entry<Long, GeneratorStateImpl>> it = generators.entrySet().iterator();
+        while (it.hasNext()) {
+          Entry<Long, GeneratorStateImpl> generator = it.next();
+          if (currentBlock < generator.getValue().getBlock()) {
+            generator.getValue().forge();
+          } else {
+            it.remove();
+          }
+        }
+      } catch (BlockchainProcessor.BlockNotAcceptedException e) {
+        logger.debug("Error in block generation thread", e);
+      }
+    } catch (Throwable t) {
+      logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+      System.exit(1);
     }
 
   };

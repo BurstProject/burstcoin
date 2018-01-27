@@ -46,81 +46,71 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
   private final Set<TransactionImpl> lostTransactions = new HashSet<>();
   private final Map<Long, Integer> lostTransactionHeights = new HashMap<>();
 
-  private final Runnable removeUnconfirmedTransactionsThread = new Runnable() {
+  private final Runnable removeUnconfirmedTransactionsThread = () -> {
 
-      @Override
-      public void run() {
-
-        try {
-          try {
-            List<TransactionImpl> expiredTransactions = new ArrayList<>();
-            try (BurstIterator<TransactionImpl> iterator = Burst.getStores().getTransactionProcessorStore().getExpiredTransactions()) {
-              while (iterator.hasNext()) {
-                expiredTransactions.add(iterator.next());
-              }
-            }
-            if (expiredTransactions.size() > 0) {
-              synchronized (BlockchainImpl.getInstance()) {
-                try {
-                  Burst.getStores().beginTransaction();
-
-                  expiredTransactions.forEach(transaction -> removeUnconfirmedTransaction(transaction));
-                  Account.flushAccountTable();
-                  Burst.getStores().commitTransaction();
-
-                } catch (Exception e) {
-                  logger.error(e.toString(), e);
-                  Burst.getStores().rollbackTransaction();
-                  throw e;
-                } finally {
-                  Burst.getStores().endTransaction();
-                }
-              } // synchronized
-            }
-          } catch (Exception e) {
-            logger.debug("Error removing unconfirmed transactions", e);
+    try {
+      try {
+        List<TransactionImpl> expiredTransactions = new ArrayList<>();
+        try (BurstIterator<TransactionImpl> iterator = Burst.getStores().getTransactionProcessorStore().getExpiredTransactions()) {
+          while (iterator.hasNext()) {
+            expiredTransactions.add(iterator.next());
           }
-        } catch (Throwable t) {
-          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-          System.exit(1);
+        }
+        if (expiredTransactions.size() > 0) {
+          synchronized (BlockchainImpl.getInstance()) {
+            try {
+              Burst.getStores().beginTransaction();
+
+              expiredTransactions.forEach(transaction -> removeUnconfirmedTransaction(transaction));
+              Account.flushAccountTable();
+              Burst.getStores().commitTransaction();
+
+            } catch (Exception e) {
+              logger.error(e.toString(), e);
+              Burst.getStores().rollbackTransaction();
+              throw e;
+            } finally {
+              Burst.getStores().endTransaction();
+            }
+          } // synchronized
+        }
+      } catch (Exception e) {
+        logger.debug("Error removing unconfirmed transactions", e);
+      }
+    } catch (Throwable t) {
+      logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+      System.exit(1);
+    }
+
+  };
+
+  private final Runnable rebroadcastTransactionsThread = () -> {
+
+    try {
+      try {
+        List<Transaction> transactionList = new ArrayList<>();
+        int curTime = Burst.getEpochTime();
+        nonBroadcastedTransactions.forEach(transaction -> {
+            if (Burst.getDbs().getTransactionDb().hasTransaction(transaction.getId()) || transaction.getExpiration() < curTime) {
+                nonBroadcastedTransactions.remove(transaction);
+            } else if (transaction.getTimestamp() < curTime - 30) {
+                transactionList.add(transaction);
+            }
+          });
+
+        if (transactionList.size() > 0) {
+          Peers.rebroadcastTransactions(transactionList);
         }
 
+      } catch (Exception e) {
+        logger.debug("Error in transaction re-broadcasting thread", e);
       }
+    } catch (Throwable t) {
+      logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+      System.exit(1);
+    }
 
-    };
-
-  private final Runnable rebroadcastTransactionsThread = new Runnable() {
-
-      @Override
-      public void run() {
-
-        try {
-          try {
-            List<Transaction> transactionList = new ArrayList<>();
-            int curTime = Burst.getEpochTime();
-            nonBroadcastedTransactions.forEach(transaction -> {
-                if (Burst.getDbs().getTransactionDb().hasTransaction(transaction.getId()) || transaction.getExpiration() < curTime) {
-                    nonBroadcastedTransactions.remove(transaction);
-                } else if (transaction.getTimestamp() < curTime - 30) {
-                    transactionList.add(transaction);
-                }
-              });
-
-            if (transactionList.size() > 0) {
-              Peers.rebroadcastTransactions(transactionList);
-            }
-
-          } catch (Exception e) {
-            logger.debug("Error in transaction re-broadcasting thread", e);
-          }
-        } catch (Throwable t) {
-          logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-          System.exit(1);
-        }
-
-      }
-
-    };
+  };
 
   private final Runnable processTransactionsThread = new Runnable() {
 
@@ -204,16 +194,13 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     ThreadPool.scheduleThread("RemoveUnconfirmedTransactions", removeUnconfirmedTransactionsThread, 1);
     if (enableTransactionRebroadcasting) {
       ThreadPool.scheduleThread("RebroadcastTransactions", rebroadcastTransactionsThread, 60);
-      ThreadPool.runAfterStart(new Runnable() {
-          @Override
-          public void run() {
-            try (BurstIterator<TransactionImpl> oldNonBroadcastedTransactions = getAllUnconfirmedTransactions()) {
-              while(oldNonBroadcastedTransactions.hasNext()) {
-                nonBroadcastedTransactions.add(oldNonBroadcastedTransactions.next());
-              }
-            }
+      ThreadPool.runAfterStart(() -> {
+        try (BurstIterator<TransactionImpl> oldNonBroadcastedTransactions = getAllUnconfirmedTransactions()) {
+          while(oldNonBroadcastedTransactions.hasNext()) {
+            nonBroadcastedTransactions.add(oldNonBroadcastedTransactions.next());
           }
-        });
+        }
+      });
     }
   }
 

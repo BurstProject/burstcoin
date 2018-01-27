@@ -36,12 +36,7 @@ public final class GetAliases extends APIServlet.APIRequestHandler {
 
     JSONArray aliases = new JSONArray();
     try (FilteringIterator<Alias> aliasIterator = new FilteringIterator<>(Alias.getAliasesByOwner(accountId, 0, -1),
-            new FilteringIterator.Filter<Alias>() {
-                @Override
-                public boolean ok(Alias alias) {
-                    return alias.getTimestamp() >= timestamp;
-                }
-            }, firstIndex, lastIndex)) {
+            alias -> alias.getTimestamp() >= timestamp, firstIndex, lastIndex)) {
       while (aliasIterator.hasNext()) {
         final Alias alias = aliasIterator.next();
         final Offer offer = aliasService.getOffer(alias);
