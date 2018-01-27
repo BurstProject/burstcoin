@@ -135,7 +135,7 @@
     "no_asset_selected": "Veuillez sélectionner un actif dans le volet gauche.",
     "success_delete_contact": "Le contact a été supprimé avec succès !",
     "to": "À",
-    "form_warnings_help": "Afficher un avertissement lorsqu'un montant ou lorsque les frais sont plus élevés que ceux spécifiés ci-dessous.",
+    "form_warnings_help": "Afficher un avertissement lorsqu'un montant, les frais, ou les assets sont plus élevés que ceux spécifiés ci-dessous.",
     "error_signature_verification_client": "Impossible de vérifier la signature (côté client).",
     "success_update_contact": "Le contact a été mis à jour avec succès !",
     "nr_polls": "# Sondages",
