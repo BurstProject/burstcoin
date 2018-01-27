@@ -83,7 +83,7 @@ public final class DbUtils {
   }
 
   public static void mergeInto(DSLContext ctx, Record record, TableImpl table, Field[] keyFields) throws SQLException {
-    ArrayList<Condition> conditions = new ArrayList<Condition>();
+    ArrayList<Condition> conditions = new ArrayList<>();
     for ( Field field : keyFields ) {
       conditions.add(field.eq(record.getValue(field)));
     }

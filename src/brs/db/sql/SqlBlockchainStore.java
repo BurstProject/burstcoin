@@ -132,7 +132,7 @@ public class SqlBlockchainStore implements BlockchainStore {
                                          + " exceeds current blockchain height " + Burst.getBlockchain().getHeight());
     }
     try (DSLContext ctx = Db.getDSLContext() ) {
-      ArrayList<Condition> conditions = new ArrayList<Condition>();
+      ArrayList<Condition> conditions = new ArrayList<>();
       if (blockTimestamp > 0) {
         conditions.add(TRANSACTION.BLOCK_TIMESTAMP.ge(blockTimestamp));
       }

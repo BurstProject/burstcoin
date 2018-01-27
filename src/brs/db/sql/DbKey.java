@@ -159,7 +159,7 @@ public interface DbKey extends BurstKey {
 
     @Override
     public ArrayList<Condition> getPKConditions(Table tableClass) {
-      ArrayList<Condition> conditions = new ArrayList<Condition>();
+      ArrayList<Condition> conditions = new ArrayList<>();
       conditions.add(tableClass.field(idColumn, Long.class).eq(id));
       return conditions;
     }
@@ -197,7 +197,7 @@ public interface DbKey extends BurstKey {
 
     @Override
     public ArrayList<Condition> getPKConditions(Table tableClass) {
-      ArrayList<Condition> conditions = new ArrayList<Condition>();
+      ArrayList<Condition> conditions = new ArrayList<>();
       conditions.add(tableClass.field(idColumnA, Long.class).eq(idA));
       conditions.add(tableClass.field(idColumnB, Long.class).eq(idB));
       return conditions;
