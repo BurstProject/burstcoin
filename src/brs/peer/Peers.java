@@ -307,7 +307,7 @@ public final class Peers {
             InetAddress localAddress = gateway.getLocalAddress();
             String externalIPAddress = gateway.getExternalIPAddress();
             logger.info("Attempting to map {0}:{1} -> {2}:{3} on Gateway {0} ({1})",
-                        new Object[]{externalIPAddress, port, localAddress, port, gateway.getModelName(), gateway.getModelDescription()});
+                    externalIPAddress, port, localAddress, port, gateway.getModelName(), gateway.getModelDescription());
             
             if (!gateway.getSpecificPortMappingEntry(port, "TCP", new PortMappingEntry())) {
               logger.info("Port was already mapped. Aborting test.");    
