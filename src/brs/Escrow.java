@@ -386,7 +386,7 @@ public class Escrow {
         .ecBlockHeight(0)
         .ecBlockId(0L);
 
-    TransactionImpl transaction = null;
+    TransactionImpl transaction;
     try {
       transaction = builder.build();
     }

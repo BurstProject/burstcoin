@@ -85,7 +85,7 @@ public class LoadBinDump {
           try (InputStream  inputStream  = httpURLConnection.getInputStream();
                OutputStream outputStream = new FileOutputStream(temp.toFile())) {
             byte buf[] = new byte[1024 * 1024 * 50];
-            int read = 0;
+            int read;
             long totalRead = 0;
             long lastTotal = 0;
             while ((read = inputStream.read(buf, 0, buf.length)) >= 0) {
@@ -158,8 +158,8 @@ public class LoadBinDump {
         Db.beginTransaction();
         dbs.disableForeignKeyChecks(con);
 
-        Object o = null;
-        Class clazz = null;
+        Object o;
+        Class clazz;
 
         try ( Statement stmt = con.createStatement() ) {
           while (!input.eof() && (clazz = kryo.readClass(input).getType()) != null) {

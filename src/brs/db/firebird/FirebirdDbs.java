@@ -79,7 +79,7 @@ public class FirebirdDbs implements Dbs {
                                          );
 
     for (String table : lTables) {
-      Long maxValue = (long) 0;
+      Long maxValue;
       try ( Statement stmt = con.createStatement() ) {
         try ( ResultSet rs = stmt.executeQuery("SELECT MAX(\"db_id\") FROM \"" + table + "\"") ) {
           rs.next();

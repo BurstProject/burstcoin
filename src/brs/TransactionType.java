@@ -2133,7 +2133,7 @@ public abstract class TransactionType {
               throw new BurstException.NotValidException("Account with id already exists");
           }
           Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
-          long totalPages = 0;
+          long totalPages;
           try {
             totalPages = AT_Controller.checkCreationBytes(attachment.getCreationBytes(), Burst.getBlockchain().getHeight());
           }
