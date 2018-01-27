@@ -519,6 +519,13 @@ var NRS = (function(NRS, $, undefined) {
 					return false;
 				}
 				break;
+
+			case "setRewardRecipient":
+				if (transaction.type !== 20 || transaction.subtype !== 0) {
+					return false;
+				}
+				break;
+
 			case "createPoll":
 				if (transaction.type !== 1 || transaction.subtype !== 2) {
 					return false;

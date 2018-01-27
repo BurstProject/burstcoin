@@ -82,6 +82,8 @@
     "error_public_key_not_specified": "Public key not specified.",
     "incorrect_purchase": "Incorrect purchase.",
     "error_not_a_number": "__field__ should be numeric.",
+    "success_set_reward_recipient": "Your reward recipient has been set successfully!",
+    "error_set_reward_recipient": "An unknown error occured! Your reward recpieint has not been set.",
     "success_sell_alias": "Your alias sale offer has been created successfully!",
     "error_sell_alias": "An unknown error occured! Alias sale offer may or may not be created.",
     "success_transfer_alias": "Your alias has been transferred successfully!",
