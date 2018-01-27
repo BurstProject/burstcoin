@@ -23,18 +23,15 @@ public class Subscription {
     }
 
     Alias subscriptionEnabled = Alias.getAlias("featuresubscription");
-    if(subscriptionEnabled != null && subscriptionEnabled.getAliasURI().equals("enabled")) {
-      return true;
-    }
+      return subscriptionEnabled != null && subscriptionEnabled.getAliasURI().equals("enabled");
 
-    return false;
   }
 
-  private static final BurstKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory() {
+  private static BurstKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory() {
     return Burst.getStores().getSubscriptionStore().getSubscriptionDbKeyFactory();
   }
 
-  private static final VersionedEntityTable<Subscription> subscriptionTable() {
+  private static VersionedEntityTable<Subscription> subscriptionTable() {
     return Burst.getStores().getSubscriptionStore().getSubscriptionTable();
   }
 
@@ -138,7 +135,7 @@ public class Subscription {
     if(paymentTransactions.size() > 0) {
       Burst.getDbs().getTransactionDb().saveTransactions( paymentTransactions);
     }
-    removeSubscriptions.forEach(subscription -> removeSubscription(subscription));
+    removeSubscriptions.forEach(Subscription::removeSubscription);
   }
 
   public final Long senderId;
@@ -147,7 +144,7 @@ public class Subscription {
   public final BurstKey dbKey;
   public final Long amountNQT;
   public final int frequency;
-  private AtomicInteger timeNext;
+  private final AtomicInteger timeNext;
 
   private Subscription(Long senderId,
                        Long recipientId,
@@ -208,7 +205,7 @@ public class Subscription {
     Account sender = Account.getAccount(senderId);
     long totalAmountNQT = Convert.safeAdd(amountNQT, getFee());
 
-    if(sender.getUnconfirmedBalanceNQT() < totalAmountNQT) {
+    if(sender == null || sender.getUnconfirmedBalanceNQT() < totalAmountNQT) {
       return false;
     }
 
@@ -221,7 +218,9 @@ public class Subscription {
     Account sender = Account.getAccount(senderId);
     long totalAmountNQT = Convert.safeAdd(amountNQT, getFee());
 
-    sender.addToUnconfirmedBalanceNQT(totalAmountNQT);
+    if (sender != null) {
+      sender.addToUnconfirmedBalanceNQT(totalAmountNQT);
+    }
   }
 
   private void apply(Block block, int blockchainHeight) {
