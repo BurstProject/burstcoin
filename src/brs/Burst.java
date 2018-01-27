@@ -218,7 +218,7 @@ public final class Burst {
   }
 
   public static void main(String[] args) {
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown()));
+    Runtime.getRuntime().addShutdownHook(new Thread(Burst::shutdown));
     init();
   }
 

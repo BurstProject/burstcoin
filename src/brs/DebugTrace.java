@@ -39,7 +39,7 @@ public final class DebugTrace {
 
   public static DebugTrace addDebugTrace(Set<Long> accountIds, String logName) {
     final DebugTrace debugTrace = new DebugTrace(accountIds, logName);
-    Trade.addListener(trade -> debugTrace.trace(trade), Trade.Event.TRADE);
+    Trade.addListener(debugTrace::trace, Trade.Event.TRADE);
     Account.addListener(account -> debugTrace.trace(account, false), Account.Event.BALANCE);
     if (LOG_UNCONFIRMED) {
       Account.addListener(account -> debugTrace.trace(account, true), Account.Event.UNCONFIRMED_BALANCE);
@@ -48,8 +48,8 @@ public final class DebugTrace {
     if (LOG_UNCONFIRMED) {
       Account.addAssetListener(accountAsset -> debugTrace.trace(accountAsset, true), Account.Event.UNCONFIRMED_ASSET_BALANCE);
     }
-    Burst.getBlockchainProcessor().addListener(block -> debugTrace.traceBeforeAccept(block), BlockchainProcessor.Event.BEFORE_BLOCK_ACCEPT);
-    Burst.getBlockchainProcessor().addListener(block -> debugTrace.trace(block), BlockchainProcessor.Event.BEFORE_BLOCK_APPLY);
+    Burst.getBlockchainProcessor().addListener(debugTrace::traceBeforeAccept, BlockchainProcessor.Event.BEFORE_BLOCK_ACCEPT);
+    Burst.getBlockchainProcessor().addListener(debugTrace::trace, BlockchainProcessor.Event.BEFORE_BLOCK_APPLY);
     return debugTrace;
   }
 

@@ -61,7 +61,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
             try {
               Burst.getStores().beginTransaction();
 
-              expiredTransactions.forEach(transaction -> removeUnconfirmedTransaction(transaction));
+              expiredTransactions.forEach(this::removeUnconfirmedTransaction);
               Account.flushAccountTable();
               Burst.getStores().commitTransaction();
 
