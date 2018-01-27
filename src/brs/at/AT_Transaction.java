@@ -47,7 +47,7 @@ public class AT_Transaction {
     }
     else {
       SortedMap<Long, AT_Transaction> temp = new TreeMap<>();
-      temp.put( (Long) height, this );
+      temp.put(height, this);
       all_AT_Txs.put( atId, temp );
     }		
   }

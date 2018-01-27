@@ -51,7 +51,7 @@ public class Subnet
   {
     final String[] stringArr = subnetMask.split("/");
     if (2 > stringArr.length)
-      return new Subnet(InetAddress.getByName(stringArr[0]), (InetAddress) null);
+      return new Subnet(InetAddress.getByName(stringArr[0]), null);
     else if (stringArr[1].contains(".") || stringArr[1].contains(":"))
       return new Subnet(InetAddress.getByName(stringArr[0]), InetAddress.getByName(stringArr[1]));
     else

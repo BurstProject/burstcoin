@@ -107,7 +107,7 @@ public final class PeerServlet extends HttpServlet {
         return;
       }
 
-      if (request.get(PROTOCOL) != null && ((String)request.get(PROTOCOL)).equals("B1")) {
+      if (request.get(PROTOCOL) != null && request.get(PROTOCOL).equals("B1")) {
         PeerRequestHandler peerRequestHandler = peerRequestHandlers.get(request.get("requestType"));
         if (peerRequestHandler != null) {
           response = peerRequestHandler.processRequest(request, peer);
