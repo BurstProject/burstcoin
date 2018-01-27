@@ -19,6 +19,7 @@ import brs.services.AssetTransferService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
+import org.h2.value.Transfer;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -64,7 +65,10 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
         transfers = assetTransferService.getAccountAssetTransfers(account.getId(), asset.getId(), firstIndex, lastIndex);
       }
       while (transfers.hasNext()) {
-        transfersData.add(JSONData.assetTransfer(transfers.next(), includeAssetInfo));
+        final AssetTransfer transfer = transfers.next();
+        final Asset asset = includeAssetInfo ? assetService.getAsset(transfer.getAssetId()) : null;
+
+        transfersData.add(JSONData.assetTransfer(transfer, asset));
       }
     } finally {
       DbUtils.close(transfers);

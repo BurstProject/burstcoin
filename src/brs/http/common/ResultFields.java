@@ -22,6 +22,7 @@ public class ResultFields {
   public static final String UNSIGNED_TRANSACTION_BYTES_RESPONSE = "unsignedTransactionBytes";
   public static final String TRANSACTION_JSON_RESPONSE = "transactionJSON";
   public static final String TRANSACTION_BYTES_RESPONSE = "transactionBytes";
+  public static final String SIGNATURE_RESPONSE = "signature";
   public static final String SIGNATURE_HASH_RESPONSE = "signatureHash";
   public static final String VERIFY_RESPONSE = "verify";
   public static final String VALIDATE_RESPONSE = "validate";
@@ -58,6 +59,7 @@ public class ResultFields {
   public static final String ASSETS_RESPONSE = "assets";
   public static final String OPEN_ORDERS_RESPONSE = "openOrders";
   public static final String TYPE_RESPONSE = "type";
+  public static final String SUBTYPE_RESPONSE = "subtype";
   public static final String ORDER_RESPONSE = "order";
   public static final String QUANTITY_NQT_RESPONSE = "quantityNQT";
   public static final String UNCONFIRMED_QUANTITY_NQT_RESPONSE = "unconfirmedQuantityNQT";
@@ -94,6 +96,7 @@ public class ResultFields {
   public static final String RECIPIENT_RESPONSE = "recipient";
   public static final String RECIPIENT_RS_RESPONSE = "recipientRS";
   public static final String AMOUNT_NQT_RESPONSE = "amountNQT";
+  public static final String FEE_NQT_RESPONSE = "amountNQT";
   public static final String REQUIRED_SIGNERS_RESPONSE = "requiredSigners";
   public static final String DEADLINE_RESPONSE = "deadline";
   public static final String DEADLINE_ACTION_RESPONSE = "deadlineAction";
@@ -102,5 +105,21 @@ public class ResultFields {
   public static final String SIGNERS_RESPONSE = "signers";
   public static final String ATS_RESPONSE = "ats";
   public static final String AT_IDS_RESPONSE = "atIds";
+  public static final String TRADES_RESPONSE = "trades";
+  public static final String ASK_ORDER_RESPONSE = "askOrder";
+  public static final String BID_ORDER_RESPONSE = "bidOrder";
+  public static final String ASK_ORDER_HEIGHT_RESPONSE = "askOrderHeight";
+  public static final String BID_ORDER_HEIGHT_RESPONSE = "askOrderHeight";
+  public static final String TRADE_TYPE_RESPONSE = "tradeType";
+  public static final String ASSET_TRANSFER_RESPONSE = "assetTransfer";
+  public static final String CONFIRMATIONS_RESPONSE = "confirmations";
+  public static final String BLOCK_TIMESTAMP_RESPONSE = "blockTimestamp";
+  public static final String SENDER_PUBLIC_KEY_RESPONSE = "senderPublicKey";
+  public static final String REFERENCED_TRANSACTION_FULL_HASH_RESPONSE = "referencedTransactionFullHash";
+  public static final String ATTACHMENT_RESPONSE = "attachment";
+  public static final String EC_BLOCK_ID_RESPONSE = "ecBlockId";
+  public static final String EC_BLOCK_HEIGHT_RESPONSE = "ecBlockHeight";
+  public static final String FREQUENCY_RESPONSE = "frequency";
+  public static final String TIME_NEXT_RESPONSE = "timeNext";
 
 }
