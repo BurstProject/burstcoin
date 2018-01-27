@@ -52,7 +52,7 @@ public final class PopOff extends APIServlet.APIRequestHandler {
       return response;
     }
     for (Block block : blocks) {
-      blocksJSON.add(JSONData.block(block, true));
+      blocksJSON.add(JSONData.block(block, true, blockchain.getHeight()));
     }
     response.put(BLOCKS_RESPONSE, blocksJSON);
     return response;

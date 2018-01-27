@@ -5,6 +5,7 @@ import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_PARAMETER;
 import static brs.http.common.Parameters.ASSET_PARAMETER;
+import static brs.http.common.Parameters.AT_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_DATA_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_NONCE_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPT_TO_SELF_MESSAGE_DATA;
@@ -17,6 +18,7 @@ import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_TO_SELF_IS_TEXT_PARA
 import static brs.http.common.Parameters.MESSAGE_TO_ENCRYPT_TO_SELF_PARAMETER;
 import static brs.http.common.Parameters.NUMBER_OF_CONFIRMATIONS_PARAMETER;
 import static brs.http.common.Parameters.PUBLIC_KEY_PARAMETER;
+import static brs.http.common.Parameters.PURCHASE_PARAMETER;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -27,6 +29,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
+import brs.AT;
 import brs.Account;
 import brs.Alias;
 import brs.Asset;
@@ -367,10 +370,48 @@ public class ParameterServiceImplTest {
   @Test(expected = ParameterException.class)
   public void getGoods_incorrectGoods() throws ParameterException {
     final HttpServletRequest req = QuickMocker.httpServletRequest(
-      new MockParam(GOODS_PARAMETER, "notANumber")
+        new MockParam(GOODS_PARAMETER, "notANumber")
     );
 
     t.getGoods(req);
+  }
+
+  @Test
+  public void getPurchase() throws ParameterException {
+    final HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(PURCHASE_PARAMETER, "1")
+    );
+
+    final DigitalGoodsStore.Purchase mockPurchase = mock(DigitalGoodsStore.Purchase.class);
+
+    when(dgsGoodsStoreServiceMock.getPurchase(eq(1L))).thenReturn(mockPurchase);
+
+    assertEquals(mockPurchase, t.getPurchase(req));
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getPurchase_missingPurchase() throws ParameterException {
+    t.getPurchase(QuickMocker.httpServletRequest());
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getPurchase_unknownPurchase() throws ParameterException {
+    final HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(PURCHASE_PARAMETER, "1")
+    );
+
+    when(dgsGoodsStoreServiceMock.getPurchase(eq(1L))).thenReturn(null);
+
+    t.getPurchase(req);
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getPurchase_incorrectPurchase() throws ParameterException {
+    final HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(PURCHASE_PARAMETER, "notANumber")
+    );
+
+    t.getPurchase(req);
   }
 
   @Test
@@ -668,4 +709,49 @@ public class ParameterServiceImplTest {
   public void parseTransaction_missingRequiredTransactionBytesOrJson() throws ParameterException {
     t.parseTransaction(null, null);
   }
+
+  @Test
+  public void getAT() throws ParameterException {
+    final long atId = 123L;
+
+    final HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(AT_PARAMETER, atId)
+    );
+
+    final AT mockAT = mock(AT.class);
+
+    when(atServiceMock.getAT(eq(atId))).thenReturn(mockAT);
+
+    assertEquals(mockAT, t.getAT(req));
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getAT_missingAT() throws ParameterException {
+    final HttpServletRequest req = QuickMocker.httpServletRequest();
+
+    t.getAT(req);
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getAT_incorrectAT() throws ParameterException {
+    final HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(AT_PARAMETER, "notLongId")
+    );
+
+    t.getAT(req);
+  }
+
+  @Test(expected = ParameterException.class)
+  public void getAT_unknownAT() throws ParameterException {
+    final long atId = 123L;
+
+    final HttpServletRequest req = QuickMocker.httpServletRequest(
+        new MockParam(AT_PARAMETER, atId)
+    );
+
+    when(atServiceMock.getAT(eq(atId))).thenReturn(null);
+
+    t.getAT(req);
+  }
+
 }

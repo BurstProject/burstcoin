@@ -102,25 +102,6 @@ public abstract class Order {
     this.quantityQNT = quantityQNT;
   }
 
-  /*
-    private int compareTo(Order o) {
-    if (height < o.height) {
-    return -1;
-    } else if (height > o.height) {
-    return 1;
-    } else {
-    if (id < o.id) {
-    return -1;
-    } else if (id > o.id) {
-    return 1;
-    } else {
-    return 0;
-    }
-    }
-
-    }
-  */
-
   public static class Ask extends Order {
 
     private static final BurstKey.LongKeyFactory<Ask> askOrderDbKeyFactory() {
@@ -178,19 +159,6 @@ public abstract class Order {
                                            + " for order: " + Convert.toUnsignedLong(getId()));
       }
     }
-
-    /*
-      @Override
-      public int compareTo(Ask o) {
-      if (this.getPriceNQT() < o.getPriceNQT()) {
-      return -1;
-      } else if (this.getPriceNQT() > o.getPriceNQT()) {
-      return 1;
-      } else {
-      return super.compareTo(o);
-      }
-      }
-    */
 
   }
 

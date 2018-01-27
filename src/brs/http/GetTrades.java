@@ -5,6 +5,7 @@ import static brs.http.common.Parameters.ASSET_PARAMETER;
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.INCLUDE_ASSET_INFO_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+import static brs.http.common.ResultFields.TRADES_RESPONSE;
 
 import brs.Account;
 import brs.Asset;
@@ -63,12 +64,15 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
         trades = tradeService.getAccountAssetTrades(account.getId(), asset.getId(), firstIndex, lastIndex);
       }
       while (trades.hasNext()) {
-        tradesData.add(JSONData.trade(trades.next(), includeAssetInfo));
+        final Trade trade = trades.next();
+        final Asset asset = includeAssetInfo ? assetService.getAsset(trade.getAssetId()) : null;
+
+        tradesData.add(JSONData.trade(trade, asset));
       }
     } finally {
       DbUtils.close(trades);
     }
-    response.put("trades", tradesData);
+    response.put(TRADES_RESPONSE, tradesData);
 
     return response;
   }
