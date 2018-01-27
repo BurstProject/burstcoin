@@ -218,7 +218,7 @@ public class AT_Machine_State {
     ap_code.put( apCode );
     ap_code.clear();
 
-    transactions = new LinkedHashMap< ByteBuffer, AT_Transaction >();
+    transactions = new LinkedHashMap<>();
   }
 
   public AT_Machine_State( byte[] atId, byte[] creator, byte[] creationBytes, int height ) {
