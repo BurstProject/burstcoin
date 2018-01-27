@@ -5,6 +5,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import brs.AT;
 import brs.db.store.ATStore;
 import brs.services.ATService;
 import java.util.ArrayList;
@@ -44,6 +45,17 @@ public class ATServiceImplTest {
     when(mockATStore.getATsIssuedBy(eq(accountId))).thenReturn(mockATsIssuedByAccount);
 
     assertEquals(mockATsIssuedByAccount, t.getATsIssuedBy(accountId));
+  }
+
+  @Test
+  public void getAT() {
+    final long atId = 123L;
+
+    final AT mockAT = mock(AT.class);
+
+    when(mockATStore.getAT(eq(atId))).thenReturn(mockAT);
+
+    assertEquals(mockAT, t.getAT(atId));
   }
 
 }

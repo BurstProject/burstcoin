@@ -121,5 +121,6 @@ public class ResultFields {
   public static final String EC_BLOCK_HEIGHT_RESPONSE = "ecBlockHeight";
   public static final String FREQUENCY_RESPONSE = "frequency";
   public static final String TIME_NEXT_RESPONSE = "timeNext";
+  public static final String BLOCK_IDS_RESPONSE = "blockIds";
 
 }

@@ -4,6 +4,7 @@ import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
+import static brs.http.common.ResultFields.BLOCK_IDS_RESPONSE;
 
 import brs.Account;
 import brs.Block;
@@ -46,7 +47,7 @@ public final class GetAccountBlockIds extends APIServlet.APIRequestHandler {
     }
 
     JSONObject response = new JSONObject();
-    response.put("blockIds", blockIds);
+    response.put(BLOCK_IDS_RESPONSE, blockIds);
 
     return response;
   }

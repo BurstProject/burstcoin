@@ -14,12 +14,14 @@ public class DGSGoodsStoreServiceImpl implements DGSGoodsStoreService {
   private VersionedEntityTable<Goods> goodsTable;
   private final VersionedEntityTable<Purchase> purchaseTable;
   private final LongKeyFactory<Goods> goodsDbKeyFactory;
+  private final LongKeyFactory<Purchase> purchaseDbKeyFactory;
 
   public DGSGoodsStoreServiceImpl(DigitalGoodsStoreStore digitalGoodsStoreStore) {
     this.digitalGoodsStoreStore = digitalGoodsStoreStore;
     this.goodsTable = digitalGoodsStoreStore.getGoodsTable();
     this.purchaseTable = digitalGoodsStoreStore.getPurchaseTable();
     this.goodsDbKeyFactory = digitalGoodsStoreStore.getGoodsDbKeyFactory();
+    this.purchaseDbKeyFactory = digitalGoodsStoreStore.getPurchaseDbKeyFactory();
   }
 
   @Override
@@ -66,4 +68,10 @@ public class DGSGoodsStoreServiceImpl implements DGSGoodsStoreService {
   public BurstIterator<Purchase> getPendingSellerPurchases(final long sellerId, int from, int to) {
     return digitalGoodsStoreStore.getPendingSellerPurchases(sellerId, from, to);
   }
+
+  @Override
+  public Purchase getPurchase(long purchaseId) {
+    return purchaseTable.get(purchaseDbKeyFactory.newKey(purchaseId));
+  }
+
 }
