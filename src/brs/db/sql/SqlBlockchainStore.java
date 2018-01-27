@@ -59,12 +59,7 @@ public class SqlBlockchainStore implements BlockchainStore {
 
   @Override
   public BurstIterator<BlockImpl> getBlocks(DSLContext ctx, ResultSet rs) {
-    return new DbIterator<>(ctx, rs, new DbIterator.ResultSetReader<BlockImpl>() {
-        @Override
-        public BlockImpl get(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException {
-          return blockDb.loadBlock(ctx, rs);
-        }
-      });
+    return new DbIterator<>(ctx, rs, (ctx1, rs1) -> blockDb.loadBlock(ctx1, rs1));
   }
 
   @Override
@@ -169,12 +164,7 @@ public class SqlBlockchainStore implements BlockchainStore {
 
   @Override
   public BurstIterator<TransactionImpl> getTransactions(DSLContext ctx, ResultSet rs) {
-    return new DbIterator<>(ctx, rs, new DbIterator.ResultSetReader<TransactionImpl>() {
-        @Override
-        public TransactionImpl get(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException {
-          return transactionDb.loadTransaction(ctx, rs);
-        }
-      });
+    return new DbIterator<>(ctx, rs, (ctx1, rs1) -> transactionDb.loadTransaction(ctx1, rs1));
   }
 
   @Override

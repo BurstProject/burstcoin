@@ -25,12 +25,7 @@ public final class FilteringIterator<T> implements Iterator<T>, AutoCloseable {
   }
 
   public FilteringIterator(BurstIterator<T> dbIterator, int from, int to) {
-    this(dbIterator, new Filter<T>() {
-        @Override
-        public boolean ok(T t) {
-          return true;
-        }
-      }, from, to);
+    this(dbIterator, t -> true, from, to);
   }
 
   public FilteringIterator(BurstIterator<T> dbIterator, Filter<T> filter, int from, int to) {

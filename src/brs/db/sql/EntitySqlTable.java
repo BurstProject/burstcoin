@@ -257,24 +257,21 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
 
   public BurstIterator<T> getManyBy(DSLContext ctx, SelectQuery query, boolean cache) {
     final boolean doCache = cache && Db.isInTransaction();
-    return new DbIterator<>(ctx, query.fetchResultSet(), new DbIterator.ResultSetReader<T>() {
-        @Override
-        public T get(DSLContext ctx, ResultSet rs) throws Exception {
-          T t = null;
-          DbKey dbKey = null;
-          if (doCache) {
-            dbKey = (DbKey) dbKeyFactory.newKey(rs);
-            t = (T) Db.getCache(table).get(dbKey);
-          }
-          if (t == null) {
-            t = load(ctx, rs);
-            if (doCache) {
-              Db.getCache(table).put(dbKey, t);
-            }
-          }
-          return t;
+    return new DbIterator<>(ctx, query.fetchResultSet(), (ctx1, rs) -> {
+      T t = null;
+      DbKey dbKey = null;
+      if (doCache) {
+        dbKey = (DbKey) dbKeyFactory.newKey(rs);
+        t = (T) Db.getCache(table).get(dbKey);
+      }
+      if (t == null) {
+        t = load(ctx1, rs);
+        if (doCache) {
+          Db.getCache(table).put(dbKey, t);
         }
-      });
+      }
+      return t;
+    });
   }
 
   @Override
