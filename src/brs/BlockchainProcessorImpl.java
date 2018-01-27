@@ -935,9 +935,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         Account.flushAccountTable();
         addBlock(block);
         accept(block, remainingAmount, remainingFee);
-        derivedTables.forEach(table -> {
-          table.finish();
-        });
+        derivedTables.forEach(DerivedTable::finish);
         Burst.getStores().commitTransaction();
       } catch (BlockNotAcceptedException | ArithmeticException e) {
         Burst.getStores().rollbackTransaction();
@@ -1048,9 +1046,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     BlockImpl previousBlock = blockDb.findBlock(block.getPreviousBlockId());
     blockchain.setLastBlock(block, previousBlock);
-    block.getTransactions().forEach(transaction -> {
-      transaction.unsetBlock();
-    });
+    block.getTransactions().forEach(TransactionImpl::unsetBlock);
     blockDb.deleteBlocksFrom(block.getId());
     blockListeners.notify(block, Event.BLOCK_POPPED);
     return previousBlock;
@@ -1153,9 +1149,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           Burst.getStores().beginTransaction();
           transactionProcessor.requeueAllUnconfirmedTransactions();
           // transactionProcessor.processTransactions(newTransactions, false);
-          blockTransactions.forEach(transaction -> {
-            transaction.applyUnconfirmed();
-          });
+          blockTransactions.forEach(TransactionImpl::applyUnconfirmed);
           totalFeeNQT += Subscription.calculateFees(blockTimestamp);
         } finally {
           Burst.getStores().rollbackTransaction();
