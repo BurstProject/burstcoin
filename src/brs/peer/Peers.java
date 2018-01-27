@@ -739,17 +739,17 @@ public final class Peers {
   }
 
   public static void rebroadcastTransactions(List<Transaction> transactions) {
-    String info = "Rebroadcasting transactions: ";
+    StringBuilder info = new StringBuilder("Rebroadcasting transactions: ");
     for(Transaction tx : transactions) {
-      info = info + Convert.toUnsignedLong(tx.getId()) + " ";
+      info.append(Convert.toUnsignedLong(tx.getId())).append(" ");
     }
-    info = info + "\n to peers ";
+    info.append("\n to peers ");
     for(Peer peer : peers.values()) {
       if(peer.isRebroadcastTarget()) {
-        info = info + peer.getPeerAddress() + " ";
+        info.append(peer.getPeerAddress()).append(" ");
       }
     }
-    logger.debug(info);
+    logger.debug(info.toString());
 
     JSONObject request = new JSONObject();
     JSONArray transactionsData = new JSONArray();
