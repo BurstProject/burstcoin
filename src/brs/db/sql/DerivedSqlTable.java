@@ -4,7 +4,6 @@ import brs.Burst;
 import brs.db.DerivedTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.sql.SQLException;
 import org.jooq.impl.TableImpl;
 import org.jooq.DSLContext;
 
@@ -25,12 +24,8 @@ public abstract class DerivedSqlTable implements DerivedTable {
     if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      ctx.delete(tableClass).where(tableClass.field("height", Integer.class).gt(height)).execute();
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    ctx.delete(tableClass).where(tableClass.field("height", Integer.class).gt(height)).execute();
   }
 
   @Override
@@ -38,12 +33,8 @@ public abstract class DerivedSqlTable implements DerivedTable {
     if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-    try (DSLContext ctx = Db.getDSLContext() ) {
-      ctx.delete(tableClass).execute();
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    ctx.delete(tableClass).execute();
   }
 
   @Override

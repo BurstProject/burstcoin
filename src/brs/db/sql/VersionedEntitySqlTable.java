@@ -131,55 +131,51 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
     if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      SelectQuery selectMaxHeightQuery = ctx.selectQuery();
-      selectMaxHeightQuery.addFrom(tableClass);
-      selectMaxHeightQuery.addSelect(tableClass.field("height", Long.class).max().as("max_height"));
-      for ( String column : dbKeyFactory.getPKColumns() ) {
-        Field pkField = tableClass.field(column, Long.class);
-        selectMaxHeightQuery.addSelect(pkField);
-        selectMaxHeightQuery.addGroupBy(pkField);
-      }
-      selectMaxHeightQuery.addConditions(tableClass.field("height", Long.class).lt(height));
-      selectMaxHeightQuery.addHaving(tableClass.field("height", Long.class).countDistinct().gt(1));
-      
-      try {
-        try ( ResultSet rs = selectMaxHeightQuery.fetchResultSet() ) {
-          while ( rs.next() ) {
-            DbKey dbKey = (DbKey) dbKeyFactory.newKey(rs);
-            int maxHeight = rs.getInt("max_height");
+    DSLContext ctx = Db.getDSLContext();
+    SelectQuery selectMaxHeightQuery = ctx.selectQuery();
+    selectMaxHeightQuery.addFrom(tableClass);
+    selectMaxHeightQuery.addSelect(tableClass.field("height", Long.class).max().as("max_height"));
+    for ( String column : dbKeyFactory.getPKColumns() ) {
+      Field pkField = tableClass.field(column, Long.class);
+      selectMaxHeightQuery.addSelect(pkField);
+      selectMaxHeightQuery.addGroupBy(pkField);
+    }
+    selectMaxHeightQuery.addConditions(tableClass.field("height", Long.class).lt(height));
+    selectMaxHeightQuery.addHaving(tableClass.field("height", Long.class).countDistinct().gt(1));
 
-            DeleteQuery deleteLowerHeightQuery = ctx.deleteQuery(tableClass);
-            deleteLowerHeightQuery.addConditions(tableClass.field("height", Integer.class).lt(maxHeight));
-            deleteLowerHeightQuery.addConditions(dbKey.getPKConditions(tableClass));
-            deleteLowerHeightQuery.execute();
-          }
+    try {
+      try ( ResultSet rs = selectMaxHeightQuery.fetchResultSet() ) {
+        while ( rs.next() ) {
+          DbKey dbKey = (DbKey) dbKeyFactory.newKey(rs);
+          int maxHeight = rs.getInt("max_height");
+
+          DeleteQuery deleteLowerHeightQuery = ctx.deleteQuery(tableClass);
+          deleteLowerHeightQuery.addConditions(tableClass.field("height", Integer.class).lt(maxHeight));
+          deleteLowerHeightQuery.addConditions(dbKey.getPKConditions(tableClass));
+          deleteLowerHeightQuery.execute();
         }
-        catch (Exception e) {
-          throw new RuntimeException(e.toString(), e);
-        }
-
-        SelectQuery keepQuery = ctx.selectQuery();
-        keepQuery.addFrom(tableClass);
-        keepQuery.addSelect(tableClass.field("db_id", Long.class));
-        keepQuery.addConditions(tableClass.field("height", Integer.class).ge(height));
-        keepQuery.asTable("pocc");
-        
-        //        Table<Record> keepQuery = ctx.select(tableClass.field("db_id", Long.class)).from(tableClass).where(tableClass.field("height", Integer.class).ge(height)).asTable("pocc");
-        DeleteQuery deleteQuery = ctx.deleteQuery(tableClass);
-        deleteQuery.addConditions(
-          tableClass.field("height", Long.class).lt(height),
-          tableClass.field("latest", Boolean.class).isFalse(),
-          tableClass.field("db_id", Long.class).notIn(ctx.select(keepQuery.fields()).from(keepQuery))
-        );
-
-        deleteQuery.execute();
       }
       catch (Exception e) {
         throw new RuntimeException(e.toString(), e);
       }
+
+      SelectQuery keepQuery = ctx.selectQuery();
+      keepQuery.addFrom(tableClass);
+      keepQuery.addSelect(tableClass.field("db_id", Long.class));
+      keepQuery.addConditions(tableClass.field("height", Integer.class).ge(height));
+      keepQuery.asTable("pocc");
+
+      //        Table<Record> keepQuery = ctx.select(tableClass.field("db_id", Long.class)).from(tableClass).where(tableClass.field("height", Integer.class).ge(height)).asTable("pocc");
+      DeleteQuery deleteQuery = ctx.deleteQuery(tableClass);
+      deleteQuery.addConditions(
+        tableClass.field("height", Long.class).lt(height),
+        tableClass.field("latest", Boolean.class).isFalse(),
+        tableClass.field("db_id", Long.class).notIn(ctx.select(keepQuery.fields()).from(keepQuery))
+      );
+
+      deleteQuery.execute();
     }
-    catch (SQLException e) {
+    catch (Exception e) {
       throw new RuntimeException(e.toString(), e);
     }
   }

@@ -40,22 +40,19 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
         return values;
       }
     }
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      SelectQuery query = ctx.selectQuery();
-      query.addFrom(tableClass);
-      query.addConditions(dbKey.getPKConditions(tableClass));
-      if ( multiversion ) {
-        query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
-      }
-      query.addOrderBy(tableClass.field("db_id").desc());
-      values = get(ctx, query.fetchResultSet());
-      if (Db.isInTransaction()) {
-        Db.getCache(table).put(dbKey, values);
-      }
-      return values;
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
+    DSLContext ctx = Db.getDSLContext();
+    SelectQuery query = ctx.selectQuery();
+    query.addFrom(tableClass);
+    query.addConditions(dbKey.getPKConditions(tableClass));
+    if ( multiversion ) {
+      query.addConditions(tableClass.field("latest", Boolean.class).isTrue());
     }
+    query.addOrderBy(tableClass.field("db_id").desc());
+    values = get(ctx, query.fetchResultSet());
+    if (Db.isInTransaction()) {
+      Db.getCache(table).put(dbKey, values);
+    }
+    return values;
   }
 
   private List<V> get(DSLContext ctx, ResultSet rs) {
