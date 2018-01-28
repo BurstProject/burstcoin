@@ -1,7 +1,7 @@
 package brs.peer;
 
-import brs.Burst;
 import brs.Transaction;
+import brs.TransactionProcessor;
 import brs.db.BurstIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -9,9 +9,11 @@ import org.json.simple.JSONStreamAware;
 
 final class GetUnconfirmedTransactions extends PeerServlet.PeerRequestHandler {
 
-  static final GetUnconfirmedTransactions instance = new GetUnconfirmedTransactions();
+  private final TransactionProcessor transactionProcessor;
 
-  private GetUnconfirmedTransactions() {}
+  GetUnconfirmedTransactions(TransactionProcessor transactionProcessor) {
+    this.transactionProcessor = transactionProcessor;
+  }
 
 
   @Override
@@ -20,14 +22,14 @@ final class GetUnconfirmedTransactions extends PeerServlet.PeerRequestHandler {
     JSONObject response = new JSONObject();
 
     JSONArray transactionsData = new JSONArray();
-    try (BurstIterator<? extends Transaction> transacitons = Burst.getTransactionProcessor().getAllUnconfirmedTransactions()) {
-      while (transacitons.hasNext()) {
-        Transaction transaction = transacitons.next();
+    try (BurstIterator<? extends Transaction> transactions = transactionProcessor.getAllUnconfirmedTransactions()) {
+      while (transactions.hasNext()) {
+        Transaction transaction = transactions.next();
         transactionsData.add(transaction.getJSONObject());
       }
     }
-    response.put("unconfirmedTransactions", transactionsData);
 
+    response.put("unconfirmedTransactions", transactionsData);
 
     return response;
   }

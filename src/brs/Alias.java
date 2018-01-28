@@ -1,6 +1,5 @@
 package brs;
 
-import brs.db.BurstIterator;
 import brs.db.VersionedEntityTable;
 import brs.db.BurstKey;
 
@@ -55,10 +54,6 @@ public class Alias {
 
   private static final VersionedEntityTable<Offer> offerTable() {
     return Burst.getStores().getAliasStore().getOfferTable();
-  }
-
-  public static BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
-    return Burst.getStores().getAliasStore().getAliasesByOwner(accountId, from, to);
   }
 
   public static Alias getAlias(String aliasName) {

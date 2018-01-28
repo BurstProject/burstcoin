@@ -124,9 +124,11 @@ For a general overview of Burst history see https://burstwiki.org/wiki/History_o
 ```
 For a detailed version history of wallets up to 1.2.9 see https://github.com/burst-team/burstcoin/releases
 
+Code quality statistics can be found on SonarCloud: https://sonarcloud.io/dashboard?id=burstcoin%3Aburstcoin
+
 ## Build
 
-Burstcoin can be build from source using maven or - preferably - via
+Burstcoin can be built from source using maven or - preferably - via
 the provided `burst.sh compile` script within this repository.
 
 ## Credits

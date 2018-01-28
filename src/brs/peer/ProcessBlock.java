@@ -1,6 +1,7 @@
 package brs.peer;
 
-import brs.Burst;
+import brs.Blockchain;
+import brs.BlockchainProcessor;
 import brs.BurstException;
 import brs.util.JSON;
 import org.json.simple.JSONObject;
@@ -8,9 +9,13 @@ import org.json.simple.JSONStreamAware;
 
 final class ProcessBlock extends PeerServlet.PeerRequestHandler {
 
-  static final ProcessBlock instance = new ProcessBlock();
+  private final Blockchain blockchain;
+  private final BlockchainProcessor blockchainProcessor;
 
-  private ProcessBlock() {}
+  ProcessBlock(Blockchain blockchain, BlockchainProcessor blockchainProcessor) {
+    this.blockchain = blockchain;
+    this.blockchainProcessor = blockchainProcessor;
+  }
 
   private static final JSONStreamAware ACCEPTED;
   static {
@@ -31,12 +36,12 @@ final class ProcessBlock extends PeerServlet.PeerRequestHandler {
 
     try {
 
-      if (! Burst.getBlockchain().getLastBlock().getStringId().equals(request.get("previousBlock"))) {
+      if (! blockchain.getLastBlock().getStringId().equals(request.get("previousBlock"))) {
         // do this check first to avoid validation failures of future blocks and transactions
         // when loading blockchain from scratch
         return NOT_ACCEPTED;
       }
-      Burst.getBlockchainProcessor().processPeerBlock(request);
+      blockchainProcessor.processPeerBlock(request);
       return ACCEPTED;
 
     } catch (BurstException|RuntimeException e) {
