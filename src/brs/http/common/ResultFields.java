@@ -122,5 +122,6 @@ public class ResultFields {
   public static final String FREQUENCY_RESPONSE = "frequency";
   public static final String TIME_NEXT_RESPONSE = "timeNext";
   public static final String BLOCK_IDS_RESPONSE = "blockIds";
+  public static final String BID_ORDERS_RESPONSE = "bidOrders";
 
 }
