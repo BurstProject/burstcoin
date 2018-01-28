@@ -97,24 +97,17 @@ public class SqlBlockchainStore implements BlockchainStore {
 
   @Override
   public int getTransactionCount() {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      return ctx.selectCount().from(TRANSACTION).fetchOne(0, int.class);
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    return ctx.selectCount().from(TRANSACTION).fetchOne(0, int.class);
   }
 
   @Override
   public BurstIterator<TransactionImpl> getAllTransactions() {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      return getTransactions(
-        ctx,
-        ctx.selectFrom(TRANSACTION).orderBy(TRANSACTION.DB_ID.asc()).fetchResultSet()
-      );
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    return getTransactions(
+      ctx,
+      ctx.selectFrom(TRANSACTION).orderBy(TRANSACTION.DB_ID.asc()).fetchResultSet()
+    );
   }
 
 
@@ -126,40 +119,36 @@ public class SqlBlockchainStore implements BlockchainStore {
       throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations
                                          + " exceeds current blockchain height " + Burst.getBlockchain().getHeight());
     }
-    try (DSLContext ctx = Db.getDSLContext() ) {
-      ArrayList<Condition> conditions = new ArrayList<>();
-      if (blockTimestamp > 0) {
-        conditions.add(TRANSACTION.BLOCK_TIMESTAMP.ge(blockTimestamp));
+    DSLContext ctx = Db.getDSLContext();
+    ArrayList<Condition> conditions = new ArrayList<>();
+    if (blockTimestamp > 0) {
+      conditions.add(TRANSACTION.BLOCK_TIMESTAMP.ge(blockTimestamp));
+    }
+    if (type >= 0) {
+      conditions.add(TRANSACTION.TYPE.eq(type));
+      if (subtype >= 0) {
+        conditions.add(TRANSACTION.SUBTYPE.eq(subtype));
       }
-      if (type >= 0) {
-        conditions.add(TRANSACTION.TYPE.eq(type));
-        if (subtype >= 0) {
-          conditions.add(TRANSACTION.SUBTYPE.eq(subtype));
-        }
-      }
-      if (height < Integer.MAX_VALUE) {
-        conditions.add(TRANSACTION.HEIGHT.le(height));
-      }
-      return getTransactions(
-        ctx,
+    }
+    if (height < Integer.MAX_VALUE) {
+      conditions.add(TRANSACTION.HEIGHT.le(height));
+    }
+    return getTransactions(
+      ctx,
+      ctx.selectFrom(TRANSACTION).where(conditions).and(
+        TRANSACTION.RECIPIENT_ID.eq(account.getId()).and(
+          TRANSACTION.SENDER_ID.ne(account.getId())
+        )
+      )
+      .unionAll(
         ctx.selectFrom(TRANSACTION).where(conditions).and(
-          TRANSACTION.RECIPIENT_ID.eq(account.getId()).and(
-            TRANSACTION.SENDER_ID.ne(account.getId())
-          )
+          TRANSACTION.SENDER_ID.eq(account.getId())
         )
-        .unionAll(
-          ctx.selectFrom(TRANSACTION).where(conditions).and(
-            TRANSACTION.SENDER_ID.eq(account.getId())
-          )
-        )
-        .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
-        .limit(from, to)
-        .fetchResultSet()
-      );
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+      )
+      .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
+      .limit(from, to)
+      .fetchResultSet()
+    );
   }
 
   @Override
@@ -169,13 +158,9 @@ public class SqlBlockchainStore implements BlockchainStore {
 
   @Override
   public boolean addBlock(BlockImpl block) {
-    try (DSLContext ctx = Db.getDSLContext() ) {
-      blockDb.saveBlock(ctx, block);
-      return true;
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    blockDb.saveBlock(ctx, block);
+    return true;
   }
 
   public void scan(int height)

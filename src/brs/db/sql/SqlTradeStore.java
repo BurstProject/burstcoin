@@ -46,8 +46,8 @@ public class SqlTradeStore implements TradeStore {
 
   @Override
   public BurstIterator<Trade> getAccountTrades(long accountId, int from, int to) {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      return tradeTable.getManyBy(
+    DSLContext ctx = Db.getDSLContext();
+    return tradeTable.getManyBy(
         ctx,
         ctx
           .selectFrom(TRADE).where(
@@ -63,45 +63,34 @@ public class SqlTradeStore implements TradeStore {
           .orderBy(TRADE.HEIGHT.desc()).limit(from, to)
           .getQuery(),
         false
-      );
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+        );
   }
 
   @Override
   public BurstIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      return tradeTable.getManyBy(
-        ctx,
-        ctx
-          .selectFrom(TRADE).where(
-            TRADE.SELLER_ID.eq(accountId).and(TRADE.ASSET_ID.eq(assetId))
-          )
-          .unionAll(
-            ctx.selectFrom(TRADE).where(
-              TRADE.BUYER_ID.eq(accountId)).and(
-                TRADE.SELLER_ID.ne(accountId)
-              ).and(TRADE.ASSET_ID.eq(assetId))
-          )
-          .orderBy(TRADE.HEIGHT.desc()).limit(from, to)
-          .getQuery(),
-        false
-      );
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    return tradeTable.getManyBy(
+    ctx,
+    ctx
+      .selectFrom(TRADE).where(
+        TRADE.SELLER_ID.eq(accountId).and(TRADE.ASSET_ID.eq(assetId))
+      )
+      .unionAll(
+        ctx.selectFrom(TRADE).where(
+          TRADE.BUYER_ID.eq(accountId)).and(
+            TRADE.SELLER_ID.ne(accountId)
+          ).and(TRADE.ASSET_ID.eq(assetId))
+      )
+      .orderBy(TRADE.HEIGHT.desc()).limit(from, to)
+      .getQuery(),
+    false
+    );
   }
 
   @Override
   public int getTradeCount(long assetId) {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      return ctx.fetchCount(ctx.selectFrom(TRADE).where(TRADE.ASSET_ID.eq(assetId)));
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    return ctx.fetchCount(ctx.selectFrom(TRADE).where(TRADE.ASSET_ID.eq(assetId)));
   }
 
   protected void saveTrade(DSLContext ctx, Trade trade) {
