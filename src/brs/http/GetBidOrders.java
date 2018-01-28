@@ -3,6 +3,7 @@ package brs.http;
 import static brs.http.common.Parameters.ASSET_PARAMETER;
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+import static brs.http.common.ResultFields.BID_ORDERS_RESPONSE;
 
 import brs.BurstException;
 import brs.Order;
@@ -39,8 +40,9 @@ public final class GetBidOrders extends APIServlet.APIRequestHandler {
         orders.add(JSONData.bidOrder(bidOrders.next()));
       }
     }
+
     JSONObject response = new JSONObject();
-    response.put("bidOrders", orders);
+    response.put(BID_ORDERS_RESPONSE, orders);
     return response;
   }
 
