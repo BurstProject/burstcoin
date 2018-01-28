@@ -4,6 +4,7 @@ import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
+import static brs.http.common.ResultFields.ALIASES_RESPONSE;
 
 import brs.Alias;
 import brs.Alias.Offer;
@@ -35,8 +36,9 @@ public final class GetAliases extends APIServlet.APIRequestHandler {
     int lastIndex = ParameterParser.getLastIndex(req);
 
     JSONArray aliases = new JSONArray();
-    try (FilteringIterator<Alias> aliasIterator = new FilteringIterator<>(Alias.getAliasesByOwner(accountId, 0, -1),
-            alias -> alias.getTimestamp() >= timestamp, firstIndex, lastIndex)) {
+    try (FilteringIterator<Alias> aliasIterator = new FilteringIterator<>(
+      aliasService.getAliasesByOwner(accountId, 0, -1),
+      alias -> alias.getTimestamp() >= timestamp, firstIndex, lastIndex)) {
       while (aliasIterator.hasNext()) {
         final Alias alias = aliasIterator.next();
         final Offer offer = aliasService.getOffer(alias);
@@ -46,7 +48,7 @@ public final class GetAliases extends APIServlet.APIRequestHandler {
     }
 
     JSONObject response = new JSONObject();
-    response.put("aliases", aliases);
+    response.put(ALIASES_RESPONSE, aliases);
     return response;
   }
 
