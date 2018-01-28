@@ -2,10 +2,8 @@ package brs.http;
 
 import static brs.http.common.Parameters.HEX_STRING_PARAMETER;
 
-import brs.BurstException;
-import org.json.simple.JSONStreamAware;
-
 import javax.servlet.http.HttpServletRequest;
+import org.json.simple.JSONStreamAware;
 
 public final class GetATLong extends APIServlet.APIRequestHandler {
 
@@ -19,7 +17,5 @@ public final class GetATLong extends APIServlet.APIRequestHandler {
   JSONStreamAware processRequest(HttpServletRequest req) {
     return JSONData.hex2long(ParameterParser.getATLong(req));
   }
-    
-    
 
 }

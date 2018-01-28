@@ -24,4 +24,15 @@ public abstract class AbstractUnitTest {
   protected <T> BurstIterator<T> mockBurstIterator(T... items) {
     return mockBurstIterator(Arrays.asList(items));
   }
+
+  protected String stringWithLength(int length) {
+    String result = "";
+
+    for(int i = 0; i < length; i++) {
+      result += "a";
+    }
+
+    return result;
+  }
+
 }

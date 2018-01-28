@@ -1,8 +1,8 @@
 package brs.peer;
 
 import brs.Block;
+import brs.Blockchain;
 import brs.Constants;
-import brs.Burst;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -13,9 +13,11 @@ import java.util.List;
 
 final class GetNextBlocks extends PeerServlet.PeerRequestHandler {
 
-  static final GetNextBlocks instance = new GetNextBlocks();
+  private final Blockchain blockchain;
 
-  private GetNextBlocks() {}
+  GetNextBlocks(Blockchain blockchain) {
+    this.blockchain = blockchain;
+  }
 
 
   @Override
@@ -26,7 +28,7 @@ final class GetNextBlocks extends PeerServlet.PeerRequestHandler {
     List<Block> nextBlocks = new ArrayList<>();
     int totalLength = 0;
     long blockId = Convert.parseUnsignedLong((String) request.get("blockId"));
-    List<? extends Block> blocks = Burst.getBlockchain().getBlocksAfter(blockId, 1440);
+    List<? extends Block> blocks = blockchain.getBlocksAfter(blockId, 1440);
 
     for (Block block : blocks) {
       int length = Constants.BLOCK_HEADER_LENGTH + block.getPayloadLength();
