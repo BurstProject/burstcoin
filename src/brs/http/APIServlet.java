@@ -20,6 +20,7 @@ import brs.services.EscrowService;
 import brs.services.OrderService;
 import brs.services.ParameterService;
 import brs.services.SubscriptionService;
+import brs.services.TimeService;
 import brs.services.TradeService;
 import brs.util.JSON;
 import brs.util.Subnet;
@@ -49,7 +50,7 @@ public final class APIServlet extends HttpServlet {
   public static void injectServices(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
       AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
       TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService,
-      SubscriptionService subscriptionService, ATService atService) {
+      SubscriptionService subscriptionService, ATService atService, TimeService timeService) {
     final Map<String, APIRequestHandler> map = new HashMap<>();
 
     map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService));
@@ -64,7 +65,7 @@ public final class APIServlet extends HttpServlet {
     map.put("dgsDelivery", new DGSDelivery(parameterService, transactionProcessor, blockchain, accountService));
     map.put("dgsFeedback", new DGSFeedback(parameterService, transactionProcessor, blockchain, accountService));
     map.put("dgsPriceChange", new DGSPriceChange(parameterService, transactionProcessor, blockchain, accountService));
-    map.put("dgsPurchase", new DGSPurchase(parameterService, transactionProcessor, blockchain, accountService));
+    map.put("dgsPurchase", new DGSPurchase(parameterService, transactionProcessor, blockchain, accountService, timeService));
     map.put("dgsQuantityChange", new DGSQuantityChange(parameterService, transactionProcessor, blockchain, accountService));
     map.put("dgsRefund", new DGSRefund(parameterService, transactionProcessor, blockchain, accountService));
     map.put("decodeHallmark", new DecodeHallmark());
@@ -93,7 +94,7 @@ public final class APIServlet extends HttpServlet {
     map.put("getBlock", new GetBlock(blockchain));
     map.put("getBlockId", new GetBlockId(blockchain));
     map.put("getBlocks", new GetBlocks(blockchain));
-    map.put("getBlockchainStatus", new GetBlockchainStatus(blockchainProcessor, blockchain));
+    map.put("getBlockchainStatus", new GetBlockchainStatus(blockchainProcessor, blockchain, timeService));
     map.put("getConstants", GetConstants.instance);
     map.put("getDGSGoods", new GetDGSGoods(digitalGoodsStoreService));
     map.put("getDGSGood", new GetDGSGood(parameterService));
@@ -101,15 +102,15 @@ public final class APIServlet extends HttpServlet {
     map.put("getDGSPurchase", new GetDGSPurchase(parameterService));
     map.put("getDGSPendingPurchases", new GetDGSPendingPurchases(digitalGoodsStoreService));
     map.put("getGuaranteedBalance", new GetGuaranteedBalance(parameterService));
-    map.put("getECBlock", new GetECBlock(blockchain));
+    map.put("getECBlock", new GetECBlock(blockchain, timeService));
     map.put("getMyInfo", GetMyInfo.instance);
     //map.put("getNextBlockGenerators", GetNextBlockGenerators.instance);
     map.put("getPeer", GetPeer.instance);
     map.put("getPeers", GetPeers.instance);
     //map.put("getPoll", GetPoll.instance);
     //map.put("getPollIds", GetPollIds.instance);
-    map.put("getState", new GetState(blockchain, tradeService, accountService, escrowService, orderService, assetTransferService, aliasService));
-    map.put("getTime", GetTime.instance);
+    map.put("getState", new GetState(blockchain, tradeService, accountService, escrowService, orderService, assetTransferService, aliasService, timeService));
+    map.put("getTime", new GetTime(timeService));
     map.put("getTrades", new GetTrades(parameterService, assetService, tradeService));
     map.put("getAllTrades", new GetAllTrades(tradeService, assetService));
     map.put("getAssetTransfers", new GetAssetTransfers(parameterService, accountService, assetService, assetTransferService));

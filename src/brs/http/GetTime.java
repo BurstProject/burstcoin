@@ -1,24 +1,25 @@
 package brs.http;
 
-import brs.Burst;
+import static brs.http.common.ResultFields.TIME_RESPONSE;
+
+import brs.services.TimeService;
+import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-import javax.servlet.http.HttpServletRequest;
-
 public final class GetTime extends APIServlet.APIRequestHandler {
 
-  static final GetTime instance = new GetTime();
+  private final TimeService timeService;
 
-  private GetTime() {
-    super(new APITag[] {APITag.INFO});
+  GetTime(TimeService timeService) {
+    super(new APITag[]{APITag.INFO});
+    this.timeService = timeService;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) {
-
     JSONObject response = new JSONObject();
-    response.put("time", Burst.getEpochTime());
+    response.put(TIME_RESPONSE, timeService.getEpochTime());
 
     return response;
   }
