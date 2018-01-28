@@ -1,10 +1,13 @@
 package brs.http;
 
+import static brs.http.common.ResultFields.TIME_RESPONSE;
+
 import brs.Block;
 import brs.Blockchain;
 import brs.BlockchainProcessor;
 import brs.Burst;
 import brs.peer.Peer;
+import brs.services.TimeService;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -14,11 +17,13 @@ public final class GetBlockchainStatus extends APIServlet.APIRequestHandler {
 
   private final BlockchainProcessor blockchainProcessor;
   private final Blockchain blockchain;
+  private final TimeService timeService;
 
-  GetBlockchainStatus(BlockchainProcessor blockchainProcessor, Blockchain blockchain) {
+  GetBlockchainStatus(BlockchainProcessor blockchainProcessor, Blockchain blockchain, TimeService timeService) {
     super(new APITag[] {APITag.BLOCKS, APITag.INFO});
     this.blockchainProcessor = blockchainProcessor;
     this.blockchain = blockchain;
+    this.timeService = timeService;
   }
 
   @Override
@@ -26,7 +31,7 @@ public final class GetBlockchainStatus extends APIServlet.APIRequestHandler {
     JSONObject response = new JSONObject();
     response.put("application", Burst.APPLICATION);
     response.put("version", Burst.VERSION);
-    response.put("time", Burst.getEpochTime());
+    response.put(TIME_RESPONSE, timeService.getEpochTime());
     Block lastBlock = blockchain.getLastBlock();
     response.put("lastBlock", lastBlock.getStringId());
     response.put("cumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());

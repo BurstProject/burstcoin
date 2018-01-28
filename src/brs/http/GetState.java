@@ -1,6 +1,7 @@
 package brs.http;
 
 import static brs.http.common.Parameters.INCLUDE_COUNTS_PARAMETER;
+import static brs.http.common.ResultFields.TIME_RESPONSE;
 
 import brs.*;
 import brs.db.BurstIterator;
@@ -11,6 +12,7 @@ import brs.services.AliasService;
 import brs.services.AssetTransferService;
 import brs.services.EscrowService;
 import brs.services.OrderService;
+import brs.services.TimeService;
 import brs.services.TradeService;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -26,9 +28,10 @@ public final class GetState extends APIServlet.APIRequestHandler {
   private final OrderService orderService;
   private final AssetTransferService assetTransferService;
   private final AliasService aliasService;
+  private final TimeService timeService;
 
   GetState(Blockchain blockchain, TradeService tradeService, AccountService accountService, EscrowService escrowService, OrderService orderService,
-      AssetTransferService assetTransferService, AliasService aliasService) {
+      AssetTransferService assetTransferService, AliasService aliasService, TimeService timeService) {
     super(new APITag[] {APITag.INFO}, INCLUDE_COUNTS_PARAMETER);
     this.blockchain = blockchain;
     this.tradeService = tradeService;
@@ -37,6 +40,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
     this.orderService = orderService;
     this.assetTransferService = assetTransferService;
     this.aliasService = aliasService;
+    this.timeService = timeService;
   }
 
   @Override
@@ -46,7 +50,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
 
     response.put("application", Burst.APPLICATION);
     response.put("version", Burst.VERSION);
-    response.put("time", Burst.getEpochTime());
+    response.put(TIME_RESPONSE, timeService.getEpochTime());
     response.put("lastBlock", blockchain.getLastBlock().getStringId());
     response.put("cumulativeDifficulty", blockchain.getLastBlock().getCumulativeDifficulty().toString());
 
