@@ -10,7 +10,6 @@ import brs.Generator;
 import brs.Burst;
 import brs.crypto.Crypto;
 import brs.services.AccountService;
-import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;

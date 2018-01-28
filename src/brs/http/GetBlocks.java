@@ -25,7 +25,7 @@ public final class GetBlocks extends APIServlet.APIRequestHandler {
   }
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JSONStreamAware processRequest(HttpServletRequest req) {
 
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);

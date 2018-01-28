@@ -218,7 +218,7 @@ public class AT_Machine_State {
     ap_code.put( apCode );
     ap_code.clear();
 
-    transactions = new LinkedHashMap< ByteBuffer, AT_Transaction >();
+    transactions = new LinkedHashMap<>();
   }
 
   public AT_Machine_State( byte[] atId, byte[] creator, byte[] creationBytes, int height ) {
@@ -249,7 +249,7 @@ public class AT_Machine_State {
 
     this.minActivationAmount = b.getLong();
 
-    int codeLen = 0;
+    int codeLen;
     if ( codePages * pageSize < pageSize + 1 ) {
       codeLen = b.get();
       if ( codeLen < 0 )
@@ -271,7 +271,7 @@ public class AT_Machine_State {
     this.ap_code.put( code );
     this.ap_code.clear();
 
-    int dataLen = 0;
+    int dataLen;
     if ( dataPages * pageSize < 257 ) {
       dataLen = b.get();
       if ( dataLen < 0 )

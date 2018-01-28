@@ -46,7 +46,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
         }
 
         @Override
-        protected void save(DSLContext ctx, TransactionImpl transaction) throws SQLException {
+        protected void save(DSLContext ctx, TransactionImpl transaction) {
           ctx.insertInto(
             UNCONFIRMED_TRANSACTION,
             UNCONFIRMED_TRANSACTION.ID, UNCONFIRMED_TRANSACTION.TRANSACTION_HEIGHT, UNCONFIRMED_TRANSACTION.FEE_PER_BYTE,
@@ -91,9 +91,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
   @Override
   public void processLater(Collection<TransactionImpl> transactions) {
     synchronized (BlockchainImpl.getInstance()) {
-      for (TransactionImpl transaction : transactions) {
-        lostTransactions.add(transaction);
-      }
+      lostTransactions.addAll(transactions);
     }
   }
 
@@ -119,26 +117,17 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
   @Override
   public BurstIterator<TransactionImpl> getExpiredTransactions() {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      return unconfirmedTransactionTable.getManyBy(
-        ctx,
-        ctx.selectFrom(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.EXPIRATION.lt(Burst.getEpochTime())).getQuery(),
-        true
-      );
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    return unconfirmedTransactionTable.getManyBy(
+      ctx,
+      ctx.selectFrom(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.EXPIRATION.lt(Burst.getEpochTime())).getQuery(),
+      true
+    );
   }
 
   @Override
   public int deleteTransaction(Transaction transaction) {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      return ctx.delete(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.ID.eq(transaction.getId())).execute();
-    }
-    catch (SQLException e) {
-      logger.error(e.toString(), e);
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    return ctx.delete(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.ID.eq(transaction.getId())).execute();
   }
 }

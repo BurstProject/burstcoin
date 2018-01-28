@@ -3,7 +3,6 @@ package brs.http;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 
 import brs.Account;
-import brs.Burst;
 import brs.BurstException;
 import brs.db.BurstIterator;
 import brs.services.AccountService;

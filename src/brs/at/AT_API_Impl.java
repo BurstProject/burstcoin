@@ -783,9 +783,9 @@ public class AT_API_Impl implements AT_API {
   public void SHA256_to_B( long val1, long val2, AT_Machine_State state ) {
     if (val1 < 0 || val2 < 0 ||
         (val1 + val2 - 1) < 0 ||
-        ((long)val1)*8+8>((long)Integer.MAX_VALUE) ||
+        val1*8+8>((long)Integer.MAX_VALUE) ||
         val1*8+8>state.getDsize() ||
-        ((long)val1 + (long)val2 - 1)*8+8>((long)Integer.MAX_VALUE) ||
+        (val1 + val2 - 1)*8+8>((long)Integer.MAX_VALUE) ||
         (val1 + val2 - 1)*8+8>state.getDsize()) {
       return;
     }

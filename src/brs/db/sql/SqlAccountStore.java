@@ -110,7 +110,7 @@ public class SqlAccountStore implements AccountStore {
       }
 
       @Override
-      protected void updateUsing(DSLContext ctx, Account account) throws SQLException {
+      protected void updateUsing(DSLContext ctx, Account account) {
         brs.schema.tables.records.AccountRecord accountRecord = ctx.newRecord(ACCOUNT);
         accountRecord.setCreationHeight(account.getCreationHeight());
         accountRecord.setPublicKey(account.getPublicKey());
@@ -158,12 +158,8 @@ public class SqlAccountStore implements AccountStore {
 
   @Override
   public int getAssetAccountsCount(long assetId) {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      return ctx.selectCount().from(ACCOUNT_ASSET).where(ACCOUNT_ASSET.ASSET_ID.eq(assetId)).and(ACCOUNT_ASSET.LATEST.isTrue()).fetchOne(0, int.class);
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    return ctx.selectCount().from(ACCOUNT_ASSET).where(ACCOUNT_ASSET.ASSET_ID.eq(assetId)).and(ACCOUNT_ASSET.LATEST.isTrue()).fetchOne(0, int.class);
   }
 
   @Override

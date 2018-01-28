@@ -41,12 +41,7 @@ public final class GetDGSPurchases extends APIServlet.APIRequestHandler {
     if (sellerId == 0 && buyerId == 0) {
       try (FilteringIterator<DigitalGoodsStore.Purchase> purchaseIterator
            = new FilteringIterator<>(dgsGoodsStoreService.getAllPurchases(0, -1),
-                                     new FilteringIterator.Filter<DigitalGoodsStore.Purchase>() {
-                                       @Override
-                                       public boolean ok(DigitalGoodsStore.Purchase purchase) {
-                                         return ! (completed && purchase.isPending());
-                                       }
-                                     }, firstIndex, lastIndex)) {
+              purchase -> ! (completed && purchase.isPending()), firstIndex, lastIndex)) {
         while (purchaseIterator.hasNext()) {
           purchasesJSON.add(JSONData.purchase(purchaseIterator.next()));
         }
@@ -64,12 +59,7 @@ public final class GetDGSPurchases extends APIServlet.APIRequestHandler {
     }
     try (FilteringIterator<DigitalGoodsStore.Purchase> purchaseIterator
          = new FilteringIterator<>(purchases,
-                                   new FilteringIterator.Filter<DigitalGoodsStore.Purchase>() {
-                                     @Override
-                                     public boolean ok(DigitalGoodsStore.Purchase purchase) {
-                                       return ! (completed && purchase.isPending());
-                                     }
-                                   }, firstIndex, lastIndex)) {
+            purchase -> ! (completed && purchase.isPending()), firstIndex, lastIndex)) {
       while (purchaseIterator.hasNext()) {
         purchasesJSON.add(JSONData.purchase(purchaseIterator.next()));
       }

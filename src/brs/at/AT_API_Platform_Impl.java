@@ -169,10 +169,8 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
     digest.update(bf.array());
     byte[] byteRandom = digest.digest();
 
-    long random = Math.abs( AT_API_Helper.getLong( Arrays.copyOfRange(byteRandom, 0, 8) ) );
-
-    //System.out.println( "info: random for txid: " + Convert.toUnsignedLong( tx.getId() ) + "is: " + random );
-    return random;
+      //System.out.println( "info: random for txid: " + Convert.toUnsignedLong( tx.getId() ) + "is: " + random );
+    return Math.abs( AT_API_Helper.getLong( Arrays.copyOfRange(byteRandom, 0, 8) ) );
   }
 
   @Override

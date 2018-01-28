@@ -23,7 +23,7 @@ public final class GetEscrowTransaction extends APIServlet.APIRequestHandler {
   }
 	
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
+  JSONStreamAware processRequest(HttpServletRequest req) {
     Long escrowId;
     try {
       escrowId = Convert.parseUnsignedLong(Convert.emptyToNull(req.getParameter(ESCROW_PARAMETER)));

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Subscription {
 
@@ -22,18 +23,15 @@ public class Subscription {
     }
 
     Alias subscriptionEnabled = Alias.getAlias("featuresubscription");
-    if(subscriptionEnabled != null && subscriptionEnabled.getAliasURI().equals("enabled")) {
-      return true;
-    }
+      return subscriptionEnabled != null && subscriptionEnabled.getAliasURI().equals("enabled");
 
-    return false;
   }
 
-  private static final BurstKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory() {
+  private static BurstKey.LongKeyFactory<Subscription> subscriptionDbKeyFactory() {
     return Burst.getStores().getSubscriptionStore().getSubscriptionDbKeyFactory();
   }
 
-  private static final VersionedEntityTable<Subscription> subscriptionTable() {
+  private static VersionedEntityTable<Subscription> subscriptionTable() {
     return Burst.getStores().getSubscriptionStore().getSubscriptionTable();
   }
 
@@ -137,7 +135,7 @@ public class Subscription {
     if(paymentTransactions.size() > 0) {
       Burst.getDbs().getTransactionDb().saveTransactions( paymentTransactions);
     }
-    removeSubscriptions.forEach(subscription -> removeSubscription(subscription));
+    removeSubscriptions.forEach(Subscription::removeSubscription);
   }
 
   public final Long senderId;
@@ -146,7 +144,7 @@ public class Subscription {
   public final BurstKey dbKey;
   public final Long amountNQT;
   public final int frequency;
-  private volatile int timeNext;
+  private final AtomicInteger timeNext;
 
   private Subscription(Long senderId,
                        Long recipientId,
@@ -160,7 +158,7 @@ public class Subscription {
     this.dbKey = subscriptionDbKeyFactory().newKey(this.id);
     this.amountNQT = amountNQT;
     this.frequency  = frequency;
-    this.timeNext = timeStart + frequency;
+    this.timeNext = new AtomicInteger(timeStart + frequency);
   }
   protected Subscription(Long senderId,
                          Long recipientId,
@@ -176,7 +174,7 @@ public class Subscription {
     this.dbKey = dbKey;
     this.amountNQT = amountNQT;
     this.frequency  = frequency;
-    this.timeNext = timeNext;
+    this.timeNext = new AtomicInteger(timeNext);
   }
 
   public Long getSenderId() {
@@ -200,14 +198,14 @@ public class Subscription {
   }
 
   public int getTimeNext() {
-    return timeNext;
+    return timeNext.get();
   }
 
   private boolean applyUnconfirmed() {
     Account sender = Account.getAccount(senderId);
     long totalAmountNQT = Convert.safeAdd(amountNQT, getFee());
 
-    if(sender.getUnconfirmedBalanceNQT() < totalAmountNQT) {
+    if(sender == null || sender.getUnconfirmedBalanceNQT() < totalAmountNQT) {
       return false;
     }
 
@@ -220,7 +218,9 @@ public class Subscription {
     Account sender = Account.getAccount(senderId);
     long totalAmountNQT = Convert.safeAdd(amountNQT, getFee());
 
-    sender.addToUnconfirmedBalanceNQT(totalAmountNQT);
+    if (sender != null) {
+      sender.addToUnconfirmedBalanceNQT(totalAmountNQT);
+    }
   }
 
   private void apply(Block block, int blockchainHeight) {
@@ -236,7 +236,7 @@ public class Subscription {
     TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte) 1,
                                                                           sender.getPublicKey(), amountNQT,
                                                                           getFee(),
-                                                                          timeNext, (short)1440, attachment);
+                                                                          timeNext.get(), (short)1440, attachment);
 
     try {
       builder.senderId(senderId)
@@ -254,6 +254,6 @@ public class Subscription {
       throw new RuntimeException("Failed to build subscription payment transaction", e);
     }
 
-    timeNext += frequency;
+    timeNext.getAndAdd(frequency);
   }
 }

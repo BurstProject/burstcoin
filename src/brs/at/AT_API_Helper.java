@@ -74,7 +74,7 @@ public class AT_API_Helper {
   public static byte[] getByteArray(BigInteger bigInt) {
     byte[] bigIntBytes = bigInt.toByteArray();
     ByteBuffer paddedBytesBuffer = ByteBuffer.allocate(32);
-    byte padding = 0;
+    byte padding;
     if(bigIntBytes.length < 32) {
       padding = (byte)(((byte)(bigIntBytes[0] & ((byte)0x80))) >> 7);
       for(int i = 0; i < 32 - bigIntBytes.length; i++)

@@ -13,7 +13,7 @@ import org.jooq.SelectQuery;
 
 public interface DbKey extends BurstKey {
 
-  public static abstract class Factory<T> implements BurstKey.Factory<T> {
+  abstract class Factory<T> implements BurstKey.Factory<T> {
 
     private final String pkClause;
     private final String[] pkColumns;
@@ -29,7 +29,7 @@ public interface DbKey extends BurstKey {
 
     public abstract BurstKey newKey(T t);
 
-    public abstract BurstKey newKey(ResultSet rs) throws SQLException;
+    public abstract BurstKey newKey(ResultSet rs);
 
     public final String getPKClause() {
       return pkClause;
@@ -57,7 +57,7 @@ public interface DbKey extends BurstKey {
 
   long[] getPKValues();
 
-  public static abstract class LongKeyFactory<T> extends Factory<T> implements BurstKey.LongKeyFactory<T> {
+  abstract class LongKeyFactory<T> extends Factory<T> implements BurstKey.LongKeyFactory<T> {
 
     private final String idColumn;
 
@@ -91,7 +91,7 @@ public interface DbKey extends BurstKey {
     }
   }
 
-  public static abstract class LinkKeyFactory<T> extends Factory<T> implements BurstKey.LinkKeyFactory<T> {
+  abstract class LinkKeyFactory<T> extends Factory<T> implements BurstKey.LinkKeyFactory<T> {
 
     private final String idColumnA;
     private final String idColumnB;
@@ -132,7 +132,7 @@ public interface DbKey extends BurstKey {
     }
   }
 
-  static final class LongKey implements DbKey {
+  final class LongKey implements DbKey {
 
     private final long id;
     private final String idColumn;
@@ -144,8 +144,7 @@ public interface DbKey extends BurstKey {
 
     @Override
     public long[] getPKValues() {
-      long[] values = {id};
-      return values;
+        return new long[]{id};
     }
 
     @Override
@@ -160,14 +159,14 @@ public interface DbKey extends BurstKey {
 
     @Override
     public ArrayList<Condition> getPKConditions(Table tableClass) {
-      ArrayList<Condition> conditions = new ArrayList<Condition>();
+      ArrayList<Condition> conditions = new ArrayList<>();
       conditions.add(tableClass.field(idColumn, Long.class).eq(id));
       return conditions;
     }
     
   }
 
-  static final class LinkKey implements DbKey {
+  final class LinkKey implements DbKey {
 
     private final long idA;
     private final long idB;
@@ -183,8 +182,7 @@ public interface DbKey extends BurstKey {
 
     @Override
     public long[] getPKValues() {
-      long[] values = {idA, idB};
-      return values;
+        return new long[]{idA, idB};
     }
 
     @Override
@@ -199,7 +197,7 @@ public interface DbKey extends BurstKey {
 
     @Override
     public ArrayList<Condition> getPKConditions(Table tableClass) {
-      ArrayList<Condition> conditions = new ArrayList<Condition>();
+      ArrayList<Condition> conditions = new ArrayList<>();
       conditions.add(tableClass.field(idColumnA, Long.class).eq(idA));
       conditions.add(tableClass.field(idColumnB, Long.class).eq(idB));
       return conditions;

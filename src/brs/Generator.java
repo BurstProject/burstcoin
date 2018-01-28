@@ -7,7 +7,7 @@ import brs.util.Listener;
 
 public interface Generator {
 
-  public enum Event {
+  enum Event {
     GENERATION_DEADLINE, START_FORGING, STOP_FORGING
   }
 

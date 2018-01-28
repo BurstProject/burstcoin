@@ -165,12 +165,8 @@ public class APITestServlet extends HttpServlet {
       final String requestType = entry.getKey();
       final Set<APITag> apiTags = entry.getValue().getAPITags();
       for (APITag apiTag : apiTags) {
-        SortedSet<String> set = r.get(apiTag.name());
-        if (set == null) {
-          set = new TreeSet<>();
-          r.put(apiTag.name(), set);
-        }
-        set.add(requestType);
+          SortedSet<String> set = r.computeIfAbsent(apiTag.name(), k -> new TreeSet<>());
+          set.add(requestType);
       }
     }
     return r;
@@ -197,7 +193,7 @@ public class APITestServlet extends HttpServlet {
     return buf.toString();
   }
 
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
 
     resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
     resp.setHeader("Pragma", "no-cache");

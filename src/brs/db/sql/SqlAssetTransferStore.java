@@ -62,61 +62,50 @@ public class SqlAssetTransferStore implements AssetTransferStore {
 
   @Override
   public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
+    DSLContext ctx = Db.getDSLContext();
 
-      return getAssetTransferTable().getManyBy(
-        ctx,
-        ctx
-          .selectFrom(ASSET_TRANSFER).where(
-            ASSET_TRANSFER.SENDER_ID.eq(accountId)
-          )
-          .unionAll(
-            ctx.selectFrom(ASSET_TRANSFER).where(
-              ASSET_TRANSFER.RECIPIENT_ID.eq(accountId).and(ASSET_TRANSFER.SENDER_ID.ne(accountId))
-            )
-          )
-          .orderBy(ASSET_TRANSFER.HEIGHT.desc()).limit(from, to)
-          .getQuery(),
-        false
-      );
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    return getAssetTransferTable().getManyBy(
+    ctx,
+    ctx
+      .selectFrom(ASSET_TRANSFER).where(
+        ASSET_TRANSFER.SENDER_ID.eq(accountId)
+      )
+      .unionAll(
+        ctx.selectFrom(ASSET_TRANSFER).where(
+          ASSET_TRANSFER.RECIPIENT_ID.eq(accountId).and(ASSET_TRANSFER.SENDER_ID.ne(accountId))
+        )
+      )
+      .orderBy(ASSET_TRANSFER.HEIGHT.desc()).limit(from, to)
+      .getQuery(),
+    false
+    );
   }
 
   @Override
   public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      return getAssetTransferTable().getManyBy(
-        ctx,
-        ctx
-          .selectFrom(ASSET_TRANSFER).where(
-            ASSET_TRANSFER.SENDER_ID.eq(accountId).and(ASSET_TRANSFER.ASSET_ID.eq(assetId))
-          )
-          .unionAll(
-            ctx.selectFrom(ASSET_TRANSFER).where(
-              ASSET_TRANSFER.RECIPIENT_ID.eq(accountId)).and(
-                ASSET_TRANSFER.SENDER_ID.ne(accountId)
-              ).and(ASSET_TRANSFER.ASSET_ID.eq(assetId))
-          )
-          .orderBy(ASSET_TRANSFER.HEIGHT.desc()).limit(from, to)
-          .getQuery(),
-        false
-      );
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    return getAssetTransferTable().getManyBy(
+    ctx,
+    ctx
+      .selectFrom(ASSET_TRANSFER).where(
+        ASSET_TRANSFER.SENDER_ID.eq(accountId).and(ASSET_TRANSFER.ASSET_ID.eq(assetId))
+      )
+      .unionAll(
+        ctx.selectFrom(ASSET_TRANSFER).where(
+          ASSET_TRANSFER.RECIPIENT_ID.eq(accountId)).and(
+            ASSET_TRANSFER.SENDER_ID.ne(accountId)
+          ).and(ASSET_TRANSFER.ASSET_ID.eq(assetId))
+      )
+      .orderBy(ASSET_TRANSFER.HEIGHT.desc()).limit(from, to)
+      .getQuery(),
+    false
+    );
   }
 
   @Override
   public int getTransferCount(long assetId) {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      return ctx.fetchCount(ctx.selectFrom(ASSET_TRANSFER).where(ASSET_TRANSFER.ASSET_ID.eq(assetId)));
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    return ctx.fetchCount(ctx.selectFrom(ASSET_TRANSFER).where(ASSET_TRANSFER.ASSET_ID.eq(assetId)));
   }
 
   protected class SqlAssetTransfer extends AssetTransfer {

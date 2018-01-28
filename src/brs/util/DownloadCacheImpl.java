@@ -41,10 +41,7 @@ public final class DownloadCacheImpl {
   }
 
   public boolean IsFull() {
-    if (blockCacheSize > BLOCKCACHEMB * 1024 * 1024) {
-      return true;
-    }
-    return false;
+    return blockCacheSize > BLOCKCACHEMB * 1024 * 1024;
   }
 
   public int getUnverifiedSize() {
@@ -150,11 +147,8 @@ public final class DownloadCacheImpl {
     if (blockCache.containsKey(BlockId)) {
       return true;
     }
-    if (blockchain.hasBlock(BlockId)) {
-      return true;
-    }
+    return blockchain.hasBlock(BlockId);
 
-    return false;
   }
 
   public boolean CanBeFork(long oldBlockId) {
@@ -168,11 +162,7 @@ public final class DownloadCacheImpl {
     if (block == null) {
       return false;
     }
-    if ((curHeight - block.getHeight()) > Constants.MAX_ROLLBACK) {
-      return false;
-    }
-
-    return true;
+    return (curHeight - block.getHeight()) <= Constants.MAX_ROLLBACK;
   }
 
   public void AddBlock(BlockImpl block) {

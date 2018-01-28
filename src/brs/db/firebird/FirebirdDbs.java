@@ -52,19 +52,19 @@ public class FirebirdDbs implements Dbs {
   }
 
   @Override
-  public void disableForeignKeyChecks(Connection con) throws SQLException {
+  public void disableForeignKeyChecks(Connection con) {
     // This is a very very ugly and dangerous operation
-    apply("ALTER TABLE transaction DROP CONSTRAINT constraint_ff;");
-    apply("ALTER TABLE block DROP CONSTRAINT constraint_3c5;");
-    apply("ALTER TABLE block DROP CONSTRAINT constraint_3c;");
+    apply("ALTER TABLE \"transaction\" DROP CONSTRAINT \"constraint_ff\";");
+    apply("ALTER TABLE \"block\" DROP CONSTRAINT \"constraint_3c5\";");
+    apply("ALTER TABLE \"block\" DROP CONSTRAINT \"constraint_3c\";");
 
   }
 
   @Override
   public void enableForeignKeyChecks(Connection con) throws SQLException {
-    apply("ALTER TABLE transaction ADD CONSTRAINT constraint_ff FOREIGN KEY(block_id) REFERENCES block(id) ON DELETE CASCADE;");
-    apply("ALTER TABLE block ADD CONSTRAINT constraint_3c5 FOREIGN KEY(next_block_id) REFERENCES block(id) ON DELETE SET NULL;");
-    apply("ALTER TABLE block ADD CONSTRAINT constraint_3c FOREIGN KEY(previous_block_id) REFERENCES block(id) ON DELETE CASCADE;");
+    apply("ALTER TABLE \"transaction\" ADD CONSTRAINT \"constraint_ff\" FOREIGN KEY(\"block_id\") REFERENCES \"block\"(\"id\") ON DELETE CASCADE;");
+    apply("ALTER TABLE \"block\" ADD CONSTRAINT \"constraint_3c5\" FOREIGN KEY(\"next_block_id\") REFERENCES \"block\"(\"id\") ON DELETE SET NULL;");
+    apply("ALTER TABLE \"block\" ADD CONSTRAINT \"constraint_3c\" FOREIGN KEY(\"previous_block_id\") REFERENCES \"block\"(\"id\") ON DELETE CASCADE;");
 
     // convert array to list
     List<String> lTables = Arrays.asList(
@@ -79,9 +79,9 @@ public class FirebirdDbs implements Dbs {
                                          );
 
     for (String table : lTables) {
-      Long maxValue = (long) 0;
+      Long maxValue;
       try ( Statement stmt = con.createStatement() ) {
-        try ( ResultSet rs = stmt.executeQuery("SELECT MAX(db_id) FROM " + table) ) {
+        try ( ResultSet rs = stmt.executeQuery("SELECT MAX(\"db_id\") FROM \"" + table + "\"") ) {
           rs.next();
           maxValue = rs.getLong(1);
           Db.commitTransaction();
@@ -90,7 +90,7 @@ public class FirebirdDbs implements Dbs {
           throw new RuntimeException("Database error executing", e);
         }
         if ( maxValue > 0 ) {
-          apply("ALTER TABLE " + table + " ALTER COLUMN db_id RESTART WITH " + maxValue);
+          apply("ALTER TABLE \"" + table + "\" ALTER COLUMN \"db_id\" RESTART WITH " + maxValue);
         }
       }
     }

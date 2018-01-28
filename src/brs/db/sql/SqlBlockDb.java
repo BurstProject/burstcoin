@@ -1,6 +1,5 @@
 package brs.db.sql;
 
-import static brs.schema.Tables.BLOCK;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -11,7 +10,7 @@ import org.jooq.DeleteQuery;
 import org.jooq.SelectQuery;
 import org.jooq.UpdateQuery;
 import org.jooq.impl.TableImpl;
-import java.lang.reflect.Field;
+
 import java.util.Optional;
 import java.math.BigInteger;
 import brs.BlockImpl;
@@ -33,33 +32,23 @@ public class SqlBlockDb implements BlockDb {
     try (DSLContext ctx = Db.getDSLContext()) {
       return loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.ID.eq(blockId)).fetchAny());
     }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
     catch (BurstException.ValidationException e) {
       throw new RuntimeException("Block already in database, id = " + blockId + ", does not pass validation!", e);
     }
   }
 
   public boolean hasBlock(long blockId) {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      return ctx.fetchExists(ctx.selectOne().from(BLOCK).where(BLOCK.ID.eq(blockId)));
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    return ctx.fetchExists(ctx.selectOne().from(BLOCK).where(BLOCK.ID.eq(blockId)));
   }
 
   public long findBlockIdAtHeight(int height) {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      Long id = ctx.select(BLOCK.ID).from(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchOne(BLOCK.ID);
-      if (id == null) {
-        throw new RuntimeException("Block at height " + height + " not found in database!");
-      }
-      return id;
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
+    DSLContext ctx = Db.getDSLContext();
+    Long id = ctx.select(BLOCK.ID).from(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchOne(BLOCK.ID);
+    if (id == null) {
+      throw new RuntimeException("Block at height " + height + " not found in database!");
     }
+    return id;
   }
 
   public BlockImpl findBlockAtHeight(int height) {
@@ -70,9 +59,6 @@ public class SqlBlockDb implements BlockDb {
       }
       return block;
     }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
     catch (BurstException.ValidationException e) {
       throw new RuntimeException(e.toString(), e);
     }
@@ -82,9 +68,6 @@ public class SqlBlockDb implements BlockDb {
     try (DSLContext ctx = Db.getDSLContext()) {
       return loadBlock(ctx.selectFrom(BLOCK).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchAny());
     }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
     catch (BurstException.ValidationException e) {
       throw new RuntimeException("Last block already in database does not pass validation!", e);
     }
@@ -93,9 +76,6 @@ public class SqlBlockDb implements BlockDb {
   public BlockImpl findLastBlock(int timestamp) {
     try (DSLContext ctx = Db.getDSLContext()) {
       return loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.TIMESTAMP.lessOrEqual(timestamp)).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchAny());
-    }
-    catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
     }
     catch (BurstException.ValidationException e) {
       throw new RuntimeException("Block already in database at timestamp " + timestamp + " does not pass validation!", e);
@@ -197,25 +177,22 @@ public class SqlBlockDb implements BlockDb {
       }
       return;
     }
-    try (DSLContext ctx = Db.getDSLContext()) {
-      SelectQuery blockHeightQuery = ctx.selectQuery();
-      blockHeightQuery.addFrom(BLOCK);
-      blockHeightQuery.addSelect(BLOCK.field("height", Integer.class));
-      blockHeightQuery.addConditions(BLOCK.field("id", Long.class).eq(blockId));
-      Integer blockHeight = (Integer) ctx.fetchValue(blockHeightQuery.fetchResultSet());
+    DSLContext ctx = Db.getDSLContext();
+    SelectQuery blockHeightQuery = ctx.selectQuery();
+    blockHeightQuery.addFrom(BLOCK);
+    blockHeightQuery.addSelect(BLOCK.field("height", Integer.class));
+    blockHeightQuery.addConditions(BLOCK.field("id", Long.class).eq(blockId));
+    Integer blockHeight = (Integer) ctx.fetchValue(blockHeightQuery.fetchResultSet());
 
-      if (blockHeight != null) {
-        UpdateQuery unlinkFromPreviousQuery = ctx.updateQuery(BLOCK);
-        unlinkFromPreviousQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
-        unlinkFromPreviousQuery.addValue(BLOCK.PREVIOUS_BLOCK_ID, (Long) null);
-        unlinkFromPreviousQuery.execute();
+    if (blockHeight != null) {
+      UpdateQuery unlinkFromPreviousQuery = ctx.updateQuery(BLOCK);
+      unlinkFromPreviousQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
+      unlinkFromPreviousQuery.addValue(BLOCK.PREVIOUS_BLOCK_ID, (Long) null);
+      unlinkFromPreviousQuery.execute();
 
-        DeleteQuery deleteQuery = ctx.deleteQuery(BLOCK);
-        deleteQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
-        deleteQuery.execute();
-      }
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
+      DeleteQuery deleteQuery = ctx.deleteQuery(BLOCK);
+      deleteQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
+      deleteQuery.execute();
     }
   }
 
@@ -233,30 +210,27 @@ public class SqlBlockDb implements BlockDb {
       return;
     }
     logger.info("Deleting blockchain...");
-    try (DSLContext ctx = Db.getDSLContext()) {
-      List<TableImpl> tables = new ArrayList<TableImpl>(Arrays.asList(brs.schema.Tables.ACCOUNT,
-          brs.schema.Tables.ACCOUNT_ASSET, brs.schema.Tables.ALIAS, brs.schema.Tables.ALIAS_OFFER,
-          brs.schema.Tables.ASK_ORDER, brs.schema.Tables.ASSET, brs.schema.Tables.ASSET_TRANSFER,
-          brs.schema.Tables.AT, brs.schema.Tables.AT_STATE, brs.schema.Tables.BID_ORDER,
-          brs.schema.Tables.BLOCK, brs.schema.Tables.ESCROW, brs.schema.Tables.ESCROW_DECISION,
-          brs.schema.Tables.GOODS, brs.schema.Tables.PEER, brs.schema.Tables.PURCHASE,
-          brs.schema.Tables.PURCHASE_FEEDBACK, brs.schema.Tables.PURCHASE_PUBLIC_FEEDBACK,
-          brs.schema.Tables.REWARD_RECIP_ASSIGN, brs.schema.Tables.SUBSCRIPTION,
-          brs.schema.Tables.TRADE, brs.schema.Tables.TRANSACTION,
-          brs.schema.Tables.UNCONFIRMED_TRANSACTION));
-      for (TableImpl table : tables) {
-        try {
-          ctx.truncate(table).execute();
-        } catch (org.jooq.exception.DataAccessException e) {
-          if (force) {
-            logger.trace("exception during truncate {0}", table, e);
-          } else {
-            throw e;
-          }
+    DSLContext ctx = Db.getDSLContext();
+    List<TableImpl> tables = new ArrayList<>(Arrays.asList(brs.schema.Tables.ACCOUNT,
+            brs.schema.Tables.ACCOUNT_ASSET, brs.schema.Tables.ALIAS, brs.schema.Tables.ALIAS_OFFER,
+            brs.schema.Tables.ASK_ORDER, brs.schema.Tables.ASSET, brs.schema.Tables.ASSET_TRANSFER,
+            brs.schema.Tables.AT, brs.schema.Tables.AT_STATE, brs.schema.Tables.BID_ORDER,
+            brs.schema.Tables.BLOCK, brs.schema.Tables.ESCROW, brs.schema.Tables.ESCROW_DECISION,
+            brs.schema.Tables.GOODS, brs.schema.Tables.PEER, brs.schema.Tables.PURCHASE,
+            brs.schema.Tables.PURCHASE_FEEDBACK, brs.schema.Tables.PURCHASE_PUBLIC_FEEDBACK,
+            brs.schema.Tables.REWARD_RECIP_ASSIGN, brs.schema.Tables.SUBSCRIPTION,
+            brs.schema.Tables.TRADE, brs.schema.Tables.TRANSACTION,
+            brs.schema.Tables.UNCONFIRMED_TRANSACTION));
+    for (TableImpl table : tables) {
+      try {
+        ctx.truncate(table).execute();
+      } catch (org.jooq.exception.DataAccessException e) {
+        if (force) {
+          logger.trace("exception during truncate {0}", table, e);
+        } else {
+          throw e;
         }
       }
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
     }
   }
 }

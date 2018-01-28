@@ -173,7 +173,7 @@ public interface Appendix {
     }
   }
 
-  abstract static class AbstractEncryptedMessage extends AbstractAppendix {
+  abstract class AbstractEncryptedMessage extends AbstractAppendix {
 
     private final EncryptedData encryptedData;
     private final boolean isText;
@@ -244,7 +244,7 @@ public interface Appendix {
 
   }
 
-  public static class EncryptedMessage extends AbstractEncryptedMessage {
+  class EncryptedMessage extends AbstractEncryptedMessage {
 
     static EncryptedMessage parse(JSONObject attachmentData) throws BurstException.NotValidException {
       if (attachmentData.get("encryptedMessage") == null ) {
@@ -257,7 +257,7 @@ public interface Appendix {
       super(buffer, transactionVersion);
     }
 
-    public EncryptedMessage(JSONObject attachmentData) throws BurstException.NotValidException {
+    public EncryptedMessage(JSONObject attachmentData) {
       super(attachmentData, (JSONObject)attachmentData.get("encryptedMessage"));
     }
 
@@ -290,7 +290,7 @@ public interface Appendix {
 
   }
 
-  public static class EncryptToSelfMessage extends AbstractEncryptedMessage {
+  class EncryptToSelfMessage extends AbstractEncryptedMessage {
 
     static EncryptToSelfMessage parse(JSONObject attachmentData) throws BurstException.NotValidException {
       if (attachmentData.get("encryptToSelfMessage") == null ) {
@@ -303,7 +303,7 @@ public interface Appendix {
       super(buffer, transactionVersion);
     }
 
-    public EncryptToSelfMessage(JSONObject attachmentData) throws BurstException.NotValidException {
+    public EncryptToSelfMessage(JSONObject attachmentData) {
       super(attachmentData, (JSONObject)attachmentData.get("encryptToSelfMessage"));
     }
 
@@ -333,7 +333,7 @@ public interface Appendix {
 
   }
 
-  public static class PublicKeyAnnouncement extends AbstractAppendix {
+  class PublicKeyAnnouncement extends AbstractAppendix {
 
     static PublicKeyAnnouncement parse(JSONObject attachmentData) {
       if (attachmentData.get("recipientPublicKey") == null) {
