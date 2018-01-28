@@ -142,11 +142,7 @@ public class AT_Machine_Processor{
       return false;
     }
 
-    if (is_code && addr>=machineData.getCsize()) {
-      return false;
-    }
-
-    return true;
+    return !is_code || addr < machineData.getCsize();
   }
 
   private class Fun {
@@ -563,7 +559,7 @@ public class AT_Machine_Processor{
             rc=-1;
           else {
             machineData.getMachineState().pc+=rc;
-            machineData.getAp_data().putLong((int)addr*8, machineData.getAp_data().getLong((int)fun.addr2*8));
+            machineData.getAp_data().putLong((int)addr*8, machineData.getAp_data().getLong(fun.addr2 *8));
             machineData.getAp_data().clear();
           }
         }
@@ -597,7 +593,7 @@ public class AT_Machine_Processor{
               rc=-1;
             else {
               machineData.getMachineState().pc+=rc;
-              machineData.getAp_data().putLong((int)addr*8, machineData.getAp_data().getLong((int)fun.addr1*8));
+              machineData.getAp_data().putLong((int)addr*8, machineData.getAp_data().getLong(fun.addr1 *8));
               machineData.getAp_data().clear();
             }
           }
@@ -774,7 +770,7 @@ public class AT_Machine_Processor{
         }
         else {
           machineData.getMachineState().pc += rc;
-          int numBlocks = (int)machineData.getAp_data().getLong((int)fun.addr1*8);
+          int numBlocks = (int)machineData.getAp_data().getLong(fun.addr1 *8);
           if (numBlocks < 0)
             numBlocks = 0;
           int maxNumBlocks = (int)AT_Constants.getInstance().get_MAX_WAIT_FOR_NUM_OF_BLOCKS(machineData.getCreationBlockHeight());

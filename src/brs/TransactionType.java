@@ -248,12 +248,8 @@ public abstract class TransactionType {
   }
 
   static boolean isDuplicate(TransactionType uniqueType, String key, Map<TransactionType, Set<String>> duplicates) {
-    Set<String> typeDuplicates = duplicates.get(uniqueType);
-    if (typeDuplicates == null) {
-      typeDuplicates = new HashSet<>();
-      duplicates.put(uniqueType, typeDuplicates);
-    }
-    return ! typeDuplicates.add(key);
+      Set<String> typeDuplicates = duplicates.computeIfAbsent(uniqueType, k -> new HashSet<>());
+      return ! typeDuplicates.add(key);
   }
 
   public abstract boolean hasRecipient();
@@ -313,12 +309,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return Attachment.ORDINARY_PAYMENT;
         }
 
         @Override
-        Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) {
           return Attachment.ORDINARY_PAYMENT;
         }
 
@@ -360,12 +356,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return Attachment.ARBITRARY_MESSAGE;
         }
 
         @Override
-        Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) {
           return Attachment.ARBITRARY_MESSAGE;
         }
 
@@ -404,7 +400,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.MessagingAliasAssignment parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.MessagingAliasAssignment parseAttachment(JSONObject attachmentData) {
           return new Attachment.MessagingAliasAssignment(attachmentData);
         }
 
@@ -460,7 +456,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.MessagingAliasSell parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.MessagingAliasSell parseAttachment(JSONObject attachmentData) {
           return new Attachment.MessagingAliasSell(attachmentData);
         }
 
@@ -532,7 +528,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.MessagingAliasBuy parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.MessagingAliasBuy parseAttachment(JSONObject attachmentData) {
           return new Attachment.MessagingAliasBuy(attachmentData);
         }
 
@@ -602,7 +598,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.MessagingAccountInfo parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.MessagingAccountInfo parseAttachment(JSONObject attachmentData) {
           return new Attachment.MessagingAccountInfo(attachmentData);
         }
 
@@ -663,7 +659,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.ColoredCoinsAssetIssuance parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.ColoredCoinsAssetIssuance parseAttachment(JSONObject attachmentData) {
           return new Attachment.ColoredCoinsAssetIssuance(attachmentData);
         }
 
@@ -724,7 +720,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.ColoredCoinsAssetTransfer parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.ColoredCoinsAssetTransfer parseAttachment(JSONObject attachmentData) {
           return new Attachment.ColoredCoinsAssetTransfer(attachmentData);
         }
 
@@ -817,12 +813,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.ColoredCoinsAskOrderPlacement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.ColoredCoinsAskOrderPlacement parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.ColoredCoinsAskOrderPlacement(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.ColoredCoinsAskOrderPlacement parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.ColoredCoinsAskOrderPlacement parseAttachment(JSONObject attachmentData) {
           return new Attachment.ColoredCoinsAskOrderPlacement(attachmentData);
         }
 
@@ -862,12 +858,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.ColoredCoinsBidOrderPlacement parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.ColoredCoinsBidOrderPlacement parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.ColoredCoinsBidOrderPlacement(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.ColoredCoinsBidOrderPlacement parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.ColoredCoinsBidOrderPlacement parseAttachment(JSONObject attachmentData) {
           return new Attachment.ColoredCoinsBidOrderPlacement(attachmentData);
         }
 
@@ -924,12 +920,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.ColoredCoinsAskOrderCancellation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.ColoredCoinsAskOrderCancellation parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.ColoredCoinsAskOrderCancellation(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.ColoredCoinsAskOrderCancellation parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.ColoredCoinsAskOrderCancellation parseAttachment(JSONObject attachmentData) {
           return new Attachment.ColoredCoinsAskOrderCancellation(attachmentData);
         }
 
@@ -966,12 +962,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.ColoredCoinsBidOrderCancellation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.ColoredCoinsBidOrderCancellation parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.ColoredCoinsBidOrderCancellation(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.ColoredCoinsBidOrderCancellation parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.ColoredCoinsBidOrderCancellation parseAttachment(JSONObject attachmentData) {
           return new Attachment.ColoredCoinsBidOrderCancellation(attachmentData);
         }
 
@@ -1047,7 +1043,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.DigitalGoodsListing parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.DigitalGoodsListing parseAttachment(JSONObject attachmentData) {
           return new Attachment.DigitalGoodsListing(attachmentData);
         }
 
@@ -1085,12 +1081,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.DigitalGoodsDelisting parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.DigitalGoodsDelisting parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.DigitalGoodsDelisting(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DigitalGoodsDelisting parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.DigitalGoodsDelisting parseAttachment(JSONObject attachmentData) {
           return new Attachment.DigitalGoodsDelisting(attachmentData);
         }
 
@@ -1134,12 +1130,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.DigitalGoodsPriceChange parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.DigitalGoodsPriceChange parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.DigitalGoodsPriceChange(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DigitalGoodsPriceChange parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.DigitalGoodsPriceChange parseAttachment(JSONObject attachmentData) {
           return new Attachment.DigitalGoodsPriceChange(attachmentData);
         }
 
@@ -1185,12 +1181,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.DigitalGoodsQuantityChange parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.DigitalGoodsQuantityChange parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.DigitalGoodsQuantityChange(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DigitalGoodsQuantityChange parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.DigitalGoodsQuantityChange parseAttachment(JSONObject attachmentData) {
           return new Attachment.DigitalGoodsQuantityChange(attachmentData);
         }
 
@@ -1237,12 +1233,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.DigitalGoodsPurchase parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.DigitalGoodsPurchase parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.DigitalGoodsPurchase(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DigitalGoodsPurchase parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.DigitalGoodsPurchase parseAttachment(JSONObject attachmentData) {
           return new Attachment.DigitalGoodsPurchase(attachmentData);
         }
 
@@ -1313,7 +1309,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        Attachment.DigitalGoodsDelivery parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.DigitalGoodsDelivery parseAttachment(JSONObject attachmentData) {
           return new Attachment.DigitalGoodsDelivery(attachmentData);
         }
 
@@ -1364,12 +1360,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.DigitalGoodsFeedback parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.DigitalGoodsFeedback parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.DigitalGoodsFeedback(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DigitalGoodsFeedback parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.DigitalGoodsFeedback parseAttachment(JSONObject attachmentData) {
           return new Attachment.DigitalGoodsFeedback(attachmentData);
         }
 
@@ -1423,12 +1419,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.DigitalGoodsRefund parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.DigitalGoodsRefund parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.DigitalGoodsRefund(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.DigitalGoodsRefund parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.DigitalGoodsRefund parseAttachment(JSONObject attachmentData) {
           return new Attachment.DigitalGoodsRefund(attachmentData);
         }
 
@@ -1516,12 +1512,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.AccountControlEffectiveBalanceLeasing parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.AccountControlEffectiveBalanceLeasing parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.AccountControlEffectiveBalanceLeasing(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.AccountControlEffectiveBalanceLeasing parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.AccountControlEffectiveBalanceLeasing parseAttachment(JSONObject attachmentData) {
           return new Attachment.AccountControlEffectiveBalanceLeasing(attachmentData);
         }
 
@@ -1584,12 +1580,12 @@ public abstract class TransactionType {
 
         @Override
         public Attachment.BurstMiningRewardRecipientAssignment
-        parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.BurstMiningRewardRecipientAssignment(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.BurstMiningRewardRecipientAssignment parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.BurstMiningRewardRecipientAssignment parseAttachment(JSONObject attachmentData) {
           return new Attachment.BurstMiningRewardRecipientAssignment(attachmentData);
         }
 
@@ -1766,12 +1762,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.AdvancedPaymentEscrowSign parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.AdvancedPaymentEscrowSign parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.AdvancedPaymentEscrowSign(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.AdvancedPaymentEscrowSign parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.AdvancedPaymentEscrowSign parseAttachment(JSONObject attachmentData) {
           return new Attachment.AdvancedPaymentEscrowSign(attachmentData);
         }
 
@@ -1842,12 +1838,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.AdvancedPaymentEscrowResult parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.AdvancedPaymentEscrowResult parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.AdvancedPaymentEscrowResult(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.AdvancedPaymentEscrowResult parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.AdvancedPaymentEscrowResult parseAttachment(JSONObject attachmentData) {
           return new Attachment.AdvancedPaymentEscrowResult(attachmentData);
         }
 
@@ -1893,12 +1889,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.AdvancedPaymentSubscriptionSubscribe parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.AdvancedPaymentSubscriptionSubscribe parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.AdvancedPaymentSubscriptionSubscribe(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.AdvancedPaymentSubscriptionSubscribe parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.AdvancedPaymentSubscriptionSubscribe parseAttachment(JSONObject attachmentData) {
           return new Attachment.AdvancedPaymentSubscriptionSubscribe(attachmentData);
         }
 
@@ -1955,12 +1951,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.AdvancedPaymentSubscriptionCancel parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.AdvancedPaymentSubscriptionCancel parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.AdvancedPaymentSubscriptionCancel(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.AdvancedPaymentSubscriptionCancel parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.AdvancedPaymentSubscriptionCancel parseAttachment(JSONObject attachmentData) {
           return new Attachment.AdvancedPaymentSubscriptionCancel(attachmentData);
         }
 
@@ -2024,12 +2020,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return new Attachment.AdvancedPaymentSubscriptionPayment(buffer, transactionVersion);
         }
 
         @Override
-        Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        Attachment.AdvancedPaymentSubscriptionPayment parseAttachment(JSONObject attachmentData) {
           return new Attachment.AdvancedPaymentSubscriptionPayment(attachmentData);
         }
 
@@ -2111,9 +2107,8 @@ public abstract class TransactionType {
                                                   byte transactionVersion) throws NotValidException {
           // TODO Auto-generated method stub
           //System.out.println("parsing byte AT attachment");
-          AutomatedTransactionsCreation attachment = new Attachment.AutomatedTransactionsCreation(buffer,transactionVersion);
           //System.out.println("byte AT attachment parsed");
-          return attachment;
+          return new AutomatedTransactionsCreation(buffer,transactionVersion);
         }
 
         @Override
@@ -2121,9 +2116,8 @@ public abstract class TransactionType {
           throws NotValidException {
           // TODO Auto-generated method stub
           //System.out.println("parsing at attachment");
-          Attachment.AutomatedTransactionsCreation atCreateAttachment = new Attachment.AutomatedTransactionsCreation(attachmentData);
-          //System.out.println("attachment parsed");
-          return atCreateAttachment;
+            //System.out.println("attachment parsed");
+          return new AutomatedTransactionsCreation(attachmentData);
         }
 
         @Override
@@ -2139,7 +2133,7 @@ public abstract class TransactionType {
               throw new BurstException.NotValidException("Account with id already exists");
           }
           Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
-          long totalPages = 0;
+          long totalPages;
           try {
             totalPages = AT_Controller.checkCreationBytes(attachment.getCreationBytes(), Burst.getBlockchain().getHeight());
           }
@@ -2187,12 +2181,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
           return Attachment.AT_PAYMENT;
         }
 
         @Override
-        AbstractAttachment parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        AbstractAttachment parseAttachment(JSONObject attachmentData) {
           return Attachment.AT_PAYMENT;
         }
 

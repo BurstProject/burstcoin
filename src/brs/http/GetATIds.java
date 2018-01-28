@@ -2,7 +2,6 @@ package brs.http;
 
 import static brs.http.common.ResultFields.AT_IDS_RESPONSE;
 
-import brs.AT;
 import brs.services.ATService;
 import brs.util.Convert;
 import org.json.simple.JSONArray;

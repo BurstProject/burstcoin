@@ -22,6 +22,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.jooq.impl.DSL;
 import org.jooq.DSLContext;
@@ -82,7 +83,7 @@ public final class Db {
           if ( jnaPath == null || jnaPath.isEmpty() ) {
             Path path = Paths.get(
                                   "lib/firebird/"
-                                  + ( System.getProperty("sun.arch.data.model") == "32" ? "32" : "64" )
+                                  + (Objects.equals(System.getProperty("sun.arch.data.model"), "32") ? "32" : "64" )
                                   + "/"
                                   ).toAbsolutePath();
             System.setProperty("jna.library.path", path.toString());
@@ -176,7 +177,7 @@ public final class Db {
   public static void shutdown() {
     if (DATABASE_TYPE == TYPE.H2) {
       logger.info("Compacting database - this may take a while");
-      try ( Connection con = cp.getConnection(); Statement stmt = con.createStatement(); ) {
+      try ( Connection con = cp.getConnection(); Statement stmt = con.createStatement() ) {
         stmt.execute("SHUTDOWN COMPACT");
       }
       catch (SQLException e) {
@@ -189,8 +190,7 @@ public final class Db {
   }
 
   private static Connection getPooledConnection() throws SQLException {
-    Connection con = cp.getConnection();
-    return con;
+      return cp.getConnection();
   }
 
   public static Connection getConnection() throws SQLException {
@@ -205,7 +205,7 @@ public final class Db {
     return new DbConnection(con);
   }
 
-  public static final DSLContext getDSLContext() throws SQLException {
+  public static final DSLContext getDSLContext() {
     Connection con     = localConnection.get();
     SQLDialect dialect =  DATABASE_TYPE == TYPE.H2 ? SQLDialect.H2 : DATABASE_TYPE == TYPE.FIREBIRD ? SQLDialect.FIREBIRD : SQLDialect.MARIADB;
     Settings settings  = new Settings();
@@ -227,24 +227,16 @@ public final class Db {
     if (!isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-    Map<DbKey, Object> cacheMap = transactionCaches.get().get(tableName);
-    if (cacheMap == null) {
-      cacheMap = new HashMap<>();
-      transactionCaches.get().put(tableName, cacheMap);
-    }
-    return cacheMap;
+      Map<DbKey, Object> cacheMap = transactionCaches.get().computeIfAbsent(tableName, k -> new HashMap<>());
+      return cacheMap;
   }
 
   static Map<DbKey, Object> getBatch(String tableName) {
     if (!isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-    Map<DbKey, Object> batchMap = transactionBatches.get().get(tableName);
-    if (batchMap == null) {
-      batchMap = new HashMap<>();
-      transactionBatches.get().put(tableName, batchMap);
-    }
-    return batchMap;
+      Map<DbKey, Object> batchMap = transactionBatches.get().computeIfAbsent(tableName, k -> new HashMap<>());
+      return batchMap;
   }
 
   public static boolean isInTransaction() {
@@ -340,7 +332,7 @@ public final class Db {
     }
 
     @Override
-    public void setAutoCommit(boolean autoCommit) throws SQLException {
+    public void setAutoCommit(boolean autoCommit) {
       throw new UnsupportedOperationException("Use Db.beginTransaction() to start a new transaction");
     }
 

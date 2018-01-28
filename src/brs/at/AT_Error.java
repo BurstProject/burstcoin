@@ -16,7 +16,7 @@ public enum AT_Error {
   private final int code;
   private final String description;
 	
-  private AT_Error( int code, String description ) {
+  AT_Error(int code, String description) {
     this.code = code;
     this.description = description;
   }

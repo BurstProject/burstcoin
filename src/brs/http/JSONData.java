@@ -353,9 +353,7 @@ public final class JSONData {
     }
     if (purchase.getPublicFeedback() != null) {
       JSONArray publicFeedbacks = new JSONArray();
-      for (String publicFeedback : purchase.getPublicFeedback()) {
-        publicFeedbacks.add(publicFeedback);
-      }
+      publicFeedbacks.addAll(purchase.getPublicFeedback());
       json.put(PUBLIC_FEEDBACKS_RESPONSE, publicFeedbacks);
     }
     if (purchase.getRefundNote() != null) {

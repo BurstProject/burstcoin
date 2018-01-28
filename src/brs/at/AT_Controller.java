@@ -124,7 +124,7 @@ public abstract class AT_Controller {
     if (creation == null)
       throw new AT_Exception( "Creation bytes cannot be null" );
 
-    int totalPages = 0;
+    int totalPages;
     try {
       ByteBuffer b = ByteBuffer.allocate( creation.length );
       b.order( ByteOrder.LITTLE_ENDIAN );
@@ -303,9 +303,7 @@ public abstract class AT_Controller {
       logger.info("NoSuchAlgorithmException: ", e);
     }
 
-    AT_Block atBlock = new AT_Block( totalFee, totalAmount, bytesForBlock );
-
-    return atBlock;
+      return new AT_Block( totalFee, totalAmount, bytesForBlock );
   }
 
   public static AT_Block validateATs( byte[] blockATs, int blockHeight ) throws NoSuchAlgorithmException, AT_Exception {
@@ -320,7 +318,7 @@ public abstract class AT_Controller {
     boolean validated = true;
     long totalFee = 0;
     MessageDigest digest = MessageDigest.getInstance( "MD5" );
-    byte[] md5 = null;
+    byte[] md5;
     long totalAmount = 0;
 
     for ( ByteBuffer atIdBuffer : ats.keySet() ) {
@@ -385,9 +383,8 @@ public abstract class AT_Controller {
     for ( AT at : processedATs ) {
         at.saveState();
       }
-    AT_Block atBlock = new AT_Block( totalFee, totalAmount, new byte[ 1 ], validated );
 
-    return atBlock;
+      return new AT_Block( totalFee, totalAmount, new byte[ 1 ], validated );
   }
 
   public static LinkedHashMap< ByteBuffer, byte[] > getATsFromBlock( byte[] blockATs ) throws AT_Exception {

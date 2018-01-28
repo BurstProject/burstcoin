@@ -23,25 +23,22 @@ public final class UnlockAccount extends UserServlet.UserRequestHandler {
 
   private UnlockAccount() {}
 
-  private static final Comparator<JSONObject> myTransactionsComparator = new Comparator<JSONObject>() {
-      @Override
-      public int compare(JSONObject o1, JSONObject o2) {
-        int t1 = ((Number)o1.get("timestamp")).intValue();
-        int t2 = ((Number)o2.get("timestamp")).intValue();
-        if (t1 < t2) {
-          return 1;
-        }
-        if (t1 > t2) {
-          return -1;
-        }
-        String id1 = (String)o1.get("id");
-        String id2 = (String)o2.get("id");
-        return id2.compareTo(id1);
-      }
-    };
+  private static final Comparator<JSONObject> myTransactionsComparator = (o1, o2) -> {
+    int t1 = ((Number)o1.get("timestamp")).intValue();
+    int t2 = ((Number)o2.get("timestamp")).intValue();
+    if (t1 < t2) {
+      return 1;
+    }
+    if (t1 > t2) {
+      return -1;
+    }
+    String id1 = (String)o1.get("id");
+    String id2 = (String)o2.get("id");
+    return id2.compareTo(id1);
+  };
 
   @Override
-  JSONStreamAware processRequest(HttpServletRequest req, User user) throws IOException {
+  JSONStreamAware processRequest(HttpServletRequest req, User user) {
     String secretPhrase = req.getParameter(SECRET_PHRASE_PARAMETER);
     // lock all other instances of this account being unlocked
     for (User u : Users.getAllUsers()) {

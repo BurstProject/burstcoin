@@ -5,7 +5,7 @@ import org.json.simple.JSONStreamAware;
 
 public interface Peer extends Comparable<Peer> {
 
-  public enum State {
+  enum State {
     NON_CONNECTED, CONNECTED, DISCONNECTED
   }
 

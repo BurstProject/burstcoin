@@ -78,8 +78,8 @@ initialize your database with these statements:
 
 ```
 echo "CREATE DATABASE burstwallet; 
-      CREATE USER 'burstwallet'@'localhost' IDENTIFIED BY 'yourpassword';
-      GRANT ALL PRIVILEGES ON burstwallet.* TO 'burstwallet'@'localhost';" | mysql -uroot
+      CREATE USER 'brs_user'@'localhost' IDENTIFIED BY 'yourpassword';
+      GRANT ALL PRIVILEGES ON burstwallet.* TO 'brs_user'@'localhost';" | mysql -uroot
 mysql -uroot burstwallet < init-mysql.sql
 ```
 
@@ -89,7 +89,7 @@ Now you need to add the following stuff to your conf/brs.properties:
 
 ```
 brs.dbUrl=jdbc:mariadb://localhost:3306/burstwallet
-brs.dbUsername=burstwallet
+brs.dbUsername=brs_user
 brs.dbPassword=yourpassword
 ```
 
@@ -124,9 +124,11 @@ For a general overview of Burst history see https://burstwiki.org/wiki/History_o
 ```
 For a detailed version history of wallets up to 1.2.9 see https://github.com/burst-team/burstcoin/releases
 
+Code quality statistics can be found on SonarCloud: https://sonarcloud.io/dashboard?id=burstcoin%3Aburstcoin
+
 ## Build
 
-Burstcoin can be build from source using maven or - preferably - via
+Burstcoin can be built from source using maven or - preferably - via
 the provided `burst.sh compile` script within this repository.
 
 ## Credits

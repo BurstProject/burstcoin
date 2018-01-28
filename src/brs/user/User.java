@@ -159,7 +159,7 @@ final class User {
   private final class UserAsyncListener implements AsyncListener {
 
     @Override
-    public void onComplete(AsyncEvent asyncEvent) throws IOException { }
+    public void onComplete(AsyncEvent asyncEvent) { }
 
     @Override
     public void onError(AsyncEvent asyncEvent) throws IOException {
@@ -178,7 +178,7 @@ final class User {
     }
 
     @Override
-    public void onStartAsync(AsyncEvent asyncEvent) throws IOException { }
+    public void onStartAsync(AsyncEvent asyncEvent) { }
 
     @Override
     public void onTimeout(AsyncEvent asyncEvent) throws IOException {

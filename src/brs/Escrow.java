@@ -14,7 +14,7 @@ public class Escrow {
     UNDECIDED,
     RELEASE,
     REFUND,
-    SPLIT;
+    SPLIT
   }
 
   public static String decisionToString(DecisionType decision) {
@@ -83,10 +83,7 @@ public class Escrow {
     }
 
     Alias escrowEnabled = Alias.getAlias("featureescrow");
-    if(escrowEnabled != null && escrowEnabled.getAliasURI().equals("enabled")) {
-      return true;
-    }
-    return false;
+      return escrowEnabled != null && escrowEnabled.getAliasURI().equals("enabled");
   }
 
   public static class Decision {
@@ -389,7 +386,7 @@ public class Escrow {
         .ecBlockHeight(0)
         .ecBlockId(0L);
 
-    TransactionImpl transaction = null;
+    TransactionImpl transaction;
     try {
       transaction = builder.build();
     }

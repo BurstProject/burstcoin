@@ -10,12 +10,8 @@ public final class Listeners<T,E extends Enum<E>> {
 
   public boolean addListener(Listener<T> listener, Enum<E> eventType) {
     synchronized (this) {
-      List<Listener<T>> listeners = listenersMap.get(eventType);
-      if (listeners == null) {
-        listeners = new CopyOnWriteArrayList<>();
-        listenersMap.put(eventType, listeners);
-      }
-      return listeners.add(listener);
+        List<Listener<T>> listeners = listenersMap.computeIfAbsent(eventType, k -> new CopyOnWriteArrayList<>());
+        return listeners.add(listener);
     }
   }
 

@@ -8,7 +8,7 @@
  * @depends {3rdparty/webdb.js}
  * @depends {3rdparty/ajaxmultiqueue.js}
  * @depends {3rdparty/growl.js}
- * @depends {3rdparty/zeroclipboard.js}
+ * @depends {3rdparty/clipboard.js}
  * @depends {crypto/curve25519.js}
  * @depends {crypto/curve25519_.js}
  * @depends {crypto/passphrasegenerator.js}
@@ -727,7 +727,7 @@ var NRS = (function(NRS, $, undefined) {
 			$("#lease_balance_message").html($.t("balance_leasing_help"));
 		}
 
-		if (NRS.accountInfo.effectiveBalanceNXT == 0) {
+		if (NRS.accountInfo.effectiveBalanceBURST == 0) {
 			$("#forging_indicator").removeClass("forging");
 			$("#forging_indicator span").html($.t("not_forging")).attr("data-i18n", "not_forging");
 			$("#forging_indicator").show();

@@ -34,7 +34,7 @@ public class SqlAssetStore implements AssetStore {
       }
     };
 
-  private void saveAsset(DSLContext ctx, Asset asset) throws SQLException {
+  private void saveAsset(DSLContext ctx, Asset asset) {
     ctx.insertInto(ASSET).
       set(ASSET.ID, asset.getId()).
       set(ASSET.ACCOUNT_ID, asset.getAccountId()).

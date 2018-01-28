@@ -9,7 +9,6 @@ import static brs.http.common.ResultFields.BLOCK_IDS_RESPONSE;
 import brs.Account;
 import brs.Block;
 import brs.Blockchain;
-import brs.Burst;
 import brs.BurstException;
 import brs.db.BurstIterator;
 import brs.services.ParameterService;

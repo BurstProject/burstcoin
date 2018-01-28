@@ -23,8 +23,6 @@ public class SqlTransactionDb implements TransactionDb {
     try (DSLContext ctx = Db.getDSLContext()) {
       TransactionRecord transactionRecord = ctx.selectFrom(TRANSACTION).where(TRANSACTION.ID.eq(transactionId)).fetchOne();
       return loadTransaction(transactionRecord);
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
     } catch (BurstException.ValidationException e) {
       throw new RuntimeException("Transaction already in database, id = " + transactionId + ", does not pass validation!", e);
     }
@@ -35,8 +33,6 @@ public class SqlTransactionDb implements TransactionDb {
     try (DSLContext ctx = Db.getDSLContext()) {
       TransactionRecord transactionRecord = ctx.selectFrom(TRANSACTION).where(TRANSACTION.FULL_HASH.eq(Convert.parseHexString(fullHash))).fetchOne();
       return loadTransaction(transactionRecord);
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
     } catch (BurstException.ValidationException e) {
       throw new RuntimeException("Transaction already in database, full_hash = " + fullHash + ", does not pass validation!", e);
     }
@@ -44,20 +40,14 @@ public class SqlTransactionDb implements TransactionDb {
 
   @Override
   public boolean hasTransaction(long transactionId) {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      return ctx.fetchExists(ctx.selectFrom(TRANSACTION).where(TRANSACTION.ID.eq(transactionId)));
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    return ctx.fetchExists(ctx.selectFrom(TRANSACTION).where(TRANSACTION.ID.eq(transactionId)));
   }
 
   @Override
   public boolean hasTransactionByFullHash(String fullHash) {
-    try (DSLContext ctx = Db.getDSLContext()) {
-      return ctx.fetchExists(ctx.selectFrom(TRANSACTION).where(TRANSACTION.FULL_HASH.eq(Convert.parseHexString(fullHash))));
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
-    }
+    DSLContext ctx = Db.getDSLContext();
+    return ctx.fetchExists(ctx.selectFrom(TRANSACTION).where(TRANSACTION.FULL_HASH.eq(Convert.parseHexString(fullHash))));
   }
 
   @Override
@@ -190,8 +180,6 @@ public class SqlTransactionDb implements TransactionDb {
         list.add(loadTransaction(transactionRecord));
       }
       return list;
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
     } catch (BurstException.ValidationException e) {
       throw new RuntimeException("Transaction already in database for block_id = " + Convert.toUnsignedLong(blockId)
               + " does not pass validation!", e);
@@ -216,41 +204,38 @@ public class SqlTransactionDb implements TransactionDb {
   }
 
   public void saveTransactions(List<TransactionImpl> transactions) {
-    try (DSLContext ctx = Db.getDSLContext()) {
+    DSLContext ctx = Db.getDSLContext();
 
-      List<Insert<TransactionRecord>> inserts = new ArrayList<>(transactions.size());
-      for (TransactionImpl transaction : transactions) {
-        Insert<TransactionRecord> insert = ctx.insertInto(TRANSACTION).
-                set(TRANSACTION.ID, transaction.getId()).
-                set(TRANSACTION.DEADLINE, transaction.getDeadline()).
-                set(TRANSACTION.SENDER_PUBLIC_KEY, transaction.getSenderPublicKey()).
-                set(TRANSACTION.RECIPIENT_ID, ( transaction.getRecipientId() == 0 ? null : transaction.getRecipientId() )).
-                set(TRANSACTION.AMOUNT, transaction.getAmountNQT()).
-                set(TRANSACTION.FEE, transaction.getFeeNQT()).
-                set(TRANSACTION.REFERENCED_TRANSACTION_FULLHASH, Convert.parseHexString(transaction.getReferencedTransactionFullHash())).
-                set(TRANSACTION.HEIGHT, transaction.getHeight()).
-                set(TRANSACTION.BLOCK_ID, transaction.getBlockId()).
-                set(TRANSACTION.SIGNATURE, transaction.getSignature()).
-                set(TRANSACTION.TIMESTAMP, transaction.getTimestamp()).
-                set(TRANSACTION.TYPE, transaction.getType().getType()).
-                set(TRANSACTION.SUBTYPE, transaction.getType().getSubtype()).
-                set(TRANSACTION.SENDER_ID, transaction.getSenderId()).
-                set(TRANSACTION.ATTACHMENT_BYTES, getAttachmentBytes(transaction)).
-                set(TRANSACTION.BLOCK_TIMESTAMP, transaction.getBlockTimestamp()).
-                set(TRANSACTION.FULL_HASH, Convert.parseHexString(transaction.getFullHash())).
-                set(TRANSACTION.VERSION, transaction.getVersion()).
-                set(TRANSACTION.HAS_MESSAGE, transaction.getMessage() != null).
-                set(TRANSACTION.HAS_ENCRYPTED_MESSAGE, transaction.getEncryptedMessage() != null).
-                set(TRANSACTION.HAS_PUBLIC_KEY_ANNOUNCEMENT, transaction.getPublicKeyAnnouncement() != null).
-                set(TRANSACTION.HAS_ENCRYPTTOSELF_MESSAGE, transaction.getEncryptToSelfMessage() != null).
-                set(TRANSACTION.EC_BLOCK_HEIGHT, transaction.getECBlockHeight()).
-                set(TRANSACTION.EC_BLOCK_ID, transaction.getECBlockId() != 0 ? transaction.getECBlockId() : null);
+    List<Insert<TransactionRecord>> inserts = new ArrayList<>(transactions.size());
+    for (TransactionImpl transaction : transactions) {
+      Insert<TransactionRecord> insert = ctx.insertInto(TRANSACTION).
+              set(TRANSACTION.ID, transaction.getId()).
+              set(TRANSACTION.DEADLINE, transaction.getDeadline()).
+              set(TRANSACTION.SENDER_PUBLIC_KEY, transaction.getSenderPublicKey()).
+              set(TRANSACTION.RECIPIENT_ID, ( transaction.getRecipientId() == 0 ? null : transaction.getRecipientId() )).
+              set(TRANSACTION.AMOUNT, transaction.getAmountNQT()).
+              set(TRANSACTION.FEE, transaction.getFeeNQT()).
+              set(TRANSACTION.REFERENCED_TRANSACTION_FULLHASH, Convert.parseHexString(transaction.getReferencedTransactionFullHash())).
+              set(TRANSACTION.HEIGHT, transaction.getHeight()).
+              set(TRANSACTION.BLOCK_ID, transaction.getBlockId()).
+              set(TRANSACTION.SIGNATURE, transaction.getSignature()).
+              set(TRANSACTION.TIMESTAMP, transaction.getTimestamp()).
+              set(TRANSACTION.TYPE, transaction.getType().getType()).
+              set(TRANSACTION.SUBTYPE, transaction.getType().getSubtype()).
+              set(TRANSACTION.SENDER_ID, transaction.getSenderId()).
+              set(TRANSACTION.ATTACHMENT_BYTES, getAttachmentBytes(transaction)).
+              set(TRANSACTION.BLOCK_TIMESTAMP, transaction.getBlockTimestamp()).
+              set(TRANSACTION.FULL_HASH, Convert.parseHexString(transaction.getFullHash())).
+              set(TRANSACTION.VERSION, transaction.getVersion()).
+              set(TRANSACTION.HAS_MESSAGE, transaction.getMessage() != null).
+              set(TRANSACTION.HAS_ENCRYPTED_MESSAGE, transaction.getEncryptedMessage() != null).
+              set(TRANSACTION.HAS_PUBLIC_KEY_ANNOUNCEMENT, transaction.getPublicKeyAnnouncement() != null).
+              set(TRANSACTION.HAS_ENCRYPTTOSELF_MESSAGE, transaction.getEncryptToSelfMessage() != null).
+              set(TRANSACTION.EC_BLOCK_HEIGHT, transaction.getECBlockHeight()).
+              set(TRANSACTION.EC_BLOCK_ID, transaction.getECBlockId() != 0 ? transaction.getECBlockId() : null);
 
-          inserts.add(insert);
-      }
-      ctx.batch(inserts).execute();
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
+        inserts.add(insert);
     }
+    ctx.batch(inserts).execute();
   }
 }

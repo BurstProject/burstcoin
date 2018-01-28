@@ -98,19 +98,16 @@ public class SqlOrderStore implements OrderStore {
 
   @Override
   public Order.Ask getNextOrder(long assetId) {
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      SelectQuery query = ctx.selectFrom(brs.schema.Tables.ASK_ORDER).where(
-        brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId).and(brs.schema.Tables.ASK_ORDER.LATEST.isTrue())
-      ).orderBy(
-        brs.schema.Tables.ASK_ORDER.PRICE.asc(),
-        brs.schema.Tables.ASK_ORDER.CREATION_HEIGHT.asc(),
-        brs.schema.Tables.ASK_ORDER.ID.asc()
-      ).limit(1).getQuery();
-      try (BurstIterator<Order.Ask> askOrders = askOrderTable.getManyBy(ctx, query, true)) {
-        return askOrders.hasNext() ? askOrders.next() : null;
-      }
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
+    DSLContext ctx = Db.getDSLContext();
+    SelectQuery query = ctx.selectFrom(brs.schema.Tables.ASK_ORDER).where(
+      brs.schema.Tables.ASK_ORDER.ASSET_ID.eq(assetId).and(brs.schema.Tables.ASK_ORDER.LATEST.isTrue())
+    ).orderBy(
+      brs.schema.Tables.ASK_ORDER.PRICE.asc(),
+      brs.schema.Tables.ASK_ORDER.CREATION_HEIGHT.asc(),
+      brs.schema.Tables.ASK_ORDER.ID.asc()
+    ).limit(1).getQuery();
+    try (BurstIterator<Order.Ask> askOrders = askOrderTable.getManyBy(ctx, query, true)) {
+      return askOrders.hasNext() ? askOrders.next() : null;
     }
   }
 
@@ -192,19 +189,16 @@ public class SqlOrderStore implements OrderStore {
 
   @Override
   public Order.Bid getNextBid(long assetId) {
-    try (DSLContext ctx = Db.getDSLContext() ) {
-      SelectQuery query = ctx.selectFrom(brs.schema.Tables.BID_ORDER).where(
-        brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId).and(brs.schema.Tables.BID_ORDER.LATEST.isTrue())
-      ).orderBy(
-        brs.schema.Tables.BID_ORDER.PRICE.desc(),
-        brs.schema.Tables.BID_ORDER.CREATION_HEIGHT.asc(),
-        brs.schema.Tables.BID_ORDER.ID.asc()
-      ).limit(1).getQuery();
-      try (BurstIterator<Order.Bid> bidOrders = bidOrderTable.getManyBy(ctx, query, true)) {
-        return bidOrders.hasNext() ? bidOrders.next() : null;
-      }
-    } catch (SQLException e) {
-      throw new RuntimeException(e.toString(), e);
+    DSLContext ctx = Db.getDSLContext();
+    SelectQuery query = ctx.selectFrom(brs.schema.Tables.BID_ORDER).where(
+      brs.schema.Tables.BID_ORDER.ASSET_ID.eq(assetId).and(brs.schema.Tables.BID_ORDER.LATEST.isTrue())
+    ).orderBy(
+      brs.schema.Tables.BID_ORDER.PRICE.desc(),
+      brs.schema.Tables.BID_ORDER.CREATION_HEIGHT.asc(),
+      brs.schema.Tables.BID_ORDER.ID.asc()
+    ).limit(1).getQuery();
+    try (BurstIterator<Order.Bid> bidOrders = bidOrderTable.getManyBy(ctx, query, true)) {
+      return bidOrders.hasNext() ? bidOrders.next() : null;
     }
   }
 

@@ -17,7 +17,7 @@ public interface BurstIterator<T> extends Iterator<T>, AutoCloseable {
   @Override
   void close();
 
-  public interface ResultSetReader<T> {
+  interface ResultSetReader<T> {
     T get(DSLContext ctx, ResultSet rs) throws Exception;
   }
 }

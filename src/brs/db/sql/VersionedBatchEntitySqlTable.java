@@ -17,7 +17,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     super(table, tableClass, dbKeyFactory);
   }
 
-  protected abstract void updateUsing(DSLContext ctx, T t) throws SQLException;
+  protected abstract void updateUsing(DSLContext ctx, T t);
 
   @Override
   public boolean delete(T t) {
@@ -56,38 +56,29 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     if(!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      Set keySet = Db.getBatch(table).keySet();
-      Iterator<DbKey> it = keySet.iterator();
-      while(it.hasNext()) {
-        DbKey dbKey = it.next();
+    DSLContext ctx = Db.getDSLContext();
+    Set keySet = Db.getBatch(table).keySet();
+    Iterator<DbKey> it = keySet.iterator();
+    while(it.hasNext()) {
+      DbKey dbKey = it.next();
 
-        // ToDo: do a real batch here?
-        UpdateQuery updateQuery = ctx.updateQuery(tableClass);
-        updateQuery.addValue(
-          tableClass.field("latest", Boolean.class),
-          false
-        );
-        updateQuery.addConditions(dbKey.getPKConditions(tableClass));
-        updateQuery.addConditions(tableClass.field("latest", Boolean.class).isTrue());
-        updateQuery.execute();
-      }
-    }
-    catch(SQLException e) {
-      throw new RuntimeException(e.toString(), e);
+      // ToDo: do a real batch here?
+      UpdateQuery updateQuery = ctx.updateQuery(tableClass);
+      updateQuery.addValue(
+        tableClass.field("latest", Boolean.class),
+        false
+      );
+      updateQuery.addConditions(dbKey.getPKConditions(tableClass));
+      updateQuery.addConditions(tableClass.field("latest", Boolean.class).isTrue());
+      updateQuery.execute();
     }
 
     // ToDo: do a real batch here?
-    try ( DSLContext ctx = Db.getDSLContext() ) {
-      List<Map.Entry<DbKey,Object>> entries = new ArrayList<>(Db.getBatch(table).entrySet());
-      for ( Map.Entry<DbKey,Object> entry: entries) {
-        if(entry.getValue() != null) {
-          updateUsing(ctx, (T)entry.getValue());
-        }
+    List<Map.Entry<DbKey,Object>> entries = new ArrayList<>(Db.getBatch(table).entrySet());
+    for ( Map.Entry<DbKey,Object> entry: entries) {
+      if(entry.getValue() != null) {
+        updateUsing(ctx, (T)entry.getValue());
       }
-    }
-    catch(SQLException e) {
-      throw new RuntimeException(e.toString(), e);
     }
   }
 

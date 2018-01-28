@@ -178,11 +178,11 @@ public final class TransactionImpl implements Transaction {
   private final List<? extends Appendix.AbstractAppendix> appendages;
   private final int appendagesSize;
 
-  private volatile int height = Integer.MAX_VALUE;
+  private volatile int height;
   private volatile long blockId;
   private volatile Block block;
   private volatile byte[] signature;
-  private volatile int blockTimestamp = -1;
+  private volatile int blockTimestamp;
   private volatile long id;
   private volatile String stringId;
   private volatile long senderId;
@@ -612,9 +612,7 @@ public final class TransactionImpl implements Transaction {
     json.put("ecBlockId", Convert.toUnsignedLong(ecBlockId));
     json.put("signature", Convert.toHexString(signature));
     JSONObject attachmentJSON = new JSONObject();
-    appendages.forEach(appendage -> {
-        attachmentJSON.putAll(appendage.getJSONObject());
-      });
+    appendages.forEach(appendage -> attachmentJSON.putAll(appendage.getJSONObject()));
     //if (! attachmentJSON.isEmpty()) {
     json.put("attachment", attachmentJSON);
     //}
