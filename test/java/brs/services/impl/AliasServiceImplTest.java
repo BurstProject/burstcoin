@@ -3,11 +3,12 @@ package brs.services.impl;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import brs.Alias;
 import brs.Alias.Offer;
+import brs.common.AbstractUnitTest;
+import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
@@ -15,7 +16,7 @@ import brs.db.store.AliasStore;
 import org.junit.Before;
 import org.junit.Test;
 
-public class AliasServiceImplTest {
+public class AliasServiceImplTest extends AbstractUnitTest {
 
   private AliasServiceImpl t;
 
@@ -81,5 +82,18 @@ public class AliasServiceImplTest {
   public void getAliasCount() {
     when(aliasTableMock.getCount()).thenReturn(5);
     assertEquals(5L, t.getAliasCount());
+  }
+
+  @Test
+  public void getAliasesByOwner() {
+    final long accountId = 123L;
+    final int from = 0;
+    final int to = 1;
+
+    final BurstIterator<Alias> mockAliasIterator = mockBurstIterator();
+
+    when(aliasStoreMock.getAliasesByOwner(eq(accountId), eq(from), eq(to))).thenReturn(mockAliasIterator);
+
+    assertEquals(mockAliasIterator, t.getAliasesByOwner(accountId, from, to));
   }
 }
