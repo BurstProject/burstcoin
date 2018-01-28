@@ -1,15 +1,16 @@
 package brs.peer;
 
-import brs.Burst;
+import brs.services.TimeService;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 final class GetInfo extends PeerServlet.PeerRequestHandler {
 
-  static final GetInfo instance = new GetInfo();
+  private final TimeService timeService;
 
-  private GetInfo() {}
-
+  GetInfo(TimeService timeService) {
+    this.timeService = timeService;
+  }
 
   @Override
   JSONStreamAware processRequest(JSONObject request, Peer peer) {
@@ -41,7 +42,7 @@ final class GetInfo extends PeerServlet.PeerRequestHandler {
     peerImpl.setPlatform(platform.trim());
 
     peerImpl.setShareAddress(Boolean.TRUE.equals(request.get("shareAddress")));
-    peerImpl.setLastUpdated(Burst.getEpochTime());
+    peerImpl.setLastUpdated(timeService.getEpochTime());
 
     //peerImpl.setState(Peer.State.CONNECTED);
     Peers.notifyListeners(peerImpl, Peers.Event.ADDED_ACTIVE_PEER);

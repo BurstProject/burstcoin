@@ -1,7 +1,7 @@
 package brs.peer;
 
 import brs.Account;
-import brs.Burst;
+import brs.Blockchain;
 import brs.Transaction;
 import brs.db.BurstIterator;
 import brs.util.Convert;
@@ -11,9 +11,11 @@ import org.json.simple.JSONStreamAware;
 
 public class GetAccountRecentTransactions extends PeerServlet.PeerRequestHandler {
 	
-  static final GetAccountRecentTransactions instance = new GetAccountRecentTransactions();
+  private final Blockchain blockchain;
 	
-  private GetAccountRecentTransactions() {}
+  GetAccountRecentTransactions(Blockchain blockchain) {
+    this.blockchain = blockchain;
+  }
 	
   @Override
   JSONStreamAware processRequest(JSONObject request, Peer peer) {
@@ -25,10 +27,10 @@ public class GetAccountRecentTransactions extends PeerServlet.PeerRequestHandler
       Account account = Account.getAccount(accountId);
       JSONArray transactions = new JSONArray();
       if(account != null) {
-        BurstIterator<? extends Transaction> iterator = Burst.getBlockchain().getTransactions(account, 0, (byte)-1, (byte)0, 0, 0, 9);
+        BurstIterator<? extends Transaction> iterator = blockchain.getTransactions(account, 0, (byte)-1, (byte)0, 0, 0, 9);
         while(iterator.hasNext()) {
           Transaction transaction = iterator.next();
-          transactions.add(brs.http.JSONData.transaction(transaction, Burst.getBlockchain().getHeight()));
+          transactions.add(brs.http.JSONData.transaction(transaction, blockchain.getHeight()));
         }
       }
       response.put("transactions", transactions);
