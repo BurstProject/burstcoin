@@ -1,6 +1,5 @@
 package brs.common;
 
-import static brs.http.JSONResponses.MISSING_FEE;
 import static brs.http.common.Parameters.DEADLINE_PARAMETER;
 import static brs.http.common.Parameters.FEE_QT_PARAMETER;
 import static brs.http.common.Parameters.PUBLIC_KEY_PARAMETER;
@@ -12,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
-import org.mockito.Mock;
+import org.json.simple.JSONObject;
 
 public class QuickMocker {
 
@@ -39,6 +38,16 @@ public class QuickMocker {
     return httpServletRequest(paramsWithKeys.toArray(new MockParam[paramsWithKeys.size()]));
   }
 
+  public static JSONObject jsonObject(JSONParam... parameters) {
+    final JSONObject mockedRequest = mock(JSONObject.class);
+
+    for (JSONParam mp : parameters) {
+      when(mockedRequest.get(mp.key)).thenReturn(mp.value);
+    }
+
+    return mockedRequest;
+  }
+
   public static class MockParam {
 
     private final String key;
@@ -61,4 +70,16 @@ public class QuickMocker {
       this(key, "" + value);
     }
   }
+
+  public static class JSONParam {
+    private final String key;
+    private final Object value;
+
+    public JSONParam(String key, Object value) {
+      this.key = key;
+      this.value = value;
+    }
+
+  }
+
 }

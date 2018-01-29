@@ -13,7 +13,7 @@ import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.util.*;
 
-public final class TransactionImpl implements Transaction {
+public class TransactionImpl implements Transaction {
 
   private static final Logger logger = LoggerFactory.getLogger(TransactionImpl.class);
 
