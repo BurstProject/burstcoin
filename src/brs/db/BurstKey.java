@@ -1,7 +1,6 @@
 package brs.db;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 
 public interface BurstKey {
 
