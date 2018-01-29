@@ -54,15 +54,12 @@ public final class GetAccountTransactions extends APIServlet.APIRequestHandler {
       subtype = -1;
     }
 
-    int maxIndex   = Burst.getIntProperty("brs.apiMaxIndex"); // maxIndex as defined in config (if any)
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex  = ParameterParser.getLastIndex(req);
 
-    if (maxIndex > 0) {                                       // only if limit has been defined
-      lastIndex = Math.min(lastIndex, maxIndex);              // take the lower of the two
+    if(lastIndex < firstIndex) {
+      throw new IllegalArgumentException("lastIndex must be greater or equal to firstIndex");
     }
-
-    System.out.println("first: " + firstIndex + " last: " + lastIndex + "\n");
 
     JSONArray transactions = new JSONArray();
     try (BurstIterator<? extends Transaction> iterator = blockchain.getTransactions(account, numberOfConfirmations, type, subtype, timestamp,
