@@ -125,5 +125,6 @@ public class ResultFields {
   public static final String BID_ORDERS_RESPONSE = "bidOrders";
   public static final String TIME_RESPONSE = "time";
   public static final String ALIASES_RESPONSE = "aliases";
+  public static final String BID_ORDER_IDS_RESPONSE = "bidOrderIds";
 
 }
