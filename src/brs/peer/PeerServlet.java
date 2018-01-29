@@ -52,7 +52,7 @@ public final class PeerServlet extends HttpServlet {
     map.put("processBlock", new ProcessBlock(blockchain, blockchainProcessor));
     map.put("processTransactions", new ProcessTransactions(transactionProcessor));
     map.put("getAccountBalance", new GetAccountBalance(accountService));
-    map.put("getAccountRecentTransactions", new GetAccountRecentTransactions(blockchain));
+    map.put("getAccountRecentTransactions", new GetAccountRecentTransactions(accountService, blockchain));
     peerRequestHandlers = Collections.unmodifiableMap(map);
   }
 
