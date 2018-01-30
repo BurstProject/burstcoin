@@ -67,7 +67,7 @@ public class BlockImpl implements Block {
 
     this.version = version;
     this.timestamp = timestamp;
-    this.previousBlockId = Optional.ofNullable(previousBlockId).orElse(0L);
+    this.previousBlockId = previousBlockId;
     this.totalAmountNQT = totalAmountNQT;
     this.totalFeeNQT = totalFeeNQT;
     this.payloadLength = payloadLength;
@@ -102,7 +102,7 @@ public class BlockImpl implements Block {
 
     this.cumulativeDifficulty = cumulativeDifficulty == null ? BigInteger.ZERO : cumulativeDifficulty;
     this.baseTarget = baseTarget;
-    this.nextBlockId = Optional.ofNullable(nextBlockId).orElse(0L);
+    this.nextBlockId = nextBlockId;
     this.height = height;
     this.id = id;
   }

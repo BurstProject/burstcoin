@@ -42,17 +42,7 @@ public class CreateBinDump {
 
   public static void main(String[] args) {
     try {
-      long startTime = System.currentTimeMillis();
-
       LoggerConfigurator.init();
-
-      String dbUrl;
-      if (Constants.isTestnet) {
-        dbUrl = Burst.getStringProperty("brs.testDbUrl");
-      }
-      else {
-        dbUrl = Burst.getStringProperty("brs.dbUrl");
-      }
 
       if (Db.getDatabaseType() == Db.TYPE.H2) {
         logger.warn("Creating a dump from a h2 database will probably take multiple hours." +
@@ -69,7 +59,7 @@ public class CreateBinDump {
     }
   }
 
-  public static void dump(String filename) throws IOException, URISyntaxException, ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException {
+  private static void dump(String filename) throws IOException, URISyntaxException, ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException {
     long start = System.currentTimeMillis();
     Kryo kryo = new Kryo();
     try (Output output = new Output(new GZIPOutputStream(new FileOutputStream(filename)))) {

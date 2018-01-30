@@ -651,12 +651,12 @@ public class TransactionImpl implements Transaction {
         long recipientId = Convert.parseUnsignedLong((String) transactionData.get("recipient"));
         builder.recipientId(recipientId);
       }
-      if (attachmentData != null) {
-        builder.message(Appendix.Message.parse(attachmentData));
-        builder.encryptedMessage(Appendix.EncryptedMessage.parse(attachmentData));
-        builder.publicKeyAnnouncement((Appendix.PublicKeyAnnouncement.parse(attachmentData)));
-        builder.encryptToSelfMessage(Appendix.EncryptToSelfMessage.parse(attachmentData));
-      }
+
+      builder.message(Appendix.Message.parse(attachmentData));
+      builder.encryptedMessage(Appendix.EncryptedMessage.parse(attachmentData));
+      builder.publicKeyAnnouncement((Appendix.PublicKeyAnnouncement.parse(attachmentData)));
+      builder.encryptToSelfMessage(Appendix.EncryptToSelfMessage.parse(attachmentData));
+
       if (version > 0) {
         builder.ecBlockHeight(((Long) transactionData.get("ecBlockHeight")).intValue());
         builder.ecBlockId(Convert.parseUnsignedLong((String) transactionData.get("ecBlockId")));
@@ -676,7 +676,7 @@ public class TransactionImpl implements Transaction {
 
   @Override
   public long getECBlockId() {
-    return Optional.ofNullable(ecBlockId).orElse(0L);
+    return ecBlockId;
   }
 
   @Override
