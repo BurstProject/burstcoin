@@ -32,7 +32,7 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) {
     String secret = req.getParameter(SECRET_PHRASE_PARAMETER);
-    Long nonce = Convert.parseUnsignedLong(req.getParameter(NONCE_PARAMETER));
+    long nonce = Convert.parseUnsignedLong(req.getParameter(NONCE_PARAMETER));
 		
     String accountId = req.getParameter(ACCOUNT_ID_PARAMETER);
 		
@@ -40,11 +40,6 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 		
     if(secret == null) {
       response.put("result", "Missing Passphrase");
-      return response;
-    }
-		
-    if(nonce == null) {
-      response.put("result", "Missing Nonce");
       return response;
     }
 		

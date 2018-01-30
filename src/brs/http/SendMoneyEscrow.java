@@ -69,11 +69,7 @@ public final class SendMoneyEscrow extends CreateTransaction {
 		
     try {
       for(String signer : signersArray) {
-        Long id = Convert.parseAccountId(signer);
-        if(id == null) {
-          throw new Exception("");
-        }
-				
+        long id = Convert.parseAccountId(signer);
         signers.add(id);
       }
     }
