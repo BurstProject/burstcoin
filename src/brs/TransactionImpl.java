@@ -438,7 +438,7 @@ public class TransactionImpl implements Transaction {
 
   public BurstKey getDbKey() {
     if (dbKey == null) {
-      dbKey = TransactionProcessorImpl.getInstance().unconfirmedTransactionDbKeyFactory.newKey(getId());
+      dbKey = Burst.getStores().getTransactionProcessorStore().getUnconfirmedTransactionDbKeyFactory().newKey(getId());
     }
     return dbKey;
   }

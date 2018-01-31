@@ -8,6 +8,7 @@ import brs.Blockchain;
 import brs.BlockchainProcessor;
 import brs.Burst;
 import brs.BurstException;
+import brs.EconomicClustering;
 import brs.TransactionProcessor;
 import brs.services.ATService;
 import brs.services.AccountService;
@@ -34,7 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -50,7 +50,7 @@ public final class APIServlet extends HttpServlet {
   public static void injectServices(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
       AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
       TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService,
-      SubscriptionService subscriptionService, ATService atService, TimeService timeService) {
+      SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering) {
     final Map<String, APIRequestHandler> map = new HashMap<>();
 
     map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService));
@@ -102,7 +102,7 @@ public final class APIServlet extends HttpServlet {
     map.put("getDGSPurchase", new GetDGSPurchase(parameterService));
     map.put("getDGSPendingPurchases", new GetDGSPendingPurchases(digitalGoodsStoreService));
     map.put("getGuaranteedBalance", new GetGuaranteedBalance(parameterService));
-    map.put("getECBlock", new GetECBlock(blockchain, timeService));
+    map.put("getECBlock", new GetECBlock(blockchain, timeService, economicClustering));
     map.put("getMyInfo", GetMyInfo.instance);
     //map.put("getNextBlockGenerators", GetNextBlockGenerators.instance);
     map.put("getPeer", GetPeer.instance);

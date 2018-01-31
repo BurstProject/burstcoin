@@ -3,6 +3,7 @@ package brs.user;
 import brs.*;
 import brs.peer.Peer;
 import brs.peer.Peers;
+import brs.services.PropertyService;
 import brs.util.Subnet;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -35,11 +36,11 @@ public final class Users {
   private static final AtomicInteger transactionCounter = new AtomicInteger();
   private static final ConcurrentMap<Long, Integer> transactionIndexMap = new ConcurrentHashMap<>();
 
-  static final Set<Subnet> allowedUserHosts;
+  static Set<Subnet> allowedUserHosts;
 
-  static {
+  public Users(PropertyService propertyService) {
 
-    List<String> allowedUserHostsList = Burst.getStringListProperty("brs.allowedUserHosts");
+    List<String> allowedUserHostsList = propertyService.getStringListProperty("brs.allowedUserHosts");
     if (! allowedUserHostsList.contains("*")) {
 
       // Temp hashset to store allowed subnets
@@ -62,11 +63,11 @@ public final class Users {
     }
   }
 
-  static Collection<User> getAllUsers() {
+  Collection<User> getAllUsers() {
     return allUsers;
   }
 
-  static User getUser(String userId) {
+  User getUser(String userId) {
     User user = users.get(userId);
     if (user == null) {
       user = new User(userId);
@@ -82,22 +83,22 @@ public final class Users {
     return user;
   }
 
-  static User remove(User user) {
+  User remove(User user) {
     return users.remove(user.getUserId());
   }
 
-  private static void sendNewDataToAll(JSONObject response) {
+  private void sendNewDataToAll(JSONObject response) {
     response.put(RESPONSE, "processNewData");
     sendToAll(response);
   }
 
-  private static void sendToAll(JSONStreamAware response) {
+  private void sendToAll(JSONStreamAware response) {
     for (User user : users.values()) {
       user.send(response);
     }
   }
 
-  static int getIndex(Peer peer) {
+  int getIndex(Peer peer) {
     Integer index = peerIndexMap.get(peer.getPeerAddress());
     if (index == null) {
       index = peerCounter.incrementAndGet();
@@ -107,7 +108,7 @@ public final class Users {
     return index;
   }
 
-  static Peer getPeer(int index) {
+  Peer getPeer(int index) {
     String peerAddress = peerAddressMap.get(index);
     if (peerAddress == null) {
       return null;
@@ -115,19 +116,17 @@ public final class Users {
     return Peers.getPeer(peerAddress);
   }
 
-  static int getIndex(Block block) {
+  int getIndex(Block block) {
       Integer index = blockIndexMap.computeIfAbsent(block.getId(), k -> blockCounter.incrementAndGet());
       return index;
   }
 
-  static int getIndex(Transaction transaction) {
+  int getIndex(Transaction transaction) {
       Integer index = transactionIndexMap.computeIfAbsent(transaction.getId(), k -> transactionCounter.incrementAndGet());
       return index;
   }
 
-  public static void init() {}
-
-  public static void shutdown() {
+  public void shutdown() {
   }
 
   private Users() {} // never

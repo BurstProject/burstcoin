@@ -28,6 +28,9 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
 
   void fullReset();
 
+  void generateBlock(String secretPhrase, byte[] publicKey, Long nonce)
+      throws BlockNotAcceptedException;
+
   void scan(int height);
 
   void forceScanAtStart();

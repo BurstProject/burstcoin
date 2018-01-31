@@ -1,5 +1,7 @@
 package brs.util;
 
+import brs.Blockchain;
+import brs.services.PropertyService;
 import java.math.BigInteger;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -14,20 +16,24 @@ import brs.Burst;
 import brs.Constants;
 
 public final class DownloadCacheImpl {
-  public final int BLOCKCACHEMB =
-      Burst.getIntProperty("brs.blockCacheMB") == 0 ? 40 : Burst.getIntProperty("brs.blockCacheMB");
+  public final int BLOCKCACHEMB;
 
   protected static final Map<Long, Block> blockCache = new LinkedHashMap<>();
   protected static final Map<Long, Long> reverseCache = new LinkedHashMap<>();
   protected static final List<Long> unverified = new LinkedList<>();
 
-  private final BlockchainImpl blockchain = BlockchainImpl.getInstance();
+  private final BlockchainImpl blockchain;
   private static final Logger logger = LoggerFactory.getLogger(DownloadCacheImpl.class);
   private static int blockCacheSize = 0;
 
   private Long LastBlockId = null;
   private int LastHeight = -1;
   BigInteger HigestCumulativeDifficulty = BigInteger.ZERO;
+
+  public DownloadCacheImpl(PropertyService propertyService, BlockchainImpl blockchain) {
+    this.BLOCKCACHEMB = propertyService.getIntProperty("brs.blockCacheMB") == 0 ? 40 : propertyService.getIntProperty("brs.blockCacheMB");
+    this.blockchain = blockchain;
+  }
 
   public int getChainHeight() {
     if (LastHeight > -1) {

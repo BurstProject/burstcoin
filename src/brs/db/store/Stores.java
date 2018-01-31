@@ -1,5 +1,6 @@
 package brs.db.store;
 
+import brs.Blockchain;
 import brs.db.sql.*;
 
 public class Stores {

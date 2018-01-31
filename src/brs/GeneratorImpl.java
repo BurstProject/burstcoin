@@ -1,5 +1,6 @@
 package brs;
 
+import brs.services.TimeService;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -30,14 +31,17 @@ public final class GeneratorImpl implements Generator {
   private static final ConcurrentMap<Long, GeneratorStateImpl> generators = new ConcurrentHashMap<>();
   private static final Collection<? extends GeneratorState> allGenerators = Collections.unmodifiableCollection(generators.values());
 
-  private static final Runnable generateBlockThread = () -> {
+  private BlockchainProcessor blockchainProcessor;
+  private Blockchain blockchain;
+
+  private final Runnable generateBlockThread = () -> {
 
     try {
-      if (Burst.getBlockchainProcessor().isScanning()) {
+      if (blockchainProcessor.isScanning()) {
         return;
       }
       try {
-        long currentBlock = Burst.getBlockchain().getLastBlock().getHeight();
+        long currentBlock = blockchain.getLastBlock().getHeight();
         Iterator<Entry<Long, GeneratorStateImpl>> it = generators.entrySet().iterator();
         while (it.hasNext()) {
           Entry<Long, GeneratorStateImpl> generator = it.next();
@@ -57,7 +61,13 @@ public final class GeneratorImpl implements Generator {
 
   };
 
-  static {
+  private TimeService timeService;
+
+  public GeneratorImpl(BlockchainProcessor blockchainProcessor, Blockchain blockchain, TimeService timeService) {
+    this.blockchainProcessor = blockchainProcessor;
+    this.blockchain = blockchain;
+    this.timeService = timeService;
+
     ThreadPool.scheduleThread("GenerateBlocks", generateBlockThread, 500, TimeUnit.MILLISECONDS);
   }
 
@@ -74,19 +84,11 @@ public final class GeneratorImpl implements Generator {
     return listeners.removeListener(listener, eventType);
   }
 
-  /*public static GeneratorImpl startForging(String secretPhrase) {
-    return null;
-    }*/
-
   @Override
   public GeneratorState addNonce(String secretPhrase, Long nonce) {
     byte[] publicKey = Crypto.getPublicKey(secretPhrase);
     return addNonce(secretPhrase, nonce, publicKey);
   }
-
-  /*public static GeneratorImpl startForging(String secretPhrase, byte[] publicKey) {
-    return null;
-    }*/
 
   @Override
   public GeneratorState addNonce(String secretPhrase, Long nonce, byte[] publicKey) {
@@ -105,14 +107,6 @@ public final class GeneratorImpl implements Generator {
 
     return generator;
   }
-
-  /*public static GeneratorImpl stopForging(String secretPhrase) {
-    return null;
-    }
-  
-    public static GeneratorImpl getGenerator(String secretPhrase) {
-    return null;
-    }*/
 
   @Override
   public Collection<? extends GeneratorState> getAllGenerators() {
@@ -183,9 +177,11 @@ public final class GeneratorImpl implements Generator {
       // need to store publicKey in addition to accountId, because the account may not have had its publicKey set yet
       this.accountId = account;
       this.nonce = nonce;
-      this.block = (long) Burst.getBlockchain().getLastBlock().getHeight() + 1;
 
-      Block lastBlock = Burst.getBlockchain().getLastBlock();
+      Block lastBlock = blockchain.getLastBlock();
+
+      this.block = (long) lastBlock.getHeight() + 1;
+
       byte[] lastGenSig = lastBlock.getGenerationSignature();
       Long lastGenerator = lastBlock.getGeneratorId();
 
@@ -217,18 +213,24 @@ public final class GeneratorImpl implements Generator {
     }
 
     private void forge() throws BlockchainProcessor.BlockNotAcceptedException {
-      Block lastBlock = Burst.getBlockchain().getLastBlock();
+      Block lastBlock = blockchain.getLastBlock();
 
-      int elapsedTime = Burst.getEpochTime() - lastBlock.getTimestamp();
+      int elapsedTime = timeService.getEpochTime() - lastBlock.getTimestamp();
       if (BigInteger.valueOf(elapsedTime).compareTo(deadline) > 0) {
-        BlockchainProcessorImpl.getInstance().generateBlock(secretPhrase, publicKey, nonce);
+        blockchainProcessor.generateBlock(secretPhrase, publicKey, nonce);
       }
     }
   }
 
   public static class MockGeneratorImpl implements Generator {
 
-    private static final Listeners<GeneratorState, Event> listeners = new Listeners<>();
+    private final Listeners<GeneratorState, Event> listeners = new Listeners<>();
+
+    private BlockchainProcessorImpl blockchainProcessor;
+
+    public MockGeneratorImpl(BlockchainProcessorImpl blockchainProcessor) {
+      this.blockchainProcessor = blockchainProcessor;
+    }
 
     @Override
     public boolean addListener(Listener<GeneratorState> listener, Event eventType) {
@@ -249,7 +251,7 @@ public final class GeneratorImpl implements Generator {
     @Override
     public GeneratorState addNonce(String secretPhrase, Long nonce, byte[] publicKey) {
       try {
-        BlockchainProcessorImpl.getInstance().generateBlock(secretPhrase, publicKey, nonce);
+        blockchainProcessor.generateBlock(secretPhrase, publicKey, nonce);
       } catch (BlockchainProcessor.BlockNotAcceptedException e) {
         logger.info(e.getMessage(), e);
       }
