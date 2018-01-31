@@ -156,7 +156,7 @@ public final class APIServlet extends HttpServlet {
     map.put("sendMoneyEscrow", new SendMoneyEscrow(parameterService, transactionProcessor, blockchain, accountService));
     map.put("escrowSign", new EscrowSign(parameterService, transactionProcessor, blockchain, accountService, escrowService));
     map.put("getEscrowTransaction", new GetEscrowTransaction(escrowService));
-    map.put("getAccountEscrowTransactions", new GetAccountEscrowTransactions(parameterService));
+    map.put("getAccountEscrowTransactions", new GetAccountEscrowTransactions(parameterService, escrowService));
     map.put("sendMoneySubscription", new SendMoneySubscription(parameterService, transactionProcessor, blockchain, accountService));
     map.put("subscriptionCancel", new SubscriptionCancel(parameterService, transactionProcessor, blockchain, accountService, subscriptionService));
     map.put("getSubscription", new GetSubscription(subscriptionService));

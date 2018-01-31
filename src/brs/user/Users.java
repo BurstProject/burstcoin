@@ -63,11 +63,11 @@ public final class Users {
     }
   }
 
-  Collection<User> getAllUsers() {
+  static Collection<User> getAllUsers() {
     return allUsers;
   }
 
-  User getUser(String userId) {
+  static User getUser(String userId) {
     User user = users.get(userId);
     if (user == null) {
       user = new User(userId);
@@ -83,7 +83,7 @@ public final class Users {
     return user;
   }
 
-  User remove(User user) {
+  static User remove(User user) {
     return users.remove(user.getUserId());
   }
 
@@ -98,7 +98,7 @@ public final class Users {
     }
   }
 
-  int getIndex(Peer peer) {
+  static int getIndex(Peer peer) {
     Integer index = peerIndexMap.get(peer.getPeerAddress());
     if (index == null) {
       index = peerCounter.incrementAndGet();
@@ -108,7 +108,7 @@ public final class Users {
     return index;
   }
 
-  Peer getPeer(int index) {
+  static Peer getPeer(int index) {
     String peerAddress = peerAddressMap.get(index);
     if (peerAddress == null) {
       return null;
@@ -116,12 +116,12 @@ public final class Users {
     return Peers.getPeer(peerAddress);
   }
 
-  int getIndex(Block block) {
+  static int getIndex(Block block) {
       Integer index = blockIndexMap.computeIfAbsent(block.getId(), k -> blockCounter.incrementAndGet());
       return index;
   }
 
-  int getIndex(Transaction transaction) {
+  static int getIndex(Transaction transaction) {
       Integer index = transactionIndexMap.computeIfAbsent(transaction.getId(), k -> transactionCounter.incrementAndGet());
       return index;
   }

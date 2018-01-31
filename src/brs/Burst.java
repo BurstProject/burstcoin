@@ -192,9 +192,11 @@ public final class Burst {
       final EntityTable<TransactionImpl> unconfirmedTransactionTable =
           Burst.getStores().getTransactionProcessorStore().getUnconfirmedTransactionTable();
 
-      transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain);
-
       final TimeService timeService = new TimeServiceImpl();
+
+      final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
+      transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain, stores, timeService, dbs, accountService);
+
       final ATService atService = new ATServiceImpl(Burst.getStores().getAtStore());
       final SubscriptionService subscriptionService = new SubscriptionServiceImpl(Burst.getStores().getSubscriptionStore());
       final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(Burst.getStores().getDigitalGoodsStoreStore());
@@ -202,7 +204,6 @@ public final class Burst {
       final TradeService tradeService = new TradeServiceImpl(Burst.getStores().getTradeStore());
       final AssetAccountService assetAccountService = new AssetAccountServiceImpl(stores.getAccountStore());
       final AssetTransferService assetTransferService = new AssetTransferServiceImpl(stores.getAssetTransferStore());
-      final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
       final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
       final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
       final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,

@@ -89,4 +89,9 @@ public class AccountServiceImpl implements AccountService {
     byte[] publicKeyHash = Crypto.sha256().digest(publicKey);
     return Convert.fullHashToId(publicKeyHash);
   }
+
+  @Override
+  public void flushAccountTable() {
+    accountTable.finish();
+  }
 }
