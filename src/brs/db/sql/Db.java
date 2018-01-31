@@ -1,9 +1,9 @@
 package brs.db.sql;
 
+import brs.services.PropertyService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import brs.Constants;
-import brs.Burst;
 import brs.db.firebird.FirebirdDbs;
 import brs.db.h2.H2Dbs;
 import brs.db.mariadb.MariadbDbs;
@@ -33,25 +33,25 @@ public final class Db {
 
   private static final Logger logger = LoggerFactory.getLogger(Db.class);
 
-  private static final HikariDataSource cp;
+  private static HikariDataSource cp;
   private static final ThreadLocal<DbConnection> localConnection = new ThreadLocal<>();
   private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionCaches = new ThreadLocal<>();
   private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionBatches = new ThreadLocal<>();
-  private static final TYPE DATABASE_TYPE;
+  private static TYPE DATABASE_TYPE;
 
-  static {
+  public static void init(PropertyService propertyService) {
     String dbUrl;
     String dbUsername;
     String dbPassword;
 
     if (Constants.isTestnet) {
-      dbUrl = Burst.getStringProperty("brs.testDbUrl");
-      dbUsername = Burst.getStringProperty("brs.testDbUsername");
-      dbPassword = Burst.getStringProperty("brs.testDbPassword");
+      dbUrl = propertyService.getStringProperty("brs.testDbUrl");
+      dbUsername = propertyService.getStringProperty("brs.testDbUsername");
+      dbPassword = propertyService.getStringProperty("brs.testDbPassword");
     } else {
-      dbUrl = Burst.getStringProperty("brs.dbUrl");
-      dbUsername = Burst.getStringProperty("brs.dbUsername");
-      dbPassword = Burst.getStringProperty("brs.dbPassword");
+      dbUrl = propertyService.getStringProperty("brs.dbUrl");
+      dbUsername = propertyService.getStringProperty("brs.dbUsername");
+      dbPassword = propertyService.getStringProperty("brs.dbPassword");
     }
 
     logger.debug("Database jdbc url set to: " + dbUrl);
@@ -64,7 +64,7 @@ public final class Db {
       if (dbPassword != null)
         config.setPassword(dbPassword);
 
-      config.setMaximumPoolSize(Burst.getIntProperty("brs.dbMaximumPoolSize"));
+      config.setMaximumPoolSize(propertyService.getIntProperty("brs.dbMaximumPoolSize"));
 
       switch (DATABASE_TYPE) {
         case MARIADB:
@@ -128,7 +128,7 @@ public final class Db {
       cp = new HikariDataSource(config);
 
       if (DATABASE_TYPE == TYPE.H2) {
-        int defaultLockTimeout = Burst.getIntProperty("brs.dbDefaultLockTimeout") * 1000;
+        int defaultLockTimeout = propertyService.getIntProperty("brs.dbDefaultLockTimeout") * 1000;
         try (Connection con = cp.getConnection();
              Statement stmt = con.createStatement()) {
           stmt.executeUpdate("SET DEFAULT_LOCK_TIMEOUT " + defaultLockTimeout);

@@ -32,6 +32,7 @@ import brs.Attachment;
 import brs.Burst;
 import brs.Transaction;
 import brs.TransactionProcessor;
+import brs.TransactionProcessorImpl;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
@@ -148,7 +149,7 @@ public class SendMoneyTest {
         PowerMockito.mockStatic(Account.class);
         when(Account.getAccount(any(byte[].class))).thenReturn(mockAccount);
 
-        TransactionProcessor transactionProcessorMock = mock(TransactionProcessor.class);
+        TransactionProcessorImpl transactionProcessorMock = mock(TransactionProcessorImpl.class);
         Transaction.Builder mockBuilder = mock(Transaction.Builder.class);
         when(mockBuilder.recipientId((anyLong()))).thenReturn(mockBuilder);
         when(transactionProcessorMock.newTransactionBuilder(any(byte[].class), anyLong(), anyLong(), anyShort(), any(Attachment.class))).thenReturn(mockBuilder);

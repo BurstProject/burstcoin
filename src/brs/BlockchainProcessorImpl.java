@@ -1,5 +1,6 @@
 package brs;
 
+import brs.services.PropertyService;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -41,17 +42,14 @@ import brs.util.ThreadPool;
 final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private static final Logger logger = LoggerFactory.getLogger(BlockchainProcessorImpl.class);
-  private final BlockDb blockDb = Burst.getDbs().getBlockDb();
-  private final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
-  public static final DownloadCacheImpl DownloadCache = new DownloadCacheImpl();
+  private static BlockDb blockDb;
+  private static TransactionDb transactionDb;
+  public static DownloadCacheImpl DownloadCache;
 
   public static final int MAX_TIMESTAMP_DIFFERENCE = 15;
-  private static boolean oclVerify = Burst.getBooleanProperty("GPU.Acceleration"); // use GPU
-                                                                                   // acceleration ?
-  public static final int OCL_THRESHOLD =
-      Burst.getIntProperty("GPU.Threshold") == 0 ? 50 : Burst.getIntProperty("GPU.Threshold");
-  public static final int oclWaitThreshold = Burst.getIntProperty("GPU.WaitThreshold") == 0 ? 2000
-      : Burst.getIntProperty("GPU.WaitThreshold");
+  private static boolean oclVerify;
+  public static int OCL_THRESHOLD;
+  public static int oclWaitThreshold;
 
   private static final Semaphore gpuUsage = new Semaphore(2);
   /** If we are more than this many blocks behind we can engage "catch-up"-mode if enabled */
@@ -62,10 +60,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     return instance;
   }
 
-  private final BlockchainImpl blockchain = BlockchainImpl.getInstance();
+  private static BlockchainImpl blockchain;
 
   private final List<DerivedTable> derivedTables = new CopyOnWriteArrayList<>();
-  private final boolean trimDerivedTables = Burst.getBooleanProperty("brs.trimDerivedTables");
+  private static boolean trimDerivedTables;
   private volatile int lastTrimHeight;
 
   private final Listeners<Block, Event> blockListeners = new Listeners<>();
@@ -74,8 +72,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   private volatile boolean getMoreBlocks = true;
 
   private volatile boolean isScanning;
-  private volatile boolean forceScan = Burst.getBooleanProperty("brs.forceScan");
-  private volatile boolean validateAtScan = Burst.getBooleanProperty("brs.forceValidate");
+  private static boolean forceScan;
+  private static boolean validateAtScan;
 
   private final Runnable debugInfoThread = () -> {
     logger.info("Unverified blocks: " + DownloadCache.getUnverifiedSize());
@@ -89,6 +87,21 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   public static final Boolean getOclVerify() {
     return oclVerify;
+  }
+
+  public static void init(PropertyService propertyService, BlockchainImpl blockchainImpl) {
+    blockDb = Burst.getDbs().getBlockDb();
+    transactionDb = Burst.getDbs().getTransactionDb();
+    DownloadCache = new DownloadCacheImpl(propertyService, blockchainImpl);
+    blockchain = blockchainImpl;
+
+    oclVerify = propertyService.getBooleanProperty("GPU.Acceleration"); // use GPU acceleration ?
+    OCL_THRESHOLD = propertyService.getIntProperty("GPU.Threshold") == 0 ? 50 : propertyService.getIntProperty("GPU.Threshold");
+    oclWaitThreshold = propertyService.getIntProperty("GPU.WaitThreshold") == 0 ? 2000 : propertyService.getIntProperty("GPU.WaitThreshold");
+    trimDerivedTables = propertyService.getBooleanProperty("brs.trimDerivedTables");
+
+    forceScan = propertyService.getBooleanProperty("brs.forceScan");
+    validateAtScan = propertyService.getBooleanProperty("brs.forceValidate");
   }
 
   private final Runnable pocVerificationThread = () -> {
@@ -591,7 +604,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           peer.blacklist();
           List<BlockImpl> peerPoppedOffBlocks = popOffTo(forkBlock);
           pushedForkBlocks = 0;
-          peerPoppedOffBlocks.forEach(block -> TransactionProcessorImpl.getInstance().processLater(block.getTransactions()));
+          peerPoppedOffBlocks.forEach(block -> Burst.getTransactionProcessor().processLater(block.getTransactions()));
         }
 
         // if we did not push any blocks we try to restore chain.
@@ -608,7 +621,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
           }
         } else {
-          myPoppedOffBlocks.forEach(block -> TransactionProcessorImpl.getInstance().processLater(block.getTransactions()));
+          myPoppedOffBlocks.forEach(block -> Burst.getTransactionProcessor().processLater(block.getTransactions()));
         }
       } // synchronized
       DownloadCache.ResetCache(); // Reset and set cached vars to chaindata.
@@ -791,7 +804,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     int curTime = Burst.getEpochTime();
 
     synchronized (blockchain) {
-      TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
+      TransactionProcessorImpl transactionProcessor = Burst.getTransactionProcessor();
       BlockImpl previousLastBlock = null;
       try {
         Burst.getStores().beginTransaction();
@@ -879,7 +892,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 transaction);
           }
           if (Burst.getBlockchain().getHeight() >= Constants.AUTOMATED_TRANSACTION_BLOCK) {
-            if (!EconomicClustering.verifyFork(transaction)) {
+            if (!Burst.getEconomicClustering().verifyFork(transaction)) {
               logger.debug("Block " + block.getStringId() + " height "
                   + (previousLastBlock.getHeight() + 1)
                   + " contains transaction that was generated on a fork: "
@@ -949,7 +962,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   private void accept(BlockImpl block, Long remainingAmount, Long remainingFee)
       throws BlockNotAcceptedException {
     Subscription.clearRemovals();
-    TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
+    TransactionProcessorImpl transactionProcessor = Burst.getTransactionProcessor();
     for (TransactionImpl transaction : block.getTransactions()) {
       if (!transaction.applyUnconfirmed()) {
         throw new TransactionNotAcceptedException(
@@ -1046,10 +1059,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     return 3;
   }
 
-  void generateBlock(String secretPhrase, byte[] publicKey, Long nonce)
+  @Override
+  public void generateBlock(String secretPhrase, byte[] publicKey, Long nonce)
       throws BlockNotAcceptedException {
 
-    TransactionProcessorImpl transactionProcessor = TransactionProcessorImpl.getInstance();
+    TransactionProcessorImpl transactionProcessor = Burst.getTransactionProcessor();
     List<TransactionImpl> orderedUnconfirmedTransactions = new ArrayList<>();
     try (FilteringIterator<TransactionImpl> transactions =
         new FilteringIterator<>(transactionProcessor.getAllUnconfirmedTransactions(),
@@ -1099,7 +1113,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
 
         if (Burst.getBlockchain().getHeight() >= Constants.AUTOMATED_TRANSACTION_BLOCK) {
-          if (!EconomicClustering.verifyFork(transaction)) {
+          if (!Burst.getEconomicClustering().verifyFork(transaction)) {
             logger.debug("Including transaction that was generated on a fork: "
                 + transaction.getStringId() + " ecBlockHeight " + transaction.getECBlockHeight()
                 + " ecBlockId " + Convert.toUnsignedLong(transaction.getECBlockId()));

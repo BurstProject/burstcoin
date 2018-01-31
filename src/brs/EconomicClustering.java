@@ -16,9 +16,13 @@ package brs;
  */
 public final class EconomicClustering {
 
-  private static final Blockchain blockchain = BlockchainImpl.getInstance();
+  private final Blockchain blockchain;
 
-  public static Block getECBlock(int timestamp) {
+  public EconomicClustering(Blockchain blockchain) {
+    this.blockchain = blockchain;
+  }
+
+  public Block getECBlock(int timestamp) {
     Block block = blockchain.getLastBlock();
     if (timestamp < block.getTimestamp() - 15) {
       throw new IllegalArgumentException("Timestamp cannot be more than 15 s earlier than last block timestamp: " + block.getTimestamp());
@@ -31,7 +35,7 @@ public final class EconomicClustering {
     return block;
   }
 
-  public static boolean verifyFork(Transaction transaction) {
+  public boolean verifyFork(Transaction transaction) {
     if (blockchain.getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
       return true;
     }
