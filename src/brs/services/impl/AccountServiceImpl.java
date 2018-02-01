@@ -94,4 +94,10 @@ public class AccountServiceImpl implements AccountService {
   public void flushAccountTable() {
     accountTable.finish();
   }
+
+  @Override
+  public int getCount() {
+    return accountTable.getCount();
+  }
+
 }

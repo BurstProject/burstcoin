@@ -219,14 +219,13 @@ public final class Burst {
       addBlockchainListeners(blockchainProcessor, accountService, digitalGoodsStoreService, blockchain, Burst.getDbs().getTransactionDb());
 
       Constants.init(propertyService);
-      Asset.init();
       DigitalGoodsStore.init();
       Order.init();
       Trade.init();
       AssetTransfer.init();
       Peers.init(propertyService);
       // TODO this really should be better...
-      TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService);
+      TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService, assetService);
 
       api = new API(propertyService);
       users = new Users(propertyService);
