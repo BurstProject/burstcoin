@@ -175,10 +175,6 @@ public class Account {
     return assetListeners.removeListener(listener, eventType);
   }
 
-  public static int getCount() {
-    return accountTable().getCount();
-  }
-
   public static Account getAccount(long id) {
     return id == 0 ? null : accountTable().get(accountBurstKeyFactory().newKey(id));
   }

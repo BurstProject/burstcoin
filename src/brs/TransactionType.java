@@ -9,6 +9,7 @@ import brs.at.AT_Controller;
 import brs.at.AT_Exception;
 import brs.services.AccountService;
 import brs.services.AliasService;
+import brs.services.AssetService;
 import brs.services.DGSGoodsStoreService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
@@ -82,13 +83,15 @@ public abstract class TransactionType {
   private static AccountService accountService;
   private static DGSGoodsStoreService dgsGoodsStoreService;
   private static AliasService aliasService;
+  private static AssetService assetService;
 
   // Temporary...
-  static void init(Blockchain blockchain, AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService, AliasService aliasService) {
+  static void init(Blockchain blockchain, AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService, AliasService aliasService, AssetService assetService) {
     TransactionType.blockchain = blockchain;
     TransactionType.accountService = accountService;
     TransactionType.dgsGoodsStoreService = dgsGoodsStoreService;
     TransactionType.aliasService = aliasService;
+    TransactionType.assetService = assetService;
   }
 
   public static TransactionType findTransactionType(byte type, byte subtype) {
@@ -688,7 +691,7 @@ public abstract class TransactionType {
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.ColoredCoinsAssetIssuance attachment = (Attachment.ColoredCoinsAssetIssuance) transaction.getAttachment();
           long assetId = transaction.getId();
-          Asset.addAsset(transaction, attachment);
+          assetService.addAsset(transaction, attachment);
           senderAccount.addToAssetAndUnconfirmedAssetBalanceQNT(assetId, attachment.getQuantityQNT());
         }
 
@@ -778,7 +781,7 @@ public abstract class TransactionType {
             throw new BurstException.NotValidException("Asset transfer comments no longer allowed, use message " +
                                                      "or encrypted message appendix instead");
           }
-          Asset asset = Asset.getAsset(attachment.getAssetId());
+          Asset asset = assetService.getAsset(attachment.getAssetId());
           if (attachment.getQuantityQNT() <= 0 || (asset != null && attachment.getQuantityQNT() > asset.getQuantityQNT())) {
             throw new BurstException.NotValidException("Invalid asset transfer asset or quantity: " + attachment.getJSONObject());
           }
@@ -804,7 +807,7 @@ public abstract class TransactionType {
             || attachment.getAssetId() == 0) {
           throw new BurstException.NotValidException("Invalid asset order placement: " + attachment.getJSONObject());
         }
-        Asset asset = Asset.getAsset(attachment.getAssetId());
+        Asset asset = assetService.getAsset(attachment.getAssetId());
         if (attachment.getQuantityQNT() <= 0 || (asset != null && attachment.getQuantityQNT() > asset.getQuantityQNT())) {
           throw new BurstException.NotValidException("Invalid asset order placement asset or quantity: " + attachment.getJSONObject());
         }
@@ -853,7 +856,7 @@ public abstract class TransactionType {
         @Override
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.ColoredCoinsAskOrderPlacement attachment = (Attachment.ColoredCoinsAskOrderPlacement) transaction.getAttachment();
-          if (Asset.getAsset(attachment.getAssetId()) != null) {
+          if (assetService.getAsset(attachment.getAssetId()) != null) {
             Order.Ask.addOrder(transaction, attachment);
           }
         }
@@ -897,7 +900,7 @@ public abstract class TransactionType {
         @Override
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.ColoredCoinsBidOrderPlacement attachment = (Attachment.ColoredCoinsBidOrderPlacement) transaction.getAttachment();
-          if (Asset.getAsset(attachment.getAssetId()) != null) {
+          if (assetService.getAsset(attachment.getAssetId()) != null) {
             Order.Bid.addOrder(transaction, attachment);
           }
         }

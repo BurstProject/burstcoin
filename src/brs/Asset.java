@@ -1,33 +1,8 @@
 package brs;
 
-import brs.db.EntityTable;
 import brs.db.BurstKey;
 
 public class Asset {
-
-  private static final BurstKey.LongKeyFactory<Asset> assetDbKeyFactory() {
-    return Burst.getStores().getAssetStore().getAssetDbKeyFactory();
-  }
-
-  private static final EntityTable<Asset> assetTable() {
-    return Burst.getStores().getAssetStore().getAssetTable();
-  }
-
-  public static int getCount() {
-    return assetTable().getCount();
-  }
-
-  public static Asset getAsset(long id) {
-    return assetTable().get(assetDbKeyFactory().newKey(id));
-  }
-
-  static void addAsset(Transaction transaction, Attachment.ColoredCoinsAssetIssuance attachment) {
-    assetTable().insert(new Asset(transaction, attachment));
-  }
-
-  static void init() {
-  }
-
 
   private final long assetId;
   public final BurstKey dbKey;
@@ -47,9 +22,9 @@ public class Asset {
     this.decimals = decimals;
   }
 
-  private Asset(Transaction transaction, Attachment.ColoredCoinsAssetIssuance attachment) {
+  public Asset(BurstKey dbKey, Transaction transaction, Attachment.ColoredCoinsAssetIssuance attachment) {
+    this.dbKey = dbKey;
     this.assetId = transaction.getId();
-    this.dbKey = assetDbKeyFactory().newKey(this.assetId);
     this.accountId = transaction.getSenderId();
     this.name = attachment.getName();
     this.description = attachment.getDescription();

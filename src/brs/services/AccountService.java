@@ -26,4 +26,5 @@ public interface AccountService {
 
   void flushAccountTable();
 
+  int getCount();
 }

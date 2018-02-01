@@ -9,6 +9,7 @@ import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.services.AccountService;
 import brs.services.AliasService;
+import brs.services.AssetService;
 import brs.services.AssetTransferService;
 import brs.services.EscrowService;
 import brs.services.OrderService;
@@ -29,9 +30,10 @@ public final class GetState extends APIServlet.APIRequestHandler {
   private final AssetTransferService assetTransferService;
   private final AliasService aliasService;
   private final TimeService timeService;
+  private final AssetService assetService;
 
   GetState(Blockchain blockchain, TradeService tradeService, AccountService accountService, EscrowService escrowService, OrderService orderService,
-      AssetTransferService assetTransferService, AliasService aliasService, TimeService timeService) {
+      AssetTransferService assetTransferService, AliasService aliasService, TimeService timeService, AssetService assetService) {
     super(new APITag[] {APITag.INFO}, INCLUDE_COUNTS_PARAMETER);
     this.blockchain = blockchain;
     this.tradeService = tradeService;
@@ -41,6 +43,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
     this.assetTransferService = assetTransferService;
     this.aliasService = aliasService;
     this.timeService = timeService;
+    this.assetService = assetService;
   }
 
   @Override
@@ -75,8 +78,8 @@ public final class GetState extends APIServlet.APIRequestHandler {
     if (!"false".equalsIgnoreCase(req.getParameter("includeCounts"))) {
       response.put("numberOfBlocks", blockchain.getHeight() + 1);
       response.put("numberOfTransactions", blockchain.getTransactionCount());
-      response.put("numberOfAccounts", Account.getCount());
-      response.put("numberOfAssets", Asset.getCount());
+      response.put("numberOfAccounts", accountService.getCount());
+      response.put("numberOfAssets", assetService.getCount());
       int askCount = orderService.getAskCount();
       int bidCount = orderService.getBidCount();
       response.put("numberOfOrders", askCount + bidCount);
