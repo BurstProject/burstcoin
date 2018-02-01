@@ -1,6 +1,5 @@
 package brs.util;
 
-import brs.Blockchain;
 import brs.services.PropertyService;
 import java.math.BigInteger;
 import java.util.LinkedHashMap;
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import brs.Block;
 import brs.BlockImpl;
 import brs.BlockchainImpl;
-import brs.Burst;
 import brs.Constants;
 
 public final class DownloadCacheImpl {

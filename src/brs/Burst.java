@@ -199,7 +199,7 @@ public final class Burst {
 
       final ATService atService = new ATServiceImpl(Burst.getStores().getAtStore());
       final SubscriptionService subscriptionService = new SubscriptionServiceImpl(Burst.getStores().getSubscriptionStore());
-      final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(Burst.getStores().getDigitalGoodsStoreStore());
+      final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(Burst.getStores().getDigitalGoodsStoreStore(), accountService);
       final EscrowService escrowService = new EscrowServiceImpl(Burst.getStores().getEscrowStore());
       final TradeService tradeService = new TradeServiceImpl(Burst.getStores().getTradeStore());
       final AssetAccountService assetAccountService = new AssetAccountServiceImpl(stores.getAccountStore());
@@ -219,13 +219,15 @@ public final class Burst {
       addBlockchainListeners(blockchainProcessor, accountService, digitalGoodsStoreService, blockchain, Burst.getDbs().getTransactionDb());
 
       Constants.init(propertyService);
-      Alias.init();
       Asset.init();
       DigitalGoodsStore.init();
       Order.init();
       Trade.init();
       AssetTransfer.init();
       Peers.init(propertyService);
+      // TODO this really should be better...
+      TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService);
+
       api = new API(propertyService);
       users = new Users(propertyService);
       DebugTrace.init(propertyService, blockchainProcessor);
