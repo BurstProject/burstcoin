@@ -6,6 +6,7 @@ import brs.db.BurstIterator;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
 import brs.db.store.DigitalGoodsStoreStore;
+import brs.services.AccountService;
 import brs.services.DGSGoodsStoreService;
 
 public class DGSGoodsStoreServiceImpl implements DGSGoodsStoreService {
@@ -16,7 +17,7 @@ public class DGSGoodsStoreServiceImpl implements DGSGoodsStoreService {
   private final LongKeyFactory<Goods> goodsDbKeyFactory;
   private final LongKeyFactory<Purchase> purchaseDbKeyFactory;
 
-  public DGSGoodsStoreServiceImpl(DigitalGoodsStoreStore digitalGoodsStoreStore) {
+  public DGSGoodsStoreServiceImpl(DigitalGoodsStoreStore digitalGoodsStoreStore, AccountService accountService) {
     this.digitalGoodsStoreStore = digitalGoodsStoreStore;
     this.goodsTable = digitalGoodsStoreStore.getGoodsTable();
     this.purchaseTable = digitalGoodsStoreStore.getPurchaseTable();

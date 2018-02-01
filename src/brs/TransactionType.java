@@ -7,6 +7,9 @@ import brs.BurstException.ValidationException;
 import brs.at.AT_Constants;
 import brs.at.AT_Controller;
 import brs.at.AT_Exception;
+import brs.services.AccountService;
+import brs.services.AliasService;
+import brs.services.DGSGoodsStoreService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 
@@ -74,6 +77,19 @@ public abstract class TransactionType {
   private static final int NEXT_FEE_HEIGHT = Integer.MAX_VALUE;
   private static final Fee NEXT_FEE = new Fee(Constants.ONE_BURST, 0);
   private static final Fee NEXT_ASSET_ISSUANCE_FEE = new Fee(1000 * Constants.ONE_BURST, 0);
+
+  private static Blockchain blockchain;
+  private static AccountService accountService;
+  private static DGSGoodsStoreService dgsGoodsStoreService;
+  private static AliasService aliasService;
+
+  // Temporary...
+  static void init(Blockchain blockchain, AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService, AliasService aliasService) {
+    TransactionType.blockchain = blockchain;
+    TransactionType.accountService = accountService;
+    TransactionType.dgsGoodsStoreService = dgsGoodsStoreService;
+    TransactionType.aliasService = aliasService;
+  }
 
   public static TransactionType findTransactionType(byte type, byte subtype) {
     switch (type) {
@@ -375,7 +391,7 @@ public abstract class TransactionType {
           if (transaction.getAmountNQT() != 0) {
             throw new BurstException.NotValidException("Invalid arbitrary message: " + attachment.getJSONObject());
           }
-          if (Burst.getBlockchain().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK && transaction.getMessage() == null) {
+          if (blockchain.getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK && transaction.getMessage() == null) {
             throw new BurstException.NotCurrentlyValidException("Missing message appendix not allowed before DGS block");
           }
         }
@@ -407,7 +423,7 @@ public abstract class TransactionType {
         @Override
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.MessagingAliasAssignment attachment = (Attachment.MessagingAliasAssignment) transaction.getAttachment();
-          Alias.addOrUpdateAlias(transaction, attachment);
+          aliasService.addOrUpdateAlias(transaction, attachment);
         }
 
         @Override
@@ -430,7 +446,7 @@ public abstract class TransactionType {
               throw new BurstException.NotValidException("Invalid alias name: " + normalizedAlias);
             }
           }
-          Alias alias = Alias.getAlias(normalizedAlias);
+          Alias alias = aliasService.getAlias(normalizedAlias);
           if (alias != null && alias.getAccountId() != transaction.getSenderId()) {
             throw new BurstException.NotCurrentlyValidException("Alias already owned by another account: " + normalizedAlias);
           }
@@ -464,7 +480,7 @@ public abstract class TransactionType {
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           final Attachment.MessagingAliasSell attachment =
               (Attachment.MessagingAliasSell) transaction.getAttachment();
-          Alias.sellAlias(transaction, attachment);
+          aliasService.sellAlias(transaction, attachment);
         }
 
         @Override
@@ -476,8 +492,8 @@ public abstract class TransactionType {
 
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-          if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
-            throw new BurstException.NotYetEnabledException("Alias transfer not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
+          if (blockchain.getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+            throw new BurstException.NotYetEnabledException("Alias transfer not yet enabled at height " + blockchain.getLastBlock().getHeight());
           }
           if (transaction.getAmountNQT() != 0) {
             throw new BurstException.NotValidException("Invalid sell alias transaction: " +
@@ -500,7 +516,7 @@ public abstract class TransactionType {
               throw new BurstException.NotValidException("Missing alias transfer recipient");
             }
           }
-          final Alias alias = Alias.getAlias(aliasName);
+          final Alias alias = aliasService.getAlias(aliasName);
           if (alias == null) {
             throw new BurstException.NotCurrentlyValidException("Alias hasn't been registered yet: " + aliasName);
           } else if (alias.getAccountId() != transaction.getSenderId()) {
@@ -537,7 +553,7 @@ public abstract class TransactionType {
           final Attachment.MessagingAliasBuy attachment =
               (Attachment.MessagingAliasBuy) transaction.getAttachment();
           final String aliasName = attachment.getAliasName();
-          Alias.changeOwner(transaction.getSenderId(), aliasName, transaction.getBlockTimestamp());
+          aliasService.changeOwner(transaction.getSenderId(), aliasName, transaction.getBlockTimestamp());
         }
 
         @Override
@@ -549,20 +565,20 @@ public abstract class TransactionType {
 
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-          if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
-            throw new BurstException.NotYetEnabledException("Alias transfer not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
+          if (blockchain.getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+            throw new BurstException.NotYetEnabledException("Alias transfer not yet enabled at height " + blockchain.getLastBlock().getHeight());
           }
           final Attachment.MessagingAliasBuy attachment =
               (Attachment.MessagingAliasBuy) transaction.getAttachment();
           final String aliasName = attachment.getAliasName();
-          final Alias alias = Alias.getAlias(aliasName);
+          final Alias alias = aliasService.getAlias(aliasName);
           if (alias == null) {
             throw new BurstException.NotCurrentlyValidException("Alias hasn't been registered yet: " + aliasName);
           } else if (alias.getAccountId() != transaction.getRecipientId()) {
             throw new BurstException.NotCurrentlyValidException("Alias is owned by account other than recipient: "
                                                               + Convert.toUnsignedLong(alias.getAccountId()));
           }
-          Alias.Offer offer = Alias.getOffer(alias);
+          Alias.Offer offer = aliasService.getOffer(alias);
           if (offer == null) {
             throw new BurstException.NotCurrentlyValidException("Alias is not for sale: " + aliasName);
           }
@@ -1018,8 +1034,8 @@ public abstract class TransactionType {
 
     @Override
     final void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-      if (Burst.getBlockchain().getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
-        throw new BurstException.NotYetEnabledException("Digital goods listing not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
+      if (blockchain.getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+        throw new BurstException.NotYetEnabledException("Digital goods listing not yet enabled at height " + blockchain.getLastBlock().getHeight());
       }
       if (transaction.getAmountNQT() != 0) {
         throw new BurstException.NotValidException("Invalid digital goods transaction");
@@ -1284,7 +1300,7 @@ public abstract class TransactionType {
           if (attachment.getQuantity() > goods.getQuantity() || attachment.getPriceNQT() != goods.getPriceNQT()) {
             throw new BurstException.NotCurrentlyValidException("Goods price or quantity changed: " + attachment.getJSONObject());
           }
-          if (attachment.getDeliveryDeadlineTimestamp() <= Burst.getBlockchain().getLastBlock().getTimestamp()) {
+          if (attachment.getDeliveryDeadlineTimestamp() <= blockchain.getLastBlock().getTimestamp()) {
             throw new BurstException.NotCurrentlyValidException("Delivery deadline has already expired: " + attachment.getDeliveryDeadlineTimestamp());
           }
         }
@@ -1596,7 +1612,7 @@ public abstract class TransactionType {
 
         @Override
         boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
-          if (Burst.getBlockchain().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+          if (blockchain.getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
             return false; // sync fails after 7007 without this
           }
           return isDuplicate(BurstMining.REWARD_RECIPIENT_ASSIGNMENT, Convert.toUnsignedLong(transaction.getSenderId()), duplicates);
@@ -1604,7 +1620,7 @@ public abstract class TransactionType {
 
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-          long height = (long)Burst.getBlockchain().getLastBlock().getHeight() + 1;
+          long height = (long)blockchain.getLastBlock().getHeight() + 1;
           Account sender = Account.getAccount(transaction.getSenderId());
 
           if (sender == null) {
@@ -2124,8 +2140,8 @@ public abstract class TransactionType {
         void doValidateAttachment(Transaction transaction)
           throws ValidationException {
           //System.out.println("validating attachment");
-          if (Burst.getBlockchain().getLastBlock().getHeight()< Constants.AUTOMATED_TRANSACTION_BLOCK){
-            throw new BurstException.NotYetEnabledException("Automated Transactions not yet enabled at height " + Burst.getBlockchain().getLastBlock().getHeight());
+          if (blockchain.getLastBlock().getHeight()< Constants.AUTOMATED_TRANSACTION_BLOCK){
+            throw new BurstException.NotYetEnabledException("Automated Transactions not yet enabled at height " + blockchain.getLastBlock().getHeight());
           }
           if (transaction.getSignature() != null && Account.getAccount(transaction.getId()) != null) {
             Account existingAccount = Account.getAccount(transaction.getId());
@@ -2135,7 +2151,7 @@ public abstract class TransactionType {
           Attachment.AutomatedTransactionsCreation attachment = (Attachment.AutomatedTransactionsCreation) transaction.getAttachment();
           long totalPages;
           try {
-            totalPages = AT_Controller.checkCreationBytes(attachment.getCreationBytes(), Burst.getBlockchain().getHeight());
+            totalPages = AT_Controller.checkCreationBytes(attachment.getCreationBytes(), blockchain.getHeight());
           }
           catch (AT_Exception e) {
             throw new BurstException.NotCurrentlyValidException("Invalid AT creation bytes", e);
@@ -2144,7 +2160,7 @@ public abstract class TransactionType {
           if (transaction.getFeeNQT() <  requiredFee){
             throw new BurstException.NotValidException("Insufficient fee for AT creation. Minimum: " + Convert.toUnsignedLong(requiredFee / Constants.ONE_BURST));
           }
-          if (Burst.getBlockchain().getHeight() >= Constants.AT_FIX_BLOCK_3) {
+          if (blockchain.getHeight() >= Constants.AT_FIX_BLOCK_3) {
             if (attachment.getName().length() > Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH) {
               throw new BurstException.NotValidException("Name of automated transaction over size limit");
             }

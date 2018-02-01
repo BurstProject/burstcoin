@@ -490,14 +490,14 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 
     }
 
-    if (sendToPeersTransactions.size() > 0) {
+    if (! sendToPeersTransactions.isEmpty()) {
       Peers.sendToSomePeers(sendToPeersTransactions);
     }
 
-    if (addedUnconfirmedTransactions.size() > 0) {
+    if (! addedUnconfirmedTransactions.isEmpty()) {
       transactionListeners.notify(addedUnconfirmedTransactions, Event.ADDED_UNCONFIRMED_TRANSACTIONS);
     }
-    if (addedDoubleSpendingTransactions.size() > 0) {
+    if (! addedDoubleSpendingTransactions.isEmpty()) {
       transactionListeners.notify(addedDoubleSpendingTransactions, Event.ADDED_DOUBLESPENDING_TRANSACTIONS);
     }
     return addedUnconfirmedTransactions;

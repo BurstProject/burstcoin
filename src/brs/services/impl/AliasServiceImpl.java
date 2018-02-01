@@ -2,7 +2,9 @@ package brs.services.impl;
 
 import brs.Alias;
 import brs.Alias.Offer;
+import brs.Attachment;
 import brs.Burst;
+import brs.Transaction;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
@@ -46,6 +48,53 @@ public class AliasServiceImpl implements AliasService {
   @Override
   public BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
     return aliasStore.getAliasesByOwner(accountId, from, to);
+  }
+
+  @Override
+  public void addOrUpdateAlias(Transaction transaction, Attachment.MessagingAliasAssignment attachment) {
+    Alias alias = getAlias(attachment.getAliasName());
+    if (alias == null) {
+      BurstKey aliasDBId = aliasDbKeyFactory.newKey(transaction.getId());
+      alias = new Alias(transaction.getId(), aliasDBId, transaction, attachment);
+    } else {
+      alias.setAccountId(transaction.getSenderId());
+      alias.setAliasURI(attachment.getAliasURI());
+      alias.setTimestamp(transaction.getBlockTimestamp());
+    }
+    aliasTable.insert(alias);
+  }
+
+  @Override
+  public void sellAlias(Transaction transaction, Attachment.MessagingAliasSell attachment) {
+    final String aliasName = attachment.getAliasName();
+    final long priceNQT = attachment.getPriceNQT();
+    final long buyerId = transaction.getRecipientId();
+    if (priceNQT > 0) {
+      Alias alias = getAlias(aliasName);
+      Offer offer = getOffer(alias);
+      if (offer == null) {
+        offerTable.insert(new Offer(alias.getId(), priceNQT, buyerId));
+      }
+      else {
+        offer.setPriceNQT(priceNQT);
+        offer.setBuyerId(buyerId);
+        offerTable.insert(offer);
+      }
+    }
+    else {
+      changeOwner(buyerId, aliasName, transaction.getBlockTimestamp());
+    }
+
+  }
+
+  @Override
+  public void changeOwner(long newOwnerId, String aliasName, int timestamp) {
+    Alias alias = getAlias(aliasName);
+    alias.setAccountId(newOwnerId);
+    alias.setTimestamp(timestamp);
+    aliasTable.insert(alias);
+    Offer offer = getOffer(alias);
+    offerTable.delete(offer);
   }
 
 }
