@@ -11,6 +11,7 @@ import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.AssetService;
 import brs.services.DGSGoodsStoreService;
+import brs.services.OrderService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 
@@ -84,14 +85,16 @@ public abstract class TransactionType {
   private static DGSGoodsStoreService dgsGoodsStoreService;
   private static AliasService aliasService;
   private static AssetService assetService;
+  private static OrderService orderService;
 
   // Temporary...
-  static void init(Blockchain blockchain, AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService, AliasService aliasService, AssetService assetService) {
+  static void init(Blockchain blockchain, AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService, AliasService aliasService, AssetService assetService, OrderService orderService) {
     TransactionType.blockchain = blockchain;
     TransactionType.accountService = accountService;
     TransactionType.dgsGoodsStoreService = dgsGoodsStoreService;
     TransactionType.aliasService = aliasService;
     TransactionType.assetService = assetService;
+    TransactionType.orderService = orderService;
   }
 
   public static TransactionType findTransactionType(byte type, byte subtype) {
@@ -857,7 +860,7 @@ public abstract class TransactionType {
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.ColoredCoinsAskOrderPlacement attachment = (Attachment.ColoredCoinsAskOrderPlacement) transaction.getAttachment();
           if (assetService.getAsset(attachment.getAssetId()) != null) {
-            Order.Ask.addOrder(transaction, attachment);
+            orderService.addAskOrder(transaction, attachment);
           }
         }
 
@@ -901,7 +904,7 @@ public abstract class TransactionType {
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.ColoredCoinsBidOrderPlacement attachment = (Attachment.ColoredCoinsBidOrderPlacement) transaction.getAttachment();
           if (assetService.getAsset(attachment.getAssetId()) != null) {
-            Order.Bid.addOrder(transaction, attachment);
+            orderService.addBidOrder(transaction, attachment);
           }
         }
 
@@ -951,8 +954,8 @@ public abstract class TransactionType {
         @Override
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.ColoredCoinsAskOrderCancellation attachment = (Attachment.ColoredCoinsAskOrderCancellation) transaction.getAttachment();
-          Order order = Order.Ask.getAskOrder(attachment.getOrderId());
-          Order.Ask.removeOrder(attachment.getOrderId());
+          Order order = orderService.getAskOrder(attachment.getOrderId());
+          orderService.removeAskOrder(attachment.getOrderId());
           if (order != null) {
             senderAccount.addToUnconfirmedAssetBalanceQNT(order.getAssetId(), order.getQuantityQNT());
           }
@@ -961,7 +964,7 @@ public abstract class TransactionType {
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.ColoredCoinsAskOrderCancellation attachment = (Attachment.ColoredCoinsAskOrderCancellation) transaction.getAttachment();
-          Order ask = Order.Ask.getAskOrder(attachment.getOrderId());
+          Order ask = orderService.getAskOrder(attachment.getOrderId());
           if (ask == null) {
             throw new BurstException.NotCurrentlyValidException("Invalid ask order: " + Convert.toUnsignedLong(attachment.getOrderId()));
           }
@@ -993,8 +996,8 @@ public abstract class TransactionType {
         @Override
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.ColoredCoinsBidOrderCancellation attachment = (Attachment.ColoredCoinsBidOrderCancellation) transaction.getAttachment();
-          Order order = Order.Bid.getBidOrder(attachment.getOrderId());
-          Order.Bid.removeOrder(attachment.getOrderId());
+          Order order = orderService.getBidOrder(attachment.getOrderId());
+          orderService.removeBidOrder(attachment.getOrderId());
           if (order != null) {
             senderAccount.addToUnconfirmedBalanceNQT(Convert.safeMultiply(order.getQuantityQNT(), order.getPriceNQT()));
           }
@@ -1003,7 +1006,7 @@ public abstract class TransactionType {
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.ColoredCoinsBidOrderCancellation attachment = (Attachment.ColoredCoinsBidOrderCancellation) transaction.getAttachment();
-          Order bid = Order.Bid.getBidOrder(attachment.getOrderId());
+          Order bid = orderService.getBidOrder(attachment.getOrderId());
           if (bid == null) {
             throw new BurstException.NotCurrentlyValidException("Invalid bid order: " + Convert.toUnsignedLong(attachment.getOrderId()));
           }
