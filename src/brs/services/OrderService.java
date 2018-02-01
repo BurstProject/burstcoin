@@ -1,7 +1,9 @@
 package brs.services;
 
+import brs.Attachment;
 import brs.Order.Ask;
 import brs.Order.Bid;
+import brs.Transaction;
 import brs.db.BurstIterator;
 
 public interface OrderService {
@@ -29,4 +31,12 @@ public interface OrderService {
   BurstIterator<Bid> getBidOrdersByAccount(long accountId, int from, int to);
 
   BurstIterator<Bid> getBidOrdersByAccountAsset(long accountId, long assetId, int from, int to);
+
+  void removeBidOrder(long orderId);
+
+  void removeAskOrder(long orderId);
+
+  void addAskOrder(Transaction transaction, Attachment.ColoredCoinsAskOrderPlacement attachment);
+
+  void addBidOrder(Transaction transaction, Attachment.ColoredCoinsBidOrderPlacement attachment);
 }

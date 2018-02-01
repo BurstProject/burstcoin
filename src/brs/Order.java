@@ -1,46 +1,9 @@
 package brs;
 
 import brs.db.BurstKey;
-import brs.db.VersionedEntityTable;
 import brs.util.Convert;
 
 public abstract class Order {
-
-  private static void matchOrders(long assetId) {
-
-    Order.Ask askOrder;
-    Order.Bid bidOrder;
-
-    while ((askOrder = Ask.getNextOrder(assetId)) != null
-           && (bidOrder = Bid.getNextOrder(assetId)) != null) {
-
-      if (askOrder.getPriceNQT() > bidOrder.getPriceNQT()) {
-        break;
-      }
-
-
-      Trade trade = Trade.addTrade(assetId, Burst.getBlockchain().getLastBlock(), askOrder, bidOrder);
-
-      askOrder.updateQuantityQNT(Convert.safeSubtract(askOrder.getQuantityQNT(), trade.getQuantityQNT()));
-      Account askAccount = Account.getAccount(askOrder.getAccountId());
-      askAccount.addToBalanceAndUnconfirmedBalanceNQT(Convert.safeMultiply(trade.getQuantityQNT(), trade.getPriceNQT()));
-      askAccount.addToAssetBalanceQNT(assetId, -trade.getQuantityQNT());
-
-      bidOrder.updateQuantityQNT(Convert.safeSubtract(bidOrder.getQuantityQNT(), trade.getQuantityQNT()));
-      Account bidAccount = Account.getAccount(bidOrder.getAccountId());
-      bidAccount.addToAssetAndUnconfirmedAssetBalanceQNT(assetId, trade.getQuantityQNT());
-      bidAccount.addToBalanceNQT(-Convert.safeMultiply(trade.getQuantityQNT(), trade.getPriceNQT()));
-      bidAccount.addToUnconfirmedBalanceNQT(Convert.safeMultiply(trade.getQuantityQNT(), (bidOrder.getPriceNQT() - trade.getPriceNQT())));
-
-    }
-
-  }
-
-  static void init() {
-    Ask.init();
-    Bid.init();
-  }
-
 
   private final long id;
   private final long accountId;
@@ -92,53 +55,23 @@ public abstract class Order {
     return creationHeight;
   }
 
+  public void setQuantityQNT(long quantityQNT) {
+    this.quantityQNT = quantityQNT;
+  }
+
   @Override
   public String toString() {
     return getClass().getSimpleName() + " id: " + Convert.toUnsignedLong(id) + " account: " + Convert.toUnsignedLong(accountId)
         + " asset: " + Convert.toUnsignedLong(assetId) + " price: " + priceNQT + " quantity: " + quantityQNT + " height: " + creationHeight;
   }
 
-  private void setQuantityQNT(long quantityQNT) {
-    this.quantityQNT = quantityQNT;
-  }
-
   public static class Ask extends Order {
-
-    private static final BurstKey.LongKeyFactory<Ask> askOrderDbKeyFactory() {
-      return Burst.getStores().getOrderStore().getAskOrderDbKeyFactory();
-    }
-
-
-    private static final VersionedEntityTable<Ask> askOrderTable() {
-      return Burst.getStores().getOrderStore().getAskOrderTable();
-    }
-
-    public static Ask getAskOrder(long orderId) {
-      return askOrderTable().get(askOrderDbKeyFactory().newKey(orderId));
-    }
-
-    private static Ask getNextOrder(long assetId) {
-      return Burst.getStores().getOrderStore().getNextOrder(assetId);
-    }
-
-    static void addOrder(Transaction transaction, Attachment.ColoredCoinsAskOrderPlacement attachment) {
-      Ask order = new Ask(transaction, attachment);
-      askOrderTable().insert(order);
-      matchOrders(attachment.getAssetId());
-    }
-
-    static void removeOrder(long orderId) {
-      askOrderTable().delete(getAskOrder(orderId));
-    }
-
-    static void init() {}
-
 
     public final BurstKey dbKey;
 
-    private Ask(Transaction transaction, Attachment.ColoredCoinsAskOrderPlacement attachment) {
+    public Ask(BurstKey dbKey, Transaction transaction, Attachment.ColoredCoinsAskOrderPlacement attachment) {
       super(transaction, attachment);
-      this.dbKey = askOrderDbKeyFactory().newKey(super.id);
+      this.dbKey = dbKey;
     }
 
     public Ask(long id, long accountId, long assetId, long priceNQT, int creationHeight, long quantityQNT, BurstKey dbKey) {
@@ -146,79 +79,20 @@ public abstract class Order {
       this.dbKey = dbKey;
     }
 
-
-
-    private void updateQuantityQNT(long quantityQNT) {
-      super.setQuantityQNT(quantityQNT);
-      if (quantityQNT > 0) {
-        askOrderTable().insert(this);
-      } else if (quantityQNT == 0) {
-        askOrderTable().delete(this);
-      } else {
-        throw new IllegalArgumentException("Negative quantity: " + quantityQNT
-                                           + " for order: " + Convert.toUnsignedLong(getId()));
-      }
-    }
-
   }
 
   public static class Bid extends Order {
 
-    private static final BurstKey.LongKeyFactory<Bid> bidOrderDbKeyFactory() {
-      return Burst.getStores().getOrderStore().getBidOrderDbKeyFactory();
-    }
-
-    private static final VersionedEntityTable<Bid> bidOrderTable() {
-      return Burst.getStores().getOrderStore().getBidOrderTable();
-    }
-
-    public static int getBidCount() {
-      return bidOrderTable().getCount();
-    }
-
-    public static Bid getBidOrder(long orderId) {
-      return bidOrderTable().get(bidOrderDbKeyFactory().newKey(orderId));
-    }
-
-    private static Bid getNextOrder(long assetId) {
-      return Burst.getStores().getOrderStore().getNextBid(assetId);
-    }
-
-    static void addOrder(Transaction transaction, Attachment.ColoredCoinsBidOrderPlacement attachment) {
-      Bid order = new Bid(transaction, attachment);
-      bidOrderTable().insert(order);
-      matchOrders(attachment.getAssetId());
-    }
-
-    static void removeOrder(long orderId) {
-      bidOrderTable().delete(getBidOrder(orderId));
-    }
-
-    static void init() {}
-
-
     public final BurstKey dbKey;
 
-    private Bid(Transaction transaction, Attachment.ColoredCoinsBidOrderPlacement attachment) {
+    public Bid(BurstKey dbKey, Transaction transaction, Attachment.ColoredCoinsBidOrderPlacement attachment) {
       super(transaction, attachment);
-      this.dbKey = bidOrderDbKeyFactory().newKey(super.id);
+      this.dbKey = dbKey;
     }
 
     public Bid(long id, long accountId, long assetId, long priceNQT, int creationHeight, long quantityQNT, BurstKey dbKey) {
       super(id, accountId, assetId, priceNQT, creationHeight, quantityQNT);
       this.dbKey = dbKey;
-    }
-
-    private void updateQuantityQNT(long quantityQNT) {
-      super.setQuantityQNT(quantityQNT);
-      if (quantityQNT > 0) {
-        bidOrderTable().insert(this);
-      } else if (quantityQNT == 0) {
-        bidOrderTable().delete(this);
-      } else {
-        throw new IllegalArgumentException("Negative quantity: " + quantityQNT
-                                           + " for order: " + Convert.toUnsignedLong(getId()));
-      }
     }
   }
 }

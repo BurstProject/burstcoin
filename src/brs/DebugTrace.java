@@ -1,8 +1,9 @@
 package brs;
 
+import brs.services.OrderService;
 import brs.services.PropertyService;
+import brs.services.TradeService;
 import brs.util.Convert;
-import brs.util.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,10 +19,14 @@ public final class DebugTrace {
   static String SEPARATOR;
   static boolean LOG_UNCONFIRMED;
 
-  static void init(PropertyService propertyService, BlockchainProcessor blockchainProcessor) {
+  static OrderService orderService;
+
+  static void init(PropertyService propertyService, BlockchainProcessor blockchainProcessor, TradeService tradeService, OrderService orderService) {
     QUOTE = propertyService.getStringProperty("brs.debugTraceQuote", "");
     SEPARATOR = propertyService.getStringProperty("brs.debugTraceSeparator", "\t");
     LOG_UNCONFIRMED = propertyService.getBooleanProperty("brs.debugLogUnconfirmed");
+
+    DebugTrace.orderService = orderService;
 
     List<String> accountIdStrings = propertyService.getStringListProperty("brs.debugTraceAccounts");
     String logName = propertyService.getStringProperty("brs.debugTraceLog");
@@ -36,15 +41,15 @@ public final class DebugTrace {
       }
       accountIds.add(Convert.parseUnsignedLong(accountId));
     }
-    final DebugTrace debugTrace = addDebugTrace(accountIds, logName, blockchainProcessor);
+    final DebugTrace debugTrace = addDebugTrace(accountIds, logName, blockchainProcessor, tradeService);
     blockchainProcessor.addListener(block -> debugTrace.resetLog(), BlockchainProcessor.Event.RESCAN_BEGIN);
     logger.debug("Debug tracing of " + (accountIdStrings.contains("*") ? "ALL"
                                         : String.valueOf(accountIds.size())) + " accounts enabled");
   }
 
-  public static DebugTrace addDebugTrace(Set<Long> accountIds, String logName, BlockchainProcessor blockchainProcessor) {
+  public static DebugTrace addDebugTrace(Set<Long> accountIds, String logName, BlockchainProcessor blockchainProcessor, TradeService tradeService) {
     final DebugTrace debugTrace = new DebugTrace(accountIds, logName);
-    Trade.addListener(debugTrace::trace, Trade.Event.TRADE);
+    tradeService.addListener(debugTrace::trace, Trade.Event.TRADE);
     Account.addListener(account -> debugTrace.trace(account, false), Account.Event.BALANCE);
     if (LOG_UNCONFIRMED) {
       Account.addListener(account -> debugTrace.trace(account, true), Account.Event.UNCONFIRMED_BALANCE);
@@ -117,8 +122,8 @@ public final class DebugTrace {
 
   // Note: Trade events occur before the change in account balances
   private void trace(Trade trade) {
-    long askAccountId = Order.Ask.getAskOrder(trade.getAskOrderId()).getAccountId();
-    long bidAccountId = Order.Bid.getBidOrder(trade.getBidOrderId()).getAccountId();
+    long askAccountId = orderService.getAskOrder(trade.getAskOrderId()).getAccountId();
+    long bidAccountId = orderService.getBidOrder(trade.getBidOrderId()).getAccountId();
     if (include(askAccountId)) {
       log(getValues(askAccountId, trade, true));
     }

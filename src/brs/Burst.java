@@ -208,7 +208,7 @@ public final class Burst {
       final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
       final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,
           digitalGoodsStoreService, blockchain, blockchainProcessor, getTransactionProcessor(), atService);
-      final OrderService orderService = new OrderServiceImpl(stores.getOrderStore());
+      final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
       APIServlet.injectServices(getTransactionProcessor(), blockchain, blockchainProcessor, parameterService, accountService,
           aliasService, orderService, assetService, assetTransferService, tradeService, escrowService, digitalGoodsStoreService, assetAccountService, subscriptionService, atService,
@@ -220,16 +220,14 @@ public final class Burst {
 
       Constants.init(propertyService);
       DigitalGoodsStore.init();
-      Order.init();
-      Trade.init();
       AssetTransfer.init();
       Peers.init(propertyService);
       // TODO this really should be better...
-      TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService, assetService);
+      TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService, assetService, orderService);
 
       api = new API(propertyService);
       users = new Users(propertyService);
-      DebugTrace.init(propertyService, blockchainProcessor);
+      DebugTrace.init(propertyService, blockchainProcessor, tradeService, orderService);
 
       if (propertyService.getBooleanProperty("brs.mockMining")) {
         generator = new GeneratorImpl.MockGeneratorImpl(blockchainProcessor);
