@@ -2,6 +2,7 @@ package brs;
 
 import brs.AT.HandleATBlockTransactionsListener;
 import brs.blockchainlistener.DevNullListener;
+import brs.common.Props;
 import brs.db.BlockDb;
 import brs.db.BurstKey;
 import brs.db.EntityTable;
@@ -66,6 +67,8 @@ public final class Burst {
   private static Stores stores;
   private static Dbs dbs;
   private static Generator generator;
+
+  private static ThreadPool threadPool;
 
   private static BlockchainImpl blockchain;
   private static BlockchainProcessorImpl blockchainProcessor;
@@ -167,6 +170,8 @@ public final class Burst {
 
       propertyService = loadProperties();
 
+      threadPool = new ThreadPool();
+
       LoggerConfigurator.init();
 
       Db.init(propertyService);
@@ -193,7 +198,7 @@ public final class Burst {
       final TimeService timeService = new TimeServiceImpl();
 
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
-      transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain, stores, timeService, dbs, accountService);
+      transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain, stores, timeService, dbs, accountService, threadPool);
 
       final ATService atService = new ATServiceImpl(Burst.getStores().getAtStore());
       final SubscriptionService subscriptionService = new SubscriptionServiceImpl(Burst.getStores().getSubscriptionStore());
@@ -218,7 +223,7 @@ public final class Burst {
       api = new API(transactionProcessor, blockchain, blockchainProcessor, parameterService,
           accountService, aliasService, orderService, assetService, assetTransferService,
           tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
-          subscriptionService, atService, timeService, economicClustering, propertyService);
+          subscriptionService, atService, timeService, economicClustering, propertyService, threadPool);
 
       users = new Users(propertyService);
       DebugTrace.init(propertyService, blockchainProcessor, tradeService, orderService, digitalGoodsStoreService);
@@ -226,12 +231,12 @@ public final class Burst {
       if (propertyService.getBooleanProperty("brs.mockMining")) {
         generator = new GeneratorImpl.MockGeneratorImpl(blockchainProcessor);
       } else {
-        generator = new GeneratorImpl(blockchainProcessor, blockchain, timeService);
+        generator = new GeneratorImpl(blockchainProcessor, blockchain, timeService, threadPool);
       }
 
-      int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(propertyService.getIntProperty("brs.timeMultiplier"), 1) : 1;
+      int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(propertyService.getIntProperty(Props.TIME_MULTIPLIER), 1) : 1;
 
-      ThreadPool.start(timeMultiplier);
+      threadPool.start(timeMultiplier);
       if (timeMultiplier > 1) {
         setTime(new Time.FasterTime(Math.max(getEpochTime(), getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
         logger.info("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
@@ -264,7 +269,7 @@ public final class Burst {
     api.shutdown();
     users.shutdown();
     Peers.shutdown();
-    ThreadPool.shutdown();
+    threadPool.shutdown();
     Db.shutdown();
     if (readPropertiesSuccessfully && BlockchainProcessorImpl.getOclVerify()) {
       OCLPoC.destroy();
@@ -295,5 +300,9 @@ public final class Burst {
 
   public static EconomicClustering getEconomicClustering() {
     return economicClustering;
+  }
+
+  public static ThreadPool getThreadPool() {
+    return threadPool;
   }
 }

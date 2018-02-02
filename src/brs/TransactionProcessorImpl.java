@@ -52,7 +52,8 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   private AccountService accountService;
 
   public TransactionProcessorImpl(LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory, EntityTable<TransactionImpl> unconfirmedTransactionTable,
-      PropertyService propertyService, EconomicClustering economicClustering, Blockchain blockchain, Stores stores, TimeService timeService, Dbs dbs, AccountService accountService) {
+      PropertyService propertyService, EconomicClustering economicClustering, Blockchain blockchain, Stores stores, TimeService timeService, Dbs dbs, AccountService accountService,
+      ThreadPool threadPool) {
     this.unconfirmedTransactionDbKeyFactory = unconfirmedTransactionDbKeyFactory;
     this.unconfirmedTransactionTable = unconfirmedTransactionTable;
 
@@ -71,11 +72,11 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     this.rebroadcastAfter = propertyService.getIntProperty("brs.rebroadcastAfter") != 0 ? propertyService.getIntProperty("brs.rebroadcastAfter") : 4;
     this.rebroadcastEvery = propertyService.getIntProperty("brs.rebroadcastEvery") != 0 ? propertyService.getIntProperty("brs.rebroadcastEvery") : 2;
 
-    ThreadPool.scheduleThread("ProcessTransactions", processTransactionsThread, 5);
-    ThreadPool.scheduleThread("RemoveUnconfirmedTransactions", removeUnconfirmedTransactionsThread, 1);
+    threadPool.scheduleThread("ProcessTransactions", processTransactionsThread, 5);
+    threadPool.scheduleThread("RemoveUnconfirmedTransactions", removeUnconfirmedTransactionsThread, 1);
     if (enableTransactionRebroadcasting) {
-      ThreadPool.scheduleThread("RebroadcastTransactions", rebroadcastTransactionsThread, 60);
-      ThreadPool.runAfterStart(() -> {
+      threadPool.scheduleThread("RebroadcastTransactions", rebroadcastTransactionsThread, 60);
+      threadPool.runAfterStart(() -> {
         try (BurstIterator<TransactionImpl> oldNonBroadcastedTransactions = getAllUnconfirmedTransactions()) {
           while(oldNonBroadcastedTransactions.hasNext()) {
             nonBroadcastedTransactions.add(oldNonBroadcastedTransactions.next());

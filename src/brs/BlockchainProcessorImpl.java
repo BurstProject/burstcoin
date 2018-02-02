@@ -658,16 +658,16 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     // }
     // }, Event.RESCAN_END);
 
-    ThreadPool.runBeforeStart(() -> {
+    Burst.getThreadPool().runBeforeStart(() -> {
       addGenesisBlock();
       if (forceScan) {
         scan(0);
       }
     }, false);
 
-    ThreadPool.scheduleThread("GetMoreBlocks", getMoreBlocksThread, 2);
-    ThreadPool.scheduleThread("ImportBlocks", blockImporterThread, 10);
-    ThreadPool.scheduleThreadCores("VerifyPoc", pocVerificationThread, 9);
+    Burst.getThreadPool().scheduleThread("GetMoreBlocks", getMoreBlocksThread, 2);
+    Burst.getThreadPool().scheduleThread("ImportBlocks", blockImporterThread, 10);
+    Burst.getThreadPool().scheduleThreadCores("VerifyPoc", pocVerificationThread, 9);
     // ThreadPool.scheduleThread("Info", debugInfoThread, 5);
   }
 

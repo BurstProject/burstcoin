@@ -217,7 +217,7 @@ public final class Peers {
 
     final List<Future<String>> unresolvedPeers = Collections.synchronizedList(new ArrayList<Future<String>>());
 
-    ThreadPool.runBeforeStart(new Runnable() {
+    Burst.getThreadPool().runBeforeStart(new Runnable() {
 
         private void loadPeers(Collection<String> addresses) {
           for (final String address : addresses) {
@@ -241,7 +241,7 @@ public final class Peers {
         }
       }, false);
 
-    ThreadPool.runAfterStart(() -> {
+    Burst.getThreadPool().runAfterStart(() -> {
       for (Future<String> unresolvedPeer : unresolvedPeers) {
         try {
           String badAddress = unresolvedPeer.get(5, TimeUnit.SECONDS);
@@ -261,10 +261,10 @@ public final class Peers {
     Init.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService);
 
     if (! Constants.isOffline) {
-      ThreadPool.scheduleThread("PeerConnecting", Peers.peerConnectingThread, 5);
-      ThreadPool.scheduleThread("PeerUnBlacklisting", Peers.peerUnBlacklistingThread, 1);
+      Burst.getThreadPool().scheduleThread("PeerConnecting", Peers.peerConnectingThread, 5);
+      Burst.getThreadPool().scheduleThread("PeerUnBlacklisting", Peers.peerUnBlacklistingThread, 1);
       if (Peers.getMorePeers) {
-        ThreadPool.scheduleThread("GetMorePeers", Peers.getMorePeersThread, 5);
+        Burst.getThreadPool().scheduleThread("GetMorePeers", Peers.getMorePeersThread, 5);
       }
     }
   }
@@ -338,7 +338,7 @@ public final class Peers {
         }
 
         peerServer.setStopAtShutdown(true);
-        ThreadPool.runBeforeStart(new Runnable() {
+        Burst.getThreadPool().runBeforeStart(new Runnable() {
             @Override
             public void run() {
               try {
@@ -551,7 +551,7 @@ public final class Peers {
       }
       logger.info(buf.toString());
     }
-    ThreadPool.shutdownExecutor(sendToPeersService);
+    Burst.getThreadPool().shutdownExecutor(sendToPeersService);
 
   }
 
