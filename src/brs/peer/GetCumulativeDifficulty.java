@@ -1,23 +1,24 @@
 package brs.peer;
 
 import brs.Block;
-import brs.Burst;
+import brs.Blockchain;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 final class GetCumulativeDifficulty extends PeerServlet.PeerRequestHandler {
 
-  static final GetCumulativeDifficulty instance = new GetCumulativeDifficulty();
+  private final Blockchain blockchain;
 
-  private GetCumulativeDifficulty() {}
+  GetCumulativeDifficulty(Blockchain blockchain) {
+    this.blockchain = blockchain;
+  }
 
 
   @Override
   JSONStreamAware processRequest(JSONObject request, Peer peer) {
-
     JSONObject response = new JSONObject();
 
-    Block lastBlock = Burst.getBlockchain().getLastBlock();
+    Block lastBlock = blockchain.getLastBlock();
     response.put("cumulativeDifficulty", lastBlock.getCumulativeDifficulty().toString());
     response.put("blockchainHeight", lastBlock.getHeight());
     return response;

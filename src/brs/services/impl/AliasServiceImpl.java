@@ -2,6 +2,8 @@ package brs.services.impl;
 
 import brs.Alias;
 import brs.Alias.Offer;
+import brs.Burst;
+import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.AliasStore;
@@ -39,6 +41,11 @@ public class AliasServiceImpl implements AliasService {
   @Override
   public long getAliasCount() {
     return aliasTable.getCount();
+  }
+
+  @Override
+  public BurstIterator<Alias> getAliasesByOwner(long accountId, int from, int to) {
+    return aliasStore.getAliasesByOwner(accountId, from, to);
   }
 
 }

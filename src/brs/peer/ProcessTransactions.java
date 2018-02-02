@@ -1,23 +1,26 @@
 package brs.peer;
 
-import brs.Burst;
 import brs.BurstException;
+import brs.TransactionProcessor;
+import brs.TransactionProcessorImpl;
 import brs.util.JSON;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 final class ProcessTransactions extends PeerServlet.PeerRequestHandler {
 
-  static final ProcessTransactions instance = new ProcessTransactions();
+  private final TransactionProcessor transactionProcessor;
 
-  private ProcessTransactions() {}
+  ProcessTransactions(TransactionProcessor transactionProcessor) {
+    this.transactionProcessor = transactionProcessor;
+  }
 
 
   @Override
   JSONStreamAware processRequest(JSONObject request, Peer peer) {
 
     try {
-      Burst.getTransactionProcessor().processPeerTransactions(request);
+      transactionProcessor.processPeerTransactions(request);
       return JSON.emptyJSON;
     } catch (RuntimeException | BurstException.ValidationException e) {
       //logger.debug("Failed to parse peer transactions: " + request.toJSONString());
@@ -26,7 +29,5 @@ final class ProcessTransactions extends PeerServlet.PeerRequestHandler {
       response.put("error", e.toString());
       return response;
     }
-
   }
-
 }
