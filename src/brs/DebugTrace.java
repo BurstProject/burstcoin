@@ -1,5 +1,6 @@
 package brs;
 
+import brs.services.DGSGoodsStoreService;
 import brs.services.OrderService;
 import brs.services.PropertyService;
 import brs.services.TradeService;
@@ -20,13 +21,15 @@ public final class DebugTrace {
   static boolean LOG_UNCONFIRMED;
 
   static OrderService orderService;
+  static DGSGoodsStoreService dgsGoodsStoreService;
 
-  static void init(PropertyService propertyService, BlockchainProcessor blockchainProcessor, TradeService tradeService, OrderService orderService) {
+  static void init(PropertyService propertyService, BlockchainProcessor blockchainProcessor, TradeService tradeService, OrderService orderService, DGSGoodsStoreService dgsGoodsStoreService) {
     QUOTE = propertyService.getStringProperty("brs.debugTraceQuote", "");
     SEPARATOR = propertyService.getStringProperty("brs.debugTraceSeparator", "\t");
     LOG_UNCONFIRMED = propertyService.getBooleanProperty("brs.debugLogUnconfirmed");
 
     DebugTrace.orderService = orderService;
+    DebugTrace.dgsGoodsStoreService = dgsGoodsStoreService;
 
     List<String> accountIdStrings = propertyService.getStringListProperty("brs.debugTraceAccounts");
     String logName = propertyService.getStringProperty("brs.debugTraceLog");
@@ -108,13 +111,13 @@ public final class DebugTrace {
 
   private boolean include(Attachment attachment) {
     if (attachment instanceof Attachment.DigitalGoodsPurchase) {
-      long sellerId = DigitalGoodsStore.getGoods(((Attachment.DigitalGoodsPurchase)attachment).getGoodsId()).getSellerId();
+      long sellerId = dgsGoodsStoreService.getGoods(((Attachment.DigitalGoodsPurchase)attachment).getGoodsId()).getSellerId();
       return include(sellerId);
     } else if (attachment instanceof Attachment.DigitalGoodsDelivery) {
-      long buyerId = DigitalGoodsStore.getPurchase(((Attachment.DigitalGoodsDelivery)attachment).getPurchaseId()).getBuyerId();
+      long buyerId = dgsGoodsStoreService.getPurchase(((Attachment.DigitalGoodsDelivery)attachment).getPurchaseId()).getBuyerId();
       return include(buyerId);
     } else if (attachment instanceof Attachment.DigitalGoodsRefund) {
-      long buyerId = DigitalGoodsStore.getPurchase(((Attachment.DigitalGoodsRefund)attachment).getPurchaseId()).getBuyerId();
+      long buyerId = dgsGoodsStoreService.getPurchase(((Attachment.DigitalGoodsRefund)attachment).getPurchaseId()).getBuyerId();
       return include(buyerId);
     }
     return false;
@@ -313,14 +316,14 @@ public final class DebugTrace {
     else if (attachment instanceof Attachment.DigitalGoodsPurchase) {
       Attachment.DigitalGoodsPurchase purchase = (Attachment.DigitalGoodsPurchase)transaction.getAttachment();
       if (isRecipient) {
-        map = getValues(DigitalGoodsStore.getGoods(purchase.getGoodsId()).getSellerId(), false);
+        map = getValues(dgsGoodsStoreService.getGoods(purchase.getGoodsId()).getSellerId(), false);
       }
       map.put("event", "purchase");
       map.put("purchase", transaction.getStringId());
     }
     else if (attachment instanceof Attachment.DigitalGoodsDelivery) {
       Attachment.DigitalGoodsDelivery delivery = (Attachment.DigitalGoodsDelivery)transaction.getAttachment();
-      DigitalGoodsStore.Purchase purchase = DigitalGoodsStore.getPurchase(delivery.getPurchaseId());
+      DigitalGoodsStore.Purchase purchase = dgsGoodsStoreService.getPurchase(delivery.getPurchaseId());
       if (isRecipient) {
         map = getValues(purchase.getBuyerId(), false);
       }
@@ -342,7 +345,7 @@ public final class DebugTrace {
     else if (attachment instanceof Attachment.DigitalGoodsRefund) {
       Attachment.DigitalGoodsRefund refund = (Attachment.DigitalGoodsRefund)transaction.getAttachment();
       if (isRecipient) {
-        map = getValues(DigitalGoodsStore.getPurchase(refund.getPurchaseId()).getBuyerId(), false);
+        map = getValues(dgsGoodsStoreService.getPurchase(refund.getPurchaseId()).getBuyerId(), false);
       }
       map.put("event", "refund");
       map.put("purchase", Convert.toUnsignedLong(refund.getPurchaseId()));

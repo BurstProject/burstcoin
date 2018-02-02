@@ -1,11 +1,7 @@
 package brs;
 
-import brs.db.EntityTable;
 import brs.db.BurstKey;
 import brs.util.Convert;
-import brs.util.Listener;
-import brs.util.Listeners;
-
 
 public class Trade {
 
