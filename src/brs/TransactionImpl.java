@@ -13,7 +13,7 @@ import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.util.*;
 
-public final class TransactionImpl implements Transaction {
+public class TransactionImpl implements Transaction {
 
   private static final Logger logger = LoggerFactory.getLogger(TransactionImpl.class);
 
@@ -438,7 +438,7 @@ public final class TransactionImpl implements Transaction {
 
   public BurstKey getDbKey() {
     if (dbKey == null) {
-      dbKey = TransactionProcessorImpl.getInstance().unconfirmedTransactionDbKeyFactory.newKey(getId());
+      dbKey = Burst.getStores().getTransactionProcessorStore().getUnconfirmedTransactionDbKeyFactory().newKey(getId());
     }
     return dbKey;
   }

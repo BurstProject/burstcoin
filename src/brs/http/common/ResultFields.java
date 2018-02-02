@@ -96,7 +96,7 @@ public class ResultFields {
   public static final String RECIPIENT_RESPONSE = "recipient";
   public static final String RECIPIENT_RS_RESPONSE = "recipientRS";
   public static final String AMOUNT_NQT_RESPONSE = "amountNQT";
-  public static final String FEE_NQT_RESPONSE = "amountNQT";
+  public static final String FEE_NQT_RESPONSE = "feeNQT";
   public static final String REQUIRED_SIGNERS_RESPONSE = "requiredSigners";
   public static final String DEADLINE_RESPONSE = "deadline";
   public static final String DEADLINE_ACTION_RESPONSE = "deadlineAction";
@@ -109,7 +109,7 @@ public class ResultFields {
   public static final String ASK_ORDER_RESPONSE = "askOrder";
   public static final String BID_ORDER_RESPONSE = "bidOrder";
   public static final String ASK_ORDER_HEIGHT_RESPONSE = "askOrderHeight";
-  public static final String BID_ORDER_HEIGHT_RESPONSE = "askOrderHeight";
+  public static final String BID_ORDER_HEIGHT_RESPONSE = ASK_ORDER_HEIGHT_RESPONSE;
   public static final String TRADE_TYPE_RESPONSE = "tradeType";
   public static final String ASSET_TRANSFER_RESPONSE = "assetTransfer";
   public static final String CONFIRMATIONS_RESPONSE = "confirmations";
@@ -125,5 +125,8 @@ public class ResultFields {
   public static final String BID_ORDERS_RESPONSE = "bidOrders";
   public static final String TIME_RESPONSE = "time";
   public static final String ALIASES_RESPONSE = "aliases";
+  public static final String BID_ORDER_IDS_RESPONSE = "bidOrderIds";
+  public static final String TRANSFERS_RESPONSE = "transfers";
+  public static final String LESSORS_RESPONSE = "lessors";
 
 }

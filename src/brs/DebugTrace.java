@@ -1,7 +1,10 @@
 package brs;
 
+import brs.services.DGSGoodsStoreService;
+import brs.services.OrderService;
+import brs.services.PropertyService;
+import brs.services.TradeService;
 import brs.util.Convert;
-import brs.util.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,13 +16,23 @@ public final class DebugTrace {
 
   private static final Logger logger = LoggerFactory.getLogger(DebugTrace.class);
 
-  static final String QUOTE = Burst.getStringProperty("brs.debugTraceQuote", "");
-  static final String SEPARATOR = Burst.getStringProperty("brs.debugTraceSeparator", "\t");
-  static final boolean LOG_UNCONFIRMED = Burst.getBooleanProperty("brs.debugLogUnconfirmed");
+  static String QUOTE;
+  static String SEPARATOR;
+  static boolean LOG_UNCONFIRMED;
 
-  static void init() {
-    List<String> accountIdStrings = Burst.getStringListProperty("brs.debugTraceAccounts");
-    String logName = Burst.getStringProperty("brs.debugTraceLog");
+  static OrderService orderService;
+  static DGSGoodsStoreService dgsGoodsStoreService;
+
+  static void init(PropertyService propertyService, BlockchainProcessor blockchainProcessor, TradeService tradeService, OrderService orderService, DGSGoodsStoreService dgsGoodsStoreService) {
+    QUOTE = propertyService.getStringProperty("brs.debugTraceQuote", "");
+    SEPARATOR = propertyService.getStringProperty("brs.debugTraceSeparator", "\t");
+    LOG_UNCONFIRMED = propertyService.getBooleanProperty("brs.debugLogUnconfirmed");
+
+    DebugTrace.orderService = orderService;
+    DebugTrace.dgsGoodsStoreService = dgsGoodsStoreService;
+
+    List<String> accountIdStrings = propertyService.getStringListProperty("brs.debugTraceAccounts");
+    String logName = propertyService.getStringProperty("brs.debugTraceLog");
     if (accountIdStrings.isEmpty() || logName == null) {
       return;
     }
@@ -31,15 +44,15 @@ public final class DebugTrace {
       }
       accountIds.add(Convert.parseUnsignedLong(accountId));
     }
-    final DebugTrace debugTrace = addDebugTrace(accountIds, logName);
-    Burst.getBlockchainProcessor().addListener(block -> debugTrace.resetLog(), BlockchainProcessor.Event.RESCAN_BEGIN);
+    final DebugTrace debugTrace = addDebugTrace(accountIds, logName, blockchainProcessor, tradeService);
+    blockchainProcessor.addListener(block -> debugTrace.resetLog(), BlockchainProcessor.Event.RESCAN_BEGIN);
     logger.debug("Debug tracing of " + (accountIdStrings.contains("*") ? "ALL"
                                         : String.valueOf(accountIds.size())) + " accounts enabled");
   }
 
-  public static DebugTrace addDebugTrace(Set<Long> accountIds, String logName) {
+  public static DebugTrace addDebugTrace(Set<Long> accountIds, String logName, BlockchainProcessor blockchainProcessor, TradeService tradeService) {
     final DebugTrace debugTrace = new DebugTrace(accountIds, logName);
-    Trade.addListener(debugTrace::trace, Trade.Event.TRADE);
+    tradeService.addListener(debugTrace::trace, Trade.Event.TRADE);
     Account.addListener(account -> debugTrace.trace(account, false), Account.Event.BALANCE);
     if (LOG_UNCONFIRMED) {
       Account.addListener(account -> debugTrace.trace(account, true), Account.Event.UNCONFIRMED_BALANCE);
@@ -48,8 +61,8 @@ public final class DebugTrace {
     if (LOG_UNCONFIRMED) {
       Account.addAssetListener(accountAsset -> debugTrace.trace(accountAsset, true), Account.Event.UNCONFIRMED_ASSET_BALANCE);
     }
-    Burst.getBlockchainProcessor().addListener(debugTrace::traceBeforeAccept, BlockchainProcessor.Event.BEFORE_BLOCK_ACCEPT);
-    Burst.getBlockchainProcessor().addListener(debugTrace::trace, BlockchainProcessor.Event.BEFORE_BLOCK_APPLY);
+    blockchainProcessor.addListener(debugTrace::traceBeforeAccept, BlockchainProcessor.Event.BEFORE_BLOCK_ACCEPT);
+    blockchainProcessor.addListener(debugTrace::trace, BlockchainProcessor.Event.BEFORE_BLOCK_APPLY);
     return debugTrace;
   }
 
@@ -98,13 +111,13 @@ public final class DebugTrace {
 
   private boolean include(Attachment attachment) {
     if (attachment instanceof Attachment.DigitalGoodsPurchase) {
-      long sellerId = DigitalGoodsStore.getGoods(((Attachment.DigitalGoodsPurchase)attachment).getGoodsId()).getSellerId();
+      long sellerId = dgsGoodsStoreService.getGoods(((Attachment.DigitalGoodsPurchase)attachment).getGoodsId()).getSellerId();
       return include(sellerId);
     } else if (attachment instanceof Attachment.DigitalGoodsDelivery) {
-      long buyerId = DigitalGoodsStore.getPurchase(((Attachment.DigitalGoodsDelivery)attachment).getPurchaseId()).getBuyerId();
+      long buyerId = dgsGoodsStoreService.getPurchase(((Attachment.DigitalGoodsDelivery)attachment).getPurchaseId()).getBuyerId();
       return include(buyerId);
     } else if (attachment instanceof Attachment.DigitalGoodsRefund) {
-      long buyerId = DigitalGoodsStore.getPurchase(((Attachment.DigitalGoodsRefund)attachment).getPurchaseId()).getBuyerId();
+      long buyerId = dgsGoodsStoreService.getPurchase(((Attachment.DigitalGoodsRefund)attachment).getPurchaseId()).getBuyerId();
       return include(buyerId);
     }
     return false;
@@ -112,8 +125,8 @@ public final class DebugTrace {
 
   // Note: Trade events occur before the change in account balances
   private void trace(Trade trade) {
-    long askAccountId = Order.Ask.getAskOrder(trade.getAskOrderId()).getAccountId();
-    long bidAccountId = Order.Bid.getBidOrder(trade.getBidOrderId()).getAccountId();
+    long askAccountId = orderService.getAskOrder(trade.getAskOrderId()).getAccountId();
+    long bidAccountId = orderService.getBidOrder(trade.getBidOrderId()).getAccountId();
     if (include(askAccountId)) {
       log(getValues(askAccountId, trade, true));
     }
@@ -303,14 +316,14 @@ public final class DebugTrace {
     else if (attachment instanceof Attachment.DigitalGoodsPurchase) {
       Attachment.DigitalGoodsPurchase purchase = (Attachment.DigitalGoodsPurchase)transaction.getAttachment();
       if (isRecipient) {
-        map = getValues(DigitalGoodsStore.getGoods(purchase.getGoodsId()).getSellerId(), false);
+        map = getValues(dgsGoodsStoreService.getGoods(purchase.getGoodsId()).getSellerId(), false);
       }
       map.put("event", "purchase");
       map.put("purchase", transaction.getStringId());
     }
     else if (attachment instanceof Attachment.DigitalGoodsDelivery) {
       Attachment.DigitalGoodsDelivery delivery = (Attachment.DigitalGoodsDelivery)transaction.getAttachment();
-      DigitalGoodsStore.Purchase purchase = DigitalGoodsStore.getPurchase(delivery.getPurchaseId());
+      DigitalGoodsStore.Purchase purchase = dgsGoodsStoreService.getPurchase(delivery.getPurchaseId());
       if (isRecipient) {
         map = getValues(purchase.getBuyerId(), false);
       }
@@ -332,7 +345,7 @@ public final class DebugTrace {
     else if (attachment instanceof Attachment.DigitalGoodsRefund) {
       Attachment.DigitalGoodsRefund refund = (Attachment.DigitalGoodsRefund)transaction.getAttachment();
       if (isRecipient) {
-        map = getValues(DigitalGoodsStore.getPurchase(refund.getPurchaseId()).getBuyerId(), false);
+        map = getValues(dgsGoodsStoreService.getPurchase(refund.getPurchaseId()).getBuyerId(), false);
       }
       map.put("event", "refund");
       map.put("purchase", Convert.toUnsignedLong(refund.getPurchaseId()));

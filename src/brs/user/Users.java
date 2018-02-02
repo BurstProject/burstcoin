@@ -3,6 +3,7 @@ package brs.user;
 import brs.*;
 import brs.peer.Peer;
 import brs.peer.Peers;
+import brs.services.PropertyService;
 import brs.util.Subnet;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -35,11 +36,11 @@ public final class Users {
   private static final AtomicInteger transactionCounter = new AtomicInteger();
   private static final ConcurrentMap<Long, Integer> transactionIndexMap = new ConcurrentHashMap<>();
 
-  static final Set<Subnet> allowedUserHosts;
+  static Set<Subnet> allowedUserHosts;
 
-  static {
+  public Users(PropertyService propertyService) {
 
-    List<String> allowedUserHostsList = Burst.getStringListProperty("brs.allowedUserHosts");
+    List<String> allowedUserHostsList = propertyService.getStringListProperty("brs.allowedUserHosts");
     if (! allowedUserHostsList.contains("*")) {
 
       // Temp hashset to store allowed subnets
@@ -86,12 +87,12 @@ public final class Users {
     return users.remove(user.getUserId());
   }
 
-  private static void sendNewDataToAll(JSONObject response) {
+  private void sendNewDataToAll(JSONObject response) {
     response.put(RESPONSE, "processNewData");
     sendToAll(response);
   }
 
-  private static void sendToAll(JSONStreamAware response) {
+  private void sendToAll(JSONStreamAware response) {
     for (User user : users.values()) {
       user.send(response);
     }
@@ -125,9 +126,7 @@ public final class Users {
       return index;
   }
 
-  public static void init() {}
-
-  public static void shutdown() {
+  public void shutdown() {
   }
 
   private Users() {} // never

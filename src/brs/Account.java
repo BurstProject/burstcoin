@@ -175,10 +175,6 @@ public class Account {
     return assetListeners.removeListener(listener, eventType);
   }
 
-  public static int getCount() {
-    return accountTable().getCount();
-  }
-
   public static Account getAccount(long id) {
     return id == 0 ? null : accountTable().get(accountBurstKeyFactory().newKey(id));
   }
@@ -359,7 +355,7 @@ public class Account {
     }
   }
 
-  void addToAssetBalanceQNT(long assetId, long quantityQNT) {
+  public void addToAssetBalanceQNT(long assetId, long quantityQNT) {
     if (quantityQNT == 0) {
       return;
     }
@@ -398,7 +394,7 @@ public class Account {
     assetListeners.notify(accountAsset, Event.UNCONFIRMED_ASSET_BALANCE);
   }
 
-  void addToAssetAndUnconfirmedAssetBalanceQNT(long assetId, long quantityQNT) {
+  public void addToAssetAndUnconfirmedAssetBalanceQNT(long assetId, long quantityQNT) {
     if (quantityQNT == 0) {
       return;
     }
@@ -422,7 +418,7 @@ public class Account {
     assetListeners.notify(accountAsset, Event.UNCONFIRMED_ASSET_BALANCE);
   }
 
-  void addToBalanceNQT(long amountNQT) {
+  public void addToBalanceNQT(long amountNQT) {
     if (amountNQT == 0) {
       return;
     }
@@ -432,7 +428,7 @@ public class Account {
     listeners.notify(this, Event.BALANCE);
   }
 
-  void addToUnconfirmedBalanceNQT(long amountNQT) {
+  public void addToUnconfirmedBalanceNQT(long amountNQT) {
     if (amountNQT == 0) {
       return;
     }
@@ -442,7 +438,7 @@ public class Account {
     listeners.notify(this, Event.UNCONFIRMED_BALANCE);
   }
 
-  void addToBalanceAndUnconfirmedBalanceNQT(long amountNQT) {
+  public void addToBalanceAndUnconfirmedBalanceNQT(long amountNQT) {
     if (amountNQT == 0) {
       return;
     }

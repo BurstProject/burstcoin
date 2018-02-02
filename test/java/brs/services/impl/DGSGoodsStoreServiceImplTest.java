@@ -14,12 +14,15 @@ import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
 import brs.db.store.DigitalGoodsStoreStore;
+import brs.services.AccountService;
 import org.junit.Before;
 import org.junit.Test;
 
 public class DGSGoodsStoreServiceImplTest extends AbstractUnitTest {
 
   private DGSGoodsStoreServiceImpl t;
+
+  private AccountService mockAccountService;
 
   private DigitalGoodsStoreStore mockDigitalGoodsStoreStore;
   private VersionedEntityTable<DigitalGoodsStore.Goods> mockGoodsTable;
@@ -32,12 +35,13 @@ public class DGSGoodsStoreServiceImplTest extends AbstractUnitTest {
     mockPurchaseTable = mock(VersionedEntityTable.class);
     mockDigitalGoodsStoreStore = mock(DigitalGoodsStoreStore.class);
     mockGoodsDbKeyFactory = mock(LongKeyFactory.class);
+    mockAccountService = mock(AccountService.class);
 
     when(mockDigitalGoodsStoreStore.getGoodsTable()).thenReturn(mockGoodsTable);
     when(mockDigitalGoodsStoreStore.getPurchaseTable()).thenReturn(mockPurchaseTable);
     when(mockDigitalGoodsStoreStore.getGoodsDbKeyFactory()).thenReturn(mockGoodsDbKeyFactory);
 
-    t = new DGSGoodsStoreServiceImpl(mockDigitalGoodsStoreStore);
+    t = new DGSGoodsStoreServiceImpl(mockDigitalGoodsStoreStore, mockAccountService);
   }
 
   @Test

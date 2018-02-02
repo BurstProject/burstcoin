@@ -4,6 +4,7 @@ import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.ASSET_PARAMETER;
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+import static brs.http.common.ResultFields.BID_ORDER_IDS_RESPONSE;
 
 import brs.BurstException;
 import brs.Order;
@@ -56,7 +57,7 @@ public final class GetAccountCurrentBidOrderIds extends APIServlet.APIRequestHan
       bidOrders.close();
     }
     JSONObject response = new JSONObject();
-    response.put("bidOrderIds", orderIds);
+    response.put(BID_ORDER_IDS_RESPONSE, orderIds);
     return response;
   }
 

@@ -5,6 +5,7 @@ import static brs.http.common.Parameters.ASSET_PARAMETER;
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.INCLUDE_ASSET_INFO_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
+import static brs.http.common.ResultFields.TRANSFERS_RESPONSE;
 
 import brs.Account;
 import brs.Asset;
@@ -73,7 +74,8 @@ public final class GetAssetTransfers extends APIServlet.APIRequestHandler {
     } finally {
       DbUtils.close(transfers);
     }
-    response.put("transfers", transfersData);
+
+    response.put(TRANSFERS_RESPONSE, transfersData);
 
     return response;
   }

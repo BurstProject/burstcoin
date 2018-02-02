@@ -1,6 +1,8 @@
 package brs.services;
 
 import brs.AssetTransfer;
+import brs.Attachment;
+import brs.Transaction;
 import brs.db.BurstIterator;
 
 public interface AssetTransferService {
@@ -12,4 +14,6 @@ public interface AssetTransferService {
   int getTransferCount(long assetId);
 
   int getAssetTransferCount();
+
+  AssetTransfer addAssetTransfer(Transaction transaction, Attachment.ColoredCoinsAssetTransfer attachment);
 }
