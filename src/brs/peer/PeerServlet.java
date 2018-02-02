@@ -95,7 +95,7 @@ public final class PeerServlet extends HttpServlet {
         return;
       }
 
-      if (peer.getState() == Peer.State.DISCONNECTED) {
+      if (peer.isState(Peer.State.DISCONNECTED)) {
         peer.setState(Peer.State.CONNECTED);
         if (peer.getAnnouncedAddress() != null) {
           Peers.updateAddress(peer);
@@ -111,10 +111,12 @@ public final class PeerServlet extends HttpServlet {
         PeerRequestHandler peerRequestHandler = peerRequestHandlers.get(request.get("requestType"));
         if (peerRequestHandler != null) {
           response = peerRequestHandler.processRequest(request, peer);
-        } else {
+        }
+        else {
           response = UNSUPPORTED_REQUEST_TYPE;
         }
-      } else {
+      }
+      else {
         logger.debug("Unsupported protocol " + request.get(PROTOCOL));
         response = UNSUPPORTED_PROTOCOL;
       }
