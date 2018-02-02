@@ -240,10 +240,10 @@ public class DGSGoodsStoreServiceImpl implements DGSGoodsStoreService {
     }
     setPending(purchase, false);
     long totalWithoutDiscount = Convert.safeMultiply(purchase.getQuantity(), purchase.getPriceNQT());
-    Account buyer = Account.getAccount(purchase.getBuyerId());
+    Account buyer = accountService.getAccount(purchase.getBuyerId());
     buyer.addToBalanceNQT(Convert.safeSubtract(attachment.getDiscountNQT(), totalWithoutDiscount));
     buyer.addToUnconfirmedBalanceNQT(attachment.getDiscountNQT());
-    Account seller = Account.getAccount(transaction.getSenderId());
+    Account seller = accountService.getAccount(transaction.getSenderId());
     seller.addToBalanceAndUnconfirmedBalanceNQT(Convert.safeSubtract(totalWithoutDiscount, attachment.getDiscountNQT()));
     purchase.setEncryptedGoods(attachment.getGoods(), attachment.goodsIsText());
     purchaseTable.insert(purchase);
