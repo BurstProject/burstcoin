@@ -47,7 +47,7 @@ public final class APIServlet extends HttpServlet {
 
   private static final Logger logger = LoggerFactory.getLogger(APIServlet.class);
 
-  public static void injectServices(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
+  public APIServlet(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
       AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
       TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService,
       SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering) {

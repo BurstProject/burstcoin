@@ -1,6 +1,5 @@
 package brs;
 
-import brs.db.VersionedEntityTable;
 import brs.db.BurstKey;
 
 public class Alias {
@@ -35,7 +34,6 @@ public class Alias {
         transaction.getBlockTimestamp());
   }
 
-
   public long getId() {
     return id;
   }
@@ -56,8 +54,6 @@ public class Alias {
     return accountId;
   }
 
-
-
   public void setAccountId(long accountId) {
     this.accountId = accountId;
   }
@@ -77,11 +73,11 @@ public class Alias {
     private final long aliasId;
     public final BurstKey dbKey;
 
-    public Offer(long aliasId, long priceNQT, long buyerId) {
+    public Offer(BurstKey dbKey, long aliasId, long priceNQT, long buyerId) {
+      this.dbKey = dbKey;
       this.priceNQT = priceNQT;
       this.buyerId = buyerId;
       this.aliasId = aliasId;
-      this.dbKey = offerDbKeyFactory().newKey(this.aliasId);
     }
 
     protected Offer(long aliasId, long priceNQT, long buyerId, BurstKey nxtKey) {
@@ -110,14 +106,6 @@ public class Alias {
     public void setBuyerId(long buyerId) {
       this.buyerId = buyerId;
     }
-  }
-
-  private static final BurstKey.LongKeyFactory<Alias> aliasDbKeyFactory() {
-    return Burst.getStores().getAliasStore().getAliasDbKeyFactory();
-  }
-
-  private static final BurstKey.LongKeyFactory<Offer> offerDbKeyFactory() {
-    return Burst.getStores().getAliasStore().getOfferDbKeyFactory();
   }
 
   public static Alias getAlias(String aliasName) {

@@ -1,6 +1,5 @@
 package brs.services.impl;
 
-import brs.Burst;
 import brs.Escrow;
 import brs.db.BurstIterator;
 import brs.db.BurstKey.LongKeyFactory;

@@ -1,15 +1,12 @@
 package brs.services;
 
-import brs.Account;
 import brs.Appendix;
 import brs.Attachment;
-import brs.Burst;
 import brs.DigitalGoodsStore.Event;
 import brs.DigitalGoodsStore.Goods;
 import brs.DigitalGoodsStore.Purchase;
 import brs.Transaction;
 import brs.db.BurstIterator;
-import brs.util.Convert;
 import brs.util.Listener;
 
 public interface DGSGoodsStoreService {

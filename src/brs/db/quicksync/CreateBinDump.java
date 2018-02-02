@@ -2,7 +2,6 @@ package brs.db.quicksync;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
-import brs.Constants;
 import brs.Burst;
 import brs.db.sql.Db;
 import brs.db.sql.DbUtils;
