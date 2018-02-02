@@ -142,6 +142,35 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                 DownloadCache.removeUnverified(blockId);
                 blocks.add(DownloadCache.GetBlock(blockId));
               }
+              else {
+                // This will be verified with Ocl.
+                if (!gpuUsage.tryAcquire()) {
+                  logger.debug("already max locked");
+                  return;
+                }
+                gpuAcquired = true;
+
+                // We add blocks to ocl process in blocks list.
+                // If we change poCVersion we process until this and do other version in next round.
+                poCVersion = DownloadCache.getPoCVersion(DownloadCache.GetUnverifiedBlockId(0));
+                while (DownloadCache.getUnverifiedSize() > 0
+                    && blocks.size() < OCLPoC.getMaxItems()) {
+                  Long blockId = DownloadCache.GetUnverifiedBlockId(0);
+                  if (DownloadCache.getPoCVersion(blockId) != poCVersion) {
+                    break;
+                  }
+                  DownloadCache.removeUnverified(blockId);
+                  blocks.add(DownloadCache.GetBlock(blockId));
+                }
+              }
+            } // end synchronized
+            try {
+              if (blocks.size() > 1) {
+                OCLPoC.validatePoC(blocks, poCVersion);
+              }
+              else {
+                blocks.get(0).preVerify();
+              }
             }
           } // end synchronized
           try {
