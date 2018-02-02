@@ -63,12 +63,12 @@ public final class GeneratorImpl implements Generator {
 
   private TimeService timeService;
 
-  public GeneratorImpl(BlockchainProcessor blockchainProcessor, Blockchain blockchain, TimeService timeService) {
+  public GeneratorImpl(BlockchainProcessor blockchainProcessor, Blockchain blockchain, TimeService timeService, ThreadPool threadPool) {
     this.blockchainProcessor = blockchainProcessor;
     this.blockchain = blockchain;
     this.timeService = timeService;
 
-    ThreadPool.scheduleThread("GenerateBlocks", generateBlockThread, 500, TimeUnit.MILLISECONDS);
+    threadPool.scheduleThread("GenerateBlocks", generateBlockThread, 500, TimeUnit.MILLISECONDS);
   }
 
   void clear() {

@@ -53,7 +53,8 @@ public final class API {
   public API(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
       AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
       TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService,
-      SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService) {
+      SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService,
+      ThreadPool threadPool) {
     enableDebugAPI = propertyService.getBooleanProperty("API.Debug");
     List<String> allowedBotHostsList = propertyService.getStringListProperty("brs.allowedBotHosts");
     if (!allowedBotHostsList.contains("*")) {
@@ -156,7 +157,7 @@ public final class API {
       apiServer.setHandler(apiHandlers);
       apiServer.setStopAtShutdown(true);
 
-      ThreadPool.runBeforeStart(new Runnable() {
+      threadPool.runBeforeStart(new Runnable() {
           @Override
           public void run() {
             try {
