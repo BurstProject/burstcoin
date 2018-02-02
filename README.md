@@ -153,8 +153,8 @@ base are not mentioned, however. In alphabetical order:
 * JOOQ migration
 
 @Brabantian
-* introduction of JUnit and Code Coverage reportings
-* lot's of unit tests and refactoring work to make the code testable
+* introduction of JUnit and Code Coverage reporting
+* lots of unit tests and refactoring work to make the code testable
 
 @BraindeadOne
 * providing a DB abstraction layer to allow for multiple DB backends
