@@ -8,6 +8,7 @@ import brs.Blockchain;
 import brs.BlockchainProcessor;
 import brs.Burst;
 import brs.BurstException;
+import brs.EconomicClustering;
 import brs.TransactionProcessor;
 import brs.services.ATService;
 import brs.services.AccountService;
@@ -34,7 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -47,10 +47,10 @@ public final class APIServlet extends HttpServlet {
 
   private static final Logger logger = LoggerFactory.getLogger(APIServlet.class);
 
-  public static void injectServices(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
+  public APIServlet(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
       AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
       TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService,
-      SubscriptionService subscriptionService, ATService atService, TimeService timeService) {
+      SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering) {
     final Map<String, APIRequestHandler> map = new HashMap<>();
 
     map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService));
@@ -70,7 +70,7 @@ public final class APIServlet extends HttpServlet {
     map.put("dgsRefund", new DGSRefund(parameterService, transactionProcessor, blockchain, accountService));
     map.put("decodeHallmark", new DecodeHallmark());
     map.put("decodeToken", new DecodeToken());
-    map.put("encryptTo", new EncryptTo(parameterService));
+    map.put("encryptTo", new EncryptTo(parameterService, accountService));
     map.put("generateToken", GenerateToken.instance);
     map.put("getAccount", new GetAccount(parameterService, accountService));
     map.put("getAccountBlockIds", new GetAccountBlockIds(parameterService, blockchain));
@@ -102,14 +102,14 @@ public final class APIServlet extends HttpServlet {
     map.put("getDGSPurchase", new GetDGSPurchase(parameterService));
     map.put("getDGSPendingPurchases", new GetDGSPendingPurchases(digitalGoodsStoreService));
     map.put("getGuaranteedBalance", new GetGuaranteedBalance(parameterService));
-    map.put("getECBlock", new GetECBlock(blockchain, timeService));
+    map.put("getECBlock", new GetECBlock(blockchain, timeService, economicClustering));
     map.put("getMyInfo", GetMyInfo.instance);
     //map.put("getNextBlockGenerators", GetNextBlockGenerators.instance);
     map.put("getPeer", GetPeer.instance);
     map.put("getPeers", GetPeers.instance);
     //map.put("getPoll", GetPoll.instance);
     //map.put("getPollIds", GetPollIds.instance);
-    map.put("getState", new GetState(blockchain, tradeService, accountService, escrowService, orderService, assetTransferService, aliasService, timeService));
+    map.put("getState", new GetState(blockchain, tradeService, accountService, escrowService, orderService, assetTransferService, aliasService, timeService, assetService));
     map.put("getTime", new GetTime(timeService));
     map.put("getTrades", new GetTrades(parameterService, assetService, tradeService));
     map.put("getAllTrades", new GetAllTrades(tradeService, assetService));
@@ -156,7 +156,7 @@ public final class APIServlet extends HttpServlet {
     map.put("sendMoneyEscrow", new SendMoneyEscrow(parameterService, transactionProcessor, blockchain, accountService));
     map.put("escrowSign", new EscrowSign(parameterService, transactionProcessor, blockchain, accountService, escrowService));
     map.put("getEscrowTransaction", new GetEscrowTransaction(escrowService));
-    map.put("getAccountEscrowTransactions", new GetAccountEscrowTransactions(parameterService));
+    map.put("getAccountEscrowTransactions", new GetAccountEscrowTransactions(parameterService, escrowService));
     map.put("sendMoneySubscription", new SendMoneySubscription(parameterService, transactionProcessor, blockchain, accountService));
     map.put("subscriptionCancel", new SubscriptionCancel(parameterService, transactionProcessor, blockchain, accountService, subscriptionService));
     map.put("getSubscription", new GetSubscription(subscriptionService));

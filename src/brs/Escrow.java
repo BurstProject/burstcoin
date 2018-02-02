@@ -144,10 +144,6 @@ public class Escrow {
     return Burst.getStores().getEscrowStore().getResultTransactions();
   }
 
-  public static Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId) {
-    return Burst.getStores().getEscrowStore().getEscrowTransactionsByParticipent(accountId);
-  }
-
   public static Escrow getEscrowTransaction(Long id) {
     return escrowTable().get(escrowDbKeyFactory().newKey(id));
   }

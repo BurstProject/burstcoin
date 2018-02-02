@@ -1,44 +1,12 @@
 package brs;
 
-import brs.db.EntityTable;
 import brs.db.BurstKey;
-import brs.util.Listener;
-import brs.util.Listeners;
 
 public class AssetTransfer {
 
   public enum Event {
     ASSET_TRANSFER
   }
-
-  private static final Listeners<AssetTransfer, Event> listeners = new Listeners<>();
-
-  private static final BurstKey.LongKeyFactory<AssetTransfer> transferDbKeyFactory() {
-    return Burst.getStores().getAssetTransferStore().getTransferDbKeyFactory();
-  }
-
-  private static final EntityTable<AssetTransfer> assetTransferTable() {
-    return Burst.getStores().getAssetTransferStore().getAssetTransferTable();
-  }
-
-  public static boolean addListener(Listener<AssetTransfer> listener, Event eventType) {
-    return listeners.addListener(listener, eventType);
-  }
-
-  public static boolean removeListener(Listener<AssetTransfer> listener, Event eventType) {
-    return listeners.removeListener(listener, eventType);
-  }
-
-  static AssetTransfer addAssetTransfer(Transaction transaction, Attachment.ColoredCoinsAssetTransfer attachment) {
-    AssetTransfer assetTransfer = new AssetTransfer(transaction, attachment);
-    assetTransferTable().insert(assetTransfer);
-    listeners.notify(assetTransfer, Event.ASSET_TRANSFER);
-    return assetTransfer;
-  }
-
-  static void init() {
-  }
-
 
   private final long id;
   public final BurstKey dbKey;
@@ -49,9 +17,9 @@ public class AssetTransfer {
   private final long quantityQNT;
   private final int timestamp;
 
-  private AssetTransfer(Transaction transaction, Attachment.ColoredCoinsAssetTransfer attachment) {
+  public AssetTransfer(BurstKey dbKey, Transaction transaction, Attachment.ColoredCoinsAssetTransfer attachment) {
+    this.dbKey = dbKey;
     this.id = transaction.getId();
-    this.dbKey = transferDbKeyFactory().newKey(this.id);
     this.height = transaction.getHeight();
     this.assetId = attachment.getAssetId();
     this.senderId = transaction.getSenderId();

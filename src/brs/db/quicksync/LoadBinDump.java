@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;

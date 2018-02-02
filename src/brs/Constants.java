@@ -1,5 +1,6 @@
 package brs;
 
+import brs.services.PropertyService;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -26,13 +27,7 @@ public final class Constants {
   public static final long MAX_BALANCE_NQT = MAX_BALANCE_BURST * ONE_BURST;
   public static final long INITIAL_BASE_TARGET = 18325193796L;
   public static final long MAX_BASE_TARGET = 18325193796L;
-  public static final int MAX_ROLLBACK = Burst.getIntProperty("brs.maxRollback");
-
-  static {
-    if (MAX_ROLLBACK < 1440) {
-      throw new RuntimeException("brs.maxRollback must be at least 1440");
-    }
-  }
+  public static final int MAX_ROLLBACK = Burst.getPropertyService().getIntProperty("brs.maxRollback");
 
   public static final int MAX_ALIAS_URI_LENGTH = 1000;
   public static final int MAX_ALIAS_LENGTH = 100;
@@ -61,8 +56,8 @@ public final class Constants {
   public static final int MAX_DGS_LISTING_TAGS_LENGTH = 100;
   public static final int MAX_DGS_GOODS_LENGTH = 10240;
 
-  public static final boolean isTestnet = Burst.getBooleanProperty("brs.isTestnet");
-  public static final boolean isOffline = Burst.getBooleanProperty("brs.isOffline");
+  public static final boolean isTestnet = Burst.getPropertyService().getBooleanProperty("brs.isTestnet");
+  public static final boolean isOffline = Burst.getPropertyService().getBooleanProperty("brs.isOffline");
 
   public static final int ALIAS_SYSTEM_BLOCK = 0;
   public static final int ARBITRARY_MESSAGES_BLOCK = 0;
@@ -87,7 +82,7 @@ public final class Constants {
 
   static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (isTestnet ? 50 : 100) * ONE_BURST;
 
-  public static final long EPOCH_BEGINNING;
+  public final static long EPOCH_BEGINNING;
 
   static {
     Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -99,6 +94,10 @@ public final class Constants {
     calendar.set(Calendar.SECOND, 0);
     calendar.set(Calendar.MILLISECOND, 0);
     EPOCH_BEGINNING = calendar.getTimeInMillis();
+
+    if (MAX_ROLLBACK < 1440) {
+      throw new RuntimeException("brs.maxRollback must be at least 1440");
+    }
   }
 
   public static final String ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -117,4 +116,5 @@ public final class Constants {
 
   private Constants() {
   } // never
+
 }

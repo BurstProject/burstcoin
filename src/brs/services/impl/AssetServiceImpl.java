@@ -3,7 +3,9 @@ package brs.services.impl;
 import brs.Account.AccountAsset;
 import brs.Asset;
 import brs.AssetTransfer;
+import brs.Attachment;
 import brs.Trade;
+import brs.Transaction;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.sql.EntitySqlTable;
@@ -69,6 +71,17 @@ public class AssetServiceImpl implements AssetService {
   @Override
   public BurstIterator<Asset> getAssetsIssuedBy(long accountId, int from, int to) {
     return assetStore.getAssetsIssuedBy(accountId, from, to);
+  }
+
+  @Override
+  public int getCount() {
+    return assetTable.getCount();
+  }
+
+  @Override
+  public void addAsset(Transaction transaction, Attachment.ColoredCoinsAssetIssuance attachment) {
+    final BurstKey dbKey = assetDbKeyFactory.newKey(transaction.getId());
+    assetTable.insert(new Asset(dbKey, transaction, attachment));
   }
 
 }

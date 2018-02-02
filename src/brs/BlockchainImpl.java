@@ -3,20 +3,21 @@ package brs;
 import brs.db.BlockDb;
 import brs.db.BurstIterator;
 
+import brs.db.store.BlockchainStore;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class BlockchainImpl implements Blockchain {
 
-  private static final BlockchainImpl instance = new BlockchainImpl();
-  private final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
-  private final BlockDb blockDb =  Burst.getDbs().getBlockDb();
+  private final TransactionDb transactionDb;
+  private final BlockDb blockDb;
+  private final BlockchainStore blockchainStore;
 
-  public static BlockchainImpl getInstance() {
-    return instance;
+  BlockchainImpl(TransactionDb transactionDb, BlockDb blockDb, BlockchainStore blockchainStore) {
+    this.transactionDb = transactionDb;
+    this.blockDb = blockDb;
+    this.blockchainStore = blockchainStore;
   }
-
-  private BlockchainImpl() {}
 
   private final AtomicReference<BlockImpl> lastBlock = new AtomicReference<>();
 
@@ -67,7 +68,7 @@ public final class BlockchainImpl implements Blockchain {
 
   @Override
   public BurstIterator<BlockImpl> getBlocks(int from, int to) {
-    return Burst.getStores().getBlockchainStore().getBlocks(from, to);
+    return blockchainStore.getBlocks(from, to);
   }
 
   @Override
@@ -77,17 +78,17 @@ public final class BlockchainImpl implements Blockchain {
 
   @Override
   public BurstIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to) {
-    return Burst.getStores().getBlockchainStore().getBlocks(account, timestamp, from, to);
+    return blockchainStore.getBlocks(account, timestamp, from, to);
   }
 
   @Override
   public List<Long> getBlockIdsAfter(long blockId, int limit) {
-    return Burst.getStores().getBlockchainStore().getBlockIdsAfter(blockId, limit);
+    return blockchainStore.getBlockIdsAfter(blockId, limit);
   }
 
   @Override
   public List<BlockImpl> getBlocksAfter(long blockId, int limit) {
-    return Burst.getStores().getBlockchainStore().getBlocksAfter(blockId, limit);
+    return blockchainStore.getBlocksAfter(blockId, limit);
   }
 
   @Override
@@ -136,12 +137,12 @@ public final class BlockchainImpl implements Blockchain {
 
   @Override
   public int getTransactionCount() {
-    return Burst.getStores().getBlockchainStore().getTransactionCount();
+    return blockchainStore.getTransactionCount();
   }
 
   @Override
   public BurstIterator<TransactionImpl> getAllTransactions() {
-    return Burst.getStores().getBlockchainStore().getAllTransactions();
+    return blockchainStore.getAllTransactions();
   }
 
   @Override
@@ -152,8 +153,7 @@ public final class BlockchainImpl implements Blockchain {
   @Override
   public BurstIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                       int blockTimestamp, int from, int to) {
-    return Burst.getStores().getBlockchainStore().getTransactions(account, numberOfConfirmations, type, subtype, blockTimestamp, from, to);
-
+    return  blockchainStore.getTransactions(account, numberOfConfirmations, type, subtype, blockTimestamp, from, to);
   }
 
 

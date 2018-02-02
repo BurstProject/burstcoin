@@ -12,7 +12,8 @@ import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
 import brs.db.store.OrderStore;
-import brs.services.OrderService;
+import brs.services.AccountService;
+import brs.services.TradeService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,6 +27,9 @@ public class OrderServiceImplTest {
   private VersionedEntityTable<Bid> mockBidOrderTable;
   private LongKeyFactory<Bid> mockBidOrderDbKeyFactory;
 
+  private AccountService accountServiceMock;
+  private TradeService tradeServiceMock;
+
   @Before
   public void setUp() {
     orderStoreMock = mock(OrderStore.class);
@@ -34,12 +38,15 @@ public class OrderServiceImplTest {
     mockBidOrderTable = mock(VersionedEntityTable.class);
     mockBidOrderDbKeyFactory = mock(LongKeyFactory.class);
 
+    accountServiceMock = mock(AccountService.class);
+    tradeServiceMock = mock(TradeService.class);
+
     when(orderStoreMock.getAskOrderTable()).thenReturn(mockAskOrderTable);
     when(orderStoreMock.getAskOrderDbKeyFactory()).thenReturn(mockAskOrderDbKeyFactory);
     when(orderStoreMock.getBidOrderTable()).thenReturn(mockBidOrderTable);
     when(orderStoreMock.getBidOrderDbKeyFactory()).thenReturn(mockBidOrderDbKeyFactory);
 
-    t = new OrderServiceImpl(orderStoreMock);
+    t = new OrderServiceImpl(orderStoreMock, accountServiceMock, tradeServiceMock);
   }
 
   @Test

@@ -1,7 +1,24 @@
 package brs.http;
 
+import brs.Blockchain;
+import brs.BlockchainProcessor;
 import brs.Constants;
-import brs.Burst;
+import brs.EconomicClustering;
+import brs.TransactionProcessor;
+import brs.services.ATService;
+import brs.services.AccountService;
+import brs.services.AliasService;
+import brs.services.AssetAccountService;
+import brs.services.AssetService;
+import brs.services.AssetTransferService;
+import brs.services.DGSGoodsStoreService;
+import brs.services.EscrowService;
+import brs.services.OrderService;
+import brs.services.ParameterService;
+import brs.services.PropertyService;
+import brs.services.SubscriptionService;
+import brs.services.TimeService;
+import brs.services.TradeService;
 import brs.util.Subnet;
 import brs.util.ThreadPool;
 import org.eclipse.jetty.server.*;
@@ -27,14 +44,19 @@ import java.util.Set;
 
 public final class API {
 
-  static final Set<Subnet> allowedBotHosts;
-  static final boolean enableDebugAPI = Burst.getBooleanProperty("API.Debug");
+  static Set<Subnet> allowedBotHosts;
+  static boolean enableDebugAPI;
   private static final Logger logger = LoggerFactory.getLogger(API.class);
   private static final int TESTNET_API_PORT = 6876;
-  private static final Server apiServer;
+  private static Server apiServer;
 
-  static {
-    List<String> allowedBotHostsList = Burst.getStringListProperty("brs.allowedBotHosts");
+  public API(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
+      AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
+      TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService,
+      SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService,
+      ThreadPool threadPool) {
+    enableDebugAPI = propertyService.getBooleanProperty("API.Debug");
+    List<String> allowedBotHostsList = propertyService.getStringListProperty("brs.allowedBotHosts");
     if (!allowedBotHostsList.contains("*")) {
       // Temp hashset to store allowed subnets
       Set<Subnet> allowedSubnets = new HashSet<>();
@@ -51,14 +73,14 @@ public final class API {
       allowedBotHosts = null;
     }
 
-    boolean enableAPIServer = Burst.getBooleanProperty("API.Server");
+    boolean enableAPIServer = propertyService.getBooleanProperty("API.Server");
     if (enableAPIServer) {
-      final int port = Constants.isTestnet ? TESTNET_API_PORT : Burst.getIntProperty("API.ServerPort");
-      final String host = Burst.getStringProperty("API.ServerHost");
+      final int port = Constants.isTestnet ? TESTNET_API_PORT : propertyService.getIntProperty("API.ServerPort");
+      final String host = propertyService.getStringProperty("API.ServerHost");
       apiServer = new Server();
       ServerConnector connector;
 
-      boolean enableSSL = Burst.getBooleanProperty("API.SSL");
+      boolean enableSSL = propertyService.getBooleanProperty("API.SSL");
       if (enableSSL) {
         logger.info("Using SSL (https) for the API server");
         HttpConfiguration https_config = new HttpConfiguration();
@@ -66,8 +88,8 @@ public final class API {
         https_config.setSecurePort(port);
         https_config.addCustomizer(new SecureRequestCustomizer());
         SslContextFactory sslContextFactory = new SslContextFactory();
-        sslContextFactory.setKeyStorePath(Burst.getStringProperty("API.SSL_keyStorePath"));
-        sslContextFactory.setKeyStorePassword(Burst.getStringProperty("API.SSL_keyStorePassword"));
+        sslContextFactory.setKeyStorePath(propertyService.getStringProperty("API.SSL_keyStorePath"));
+        sslContextFactory.setKeyStorePassword(propertyService.getStringProperty("API.SSL_keyStorePassword"));
         sslContextFactory.setExcludeCipherSuites("SSL_RSA_WITH_DES_CBC_SHA", "SSL_DHE_RSA_WITH_DES_CBC_SHA",
                                                  "SSL_DHE_DSS_WITH_DES_CBC_SHA", "SSL_RSA_EXPORT_WITH_RC4_40_MD5", "SSL_RSA_EXPORT_WITH_DES40_CBC_SHA",
                                                  "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA", "SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA");
@@ -80,14 +102,14 @@ public final class API {
 
       connector.setPort(port);
       connector.setHost(host);
-      connector.setIdleTimeout(Burst.getIntProperty("API.ServerIdleTimeout"));
+      connector.setIdleTimeout(propertyService.getIntProperty("API.ServerIdleTimeout"));
       connector.setReuseAddress(true);
       apiServer.addConnector(connector);
 
       HandlerList apiHandlers = new HandlerList();
 
       ServletContextHandler apiHandler = new ServletContextHandler();
-      String apiResourceBase = Burst.getStringProperty("API.UI_Dir");
+      String apiResourceBase = propertyService.getStringProperty("API.UI_Dir");
       if (apiResourceBase != null) {
         ServletHolder defaultServletHolder = new ServletHolder(new DefaultServlet());
         defaultServletHolder.setInitParameter("dirAllowed", "false");
@@ -99,7 +121,7 @@ public final class API {
         apiHandler.setWelcomeFiles(new String[]{"index.html"});
       }
 
-      String javadocResourceBase = Burst.getStringProperty("API.Doc_Dir");
+      String javadocResourceBase = propertyService.getStringProperty("API.Doc_Dir");
       if (javadocResourceBase != null) {
         ContextHandler contextHandler = new ContextHandler("/doc");
         ResourceHandler docFileHandler = new ResourceHandler();
@@ -110,8 +132,12 @@ public final class API {
         apiHandlers.addHandler(contextHandler);
       }
 
-      apiHandler.addServlet(APIServlet.class, "/burst");
-      if (Burst.getBooleanProperty("API.ServerGZIPFilter")) {
+      ServletHolder peerServletHolder = new ServletHolder(new APIServlet(transactionProcessor, blockchain, blockchainProcessor, parameterService,
+          accountService, aliasService, orderService, assetService, assetTransferService,
+          tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
+          subscriptionService, atService, timeService, economicClustering));
+      apiHandler.addServlet(peerServletHolder, "/burst");
+      if (propertyService.getBooleanProperty("API.ServerGZIPFilter")) {
         FilterHolder gzipFilterHolder = apiHandler.addFilter(GzipFilter.class, "/burst", null);
         gzipFilterHolder.setInitParameter("methods", "GET,POST");
         gzipFilterHolder.setAsyncSupported(true);
@@ -119,7 +145,7 @@ public final class API {
 
       apiHandler.addServlet(APITestServlet.class, "/test");
 
-      if (Burst.getBooleanProperty("API.CrossOriginFilter")) {
+      if (propertyService.getBooleanProperty("API.CrossOriginFilter")) {
         FilterHolder filterHolder = apiHandler.addFilter(CrossOriginFilter.class, "/*", null);
         filterHolder.setInitParameter("allowedHeaders", "*");
         filterHolder.setAsyncSupported(true);
@@ -131,7 +157,7 @@ public final class API {
       apiServer.setHandler(apiHandlers);
       apiServer.setStopAtShutdown(true);
 
-      ThreadPool.runBeforeStart(new Runnable() {
+      threadPool.runBeforeStart(new Runnable() {
           @Override
           public void run() {
             try {
@@ -152,13 +178,7 @@ public final class API {
 
   }
 
-  private API() {
-  } // never
-
-  public static void init() {
-  }
-
-  public static void shutdown() {
+  public void shutdown() {
     if (apiServer != null) {
       try {
         apiServer.stop();

@@ -23,11 +23,13 @@ import static brs.http.common.ResultFields.ERROR_DESCRIPTION_RESPONSE;
 public final class LeaseBalance extends CreateTransaction {
 
   private final ParameterService parameterService;
+  private final AccountService accountService;
   private final Blockchain blockchain;
 
   LeaseBalance(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
     super(new APITag[] {APITag.FORGING}, parameterService, transactionProcessor, blockchain, accountService, PERIOD_PARAMETER, RECIPIENT_PARAMETER);
     this.parameterService = parameterService;
+    this.accountService = accountService;
     this.blockchain = blockchain;
   }
 
@@ -50,7 +52,7 @@ public final class LeaseBalance extends CreateTransaction {
 
     Account account = parameterService.getSenderAccount(req);
     long recipient = ParameterParser.getRecipientId(req);
-    Account recipientAccount = Account.getAccount(recipient);
+    Account recipientAccount = accountService.getAccount(recipient);
     if (recipientAccount == null || recipientAccount.getPublicKey() == null) {
       JSONObject response = new JSONObject();
       response.put(ERROR_CODE_RESPONSE, 8);
