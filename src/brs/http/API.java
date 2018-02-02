@@ -1,7 +1,24 @@
 package brs.http;
 
+import brs.Blockchain;
+import brs.BlockchainProcessor;
 import brs.Constants;
+import brs.EconomicClustering;
+import brs.TransactionProcessor;
+import brs.services.ATService;
+import brs.services.AccountService;
+import brs.services.AliasService;
+import brs.services.AssetAccountService;
+import brs.services.AssetService;
+import brs.services.AssetTransferService;
+import brs.services.DGSGoodsStoreService;
+import brs.services.EscrowService;
+import brs.services.OrderService;
+import brs.services.ParameterService;
 import brs.services.PropertyService;
+import brs.services.SubscriptionService;
+import brs.services.TimeService;
+import brs.services.TradeService;
 import brs.util.Subnet;
 import brs.util.ThreadPool;
 import org.eclipse.jetty.server.*;
@@ -33,7 +50,10 @@ public final class API {
   private static final int TESTNET_API_PORT = 6876;
   private static Server apiServer;
 
-  public API(PropertyService propertyService) {
+  public API(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
+      AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
+      TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService,
+      SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService) {
     enableDebugAPI = propertyService.getBooleanProperty("API.Debug");
     List<String> allowedBotHostsList = propertyService.getStringListProperty("brs.allowedBotHosts");
     if (!allowedBotHostsList.contains("*")) {
@@ -111,7 +131,10 @@ public final class API {
         apiHandlers.addHandler(contextHandler);
       }
 
-      ServletHolder peerServletHolder = new ServletHolder(new APIServlet());
+      ServletHolder peerServletHolder = new ServletHolder(new APIServlet(transactionProcessor, blockchain, blockchainProcessor, parameterService,
+          accountService, aliasService, orderService, assetService, assetTransferService,
+          tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
+          subscriptionService, atService, timeService, economicClustering));
       apiHandler.addServlet(peerServletHolder, "/burst");
       if (propertyService.getBooleanProperty("API.ServerGZIPFilter")) {
         FilterHolder gzipFilterHolder = apiHandler.addFilter(GzipFilter.class, "/burst", null);

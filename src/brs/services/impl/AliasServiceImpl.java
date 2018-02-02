@@ -73,7 +73,8 @@ public class AliasServiceImpl implements AliasService {
       Alias alias = getAlias(aliasName);
       Offer offer = getOffer(alias);
       if (offer == null) {
-        offerTable.insert(new Offer(alias.getId(), priceNQT, buyerId));
+        BurstKey dbKey = offerDbKeyFactory.newKey(alias.getId());
+        offerTable.insert(new Offer(dbKey, alias.getId(), priceNQT, buyerId));
       }
       else {
         offer.setPriceNQT(priceNQT);

@@ -1,7 +1,9 @@
 package brs.peer;
 
 import brs.*;
+import brs.services.AccountService;
 import brs.services.PropertyService;
+import brs.services.TimeService;
 import brs.util.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -65,7 +67,7 @@ public final class Peers {
   private static String myPlatform;
   private static String myAddress;
   private static int myPeerServerPort;
-  private static String myHallmark;
+  //private static String myHallmark;
   private static boolean shareMyAddress;
   private static int maxNumberOfConnectedPublicPeers;
   private static boolean enableHallmarkProtection;
@@ -91,7 +93,8 @@ public final class Peers {
   private static final ExecutorService sendingService = Executors.newFixedThreadPool(10);
 
 
-  public static void init(PropertyService propertyService) {
+  public static void init(TimeService timeService, AccountService accountService, Blockchain blockchain, TransactionProcessor transactionProcessor,
+      BlockchainProcessor blockchainProcessor, PropertyService propertyService) {
 
     myPlatform = propertyService.getStringProperty("P2P.myPlatform");
     if ( propertyService.getStringProperty("P2P.myAddress") != null && propertyService.getStringProperty("P2P.myAddress").trim().length() == 0 && Init.gateway != null ) {
@@ -116,10 +119,10 @@ public final class Peers {
       throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
     }
     shareMyAddress = propertyService.getBooleanProperty("P2P.shareMyAddress") && ! Constants.isOffline;
-    myHallmark = propertyService.getStringProperty("P2P.myHallmark");
-    if (Peers.myHallmark != null && Peers.myHallmark.length() > 0) {
+    final String myHallmark = propertyService.getStringProperty("P2P.myHallmark");
+    if (myHallmark != null && ! myHallmark.isEmpty()) {
       try {
-        Hallmark hallmark = Hallmark.parseHallmark(Peers.myHallmark);
+        Hallmark hallmark = Hallmark.parseHallmark(myHallmark);
         if (!hallmark.isValid() || myAddress == null) {
           throw new RuntimeException();
         }
@@ -130,7 +133,7 @@ public final class Peers {
         }
       }
       catch (RuntimeException | URISyntaxException e) {
-        logger.info("Your hallmark is invalid: " + Peers.myHallmark + " for your address: " + myAddress);
+        logger.info("Your hallmark is invalid: " + myHallmark + " for your address: " + myAddress);
         throw new RuntimeException(e.toString(), e);
       }
     }
@@ -159,8 +162,8 @@ public final class Peers {
       }
     }
 
-    if (Peers.myHallmark != null && Peers.myHallmark.length() > 0) {
-      json.put("hallmark", Peers.myHallmark);
+    if (myHallmark != null && myHallmark.length() > 0) {
+      json.put("hallmark", myHallmark);
     }
 
     json.put("application",  Burst.APPLICATION);
@@ -255,7 +258,7 @@ public final class Peers {
       logger.debug("Known peers: " + peers.size());
     });
 
-    Init.init(propertyService);
+    Init.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService);
 
     if (! Constants.isOffline) {
       ThreadPool.scheduleThread("PeerConnecting", Peers.peerConnectingThread, 5);
@@ -272,7 +275,8 @@ public final class Peers {
     private static GatewayDevice gateway;
     private static Integer port;
 
-    static void init(PropertyService propertyService) {
+    static void init(TimeService timeService, AccountService accountService, Blockchain blockchain, TransactionProcessor transactionProcessor,
+        BlockchainProcessor blockchainProcessor, PropertyService propertyService) {
       if (Peers.shareMyAddress) {
         peerServer = new Server();
         ServerConnector connector = new ServerConnector(peerServer);
@@ -284,7 +288,7 @@ public final class Peers {
         connector.setReuseAddress(true);
         peerServer.addConnector(connector);
 
-        ServletHolder peerServletHolder = new ServletHolder(new PeerServlet());
+        ServletHolder peerServletHolder = new ServletHolder(new PeerServlet(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor));
         boolean isGzipEnabled = propertyService.getBooleanProperty("P2P.GZIPFilter");
         peerServletHolder.setInitParameter("isGzipEnabled", Boolean.toString(isGzipEnabled));
         ServletHandler peerHandler = new ServletHandler();

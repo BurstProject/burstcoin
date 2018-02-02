@@ -61,7 +61,6 @@ public final class Burst {
   private static final String DEFAULT_PROPERTIES_NAME = "brs-default.properties";
 
   private static final Logger logger = LoggerFactory.getLogger(Burst.class);
-  private static Properties defaultProperties;
   private static Properties properties;
   private static volatile Time time = new Time.EpochTime();
   private static Stores stores;
@@ -81,14 +80,15 @@ public final class Burst {
   private static Users users;
 
   private static PropertyService loadProperties() {
+    final Properties defaultProperties = new Properties();
+
     logger.info("Initializing Burst server version {}", VERSION);
     try (InputStream is = ClassLoader.getSystemResourceAsStream(DEFAULT_PROPERTIES_NAME)) {
-      defaultProperties = new Properties();
       if (is != null) {
         defaultProperties.load(is);
       } else {
         String configFile = System.getProperty(DEFAULT_PROPERTIES_NAME);
-        System.out.println("kw: " + System.getProperty(DEFAULT_PROPERTIES_NAME) + DEFAULT_PROPERTIES_NAME);
+
         if (configFile != null) {
           try (InputStream fis = new FileInputStream(configFile)) {
             defaultProperties.load(fis);
@@ -210,20 +210,20 @@ public final class Burst {
           digitalGoodsStoreService, blockchain, blockchainProcessor, getTransactionProcessor(), atService);
       final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
-      APIServlet.injectServices(getTransactionProcessor(), blockchain, blockchainProcessor, parameterService, accountService,
-          aliasService, orderService, assetService, assetTransferService, tradeService, escrowService, digitalGoodsStoreService, assetAccountService, subscriptionService, atService,
-          timeService, economicClustering);
-
-      PeerServlet.injectServices(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor);
-
       addBlockchainListeners(blockchainProcessor, accountService, digitalGoodsStoreService, blockchain, Burst.getDbs().getTransactionDb());
 
       Constants.init(propertyService);
-      Peers.init(propertyService);
+
+      Peers.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService);
+
       // TODO this really should be better...
       TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService, assetService, orderService, assetTransferService);
 
-      api = new API(propertyService);
+      api = new API(transactionProcessor, blockchain, blockchainProcessor, parameterService,
+          accountService, aliasService, orderService, assetService, assetTransferService,
+          tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
+          subscriptionService, atService, timeService, economicClustering, propertyService);
+
       users = new Users(propertyService);
       DebugTrace.init(propertyService, blockchainProcessor, tradeService, orderService, digitalGoodsStoreService);
 
@@ -291,18 +291,6 @@ public final class Burst {
 
   public static int getIntProperty(String name) {
     return propertyService.getIntProperty(name);
-  }
-
-  public static String getStringProperty(String name, String defaultValue) {
-    return propertyService.getStringProperty(name, defaultValue);
-  }
-
-  public static String getStringProperty(String name) {
-    return propertyService.getStringProperty(name);
-  }
-
-  public static List<String> getStringListProperty(String name) {
-    return propertyService.getStringListProperty(name);
   }
 
   public static PropertyService getPropertyService() {

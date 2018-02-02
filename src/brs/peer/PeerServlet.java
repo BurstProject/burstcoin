@@ -35,11 +35,10 @@ public final class PeerServlet extends HttpServlet {
     abstract JSONStreamAware processRequest(JSONObject request, Peer peer);
   }
 
-  private static Map<String,PeerRequestHandler> peerRequestHandlers;
+  private Map<String,PeerRequestHandler> peerRequestHandlers;
 
-  public static void injectServices(TimeService timeService, AccountService accountService,
-      Blockchain blockchain,
-      TransactionProcessor transactionProcessor, BlockchainProcessor blockchainProcessor) {
+  public PeerServlet(TimeService timeService, AccountService accountService, Blockchain blockchain, TransactionProcessor transactionProcessor,
+      BlockchainProcessor blockchainProcessor) {
     final Map<String,PeerRequestHandler> map = new HashMap<>();
     map.put("addPeers", AddPeers.instance);
     map.put("getCumulativeDifficulty", new GetCumulativeDifficulty(blockchain));

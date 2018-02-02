@@ -21,15 +21,6 @@ public interface TradeService {
 
   BurstIterator<Trade> getAllTrades(int from, int to);
 
-  /*
-    private static final BurstKey.LinkKeyFactory<Trade> tradeDbKeyFactory() {
-      return Burst.getStores().getTradeStore().getTradeDbKeyFactory();
-    }
-
-    private static final EntityTable<Trade> tradeTable() {
-      return Burst.getStores().getTradeStore().getTradeTable();
-    }
-  */
   boolean addListener(Listener<Trade> listener, Event eventType);
 
   boolean removeListener(Listener<Trade> listener, Event eventType);
