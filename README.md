@@ -152,6 +152,10 @@ base are not mentioned, however. In alphabetical order:
 * work on macOS port, testing and release management
 * JOOQ migration
 
+@Brabantian
+* introduction of JUnit and Code Coverage reportings
+* lot's of unit tests and refactoring work to make the code testable
+
 @BraindeadOne
 * providing a DB abstraction layer to allow for multiple DB backends
 * implementing a load/dump mechanism for faster sync (called Quicksync)
