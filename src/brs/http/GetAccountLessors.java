@@ -2,6 +2,9 @@ package brs.http;
 
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.HEIGHT_PARAMETER;
+import static brs.http.common.ResultFields.ACCOUNT_RESPONSE;
+import static brs.http.common.ResultFields.HEIGHT_RESPONSE;
+import static brs.http.common.ResultFields.LESSORS_RESPONSE;
 
 import brs.Account;
 import brs.Blockchain;
@@ -33,8 +36,8 @@ public final class GetAccountLessors extends APIServlet.APIRequestHandler {
     }
 
     JSONObject response = new JSONObject();
-    JSONData.putAccount(response, "account", account.getId());
-    response.put("height", height);
+    JSONData.putAccount(response, ACCOUNT_RESPONSE, account.getId());
+    response.put(HEIGHT_RESPONSE, height);
     JSONArray lessorsJSON = new JSONArray();
 
     /*try (DbIterator<Account> lessors = account.getLessors(height)) {
@@ -48,7 +51,7 @@ public final class GetAccountLessors extends APIServlet.APIRequestHandler {
       }
       }
       }*/
-    response.put("lessors", lessorsJSON);
+    response.put(LESSORS_RESPONSE, lessorsJSON);
     return response;
 
   }
