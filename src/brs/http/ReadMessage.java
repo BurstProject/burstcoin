@@ -51,7 +51,7 @@ public final class ReadMessage extends APIServlet.APIRequestHandler {
     }
 
     JSONObject response = new JSONObject();
-    Account senderAccount = Account.getAccount(transaction.getSenderId());
+    Account senderAccount = accountService.getAccount(transaction.getSenderId());
     Appendix.Message message = transaction.getMessage();
     Appendix.EncryptedMessage encryptedMessage = transaction.getEncryptedMessage();
     Appendix.EncryptToSelfMessage encryptToSelfMessage = transaction.getEncryptToSelfMessage();
@@ -65,7 +65,7 @@ public final class ReadMessage extends APIServlet.APIRequestHandler {
     if (secretPhrase != null) {
       if (encryptedMessage != null) {
         long readerAccountId = Account.getId(Crypto.getPublicKey(secretPhrase));
-        Account account = senderAccount.getId() == readerAccountId ? Account.getAccount(transaction.getRecipientId()) : senderAccount;
+        Account account = senderAccount.getId() == readerAccountId ? accountService.getAccount(transaction.getRecipientId()) : senderAccount;
         if (account != null) {
           try {
             byte[] decrypted = account.decryptFrom(encryptedMessage.getEncryptedData(), secretPhrase);

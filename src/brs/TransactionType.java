@@ -1556,7 +1556,7 @@ public abstract class TransactionType {
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.AccountControlEffectiveBalanceLeasing attachment = (Attachment.AccountControlEffectiveBalanceLeasing)transaction.getAttachment();
-          Account recipientAccount = Account.getAccount(transaction.getRecipientId());
+          Account recipientAccount = accountService.getAccount(transaction.getRecipientId());
           if (transaction.getSenderId() == transaction.getRecipientId()
               || transaction.getAmountNQT() != 0
               || attachment.getPeriod() < 1440) {
@@ -1630,7 +1630,7 @@ public abstract class TransactionType {
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           long height = (long)blockchain.getLastBlock().getHeight() + 1;
-          Account sender = Account.getAccount(transaction.getSenderId());
+          Account sender = accountService.getAccount(transaction.getSenderId());
 
           if (sender == null) {
             throw new BurstException.NotCurrentlyValidException("Sender not yet known ?!");
@@ -1641,7 +1641,7 @@ public abstract class TransactionType {
             throw new BurstException.NotCurrentlyValidException("Cannot reassign reward recipient before previous goes into effect: "
                                                                 + transaction.getJSONObject());
           }
-          Account recip = Account.getAccount(transaction.getRecipientId());
+          Account recip = accountService.getAccount(transaction.getRecipientId());
           if (recip == null || recip.getPublicKey() == null) {
             throw new BurstException.NotValidException("Reward recipient must have public key saved in blockchain: "
                                                        + transaction.getJSONObject());
@@ -2152,8 +2152,8 @@ public abstract class TransactionType {
           if (blockchain.getLastBlock().getHeight()< Constants.AUTOMATED_TRANSACTION_BLOCK){
             throw new BurstException.NotYetEnabledException("Automated Transactions not yet enabled at height " + blockchain.getLastBlock().getHeight());
           }
-          if (transaction.getSignature() != null && Account.getAccount(transaction.getId()) != null) {
-            Account existingAccount = Account.getAccount(transaction.getId());
+          if (transaction.getSignature() != null && accountService.getAccount(transaction.getId()) != null) {
+            Account existingAccount = accountService.getAccount(transaction.getId());
             if (existingAccount.getPublicKey() != null && !Arrays.equals(existingAccount.getPublicKey(), new byte[32]))
               throw new BurstException.NotValidException("Account with id already exists");
           }
