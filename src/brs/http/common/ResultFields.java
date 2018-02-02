@@ -96,7 +96,7 @@ public class ResultFields {
   public static final String RECIPIENT_RESPONSE = "recipient";
   public static final String RECIPIENT_RS_RESPONSE = "recipientRS";
   public static final String AMOUNT_NQT_RESPONSE = "amountNQT";
-  public static final String FEE_NQT_RESPONSE = AMOUNT_NQT_RESPONSE;
+  public static final String FEE_NQT_RESPONSE = "feeNQT";
   public static final String REQUIRED_SIGNERS_RESPONSE = "requiredSigners";
   public static final String DEADLINE_RESPONSE = "deadline";
   public static final String DEADLINE_ACTION_RESPONSE = "deadlineAction";
