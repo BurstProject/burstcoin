@@ -227,7 +227,7 @@ public final class Burst {
 
       api = new API(propertyService);
       users = new Users(propertyService);
-      DebugTrace.init(propertyService, blockchainProcessor, tradeService, orderService);
+      DebugTrace.init(propertyService, blockchainProcessor, tradeService, orderService, digitalGoodsStoreService);
 
       if (propertyService.getBooleanProperty("brs.mockMining")) {
         generator = new GeneratorImpl.MockGeneratorImpl(blockchainProcessor);
