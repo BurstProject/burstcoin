@@ -9,7 +9,6 @@ import brs.services.AccountService;
 import brs.services.DGSGoodsStoreService;
 import brs.util.Convert;
 import brs.util.Listener;
-import brs.util.Listeners;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,37 +20,6 @@ public final class DigitalGoodsStore {
     PURCHASE, DELIVERY, REFUND, FEEDBACK
   }
 
-  static class DevNullListener implements Listener<Block> {
-
-    private final AccountService accountService;
-    private final DGSGoodsStoreService goodsService;
-
-    DevNullListener(AccountService accountService, DGSGoodsStoreService goodsService) {
-      this.accountService = accountService;
-      this.goodsService = goodsService;
-    }
-
-    @Override
-    public void notify(Block block) {
-      try (BurstIterator<Purchase> purchases = goodsService.getExpiredPendingPurchases(block.getTimestamp())) {
-        while (purchases.hasNext()) {
-          Purchase purchase = purchases.next();
-          Account buyer = accountService.getAccount(purchase.getBuyerId());
-          buyer.addToUnconfirmedBalanceNQT(Convert.safeMultiply(purchase.getQuantity(), purchase.getPriceNQT()));
-          Goods goods = goodsService.getGoods(purchase.getGoodsId());
-          goodsService.changeQuantity(goods.getId(), purchase.getQuantity());
-          goodsService.setPending(purchase, false);
-        }
-      }
-    }
-  }
-
-
-  static void init() {
-    Goods.init();
-    Purchase.init();
-  }
-
   public static class Goods {
 
     private static final BurstKey.LongKeyFactory<Goods> goodsDbKeyFactory() {
@@ -61,8 +29,6 @@ public final class DigitalGoodsStore {
     private static final VersionedEntityTable<Goods> goodsTable() {
       return Burst.getStores().getDigitalGoodsStoreStore().getGoodsTable();
     }
-
-    static void init() {}
 
     private final long id;
     public final BurstKey dbKey;
@@ -101,8 +67,6 @@ public final class DigitalGoodsStore {
       this.delisted = false;
       this.timestamp = transaction.getTimestamp();
     }
-
-
 
     public long getId() {
       return id;
@@ -165,11 +129,6 @@ public final class DigitalGoodsStore {
       return Burst.getStores().getDigitalGoodsStoreStore().getPurchaseDbKeyFactory();
     }
 
-    private static final VersionedEntityTable<Purchase> purchaseTable() {
-      return Burst.getStores().getDigitalGoodsStoreStore().getPurchaseTable();
-    }
-
-
     private static final BurstKey.LongKeyFactory<Purchase> feedbackDbKeyFactory() {
       return Burst.getStores().getDigitalGoodsStoreStore().getFeedbackDbKeyFactory();
     }
@@ -185,8 +144,6 @@ public final class DigitalGoodsStore {
     private static final VersionedValuesTable<Purchase, String> publicFeedbackTable() {
       return Burst.getStores().getDigitalGoodsStoreStore().getPublicFeedbackTable();
     }
-
-    static void init() {}
 
     private final long id;
     public final BurstKey dbKey;
