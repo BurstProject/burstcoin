@@ -119,7 +119,7 @@ public final class Burst {
   private Burst() {
   } // never
 
-  public static Blockchain getBlockchain() {
+  public static BlockchainImpl getBlockchain() {
     return blockchain;
   }
 
@@ -181,8 +181,6 @@ public final class Burst {
       final BlockchainStore blockchainStore = Burst.getStores().getBlockchainStore();
       blockchain = new BlockchainImpl(transactionDb, blockDb, blockchainStore);
 
-      BlockchainProcessorImpl.init(propertyService, blockchain);
-
       economicClustering = new EconomicClustering(blockchain);
 
       final BurstKey.LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory =
@@ -211,8 +209,6 @@ public final class Burst {
       final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
       addBlockchainListeners(blockchainProcessor, accountService, digitalGoodsStoreService, blockchain, Burst.getDbs().getTransactionDb());
-
-      Constants.init(propertyService);
 
       Peers.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService);
 

@@ -35,7 +35,7 @@ public final class PeerServlet extends HttpServlet {
     abstract JSONStreamAware processRequest(JSONObject request, Peer peer);
   }
 
-  private Map<String,PeerRequestHandler> peerRequestHandlers;
+  private final Map<String,PeerRequestHandler> peerRequestHandlers;
 
   public PeerServlet(TimeService timeService, AccountService accountService, Blockchain blockchain, TransactionProcessor transactionProcessor,
       BlockchainProcessor blockchainProcessor) {

@@ -44,12 +44,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   private static final Logger logger = LoggerFactory.getLogger(BlockchainProcessorImpl.class);
   private static BlockDb blockDb;
   private static TransactionDb transactionDb;
-  public static DownloadCacheImpl DownloadCache;
+  public static final DownloadCacheImpl DownloadCache = new DownloadCacheImpl();
 
-  public static final int MAX_TIMESTAMP_DIFFERENCE = 15;
+  public final static int MAX_TIMESTAMP_DIFFERENCE = 15;
   private static boolean oclVerify;
-  public static int OCL_THRESHOLD;
-  public static int oclWaitThreshold;
+  public final static int OCL_THRESHOLD;
+  private final static int oclWaitThreshold;
 
   private static final Semaphore gpuUsage = new Semaphore(2);
   /** If we are more than this many blocks behind we can engage "catch-up"-mode if enabled */
@@ -89,11 +89,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     return oclVerify;
   }
 
-  public static void init(PropertyService propertyService, BlockchainImpl blockchainImpl) {
+  static {
     blockDb = Burst.getDbs().getBlockDb();
     transactionDb = Burst.getDbs().getTransactionDb();
-    DownloadCache = new DownloadCacheImpl(propertyService, blockchainImpl);
-    blockchain = blockchainImpl;
+    blockchain = Burst.getBlockchain();
+
+    PropertyService propertyService = Burst.getPropertyService();
 
     oclVerify = propertyService.getBooleanProperty("GPU.Acceleration"); // use GPU acceleration ?
     OCL_THRESHOLD = propertyService.getIntProperty("GPU.Threshold") == 0 ? 50 : propertyService.getIntProperty("GPU.Threshold");

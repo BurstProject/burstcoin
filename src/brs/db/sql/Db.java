@@ -1,5 +1,6 @@
 package brs.db.sql;
 
+import brs.Burst;
 import brs.services.PropertyService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -128,7 +129,7 @@ public final class Db {
       cp = new HikariDataSource(config);
 
       if (DATABASE_TYPE == TYPE.H2) {
-        int defaultLockTimeout = propertyService.getIntProperty("brs.dbDefaultLockTimeout") * 1000;
+        int defaultLockTimeout = Burst.getIntProperty("brs.dbDefaultLockTimeout") * 1000;
         try (Connection con = cp.getConnection();
              Statement stmt = con.createStatement()) {
           stmt.executeUpdate("SET DEFAULT_LOCK_TIMEOUT " + defaultLockTimeout);
