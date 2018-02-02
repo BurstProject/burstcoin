@@ -60,8 +60,6 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     return instance;
   }
 
-  private static BlockchainImpl blockchain;
-
   private final List<DerivedTable> derivedTables = new CopyOnWriteArrayList<>();
   private static boolean trimDerivedTables;
   private volatile int lastTrimHeight;
@@ -92,10 +90,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   static {
     blockDb = Burst.getDbs().getBlockDb();
     transactionDb = Burst.getDbs().getTransactionDb();
-    blockchain = Burst.getBlockchain();
 
     PropertyService propertyService = Burst.getPropertyService();
-
     oclVerify = propertyService.getBooleanProperty("GPU.Acceleration"); // use GPU acceleration ?
     OCL_THRESHOLD = propertyService.getIntProperty("GPU.Threshold") == 0 ? 50 : propertyService.getIntProperty("GPU.Threshold");
     oclWaitThreshold = propertyService.getIntProperty("GPU.WaitThreshold") == 0 ? 2000 : propertyService.getIntProperty("GPU.WaitThreshold");
@@ -192,9 +188,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   private final Runnable blockImporterThread = () -> {
     try {
       while (true) {
-        synchronized (blockchain) {
+        synchronized (Burst.getBlockchain()) {
           for (;;) {
-            Long lastId = blockchain.getLastBlock().getId();
+            Long lastId = Burst.getBlockchain().getLastBlock().getId();
             BlockImpl currentBlock;
             synchronized (DownloadCache) {
               currentBlock =
@@ -568,11 +564,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       }
 
       logger.warn("Cache is now processed. Starting to process fork.");
-      BlockImpl forkBlock = blockchain.getBlock(forkBlockId);
+      BlockImpl forkBlock = Burst.getBlockchain().getBlock(forkBlockId);
 
-      synchronized (blockchain) {
+      synchronized (Burst.getBlockchain()) {
         // we read the current cumulative difficulty
-        BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
+        BigInteger curCumulativeDifficulty = Burst.getBlockchain().getLastBlock().getCumulativeDifficulty();
 
         // We remove blocks from chain back to where we start our fork
         // and save it in a list if we need to restore
@@ -581,9 +577,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         // now we check that our chain is popped off.
         // If all seems ok is we try to push fork.
         int pushedForkBlocks = 0;
-        if (blockchain.getLastBlock().getId() == forkBlockId) {
+        if (Burst.getBlockchain().getLastBlock().getId() == forkBlockId) {
           for (BlockImpl block : forkBlocks) {
-            if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
+            if (Burst.getBlockchain().getLastBlock().getId() == block.getPreviousBlockId()) {
               try {
                 pushBlock(block);
                 pushedForkBlocks += 1;
@@ -599,7 +595,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
          * we check if we succeeded to push any block. if we did we check against cumulative
          * difficulty If it is lower we blacklist peer and set chain to be processed later.
          */
-        if (pushedForkBlocks > 0 && blockchain.getLastBlock().getCumulativeDifficulty()
+        if (pushedForkBlocks > 0 && Burst.getBlockchain().getLastBlock().getCumulativeDifficulty()
             .compareTo(curCumulativeDifficulty) < 0) {
           logger.debug("Pop off caused by peer " + peer.getPeerAddress() + ", blacklisting");
           peer.blacklist();
@@ -709,7 +705,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   @Override
   public int getMinRollbackHeight() {
     return trimDerivedTables ? (lastTrimHeight > 0 ? lastTrimHeight
-        : Math.max(blockchain.getHeight() - Constants.MAX_ROLLBACK, 0)) : 0;
+        : Math.max(Burst.getBlockchain().getHeight() - Constants.MAX_ROLLBACK, 0)) : 0;
   }
 
   @Override
@@ -719,7 +715,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       logger.debug("Peer has announced an unprocessable block.");
       return;
     }
-    synchronized (blockchain) {
+    synchronized (Burst.getBlockchain()) {
       synchronized (DownloadCache) {
         /*
          * This process takes care of the blocks that is announced by peers We do not want to be
@@ -741,12 +737,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   @Override
   public List<BlockImpl> popOffTo(int height) {
-    return popOffTo(blockchain.getBlockAtHeight(height));
+    return popOffTo(Burst.getBlockchain().getBlockAtHeight(height));
   }
 
   @Override
   public void fullReset() {
-    synchronized (blockchain) {
+    synchronized (Burst.getBlockchain()) {
       // blockDb.deleteBlock(Genesis.GENESIS_BLOCK_ID); // fails with stack overflow in H2
       blockDb.deleteAll(false);
       addGenesisBlock();
@@ -770,7 +766,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private void addBlock(BlockImpl block) {
     if (Burst.getStores().getBlockchainStore().addBlock(block))
-      blockchain.setLastBlock(block);
+      Burst.getBlockchain().setLastBlock(block);
 
   }
 
@@ -778,7 +774,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (blockDb.hasBlock(Genesis.GENESIS_BLOCK_ID)) {
       logger.info("Genesis block already in database");
       BlockImpl lastBlock = blockDb.findLastBlock();
-      blockchain.setLastBlock(lastBlock);
+      Burst.getBlockchain().setLastBlock(lastBlock);
       logger.info("Last block height: " + lastBlock.getHeight());
       return;
     }
@@ -804,12 +800,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   private void pushBlock(final BlockImpl block) throws BlockNotAcceptedException {
     int curTime = Burst.getEpochTime();
 
-    synchronized (blockchain) {
+    synchronized (Burst.getBlockchain()) {
       TransactionProcessorImpl transactionProcessor = Burst.getTransactionProcessor();
       BlockImpl previousLastBlock = null;
       try {
         Burst.getStores().beginTransaction();
-        previousLastBlock = blockchain.getLastBlock();
+        previousLastBlock = Burst.getBlockchain().getLastBlock();
 
         if (previousLastBlock.getId() != block.getPreviousBlockId()) {
           throw new BlockOutOfOrderException("Previous block id doesn't match");
@@ -945,7 +941,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         Burst.getStores().commitTransaction();
       } catch (BlockNotAcceptedException | ArithmeticException e) {
         Burst.getStores().rollbackTransaction();
-        blockchain.setLastBlock(previousLastBlock);
+        Burst.getBlockchain().setLastBlock(previousLastBlock);
         throw e;
       } finally {
         Burst.getStores().endTransaction();
@@ -999,9 +995,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
     block.apply();
-    Subscription.applyConfirmed(block, blockchain.getHeight());
+    Subscription.applyConfirmed(block, Burst.getBlockchain().getHeight());
     if (Escrow.isEnabled()) {
-      Escrow.updateOnBlock(block, blockchain.getHeight());
+      Escrow.updateOnBlock(block, Burst.getBlockchain().getHeight());
     }
     blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
     if (block.getTransactions().size() > 0) {
@@ -1011,12 +1007,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   private List<BlockImpl> popOffTo(Block commonBlock) {
-    synchronized (blockchain) {
+    synchronized (Burst.getBlockchain()) {
       if (commonBlock.getHeight() < getMinRollbackHeight()) {
         throw new IllegalArgumentException("Rollback to height " + commonBlock.getHeight()
             + " not suppported, " + "current height " + Burst.getBlockchain().getHeight());
       }
-      if (!blockchain.hasBlock(commonBlock.getId())) {
+      if (!Burst.getBlockchain().hasBlock(commonBlock.getId())) {
         logger.debug(
             "Block " + commonBlock.getStringId() + " not found in blockchain, nothing to pop off");
         return Collections.emptyList();
@@ -1024,7 +1020,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       List<BlockImpl> poppedOffBlocks = new ArrayList<>();
       try {
         Burst.getStores().beginTransaction();
-        BlockImpl block = blockchain.getLastBlock();
+        BlockImpl block = Burst.getBlockchain().getLastBlock();
         logger.debug("Rollback from " + block.getHeight() + " to " + commonBlock.getHeight());
         while (block.getId() != commonBlock.getId() && block.getId() != Genesis.GENESIS_BLOCK_ID) {
           poppedOffBlocks.add(block);
@@ -1044,12 +1040,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   private BlockImpl popLastBlock() {
-    BlockImpl block = blockchain.getLastBlock();
+    BlockImpl block = Burst.getBlockchain().getLastBlock();
     if (block.getId() == Genesis.GENESIS_BLOCK_ID) {
       throw new RuntimeException("Cannot pop off genesis block");
     }
     BlockImpl previousBlock = blockDb.findBlock(block.getPreviousBlockId());
-    blockchain.setLastBlock(block, previousBlock);
+    Burst.getBlockchain().setLastBlock(block, previousBlock);
     block.getTransactions().forEach(TransactionImpl::unsetBlock);
     blockDb.deleteBlocksFrom(block.getId());
     blockListeners.notify(block, Event.BLOCK_POPPED);
@@ -1074,7 +1070,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       }
     }
 
-    BlockImpl previousBlock = blockchain.getLastBlock();
+    BlockImpl previousBlock = Burst.getBlockchain().getLastBlock();
 
     SortedSet<TransactionImpl> blockTransactions = new TreeSet<>();
 
@@ -1148,7 +1144,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
 
     if (Subscription.isEnabled()) {
-      synchronized (blockchain) {
+      synchronized (Burst.getBlockchain()) {
         Subscription.clearRemovals();
         try {
           Burst.getStores().beginTransaction();
