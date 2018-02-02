@@ -10,6 +10,7 @@ import brs.at.AT_Exception;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.AssetService;
+import brs.services.AssetTransferService;
 import brs.services.DGSGoodsStoreService;
 import brs.services.OrderService;
 import brs.util.Convert;
@@ -86,15 +87,17 @@ public abstract class TransactionType {
   private static AliasService aliasService;
   private static AssetService assetService;
   private static OrderService orderService;
+  private static AssetTransferService assetTransferService;
 
   // Temporary...
-  static void init(Blockchain blockchain, AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService, AliasService aliasService, AssetService assetService, OrderService orderService) {
+  static void init(Blockchain blockchain, AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService, AliasService aliasService, AssetService assetService, OrderService orderService, AssetTransferService assetTransferService) {
     TransactionType.blockchain = blockchain;
     TransactionType.accountService = accountService;
     TransactionType.dgsGoodsStoreService = dgsGoodsStoreService;
     TransactionType.aliasService = aliasService;
     TransactionType.assetService = assetService;
     TransactionType.orderService = orderService;
+    TransactionType.assetTransferService = assetTransferService;
   }
 
   public static TransactionType findTransactionType(byte type, byte subtype) {
@@ -763,7 +766,7 @@ public abstract class TransactionType {
           Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer) transaction.getAttachment();
           senderAccount.addToAssetBalanceQNT(attachment.getAssetId(), -attachment.getQuantityQNT());
           recipientAccount.addToAssetAndUnconfirmedAssetBalanceQNT(attachment.getAssetId(), attachment.getQuantityQNT());
-          AssetTransfer.addAssetTransfer(transaction, attachment);
+          assetTransferService.addAssetTransfer(transaction, attachment);
         }
 
         @Override

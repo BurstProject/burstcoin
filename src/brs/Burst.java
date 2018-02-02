@@ -1,7 +1,7 @@
 package brs;
 
 import brs.AT.HandleATBlockTransactionsListener;
-import brs.DigitalGoodsStore.DevNullListener;
+import brs.blockchainlistener.DevNullListener;
 import brs.db.BlockDb;
 import brs.db.BurstKey;
 import brs.db.EntityTable;
@@ -219,11 +219,9 @@ public final class Burst {
       addBlockchainListeners(blockchainProcessor, accountService, digitalGoodsStoreService, blockchain, Burst.getDbs().getTransactionDb());
 
       Constants.init(propertyService);
-      DigitalGoodsStore.init();
-      AssetTransfer.init();
       Peers.init(propertyService);
       // TODO this really should be better...
-      TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService, assetService, orderService);
+      TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService, assetService, orderService, assetTransferService);
 
       api = new API(propertyService);
       users = new Users(propertyService);
