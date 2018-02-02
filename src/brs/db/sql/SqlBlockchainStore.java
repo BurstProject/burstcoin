@@ -146,7 +146,7 @@ public class SqlBlockchainStore implements BlockchainStore {
         )
       )
       .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
-      .limit(from, to)
+      .limit(from, to - from + 1)
       .fetchResultSet()
     );
   }

@@ -347,7 +347,7 @@ public final class DebugTrace {
       map.put("account", Convert.toUnsignedLong(accountId));
       map.put("timestamp", String.valueOf(Burst.getBlockchain().getLastBlock().getTimestamp()));
       map.put("height", String.valueOf(Burst.getBlockchain().getHeight()));
-      map.put("event", attachment == Attachment.ARBITRARY_MESSAGE ? "message" : "encrypted message");
+      map.put("event", "message");
       if (isRecipient) {
         map.put("sender", Convert.toUnsignedLong(transaction.getSenderId()));
       }

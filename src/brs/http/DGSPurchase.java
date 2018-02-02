@@ -13,12 +13,12 @@ import static brs.http.common.Parameters.QUANTITY_PARAMETER;
 import brs.Account;
 import brs.Attachment;
 import brs.Blockchain;
-import brs.Burst;
 import brs.BurstException;
 import brs.DigitalGoodsStore;
 import brs.TransactionProcessor;
 import brs.services.AccountService;
 import brs.services.ParameterService;
+import brs.services.TimeService;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONStreamAware;
@@ -27,12 +27,16 @@ public final class DGSPurchase extends CreateTransaction {
 
   private final ParameterService parameterService;
   private final Blockchain blockchain;
+  private AccountService accountService;
+  private TimeService timeService;
 
-  DGSPurchase(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
+  DGSPurchase(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TimeService timeService) {
     super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION},
         parameterService, transactionProcessor, blockchain, accountService, GOODS_PARAMETER, PRICE_NQT_PARAMETER, QUANTITY_PARAMETER, DELIVERY_DEADLINE_TIMESTAMP_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
+    this.accountService = accountService;
+    this.timeService = timeService;
   }
 
   @Override
@@ -60,7 +64,7 @@ public final class DGSPurchase extends CreateTransaction {
     int deliveryDeadline;
     try {
       deliveryDeadline = Integer.parseInt(deliveryDeadlineString);
-      if (deliveryDeadline <= Burst.getEpochTime()) {
+      if (deliveryDeadline <= timeService.getEpochTime()) {
         return INCORRECT_DELIVERY_DEADLINE_TIMESTAMP;
       }
     } catch (NumberFormatException e) {
@@ -68,7 +72,7 @@ public final class DGSPurchase extends CreateTransaction {
     }
 
     Account buyerAccount = parameterService.getSenderAccount(req);
-    Account sellerAccount = Account.getAccount(goods.getSellerId());
+    Account sellerAccount = accountService.getAccount(goods.getSellerId());
 
     Attachment attachment = new Attachment.DigitalGoodsPurchase(goods.getId(), quantity, priceNQT,
         deliveryDeadline, blockchain.getHeight());

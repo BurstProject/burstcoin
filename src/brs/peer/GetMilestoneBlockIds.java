@@ -1,7 +1,7 @@
 package brs.peer;
 
 import brs.Block;
-import brs.Burst;
+import brs.Blockchain;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -13,10 +13,11 @@ final class GetMilestoneBlockIds extends PeerServlet.PeerRequestHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(GetMilestoneBlockIds.class);
 
-  static final GetMilestoneBlockIds instance = new GetMilestoneBlockIds();
+  private final Blockchain blockchain;
 
-  private GetMilestoneBlockIds() {}
-
+  GetMilestoneBlockIds(Blockchain blockchain) {
+    this.blockchain = blockchain;
+  }
 
   @Override
   JSONStreamAware processRequest(JSONObject request, Peer peer) {
@@ -29,8 +30,8 @@ final class GetMilestoneBlockIds extends PeerServlet.PeerRequestHandler {
       String lastBlockIdString = (String) request.get("lastBlockId");
       if (lastBlockIdString != null) {
         long lastBlockId = Convert.parseUnsignedLong(lastBlockIdString);
-        long myLastBlockId = Burst.getBlockchain().getLastBlock().getId();
-        if (myLastBlockId == lastBlockId || Burst.getBlockchain().hasBlock(lastBlockId)) {
+        long myLastBlockId = blockchain.getLastBlock().getId();
+        if (myLastBlockId == lastBlockId || blockchain.hasBlock(lastBlockId)) {
           milestoneBlockIds.add(lastBlockIdString);
           response.put("milestoneBlockIds", milestoneBlockIds);
           if (myLastBlockId == lastBlockId) {
@@ -44,10 +45,10 @@ final class GetMilestoneBlockIds extends PeerServlet.PeerRequestHandler {
       int height;
       int jump;
       int limit = 10;
-      int blockchainHeight = Burst.getBlockchain().getHeight();
+      int blockchainHeight = blockchain.getHeight();
       String lastMilestoneBlockIdString = (String) request.get("lastMilestoneBlockId");
       if (lastMilestoneBlockIdString != null) {
-        Block lastMilestoneBlock = Burst.getBlockchain().getBlock(Convert.parseUnsignedLong(lastMilestoneBlockIdString));
+        Block lastMilestoneBlock = blockchain.getBlock(Convert.parseUnsignedLong(lastMilestoneBlockIdString));
         if (lastMilestoneBlock == null) {
           throw new IllegalStateException("Don't have block " + lastMilestoneBlockIdString);
         }
@@ -62,11 +63,11 @@ final class GetMilestoneBlockIds extends PeerServlet.PeerRequestHandler {
         response.put("error", "Old getMilestoneBlockIds protocol not supported, please upgrade");
         return response;
       }
-      blockId = Burst.getBlockchain().getBlockIdAtHeight(height);
+      blockId = blockchain.getBlockIdAtHeight(height);
 
       while (height > 0 && limit-- > 0) {
         milestoneBlockIds.add(Convert.toUnsignedLong(blockId));
-        blockId = Burst.getBlockchain().getBlockIdAtHeight(height);
+        blockId = blockchain.getBlockIdAtHeight(height);
         height = height - jump;
       }
       response.put("milestoneBlockIds", milestoneBlockIds);
