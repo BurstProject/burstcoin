@@ -61,6 +61,10 @@ final class PeerImpl implements Peer {
     return state;
   }
 
+  public boolean isState(State cmp_state) {
+    return state == cmp_state;
+  }
+  
   void setState(State state) {
     if (this.state == state) {
       return;
@@ -68,7 +72,8 @@ final class PeerImpl implements Peer {
     if (this.state == State.NON_CONNECTED) {
       this.state = state;
       Peers.notifyListeners(this, Peers.Event.ADDED_ACTIVE_PEER);
-    } else if (state != State.NON_CONNECTED) {
+    }
+    else if (state != State.NON_CONNECTED) {
       this.state = state;
       Peers.notifyListeners(this, Peers.Event.CHANGED_ACTIVE_PEER);
     }
@@ -211,6 +216,7 @@ final class PeerImpl implements Peer {
 
   @Override
   public boolean isBlacklisted() {
+    logger.debug("isBlacklisted - BL time: " + blacklistingTime + " Oldvers: " + isOldVersion + " PeerAddr: " + peerAddress);
     return blacklistingTime > 0 || isOldVersion || Peers.knownBlacklistedPeers.contains(peerAddress);
   }
 
@@ -349,7 +355,6 @@ final class PeerImpl implements Peer {
           setState(State.NON_CONNECTED);
         }
         response = null;
-
       }
 
     } catch (RuntimeException|IOException e) {
@@ -476,7 +481,8 @@ final class PeerImpl implements Peer {
   public int compareTo(Peer o) {
     if (getWeight() > o.getWeight()) {
       return -1;
-    } else if (getWeight() < o.getWeight()) {
+    }
+    else if (getWeight() < o.getWeight()) {
       return 1;
     }
     return 0;
@@ -503,11 +509,13 @@ final class PeerImpl implements Peer {
       if (analyzeHallmark(announcedAddress, (String)response.get("hallmark"))) {
         setState(State.CONNECTED);
         Peers.updateAddress(this);
-      } else {
+      }
+      else {
         blacklist();
       }
       lastUpdated = Burst.getEpochTime();
-    } else {
+    }
+    else {
       setState(State.NON_CONNECTED);
     }
   }
