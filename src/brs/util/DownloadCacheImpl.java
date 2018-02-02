@@ -1,5 +1,6 @@
 package brs.util;
 
+import brs.Burst;
 import brs.services.PropertyService;
 import java.math.BigInteger;
 import java.util.LinkedHashMap;
@@ -28,9 +29,10 @@ public final class DownloadCacheImpl {
   private int LastHeight = -1;
   BigInteger HigestCumulativeDifficulty = BigInteger.ZERO;
 
-  public DownloadCacheImpl(PropertyService propertyService, BlockchainImpl blockchain) {
+  public DownloadCacheImpl() {
+    PropertyService propertyService = Burst.getPropertyService();
     this.BLOCKCACHEMB = propertyService.getIntProperty("brs.blockCacheMB") == 0 ? 40 : propertyService.getIntProperty("brs.blockCacheMB");
-    this.blockchain = blockchain;
+    this.blockchain = Burst.getBlockchain();
   }
 
   public int getChainHeight() {
