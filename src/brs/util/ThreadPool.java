@@ -125,15 +125,15 @@ public final class ThreadPool {
   }
 
   public void shutdownExecutor(ExecutorService executor) {
-    executor.shutdown();
     try {
-      executor.awaitTermination(10, TimeUnit.SECONDS);
+      if (!executor.isTerminated()) {
+        executor.shutdownNow(); //Using shutdown now to stop more execution and to signal within threads to exit.
+        if(!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+          logger.info("Termination of threads failed.");
+        }
+      }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-    }
-    if (!executor.isTerminated()) {
-      logger.info("some threads didn't terminate, forcing shutdown");
-      executor.shutdownNow();
     }
   }
 

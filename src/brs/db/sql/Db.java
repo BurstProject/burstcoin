@@ -177,15 +177,15 @@ public final class Db {
 
   public static void shutdown() {
     if (DATABASE_TYPE == TYPE.H2) {
-      logger.info("Compacting database - this may take a while");
       try ( Connection con = cp.getConnection(); Statement stmt = con.createStatement() ) {
-        stmt.execute("SHUTDOWN COMPACT");
+        String shutDownCommand = Burst.getBooleanProperty("Db.H2.DefragOnShutdown") ? "SHUTDOWN DEFRAG" : "SHUTDOWN";
+        stmt.execute(shutDownCommand);// COMPACT is not giving good result. 
       }
       catch (SQLException e) {
         logger.info(e.toString(), e);
       }
       finally {
-        logger.info("Database shutdown completed");
+        logger.info("Database shutdown completed.");
       }
     }
   }
