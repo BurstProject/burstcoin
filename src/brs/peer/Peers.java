@@ -469,6 +469,11 @@ public final class Peers {
                 myPeers.add(myPeer.getAnnouncedAddress());
               }
             }
+            //executor shutdown? 
+            if (Thread.currentThread().isInterrupted()) {
+              return;
+            }
+
             if (myPeers.size() > 0) {
               JSONObject request = new JSONObject();
               request.put("requestType", "addPeers");
