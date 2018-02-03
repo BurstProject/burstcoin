@@ -195,7 +195,7 @@ var NRS = (function(NRS, $, undefined) {
 							// Can't use stadard 'dashboard_status' div because it is cleared by other functions.
 							// So create a similar div for this purpose
 							var watch_only_message = "You are logged in as a watch-only address.  You will need the full passphrase for most operations."
-							$(".content").prepend($(`<div class="alert-danger alert alert-no-icon" style="padding: 5px; margin-bottom: 15px;">${watch_only_message}</div>`));
+							$(".content").prepend($('<div class="alert-danger alert alert-no-icon" style="padding: 5px; margin-bottom: 15px;">${watch_only_message}</div>'));
 						}						
 					}
 
@@ -286,7 +286,7 @@ var NRS = (function(NRS, $, undefined) {
 				});
 			};
 
-			if (password.trim().toUpperCase().startsWith("BURST-") && password.length == 26) {
+			if (password.trim().toUpperCase().substring(0, 6) == "BURST-" && password.length == 26) {
 				// Login to a watch-only address
 				var account_id = password.trim();
 
