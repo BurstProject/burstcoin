@@ -73,6 +73,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   private static boolean forceScan;
   private static boolean validateAtScan;
 
+  private static int addedBlockCount = 0;
+  private static int firstBlockAdded = 0;
+
   private final Runnable debugInfoThread = () -> {
     logger.info("Unverified blocks: " + DownloadCache.getUnverifiedSize());
     logger.info("Blocks in cache: " + DownloadCache.size());
@@ -626,7 +629,6 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   };
 
   private BlockchainProcessorImpl() {
-
     blockListeners.addListener(block -> {
       if (block.getHeight() % 5000 == 0) {
         logger.info("processed block " + block.getHeight());
@@ -948,6 +950,14 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       }
       logger.debug("Successfully pushed " + block.getId() + " (height " + block.getHeight() + ")");
     } // synchronized
+
+    if ( addedBlockCount++ == 0 ) {
+      firstBlockAdded = Burst.getEpochTime();
+    }
+    else if ( addedBlockCount % 500 == 0 ) {
+      logger.info("handling {} blocks per second", String.format("%.2g", 500 / (float) (Burst.getEpochTime() - firstBlockAdded)));
+      addedBlockCount = 0;
+    }
 
     blockListeners.notify(block, Event.BLOCK_PUSHED);
 
