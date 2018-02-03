@@ -130,17 +130,19 @@ public class TransactionProcessorImpl implements TransactionProcessor {
         List<Transaction> transactionList = new ArrayList<>();
         int curTime = timeService.getEpochTime();
         nonBroadcastedTransactions.forEach(transaction -> {
-            if (dbs.getTransactionDb().hasTransaction(transaction.getId()) || transaction.getExpiration() < curTime) {
-                nonBroadcastedTransactions.remove(transaction);
-            } else if (transaction.getTimestamp() < curTime - 30) {
-                transactionList.add(transaction);
-            }
-          });
-
+          if (dbs.getTransactionDb().hasTransaction(transaction.getId()) || transaction.getExpiration() < curTime) {
+            nonBroadcastedTransactions.remove(transaction);
+          } else if (transaction.getTimestamp() < curTime - 30) {
+            transactionList.add(transaction);
+          }
+        });
+        //executor shutdown? 
+        if (Thread.currentThread().isInterrupted()) {
+          return;
+        }
         if (transactionList.size() > 0) {
           Peers.rebroadcastTransactions(transactionList);
         }
-
       } catch (Exception e) {
         logger.debug("Error in transaction re-broadcasting thread", e);
       }
