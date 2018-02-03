@@ -103,17 +103,17 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private final Runnable pocVerificationThread = () -> {
     for (;;) {
+      if (DownloadCache.getUnverifiedSize() == 0) {
+        return;
+      }
       if (oclVerify) {
         boolean gpuAcquired = false;
         int poCVersion = 1;
         try {
           List<BlockImpl> blocks = new LinkedList<>();
           synchronized (DownloadCache) {
-            if (DownloadCache.getUnverifiedSize() == 0) {
-              return;
-            }
             int verifiedCached = DownloadCache.size() - DownloadCache.getUnverifiedSize();
-            if (verifiedCached >= oclWaitThreshold
+            if (verifiedCached >= oclWaitThreshold 
                 && DownloadCache.getUnverifiedSize() < OCLPoC.getMaxItems() / 2) {
               return;
             }
@@ -165,8 +165,6 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       } else {
         BlockImpl block;
         synchronized (DownloadCache) {
-          if (DownloadCache.getUnverifiedSize() == 0)
-            return;
           Long blockId = DownloadCache.GetUnverifiedBlockId(0);
           DownloadCache.removeUnverified(blockId);
           block = DownloadCache.GetBlock(blockId);
@@ -183,46 +181,63 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       } catch (InterruptedException ex) {
         Thread.currentThread().interrupt();
       }
+      //executor shutdown? 
+      if (Thread.currentThread().isInterrupted()) {
+        return;
+      }
+
+      
     }
   };
   private final Runnable blockImporterThread = () -> {
     try {
       while (true) {
-        synchronized (Burst.getBlockchain()) {
-          for (;;) {
-            Long lastId = Burst.getBlockchain().getLastBlock().getId();
-            BlockImpl currentBlock;
-            synchronized (DownloadCache) {
-              currentBlock =
-                  DownloadCache.GetNextBlock(lastId); /* we should fetch first block in cache */
-              if (currentBlock == null) {
+        if (DownloadCache.getBlockCacheSize() > 0) {
+          synchronized (Burst.getBlockchain()) {
+            for (;;) {
+              
+              Long lastId = Burst.getBlockchain().getLastBlock().getId();
+              BlockImpl currentBlock;
+              synchronized (DownloadCache) {
+                currentBlock = DownloadCache.GetNextBlock(lastId); /* we should fetch first block in cache */
+                if (currentBlock == null) {
+                  break;
+                }
+              }
+              try {
+                if (!currentBlock.isVerified()) {
+                  currentBlock.preVerify();
+                }
+                pushBlock(currentBlock);
+              } catch (BlockNotAcceptedException e) {
+                logger.error("Block not accepted", e);
+                blacklistClean(currentBlock, e);
                 break;
               }
-            }
-            try {
-              if (!currentBlock.isVerified()) {
-                currentBlock.preVerify();
+              // Remove processed block.
+              synchronized (DownloadCache) {
+                DownloadCache.RemoveBlock(currentBlock);
               }
-              pushBlock(currentBlock);
-            } catch (BlockNotAcceptedException e) {
-              logger.error("Block not accepted", e);
-              blacklistClean(currentBlock, e);
-              break;
-            }
-            // Remove processed block.
-            synchronized (DownloadCache) {
-              DownloadCache.RemoveBlock(currentBlock);
+              //executor shutdown? 
+              if (Thread.currentThread().isInterrupted()) {
+                logger.debug("Blockimporter got interupted.");
+                return;
+              }
             }
           }
         }
-
         // threadsleep?
         try {
           Thread.sleep(10);
         } catch (InterruptedException ex) {
+          logger.debug("Blockimporter fires interupt.");
           Thread.currentThread().interrupt();
         }
-
+        //executor shutdown? 
+        if (Thread.currentThread().isInterrupted()) {
+          logger.debug("Blockimporter got interupted.");
+          return;
+        }
       }
     } catch (Throwable exception) {
       logger.error("Uncaught exception in blockImporterThread", exception);
@@ -381,8 +396,8 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                     DownloadCache.AddBlock(block);
                   } else {
                     // at correct height we can check if this fork even is worth processing.
-                    if (chainHeight == block.getHeight() && (block.getCumulativeDifficulty()
-                        .compareTo(curCumulativeDifficulty) < 0)) {
+                    if (chainHeight == block.getHeight() 
+                        && (block.getCumulativeDifficulty().compareTo(curCumulativeDifficulty) < 0)) {
                       // peer does not have better Cumulative difficulty at same height as us.
                       logger.debug("Peer almost caused us to popoff blocks. Blacklisting.");
                       peer.blacklist();
@@ -401,6 +416,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                   logger.warn("Unhandled exception {}" + e.toString(), e);
                   logger.warn("Unhandled exception trace: " + e.getStackTrace());
                 }
+                //executor shutdown? 
+                if (Thread.currentThread().isInterrupted()) {
+                  return;
+                }
               } // end block loop
 
               logger.trace("Unverified blocks: " + DownloadCache.getUnverifiedSize());
@@ -408,6 +427,17 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
               logger.trace("Bytes in cache: " + DownloadCache.getBlockCacheSize());
             } // end synchronized
             if (forkBlocks.size() > 0) {
+              /*
+               * Since we cannot rely on peers reported cumulative difficulty we do
+               * a final check to see that the CumulativeDifficulty actually is bigger
+               * before we do a popOff and switch chain. 
+               */
+              if(lastBlock.getCumulativeDifficulty().compareTo(curCumulativeDifficulty) < 0) {
+                logger.debug("Peer claimed to have bigger cumulative difficulty but in reality it did not. Blacklisting.");
+                peer.blacklist();
+                forkBlocks.clear();
+                break;
+              }
               processFork(peer, forkBlocks, commonBlockId);
             }
 
