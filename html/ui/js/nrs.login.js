@@ -286,7 +286,7 @@ var NRS = (function(NRS, $, undefined) {
 				});
 			};
 
-			if (password.trim().toUpperCase().startsWith("BURST-") && password.length == 26) {
+			if (password.trim().toUpperCase().substring(0, 6) == "BURST-" && password.length == 26) {
 				// Login to a watch-only address
 				var account_id = password.trim();
 
