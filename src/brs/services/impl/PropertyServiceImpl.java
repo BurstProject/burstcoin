@@ -25,7 +25,7 @@ public class PropertyServiceImpl implements PropertyService {
     String value = properties.getProperty(name);
 
     if (value != null) {
-      if (value.matches("(?i)^1|true|yes|on$")) {
+      if (value.matches("(?i)^1|active|true|yes|on$")) {
         logger.debug("{} = 'true'", name);
         return true;
       }
