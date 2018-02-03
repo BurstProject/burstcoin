@@ -59,7 +59,22 @@ function upgrade_conf () {
         BRS="${BRS///}"
         BRS="${BRS///}"
 
+        # JETTY pass-through params
+        BRS="${BRS//nxt\.enablePeerServerDoSFilter/JETTY.DoSFilter}"
+        BRS="${BRS//nxt\.peerServerDoSFilter.maxRequestsPerSec/JETTY.DoSFilter.maxRequestsPerSec}"
+        BRS="${BRS//nxt\.peerServerDoSFilter.delayMs/JETTY.DoSFilter.delayMs}"
+        BRS="${BRS//nxt\.peerServerDoSFilter.maxRequestMs/JETTY.DoSFilter.maxRequestMs}"
+
+        # TEST-related params (TestNet)
+        BRS="${BRS//nxt\.isTestnet/TEST.Net}"
         BRS="${BRS//nxt\.testnetPeers/TEST.Peers}"
+
+        # API-related params
+        BRS="${BRS//nxt.enableAPIServer/}"
+        BRS="${BRS///}"
+        BRS="${BRS///}"
+        BRS="${BRS///}"
+        BRS="${BRS///}"
         
         # DB-related params
         # GPU-related params

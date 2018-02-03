@@ -56,7 +56,7 @@ public final class Constants {
   public static final int MAX_DGS_LISTING_TAGS_LENGTH = 100;
   public static final int MAX_DGS_GOODS_LENGTH = 10240;
 
-  public static final boolean isTestnet = Burst.getPropertyService().getBooleanProperty("brs.isTestnet");
+  public static final boolean isTestnet = Burst.getPropertyService().getBooleanProperty("TEST.Net");
   public static final boolean isOffline = Burst.getPropertyService().getBooleanProperty("brs.isOffline");
 
   public static final int ALIAS_SYSTEM_BLOCK = 0;
