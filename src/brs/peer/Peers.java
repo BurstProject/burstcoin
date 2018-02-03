@@ -178,7 +178,8 @@ public final class Peers {
     rebroadcastPeers = Collections.unmodifiableSet(new HashSet<>(propertyService.getStringListProperty("P2P.rebroadcastTo")));
 
     List<String> wellKnownPeersList = Constants.isTestnet ? propertyService.getStringListProperty("TEST.Peers")
-        : propertyService.getStringListProperty("P2P.BootstrapConnect");
+        : propertyService.getStringListProperty("P2P.BootstrapPeers");
+
     for(String rePeer : rebroadcastPeers) {
       if(!wellKnownPeersList.contains(rePeer)) {
         wellKnownPeersList.add(rePeer);
@@ -200,14 +201,14 @@ public final class Peers {
       knownBlacklistedPeers = Collections.unmodifiableSet(new HashSet<>(knownBlacklistedPeersList));
     }
 
-    maxNumberOfConnectedPublicPeers = propertyService.getIntProperty("brs.maxNumberOfConnectedPublicPeers");
+    maxNumberOfConnectedPublicPeers = propertyService.getIntProperty("P2P.MaxConnections");
     connectTimeout = propertyService.getIntProperty("P2P.TimeoutConnect_ms");
     readTimeout = propertyService.getIntProperty("P2P.TimeoutRead_ms");
-    enableHallmarkProtection = propertyService.getBooleanProperty("P2P.enableHallmarkProtection");
-    pushThreshold = propertyService.getIntProperty("brs.pushThreshold");
-    pullThreshold = propertyService.getIntProperty("brs.pullThreshold");
+    enableHallmarkProtection = propertyService.getBooleanProperty("P2P.HallmarkProtection");
+    pushThreshold = propertyService.getIntProperty("P2P.HallmarkPush");
+    pullThreshold = propertyService.getIntProperty("P2P.HallmarkPull");
 
-    blacklistingPeriod = propertyService.getIntProperty("brs.blacklistingPeriod");
+    blacklistingPeriod = propertyService.getIntProperty("P2P.BlacklistingTime_ms");
     communicationLoggingMask = propertyService.getIntProperty("brs.communicationLoggingMask");
     sendToPeersLimit = propertyService.getIntProperty("brs.sendToPeersLimit");
     usePeersDb       = propertyService.getBooleanProperty("brs.usePeersDb") && ! Constants.isOffline;
@@ -284,7 +285,7 @@ public final class Peers {
         connector.setPort(port);
         final String host = propertyService.getStringProperty("P2P.Listen");
         connector.setHost(host);
-        connector.setIdleTimeout(propertyService.getIntProperty("P2P.IdleTimeout_ms"));
+        connector.setIdleTimeout(propertyService.getIntProperty("P2P.TimeoutIdle_ms"));
         connector.setReuseAddress(true);
         peerServer.addConnector(connector);
 

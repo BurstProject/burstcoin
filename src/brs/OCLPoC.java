@@ -60,10 +60,12 @@ final class OCLPoC {
 
   private static final int DEFAULT_MEM_PERCENT = 50;
 
-  private static final int hashesPerEnqueue = Burst.getIntProperty("GPU.HashesPerEnqueue") == 0
-      ? 1000 : Burst.getIntProperty("GPU.HashesPerEnqueue");
+  private static final int hashesPerEnqueue = Burst.getIntProperty("GPU.HashesPerBatch") == 0
+                                            ? 1000
+                                            : Burst.getIntProperty("GPU.HashesPerBatch");
   private static final int MEM_PERCENT = Burst.getIntProperty("GPU.MemPercent") == 0
-      ? DEFAULT_MEM_PERCENT : Burst.getIntProperty("GPU.MemPercent");
+                                       ? DEFAULT_MEM_PERCENT
+                                       : Burst.getIntProperty("GPU.MemPercent");
 
   private static cl_context ctx;
   private static cl_command_queue queue;
@@ -302,7 +304,7 @@ final class OCLPoC {
           clEnqueueReadBuffer(queue, scoopOutMem, true, 0,
               (long) MiningPlot.SCOOP_SIZE * blocks.size(), Pointer.to(scoopsOut), 0, null, null);
         } catch (Exception e) {
-          logger.info("Ocl error. Try to set a lower value on oclHashesPerEnqueue in properties.");
+          logger.info("GPU error. Try to set a lower value on GPU.HashesPerBatch in properties.");
           return;
         } finally {
           if (idMem != null) {
