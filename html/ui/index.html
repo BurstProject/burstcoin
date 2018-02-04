@@ -15,9 +15,6 @@
     <style id="user_header_style" type="text/css"></style>
     <style id="user_sidebar_style" type="text/css"></style>
     <style id="user_boxes_style" type="text/css"></style>
-    <!-- Reconsider this jquery input as its a multiple of the one in 3rd party folder, one posibility might be to add jquery here but remove from 3rd party
-         same with the import i removed for bootstrap.js. Duplicate imports for scripts might cause some spectacular and hard to trace bugs -->
-    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js" type="text/javascript"></script>
     <style>
       .animate-change {
       background-color:green;
@@ -214,7 +211,6 @@
       margin: 0.5em 0.5em;
       }
     </style>
-    <!--script type="text/javascript" src="//code.jquery.com/ui/1.10.4/jquery-ui.min.js" type="text/javascript"></script-->
   </head>
   <body class="lockscreen fixed">
     <div id="lockscreen">
@@ -5955,9 +5951,9 @@
       </div>
     </div>
 
-    <script src="js/3rdparty/jquery.js"    integrity="sha384-OhORL1bfiBqoyzpjW+0vUZ33mZ0eAsE3yqUM/7s7BFH8C1n6BsioFATPtW2HJX3R" type="text/javascript"></script>
-    <script src="js/3rdparty/bootstrap.js" integrity="sha384-AruvSWLzKMR8e97hqmCIYfZSC/91zOJyRyu6DOjiRZ9B8g32h15x0QQvHlRm+/18" type="text/javascript"></script>
-    <script src="js/3rdparty/i18next.js"   integrity="sha384-zd9+xsXTO8I12YKO9I72ZhKI9Qa+4nUzoqbYPMsUBIt+IZio8wLxNULPppITb9rR" type="text/javascript"></script>
+    <script src="js/3rdparty/jquery.min.js" integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT" type="text/javascript"></script>
+    <script src="js/3rdparty/bootstrap.js"  integrity="sha384-AruvSWLzKMR8e97hqmCIYfZSC/91zOJyRyu6DOjiRZ9B8g32h15x0QQvHlRm+/18" type="text/javascript"></script>
+    <script src="js/3rdparty/i18next.js"    integrity="sha384-zd9+xsXTO8I12YKO9I72ZhKI9Qa+4nUzoqbYPMsUBIt+IZio8wLxNULPppITb9rR" type="text/javascript"></script>
     <script type="text/javascript">
       $.i18n.init({
       fallbackLng: "en",
@@ -5973,7 +5969,7 @@
     <script src="js/3rdparty/ajaxretry.js"       integrity="sha384-ia90j7KZ3lHwnJ/jSofQNFuwwtGrcTHwjd9+SY8Ls7EFiyx+vFfXvURO9fW0odQj" type="text/javascript"></script>
     <script src="js/3rdparty/big.min.js"         integrity="sha384-moVXZQ1vNulkMKTp26lnzWzlS0pdCeEDS2/ncCgejy/9cOlc0SHI8GiCWT/c3Vxx" type="text/javascript"></script>
     <script src="js/3rdparty/clipboard.js" type="text/javascript"></script>
-    <script src="js/3rdparty/jquery.rss.js" type="text/javascript"></script>
+    <script src="js/3rdparty/jquery.rss.min.js" type="text/javascript"></script>
     <script src="js/3rdparty/webdb.js" type="text/javascript"></script>
     <script src="js/3rdparty/growl.js" type="text/javascript"></script>
     <script src="js/3rdparty/jsbn.js" type="text/javascript"></script>
