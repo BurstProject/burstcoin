@@ -31,6 +31,7 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.eclipse.jetty.servlets.DoSFilter;
 import org.eclipse.jetty.servlets.GzipFilter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
@@ -123,7 +124,7 @@ public final class API {
 
       String javadocResourceBase = propertyService.getStringProperty("API.Doc_Dir");
       if (javadocResourceBase != null) {
-        ContextHandler contextHandler = new ContextHandler("/doc");
+        ContextHandler contextHandler  = new ContextHandler("/doc");
         ResourceHandler docFileHandler = new ResourceHandler();
         docFileHandler.setDirectoriesListed(false);
         docFileHandler.setWelcomeFiles(new String[]{"index.html"});
@@ -137,10 +138,30 @@ public final class API {
           tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
           subscriptionService, atService, timeService, economicClustering));
       apiHandler.addServlet(peerServletHolder, "/burst");
-      if (propertyService.getBooleanProperty("API.ServerGZIPFilter")) {
+
+      if (propertyService.getBooleanProperty("JETTY.API.GzipFilter")) {
         FilterHolder gzipFilterHolder = apiHandler.addFilter(GzipFilter.class, "/burst", null);
-        gzipFilterHolder.setInitParameter("methods", "GET,POST");
+        gzipFilterHolder.setInitParameter("methods",     propertyService.getStringProperty("JETTY.API.GZIPFilter.methods"));
+        gzipFilterHolder.setInitParameter("bufferSize",  propertyService.getStringProperty("JETTY.API.GZIPFilter.bufferSize"));
+        gzipFilterHolder.setInitParameter("minGzipSize", propertyService.getStringProperty("JETTY.API.GZIPFilter.minGzipSize"));
         gzipFilterHolder.setAsyncSupported(true);
+      }
+      
+      if (propertyService.getBooleanProperty("JETTY.API.DoSFilter")) {
+        FilterHolder dosFilterHolder = apiHandler.addFilter(DoSFilter.class, "/burst", null);
+        dosFilterHolder.setInitParameter("maxRequestsPerSec", propertyService.getStringProperty("JETTY.API.DoSFilter.maxRequestsPerSec"));
+        dosFilterHolder.setInitParameter("throttledRequests", propertyService.getStringProperty("JETTY.API.DoSFilter.throttledRequests"));
+        dosFilterHolder.setInitParameter("delayMs",           propertyService.getStringProperty("JETTY.API.DoSFilter.delayMs"));
+        dosFilterHolder.setInitParameter("maxWaitMs",         propertyService.getStringProperty("JETTY.API.DoSFilter.maxWaitMs"));
+        dosFilterHolder.setInitParameter("maxRequestMs",      propertyService.getStringProperty("JETTY.API.DoSFilter.maxRequestMs"));
+        dosFilterHolder.setInitParameter("maxthrottleMs",     propertyService.getStringProperty("JETTY.API.DoSFilter.throttleMs"));
+        dosFilterHolder.setInitParameter("maxIdleTrackerMs",  propertyService.getStringProperty("JETTY.API.DoSFilter.maxIdleTrackerMs"));
+        dosFilterHolder.setInitParameter("trackSessions",     propertyService.getStringProperty("JETTY.API.DoSFilter.trackSessions"));
+        dosFilterHolder.setInitParameter("insertHeaders",     propertyService.getStringProperty("JETTY.API.DoSFilter.insertHeaders"));
+        dosFilterHolder.setInitParameter("remotePort",        propertyService.getStringProperty("JETTY.API.DoSFilter.remotePort"));
+        dosFilterHolder.setInitParameter("ipWhitelist",       propertyService.getStringProperty("JETTY.API.DoSFilter.ipWhitelist"));
+        dosFilterHolder.setInitParameter("managedAttr",       propertyService.getStringProperty("JETTY.API.DoSFilter.managedAttr"));
+        dosFilterHolder.setAsyncSupported(true);
       }
 
       apiHandler.addServlet(APITestServlet.class, "/test");

@@ -67,7 +67,6 @@ public final class Peers {
   private static String myPlatform;
   private static String myAddress;
   private static int myPeerServerPort;
-  //private static String myHallmark;
   private static boolean shareMyAddress;
   private static int maxNumberOfConnectedPublicPeers;
   private static boolean enableHallmarkProtection;
@@ -97,7 +96,9 @@ public final class Peers {
       BlockchainProcessor blockchainProcessor, PropertyService propertyService) {
 
     myPlatform = propertyService.getStringProperty("P2P.myPlatform");
-    if ( propertyService.getStringProperty("P2P.myAddress") != null && propertyService.getStringProperty("P2P.myAddress").trim().length() == 0 && Init.gateway != null ) {
+    if ( propertyService.getStringProperty("P2P.myAddress") != null
+         && propertyService.getStringProperty("P2P.myAddress").trim().length() == 0
+         && Init.gateway != null ) {
       String externalIPAddress = null;
       try {
         externalIPAddress = Init.gateway.getExternalIPAddress();
@@ -289,31 +290,37 @@ public final class Peers {
         connector.setReuseAddress(true);
         peerServer.addConnector(connector);
 
-        ServletHolder peerServletHolder = new ServletHolder(new PeerServlet(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor));
-        boolean isGzipEnabled = propertyService.getBooleanProperty("P2P.GZIPFilter");
+        ServletHolder peerServletHolder = new ServletHolder(new PeerServlet(timeService, accountService, blockchain,
+                                                                            transactionProcessor, blockchainProcessor));
+        boolean isGzipEnabled = propertyService.getBooleanProperty("JETTY.P2P.GZIPFilter");
         peerServletHolder.setInitParameter("isGzipEnabled", Boolean.toString(isGzipEnabled));
+
         ServletHandler peerHandler = new ServletHandler();
         peerHandler.addServletWithMapping(peerServletHolder, "/*");
-        if (propertyService.getBooleanProperty("JETTY.DoSFilter")) {
-          FilterHolder dosFilterHolder = peerHandler.addFilterWithMapping(DoSFilter.class, "/*", FilterMapping.DEFAULT);
-          dosFilterHolder.setInitParameter("maxRequestsPerSec", propertyService.getStringProperty("JETTY.DoSFilter.maxRequestsPerSec"));
-          dosFilterHolder.setInitParameter("throttledRequests", propertyService.getStringProperty("JETTY.DoSFilter.throttledRequests"));
-          dosFilterHolder.setInitParameter("delayMs",           propertyService.getStringProperty("JETTY.DoSFilter.delayMs"));
-          dosFilterHolder.setInitParameter("maxWaitMs",         propertyService.getStringProperty("JETTY.DoSFilter.maxWaitMs"));
-          dosFilterHolder.setInitParameter("maxRequestMs",      propertyService.getStringProperty("JETTY.DoSFilter.maxRequestMs"));
-          dosFilterHolder.setInitParameter("maxthrottleMs",     propertyService.getStringProperty("JETTY.DoSFilter.throttleMs"));
-          dosFilterHolder.setInitParameter("maxIdleTrackerMs",  propertyService.getStringProperty("JETTY.DoSFilter.maxIdleTrackerMs"));
-          dosFilterHolder.setInitParameter("trackSessions",     propertyService.getStringProperty("JETTY.DoSFilter.trackSessions"));
-          dosFilterHolder.setInitParameter("insertHeaders",     propertyService.getStringProperty("JETTY.DoSFilter.insertHeaders"));
-          dosFilterHolder.setInitParameter("remotePort",        propertyService.getStringProperty("JETTY.DoSFilter.remotePort"));
-          dosFilterHolder.setInitParameter("ipWhitelist",       propertyService.getStringProperty("JETTY.DoSFilter.ipWhitelist"));
-          dosFilterHolder.setInitParameter("managedAttr",       propertyService.getStringProperty("JETTY.DoSFilter.managedAttr"));
-          dosFilterHolder.setAsyncSupported(true);
-        }
+
         if (isGzipEnabled) {
           FilterHolder gzipFilterHolder = peerHandler.addFilterWithMapping(GzipFilter.class, "/*", FilterMapping.DEFAULT);
-          gzipFilterHolder.setInitParameter("methods", "GET,POST");
+          gzipFilterHolder.setInitParameter("methods",     propertyService.getStringProperty("JETTY.P2P.GZIPFilter.methods"));
+          gzipFilterHolder.setInitParameter("bufferSize",  propertyService.getStringProperty("JETTY.P2P.GZIPFilter.bufferSize"));
+          gzipFilterHolder.setInitParameter("minGzipSize", propertyService.getStringProperty("JETTY.P2P.GZIPFilter.minGzipSize"));
           gzipFilterHolder.setAsyncSupported(true);
+        }
+
+        if (propertyService.getBooleanProperty("JETTY.P2P.DoSFilter")) {
+          FilterHolder dosFilterHolder = peerHandler.addFilterWithMapping(DoSFilter.class, "/*", FilterMapping.DEFAULT);
+          dosFilterHolder.setInitParameter("maxRequestsPerSec", propertyService.getStringProperty("JETTY.P2P.DoSFilter.maxRequestsPerSec"));
+          dosFilterHolder.setInitParameter("throttledRequests", propertyService.getStringProperty("JETTY.P2P.DoSFilter.throttledRequests"));
+          dosFilterHolder.setInitParameter("delayMs",           propertyService.getStringProperty("JETTY.P2P.DoSFilter.delayMs"));
+          dosFilterHolder.setInitParameter("maxWaitMs",         propertyService.getStringProperty("JETTY.P2P.DoSFilter.maxWaitMs"));
+          dosFilterHolder.setInitParameter("maxRequestMs",      propertyService.getStringProperty("JETTY.P2P.DoSFilter.maxRequestMs"));
+          dosFilterHolder.setInitParameter("maxthrottleMs",     propertyService.getStringProperty("JETTY.P2P.DoSFilter.throttleMs"));
+          dosFilterHolder.setInitParameter("maxIdleTrackerMs",  propertyService.getStringProperty("JETTY.P2P.DoSFilter.maxIdleTrackerMs"));
+          dosFilterHolder.setInitParameter("trackSessions",     propertyService.getStringProperty("JETTY.P2P.DoSFilter.trackSessions"));
+          dosFilterHolder.setInitParameter("insertHeaders",     propertyService.getStringProperty("JETTY.P2P.DoSFilter.insertHeaders"));
+          dosFilterHolder.setInitParameter("remotePort",        propertyService.getStringProperty("JETTY.P2P.DoSFilter.remotePort"));
+          dosFilterHolder.setInitParameter("ipWhitelist",       propertyService.getStringProperty("JETTY.P2P.DoSFilter.ipWhitelist"));
+          dosFilterHolder.setInitParameter("managedAttr",       propertyService.getStringProperty("JETTY.P2P.DoSFilter.managedAttr"));
+          dosFilterHolder.setAsyncSupported(true);
         }
 
         GatewayDiscover gatewayDiscover = new GatewayDiscover();

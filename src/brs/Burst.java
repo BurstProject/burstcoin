@@ -85,7 +85,7 @@ public final class Burst {
   private static PropertyService loadProperties() {
     final Properties defaultProperties = new Properties();
 
-    logger.info("Initializing Burst server version {}", VERSION);
+    logger.info("Initializing Burst Reference Software (BRS) version {}", VERSION);
     try (InputStream is = ClassLoader.getSystemResourceAsStream(DEFAULT_PROPERTIES_NAME)) {
       if (is != null) {
         defaultProperties.load(is);
@@ -244,7 +244,7 @@ public final class Burst {
 
       long currentTime = System.currentTimeMillis();
       logger.info("Initialization took " + (currentTime - startTime) + " ms");
-      logger.info("Burst server " + VERSION + " started successfully.");
+      logger.info("BRS " + VERSION + " started successfully.");
 
       if (Constants.isTestnet) {
         logger.info("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
@@ -274,7 +274,7 @@ public final class Burst {
     if (readPropertiesSuccessfully && BlockchainProcessorImpl.getOclVerify()) {
       OCLPoC.destroy();
     }
-    logger.info("Burst server " + VERSION + " stopped.");
+    logger.info("BRS " + VERSION + " stopped.");
     LoggerConfigurator.shutdown();
   }
 
