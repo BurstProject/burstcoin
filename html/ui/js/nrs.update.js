@@ -73,9 +73,9 @@ var NRS = (function(NRS, $, undefined) {
 
                 if (new Date() > noticeDate) {
 
-                    var downloadUrl = "https://github.com/ac0v/burstcoin/releases";
+                    var downloadUrl = "https://github.com/PoC-Consortium/burstcoin/releases";
 
-                    $("#secondary_dashboard_message").removeClass("alert-success").addClass("alert-danger").html($.t("old_nxt_wallet_update", {
+                    $("#secondary_dashboard_message").removeClass("alert-success").addClass("alert-danger").html($.t("wallet_update_available", {
                         "link": downloadUrl
                     })).show();
                 }
@@ -271,7 +271,7 @@ var NRS = (function(NRS, $, undefined) {
             }, "*");
             $("#nrs_modal").modal("hide");
         } else {
-            $("#nrs_update_iframe").attr("src", "https://github.com/ac0v/burstcoin/releases/download/" + NRS.downloadedVersion.versionNr + "/burstcoin-" + NRS.downloadedVersion.versionNr + ".zip");
+            $("#nrs_update_iframe").attr("src", "https://github.com/PoC-Consortium/burstcoin/releases/download/" + NRS.downloadedVersion.versionNr + "/burstcoin-" + NRS.downloadedVersion.versionNr + ".zip");
             $("#nrs_update_explanation").hide();
             $("#nrs_update_drop_zone").show();
 
