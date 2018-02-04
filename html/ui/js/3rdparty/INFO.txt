@@ -5,21 +5,21 @@ cat <file>.js | openssl dgst -sha384 -binary | openssl enc -base64 -A
 
 File               Date   SHA384
 ------------------------------------------------------------------------------------------
-ajaxmultiqueue.js  180205 tCRa0zh0BR5jt+XAYpOblyN/T7oP9WOri96pzFliYxuUfcHJsVIGmBib1yDHmW14
-ajaxretry.js       180205 ia90j7KZ3lHwnJ/jSofQNFuwwtGrcTHwjd9+SY8Ls7EFiyx+vFfXvURO9fW0odQj
-big.min.js         180205 moVXZQ1vNulkMKTp26lnzWzlS0pdCeEDS2/ncCgejy/9cOlc0SHI8GiCWT/c3Vxx
-bootstrap.js       180205 AruvSWLzKMR8e97hqmCIYfZSC/91zOJyRyu6DOjiRZ9B8g32h15x0QQvHlRm+/18
-clipboard.js       180205 E8q4FF0C3cBKqHxayVjOHWaPICaSEqWybiuRAkkxVrUO21syLamc+aHtgFVYTbe2
-growl.js           180205 hK/hvSrlOJAhQWT9VhBM64cgZixSYK2Ok78th8vHtTACsWrCMlMb0ZvOiCSzdP41
-i18next.js         180205 zd9+xsXTO8I12YKO9I72ZhKI9Qa+4nUzoqbYPMsUBIt+IZio8wLxNULPppITb9rR
-jquery.js          180205 OhORL1bfiBqoyzpjW+0vUZ33mZ0eAsE3yqUM/7s7BFH8C1n6BsioFATPtW2HJX3R
-jquery.rss.js      180205 s72be+pm8RcaJF1hSmBuAAN4dGNmCPjeoIKcDHd8exjd5pVZMZJCJKniTfKbEgFt
-jsbn2.js           180205 cdUKnzFHcY4XFVKjQDizxT8KsIxm4/QP09T/OPUzPwG3qjx/GjU+IEB5ZZK/tua6
-jsbn.js            180205 Ru0ghEmPwQkXCUzH0MnI4ENe1VOnfhKMYBlQlBxFTTZWoD2FXeZGgxMExPBuP0iL
-maskedinput.js     180205 Gd0civMHv8hDIyoYW93P+Qylpgf33p4EVrcCGLU6U7qIWEBpiSpZTyr97yvDXoKi
-pako.js            180205 813Y/LAoYFGn5YMkdRVLO9Be3VLbHlWb6+EUXQvQI6M/8iEkFVA/0a+r6bewzLqe
-qrcode.js          180205 0B/45e2to395pfnCkbfqwKFFwAa7zXdvd42eAFJa3Vm8KZ/jmHdn93XdWi//7MDS
-webdb.js           180205 ls39os/gcYY5lIz4PNhfyBDtVesdw3WwwM02lTi8/ycTpginDkszyQFf9wVvTxcb
+ajaxmultiqueue.js  180203 tCRa0zh0BR5jt+XAYpOblyN/T7oP9WOri96pzFliYxuUfcHJsVIGmBib1yDHmW14
+ajaxretry.js       180203 ia90j7KZ3lHwnJ/jSofQNFuwwtGrcTHwjd9+SY8Ls7EFiyx+vFfXvURO9fW0odQj
+big.min.js         180203 moVXZQ1vNulkMKTp26lnzWzlS0pdCeEDS2/ncCgejy/9cOlc0SHI8GiCWT/c3Vxx
+bootstrap.js       180203 AruvSWLzKMR8e97hqmCIYfZSC/91zOJyRyu6DOjiRZ9B8g32h15x0QQvHlRm+/18
+clipboard.js       180203 E8q4FF0C3cBKqHxayVjOHWaPICaSEqWybiuRAkkxVrUO21syLamc+aHtgFVYTbe2
+growl.js           180203 hK/hvSrlOJAhQWT9VhBM64cgZixSYK2Ok78th8vHtTACsWrCMlMb0ZvOiCSzdP41
+i18next.js         180203 zd9+xsXTO8I12YKO9I72ZhKI9Qa+4nUzoqbYPMsUBIt+IZio8wLxNULPppITb9rR
+jquery.min.js      180204 tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT
+jquery.rss.min.js  180204 jMZFnqgk/XQDYHVdaLBtSIKIFLAXPzyeCratYIu70z8GHOuxPx3mQUWsNWC1o9uq
+jsbn2.js           180203 cdUKnzFHcY4XFVKjQDizxT8KsIxm4/QP09T/OPUzPwG3qjx/GjU+IEB5ZZK/tua6
+jsbn.js            180203 Ru0ghEmPwQkXCUzH0MnI4ENe1VOnfhKMYBlQlBxFTTZWoD2FXeZGgxMExPBuP0iL
+maskedinput.js     180203 Gd0civMHv8hDIyoYW93P+Qylpgf33p4EVrcCGLU6U7qIWEBpiSpZTyr97yvDXoKi
+pako.js            180203 813Y/LAoYFGn5YMkdRVLO9Be3VLbHlWb6+EUXQvQI6M/8iEkFVA/0a+r6bewzLqe
+qrcode.js          180203 0B/45e2to395pfnCkbfqwKFFwAa7zXdvd42eAFJa3Vm8KZ/jmHdn93XdWi//7MDS
+webdb.js           180203 ls39os/gcYY5lIz4PNhfyBDtVesdw3WwwM02lTi8/ycTpginDkszyQFf9wVvTxcb
 
 
 File Genesis:
@@ -28,8 +28,23 @@ big.min.js
 
 src:      https://raw.githubusercontent.com/MikeMcl/big.js/master/big.min.js
 version:  5.0.3
-date:     2018-02-05
+date:     2018-02-03
 license:  MIT
 
 ---
 
+jquery.min.js
+
+src:      https://github.com/jquery/jquery/archive/3.3.1.tar.gz
+version:  3.3.1
+date:     2018-02-04
+license:  Free, Copyright JS Foundation and other contributors, https://js.foundation/
+
+---
+
+jquery.rss.min.js
+
+src:      https://github.com/sdepold/jquery-rss/archive/v3.3.0.tar.gz
+version:  3.3.0
+date:     2018-02-04
+license:  MIT
