@@ -61,7 +61,7 @@ final class OCLPoC {
   private static final int DEFAULT_MEM_PERCENT = 50;
 
   private static final int hashesPerEnqueue = Burst.getIntProperty("GPU.HashesPerBatch") == 0
-                                            ? 1000
+                                            ? 100
                                             : Burst.getIntProperty("GPU.HashesPerBatch");
   private static final int MEM_PERCENT = Burst.getIntProperty("GPU.MemPercent") == 0
                                        ? DEFAULT_MEM_PERCENT
@@ -86,6 +86,7 @@ final class OCLPoC {
       + 4 // scoop num
       + MiningPlot.SCOOP_SIZE; // output scoop
 
+  static void init() {}
   static {
     try {
       boolean autoChoose = Burst.getBooleanProperty("GPU.AutoDetect", true);
@@ -325,7 +326,7 @@ final class OCLPoC {
         }
       }
 
-      // logger.debug("finished ocl, doing rest: " + blocks.size());
+    //  logger.debug("finished ocl, doing rest: " + blocks.size());
 
       ByteBuffer scoopsBuffer = ByteBuffer.wrap(scoopsOut);
       byte[] scoop = new byte[MiningPlot.SCOOP_SIZE];

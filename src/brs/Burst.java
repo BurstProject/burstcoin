@@ -238,6 +238,17 @@ public final class Burst {
         setTime(new Time.FasterTime(Math.max(getEpochTime(), getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
         logger.info("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
       }
+    /*  if(BlockchainProcessorImpl.getOclVerify()) {
+        try {
+            OCLPoC.init();
+        }
+        catch(OCLPoC.OCLCheckerException e) {
+            logger.error("Error initializing OpenCL, disabling ocl verify: " + e.getMessage());
+          //  BlockchainProcessorImpl.oclVerify = false;
+        }
+      }
+      */
+      
 
       long currentTime = System.currentTimeMillis();
       logger.info("Initialization took " + (currentTime - startTime) + " ms");

@@ -6,46 +6,79 @@ import brs.db.BurstIterator;
 import brs.db.store.BlockchainStore;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.StampedLock;
 
 public final class BlockchainImpl implements Blockchain {
 
   private final TransactionDb transactionDb;
   private final BlockDb blockDb;
   private final BlockchainStore blockchainStore;
-
+  
+  private final StampedLock bcsl;
+  
   BlockchainImpl(TransactionDb transactionDb, BlockDb blockDb, BlockchainStore blockchainStore) {
     this.transactionDb = transactionDb;
     this.blockDb = blockDb;
     this.blockchainStore = blockchainStore;
+    this.bcsl = new StampedLock();
   }
 
   private final AtomicReference<BlockImpl> lastBlock = new AtomicReference<>();
 
   @Override
   public BlockImpl getLastBlock() {
-    return lastBlock.get();
+    long stamp = bcsl.tryOptimisticRead();
+    BlockImpl retBlock= lastBlock.get();
+    if (!bcsl.validate(stamp)) {
+      stamp = bcsl.readLock();
+      try {
+        retBlock= lastBlock.get();
+      } finally {
+        bcsl.unlockRead(stamp);
+      }
+   }
+   return retBlock;
   }
 
   @Override
   public void setLastBlock(BlockImpl block) {
-    lastBlock.set(block);
+   // long stamp = bcsl.writeLock();
+    try {
+      lastBlock.set(block);
+    } finally {
+  //    bcsl.unlockWrite(stamp);
+    }
   }
 
   void setLastBlock(BlockImpl previousBlock, BlockImpl block) {
-    if (! lastBlock.compareAndSet(previousBlock, block)) {
-      throw new IllegalStateException("Last block is no longer previous block");
+  //  long stamp = bcsl.writeLock();
+    try {
+      if (! lastBlock.compareAndSet(previousBlock, block)) {
+        throw new IllegalStateException("Last block is no longer previous block");
+      }
+    } finally {
+  //    bcsl.unlockWrite(stamp);
     }
   }
 
   @Override
   public int getHeight() {
+    long stamp = bcsl.tryOptimisticRead();  
     BlockImpl last = lastBlock.get();
+    if (!bcsl.validate(stamp)) {
+      stamp = bcsl.readLock();
+      try {
+        last = lastBlock.get();
+      } finally {
+        bcsl.unlockRead(stamp);
+      }
+    }
     return last == null ? 0 : last.getHeight();
   }
     
   @Override
   public BlockImpl getLastBlock(int timestamp) {
-    BlockImpl block = lastBlock.get();
+    BlockImpl block = getSafelastBlock();
     if (timestamp >= block.getTimestamp()) {
       return block;
     }
@@ -54,16 +87,30 @@ public final class BlockchainImpl implements Blockchain {
 
   @Override
   public BlockImpl getBlock(long blockId) {
-    BlockImpl block = lastBlock.get();
+    BlockImpl block = getSafelastBlock();
     if (block.getId() == blockId) {
       return block;
     }
     return blockDb.findBlock(blockId);
   }
+  
+  private BlockImpl getSafelastBlock() {
+    long stamp = bcsl.tryOptimisticRead();
+    BlockImpl block = lastBlock.get();
+    if (!bcsl.validate(stamp)) {
+      stamp = bcsl.readLock();
+      try {
+        block = lastBlock.get();
+      } finally {
+        bcsl.unlockRead(stamp);
+      }
+    }
+    return block;
+  }
 
   @Override
   public boolean hasBlock(long blockId) {
-    return lastBlock.get().getId() == blockId || blockDb.hasBlock(blockId);
+    return getSafelastBlock().getId() == blockId || blockDb.hasBlock(blockId);
   }
 
   @Override
@@ -93,7 +140,7 @@ public final class BlockchainImpl implements Blockchain {
 
   @Override
   public long getBlockIdAtHeight(int height) {
-    Block block = lastBlock.get();
+    Block block = getSafelastBlock();
     if (height > block.getHeight()) {
       throw new IllegalArgumentException("Invalid height " + height + ", current blockchain is at " + block.getHeight());
     }
@@ -105,7 +152,7 @@ public final class BlockchainImpl implements Blockchain {
 
   @Override
   public BlockImpl getBlockAtHeight(int height) {
-    BlockImpl block = lastBlock.get();
+    BlockImpl block = getSafelastBlock();
     if (height > block.getHeight()) {
       throw new IllegalArgumentException("Invalid height " + height + ", current blockchain is at " + block.getHeight());
     }
