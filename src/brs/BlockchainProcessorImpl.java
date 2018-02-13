@@ -47,8 +47,6 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   public final static int MAX_TIMESTAMP_DIFFERENCE = 15;
   private static boolean oclVerify;
-//  public final static int OCL_THRESHOLD;
-//  private final static int oclWaitThreshold;
   private final static int oclUnverifiedQueue;
   
   private static final Semaphore gpuUsage = new Semaphore(2);
@@ -97,7 +95,6 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     PropertyService propertyService = Burst.getPropertyService();
     oclVerify = propertyService.getBooleanProperty("GPU.Acceleration"); // use GPU acceleration ?
     oclUnverifiedQueue = propertyService.getIntProperty("GPU.UnverifiedQueue") == 0 ? 1000 : propertyService.getIntProperty("GPU.UnverifiedQueue");
-  //  oclWaitThreshold = propertyService.getIntProperty("GPU.WaitThreshold") == 0 ? 2000 : propertyService.getIntProperty("GPU.WaitThreshold");
 
     trimDerivedTables = propertyService.getBooleanProperty("brs.trimDerivedTables");
    
