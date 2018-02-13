@@ -112,6 +112,7 @@ public final class DownloadCacheImpl {
       stamp = dcsl.readLock();
       try {
         lbID = LastBlockId;
+        retVal = HigestCumulativeDifficulty;
       } finally {
          dcsl.unlockRead(stamp);
       }
@@ -121,8 +122,8 @@ public final class DownloadCacheImpl {
     }
     setLastVars();
     stamp = dcsl.tryOptimisticRead();
+    retVal = HigestCumulativeDifficulty;
     if (!dcsl.validate(stamp)) {
-     
       stamp = dcsl.readLock();
       try {
         retVal = HigestCumulativeDifficulty;
@@ -444,15 +445,13 @@ public final class DownloadCacheImpl {
     }
     return lId;
   }
-  
-  
+    
   public BlockImpl getLastBlock() {
     Long iLd = getLastCacheId();
     if (iLd != null) {
       long stamp = dcsl.tryOptimisticRead();
       BlockImpl retBlock = (BlockImpl) blockCache.get(iLd);
       if (!dcsl.validate(stamp)) {
-       
         stamp = dcsl.readLock();
         try {
           retBlock = (BlockImpl) blockCache.get(iLd);

@@ -146,6 +146,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           try {
             DownloadCache.GetBlock(blockId).preVerify();  
           }catch (BlockchainProcessor.BlockNotAcceptedException e) {
+            logger.error("Block failed to preverify: ", e);
           }
           DownloadCache.removeUnverified(blockId);
         }
@@ -173,12 +174,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
           try {
             if (!currentBlock.isVerified()) {
-              logger.debug("Not preverified.");
               currentBlock.preVerify();
             }
             pushBlock(currentBlock);
             lastId = currentBlock.getId();
-            // Remove processed block.
             DownloadCache.RemoveBlock(currentBlock);
           
           } catch (BlockNotAcceptedException e) {
@@ -193,7 +192,6 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
         }
       }
-      // threadsleep?
       try {
         Thread.sleep(10);
       } catch (InterruptedException ex) {
@@ -240,11 +238,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         try {
           try {
             if (!getMoreBlocks) {
-              // logger.debug("just exit");
               return;
             }
             if (DownloadCache.IsFull()) {
-              // logger.debug("blockcache full.");
               return;
             }
             peerHasMore = true;
