@@ -48,7 +48,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   private TimeService timeService;
   private Dbs dbs;
   private Blockchain blockchain;
-  //private final Object numUnconfirmedLock = new Object();
   private AccountService accountService;
 
   public TransactionProcessorImpl(LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory, EntityTable<TransactionImpl> unconfirmedTransactionTable,
@@ -95,26 +94,24 @@ public class TransactionProcessorImpl implements TransactionProcessor {
         }
       }
       if (expiredTransactions.size() > 0) {
-     //   synchronized (numUnconfirmedLock) {
-            try {
-              stores.beginTransaction();
-              expiredTransactions.forEach(this::removeUnconfirmedTransaction);
-              accountService.flushAccountTable();
-              stores.commitTransaction();
+        try {
+          stores.beginTransaction();
+          expiredTransactions.forEach(this::removeUnconfirmedTransaction);
+          accountService.flushAccountTable();
+          stores.commitTransaction();
 
-            } catch (Exception e) {
-              logger.error(e.toString(), e);
-              stores.rollbackTransaction();
-              throw e;
-            } finally {
-              stores.endTransaction();
-            }
-       // }
+        } catch (Exception e) {
+          logger.error(e.toString(), e);
+          stores.rollbackTransaction();
+          throw e;
+        } finally {
+          stores.endTransaction();
         }
-      } catch (Exception e) {
-        logger.debug("Error removing unconfirmed transactions", e);
       }
-   };
+    } catch (Exception e) {
+      logger.debug("Error removing unconfirmed transactions", e);
+    }
+  };
   private final Runnable rebroadcastTransactionsThread = () -> {
 
     try {
@@ -305,7 +302,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     
   @Override
   public void clearUnconfirmedTransactions() {
-   // synchronized (numUnconfirmedLock) {
     List<Transaction> removed = new ArrayList<>();
     try {
       stores.beginTransaction();
@@ -328,11 +324,9 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     }
     lostTransactions.clear();
     transactionListeners.notify(removed, Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
-  //  }
   }
 
   void requeueAllUnconfirmedTransactions() {
-   // synchronized (numUnconfirmedLock) {
     List<Transaction> removed = new ArrayList<>();
     try (BurstIterator<TransactionImpl> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
       while(unconfirmedTransactions.hasNext()) {
@@ -344,7 +338,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     }
     unconfirmedTransactionTable.truncate();
     transactionListeners.notify(removed, Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
-   // }
   }
 
   void removeUnconfirmedTransaction(TransactionImpl transaction) {
@@ -363,13 +356,11 @@ public class TransactionProcessorImpl implements TransactionProcessor {
         }
       return;
     }
-  //  synchronized (numUnconfirmedLock) {
     int deleted = stores.getTransactionProcessorStore().deleteTransaction(transaction);
     if (deleted > 0) {
       transaction.undoUnconfirmed();
       transactionListeners.notify(Collections.singletonList(transaction), Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
     }
-  //  }
   }
 
   int getTransactionVersion(int previousBlockHeight) {
@@ -389,7 +380,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       return;
     }
     List<TransactionImpl> transactions = new ArrayList<>();
-    //synchronized (numUnconfirmedLock) {
     for (Object transactionData : transactionsData) {
       try {
         TransactionImpl transaction = parseTransaction((JSONObject) transactionData);
@@ -407,7 +397,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
         throw e;
       }
     }
-   // }
     processTransactions(transactions, true);
     nonBroadcastedTransactions.removeAll(transactions);
   }
@@ -429,7 +418,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
           continue;
         }
       
-    //    synchronized (numUnconfirmedLock) {
         try {
           stores.beginTransaction();
           if (blockchain.getHeight() < Constants.NQT_BLOCK) {
@@ -472,7 +460,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
         } finally {
           stores.endTransaction();
         }
-   //     }
       } catch (RuntimeException e) {
         logger.info("Error processing transaction", e);
       }
