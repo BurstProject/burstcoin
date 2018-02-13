@@ -8,7 +8,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -24,7 +23,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import brs.OCLPoC.PreValidateFailException;
 import brs.at.AT_Block;
 import brs.at.AT_Controller;
 import brs.at.AT_Exception;
@@ -39,7 +37,6 @@ import brs.util.FilteringIterator;
 import brs.util.JSON;
 import brs.util.Listener;
 import brs.util.Listeners;
-import brs.util.ThreadPool;
 
 final class BlockchainProcessorImpl implements BlockchainProcessor {
 
@@ -50,9 +47,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   public final static int MAX_TIMESTAMP_DIFFERENCE = 15;
   private static boolean oclVerify;
-  public final static int OCL_THRESHOLD;
-  private final static int oclWaitThreshold;
-
+//  public final static int OCL_THRESHOLD;
+//  private final static int oclWaitThreshold;
+  private final static int oclUnverifiedQueue;
+  
   private static final Semaphore gpuUsage = new Semaphore(2);
   /** If we are more than this many blocks behind we can engage "catch-up"-mode if enabled */
 
@@ -70,7 +68,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   private volatile Peer lastBlockchainFeeder;
   private volatile int lastBlockchainFeederHeight;
   private volatile boolean getMoreBlocks = true;
-
+  
   private volatile boolean isScanning;
   private static boolean forceScan;
   private static boolean validateAtScan;
@@ -98,20 +96,23 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     PropertyService propertyService = Burst.getPropertyService();
     oclVerify = propertyService.getBooleanProperty("GPU.Acceleration"); // use GPU acceleration ?
-    OCL_THRESHOLD = propertyService.getIntProperty("GPU.Threshold") == 0 ? 50 : propertyService.getIntProperty("GPU.Threshold");
-    oclWaitThreshold = propertyService.getIntProperty("GPU.WaitThreshold") == 0 ? 2000 : propertyService.getIntProperty("GPU.WaitThreshold");
-    trimDerivedTables = propertyService.getBooleanProperty("brs.trimDerivedTables");
+    oclUnverifiedQueue = propertyService.getIntProperty("GPU.UnverifiedQueue") == 0 ? 1000 : propertyService.getIntProperty("GPU.UnverifiedQueue");
+  //  oclWaitThreshold = propertyService.getIntProperty("GPU.WaitThreshold") == 0 ? 2000 : propertyService.getIntProperty("GPU.WaitThreshold");
 
+    trimDerivedTables = propertyService.getBooleanProperty("brs.trimDerivedTables");
+   
+    
     forceScan = propertyService.getBooleanProperty("brs.forceScan");
     validateAtScan = propertyService.getBooleanProperty("brs.forceValidate");
   }
 
   private final Runnable pocVerificationThread = () -> {
     boolean verifyWithOcl;
+    int QueueThreashold = oclVerify ? oclUnverifiedQueue : 0;
     while (true) {
       int unVerified = DownloadCache.getUnverifiedSize();
-      if (unVerified > 0) { //Is there anything to verify
-        if (unVerified >= OCL_THRESHOLD && oclVerify) { //should we use Ocl?
+      if (unVerified > QueueThreashold) { //Is there anything to verify
+        if (unVerified >= oclUnverifiedQueue && oclVerify) { //should we use Ocl?
           verifyWithOcl = true;
           if (!gpuUsage.tryAcquire()) { //is Ocl ready ?
             logger.debug("already max locked");
@@ -165,10 +166,11 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   };
   private final Runnable blockImporterThread = () -> {
     try {
+      Long lastId = Burst.getBlockchain().getLastBlock().getId();
       while (true) {
         if (DownloadCache.getBlockCacheSize() > 0) {
-          Long lastId = Burst.getBlockchain().getLastBlock().getId();
-          BlockImpl currentBlock = DownloadCache.GetNextBlock(lastId); /* we should fetch first block in cache */
+          
+          BlockImpl currentBlock = DownloadCache.GetNextBlock(lastId); /* this should fetch first block in cache */
           if (currentBlock == null) {
             break;
           }
@@ -178,8 +180,10 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
               currentBlock.preVerify();
             }
             pushBlock(currentBlock);
+            lastId = currentBlock.getId();
             // Remove processed block.
             DownloadCache.RemoveBlock(currentBlock);
+          
           } catch (BlockNotAcceptedException e) {
             logger.error("Block not accepted", e);
             blacklistClean(currentBlock, e);
@@ -190,20 +194,19 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             logger.debug("Blockimporter got interupted.");
             return;
           }
-         
-          // threadsleep?
-          try {
-            Thread.sleep(10);
-          } catch (InterruptedException ex) {
-            logger.debug("Blockimporter fires interupt.");
-            Thread.currentThread().interrupt();
-          }
-          //executor shutdown? 
-          if (Thread.currentThread().isInterrupted()) {
-            logger.debug("Blockimporter got interupted.");
-            return;
-          }
         }
+      }
+      // threadsleep?
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException ex) {
+        logger.debug("Blockimporter fires interupt.");
+        Thread.currentThread().interrupt();
+      }
+      //executor shutdown? 
+      if (Thread.currentThread().isInterrupted()) {
+        logger.debug("Blockimporter got interupted.");
+        return;
       }
     } catch (Throwable exception) {
       logger.error("Uncaught exception in blockImporterThread", exception);
@@ -330,12 +333,14 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             // download blocks from peer
             int chainHeight = DownloadCache.getChainHeight();
             BlockImpl lastBlock = DownloadCache.GetBlock(commonBlockId); 
-
+            if(lastBlock ==null) {
+              logger.info("Error: lastBlock is null");
+            }
             // loop blocks and make sure they fit in chain
          
               BlockImpl block;
               JSONObject blockData;
-              Collection<BlockImpl> blocks = new LinkedList<>();
+              List<BlockImpl> blocks = new ArrayList<>();
               
               for (Object o : nextBlocks) {
                 blockData = (JSONObject) o;
@@ -359,9 +364,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                   block.setByteLength(blockData.toString().length());
                   block.calculateBaseTarget(lastBlock);
                   if (saveInCache) {
-                 //   blocks.add(block);
-                  DownloadCache.AddBlock(block);
-                    
+                    DownloadCache.AddBlock(block);
                   } else {
                     forkBlocks.add(block);
                   }
@@ -380,10 +383,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                   return;
                 }
               } // end block loop
-              if (saveInCache) {
-                DownloadCache.AddBlockBatch(blocks);
-              }
-
+         
               logger.trace("Unverified blocks: " + DownloadCache.getUnverifiedSize());
               logger.trace("Blocks in cache: {}", DownloadCache.size());
               logger.trace("Bytes in cache: " + DownloadCache.getBlockCacheSize());
@@ -411,10 +411,14 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
           System.exit(1);
         } // end first try
+
         try {
           Thread.sleep(10);
         } catch (InterruptedException ex) {
           Thread.currentThread().interrupt();
+        }
+        if (Thread.currentThread().isInterrupted()) {
+          return;
         }
       } // end while
     }
@@ -646,7 +650,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     Burst.getThreadPool().scheduleThread("GetMoreBlocks", getMoreBlocksThread, 2);
     Burst.getThreadPool().scheduleThread("ImportBlocks", blockImporterThread, 10);
-    Burst.getThreadPool().scheduleThreadCores("VerifyPoc", pocVerificationThread, 9);
+    if(oclVerify) {
+      Burst.getThreadPool().scheduleThread("VerifyPoc", pocVerificationThread, 9);  
+    }else {
+      Burst.getThreadPool().scheduleThreadCores("VerifyPoc", pocVerificationThread, 9);  
+    }
+    
     // ThreadPool.scheduleThread("Info", debugInfoThread, 5);
   }
 

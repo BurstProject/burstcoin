@@ -42,22 +42,22 @@ public final class BlockchainImpl implements Blockchain {
 
   @Override
   public void setLastBlock(BlockImpl block) {
-   // long stamp = bcsl.writeLock();
+    long stamp = bcsl.writeLock();
     try {
       lastBlock.set(block);
     } finally {
-  //    bcsl.unlockWrite(stamp);
+      bcsl.unlockWrite(stamp);
     }
   }
 
   void setLastBlock(BlockImpl previousBlock, BlockImpl block) {
-  //  long stamp = bcsl.writeLock();
+    long stamp = bcsl.writeLock();
     try {
       if (! lastBlock.compareAndSet(previousBlock, block)) {
         throw new IllegalStateException("Last block is no longer previous block");
       }
     } finally {
-  //    bcsl.unlockWrite(stamp);
+      bcsl.unlockWrite(stamp);
     }
   }
 
