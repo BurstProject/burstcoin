@@ -174,6 +174,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
           try {
             if (!currentBlock.isVerified()) {
+              DownloadCache.removeUnverified(currentBlock.getId());
               currentBlock.preVerify();
             }
             pushBlock(currentBlock);
