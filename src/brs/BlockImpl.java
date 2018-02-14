@@ -525,7 +525,9 @@ public class BlockImpl implements Block {
         throw new IllegalStateException("Previous block id doesn't match");
       }
       this.height = previousBlock.getHeight() + 1;
-      this.calculateBaseTarget(previousBlock);
+      if(this.baseTarget == Constants.INITIAL_BASE_TARGET ) {
+    	  this.calculateBaseTarget(previousBlock);
+      }
     } else {
       this.height = 0;
     }
