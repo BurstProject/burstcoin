@@ -141,14 +141,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           } finally {
             gpuUsage.release();
           }
-         }else { //verify using java
-          Long blockId = DownloadCache.GetUnverifiedBlockIdFromPos(0);
+        }else { //verify using java
           try {
-            DownloadCache.GetBlock(blockId).preVerify();  
+            DownloadCache.getFirstUnverifiedBlock().preVerify();
           }catch (BlockchainProcessor.BlockNotAcceptedException e) {
             logger.error("Block failed to preverify: ", e);
           }
-          DownloadCache.removeUnverified(blockId);
         }
       }
       try {

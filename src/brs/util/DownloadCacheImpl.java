@@ -149,6 +149,17 @@ public final class DownloadCacheImpl {
     }
     return reVal;
   }
+  public BlockImpl getFirstUnverifiedBlock() {
+	 long stamp = dcsl.writeLock();
+	 try {
+		 long blockId = unverified.get(0);
+		 BlockImpl block = (BlockImpl) blockCache.get(blockId);
+		 unverified.remove(blockId);
+		 return block;
+	 } finally {
+      dcsl.unlockWrite(stamp);
+    }
+  }
 
   public void removeUnverified(long BlockId) {
     long stamp = dcsl.writeLock();
