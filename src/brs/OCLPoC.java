@@ -42,6 +42,7 @@ import java.util.Collection;
 import org.jocl.CLException;
 import org.jocl.Pointer;
 import org.jocl.Sizeof;
+import brs.services.PropertyService;
 import org.jocl.cl_command_queue;
 import org.jocl.cl_context;
 import org.jocl.cl_context_properties;
@@ -60,12 +61,8 @@ final class OCLPoC {
 
   private static final int DEFAULT_MEM_PERCENT = 50;
 
-  private static final int hashesPerEnqueue = Burst.getIntProperty("GPU.HashesPerBatch") == 0
-                                            ? 1000
-                                            : Burst.getIntProperty("GPU.HashesPerBatch");
-  private static final int MEM_PERCENT = Burst.getIntProperty("GPU.MemPercent") == 0
-                                       ? DEFAULT_MEM_PERCENT
-                                       : Burst.getIntProperty("GPU.MemPercent");
+  private static final int hashesPerEnqueue;
+  private static final int MEM_PERCENT;
 
   private static cl_context ctx;
   private static cl_command_queue queue;
@@ -86,7 +83,12 @@ final class OCLPoC {
       + 4 // scoop num
       + MiningPlot.SCOOP_SIZE; // output scoop
 
+  static void init() {}
   static {
+    PropertyService propertyService = Burst.getPropertyService();
+    hashesPerEnqueue = propertyService.getIntProperty("GPU.HashesPerBatch") == 0 ? 1000 : propertyService.getIntProperty("GPU.HashesPerBatch");
+    MEM_PERCENT = propertyService.getIntProperty("GPU.MemPercent") == 0 ? DEFAULT_MEM_PERCENT : propertyService.getIntProperty("GPU.MemPercent");
+    
     try {
       boolean autoChoose = Burst.getBooleanProperty("GPU.AutoDetect", true);
       setExceptionsEnabled(true);
@@ -325,7 +327,7 @@ final class OCLPoC {
         }
       }
 
-      // logger.debug("finished ocl, doing rest: " + blocks.size());
+    //  logger.debug("finished ocl, doing rest: " + blocks.size());
 
       ByteBuffer scoopsBuffer = ByteBuffer.wrap(scoopsOut);
       byte[] scoop = new byte[MiningPlot.SCOOP_SIZE];

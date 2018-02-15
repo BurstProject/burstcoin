@@ -454,12 +454,7 @@ public class BlockImpl implements Block {
   }
 
   public void preVerify(byte[] scoopData) throws BlockchainProcessor.BlockNotAcceptedException {
-    synchronized (this) {
-      // Remove from todo-list:
-      synchronized (BlockchainProcessorImpl.DownloadCache) {
-        BlockchainProcessorImpl.DownloadCache.removeUnverified(this.getId());
-      }
-
+   
       // Just in case its already verified
       if (this.pocTime != null)
         return;
@@ -487,7 +482,7 @@ public class BlockImpl implements Block {
               transaction);
         }
       }
-    }
+  
   }
 
   void apply() {
@@ -530,7 +525,9 @@ public class BlockImpl implements Block {
         throw new IllegalStateException("Previous block id doesn't match");
       }
       this.height = previousBlock.getHeight() + 1;
-      this.calculateBaseTarget(previousBlock);
+      if(this.baseTarget == Constants.INITIAL_BASE_TARGET ) {
+    	  this.calculateBaseTarget(previousBlock);
+      }
     } else {
       this.height = 0;
     }
