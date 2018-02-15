@@ -416,6 +416,7 @@ public final class DownloadCacheImpl {
     if (chkVal) { // make sure there is something to remove
       stamp = dcsl.writeLock();
       try {
+    	unverified.remove(block.getId());
         reverseCache.remove(block.getPreviousBlockId());
         blockCache.remove(block.getId());
         blockCacheSize -= block.getByteLength();
