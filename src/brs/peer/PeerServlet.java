@@ -9,7 +9,7 @@ import brs.util.CountingInputStream;
 import brs.util.CountingOutputStream;
 import brs.util.JSON;
 import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.servlets.gzip.CompressedResponseWrapper;
+import javax.servlet.http.HttpServletResponseWrapper;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
@@ -141,7 +141,7 @@ public final class PeerServlet extends HttpServlet {
         try (Writer writer = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
           response.writeJSONString(writer);
         }
-        byteCount = ((Response) ((CompressedResponseWrapper) resp).getResponse()).getContentCount();
+        byteCount = ((Response) ((HttpServletResponseWrapper) resp).getResponse()).getContentCount();
       } else {
         CountingOutputStream cos = new CountingOutputStream(resp.getOutputStream());
         try (Writer writer = new OutputStreamWriter(cos, "UTF-8")) {
