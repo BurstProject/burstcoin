@@ -13,6 +13,7 @@ import brs.services.AssetService;
 import brs.services.AssetTransferService;
 import brs.services.DGSGoodsStoreService;
 import brs.services.OrderService;
+import brs.services.SubscriptionService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 
@@ -88,9 +89,11 @@ public abstract class TransactionType {
   private static AssetService assetService;
   private static OrderService orderService;
   private static AssetTransferService assetTransferService;
+  private static SubscriptionService subscriptionService;
 
   // Temporary...
-  static void init(Blockchain blockchain, AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService, AliasService aliasService, AssetService assetService, OrderService orderService, AssetTransferService assetTransferService) {
+  static void init(Blockchain blockchain, AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService, AliasService aliasService, AssetService assetService, OrderService orderService,
+      AssetTransferService assetTransferService, SubscriptionService subscriptionService) {
     TransactionType.blockchain = blockchain;
     TransactionType.accountService = accountService;
     TransactionType.dgsGoodsStoreService = dgsGoodsStoreService;
@@ -98,6 +101,7 @@ public abstract class TransactionType {
     TransactionType.assetService = assetService;
     TransactionType.orderService = orderService;
     TransactionType.assetTransferService = assetTransferService;
+    TransactionType.subscriptionService = subscriptionService;
   }
 
   public static TransactionType findTransactionType(byte type, byte subtype) {
@@ -1931,7 +1935,7 @@ public abstract class TransactionType {
         @Override
         final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.AdvancedPaymentSubscriptionSubscribe attachment = (Attachment.AdvancedPaymentSubscriptionSubscribe) transaction.getAttachment();
-          Subscription.addSubscription(senderAccount, recipientAccount, transaction.getId(), transaction.getAmountNQT(), transaction.getTimestamp(), attachment.getFrequency());
+          subscriptionService.addSubscription(senderAccount, recipientAccount, transaction.getId(), transaction.getAmountNQT(), transaction.getTimestamp(), attachment.getFrequency());
         }
 
         @Override
@@ -2016,7 +2020,7 @@ public abstract class TransactionType {
             throw new BurstException.NotValidException("Subscription cancel must include subscription id");
           }
 
-          Subscription subscription = Subscription.getSubscription(attachment.getSubscriptionId());
+          Subscription subscription = subscriptionService.getSubscription(attachment.getSubscriptionId());
           if (subscription == null) {
             throw new BurstException.NotValidException("Subscription cancel must contain current subscription id");
           }

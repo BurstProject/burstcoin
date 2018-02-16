@@ -43,26 +43,6 @@ public class Subscription {
     return Constants.ONE_BURST;
   }
 
-  public static Subscription getSubscription(Long id) {
-    return subscriptionTable().get(subscriptionDbKeyFactory().newKey(id));
-  }
-
-  public static void addSubscription(Account sender,
-                                     Account recipient,
-                                     Long id,
-                                     Long amountNQT,
-                                     int startTimestamp,
-                                     int frequency) {
-    Subscription subscription = new Subscription(sender.getId(),
-                                                 recipient.getId(),
-                                                 id,
-                                                 amountNQT,
-                                                 frequency,
-                                                 startTimestamp);
-
-    subscriptionTable().insert(subscription);
-  }
-
   public static void removeSubscription(Long id) {
     Subscription subscription = subscriptionTable().get(subscriptionDbKeyFactory().newKey(id));
     if(subscription != null) {
@@ -146,21 +126,7 @@ public class Subscription {
   public final int frequency;
   private final AtomicInteger timeNext;
 
-  private Subscription(Long senderId,
-                       Long recipientId,
-                       Long id,
-                       Long amountNQT,
-                       int frequency,
-                       int timeStart) {
-    this.senderId = senderId;
-    this.recipientId = recipientId;
-    this.id = id;
-    this.dbKey = subscriptionDbKeyFactory().newKey(this.id);
-    this.amountNQT = amountNQT;
-    this.frequency  = frequency;
-    this.timeNext = new AtomicInteger(timeStart + frequency);
-  }
-  protected Subscription(Long senderId,
+  public Subscription(Long senderId,
                          Long recipientId,
                          Long id,
                          Long amountNQT,
