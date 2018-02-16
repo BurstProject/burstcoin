@@ -123,7 +123,7 @@ public final class Burst {
     return blockchain;
   }
 
-  public static BlockchainProcessor getBlockchainProcessor() {
+  public static BlockchainProcessorImpl getBlockchainProcessor() {
     return blockchainProcessor;
   }
 
@@ -174,7 +174,7 @@ public final class Burst {
       Db.init(propertyService);
       dbs = Db.getDbsByDatabaseType();
 
-      blockchainProcessor = BlockchainProcessorImpl.getInstance();
+      blockchainProcessor = new BlockchainProcessorImpl(propertyService);
 
       stores = new Stores();
 
@@ -269,7 +269,7 @@ public final class Burst {
     Peers.shutdown();
     threadPool.shutdown();
     Db.shutdown();
-    if (readPropertiesSuccessfully && BlockchainProcessorImpl.getOclVerify()) {
+    if (readPropertiesSuccessfully && blockchainProcessor.getOclVerify()) {
       OCLPoC.destroy();
     }
     logger.info("BRS " + VERSION + " stopped.");

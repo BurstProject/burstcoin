@@ -38,76 +38,116 @@ import brs.util.JSON;
 import brs.util.Listener;
 import brs.util.Listeners;
 
-final class BlockchainProcessorImpl implements BlockchainProcessor {
+final public class BlockchainProcessorImpl implements BlockchainProcessor {
 
-  private static final Logger logger = LoggerFactory.getLogger(BlockchainProcessorImpl.class);
-  private static BlockDb blockDb;
-  private static TransactionDb transactionDb;
-  public static final DownloadCacheImpl DownloadCache = new DownloadCacheImpl();
+  private final Logger logger = LoggerFactory.getLogger(BlockchainProcessorImpl.class);
+  private BlockDb blockDb;
+  private TransactionDb transactionDb;
+  public final DownloadCacheImpl downloadCache = new DownloadCacheImpl();
 
   public final static int MAX_TIMESTAMP_DIFFERENCE = 15;
-  private static boolean oclVerify;
-  private final static int oclUnverifiedQueue;
-  
-  private static final Semaphore gpuUsage = new Semaphore(2);
+  private boolean oclVerify;
+  private int oclUnverifiedQueue;
+
+  private final Semaphore gpuUsage = new Semaphore(2);
   /** If we are more than this many blocks behind we can engage "catch-up"-mode if enabled */
 
-  private static final BlockchainProcessorImpl instance = new BlockchainProcessorImpl();
-
-  static BlockchainProcessorImpl getInstance() {
-    return instance;
-  }
-
   private final List<DerivedTable> derivedTables = new CopyOnWriteArrayList<>();
-  private static boolean trimDerivedTables;
+  private boolean trimDerivedTables;
   private volatile int lastTrimHeight;
 
   private final Listeners<Block, Event> blockListeners = new Listeners<>();
   private volatile Peer lastBlockchainFeeder;
   private volatile int lastBlockchainFeederHeight;
   private volatile boolean getMoreBlocks = true;
-  
-  private volatile boolean isScanning;
-  private static boolean forceScan;
-  private static boolean validateAtScan;
 
-  private static int addedBlockCount = 0;
-  private static int firstBlockAdded = 0;
+  private volatile boolean isScanning;
+  private boolean forceScan;
+  private boolean validateAtScan;
+
+  private int addedBlockCount = 0;
+  private int firstBlockAdded = 0;
 
   private final Runnable debugInfoThread = () -> {
-    logger.info("Unverified blocks: " + DownloadCache.getUnverifiedSize());
-    logger.info("Blocks in cache: " + DownloadCache.size());
-    logger.info("Bytes in cache: " + DownloadCache.getBlockCacheSize());
+    logger.info("Unverified blocks: " + downloadCache.getUnverifiedSize());
+    logger.info("Blocks in cache: " + downloadCache.size());
+    logger.info("Bytes in cache: " + downloadCache.getBlockCacheSize());
   };
 
-  public static final void setOclVerify(Boolean b) {
+  public final void setOclVerify(Boolean b) {
     oclVerify = b;
   }
 
-  public static final Boolean getOclVerify() {
+  public final Boolean getOclVerify() {
     return oclVerify;
   }
 
-  static {
+  public BlockchainProcessorImpl(PropertyService propertyService) {
     blockDb = Burst.getDbs().getBlockDb();
     transactionDb = Burst.getDbs().getTransactionDb();
 
-    PropertyService propertyService = Burst.getPropertyService();
     oclVerify = propertyService.getBooleanProperty("GPU.Acceleration"); // use GPU acceleration ?
     oclUnverifiedQueue = propertyService.getIntProperty("GPU.UnverifiedQueue") == 0 ? 1000 : propertyService.getIntProperty("GPU.UnverifiedQueue");
 
     trimDerivedTables = propertyService.getBooleanProperty("brs.trimDerivedTables");
-   
-    
+
+
     forceScan = propertyService.getBooleanProperty("brs.forceScan");
     validateAtScan = propertyService.getBooleanProperty("brs.forceValidate");
-  }
 
+    blockListeners.addListener(block -> {
+      if (block.getHeight() % 5000 == 0) {
+        logger.info("processed block " + block.getHeight());
+      }
+    }, Event.BLOCK_SCANNED);
+
+    blockListeners.addListener(block -> {
+      if (block.getHeight() % 5000 == 0) {
+        logger.info("processed block " + block.getHeight());
+        // Db.analyzeTables(); no-op
+      }
+    }, Event.BLOCK_PUSHED);
+
+    if (trimDerivedTables) {
+      blockListeners.addListener(block -> {
+        if (block.getHeight() % 1440 == 0) {
+          lastTrimHeight = Math.max(block.getHeight() - Constants.MAX_ROLLBACK, 0);
+          if (lastTrimHeight > 0) {
+            derivedTables.forEach(table -> table.trim(lastTrimHeight));
+          }
+        }
+      }, Event.AFTER_BLOCK_APPLY);
+    }
+    // No-op
+    // blockListeners.addListener(new Listener<Block>() {
+    // @Override
+    // public void notify(Block block) {
+    // Db.analyzeTables();
+    // }
+    // }, Event.RESCAN_END);
+
+    Burst.getThreadPool().runBeforeStart(() -> {
+      addGenesisBlock();
+      if (forceScan) {
+        scan(0);
+      }
+    }, false);
+
+    Burst.getThreadPool().scheduleThread("GetMoreBlocks", getMoreBlocksThread, 2);
+    Burst.getThreadPool().scheduleThread("ImportBlocks", blockImporterThread, 10);
+    if(oclVerify) {
+      Burst.getThreadPool().scheduleThread("VerifyPoc", pocVerificationThread, 9);
+    }else {
+      Burst.getThreadPool().scheduleThreadCores("VerifyPoc", pocVerificationThread, 9);
+    }
+
+    // ThreadPool.scheduleThread("Info", debugInfoThread, 5);
+  }
   private final Runnable pocVerificationThread = () -> {
     boolean verifyWithOcl;
     int QueueThreashold = oclVerify ? oclUnverifiedQueue : 0;
     while (true) {
-      int unVerified = DownloadCache.getUnverifiedSize();
+      int unVerified = downloadCache.getUnverifiedSize();
       if (unVerified > QueueThreashold) { //Is there anything to verify
         if (unVerified >= oclUnverifiedQueue && oclVerify) { //should we use Ocl?
           verifyWithOcl = true;
@@ -122,16 +162,16 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           int poCVersion = 1;
           int pos = 0;
           List<BlockImpl> blocks = new LinkedList<>();
-          poCVersion = DownloadCache.getPoCVersion(DownloadCache.GetUnverifiedBlockIdFromPos(0));
+          poCVersion = downloadCache.getPoCVersion(downloadCache.GetUnverifiedBlockIdFromPos(0));
           while (unVerified > pos && blocks.size() < OCLPoC.getMaxItems()) {
-            long blockId = DownloadCache.GetUnverifiedBlockIdFromPos(pos);
-            if (DownloadCache.getPoCVersion(blockId) != poCVersion) {
+            long blockId = downloadCache.GetUnverifiedBlockIdFromPos(pos);
+            if (downloadCache.getPoCVersion(blockId) != poCVersion) {
               break;
             }
-            blocks.add(DownloadCache.GetBlock(blockId));
+            blocks.add(downloadCache.GetBlock(blockId));
             pos+=1;
           }
-          DownloadCache.removeUnverifiedBatch(blocks);
+          downloadCache.removeUnverifiedBatch(blocks);
           
           try {
             OCLPoC.validatePoC(blocks, poCVersion);
@@ -143,7 +183,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
         }else { //verify using java
           try {
-            DownloadCache.getFirstUnverifiedBlock().preVerify();
+            downloadCache.getFirstUnverifiedBlock().preVerify();
           }catch (BlockchainProcessor.BlockNotAcceptedException e) {
             logger.error("Block failed to preverify: ", e);
           }
@@ -160,31 +200,32 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       }
     }
   };
+
   private final Runnable blockImporterThread = () -> {
     try {
       Long lastId = Burst.getBlockchain().getLastBlock().getId();
       while (true) {
-        if (DownloadCache.getBlockCacheSize() > 0) {
-          
-          BlockImpl currentBlock = DownloadCache.GetNextBlock(lastId); /* this should fetch first block in cache */
+        if (downloadCache.getBlockCacheSize() > 0) {
+
+          BlockImpl currentBlock = downloadCache.GetNextBlock(lastId); /* this should fetch first block in cache */
           if (currentBlock == null) {
             break;
           }
           try {
             if (!currentBlock.isVerified()) {
-              DownloadCache.removeUnverified(currentBlock.getId());
+              downloadCache.removeUnverified(currentBlock.getId());
               currentBlock.preVerify();
             }
             pushBlock(currentBlock);
             lastId = currentBlock.getId();
-            DownloadCache.RemoveBlock(currentBlock);
-          
+            downloadCache.RemoveBlock(currentBlock);
+
           } catch (BlockNotAcceptedException e) {
             logger.error("Block not accepted", e);
             blacklistClean(currentBlock, e);
             break;
           }
-          //executor shutdown? 
+          //executor shutdown?
           if (Thread.currentThread().isInterrupted()) {
             logger.debug("Blockimporter got interupted.");
             return;
@@ -197,7 +238,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         logger.debug("Blockimporter fires interupt.");
         Thread.currentThread().interrupt();
       }
-      //executor shutdown? 
+      //executor shutdown?
       if (Thread.currentThread().isInterrupted()) {
         logger.debug("Blockimporter got interupted.");
         return;
@@ -216,7 +257,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (peer != null) {
       peer.blacklist(e);
     }
-    DownloadCache.ResetCache();
+    downloadCache.ResetCache();
     logger.debug("Blacklisted peer and cleaned queue");
   }
 
@@ -239,7 +280,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             if (!getMoreBlocks) {
               return;
             }
-            if (DownloadCache.IsFull()) {
+            if (downloadCache.IsFull()) {
               return;
             }
             peerHasMore = true;
@@ -263,7 +304,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             /* Cache now contains Cumulative Difficulty */
 
-            BigInteger curCumulativeDifficulty = DownloadCache.getCumulativeDifficulty();
+            BigInteger curCumulativeDifficulty = downloadCache.getCumulativeDifficulty();
             String peerCumulativeDifficulty = (String) response.get("cumulativeDifficulty");
             if (peerCumulativeDifficulty == null) {
               logger.debug("Peer CumulativeDifficulty is null");
@@ -280,7 +321,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
 
             long commonBlockId = Genesis.GENESIS_BLOCK_ID;
-            long cacheLastBlockId = DownloadCache.getLastBlockId();
+            long cacheLastBlockId = downloadCache.getLastBlockId();
 
             // Now we will find the highest common block between ourself and our peer
             if (cacheLastBlockId != Genesis.GENESIS_BLOCK_ID) {
@@ -300,7 +341,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             boolean saveInCache = true;
             if (commonBlockId != cacheLastBlockId) {
-              if (DownloadCache.CanBeFork(commonBlockId)) {
+              if (downloadCache.CanBeFork(commonBlockId)) {
                 // the fork is not that old. Lets see if we can get more precise.
                 commonBlockId = getCommonBlockId(peer, commonBlockId);
                 if (commonBlockId == 0 || !peerHasMore) {
@@ -323,17 +364,17 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
 
             // download blocks from peer
-            int chainHeight = DownloadCache.getChainHeight();
-            BlockImpl lastBlock = DownloadCache.GetBlock(commonBlockId); 
+            int chainHeight = downloadCache.getChainHeight();
+            BlockImpl lastBlock = downloadCache.GetBlock(commonBlockId);
             if(lastBlock ==null) {
               logger.info("Error: lastBlock is null");
             }
             // loop blocks and make sure they fit in chain
-         
+
               BlockImpl block;
               JSONObject blockData;
               List<BlockImpl> blocks = new ArrayList<>();
-              
+
               for (Object o : nextBlocks) {
                 blockData = (JSONObject) o;
                 try {
@@ -356,7 +397,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                   block.setByteLength(blockData.toString().length());
                   block.calculateBaseTarget(lastBlock);
                   if (saveInCache) {
-                    DownloadCache.AddBlock(block);
+                    downloadCache.AddBlock(block);
                   } else {
                     forkBlocks.add(block);
                   }
@@ -370,20 +411,20 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
                   logger.warn("Unhandled exception {}" + e.toString(), e);
                   logger.warn("Unhandled exception trace: " + e.getStackTrace());
                 }
-                //executor shutdown? 
+                //executor shutdown?
                 if (Thread.currentThread().isInterrupted()) {
                   return;
                 }
               } // end block loop
-         
-              logger.trace("Unverified blocks: " + DownloadCache.getUnverifiedSize());
-              logger.trace("Blocks in cache: {}", DownloadCache.size());
-              logger.trace("Bytes in cache: " + DownloadCache.getBlockCacheSize());
+
+              logger.trace("Unverified blocks: " + downloadCache.getUnverifiedSize());
+              logger.trace("Blocks in cache: {}", downloadCache.size());
+              logger.trace("Bytes in cache: " + downloadCache.getBlockCacheSize());
             if (forkBlocks.size() > 0) {
               /*
                * Since we cannot rely on peers reported cumulative difficulty we do
                * a final check to see that the CumulativeDifficulty actually is bigger
-               * before we do a popOff and switch chain. 
+               * before we do a popOff and switch chain.
                */
               if(lastBlock.getCumulativeDifficulty().compareTo(curCumulativeDifficulty) < 0) {
                 logger.debug("Peer claimed to have bigger cumulative difficulty but in reality it did not. Blacklisting.");
@@ -424,7 +465,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         milestoneBlockIdsRequest.put("requestType", "getMilestoneBlockIds");
         if (lastMilestoneBlockId == null) {
           milestoneBlockIdsRequest.put("lastBlockId",
-              Convert.toUnsignedLong(DownloadCache.getLastBlockId()));
+              Convert.toUnsignedLong(downloadCache.getLastBlockId()));
         } else {
           milestoneBlockIdsRequest.put("lastMilestoneBlockId", lastMilestoneBlockId);
         }
@@ -456,7 +497,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
         for (Object milestoneBlockId : milestoneBlockIds) {
           long blockId = Convert.parseUnsignedLong((String) milestoneBlockId);
 
-          if (DownloadCache.HasBlock(blockId)) {
+          if (downloadCache.HasBlock(blockId)) {
             if (lastMilestoneBlockId == null && milestoneBlockIds.size() > 1) {
               peerHasMore = false;
               logger.debug("Peer dont have more (cache)");
@@ -492,7 +533,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
 
         for (Object nextBlockId : nextBlockIds) {
           long blockId = Convert.parseUnsignedLong((String) nextBlockId);
-          if (!DownloadCache.HasBlock(blockId)) {
+          if (!downloadCache.HasBlock(blockId)) {
             return commonBlockId;
           }
           commonBlockId = blockId;
@@ -532,7 +573,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
   private void processFork(Peer peer, final List<BlockImpl> forkBlocks, long forkBlockId) {
     logger.warn("A fork is detected. Waiting for cache to be processed.");
     while (true) {
-      if (DownloadCache.size() == 0) {
+      if (downloadCache.size() == 0) {
         break;
       }
       try {
@@ -597,59 +638,9 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       logger.warn("Successfully switched to better chain.");
     }
     logger.warn("Forkprocessing complete.");
-    DownloadCache.ResetCache(); // Reset and set cached vars to chaindata.
+    downloadCache.ResetCache(); // Reset and set cached vars to chaindata.
   }
 };
-
-  private BlockchainProcessorImpl() {
-    blockListeners.addListener(block -> {
-      if (block.getHeight() % 5000 == 0) {
-        logger.info("processed block " + block.getHeight());
-      }
-    }, Event.BLOCK_SCANNED);
-
-    blockListeners.addListener(block -> {
-      if (block.getHeight() % 5000 == 0) {
-        logger.info("processed block " + block.getHeight());
-        // Db.analyzeTables(); no-op
-      }
-    }, Event.BLOCK_PUSHED);
-
-    if (trimDerivedTables) {
-      blockListeners.addListener(block -> {
-        if (block.getHeight() % 1440 == 0) {
-          lastTrimHeight = Math.max(block.getHeight() - Constants.MAX_ROLLBACK, 0);
-          if (lastTrimHeight > 0) {
-            derivedTables.forEach(table -> table.trim(lastTrimHeight));
-          }
-        }
-      }, Event.AFTER_BLOCK_APPLY);
-    }
-    // No-op
-    // blockListeners.addListener(new Listener<Block>() {
-    // @Override
-    // public void notify(Block block) {
-    // Db.analyzeTables();
-    // }
-    // }, Event.RESCAN_END);
-
-    Burst.getThreadPool().runBeforeStart(() -> {
-      addGenesisBlock();
-      if (forceScan) {
-        scan(0);
-      }
-    }, false);
-
-    Burst.getThreadPool().scheduleThread("GetMoreBlocks", getMoreBlocksThread, 2);
-    Burst.getThreadPool().scheduleThread("ImportBlocks", blockImporterThread, 10);
-    if(oclVerify) {
-      Burst.getThreadPool().scheduleThread("VerifyPoc", pocVerificationThread, 9);  
-    }else {
-      Burst.getThreadPool().scheduleThreadCores("VerifyPoc", pocVerificationThread, 9);  
-    }
-    
-    // ThreadPool.scheduleThread("Info", debugInfoThread, 5);
-  }
 
   @Override
   public boolean addListener(Listener<Block> listener, BlockchainProcessor.Event eventType) {
@@ -699,12 +690,12 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
      * This process takes care of the blocks that is announced by peers We do not want to be
      * feeded forks.
      */
-    BlockImpl chainblock = DownloadCache.getLastBlock();
+    BlockImpl chainblock = downloadCache.getLastBlock();
     if (chainblock.getId() == newBlock.getPreviousBlockId()) {
       newBlock.setHeight(chainblock.getHeight() + 1);
       newBlock.setByteLength(newBlock.toString().length());
       newBlock.calculateBaseTarget(chainblock);
-      DownloadCache.AddBlock(newBlock);
+      downloadCache.AddBlock(newBlock);
     } else {
       logger.debug("Peer sent us block: " + newBlock.getPreviousBlockId()
                  + " that does not match our chain.");
@@ -1170,7 +1161,7 @@ final class BlockchainProcessorImpl implements BlockchainProcessor {
       blockListeners.notify(block, Event.BLOCK_GENERATED);
       logger.debug("Account " + Convert.toUnsignedLong(block.getGeneratorId()) + " generated block "
           + block.getStringId() + " at height " + block.getHeight());
-      DownloadCache.ResetCache();
+      downloadCache.ResetCache();
     } catch (TransactionNotAcceptedException e) {
       logger.debug("Generate block failed: " + e.getMessage());
       Transaction transaction = e.getTransaction();

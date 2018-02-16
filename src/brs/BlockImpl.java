@@ -454,7 +454,6 @@ public class BlockImpl implements Block {
   }
 
   public void preVerify(byte[] scoopData) throws BlockchainProcessor.BlockNotAcceptedException {
-   
       // Just in case its already verified
       if (this.pocTime != null)
         return;
@@ -547,7 +546,7 @@ public class BlockImpl implements Block {
       Block itBlock = previousBlock;
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
       do {
-        itBlock = BlockchainProcessorImpl.DownloadCache.GetBlock(itBlock.getPreviousBlockId());
+        itBlock = Burst.getBlockchainProcessor().downloadCache.GetBlock(itBlock.getPreviousBlockId());
         avgBaseTarget = avgBaseTarget.add(BigInteger.valueOf(itBlock.getBaseTarget()));
       } while (itBlock.getHeight() > this.height - 4);
       avgBaseTarget = avgBaseTarget.divide(BigInteger.valueOf(4));
@@ -580,7 +579,7 @@ public class BlockImpl implements Block {
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
       int blockCounter = 1;
       do {
-        itBlock = BlockchainProcessorImpl.DownloadCache.GetBlock(itBlock.getPreviousBlockId());
+        itBlock = Burst.getBlockchainProcessor().downloadCache.GetBlock(itBlock.getPreviousBlockId());
         blockCounter++;
         avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter))
             .add(BigInteger.valueOf(itBlock.getBaseTarget())))
