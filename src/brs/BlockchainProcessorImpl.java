@@ -196,12 +196,18 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
           
           try {
             OCLPoC.validatePoC(blocks, poCVersion);
+            downloadCache.removeUnverifiedBatch(blocks);
           } catch (OCLPoC.PreValidateFailException e) {
             logger.info(e.toString(), e);
             blacklistClean(e.getBlock(), e);
+          }catch (OCLPoC.OCLCheckerException e) {
+            logger.info("Open CL error. slow verify will occur for the next "+oclUnverifiedQueue+" Blocks", e);
+          }catch (Exception e) {
+            logger.info("Unspecified Open CL error: ", e);
           } finally {
             gpuUsage.release();
           }
+
         }else { //verify using java
           try {
             downloadCache.getFirstUnverifiedBlock().preVerify();
@@ -209,6 +215,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
             logger.error("Block failed to preverify: ", e);
           }
         }
+
       }
       try {
         Thread.sleep(10);
@@ -820,7 +827,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
       long calculatedTotalAmount = 0;
       long calculatedTotalFee = 0;
       MessageDigest digest = Crypto.sha256();
-      
+
       for (TransactionImpl transaction : block.getTransactions()) {
         if (transaction.getTimestamp() > curTime + MAX_TIMESTAMP_DIFFERENCE) {
           throw new BlockOutOfOrderException("Invalid transaction timestamp: "
