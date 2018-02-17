@@ -179,7 +179,6 @@ public final class Burst {
 
       stores = new Stores(derivedTableManager);
 
-      blockchainProcessor = new BlockchainProcessorImpl(propertyService, derivedTableManager);
 
 
       final TransactionDb transactionDb = dbs.getTransactionDb();
@@ -210,9 +209,13 @@ public final class Burst {
       final AssetTransferService assetTransferService = new AssetTransferServiceImpl(stores.getAssetTransferStore());
       final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
       final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
+      final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
+
+      blockchainProcessor = new BlockchainProcessorImpl(threadPool, transactionProcessor, blockchain, propertyService, subscriptionService, timeService, derivedTableManager, blockDb, transactionDb,
+          economicClustering, blockchainStore, stores);
+
       final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,
           digitalGoodsStoreService, blockchain, blockchainProcessor, transactionProcessor, atService);
-      final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
       addBlockchainListeners(blockchainProcessor, accountService, digitalGoodsStoreService, blockchain, dbs.getTransactionDb());
 
@@ -298,10 +301,6 @@ public final class Burst {
 
   public static PropertyService getPropertyService() {
     return propertyService;
-  }
-
-  public static EconomicClustering getEconomicClustering() {
-    return economicClustering;
   }
 
   public static ThreadPool getThreadPool() {
