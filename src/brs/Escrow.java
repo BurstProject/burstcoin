@@ -77,15 +77,6 @@ public class Escrow {
     return null;
   }
 
-  public static boolean isEnabled() {
-    if(Burst.getBlockchain().getLastBlock().getHeight() >= Constants.BURST_ESCROW_START_BLOCK) {
-      return true;
-    }
-
-    Alias escrowEnabled = Alias.getAlias("featureescrow");
-      return escrowEnabled != null && escrowEnabled.getAliasURI().equals("enabled");
-  }
-
   public static class Decision {
 
     public final Long escrowId;
@@ -173,30 +164,6 @@ public class Escrow {
       Decision decision = new Decision(id, signer, DecisionType.UNDECIDED);
       decisionTable().insert(decision);
     }
-  }
-
-  public static void removeEscrowTransaction(Long id) {
-    Escrow escrow = escrowTable().get(escrowDbKeyFactory().newKey(id));
-    if(escrow == null) {
-      return;
-    }
-    BurstIterator<Decision> decisionIt = escrow.getDecisions();
-
-    List<Decision> decisions = new ArrayList<>();
-    while(decisionIt.hasNext()) {
-      Decision decision = decisionIt.next();
-      decisions.add(decision);
-    }
-
-    decisions.forEach(decision -> decisionTable().delete(decision));
-    escrowTable().delete(escrow);
-  }
-
-
-
-  public static void updateOnBlock(Block block, int blockchainHeight) {
-    Burst.getStores().getEscrowStore().updateOnBlock(block, blockchainHeight);
-
   }
 
   public final Long senderId;

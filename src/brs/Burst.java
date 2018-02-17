@@ -204,7 +204,7 @@ public final class Burst {
       final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
       final SubscriptionService subscriptionService = new SubscriptionServiceImpl(stores.getSubscriptionStore(), transactionDb, blockchain, aliasService, accountService);
       final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(blockchain, stores.getDigitalGoodsStoreStore(), accountService);
-      final EscrowService escrowService = new EscrowServiceImpl(stores.getEscrowStore());
+      final EscrowService escrowService = new EscrowServiceImpl(stores.getEscrowStore(), blockchain, aliasService);
       final TradeService tradeService = new TradeServiceImpl(stores.getTradeStore());
       final AssetAccountService assetAccountService = new AssetAccountServiceImpl(stores.getAccountStore());
       final AssetTransferService assetTransferService = new AssetTransferServiceImpl(stores.getAssetTransferStore());
@@ -212,7 +212,7 @@ public final class Burst {
       final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
       blockchainProcessor = new BlockchainProcessorImpl(threadPool, transactionProcessor, blockchain, propertyService, subscriptionService, timeService, derivedTableManager, blockDb, transactionDb,
-          economicClustering, blockchainStore, stores);
+          economicClustering, blockchainStore, stores, escrowService);
 
       final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,
           digitalGoodsStoreService, blockchain, blockchainProcessor, transactionProcessor, atService);
@@ -222,7 +222,7 @@ public final class Burst {
       Peers.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService, threadPool);
 
       // TODO this really should be better...
-      TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService, assetService, orderService, assetTransferService, subscriptionService);
+      TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService, assetService, orderService, assetTransferService, subscriptionService, escrowService);
 
       api = new API(transactionProcessor, blockchain, blockchainProcessor, parameterService,
           accountService, aliasService, orderService, assetService, assetTransferService,

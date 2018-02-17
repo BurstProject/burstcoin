@@ -92,7 +92,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
       subscriptionTable.insert(subscription);
     }
     if (paymentTransactions.size() > 0) {
-      Burst.getDbs().getTransactionDb().saveTransactions(paymentTransactions);
+      transactionDb.saveTransactions(paymentTransactions);
     }
     removeSubscriptions.forEach(this::removeSubscription);
   }
@@ -112,8 +112,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
   @Override
   public long calculateFees(int timestamp) {
     long totalFeeNQT = 0;
-    BurstIterator<Subscription> updateSubscriptions =
-        Burst.getStores().getSubscriptionStore().getUpdateSubscriptions(timestamp);
+    BurstIterator<Subscription> updateSubscriptions = subscriptionStore.getUpdateSubscriptions(timestamp);
     List<Subscription> appliedUnconfirmedSubscriptions = new ArrayList<>();
     while (updateSubscriptions.hasNext()) {
       Subscription subscription = updateSubscriptions.next();
@@ -147,8 +146,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
   public long applyUnconfirmed(int timestamp) {
     appliedSubscriptions.clear();
     long totalFees = 0;
-    BurstIterator<Subscription> updateSubscriptions =
-        Burst.getStores().getSubscriptionStore().getUpdateSubscriptions(timestamp);
+    BurstIterator<Subscription> updateSubscriptions = subscriptionStore.getUpdateSubscriptions(timestamp);
     while (updateSubscriptions.hasNext()) {
       Subscription subscription = updateSubscriptions.next();
       if (removeSubscriptions.contains(subscription.getId())) {

@@ -3,6 +3,7 @@ package brs;
 import brs.db.store.BlockchainStore;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
+import brs.services.EscrowService;
 import brs.services.PropertyService;
 import brs.services.SubscriptionService;
 import brs.services.TimeService;
@@ -49,6 +50,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
   private final Stores stores;
   private BlockchainImpl blockchain;
   private final SubscriptionService subscriptionService;
+  private final EscrowService escrowService;
   private final TimeService timeService;
   private BlockDb blockDb;
   private TransactionDb transactionDb;
@@ -95,7 +97,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
 
   public BlockchainProcessorImpl(ThreadPool threadPool, TransactionProcessorImpl transactionProcessor, BlockchainImpl blockchain, PropertyService propertyService,
       SubscriptionService subscriptionService, TimeService timeService, DerivedTableManager derivedTableManager,
-      BlockDb blockDb, TransactionDb transactionDb, EconomicClustering economicClustering, BlockchainStore blockchainStore, Stores stores) {
+      BlockDb blockDb, TransactionDb transactionDb, EconomicClustering economicClustering, BlockchainStore blockchainStore, Stores stores, EscrowService escrowService) {
     this.transactionProcessor = transactionProcessor;
     this.timeService = timeService;
     this.derivedTableManager = derivedTableManager;
@@ -115,6 +117,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
     forceScan = propertyService.getBooleanProperty("brs.forceScan");
     validateAtScan = propertyService.getBooleanProperty("brs.forceValidate");
     this.economicClustering = economicClustering;
+    this.escrowService = escrowService;
 
     blockListeners.addListener(block -> {
       if (block.getHeight() % 5000 == 0) {
@@ -984,8 +987,8 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
     blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
     block.apply();
     subscriptionService.applyConfirmed(block, blockchain.getHeight());
-    if (Escrow.isEnabled()) {
-      Escrow.updateOnBlock(block, blockchain.getHeight());
+    if (escrowService.isEnabled()) {
+      escrowService.updateOnBlock(block, blockchain.getHeight());
     }
     blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
     if (block.getTransactions().size() > 0) {

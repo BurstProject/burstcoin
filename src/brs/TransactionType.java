@@ -12,6 +12,7 @@ import brs.services.AliasService;
 import brs.services.AssetService;
 import brs.services.AssetTransferService;
 import brs.services.DGSGoodsStoreService;
+import brs.services.EscrowService;
 import brs.services.OrderService;
 import brs.services.SubscriptionService;
 import brs.util.Convert;
@@ -90,10 +91,11 @@ public abstract class TransactionType {
   private static OrderService orderService;
   private static AssetTransferService assetTransferService;
   private static SubscriptionService subscriptionService;
+  private static EscrowService escrowService;
 
   // Temporary...
   static void init(Blockchain blockchain, AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService, AliasService aliasService, AssetService assetService, OrderService orderService,
-      AssetTransferService assetTransferService, SubscriptionService subscriptionService) {
+      AssetTransferService assetTransferService, SubscriptionService subscriptionService, EscrowService escrowService) {
     TransactionType.blockchain = blockchain;
     TransactionType.accountService = accountService;
     TransactionType.dgsGoodsStoreService = dgsGoodsStoreService;
@@ -102,6 +104,7 @@ public abstract class TransactionType {
     TransactionType.orderService = orderService;
     TransactionType.assetTransferService = assetTransferService;
     TransactionType.subscriptionService = subscriptionService;
+    TransactionType.escrowService = escrowService;
   }
 
   public static TransactionType findTransactionType(byte type, byte subtype) {
@@ -1772,7 +1775,7 @@ public abstract class TransactionType {
              attachment.getSigners().contains(transaction.getRecipientId())) {
             throw new BurstException.NotValidException("Escrow sender and recipient cannot be signers");
           }
-          if (!Escrow.isEnabled()) {
+          if (!escrowService.isEnabled()) {
             throw new BurstException.NotYetEnabledException("Escrow not yet enabled");
           }
         }
@@ -1848,7 +1851,7 @@ public abstract class TransactionType {
           if (escrow.getRecipientId().equals(transaction.getSenderId()) && attachment.getDecision() != Escrow.DecisionType.REFUND) {
             throw new BurstException.NotValidException("Escrow recipient can only refund");
           }
-          if (!Escrow.isEnabled()) {
+          if (!escrowService.isEnabled()) {
             throw new BurstException.NotYetEnabledException("Escrow not yet enabled");
           }
         }
