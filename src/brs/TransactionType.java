@@ -1715,7 +1715,7 @@ public abstract class TransactionType {
           senderAccount.addToBalanceNQT(-totalAmountNQT);
           Collection<Long> signers = attachment.getSigners();
           signers.forEach(signer -> accountService.addOrGetAccount(signer).addToBalanceAndUnconfirmedBalanceNQT(Constants.ONE_BURST));
-          Escrow.addEscrowTransaction(senderAccount,
+          escrowService.addEscrowTransaction(senderAccount,
                                       recipientAccount,
                                       transaction.getId(),
                                       attachment.getAmountNQT(),
@@ -1811,8 +1811,8 @@ public abstract class TransactionType {
         @Override
         final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.AdvancedPaymentEscrowSign attachment = (Attachment.AdvancedPaymentEscrowSign) transaction.getAttachment();
-          Escrow escrow = Escrow.getEscrowTransaction(attachment.getEscrowId());
-          escrow.sign(senderAccount.getId(), attachment.getDecision());
+          Escrow escrow = escrowService.getEscrowTransaction(attachment.getEscrowId());
+          escrowService.sign(senderAccount.getId(), attachment.getDecision(), escrow);
         }
 
         @Override
@@ -1836,11 +1836,11 @@ public abstract class TransactionType {
           if (attachment.getEscrowId() == null || attachment.getDecision() == null) {
             throw new BurstException.NotValidException("Escrow signing requires escrow id and decision set");
           }
-          Escrow escrow = Escrow.getEscrowTransaction(attachment.getEscrowId());
+          Escrow escrow = escrowService.getEscrowTransaction(attachment.getEscrowId());
           if (escrow == null) {
             throw new BurstException.NotValidException("Escrow transaction not found");
           }
-          if (!escrow.isIdSigner(transaction.getSenderId()) &&
+          if (!escrowService.isIdSigner(transaction.getSenderId(), escrow) &&
              !escrow.getSenderId().equals(transaction.getSenderId()) &&
              !escrow.getRecipientId().equals(transaction.getSenderId())) {
             throw new BurstException.NotValidException("Sender is not a participant in specified escrow");

@@ -65,7 +65,7 @@ public final class EscrowSign extends CreateTransaction {
     Account sender = parameterService.getSenderAccount(req);
     if(!(escrow.getSenderId().equals(sender.getId())) &&
        !(escrow.getRecipientId().equals(sender.getId())) &&
-       !escrow.isIdSigner(sender.getId())) {
+       !escrowService.isIdSigner(sender.getId(), escrow)) {
       JSONObject response = new JSONObject();
       response.put(ERROR_CODE_RESPONSE, 5);
       response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid or not specified action");

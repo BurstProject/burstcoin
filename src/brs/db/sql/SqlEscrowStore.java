@@ -37,7 +37,7 @@ public class SqlEscrowStore implements EscrowStore {
       };
   private final VersionedEntityTable<Escrow.Decision> decisionTable;
   private final List<TransactionImpl> resultTransactions = new ArrayList<>();
-  private final ConcurrentSkipListSet<Long> updatedEscrowIds = new ConcurrentSkipListSet<>();
+
 
   public SqlEscrowStore(DerivedTableManager derivedTableManager) {
     escrowTable = new VersionedEntitySqlTable<Escrow>("escrow", brs.schema.Tables.ESCROW, escrowDbKeyFactory, derivedTableManager) {
@@ -65,9 +65,7 @@ public class SqlEscrowStore implements EscrowStore {
     };
   }
 
-  private static Condition getUpdateOnBlockClause(final int timestamp) {
-    return ESCROW.DEADLINE.lt(timestamp);
-  }
+
 
   protected void saveDecision(DSLContext ctx, Escrow.Decision decision) throws SQLException {
     brs.schema.tables.records.EscrowDecisionRecord decisionRecord = ctx.newRecord(ESCROW_DECISION);
@@ -102,12 +100,8 @@ public class SqlEscrowStore implements EscrowStore {
     return decisionTable;
   }
 
-  private Condition getEscrowParticipentClause(final long accountId) {
-    return ESCROW.SENDER_ID.eq(accountId).or(ESCROW.RECIPIENT_ID.eq(accountId));
-  }
-
   @Override
-  public Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId) {
+  public Collection<Escrow> getEscrowTransactionsByParticipant(Long accountId) {
     List<Escrow> filtered = new ArrayList<>();
     BurstIterator<Escrow.Decision> it = decisionTable.getManyBy(ESCROW_DECISION.ACCOUNT_ID.eq(accountId), 0, -1);
     while (it.hasNext()) {
@@ -120,62 +114,11 @@ public class SqlEscrowStore implements EscrowStore {
     return filtered;
   }
 
-  @Override
-  public void updateOnBlock(Block block, int blockchainHeight) {
-    resultTransactions.clear();
 
-    BurstIterator<Escrow> deadlineEscrows = escrowTable.getManyBy(getUpdateOnBlockClause(block.getTimestamp()), 0, -1);
-    while(deadlineEscrows.hasNext()) {
-      updatedEscrowIds.add(deadlineEscrows.next().getId());
-    }
-
-    if (updatedEscrowIds.size() > 0) {
-      for (Long escrowId : updatedEscrowIds) {
-        Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(escrowId));
-        Escrow.DecisionType result = escrow.checkComplete();
-        if (result != Escrow.DecisionType.UNDECIDED || escrow.getDeadline() < block.getTimestamp()) {
-          if (result == Escrow.DecisionType.UNDECIDED) {
-            result = escrow.getDeadlineAction();
-          }
-          escrow.doPayout(result, block, blockchainHeight);
-
-          removeEscrowTransaction(escrowId);
-        }
-      }
-      if (resultTransactions.size() > 0) {
-        Burst.getDbs().getTransactionDb().saveTransactions( resultTransactions);
-      }
-      updatedEscrowIds.clear();
-    }
-  }
 
   @Override
   public List<TransactionImpl> getResultTransactions() {
     return resultTransactions;
-  }
-
-  @Override
-  public ConcurrentSkipListSet<Long> getUpdatedEscrowIds() {
-    return updatedEscrowIds;
-  }
-
-  public void removeEscrowTransaction(Long id) {
-    Escrow escrow = escrowTable.get(escrowDbKeyFactory.newKey(id));
-    if (escrow == null) {
-      return;
-    }
-    BurstIterator<Escrow.Decision> decisionIt = escrow.getDecisions();
-
-    List<Escrow.Decision> decisions = new ArrayList<>();
-    while (decisionIt.hasNext()) {
-      Escrow.Decision decision = decisionIt.next();
-      decisions.add(decision);
-    }
-
-    for (Escrow.Decision decision : decisions) {
-      decisionTable.delete(decision);
-    }
-    escrowTable.delete(escrow);
   }
 
   protected void saveEscrow(DSLContext ctx, Escrow escrow) throws SQLException {
@@ -197,7 +140,7 @@ public class SqlEscrowStore implements EscrowStore {
 
   private class SqlDecision extends Escrow.Decision {
     private SqlDecision(ResultSet rs) throws SQLException {
-      super(rs.getLong("escrow_id"), rs.getLong("account_id"),
+      super(decisionDbKeyFactory.newKey(rs.getLong("escrow_id"), rs.getLong("account_id")), rs.getLong("escrow_id"), rs.getLong("account_id"),
             Escrow.byteToDecision((byte) rs.getInt("decision")));
     }
   }

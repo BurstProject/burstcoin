@@ -91,7 +91,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
       apply(block, blockchainHeight, subscription);
       subscriptionTable.insert(subscription);
     }
-    if (paymentTransactions.size() > 0) {
+    if (! paymentTransactions.isEmpty()) {
       transactionDb.saveTransactions(paymentTransactions);
     }
     removeSubscriptions.forEach(this::removeSubscription);
@@ -105,7 +105,10 @@ public class SubscriptionServiceImpl implements SubscriptionService {
   public void removeSubscription(Long id) {
     Subscription subscription = subscriptionTable.get(subscriptionDbKeyFactory.newKey(id));
     if (subscription != null) {
+      System.out.println("DELETED " + id);
       subscriptionTable.delete(subscription);
+    } else {
+      System.out.println("WTF, DID NOT FIND " + id + " TO DELETE !");
     }
   }
 
