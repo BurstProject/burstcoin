@@ -219,7 +219,7 @@ public final class Burst {
 
       addBlockchainListeners(blockchainProcessor, accountService, digitalGoodsStoreService, blockchain, dbs.getTransactionDb());
 
-      Peers.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService);
+      Peers.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService, threadPool);
 
       // TODO this really should be better...
       TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService, assetService, orderService, assetTransferService, subscriptionService);
@@ -273,7 +273,7 @@ public final class Burst {
     logger.info("Shutting down...");
     api.shutdown();
     users.shutdown();
-    Peers.shutdown();
+    Peers.shutdown(threadPool);
     threadPool.shutdown();
     Db.shutdown();
     if (readPropertiesSuccessfully && blockchainProcessor.getOclVerify()) {
@@ -303,7 +303,4 @@ public final class Burst {
     return propertyService;
   }
 
-  public static ThreadPool getThreadPool() {
-    return threadPool;
-  }
 }

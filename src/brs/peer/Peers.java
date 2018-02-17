@@ -94,7 +94,7 @@ public final class Peers {
 
 
   public static void init(TimeService timeService, AccountService accountService, Blockchain blockchain, TransactionProcessor transactionProcessor,
-      BlockchainProcessor blockchainProcessor, PropertyService propertyService) {
+      BlockchainProcessor blockchainProcessor, PropertyService propertyService, ThreadPool threadPool) {
 
     myPlatform = propertyService.getStringProperty("P2P.myPlatform");
     if ( propertyService.getStringProperty("P2P.myAddress") != null
@@ -221,7 +221,7 @@ public final class Peers {
 
     final List<Future<String>> unresolvedPeers = Collections.synchronizedList(new ArrayList<Future<String>>());
 
-    Burst.getThreadPool().runBeforeStart(new Runnable() {
+    threadPool.runBeforeStart(new Runnable() {
 
         private void loadPeers(Collection<String> addresses) {
           for (final String address : addresses) {
@@ -246,7 +246,7 @@ public final class Peers {
         }
       }, false);
 
-    Burst.getThreadPool().runAfterStart(() -> {
+    threadPool.runAfterStart(() -> {
       for (Future<String> unresolvedPeer : unresolvedPeers) {
         try {
           String badAddress = unresolvedPeer.get(5, TimeUnit.SECONDS);
@@ -263,13 +263,13 @@ public final class Peers {
       logger.debug("Known peers: " + peers.size());
     });
 
-    Init.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService);
+    Init.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService, threadPool);
 
     if (! Constants.isOffline) {
-      Burst.getThreadPool().scheduleThread("PeerConnecting", Peers.peerConnectingThread, 5);
-      Burst.getThreadPool().scheduleThread("PeerUnBlacklisting", Peers.peerUnBlacklistingThread, 1);
+      threadPool.scheduleThread("PeerConnecting", Peers.peerConnectingThread, 5);
+      threadPool.scheduleThread("PeerUnBlacklisting", Peers.peerUnBlacklistingThread, 1);
       if (Peers.getMorePeers) {
-        Burst.getThreadPool().scheduleThread("GetMorePeers", Peers.getMorePeersThread, 5);
+        threadPool.scheduleThread("GetMorePeers", Peers.getMorePeersThread, 5);
       }
     }
   }
@@ -281,7 +281,7 @@ public final class Peers {
     private static Integer port;
 
     static void init(TimeService timeService, AccountService accountService, Blockchain blockchain, TransactionProcessor transactionProcessor,
-        BlockchainProcessor blockchainProcessor, PropertyService propertyService) {
+        BlockchainProcessor blockchainProcessor, PropertyService propertyService, ThreadPool threadPool) {
       if (Peers.shareMyAddress) {
         peerServer = new Server();
         ServerConnector connector = new ServerConnector(peerServer);
@@ -357,7 +357,7 @@ public final class Peers {
         }
 
         peerServer.setStopAtShutdown(true);
-        Burst.getThreadPool().runBeforeStart(new Runnable() {
+        threadPool.runBeforeStart(new Runnable() {
             @Override
             public void run() {
               try {
@@ -578,7 +578,7 @@ public final class Peers {
     }, Account.Event.BALANCE);
   }
 
-  public static void shutdown() {
+  public static void shutdown(ThreadPool threadPool) {
     if (Init.peerServer != null) {
       try {
         Init.peerServer.stop();
@@ -605,8 +605,8 @@ public final class Peers {
       }
       logger.info(buf.toString());
     }
-    Burst.getThreadPool().shutdownExecutor(sendToPeersService);
 
+    threadPool.shutdownExecutor(sendToPeersService);
   }
 
   public static boolean addListener(Listener<Peer> listener, Event eventType) {
