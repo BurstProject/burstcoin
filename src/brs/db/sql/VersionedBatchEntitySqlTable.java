@@ -3,6 +3,7 @@ package brs.db.sql;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedBatchEntityTable;
+import brs.db.store.DerivedTableManager;
 import java.sql.SQLException;
 import java.util.*;
 import org.apache.commons.lang.ArrayUtils;
@@ -15,8 +16,8 @@ import org.jooq.DSLContext;
 import org.jooq.SortField;
 
 public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySqlTable<T> implements VersionedBatchEntityTable<T> {
-  protected VersionedBatchEntitySqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory) {
-    super(table, tableClass, dbKeyFactory);
+  protected VersionedBatchEntitySqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory, DerivedTableManager derivedTableManager) {
+    super(table, tableClass, dbKeyFactory, derivedTableManager);
   }
 
   protected abstract void updateUsing(DSLContext ctx, T t);

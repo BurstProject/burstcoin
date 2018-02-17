@@ -9,6 +9,7 @@ import brs.db.EntityTable;
 import brs.db.sql.Db;
 import brs.db.store.BlockchainStore;
 import brs.db.store.Dbs;
+import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
 import brs.http.API;
 import brs.peer.Peers;
@@ -165,6 +166,8 @@ public final class Burst {
     try {
       long startTime = System.currentTimeMillis();
 
+      DerivedTableManager derivedTableManager = new DerivedTableManager();
+
       propertyService = loadProperties();
 
       threadPool = new ThreadPool();
@@ -174,9 +177,10 @@ public final class Burst {
       Db.init(propertyService);
       dbs = Db.getDbsByDatabaseType();
 
-      blockchainProcessor = new BlockchainProcessorImpl(propertyService);
+      stores = new Stores(derivedTableManager);
 
-      stores = new Stores();
+      blockchainProcessor = new BlockchainProcessorImpl(propertyService, derivedTableManager);
+
 
       final TransactionDb transactionDb = dbs.getTransactionDb();
       final BlockDb blockDb =  dbs.getBlockDb();

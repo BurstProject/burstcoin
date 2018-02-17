@@ -4,6 +4,7 @@ import brs.*;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
+import brs.db.store.DerivedTableManager;
 import brs.db.store.EscrowStore;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,7 +26,21 @@ public class SqlEscrowStore implements EscrowStore {
         return escrow.dbKey;
       }
     };
-  private final VersionedEntityTable<Escrow> escrowTable = new VersionedEntitySqlTable<Escrow>("escrow", brs.schema.Tables.ESCROW, escrowDbKeyFactory) {
+
+  private final VersionedEntityTable<Escrow> escrowTable;
+  private final DbKey.LinkKeyFactory<Escrow.Decision> decisionDbKeyFactory =
+      new DbKey.LinkKeyFactory<Escrow.Decision>("escrow_id", "account_id") {
+        @Override
+        public BurstKey newKey(Escrow.Decision decision) {
+          return decision.dbKey;
+        }
+      };
+  private final VersionedEntityTable<Escrow.Decision> decisionTable;
+  private final List<TransactionImpl> resultTransactions = new ArrayList<>();
+  private final ConcurrentSkipListSet<Long> updatedEscrowIds = new ConcurrentSkipListSet<>();
+
+  public SqlEscrowStore(DerivedTableManager derivedTableManager) {
+    escrowTable = new VersionedEntitySqlTable<Escrow>("escrow", brs.schema.Tables.ESCROW, escrowDbKeyFactory, derivedTableManager) {
       @Override
       protected Escrow load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlEscrow(rs);
@@ -36,14 +51,8 @@ public class SqlEscrowStore implements EscrowStore {
         saveEscrow(ctx, escrow);
       }
     };
-  private final DbKey.LinkKeyFactory<Escrow.Decision> decisionDbKeyFactory =
-      new DbKey.LinkKeyFactory<Escrow.Decision>("escrow_id", "account_id") {
-        @Override
-        public BurstKey newKey(Escrow.Decision decision) {
-          return decision.dbKey;
-        }
-      };
-  private final VersionedEntityTable<Escrow.Decision> decisionTable = new VersionedEntitySqlTable<Escrow.Decision>("escrow_decision", brs.schema.Tables.ESCROW_DECISION, decisionDbKeyFactory) {
+
+    decisionTable = new VersionedEntitySqlTable<Escrow.Decision>("escrow_decision", brs.schema.Tables.ESCROW_DECISION, decisionDbKeyFactory, derivedTableManager) {
       @Override
       protected Escrow.Decision load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlDecision(rs);
@@ -54,8 +63,7 @@ public class SqlEscrowStore implements EscrowStore {
         saveDecision(ctx, decision);
       }
     };
-  private final List<TransactionImpl> resultTransactions = new ArrayList<>();
-  private final ConcurrentSkipListSet<Long> updatedEscrowIds = new ConcurrentSkipListSet<>();
+  }
 
   private static Condition getUpdateOnBlockClause(final int timestamp) {
     return ESCROW.DEADLINE.lt(timestamp);

@@ -1,5 +1,6 @@
 package brs;
 
+import brs.db.store.DerivedTableManager;
 import brs.services.PropertyService;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -44,6 +45,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
   private BlockDb blockDb;
   private TransactionDb transactionDb;
   public final DownloadCacheImpl downloadCache = new DownloadCacheImpl();
+  private DerivedTableManager derivedTableManager;
 
   public final static int MAX_TIMESTAMP_DIFFERENCE = 15;
   private boolean oclVerify;
@@ -52,7 +54,6 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
   private final Semaphore gpuUsage = new Semaphore(2);
   /** If we are more than this many blocks behind we can engage "catch-up"-mode if enabled */
 
-  private final List<DerivedTable> derivedTables = new CopyOnWriteArrayList<>();
   private boolean trimDerivedTables;
   private volatile int lastTrimHeight;
 
@@ -82,7 +83,8 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
     return oclVerify;
   }
 
-  public BlockchainProcessorImpl(PropertyService propertyService) {
+  public BlockchainProcessorImpl(PropertyService propertyService, DerivedTableManager derivedTableManager) {
+    this.derivedTableManager = derivedTableManager;
     blockDb = Burst.getDbs().getBlockDb();
     transactionDb = Burst.getDbs().getTransactionDb();
 
@@ -113,7 +115,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
         if (block.getHeight() % 1440 == 0) {
           lastTrimHeight = Math.max(block.getHeight() - Constants.MAX_ROLLBACK, 0);
           if (lastTrimHeight > 0) {
-            derivedTables.forEach(table -> table.trim(lastTrimHeight));
+            this.derivedTableManager.getDerivedTables().forEach(table -> table.trim(lastTrimHeight));
           }
         }
       }, Event.AFTER_BLOCK_APPLY);
@@ -653,12 +655,6 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   @Override
-  public void registerDerivedTable(DerivedTable table) {
-    logger.info("Registering derived table " + table.getClass());
-    derivedTables.add(table);
-  }
-
-  @Override
   public Peer getLastBlockchainFeeder() {
     return lastBlockchainFeeder;
   }
@@ -893,7 +889,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
       Account.flushAccountTable();
       addBlock(block);
       accept(block, remainingAmount, remainingFee);
-      derivedTables.forEach(DerivedTable::finish);
+      derivedTableManager.getDerivedTables().forEach(DerivedTable::finish);
       Burst.getStores().commitTransaction();
     } catch (BlockNotAcceptedException | ArithmeticException e) {
       Burst.getStores().rollbackTransaction();
@@ -988,7 +984,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
         poppedOffBlocks.add(block);
         block = popLastBlock();
       }
-      derivedTables.forEach(table -> table.rollback(commonBlock.getHeight()));
+      derivedTableManager.getDerivedTables().forEach(table -> table.rollback(commonBlock.getHeight()));
       Burst.getStores().commitTransaction();
     } catch (RuntimeException e) {
       Burst.getStores().rollbackTransaction();

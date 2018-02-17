@@ -1,7 +1,7 @@
 package brs.db.sql;
 
-import brs.Burst;
 import brs.db.DerivedTable;
+import brs.db.store.DerivedTableManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.jooq.impl.TableImpl;
@@ -12,11 +12,11 @@ public abstract class DerivedSqlTable implements DerivedTable {
   protected final String table;
   protected final TableImpl<?> tableClass;
 
-  protected DerivedSqlTable(String table, TableImpl<?> tableClass) {
+  protected DerivedSqlTable(String table, TableImpl<?> tableClass, DerivedTableManager derivedTableManager) {
     this.table      = table;
     this.tableClass = tableClass;
     logger.trace("Creating derived table for "+table);
-    Burst.getBlockchainProcessor().registerDerivedTable(this);
+    derivedTableManager.registerDerivedTable(this);
   }
 
   @Override
