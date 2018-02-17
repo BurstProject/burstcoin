@@ -106,15 +106,15 @@ public class APITestServlet extends HttpServlet {
       + "    <ul class=\"nav nav-pills nav-stacked\">";
   private static final String header2 =
       "    </ul>"
-      + "  </div> <!-- col -->"
+      + "  </div>"
       + "  <div  class=\"col-xs-8 col-sm-9 col-md-10\">"
       + "    <div class=\"panel-group\" id=\"accordion\">";
 
   private static final String footer1 =
-      "    </div> <!-- panel-group -->"
-      + "  </div> <!-- col -->"
-      + "</div> <!-- row -->"
-      + "</div> <!-- container -->"
+      "    </div> "
+      + "  </div> "
+      + "</div> "
+      + "</div> "
       + "<script src=\"js/3rdparty/jquery.min.js\"></script>"
       + "<script src=\"js/3rdparty/bootstrap.js\" type=\"text/javascript\"></script>"
       + "<script>"
@@ -262,7 +262,7 @@ public class APITestServlet extends HttpServlet {
     // not yet buf.append(className.replaceAll("nxt","burst").replace('.','/')).append(".html\" target=\"_blank\">javadoc</a>");
     buf.append("</span>");
     buf.append("</h4>");
-    buf.append("</div> <!-- panel-heading -->");
+    buf.append("</div>");
     buf.append("<div id=\"collapse").append(requestType).append("\" class=\"panel-collapse collapse");
     if (singleView) {
       buf.append(" in");
@@ -298,9 +298,9 @@ public class APITestServlet extends HttpServlet {
     buf.append("<pre class=\"result\">JSON response</pre>");
     buf.append("</div>");
     buf.append("</form>");
-    buf.append("</div> <!-- panel-body -->");
-    buf.append("</div> <!-- panel-collapse -->");
-    buf.append("</div> <!-- panel -->");
+    buf.append("</div>");
+    buf.append("</div>");
+    buf.append("</div>");
     return buf.toString();
   }
 
