@@ -947,7 +947,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private void accept(BlockImpl block, Long remainingAmount, Long remainingFee)
       throws BlockNotAcceptedException {
-    Subscription.clearRemovals();
+    subscriptionService.clearRemovals();
     for (TransactionImpl transaction : block.getTransactions()) {
       if (!transaction.applyUnconfirmed()) {
         throw new TransactionNotAcceptedException(
@@ -972,8 +972,8 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
     calculatedRemainingAmount += atBlock.getTotalAmount();
     calculatedRemainingFee += atBlock.getTotalFees();
     // ATs
-    if (Subscription.isEnabled()) {
-      calculatedRemainingFee += Subscription.applyUnconfirmed(block.getTimestamp());
+    if (subscriptionService.isEnabled()) {
+      calculatedRemainingFee += subscriptionService.applyUnconfirmed(block.getTimestamp());
     }
     if (remainingAmount != null && remainingAmount != calculatedRemainingAmount) {
       throw new BlockNotAcceptedException("Calculated remaining amount doesn't add up");
@@ -983,7 +983,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
     block.apply();
-    Subscription.applyConfirmed(block, blockchain.getHeight());
+    subscriptionService.applyConfirmed(block, blockchain.getHeight());
     if (Escrow.isEnabled()) {
       Escrow.updateOnBlock(block, blockchain.getHeight());
     }
@@ -1127,14 +1127,14 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
       }
     }
 
-    if (Subscription.isEnabled()) {
-      Subscription.clearRemovals();
+    if (subscriptionService.isEnabled()) {
+      subscriptionService.clearRemovals();
       try {
         stores.beginTransaction();
         transactionProcessor.requeueAllUnconfirmedTransactions();
         // transactionProcessor.processTransactions(newTransactions, false);
         blockTransactions.forEach(TransactionImpl::applyUnconfirmed);
-        totalFeeNQT += Subscription.calculateFees(blockTimestamp);
+        totalFeeNQT += subscriptionService.calculateFees(blockTimestamp);
       } finally {
         stores.rollbackTransaction();
         stores.endTransaction();
@@ -1203,7 +1203,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     transaction =
         transactionDb.findTransactionByFullHash(transaction.getReferencedTransactionFullHash());
-    if (!Subscription.isEnabled()) {
+    if (!subscriptionService.isEnabled()) {
       if (transaction != null && transaction.getSignature() == null) {
         transaction = null;
       }

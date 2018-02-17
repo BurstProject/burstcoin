@@ -201,13 +201,13 @@ public final class Burst {
       transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain, stores, timeService, dbs, accountService, threadPool);
 
       final ATService atService = new ATServiceImpl(stores.getAtStore());
-      final SubscriptionService subscriptionService = new SubscriptionServiceImpl(stores.getSubscriptionStore());
+      final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
+      final SubscriptionService subscriptionService = new SubscriptionServiceImpl(stores.getSubscriptionStore(), transactionDb, blockchain, aliasService, accountService);
       final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(blockchain, stores.getDigitalGoodsStoreStore(), accountService);
       final EscrowService escrowService = new EscrowServiceImpl(stores.getEscrowStore());
       final TradeService tradeService = new TradeServiceImpl(stores.getTradeStore());
       final AssetAccountService assetAccountService = new AssetAccountServiceImpl(stores.getAccountStore());
       final AssetTransferService assetTransferService = new AssetTransferServiceImpl(stores.getAssetTransferStore());
-      final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
       final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
       final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 

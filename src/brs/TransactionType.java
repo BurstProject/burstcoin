@@ -1961,7 +1961,7 @@ public abstract class TransactionType {
           if (transaction.getSenderId() == transaction.getRecipientId()) {
             throw new BurstException.NotValidException("Cannot create subscription to same address");
           }
-          if (!Subscription.isEnabled()) {
+          if (!subscriptionService.isEnabled()) {
             throw new BurstException.NotYetEnabledException("Subscriptions not yet enabled");
           }
         }
@@ -1993,14 +1993,14 @@ public abstract class TransactionType {
         final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
           logger.trace("TransactionType SUBSCRIPTION_CANCEL");
           Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
-          Subscription.addRemoval(attachment.getSubscriptionId());
+          subscriptionService.addRemoval(attachment.getSubscriptionId());
           return true;
         }
 
         @Override
         final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
-          Subscription.removeSubscription(attachment.getSubscriptionId());
+          subscriptionService.removeSubscription(attachment.getSubscriptionId());
         }
 
         @Override
@@ -2030,7 +2030,7 @@ public abstract class TransactionType {
             throw new BurstException.NotValidException("Subscription cancel can only be done by participants");
           }
 
-          if (!Subscription.isEnabled()) {
+          if (!subscriptionService.isEnabled()) {
             throw new BurstException.NotYetEnabledException("Subscription cancel not yet enabled");
           }
         }
