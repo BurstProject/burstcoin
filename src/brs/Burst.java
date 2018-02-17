@@ -178,39 +178,39 @@ public final class Burst {
 
       stores = new Stores();
 
-      final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
-      final BlockDb blockDb =  Burst.getDbs().getBlockDb();
-      final BlockchainStore blockchainStore = Burst.getStores().getBlockchainStore();
+      final TransactionDb transactionDb = dbs.getTransactionDb();
+      final BlockDb blockDb =  dbs.getBlockDb();
+      final BlockchainStore blockchainStore = stores.getBlockchainStore();
       blockchain = new BlockchainImpl(transactionDb, blockDb, blockchainStore);
 
       economicClustering = new EconomicClustering(blockchain);
 
       final BurstKey.LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory =
-          Burst.getStores().getTransactionProcessorStore().getUnconfirmedTransactionDbKeyFactory();
+          stores.getTransactionProcessorStore().getUnconfirmedTransactionDbKeyFactory();
 
 
       final EntityTable<TransactionImpl> unconfirmedTransactionTable =
-          Burst.getStores().getTransactionProcessorStore().getUnconfirmedTransactionTable();
+          stores.getTransactionProcessorStore().getUnconfirmedTransactionTable();
 
       final TimeService timeService = new TimeServiceImpl();
 
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
       transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain, stores, timeService, dbs, accountService, threadPool);
 
-      final ATService atService = new ATServiceImpl(Burst.getStores().getAtStore());
-      final SubscriptionService subscriptionService = new SubscriptionServiceImpl(Burst.getStores().getSubscriptionStore());
-      final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(blockchain, Burst.getStores().getDigitalGoodsStoreStore(), accountService);
-      final EscrowService escrowService = new EscrowServiceImpl(Burst.getStores().getEscrowStore());
-      final TradeService tradeService = new TradeServiceImpl(Burst.getStores().getTradeStore());
+      final ATService atService = new ATServiceImpl(stores.getAtStore());
+      final SubscriptionService subscriptionService = new SubscriptionServiceImpl(stores.getSubscriptionStore());
+      final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(blockchain, stores.getDigitalGoodsStoreStore(), accountService);
+      final EscrowService escrowService = new EscrowServiceImpl(stores.getEscrowStore());
+      final TradeService tradeService = new TradeServiceImpl(stores.getTradeStore());
       final AssetAccountService assetAccountService = new AssetAccountServiceImpl(stores.getAccountStore());
       final AssetTransferService assetTransferService = new AssetTransferServiceImpl(stores.getAssetTransferStore());
       final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
       final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
       final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,
-          digitalGoodsStoreService, blockchain, blockchainProcessor, getTransactionProcessor(), atService);
+          digitalGoodsStoreService, blockchain, blockchainProcessor, transactionProcessor, atService);
       final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
-      addBlockchainListeners(blockchainProcessor, accountService, digitalGoodsStoreService, blockchain, Burst.getDbs().getTransactionDb());
+      addBlockchainListeners(blockchainProcessor, accountService, digitalGoodsStoreService, blockchain, dbs.getTransactionDb());
 
       Peers.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService);
 
@@ -253,7 +253,8 @@ public final class Burst {
   }
 
   private static void addBlockchainListeners(BlockchainProcessor blockchainProcessor, AccountService accountService, DGSGoodsStoreService goodsService, Blockchain blockchain,
-      TransactionDb transactionDb) {
+     TransactionDb transactionDb) {
+
     final HandleATBlockTransactionsListener handleATBlockTransactionListener = new HandleATBlockTransactionsListener(accountService, blockchain, transactionDb);
     final DevNullListener devNullListener = new DevNullListener(accountService, goodsService);
 

@@ -1,5 +1,6 @@
 package brs.db.sql;
 
+import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
@@ -83,18 +84,9 @@ public final class DbUtils {
   }
 
   public static void mergeInto(DSLContext ctx, Record record, TableImpl table, Field[] keyFields) {
-    ArrayList<Condition> conditions = new ArrayList<>();
-    for ( Field field : keyFields ) {
-      conditions.add(field.eq(record.getValue(field)));
-    }
-
-    UpdateQuery updateQuery = ctx.updateQuery(table);
-    updateQuery.setRecord(record);
-    updateQuery.addConditions(conditions);
-    if ( updateQuery.execute() == 0 ) {
-      InsertQuery insertQuery = ctx.insertQuery(table);
-      insertQuery.setRecord(record);
-      insertQuery.execute();
-    }
+    // this is a hack .. we ignore always the first column on mergeInto commands to not fall over the db_id key
+    ctx.mergeInto(table, Arrays.copyOfRange(record.fields(), 1, record.fields().length))
+        .key(keyFields).values(Arrays.copyOfRange(record.valuesRow().fields(), 1, record.valuesRow().fields().length))
+        .execute();
   }
 }

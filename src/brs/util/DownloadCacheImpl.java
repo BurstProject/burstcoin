@@ -3,15 +3,16 @@ package brs.util;
 import brs.Burst;
 import brs.services.PropertyService;
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.StampedLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import brs.Block;
 import brs.BlockImpl;
-import brs.BlockchainImpl;
 import brs.Constants;
 
 public final class DownloadCacheImpl {
@@ -28,46 +29,159 @@ public final class DownloadCacheImpl {
   private int LastHeight = -1;
   BigInteger HigestCumulativeDifficulty = BigInteger.ZERO;
 
+  private final StampedLock dcsl = new StampedLock();
+  
+  
   public DownloadCacheImpl() {
     PropertyService propertyService = Burst.getPropertyService();
     this.BLOCKCACHEMB = propertyService.getIntProperty("brs.blockCacheMB") == 0 ? 40 : propertyService.getIntProperty("brs.blockCacheMB");
   }
 
   public int getChainHeight() {
-    if (LastHeight > -1) {
-      return LastHeight;
+    long stamp = dcsl.tryOptimisticRead();
+    int retVal = LastHeight;
+    if (!dcsl.validate(stamp)) {
+     
+      stamp = dcsl.readLock();
+      try {
+        retVal = LastHeight;
+      } finally {
+         dcsl.unlockRead(stamp);
+      }
+   }
+   if (retVal > -1) {
+      return retVal;
     }
     return Burst.getBlockchain().getHeight();
   }
-
+  
   public int getBlockCacheSize() {
-    return blockCacheSize;
+    long stamp = dcsl.tryOptimisticRead();
+    int retVal = blockCacheSize;
+    if (!dcsl.validate(stamp)) {
+     
+      stamp = dcsl.readLock();
+      try {
+        retVal = blockCacheSize;
+      } finally {
+         dcsl.unlockRead(stamp);
+      }
+   }
+    return retVal;
   }
-
+ 
+  
   public boolean IsFull() {
-    return blockCacheSize > BLOCKCACHEMB * 1024 * 1024;
+    long stamp = dcsl.tryOptimisticRead();
+    int retVal = blockCacheSize;
+    if (!dcsl.validate(stamp)) {
+     
+      stamp = dcsl.readLock();
+      try {
+        retVal = blockCacheSize;
+      } finally {
+         dcsl.unlockRead(stamp);
+      }
+    }
+    return retVal > BLOCKCACHEMB * 1024 * 1024;
   }
 
   public int getUnverifiedSize() {
-    return unverified.size();
+    long stamp = dcsl.tryOptimisticRead();
+    int retVal = unverified.size();
+    if (!dcsl.validate(stamp)) {
+     
+      stamp = dcsl.readLock();
+      try {
+        retVal = unverified.size();
+      } finally {
+         dcsl.unlockRead(stamp);
+      }
+    }
+    return retVal;
   }
 
   public BigInteger getCumulativeDifficulty() {
-    if (LastBlockId == null) {
-      setLastVars();
+    long stamp = dcsl.tryOptimisticRead();
+    Long lbID = LastBlockId;
+    BigInteger retVal = HigestCumulativeDifficulty;
+    
+   
+    if (!dcsl.validate(stamp)) {
+     
+      stamp = dcsl.readLock();
+      try {
+        lbID = LastBlockId;
+        retVal = HigestCumulativeDifficulty;
+      } finally {
+         dcsl.unlockRead(stamp);
+      }
     }
-    return HigestCumulativeDifficulty;
+    if (lbID != null) {
+      return retVal;
+    }
+    setLastVars();
+    stamp = dcsl.tryOptimisticRead();
+    retVal = HigestCumulativeDifficulty;
+    if (!dcsl.validate(stamp)) {
+      stamp = dcsl.readLock();
+      try {
+        retVal = HigestCumulativeDifficulty;
+      } finally {
+         dcsl.unlockRead(stamp);
+      }
+    }
+    return retVal;
   }
 
-  public long GetUnverifiedBlockId(int BlockId) {
-    return unverified.get(0);
+  public long GetUnverifiedBlockIdFromPos(int pos) {
+    long stamp = dcsl.tryOptimisticRead();
+    long reVal = unverified.get(pos);
+    
+    if (!dcsl.validate(stamp)) {
+     
+      stamp = dcsl.readLock();
+      try {
+        reVal = unverified.get(pos);
+      } finally {
+         dcsl.unlockRead(stamp);
+      }
+    }
+    return reVal;
+  }
+  public BlockImpl getFirstUnverifiedBlock() {
+	 long stamp = dcsl.writeLock();
+	 try {
+		 long blockId = unverified.get(0);
+		 BlockImpl block = (BlockImpl) blockCache.get(blockId);
+		 unverified.remove(blockId);
+		 return block;
+	 } finally {
+      dcsl.unlockWrite(stamp);
+    }
   }
 
   public void removeUnverified(long BlockId) {
-    unverified.remove(BlockId);
+    long stamp = dcsl.writeLock();
+    try {
+      unverified.remove(BlockId);
+    } finally {
+      dcsl.unlockWrite(stamp);
+    }
+  }
+  
+  public void removeUnverifiedBatch(Collection<BlockImpl> blocks) {
+    long stamp = dcsl.writeLock();
+    try {
+      for (BlockImpl block : blocks) {
+        unverified.remove(block.getId());
+      }
+    } finally {
+      dcsl.unlockWrite(stamp);
+    }
   }
 
-  public void VerifyCacheIntegrity() {
+/*  public void VerifyCacheIntegrity() {
     if (blockCache.size() > 0) {
       long checkBlockId = getLastBlockId();
       while (checkBlockId != Burst.getBlockchain().getLastBlock().getId()) {
@@ -78,30 +192,71 @@ public final class DownloadCacheImpl {
         checkBlockId = blockCache.get(checkBlockId).getPreviousBlockId();
       }
     }
-  }
+  }*/
 
   public void ResetCache() {
-    blockCache.clear();
-    reverseCache.clear();
-    unverified.clear();
-    blockCacheSize = 0;
+    long stamp = dcsl.writeLock();
+    try {
+      blockCache.clear();
+      reverseCache.clear();
+      unverified.clear();
+      blockCacheSize = 0;
+    } finally {
+     dcsl.unlockWrite(stamp);
+    }
     setLastVars();
   }
-
   public int getBlockHeight(long BlockId) {
+    long stamp = dcsl.tryOptimisticRead();
+    int retVal;
+    
     if (blockCache.containsKey(BlockId)) {
-      return blockCache.get(BlockId).getHeight();
+      retVal = blockCache.get(BlockId).getHeight();
+      if (dcsl.validate(stamp)) {
+        return retVal;
+      }
     }
-    if (Burst.getBlockchain().hasBlock(BlockId)) {
-      return Burst.getBlockchain().getBlock(BlockId).getHeight();
+    if (!dcsl.validate(stamp)) {
+     
+      stamp = dcsl.readLock();
+      try {
+        if (blockCache.containsKey(BlockId)) {
+          return blockCache.get(BlockId).getHeight();
+        }
+      } finally {
+         dcsl.unlockRead(stamp);
+      }
     }
-
-    // this should not be needed will remove later when all checks out.
-    logger.warn("Cannot get blockheight. blockID: " + BlockId);
-    return 0;
+    return Burst.getBlockchain().getBlock(BlockId).getHeight();
   }
 
   public BlockImpl GetBlock(long BlockId) {
+    long stamp = dcsl.tryOptimisticRead();
+    BlockImpl retVal = GetBlockInt(BlockId);
+    if (!dcsl.validate(stamp)) {
+      stamp = dcsl.readLock();
+      try {
+        retVal = GetBlockInt(BlockId);
+      } finally {
+         dcsl.unlockRead(stamp);
+      }
+    }
+    if(retVal != null) {
+      return retVal;
+    }
+    if (Burst.getBlockchain().hasBlock(BlockId)) {
+      return Burst.getBlockchain().getBlock(BlockId);
+    }
+    return null;
+  }
+  private BlockImpl GetBlockInt(long BlockId) {
+    if (blockCache.containsKey(BlockId)) {
+      return (BlockImpl) blockCache.get(BlockId);
+    }
+    return null;
+  }
+    
+/*  public BlockImpl GetBlock(Long BlockId) {
     if (blockCache.containsKey(BlockId)) {
       return (BlockImpl) blockCache.get(BlockId);
     }
@@ -111,29 +266,30 @@ public final class DownloadCacheImpl {
 
     return null;
   }
-
-  public BlockImpl GetBlock(Long BlockId) {
-    if (blockCache.containsKey(BlockId)) {
-      return (BlockImpl) blockCache.get(BlockId);
-    }
-    if (Burst.getBlockchain().hasBlock(BlockId)) {
-      return Burst.getBlockchain().getBlock(BlockId);
-    }
-
-    return null;
-  }
-
+*/
+  
   public BlockImpl GetNextBlock(long prevBlockId) {
-    if (!reverseCache.containsKey(prevBlockId)) {
-      return null;
+    long stamp = dcsl.tryOptimisticRead();
+    BlockImpl retVal = GetNextBlockInt(prevBlockId);
+    if (!dcsl.validate(stamp)) {
+     
+      stamp = dcsl.readLock();
+      try {
+        retVal = GetNextBlockInt(prevBlockId);
+      } finally {
+        dcsl.unlockRead(stamp);
+      }
     }
-    try {
+    return retVal;
+  }
+  private BlockImpl GetNextBlockInt(long prevBlockId) {
+    if (reverseCache.containsKey(prevBlockId)) {
       return (BlockImpl) blockCache.get(reverseCache.get(prevBlockId));
-    } finally {
     }
+    return null;
   }
 
-  public void WaitForMapToBlockChain() {
+ /* public void WaitForMapToBlockChain() {
     synchronized (this) {
       while (!reverseCache.containsKey(Burst.getBlockchain().getLastBlock().getId())) {
         try {
@@ -146,21 +302,41 @@ public final class DownloadCacheImpl {
       }
     }
   }
-
+*/
+  
   public boolean HasBlock(long BlockId) {
-    if (blockCache.containsKey(BlockId)) {
+    long stamp = dcsl.tryOptimisticRead();
+    boolean retVal =  blockCache.containsKey(BlockId);
+    if (!dcsl.validate(stamp)) {
+     
+      stamp = dcsl.readLock();
+      try {
+        retVal =  blockCache.containsKey(BlockId);
+      } finally {
+        dcsl.unlockRead(stamp);
+      }
+    }
+    if (retVal) {
       return true;
     }
     return Burst.getBlockchain().hasBlock(BlockId);
-
   }
 
   public boolean CanBeFork(long oldBlockId) {
     int curHeight = getChainHeight();
     BlockImpl block = null;
-    if (blockCache.containsKey(oldBlockId)) {
-      block = (BlockImpl) blockCache.get(oldBlockId);
-    } else if (Burst.getBlockchain().hasBlock(oldBlockId)) {
+    long stamp = dcsl.tryOptimisticRead();
+    block = GetBlockInt(oldBlockId);
+    if (!dcsl.validate(stamp)) {
+     
+      stamp = dcsl.readLock();
+      try {
+        block = GetBlockInt(oldBlockId);
+      } finally {
+         dcsl.unlockRead(stamp);
+      }
+    }
+    if (block == null && Burst.getBlockchain().hasBlock(oldBlockId)) {
       block = Burst.getBlockchain().getBlock(oldBlockId);
     }
     if (block == null) {
@@ -170,16 +346,39 @@ public final class DownloadCacheImpl {
   }
 
   public void AddBlock(BlockImpl block) {
-    blockCache.put(block.getId(), block);
-    reverseCache.put(block.getPreviousBlockId(), block.getId());
-    unverified.add(block.getId());
-    blockCacheSize += block.getByteLength();
-    LastBlockId = block.getId();
-    LastHeight = block.getHeight();
-    HigestCumulativeDifficulty = block.getCumulativeDifficulty();
+    long stamp = dcsl.writeLock();
+    try {
+      blockCache.put(block.getId(), block);
+      reverseCache.put(block.getPreviousBlockId(), block.getId());
+      unverified.add(block.getId());
+      blockCacheSize += block.getByteLength();
+      LastBlockId = block.getId();
+      LastHeight = block.getHeight();
+      HigestCumulativeDifficulty = block.getCumulativeDifficulty();
+    } finally {
+      dcsl.unlockWrite(stamp);
+    }
+  }
+  public void AddBlockBatch(List<BlockImpl> blocks) {
+    long stamp = dcsl.writeLock();
+    try {
+      while(blocks.size() > 0) {
+        BlockImpl block = blocks.get(0);
+        blockCache.put(block.getId(), block);
+        reverseCache.put(block.getPreviousBlockId(), block.getId());
+        unverified.add(block.getId());
+        blockCacheSize += block.getByteLength();
+        LastBlockId = block.getId();
+        LastHeight = block.getHeight();
+        HigestCumulativeDifficulty = block.getCumulativeDifficulty();
+        blocks.remove(0);
+      }
+    } finally {
+      dcsl.unlockWrite(stamp);
+    }
   }
 
-  public void SetCacheBackTo(long BadBlockId) {
+ /* public void SetCacheBackTo(long BadBlockId) {
     // Starting from lowest point and erase all up to last block.
     if (blockCache.containsKey(BadBlockId)) {
       BlockImpl badBlock;
@@ -197,19 +396,38 @@ public final class DownloadCacheImpl {
       }
       setLastVars();
     }
-  }
+  }*/
 
   public boolean RemoveBlock(BlockImpl block) {
-    if (blockCache.containsKey(block.getId())) { // make sure there is something to remove
-      reverseCache.remove(block.getPreviousBlockId());
-      blockCache.remove(block.getId());
-      blockCacheSize -= block.getByteLength();
-      if (block.getId() == LastBlockId) {
+    long stamp = dcsl.tryOptimisticRead();
+    boolean chkVal = blockCache.containsKey(block.getId());
+    long lastId = LastBlockId;
+    
+    if (!dcsl.validate(stamp)) {
+      stamp = dcsl.readLock();
+      try {
+        chkVal = blockCache.containsKey(block.getId());
+        lastId = LastBlockId;
+      } finally {
+         dcsl.unlockRead(stamp);
+      }
+    }
+    
+    if (chkVal) { // make sure there is something to remove
+      stamp = dcsl.writeLock();
+      try {
+    	unverified.remove(block.getId());
+        reverseCache.remove(block.getPreviousBlockId());
+        blockCache.remove(block.getId());
+        blockCacheSize -= block.getByteLength();
+      } finally {
+        dcsl.unlockWrite(stamp);
+      }
+      if (block.getId() == lastId) {
         setLastVars();
       }
       return true;
     }
-
     return false;
   }
 
@@ -217,31 +435,67 @@ public final class DownloadCacheImpl {
     BlockImpl blockImpl = GetBlock(blockId);
     return (blockImpl == null || blockImpl.getHeight() < Constants.POC2_START_BLOCK) ? 1 : 2;
   }
-
+  
+  public long getLastBlockId() {
+    Long lId = getLastCacheId();
+    if (lId != null) {
+      return lId;
+    }
+    return Burst.getBlockchain().getLastBlock().getId();
+  }
+  private Long getLastCacheId() {
+    long stamp = dcsl.tryOptimisticRead();
+    Long lId = LastBlockId;
+    if (!dcsl.validate(stamp)) {
+     
+      stamp = dcsl.readLock();
+      try {
+        lId = LastBlockId;
+      } finally {
+        dcsl.unlockRead(stamp);
+      }
+    }
+    return lId;
+  }
+    
   public BlockImpl getLastBlock() {
-    if (LastBlockId != null) {
-      return (BlockImpl) blockCache.get(LastBlockId);
+    Long iLd = getLastCacheId();
+    if (iLd != null) {
+      long stamp = dcsl.tryOptimisticRead();
+      BlockImpl retBlock = (BlockImpl) blockCache.get(iLd);
+      if (!dcsl.validate(stamp)) {
+        stamp = dcsl.readLock();
+        try {
+          retBlock = (BlockImpl) blockCache.get(iLd);
+        } finally {
+          dcsl.unlockRead(stamp);
+        }
+      }
+      return retBlock;
     }
     return Burst.getBlockchain().getLastBlock();
   }
 
-  public long getLastBlockId() {
-    if (LastBlockId != null) {
-      return LastBlockId;
-    }
-    return Burst.getBlockchain().getLastBlock().getId();
-  }
-
   public int size() {
-    return blockCache.size();
+    long stamp = dcsl.tryOptimisticRead();
+    int size = blockCache.size();
+    if (!dcsl.validate(stamp)) {
+     
+      stamp = dcsl.readLock();
+      try {
+        size = blockCache.size();
+      } finally {
+        dcsl.unlockRead(stamp);
+      }
+    }
+    return size;
   }
 
   public void printDebug() {
     if (reverseCache.size() > 0) {
       logger.debug("BlockCache First block key:" + blockCache.keySet().toArray()[0]);
       logger.debug("revCache First block key:" + reverseCache.keySet().toArray()[0]);
-      logger.debug(
-          "revCache First block Val:" + reverseCache.get(reverseCache.keySet().toArray()[0]));
+      logger.debug("revCache First block Val:" + reverseCache.get(reverseCache.keySet().toArray()[0]));
       logger.debug("BlockCache size:" + blockCache.size());
       logger.debug("revCache size:" + reverseCache.size());
     } else {
@@ -251,15 +505,20 @@ public final class DownloadCacheImpl {
   }
 
   private void setLastVars() {
-    if (blockCache.size() > 0) {
-      LastBlockId =
-          blockCache.get(blockCache.keySet().toArray()[blockCache.keySet().size() - 1]).getId();
-      LastHeight = blockCache.get(LastBlockId).getHeight();
-      HigestCumulativeDifficulty = blockCache.get(LastBlockId).getCumulativeDifficulty();
-    } else {
-      LastBlockId = Burst.getBlockchain().getLastBlock().getId();
-      LastHeight = Burst.getBlockchain().getHeight();
-      HigestCumulativeDifficulty = Burst.getBlockchain().getLastBlock().getCumulativeDifficulty();
+    long stamp = dcsl.writeLock();
+    try {
+      if (blockCache.size() > 0) {
+        LastBlockId =
+            blockCache.get(blockCache.keySet().toArray()[blockCache.keySet().size() - 1]).getId();
+        LastHeight = blockCache.get(LastBlockId).getHeight();
+        HigestCumulativeDifficulty = blockCache.get(LastBlockId).getCumulativeDifficulty();
+      } else {
+        LastBlockId = Burst.getBlockchain().getLastBlock().getId();
+        LastHeight = Burst.getBlockchain().getHeight();
+        HigestCumulativeDifficulty = Burst.getBlockchain().getLastBlock().getCumulativeDifficulty();
+      }
+    } finally {
+      dcsl.unlockWrite(stamp);
     }
   }
 }
