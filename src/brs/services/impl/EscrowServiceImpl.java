@@ -103,11 +103,11 @@ public class EscrowServiceImpl implements EscrowService {
     BurstKey senderDbKey = decisionDbKeyFactory.newKey(id, sender.getId());
     Decision senderDecision = new Decision(senderDbKey, id, sender.getId(), DecisionType.UNDECIDED);
     decisionTable.insert(senderDecision);
-    BurstKey recipientDbKey = decisionDbKeyFactory.newKey(id, sender.getId());
+    BurstKey recipientDbKey = decisionDbKeyFactory.newKey(id, recipient.getId());
     Decision recipientDecision = new Decision(recipientDbKey, id, recipient.getId(), DecisionType.UNDECIDED);
     decisionTable.insert(recipientDecision);
     for(Long signer : signers) {
-      BurstKey signerDbKey = decisionDbKeyFactory.newKey(id, sender.getId());
+      BurstKey signerDbKey = decisionDbKeyFactory.newKey(id, signer);
       Decision decision = new Decision(signerDbKey, id, signer, DecisionType.UNDECIDED);
       decisionTable.insert(decision);
     }
