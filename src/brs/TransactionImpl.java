@@ -792,10 +792,7 @@ public class TransactionImpl implements Transaction {
   void apply() {
     Account senderAccount = Account.getAccount(getSenderId());
     senderAccount.apply(senderPublicKey, this.getHeight());
-    Account recipientAccount = Account.getAccount(recipientId);
-    if (recipientAccount == null && recipientId != 0) {
-      recipientAccount = Account.addOrGetAccount(recipientId);
-    }
+    Account recipientAccount = Account.getOrAddAccount(recipientId);
     for (Appendix.AbstractAppendix appendage : appendages) {
       appendage.apply(this, senderAccount, recipientAccount);
     }

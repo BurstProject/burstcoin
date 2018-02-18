@@ -76,7 +76,7 @@ public class AccountServiceImpl implements AccountService {
   }
 
   @Override
-  public Account addOrGetAccount(long id) {
+  public Account getOrAddAccount(long id) {
     Account account = accountTable.get(accountBurstKeyFactory.newKey(id));
     if (account == null) {
       account = new Account(id);
