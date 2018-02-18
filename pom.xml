@@ -30,8 +30,8 @@
     <mariadb.version>2.0.3</mariadb.version>
     <hikaricp.version>2.7.2</hikaricp.version>
     <h2.version>1.4.196</h2.version>
-    <jaybird.version>3.0.2</jaybird.version>
-    <jna.version>4.5.0</jna.version>
+    <jaybird.version>3.0.3</jaybird.version>
+    <jna.version>4.5.1</jna.version>
     <reflections.version>0.9.11</reflections.version>
     <kryo.version>4.0.1</kryo.version>
     <commons-lang.version>2.6</commons-lang.version>
@@ -40,10 +40,11 @@
     <powermock.version>1.6.4</powermock.version>
     <hsqldb.version>2.4.0</hsqldb.version>
     <jacoco.version>0.7.9</jacoco.version>
-    <jooq.version>3.10.0</jooq.version>
+    <jooq.version>3.10.4</jooq.version>
     <jaxb.version>2.3.0</jaxb.version>
     <weupnp.version>0.1.4</weupnp.version>
     <ehcache.version>3.4.0</ehcache.version>
+    <derby.version>10.14.1.0</derby.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -149,6 +150,12 @@
       <groupId>org.firebirdsql.jdbc</groupId>
       <artifactId>jaybird-jdk18</artifactId>
       <version>${jaybird.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derby</artifactId>
+      <version>${derby.version}</version>
     </dependency>
 
     <dependency>

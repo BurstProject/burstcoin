@@ -6,6 +6,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import brs.Constants;
 import brs.db.firebird.FirebirdDbs;
+import brs.db.derby.DerbyDbs;
 import brs.db.h2.H2Dbs;
 import brs.db.mariadb.MariadbDbs;
 import brs.db.store.Dbs;
@@ -21,9 +22,11 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Arrays;
 
 import org.jooq.impl.DSL;
 import org.jooq.DSLContext;
@@ -35,6 +38,7 @@ public final class Db {
   private static final Logger logger = LoggerFactory.getLogger(Db.class);
 
   private static HikariDataSource cp;
+  private static SQLDialect dialect;
   private static final ThreadLocal<DbConnection> localConnection = new ThreadLocal<>();
   private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionCaches = new ThreadLocal<>();
   private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionBatches = new ThreadLocal<>();
@@ -49,11 +53,13 @@ public final class Db {
       dbUrl = propertyService.getStringProperty("brs.testDbUrl");
       dbUsername = propertyService.getStringProperty("brs.testDbUsername");
       dbPassword = propertyService.getStringProperty("brs.testDbPassword");
-    } else {
+    }
+    else {
       dbUrl = propertyService.getStringProperty("brs.dbUrl");
       dbUsername = propertyService.getStringProperty("brs.dbUsername");
       dbPassword = propertyService.getStringProperty("brs.dbPassword");
     }
+    dialect = org.jooq.tools.jdbc.JDBCUtils.dialect(dbUrl);
 
     logger.debug("Database jdbc url set to: " + dbUrl);
     try {
@@ -92,8 +98,6 @@ public final class Db {
           }
           Class.forName("org.firebirdsql.jdbc.FBDriver");
 
-          config.setAutoCommit(true);
-          config.addDataSourceProperty("encoding", "UTF8");
           config.addDataSourceProperty("cachePrepStmts", "true");
           config.addDataSourceProperty("prepStmtCacheSize", "250");
           config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
@@ -115,6 +119,12 @@ public final class Db {
           }
 
           break;
+        case DERBY:
+          Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+          config.setAutoCommit(true);
+          config.addDataSourceProperty("encoding", "UTF8");
+          config.addDataSourceProperty("useUnicode", "true");
+          break;
         case H2:
           Class.forName("org.h2.Driver");
           config.setAutoCommit(true);
@@ -131,8 +141,8 @@ public final class Db {
       if (DATABASE_TYPE == TYPE.H2) {
         int defaultLockTimeout = Burst.getIntProperty("brs.dbDefaultLockTimeout") * 1000;
         try (Connection con = cp.getConnection();
-             Statement stmt = con.createStatement()) {
-          stmt.executeUpdate("SET DEFAULT_LOCK_TIMEOUT " + defaultLockTimeout);
+             PreparedStatement stmt = con.prepareStatement("SET DEFAULT_LOCK_TIMEOUT ?")) {
+          // stmt.executeUpdate(defaultLockTimeout);
         } catch (SQLException e) {
           throw new RuntimeException(e.toString(), e);
         }
@@ -148,13 +158,16 @@ public final class Db {
   } // never
 
   public static Dbs getDbsByDatabaseType(){
-    switch (Db.getDatabaseType()) 
+    switch (Db.getDatabaseType())
     {
       case MARIADB:
         logger.info("Using mariadb Backend");
         return new MariadbDbs();
+      case DERBY:
+        logger.info("Using derby Backend");
+        return new DerbyDbs();
       case FIREBIRD:
-        logger.info("Using Firebird Backend");
+        logger.info("Using firebird Backend");
         return new FirebirdDbs();
       case H2:
         logger.info("Using h2 Backend");
@@ -163,7 +176,7 @@ public final class Db {
         throw new RuntimeException("Error initializing wallet: Unknown database type");
     }
   }
-  
+
   public static void analyzeTables() {
     if (DATABASE_TYPE == TYPE.H2) {
       try (Connection con = cp.getConnection();
@@ -179,7 +192,7 @@ public final class Db {
     if (DATABASE_TYPE == TYPE.H2) {
       try ( Connection con = cp.getConnection(); Statement stmt = con.createStatement() ) {
         String shutDownCommand = Burst.getBooleanProperty("Db.H2.DefragOnShutdown") ? "SHUTDOWN DEFRAG" : "SHUTDOWN";
-        stmt.execute(shutDownCommand);// COMPACT is not giving good result. 
+        stmt.execute(shutDownCommand);// COMPACT is not giving good result.
       }
       catch (SQLException e) {
         logger.info(e.toString(), e);
@@ -207,9 +220,8 @@ public final class Db {
   }
 
   public static final DSLContext getDSLContext() {
-    Connection con     = localConnection.get();
-    SQLDialect dialect =  DATABASE_TYPE == TYPE.H2 ? SQLDialect.H2 : DATABASE_TYPE == TYPE.FIREBIRD ? SQLDialect.FIREBIRD : SQLDialect.MARIADB;
-    Settings settings  = new Settings();
+    Connection con    = localConnection.get();
+    Settings settings = new Settings();
     settings.setRenderSchema(Boolean.FALSE);
 
     if ( con == null ) {
@@ -313,11 +325,17 @@ public final class Db {
   public enum TYPE {
     H2,
     MARIADB,
-    FIREBIRD;
+    FIREBIRD,
+    DERBY,
+    SQLITE;
 
     public static TYPE getTypeFromJdbcUrl(String jdbcUrl) {
       if (jdbcUrl.contains("jdbc:mysql") || jdbcUrl.contains("jdbc:mariadb"))
         return MARIADB;
+      if (jdbcUrl.contains("jdbc:derby"))
+        return DERBY;
+      if (jdbcUrl.contains("jdbc:sqlite"))
+        return SQLITE;
       if (jdbcUrl.contains("jdbc:firebirdsql"))
         return FIREBIRD;
       if (jdbcUrl.contains("jdbc:h2"))
