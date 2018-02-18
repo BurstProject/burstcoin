@@ -43,6 +43,7 @@
     <jooq.version>3.10.0</jooq.version>
     <jaxb.version>2.3.0</jaxb.version>
     <weupnp.version>0.1.4</weupnp.version>
+    <ehcache.version>3.4.0</ehcache.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -263,6 +264,11 @@
       <groupId>org.bitlet</groupId>
       <artifactId>weupnp</artifactId>
       <version>${weupnp.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
+      <version>${ehcache.version}</version>
     </dependency>
   </dependencies>
 
