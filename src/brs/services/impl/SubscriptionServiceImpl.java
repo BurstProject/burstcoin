@@ -69,7 +69,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
   @Override
   public void addSubscription(Account sender, Account recipient, Long id, Long amountNQT, int startTimestamp, int frequency) {
     final BurstKey dbKey = subscriptionDbKeyFactory.newKey(id);
-    final Subscription subscription = new Subscription(sender.getId(), recipient.getId(), id, amountNQT, frequency, startTimestamp, dbKey);
+    final Subscription subscription = new Subscription(sender.getId(), recipient.getId(), id, amountNQT, frequency, startTimestamp + frequency, dbKey);
 
     subscriptionTable.insert(subscription);
   }
@@ -105,10 +105,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
   public void removeSubscription(Long id) {
     Subscription subscription = subscriptionTable.get(subscriptionDbKeyFactory.newKey(id));
     if (subscription != null) {
-      System.out.println("DELETED " + id);
       subscriptionTable.delete(subscription);
-    } else {
-      System.out.println("WTF, DID NOT FIND " + id + " TO DELETE !");
     }
   }
 
