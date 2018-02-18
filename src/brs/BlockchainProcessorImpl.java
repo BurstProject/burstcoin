@@ -3,6 +3,7 @@ package brs;
 import brs.db.store.BlockchainStore;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
+import brs.services.AccountService;
 import brs.services.EscrowService;
 import brs.services.PropertyService;
 import brs.services.SubscriptionService;
@@ -52,6 +53,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
   private final SubscriptionService subscriptionService;
   private final EscrowService escrowService;
   private final TimeService timeService;
+  private final AccountService accountService;
   private BlockDb blockDb;
   private TransactionDb transactionDb;
   public final DownloadCacheImpl downloadCache = new DownloadCacheImpl();
@@ -96,7 +98,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   public BlockchainProcessorImpl(ThreadPool threadPool, TransactionProcessorImpl transactionProcessor, BlockchainImpl blockchain, PropertyService propertyService,
-      SubscriptionService subscriptionService, TimeService timeService, DerivedTableManager derivedTableManager,
+      SubscriptionService subscriptionService, TimeService timeService, AccountService accountService, DerivedTableManager derivedTableManager,
       BlockDb blockDb, TransactionDb transactionDb, EconomicClustering economicClustering, BlockchainStore blockchainStore, Stores stores, EscrowService escrowService) {
     this.transactionProcessor = transactionProcessor;
     this.timeService = timeService;
@@ -105,6 +107,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
     this.transactionDb = transactionDb;
     this.blockchain = blockchain;
     this.subscriptionService = subscriptionService;
+    this.accountService = accountService;
     this.blockchainStore = blockchainStore;
     this.stores = stores;
 
@@ -918,7 +921,7 @@ final public class BlockchainProcessorImpl implements BlockchainProcessor {
       stores.beginTransaction(); //top of try
       blockListeners.notify(block, Event.BEFORE_BLOCK_ACCEPT);
       transactionProcessor.requeueAllUnconfirmedTransactions();
-      Account.flushAccountTable();
+      accountService.flushAccountTable();
       addBlock(block);
       accept(block, remainingAmount, remainingFee);
       derivedTableManager.getDerivedTables().forEach(DerivedTable::finish);

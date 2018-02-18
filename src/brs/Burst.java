@@ -211,8 +211,8 @@ public final class Burst {
       final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
       final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
-      blockchainProcessor = new BlockchainProcessorImpl(threadPool, transactionProcessor, blockchain, propertyService, subscriptionService, timeService, derivedTableManager, blockDb, transactionDb,
-          economicClustering, blockchainStore, stores, escrowService);
+      blockchainProcessor = new BlockchainProcessorImpl(threadPool, transactionProcessor, blockchain, propertyService, subscriptionService, timeService, accountService, derivedTableManager,
+          blockDb, transactionDb, economicClustering, blockchainStore, stores, escrowService);
 
       final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,
           digitalGoodsStoreService, blockchain, blockchainProcessor, transactionProcessor, atService);
