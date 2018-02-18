@@ -22,7 +22,7 @@ public interface AccountService {
 
   BurstIterator<Account> getAllAccounts(int from, int to);
 
-  Account addOrGetAccount(long id);
+  Account getOrAddAccount(long id);
 
   void flushAccountTable();
 

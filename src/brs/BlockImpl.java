@@ -486,7 +486,7 @@ public class BlockImpl implements Block {
   }
 
   void apply() {
-    Account generatorAccount = Account.addOrGetAccount(getGeneratorId());
+    Account generatorAccount = Account.getOrAddAccount(getGeneratorId());
     generatorAccount.apply(generatorPublicKey, this.height);
     if (height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
       generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(totalFeeNQT + getBlockReward());

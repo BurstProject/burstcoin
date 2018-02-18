@@ -200,8 +200,8 @@ public class Account {
     return Convert.fullHashToId(publicKeyHash);
   }
 
-  static Account addOrGetAccount(long id) {
-    Account account = accountTable().get(accountBurstKeyFactory().newKey(id));
+  static Account getOrAddAccount(long id) {
+    Account account = getAccount(id);
     if (account == null) {
       account = new Account(id);
       accountTable().insert(account);
