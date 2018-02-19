@@ -112,6 +112,10 @@ brs.dbPassword=yourpassword
 - Block reward starts at 10,000/block
 - Block Reward Decreases at 5% each month
 
+## Tools
+
+To get rid of scalability and performance we use JProfiler as our prefered <a href="https://www.ej-technologies.com/products/jprofiler/overview.html">Java Profiler</a>.
+
 ## Version History
 
 For a general overview of Burst history see https://burstwiki.org/wiki/History_of_Burst

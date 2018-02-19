@@ -189,7 +189,7 @@ public class AccountServiceImplTest {
   }
 
   // @Test
-  public void addOrGetAccount_addAccount() {
+  public void getOrAddAccount_addAccount() {
     long accountId = 123L;
 
     final BurstKey mockKey = mock(BurstKey.class);
@@ -206,7 +206,7 @@ public class AccountServiceImplTest {
   }
 
   @Test
-  public void addOrGetAccount_getAccount() {
+  public void getOrAddAccount_getAccount() {
     long accountId = 123L;
 
     final BurstKey mockKey = mock(BurstKey.class);
