@@ -189,7 +189,7 @@ public class AccountServiceImplTest {
   }
 
   // @Test
-  public void addOrGetAccount_addAccount() {
+  public void getOrAddAccount_addAccount() {
     long accountId = 123L;
 
     final BurstKey mockKey = mock(BurstKey.class);
@@ -197,7 +197,7 @@ public class AccountServiceImplTest {
     when(accountBurstKeyFactoryMock.newKey(eq(accountId))).thenReturn(mockKey);
     when(accountTableMock.get(eq(mockKey))).thenReturn(null);
 
-    final Account createdAccount = t.addOrGetAccount(accountId);
+    final Account createdAccount = t.getOrAddAccount(accountId);
 
     assertNotNull(createdAccount);
     assertEquals(accountId, createdAccount.getId());
@@ -206,7 +206,7 @@ public class AccountServiceImplTest {
   }
 
   @Test
-  public void addOrGetAccount_getAccount() {
+  public void getOrAddAccount_getAccount() {
     long accountId = 123L;
 
     final BurstKey mockKey = mock(BurstKey.class);
@@ -215,7 +215,7 @@ public class AccountServiceImplTest {
     when(accountBurstKeyFactoryMock.newKey(eq(accountId))).thenReturn(mockKey);
     when(accountTableMock.get(eq(mockKey))).thenReturn(mockAccount);
 
-    final Account retrievedAccount = t.addOrGetAccount(accountId);
+    final Account retrievedAccount = t.getOrAddAccount(accountId);
 
     assertNotNull(retrievedAccount);
     assertEquals(mockAccount, retrievedAccount);

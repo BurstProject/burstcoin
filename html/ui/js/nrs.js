@@ -7,7 +7,7 @@
  * @depends {3rdparty/pako.js}
  * @depends {3rdparty/webdb.js}
  * @depends {3rdparty/ajaxmultiqueue.js}
- * @depends {3rdparty/notify.js}
+ * @depends {3rdparty/notify.min.js}
  * @depends {3rdparty/clipboard.js}
  * @depends {crypto/curve25519.js}
  * @depends {crypto/curve25519_.js}
