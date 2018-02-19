@@ -1,5 +1,7 @@
 package brs;
 
+import brs.services.AccountService;
+import brs.util.DownloadCacheImpl;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -22,7 +24,6 @@ import brs.util.Convert;
 public class BlockImpl implements Block {
 
   private static final Logger logger = LoggerFactory.getLogger(BlockImpl.class);
-  private final TransactionDb transactionDb = Burst.getDbs().getTransactionDb();
   private final int version;
   private final int timestamp;
   private final long previousBlockId;
@@ -104,6 +105,10 @@ public class BlockImpl implements Block {
     this.nextBlockId = nextBlockId;
     this.height = height;
     this.id = id;
+  }
+
+  private final TransactionDb transactionDb() {
+    return Burst.getDbs().getTransactionDb();
   }
 
   public boolean isVerified() {
@@ -190,7 +195,7 @@ public class BlockImpl implements Block {
   public List<TransactionImpl> getTransactions() {
     if (blockTransactions == null) {
       this.blockTransactions =
-          Collections.unmodifiableList(transactionDb.findBlockTransactions(getId()));
+          Collections.unmodifiableList(transactionDb().findBlockTransactions(getId()));
       this.blockTransactions.forEach(transaction -> transaction.setBlock(this));
     }
     return blockTransactions;
@@ -380,11 +385,9 @@ public class BlockImpl implements Block {
     blockSignature = Crypto.sign(data2, secretPhrase);
   }
 
-  boolean verifyBlockSignature() throws BlockchainProcessor.BlockOutOfOrderException {
-
+  boolean verifyBlockSignature(AccountService accountService, Blockchain blockchain) throws BlockchainProcessor.BlockOutOfOrderException {
     try {
-
-      BlockImpl previousBlock = (BlockImpl) Burst.getBlockchain().getBlock(this.previousBlockId);
+      Block previousBlock = blockchain.getBlock(this.previousBlockId);
       if (previousBlock == null) {
         throw new BlockchainProcessor.BlockOutOfOrderException(
             "Can't verify signature because previous block is missing");
@@ -395,7 +398,7 @@ public class BlockImpl implements Block {
       System.arraycopy(data, 0, data2, 0, data2.length);
 
       byte[] publicKey;
-      Account genAccount = Account.getAccount(generatorPublicKey);
+      Account genAccount = accountService.getAccount(generatorPublicKey);
       Account.RewardRecipientAssignment rewardAssignment;
       rewardAssignment = genAccount == null ? null : genAccount.getRewardRecipientAssignment();
       if (genAccount == null || rewardAssignment == null || previousBlock.getHeight()
@@ -403,9 +406,9 @@ public class BlockImpl implements Block {
         publicKey = generatorPublicKey;
       } else {
         if (previousBlock.getHeight() + 1 >= rewardAssignment.getFromHeight()) {
-          publicKey = Account.getAccount(rewardAssignment.getRecipientId()).getPublicKey();
+          publicKey = accountService.getAccount(rewardAssignment.getRecipientId()).getPublicKey();
         } else {
-          publicKey = Account.getAccount(rewardAssignment.getPrevRecipientId()).getPublicKey();
+          publicKey = accountService.getAccount(rewardAssignment.getPrevRecipientId()).getPublicKey();
         }
       }
 
@@ -420,9 +423,9 @@ public class BlockImpl implements Block {
 
   }
 
-  boolean verifyGenerationSignature() throws BlockchainProcessor.BlockNotAcceptedException {
+  boolean verifyGenerationSignature(Blockchain blockchain, Generator generator) throws BlockchainProcessor.BlockNotAcceptedException {
     try {
-      BlockImpl previousBlock = (BlockImpl) Burst.getBlockchain().getBlock(this.previousBlockId);
+      Block previousBlock = blockchain.getBlock(this.previousBlockId);
 
       if (previousBlock == null) {
         throw new BlockchainProcessor.BlockOutOfOrderException(
@@ -432,15 +435,15 @@ public class BlockImpl implements Block {
       // In case the verifier-Threads are not done with this yet - do it yourself.
       synchronized (this) {
         if (this.pocTime == null)
-          preVerify();
+          preVerify(generator);
       }
 
-      byte[] correctGenerationSignature = Burst.getGenerator().calculateGenerationSignature(
+      byte[] correctGenerationSignature = generator.calculateGenerationSignature(
           previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
       if (!Arrays.equals(generationSignature, correctGenerationSignature)) {
         return false;
       }
-      int elapsedTime = timestamp - previousBlock.timestamp;
+      int elapsedTime = timestamp - previousBlock.getTimestamp();
       BigInteger pTime = this.pocTime.divide(BigInteger.valueOf(previousBlock.getBaseTarget()));
       return BigInteger.valueOf(elapsedTime).compareTo(pTime) > 0;
     } catch (RuntimeException e) {
@@ -449,11 +452,11 @@ public class BlockImpl implements Block {
     }
   }
 
-  public void preVerify() throws BlockchainProcessor.BlockNotAcceptedException {
-    preVerify(null);
+  public void preVerify(Generator generator) throws BlockchainProcessor.BlockNotAcceptedException {
+    preVerify(null, generator);
   }
 
-  public void preVerify(byte[] scoopData) throws BlockchainProcessor.BlockNotAcceptedException {
+  public void preVerify(byte[] scoopData, Generator generator) throws BlockchainProcessor.BlockNotAcceptedException {
       // Just in case its already verified
       if (this.pocTime != null)
         return;
@@ -461,10 +464,10 @@ public class BlockImpl implements Block {
       try {
         // Pre-verify poc:
         if (scoopData == null) {
-          this.pocTime = Burst.getGenerator().calculateHit(getGeneratorId(), nonce,
+          this.pocTime = generator.calculateHit(getGeneratorId(), nonce,
               generationSignature, getScoopNum(), this.getHeight());
         } else {
-          this.pocTime = Burst.getGenerator().calculateHit(getGeneratorId(), nonce,
+          this.pocTime = generator.calculateHit(getGeneratorId(), nonce,
               generationSignature, scoopData);
         }
       } catch (RuntimeException e) {
@@ -484,8 +487,8 @@ public class BlockImpl implements Block {
   
   }
 
-  void apply() {
-    Account generatorAccount = Account.getOrAddAccount(getGeneratorId());
+  void apply(AccountService accountService) {
+    Account generatorAccount = accountService.getOrAddAccount(getGeneratorId());
     generatorAccount.apply(generatorPublicKey, this.height);
     if (height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
       generatorAccount.addToBalanceAndUnconfirmedBalanceNQT(totalFeeNQT + getBlockReward());
@@ -497,9 +500,9 @@ public class BlockImpl implements Block {
       if (rewardAssignment == null) {
         rewardAccount = generatorAccount;
       } else if (height >= rewardAssignment.getFromHeight()) {
-        rewardAccount = Account.getAccount(rewardAssignment.getRecipientId());
+        rewardAccount = accountService.getAccount(rewardAssignment.getRecipientId());
       } else {
-        rewardAccount = Account.getAccount(rewardAssignment.getPrevRecipientId());
+        rewardAccount = accountService.getAccount(rewardAssignment.getPrevRecipientId());
       }
       rewardAccount.addToBalanceAndUnconfirmedBalanceNQT(totalFeeNQT + getBlockReward());
       rewardAccount.addToForgedBalanceNQT(totalFeeNQT + getBlockReward());
@@ -517,7 +520,7 @@ public class BlockImpl implements Block {
         .divide(BigInteger.valueOf(100).pow(month)).longValue() * Constants.ONE_BURST;
   }
 
-  void setPrevious(BlockImpl previousBlock) {
+  void setPrevious(BlockImpl previousBlock, DownloadCacheImpl downloadCache) {
     if (previousBlock != null) {
       if (previousBlock.getId() != getPreviousBlockId()) {
         // shouldn't happen as previous id is already verified, but just in case
@@ -525,7 +528,7 @@ public class BlockImpl implements Block {
       }
       this.height = previousBlock.getHeight() + 1;
       if(this.baseTarget == Constants.INITIAL_BASE_TARGET ) {
-    	  this.calculateBaseTarget(previousBlock);
+    	  this.calculateBaseTarget(previousBlock, downloadCache);
       }
     } else {
       this.height = 0;
@@ -533,7 +536,7 @@ public class BlockImpl implements Block {
     getTransactions().forEach(transaction -> transaction.setBlock(this));
   }
 
-  public void calculateBaseTarget(BlockImpl previousBlock) {
+  public void calculateBaseTarget(BlockImpl previousBlock, DownloadCacheImpl downloadCache) {
 
     if (this.getId() == Genesis.GENESIS_BLOCK_ID && previousBlockId == 0) {
       baseTarget = Constants.INITIAL_BASE_TARGET;
@@ -546,7 +549,7 @@ public class BlockImpl implements Block {
       Block itBlock = previousBlock;
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
       do {
-        itBlock = Burst.getBlockchainProcessor().downloadCache.GetBlock(itBlock.getPreviousBlockId());
+        downloadCache.GetBlock(itBlock.getPreviousBlockId());
         avgBaseTarget = avgBaseTarget.add(BigInteger.valueOf(itBlock.getBaseTarget()));
       } while (itBlock.getHeight() > this.height - 4);
       avgBaseTarget = avgBaseTarget.divide(BigInteger.valueOf(4));
@@ -579,7 +582,7 @@ public class BlockImpl implements Block {
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
       int blockCounter = 1;
       do {
-        itBlock = Burst.getBlockchainProcessor().downloadCache.GetBlock(itBlock.getPreviousBlockId());
+        itBlock = downloadCache.GetBlock(itBlock.getPreviousBlockId());
         blockCounter++;
         avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter))
             .add(BigInteger.valueOf(itBlock.getBaseTarget())))
