@@ -1,6 +1,6 @@
 /**
- * @depends {3rdparty/jquery-2.1.0.js}
- * @depends {3rdparty/bootstrap.js}
+ * @depends {3rdparty/jquery.min.js}
+ * @depends {3rdparty/bootstrap.min.js}
  * @depends {3rdparty/big.js}
  * @depends {3rdparty/jsbn.js}
  * @depends {3rdparty/jsbn2.js}
