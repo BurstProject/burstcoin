@@ -326,35 +326,40 @@ public final class Peers {
           dosFilterHolder.setAsyncSupported(true);
         }
 
-        GatewayDiscover gatewayDiscover = new GatewayDiscover();
-        try {
-          gatewayDiscover.discover();
-        }
-        catch (IOException|SAXException|ParserConfigurationException e) {
-        }
-        logger.trace("Looking for Gateway Devices");
-        gateway = gatewayDiscover.getValidGateway();
-
-        if (gateway != null) {
+        Runnable GwDiscover = () -> {
+          GatewayDiscover gatewayDiscover = new GatewayDiscover();
+          gatewayDiscover.setTimeout(2000);
           try {
-            InetAddress localAddress = gateway.getLocalAddress();
-            String externalIPAddress = gateway.getExternalIPAddress();
-            logger.info("Attempting to map {0}:{1} -> {2}:{3} on Gateway {0} ({1})",
-                    externalIPAddress, port, localAddress, port, gateway.getModelName(), gateway.getModelDescription());
-            
-            if (!gateway.getSpecificPortMappingEntry(port, "TCP", new PortMappingEntry())) {
-              logger.info("Port was already mapped. Aborting test.");    
-            }
-            else {
-              if (gateway.addPortMapping(port, port, localAddress.getHostAddress(), "TCP", "burstcoin")) {
-                logger.info("UPNP Mapping successful");
+            gatewayDiscover.discover();
+          }
+          catch (IOException|SAXException|ParserConfigurationException e) {
+          }
+          logger.trace("Looking for Gateway Devices");
+          gateway = gatewayDiscover.getValidGateway();
+
+          if (gateway != null) {
+            gateway.setHttpReadTimeout(2000);
+            try {
+              InetAddress localAddress = gateway.getLocalAddress();
+              String externalIPAddress = gateway.getExternalIPAddress();
+              logger.info("Attempting to map {0}:{1} -> {2}:{3} on Gateway {0} ({1})",
+                          externalIPAddress, port, localAddress, port, gateway.getModelName(), gateway.getModelDescription());
+
+              if (!gateway.getSpecificPortMappingEntry(port, "TCP", new PortMappingEntry())) {
+                logger.info("Port was already mapped. Aborting test.");
+              }
+              else {
+                if (gateway.addPortMapping(port, port, localAddress.getHostAddress(), "TCP", "burstcoin")) {
+                  logger.info("UPNP Mapping successful");
+                }
               }
             }
+            catch (IOException|SAXException e) {
+              logger.error("Can't start UPNP", e);
+            }
           }
-          catch (IOException|SAXException e) {
-            logger.error("Can't start UPNP", e);
-          }
-        }
+        };
+        new Thread(GwDiscover).start();
 
         peerServer.setStopAtShutdown(true);
         Burst.getThreadPool().runBeforeStart(new Runnable() {
@@ -409,8 +414,8 @@ public final class Peers {
       try {
         int numConnectedPeers = getNumberOfConnectedPublicPeers();
         /*
-         * aggressive connection with while loop. 
-         * if we have connected to our target amount we can exit loop. 
+         * aggressive connection with while loop.
+         * if we have connected to our target amount we can exit loop.
          * if peers size is equal or below connected value we have nothing to connect to
          */
         while (numConnectedPeers < maxNumberOfConnectedPublicPeers && peers.size() > numConnectedPeers) {
@@ -419,7 +424,7 @@ public final class Peers {
             peer.connect();
             /*
              * remove non connected peer. if peer is blacklisted, keep it to maintain blacklist time.
-             * Peers should never be removed if total peers are below our target to prevent total erase of peers 
+             * Peers should never be removed if total peers are below our target to prevent total erase of peers
              * if we loose Internet connection
              */
             if(peer.getState() != Peer.State.CONNECTED && !peer.isBlacklisted() && peers.size() > maxNumberOfConnectedPublicPeers) {
@@ -428,13 +433,13 @@ public final class Peers {
               numConnectedPeers++;
             }
           }
-            
+
           //Executor shutdown?
           if (Thread.currentThread().isInterrupted()) {
             return;
           }
         }
-                
+
         int now = Burst.getEpochTime();
         for (PeerImpl peer : peers.values()) {
           if (peer.getState() == Peer.State.CONNECTED && now - peer.getLastUpdated() > 3600) {
@@ -444,12 +449,12 @@ public final class Peers {
             }
           }
         }
-            
+
         if(lastSavedPeers != peers.size()) {
           lastSavedPeers = peers.size();
           updateSavedPeers();
         }
-          
+
       } catch (Exception e) {
         logger.debug("Error connecting to peer", e);
       }
@@ -479,7 +484,7 @@ public final class Peers {
         Burst.getStores().endTransaction();
       }
     }
-    
+
 
   };
 
@@ -507,13 +512,13 @@ public final class Peers {
 
         try {
           try {
-           /* We do not want more peers if above Threshold but we need enough to 
-            * connect to selected number of peers
-            */
-           if(peers.size() >= getMorePeersThreshold && peers.size() > maxNumberOfConnectedPublicPeers) {
-             return;
-           }
-            
+            /* We do not want more peers if above Threshold but we need enough to
+             * connect to selected number of peers
+             */
+            if(peers.size() >= getMorePeersThreshold && peers.size() > maxNumberOfConnectedPublicPeers) {
+              return;
+            }
+
             Peer peer = getAnyPeer(Peer.State.CONNECTED, true);
             if (peer == null) {
               return;
@@ -544,7 +549,7 @@ public final class Peers {
                 myPeers.add(myPeer.getAnnouncedAddress());
               }
             }
-            //executor shutdown? 
+            //executor shutdown?
             if (Thread.currentThread().isInterrupted()) {
               return;
             }
@@ -564,7 +569,7 @@ public final class Peers {
           System.exit(1);
         }
 
-      }     
+      }
 
     };
 
@@ -909,7 +914,7 @@ public final class Peers {
       // if (peer.getState() == Peer.State.CONNECTED) && peer.getAnnouncedAddress() != null
       //     && (! Peers.enableHallmarkProtection || peer.getWeight() > 0)) {
       if (peer.getState() == Peer.State.CONNECTED) {
-    	numberOfConnectedPeers++;
+        numberOfConnectedPeers++;
       }
     }
     return numberOfConnectedPeers;
