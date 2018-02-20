@@ -2,6 +2,7 @@
  * @depends {nrs.js}
  */
 var NRS = (function(NRS, $, undefined) {
+	var myPort = window.location.port === null || window.location.port.length === 0 ? '' : ':' + window.location.port;
 	var isLoaded = false;
 	NRS.pages.crowdfunding = function() {
 		$("#new-project").show();
@@ -9,7 +10,7 @@ var NRS = (function(NRS, $, undefined) {
 		if (!isLoaded) {
 			isLoaded = true;
 			$.ajax({
-				url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+				url: '//' + window.location.hostname.toLowerCase() + myPort + '/burst',
 				type: 'POST',
 				dataType: "json",
 				data: "requestType=getATIds",
@@ -48,7 +49,7 @@ $('#buy-ticket').on('click', function(e) {
 		deadline: 100
 	}
 	$.ajax({
-		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+		url: '//' + window.location.hostname.toLowerCase() + myPort + '/burst',
 		type: 'POST',
 		dataType: "json",
 		data: jsonRequest,
@@ -105,7 +106,7 @@ $('#deploy-at-btn').on('click', function(e) {
 		minActivationAmountNQT: minA
 	}
 	$.ajax({
-		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+		url: '//' + window.location.hostname.toLowerCase() + myPort + '/burst',
 		type: 'POST',
 		dataType: "json",
 		data: jsonRequest,
@@ -196,7 +197,7 @@ function getAT(blockHeight, atId) {
 		at: atId
 	}
 	$.ajax({
-		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+		url: '//' + window.location.hostname.toLowerCase() + myPort + '/burst',
 		type: 'POST',
 		dataType: "json",
 		data: jsonRequest,
@@ -211,7 +212,7 @@ function getBlockHeight(atIds) {
 		requestType: "getBlockchainStatus"
 	}
 	$.ajax({
-		url: '//' + window.location.hostname.toLowerCase() + ':' + window.location.port + '/burst',
+		url: '//' + window.location.hostname.toLowerCase() + myPort + '/burst',
 		type: 'POST',
 		dataType: "json",
 		data: jsonRequest,
