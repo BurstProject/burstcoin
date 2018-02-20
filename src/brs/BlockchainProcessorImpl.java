@@ -67,8 +67,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private int oclUnverifiedQueue;
 
   private final Semaphore gpuUsage = new Semaphore(2);
-  /** If we are more than this many blocks behind we can engage "catch-up"-mode if enabled */
-
+  
   private boolean trimDerivedTables;
   private volatile int lastTrimHeight;
 
@@ -196,7 +195,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           int pos = 0;
           List<BlockImpl> blocks = new LinkedList<>();
           poCVersion = downloadCache.getPoCVersion(downloadCache.GetUnverifiedBlockIdFromPos(0));
-          while (unVerified > pos && blocks.size() < OCLPoC.getMaxItems()) {
+          while ((downloadCache.getUnverifiedSize() - 1) > pos && blocks.size() < OCLPoC.getMaxItems()) {
             long blockId = downloadCache.GetUnverifiedBlockIdFromPos(pos);
             if (downloadCache.getPoCVersion(blockId) != poCVersion) {
               break;
@@ -932,6 +931,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     } catch (BlockNotAcceptedException | ArithmeticException e) {
       stores.rollbackTransaction();
       blockchain.setLastBlock(previousLastBlock);
+      downloadCache.ResetCache();
       throw e;
     } finally {
       stores.endTransaction();
