@@ -4,6 +4,7 @@ import brs.AssetTransfer;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.store.AssetTransferStore;
+import brs.db.store.DerivedTableManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.jooq.DSLContext;
@@ -19,7 +20,10 @@ public class SqlAssetTransferStore implements AssetTransferStore {
         return assetTransfer.dbKey;
       }
     };
-  private final EntitySqlTable<AssetTransfer> assetTransferTable = new EntitySqlTable<AssetTransfer>("asset_transfer", brs.schema.Tables.ASSET_TRANSFER, transferDbKeyFactory) {
+  private final EntitySqlTable<AssetTransfer> assetTransferTable;
+
+  public SqlAssetTransferStore(DerivedTableManager derivedTableManager) {
+    assetTransferTable = new EntitySqlTable<AssetTransfer>("asset_transfer", brs.schema.Tables.ASSET_TRANSFER, transferDbKeyFactory, derivedTableManager) {
 
       @Override
       protected AssetTransfer load(DSLContext ctx, ResultSet rs) throws SQLException {
@@ -31,6 +35,7 @@ public class SqlAssetTransferStore implements AssetTransferStore {
         saveAssetTransfer(assetTransfer);
       }
     };
+  }
 
   private void saveAssetTransfer(AssetTransfer assetTransfer) throws SQLException {
     try ( DSLContext ctx = Db.getDSLContext() ) {

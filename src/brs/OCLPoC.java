@@ -206,7 +206,7 @@ final class OCLPoC {
     return maxItems;
   }
 
-  public static void validatePoC(Collection<BlockImpl> blocks, int PoCVersion) {
+  public static void validatePoC(Collection<BlockImpl> blocks, int PoCVersion, Generator generator) {
     try {
       // logger.debug("starting ocl verify for: " + blocks.size());
 
@@ -335,7 +335,7 @@ final class OCLPoC {
       blocks.forEach((block) -> {
         try {
           scoopsBuffer.get(scoop);
-          block.preVerify(scoop);
+          block.preVerify(scoop, generator);
         } catch (BlockchainProcessor.BlockNotAcceptedException e) {
           throw new PreValidateFailException("Block failed to prevalidate", e, block);
         }

@@ -3,6 +3,7 @@ package brs.db.sql;
 import brs.*;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
+import brs.db.store.DerivedTableManager;
 import brs.db.store.TransactionProcessorStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,64 +30,64 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
   private final Set<TransactionImpl> lostTransactions = new HashSet<>();
   private final Map<Long, Integer> lostTransactionHeights = new HashMap<>();
 
+  private final EntitySqlTable<TransactionImpl> unconfirmedTransactionTable;
 
-  private final EntitySqlTable<TransactionImpl> unconfirmedTransactionTable =
-    new EntitySqlTable<TransactionImpl>("unconfirmed_transaction", brs.schema.Tables.UNCONFIRMED_TRANSACTION, unconfirmedTransactionDbKeyFactory) {
+  public SqlTransactionProcessorStore(DerivedTableManager derivedTableManager) {
+    unconfirmedTransactionTable = new EntitySqlTable<TransactionImpl>("unconfirmed_transaction", brs.schema.Tables.UNCONFIRMED_TRANSACTION, unconfirmedTransactionDbKeyFactory, derivedTableManager) {
 
-        @Override
-        protected TransactionImpl load(DSLContext ctx, ResultSet rs) throws SQLException {
-          byte[] transactionBytes = rs.getBytes("transaction_bytes");
-          try {
-            TransactionImpl transaction = TransactionImpl.parseTransaction(transactionBytes);
-            transaction.setHeight(rs.getInt("transaction_height"));
-            return transaction;
-          } catch (BurstException.ValidationException e) {
-            throw new RuntimeException(e.toString(), e);
-          }
+      @Override
+      protected TransactionImpl load(DSLContext ctx, ResultSet rs) throws SQLException {
+        byte[] transactionBytes = rs.getBytes("transaction_bytes");
+        try {
+          TransactionImpl transaction = TransactionImpl.parseTransaction(transactionBytes);
+          transaction.setHeight(rs.getInt("transaction_height"));
+          return transaction;
+        } catch (BurstException.ValidationException e) {
+          throw new RuntimeException(e.toString(), e);
         }
+      }
 
-        @Override
-        protected void save(DSLContext ctx, TransactionImpl transaction) {
-          ctx.insertInto(
+      @Override
+      protected void save(DSLContext ctx, TransactionImpl transaction) {
+        ctx.insertInto(
             UNCONFIRMED_TRANSACTION,
             UNCONFIRMED_TRANSACTION.ID, UNCONFIRMED_TRANSACTION.TRANSACTION_HEIGHT, UNCONFIRMED_TRANSACTION.FEE_PER_BYTE,
             UNCONFIRMED_TRANSACTION.TIMESTAMP, UNCONFIRMED_TRANSACTION.EXPIRATION, UNCONFIRMED_TRANSACTION.TRANSACTION_BYTES,
             UNCONFIRMED_TRANSACTION.HEIGHT
-          ).values(
+        ).values(
             transaction.getId(), transaction.getHeight(), transaction.getFeeNQT() / transaction.getSize(),
             transaction.getTimestamp(), transaction.getExpiration(), transaction.getBytes(),
             Burst.getBlockchain().getHeight()
-          ).execute();
-        }
+        ).execute();
+      }
 
-        @Override
-        public void rollback(int height) {
-          List<TransactionImpl> transactions = new ArrayList<>();
-          try ( DSLContext ctx = Db.getDSLContext() ) {
-            try ( ResultSet rs = ctx.selectFrom(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.HEIGHT.gt(height)).fetchResultSet() ) {
-              while (rs.next()) {
-                transactions.add(load(ctx, rs));
-              }
+      @Override
+      public void rollback(int height) {
+        List<TransactionImpl> transactions = new ArrayList<>();
+        try (DSLContext ctx = Db.getDSLContext()) {
+          try (ResultSet rs = ctx.selectFrom(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.HEIGHT.gt(height)).fetchResultSet()) {
+            while (rs.next()) {
+              transactions.add(load(ctx, rs));
             }
           }
-          catch (SQLException e) {
-            throw new RuntimeException(e.toString(), e);
-          }
-          super.rollback(height);
-          // WATCH: BUSINESS-LOGIC
-          processLater(transactions);
+        } catch (SQLException e) {
+          throw new RuntimeException(e.toString(), e);
         }
+        super.rollback(height);
+        // WATCH: BUSINESS-LOGIC
+        processLater(transactions);
+      }
 
-        @Override
-        protected List<SortField> defaultSort() {
-          List<SortField> sort = new ArrayList<>();
-          sort.add(tableClass.field("transaction_height", Integer.class).asc());
-          sort.add(tableClass.field("fee_per_byte", Long.class).desc());
-          sort.add(tableClass.field("id", Integer.class).asc());
-          return sort;
-        }
-      };
-
+      @Override
+      protected List<SortField> defaultSort() {
+        List<SortField> sort = new ArrayList<>();
+        sort.add(tableClass.field("transaction_height", Integer.class).asc());
+        sort.add(tableClass.field("fee_per_byte", Long.class).desc());
+        sort.add(tableClass.field("id", Integer.class).asc());
+        return sort;
+      }
+    };
+  }
 
 
   // WATCH: BUSINESS-LOGIC

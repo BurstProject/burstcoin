@@ -12,7 +12,9 @@ import brs.services.AliasService;
 import brs.services.AssetService;
 import brs.services.AssetTransferService;
 import brs.services.DGSGoodsStoreService;
+import brs.services.EscrowService;
 import brs.services.OrderService;
+import brs.services.SubscriptionService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 
@@ -88,9 +90,12 @@ public abstract class TransactionType {
   private static AssetService assetService;
   private static OrderService orderService;
   private static AssetTransferService assetTransferService;
+  private static SubscriptionService subscriptionService;
+  private static EscrowService escrowService;
 
   // Temporary...
-  static void init(Blockchain blockchain, AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService, AliasService aliasService, AssetService assetService, OrderService orderService, AssetTransferService assetTransferService) {
+  static void init(Blockchain blockchain, AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService, AliasService aliasService, AssetService assetService, OrderService orderService,
+      AssetTransferService assetTransferService, SubscriptionService subscriptionService, EscrowService escrowService) {
     TransactionType.blockchain = blockchain;
     TransactionType.accountService = accountService;
     TransactionType.dgsGoodsStoreService = dgsGoodsStoreService;
@@ -98,6 +103,8 @@ public abstract class TransactionType {
     TransactionType.assetService = assetService;
     TransactionType.orderService = orderService;
     TransactionType.assetTransferService = assetTransferService;
+    TransactionType.subscriptionService = subscriptionService;
+    TransactionType.escrowService = escrowService;
   }
 
   public static TransactionType findTransactionType(byte type, byte subtype) {
@@ -1708,7 +1715,7 @@ public abstract class TransactionType {
           senderAccount.addToBalanceNQT(-totalAmountNQT);
           Collection<Long> signers = attachment.getSigners();
           signers.forEach(signer -> accountService.getOrAddAccount(signer).addToBalanceAndUnconfirmedBalanceNQT(Constants.ONE_BURST));
-          Escrow.addEscrowTransaction(senderAccount,
+          escrowService.addEscrowTransaction(senderAccount,
                                       recipientAccount,
                                       transaction.getId(),
                                       attachment.getAmountNQT(),
@@ -1768,7 +1775,7 @@ public abstract class TransactionType {
              attachment.getSigners().contains(transaction.getRecipientId())) {
             throw new BurstException.NotValidException("Escrow sender and recipient cannot be signers");
           }
-          if (!Escrow.isEnabled()) {
+          if (!escrowService.isEnabled()) {
             throw new BurstException.NotYetEnabledException("Escrow not yet enabled");
           }
         }
@@ -1804,8 +1811,8 @@ public abstract class TransactionType {
         @Override
         final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.AdvancedPaymentEscrowSign attachment = (Attachment.AdvancedPaymentEscrowSign) transaction.getAttachment();
-          Escrow escrow = Escrow.getEscrowTransaction(attachment.getEscrowId());
-          escrow.sign(senderAccount.getId(), attachment.getDecision());
+          Escrow escrow = escrowService.getEscrowTransaction(attachment.getEscrowId());
+          escrowService.sign(senderAccount.getId(), attachment.getDecision(), escrow);
         }
 
         @Override
@@ -1829,11 +1836,11 @@ public abstract class TransactionType {
           if (attachment.getEscrowId() == null || attachment.getDecision() == null) {
             throw new BurstException.NotValidException("Escrow signing requires escrow id and decision set");
           }
-          Escrow escrow = Escrow.getEscrowTransaction(attachment.getEscrowId());
+          Escrow escrow = escrowService.getEscrowTransaction(attachment.getEscrowId());
           if (escrow == null) {
             throw new BurstException.NotValidException("Escrow transaction not found");
           }
-          if (!escrow.isIdSigner(transaction.getSenderId()) &&
+          if (!escrowService.isIdSigner(transaction.getSenderId(), escrow) &&
              !escrow.getSenderId().equals(transaction.getSenderId()) &&
              !escrow.getRecipientId().equals(transaction.getSenderId())) {
             throw new BurstException.NotValidException("Sender is not a participant in specified escrow");
@@ -1844,7 +1851,7 @@ public abstract class TransactionType {
           if (escrow.getRecipientId().equals(transaction.getSenderId()) && attachment.getDecision() != Escrow.DecisionType.REFUND) {
             throw new BurstException.NotValidException("Escrow recipient can only refund");
           }
-          if (!Escrow.isEnabled()) {
+          if (!escrowService.isEnabled()) {
             throw new BurstException.NotYetEnabledException("Escrow not yet enabled");
           }
         }
@@ -1931,7 +1938,7 @@ public abstract class TransactionType {
         @Override
         final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.AdvancedPaymentSubscriptionSubscribe attachment = (Attachment.AdvancedPaymentSubscriptionSubscribe) transaction.getAttachment();
-          Subscription.addSubscription(senderAccount, recipientAccount, transaction.getId(), transaction.getAmountNQT(), transaction.getTimestamp(), attachment.getFrequency());
+          subscriptionService.addSubscription(senderAccount, recipientAccount, transaction.getId(), transaction.getAmountNQT(), transaction.getTimestamp(), attachment.getFrequency());
         }
 
         @Override
@@ -1957,7 +1964,7 @@ public abstract class TransactionType {
           if (transaction.getSenderId() == transaction.getRecipientId()) {
             throw new BurstException.NotValidException("Cannot create subscription to same address");
           }
-          if (!Subscription.isEnabled()) {
+          if (!subscriptionService.isEnabled()) {
             throw new BurstException.NotYetEnabledException("Subscriptions not yet enabled");
           }
         }
@@ -1989,14 +1996,14 @@ public abstract class TransactionType {
         final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
           logger.trace("TransactionType SUBSCRIPTION_CANCEL");
           Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
-          Subscription.addRemoval(attachment.getSubscriptionId());
+          subscriptionService.addRemoval(attachment.getSubscriptionId());
           return true;
         }
 
         @Override
         final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
-          Subscription.removeSubscription(attachment.getSubscriptionId());
+          subscriptionService.removeSubscription(attachment.getSubscriptionId());
         }
 
         @Override
@@ -2016,7 +2023,7 @@ public abstract class TransactionType {
             throw new BurstException.NotValidException("Subscription cancel must include subscription id");
           }
 
-          Subscription subscription = Subscription.getSubscription(attachment.getSubscriptionId());
+          Subscription subscription = subscriptionService.getSubscription(attachment.getSubscriptionId());
           if (subscription == null) {
             throw new BurstException.NotValidException("Subscription cancel must contain current subscription id");
           }
@@ -2026,7 +2033,7 @@ public abstract class TransactionType {
             throw new BurstException.NotValidException("Subscription cancel can only be done by participants");
           }
 
-          if (!Subscription.isEnabled()) {
+          if (!subscriptionService.isEnabled()) {
             throw new BurstException.NotYetEnabledException("Subscription cancel not yet enabled");
           }
         }

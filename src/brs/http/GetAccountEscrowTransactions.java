@@ -29,7 +29,7 @@ public final class GetAccountEscrowTransactions extends APIServlet.APIRequestHan
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     final Account account = parameterService.getAccount(req);
 
-    Collection<Escrow> accountEscrows = escrowService.getEscrowTransactionsByParticipent(account.getId());
+    Collection<Escrow> accountEscrows = escrowService.getEscrowTransactionsByParticipant(account.getId());
 
     JSONObject response = new JSONObject();
 

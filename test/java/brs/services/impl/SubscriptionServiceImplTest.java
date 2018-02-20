@@ -5,13 +5,17 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import brs.Blockchain;
 import brs.Subscription;
+import brs.TransactionDb;
 import brs.common.AbstractUnitTest;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
 import brs.db.store.SubscriptionStore;
+import brs.services.AccountService;
+import brs.services.AliasService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -22,6 +26,10 @@ public class SubscriptionServiceImplTest extends AbstractUnitTest {
   private SubscriptionStore mockSubscriptionStore;
   private VersionedEntityTable<Subscription> mockSubscriptionTable;
   private LongKeyFactory<Subscription> mockSubscriptionDbKeyFactory;
+  private TransactionDb transactionDb;
+  private Blockchain blockchain;
+  private AliasService aliasService;
+  private AccountService accountService;
 
 
   @Before
@@ -33,7 +41,7 @@ public class SubscriptionServiceImplTest extends AbstractUnitTest {
     when(mockSubscriptionStore.getSubscriptionTable()).thenReturn(mockSubscriptionTable);
     when(mockSubscriptionStore.getSubscriptionDbKeyFactory()).thenReturn(mockSubscriptionDbKeyFactory);
 
-    t = new SubscriptionServiceImpl(mockSubscriptionStore);
+    t = new SubscriptionServiceImpl(mockSubscriptionStore, transactionDb, blockchain, aliasService, accountService);
   }
 
   @Test

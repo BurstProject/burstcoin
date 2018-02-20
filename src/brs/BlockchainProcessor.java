@@ -39,9 +39,6 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
 
   List<? extends Block> popOffTo(int height);
 
-  void registerDerivedTable(DerivedTable table);
-
-
   class BlockNotAcceptedException extends BurstException {
 
     BlockNotAcceptedException(String message) {

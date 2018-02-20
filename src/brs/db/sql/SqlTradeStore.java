@@ -3,6 +3,7 @@ package brs.db.sql;
 import brs.Trade;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
+import brs.db.store.DerivedTableManager;
 import brs.db.store.TradeStore;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,7 +21,10 @@ public class SqlTradeStore implements TradeStore {
 
     };
 
-  private final EntitySqlTable<Trade> tradeTable = new EntitySqlTable<Trade>("trade", TRADE, tradeDbKeyFactory) {
+  private final EntitySqlTable<Trade> tradeTable;
+
+  public SqlTradeStore(DerivedTableManager derivedTableManager) {
+    tradeTable = new EntitySqlTable<Trade>("trade", TRADE, tradeDbKeyFactory, derivedTableManager) {
 
       @Override
       protected Trade load(DSLContext ctx, ResultSet rs) throws SQLException {
@@ -33,6 +37,7 @@ public class SqlTradeStore implements TradeStore {
       }
 
     };
+  }
 
   @Override
   public BurstIterator<Trade> getAllTrades(int from, int to) {

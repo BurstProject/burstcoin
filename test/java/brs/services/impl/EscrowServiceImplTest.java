@@ -5,12 +5,14 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import brs.Blockchain;
 import brs.Escrow;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
 import brs.db.store.EscrowStore;
+import brs.services.AliasService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,6 +23,8 @@ public class EscrowServiceImplTest {
   private EscrowStore mockEscrowStore;
   private VersionedEntityTable<Escrow> mockEscrowTable;
   private LongKeyFactory<Escrow> mockEscrowDbKeyFactory;
+  private Blockchain blockchain;
+  private AliasService aliasService;
 
   @Before
   public void setUp() {
@@ -31,7 +35,7 @@ public class EscrowServiceImplTest {
     when(mockEscrowStore.getEscrowTable()).thenReturn(mockEscrowTable);
     when(mockEscrowStore.getEscrowDbKeyFactory()).thenReturn(mockEscrowDbKeyFactory);
 
-    t = new EscrowServiceImpl(mockEscrowStore);
+    t = new EscrowServiceImpl(mockEscrowStore, blockchain, aliasService);
   }
 
 

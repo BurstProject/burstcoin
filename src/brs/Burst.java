@@ -9,6 +9,7 @@ import brs.db.EntityTable;
 import brs.db.sql.Db;
 import brs.db.store.BlockchainStore;
 import brs.db.store.Dbs;
+import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
 import brs.http.API;
 import brs.peer.Peers;
@@ -123,7 +124,7 @@ public final class Burst {
     return blockchain;
   }
 
-  public static BlockchainProcessor getBlockchainProcessor() {
+  public static BlockchainProcessorImpl getBlockchainProcessor() {
     return blockchainProcessor;
   }
 
@@ -165,6 +166,8 @@ public final class Burst {
     try {
       long startTime = System.currentTimeMillis();
 
+      DerivedTableManager derivedTableManager = new DerivedTableManager();
+
       propertyService = loadProperties();
 
       threadPool = new ThreadPool();
@@ -174,9 +177,9 @@ public final class Burst {
       Db.init(propertyService);
       dbs = Db.getDbsByDatabaseType();
 
-      blockchainProcessor = BlockchainProcessorImpl.getInstance();
+      stores = new Stores(derivedTableManager);
 
-      stores = new Stores();
+
 
       final TransactionDb transactionDb = dbs.getTransactionDb();
       final BlockDb blockDb =  dbs.getBlockDb();
@@ -198,24 +201,28 @@ public final class Burst {
       transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain, stores, timeService, dbs, accountService, threadPool);
 
       final ATService atService = new ATServiceImpl(stores.getAtStore());
-      final SubscriptionService subscriptionService = new SubscriptionServiceImpl(stores.getSubscriptionStore());
+      final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
+      final SubscriptionService subscriptionService = new SubscriptionServiceImpl(stores.getSubscriptionStore(), transactionDb, blockchain, aliasService, accountService);
       final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(blockchain, stores.getDigitalGoodsStoreStore(), accountService);
-      final EscrowService escrowService = new EscrowServiceImpl(stores.getEscrowStore());
+      final EscrowService escrowService = new EscrowServiceImpl(stores.getEscrowStore(), blockchain, aliasService);
       final TradeService tradeService = new TradeServiceImpl(stores.getTradeStore());
       final AssetAccountService assetAccountService = new AssetAccountServiceImpl(stores.getAccountStore());
       final AssetTransferService assetTransferService = new AssetTransferServiceImpl(stores.getAssetTransferStore());
-      final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
       final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
+      final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
+
+      blockchainProcessor = new BlockchainProcessorImpl(threadPool, transactionProcessor, blockchain, propertyService, subscriptionService, timeService, accountService, derivedTableManager,
+          blockDb, transactionDb, economicClustering, blockchainStore, stores, escrowService);
+
       final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,
           digitalGoodsStoreService, blockchain, blockchainProcessor, transactionProcessor, atService);
-      final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
       addBlockchainListeners(blockchainProcessor, accountService, digitalGoodsStoreService, blockchain, dbs.getTransactionDb());
 
-      Peers.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService);
+      Peers.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService, threadPool);
 
       // TODO this really should be better...
-      TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService, assetService, orderService, assetTransferService);
+      TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService, assetService, orderService, assetTransferService, subscriptionService, escrowService);
 
       api = new API(transactionProcessor, blockchain, blockchainProcessor, parameterService,
           accountService, aliasService, orderService, assetService, assetTransferService,
@@ -266,10 +273,10 @@ public final class Burst {
     logger.info("Shutting down...");
     api.shutdown();
     users.shutdown();
-    Peers.shutdown();
+    Peers.shutdown(threadPool);
     threadPool.shutdown();
     Db.shutdown();
-    if (readPropertiesSuccessfully && BlockchainProcessorImpl.getOclVerify()) {
+    if (readPropertiesSuccessfully && blockchainProcessor.getOclVerify()) {
       OCLPoC.destroy();
     }
     logger.info("BRS " + VERSION + " stopped.");
@@ -296,11 +303,4 @@ public final class Burst {
     return propertyService;
   }
 
-  public static EconomicClustering getEconomicClustering() {
-    return economicClustering;
-  }
-
-  public static ThreadPool getThreadPool() {
-    return threadPool;
-  }
 }

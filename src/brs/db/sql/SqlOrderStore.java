@@ -4,6 +4,7 @@ import brs.Order;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
+import brs.db.store.DerivedTableManager;
 import brs.db.store.OrderStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,10 @@ public class SqlOrderStore implements OrderStore {
       }
 
     };
-  protected VersionedEntityTable<Order.Ask> askOrderTable = new VersionedEntitySqlTable<Order.Ask>("ask_order", brs.schema.Tables.ASK_ORDER, askOrderDbKeyFactory) {
+  protected VersionedEntityTable<Order.Ask> askOrderTable;
+
+  public SqlOrderStore(DerivedTableManager derivedTableManager) {
+    askOrderTable = new VersionedEntitySqlTable<Order.Ask>("ask_order", brs.schema.Tables.ASK_ORDER, askOrderDbKeyFactory, derivedTableManager) {
       @Override
       protected Order.Ask load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlAsk(rs);
@@ -42,15 +46,8 @@ public class SqlOrderStore implements OrderStore {
         return sort;
       }
     };
-  private DbKey.LongKeyFactory<Order.Bid> bidOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Bid>("id") {
 
-      @Override
-      public BurstKey newKey(Order.Bid bid) {
-        return bid.dbKey;
-      }
-
-    };
-  protected VersionedEntityTable<Order.Bid> bidOrderTable = new VersionedEntitySqlTable<Order.Bid>("bid_order", brs.schema.Tables.BID_ORDER, bidOrderDbKeyFactory) {
+    bidOrderTable = new VersionedEntitySqlTable<Order.Bid>("bid_order", brs.schema.Tables.BID_ORDER, bidOrderDbKeyFactory, derivedTableManager) {
 
       @Override
       protected Order.Bid load(DSLContext ctx, ResultSet rs) throws SQLException {
@@ -70,6 +67,18 @@ public class SqlOrderStore implements OrderStore {
       }
 
     };
+
+  }
+
+  private DbKey.LongKeyFactory<Order.Bid> bidOrderDbKeyFactory = new DbKey.LongKeyFactory<Order.Bid>("id") {
+
+      @Override
+      public BurstKey newKey(Order.Bid bid) {
+        return bid.dbKey;
+      }
+
+    };
+  protected VersionedEntityTable<Order.Bid> bidOrderTable;
 
   @Override
   public VersionedEntityTable<Order.Bid> getBidOrderTable() {

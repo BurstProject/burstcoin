@@ -1,6 +1,5 @@
 package brs.db.store;
 
-import brs.Block;
 import brs.Escrow;
 import brs.TransactionImpl;
 import brs.db.BurstIterator;
@@ -10,7 +9,6 @@ import brs.db.sql.DbKey;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 public interface EscrowStore {
 
@@ -22,13 +20,9 @@ public interface EscrowStore {
 
   VersionedEntityTable<Escrow.Decision> getDecisionTable();
 
-  Collection<Escrow> getEscrowTransactionsByParticipent(Long accountId);
-
-  void updateOnBlock(Block block, int blockchainHeight);
+  Collection<Escrow> getEscrowTransactionsByParticipant(Long accountId);
 
   List<TransactionImpl> getResultTransactions();
-
-  ConcurrentSkipListSet<Long> getUpdatedEscrowIds();
 
   BurstIterator<Escrow.Decision> getDecisions(Long id);
 }

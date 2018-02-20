@@ -18,12 +18,12 @@ import brs.Constants;
 public final class DownloadCacheImpl {
   public final int BLOCKCACHEMB;
 
-  protected static final Map<Long, Block> blockCache = new LinkedHashMap<>();
-  protected static final Map<Long, Long> reverseCache = new LinkedHashMap<>();
-  protected static final List<Long> unverified = new LinkedList<>();
+  protected final Map<Long, Block> blockCache = new LinkedHashMap<>();
+  protected final Map<Long, Long> reverseCache = new LinkedHashMap<>();
+  protected final List<Long> unverified = new LinkedList<>();
 
-  private static final Logger logger = LoggerFactory.getLogger(DownloadCacheImpl.class);
-  private static int blockCacheSize = 0;
+  private final Logger logger = LoggerFactory.getLogger(DownloadCacheImpl.class);
+  private int blockCacheSize = 0;
 
   private Long LastBlockId = null;
   private int LastHeight = -1;

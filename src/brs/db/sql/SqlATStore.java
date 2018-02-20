@@ -6,6 +6,7 @@ import brs.at.AT_Constants;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.store.ATStore;
+import brs.db.store.DerivedTableManager;
 import brs.schema.tables.records.AtRecord;
 import brs.schema.tables.records.AtStateRecord;
 import org.jooq.Cursor;
@@ -40,7 +41,19 @@ public class SqlATStore implements ATStore {
         return at.dbKey;
       }
     };
-  private final VersionedEntityTable<brs.AT> atTable = new VersionedEntitySqlTable<brs.AT>("at", brs.schema.Tables.AT, atDbKeyFactory) {
+  private final VersionedEntityTable<brs.AT> atTable;
+
+  private final BurstKey.LongKeyFactory<brs.AT.ATState> atStateDbKeyFactory = new DbKey.LongKeyFactory<brs.AT.ATState>("at_id") {
+      @Override
+      public BurstKey newKey(brs.AT.ATState atState) {
+        return atState.dbKey;
+      }
+    };
+
+  private final VersionedEntityTable<brs.AT.ATState> atStateTable;
+
+  public SqlATStore(DerivedTableManager derivedTableManager) {
+    atTable = new VersionedEntitySqlTable<brs.AT>("at", brs.schema.Tables.AT, atDbKeyFactory, derivedTableManager) {
       @Override
       protected brs.AT load(DSLContext ctx, ResultSet rs) {
         //return new AT(rs);
@@ -59,14 +72,8 @@ public class SqlATStore implements ATStore {
         return sort;
       }
     };
-  private final BurstKey.LongKeyFactory<brs.AT.ATState> atStateDbKeyFactory = new DbKey.LongKeyFactory<brs.AT.ATState>("at_id") {
-      @Override
-      public BurstKey newKey(brs.AT.ATState atState) {
-        return atState.dbKey;
-      }
-    };
 
-  private final VersionedEntityTable<brs.AT.ATState> atStateTable = new VersionedEntitySqlTable<brs.AT.ATState>("at_state", brs.schema.Tables.AT_STATE, atStateDbKeyFactory) {
+    atStateTable = new VersionedEntitySqlTable<brs.AT.ATState>("at_state", brs.schema.Tables.AT_STATE, atStateDbKeyFactory, derivedTableManager) {
       @Override
       protected brs.AT.ATState load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlATState(rs);
@@ -86,6 +93,7 @@ public class SqlATStore implements ATStore {
         return sort;
       }
     };
+  }
 
   protected void saveATState(DSLContext ctx, brs.AT.ATState atState) throws SQLException {
     brs.schema.tables.records.AtStateRecord atStateRecord = ctx.newRecord(brs.schema.Tables.AT_STATE);

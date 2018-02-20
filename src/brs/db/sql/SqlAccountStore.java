@@ -6,6 +6,7 @@ import brs.db.BurstIterator;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.VersionedEntityTable;
 import brs.db.store.AccountStore;
+import brs.db.store.DerivedTableManager;
 import brs.util.Convert;
 import org.slf4j.LoggerFactory;
 import java.sql.ResultSet;
@@ -43,44 +44,8 @@ public class SqlAccountStore implements AccountStore {
         }
     };
 
-  private static Condition getAccountsWithRewardRecipientClause(final long id, final int height) {
-    return REWARD_RECIP_ASSIGN.RECIP_ID.eq(id).and(REWARD_RECIP_ASSIGN.FROM_HEIGHT.le(height));
-  }
-
-  private final VersionedEntityTable<Account.AccountAsset> accountAssetTable = new VersionedEntitySqlTable<Account.AccountAsset>("account_asset", brs.schema.Tables.ACCOUNT_ASSET, accountAssetDbKeyFactory) {
-
-      @Override
-      protected Account.AccountAsset load(DSLContext ctx, ResultSet rs) throws SQLException {
-        return new SQLAccountAsset(rs);
-      }
-
-      @Override
-      protected void save(DSLContext ctx, Account.AccountAsset accountAsset) throws SQLException {
-        brs.schema.tables.records.AccountAssetRecord assetRecord = ctx.newRecord(brs.schema.Tables.ACCOUNT_ASSET);
-        assetRecord.setAccountId(accountAsset.accountId);
-        assetRecord.setAssetId(accountAsset.assetId);
-        assetRecord.setQuantity(accountAsset.getQuantityQNT());
-        assetRecord.setUnconfirmedQuantity(accountAsset.getUnconfirmedQuantityQNT());
-        assetRecord.setHeight(Burst.getBlockchain().getHeight());
-        assetRecord.setLatest(true);
-        DbUtils.mergeInto(
-          ctx, assetRecord, brs.schema.Tables.ACCOUNT_ASSET,
-          ( new Field[] { assetRecord.field("account_id"), assetRecord.field("asset_id"), assetRecord.field("height") } )
-        );
-      }
-
-      @Override
-      protected List<SortField> defaultSort() {
-        List<SortField> sort = new ArrayList<>();
-        sort.add(tableClass.field("quantity", Long.class).desc());
-        sort.add(tableClass.field("account_id", Long.class).asc());
-        sort.add(tableClass.field("asset_id", Long.class).asc());
-        return sort;
-      }
-
-    };
-
-  VersionedEntityTable<Account.RewardRecipientAssignment> rewardRecipientAssignmentTable = new VersionedEntitySqlTable<Account.RewardRecipientAssignment>("reward_recip_assign", brs.schema.Tables.REWARD_RECIP_ASSIGN, rewardRecipientAssignmentDbKeyFactory) {
+  public SqlAccountStore(DerivedTableManager derivedTableManager) {
+    rewardRecipientAssignmentTable = new VersionedEntitySqlTable<Account.RewardRecipientAssignment>("reward_recip_assign", brs.schema.Tables.REWARD_RECIP_ASSIGN, rewardRecipientAssignmentDbKeyFactory, derivedTableManager) {
 
       @Override
       protected Account.RewardRecipientAssignment load(DSLContext ctx, ResultSet rs) throws SQLException {
@@ -97,13 +62,46 @@ public class SqlAccountStore implements AccountStore {
         rewardRecord.setHeight(Burst.getBlockchain().getHeight());
         rewardRecord.setLatest(true);
         DbUtils.mergeInto(
-          ctx, rewardRecord, brs.schema.Tables.REWARD_RECIP_ASSIGN,
-          ( new Field[] { rewardRecord.field("account_id"), rewardRecord.field("height") } )
+            ctx, rewardRecord, brs.schema.Tables.REWARD_RECIP_ASSIGN,
+            ( new Field[] { rewardRecord.field("account_id"), rewardRecord.field("height") } )
         );
       }
     };
 
-  VersionedBatchEntityTable<Account> accountTable = new VersionedBatchEntitySqlTable<Account>("account", brs.schema.Tables.ACCOUNT, accountDbKeyFactory) {
+    accountAssetTable = new VersionedEntitySqlTable<Account.AccountAsset>("account_asset", brs.schema.Tables.ACCOUNT_ASSET, accountAssetDbKeyFactory, derivedTableManager) {
+
+      @Override
+      protected Account.AccountAsset load(DSLContext ctx, ResultSet rs) throws SQLException {
+        return new SQLAccountAsset(rs);
+      }
+
+      @Override
+      protected void save(DSLContext ctx, Account.AccountAsset accountAsset) throws SQLException {
+        brs.schema.tables.records.AccountAssetRecord assetRecord = ctx.newRecord(brs.schema.Tables.ACCOUNT_ASSET);
+        assetRecord.setAccountId(accountAsset.accountId);
+        assetRecord.setAssetId(accountAsset.assetId);
+        assetRecord.setQuantity(accountAsset.getQuantityQNT());
+        assetRecord.setUnconfirmedQuantity(accountAsset.getUnconfirmedQuantityQNT());
+        assetRecord.setHeight(Burst.getBlockchain().getHeight());
+        assetRecord.setLatest(true);
+        DbUtils.mergeInto(
+            ctx, assetRecord, brs.schema.Tables.ACCOUNT_ASSET,
+            ( new Field[] { assetRecord.field("account_id"), assetRecord.field("asset_id"), assetRecord.field("height") } )
+        );
+      }
+
+      @Override
+      protected List<SortField> defaultSort() {
+        List<SortField> sort = new ArrayList<>();
+        sort.add(tableClass.field("quantity", Long.class).desc());
+        sort.add(tableClass.field("account_id", Long.class).asc());
+        sort.add(tableClass.field("asset_id", Long.class).asc());
+        return sort;
+      }
+
+    };
+
+    accountTable = new VersionedBatchEntitySqlTable<Account>("account", brs.schema.Tables.ACCOUNT, accountDbKeyFactory, derivedTableManager) {
       @Override
       protected Account load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlAccount(rs);
@@ -124,11 +122,22 @@ public class SqlAccountStore implements AccountStore {
         accountRecord.setHeight(Burst.getBlockchain().getHeight());
         accountRecord.setLatest(true);
         DbUtils.mergeInto(
-          ctx, accountRecord, ACCOUNT,
-          ( new Field[] { accountRecord.field("id"), accountRecord.field("height") } )
+            ctx, accountRecord, ACCOUNT,
+            ( new Field[] { accountRecord.field("id"), accountRecord.field("height") } )
         );
       }
     };
+  }
+
+  private static Condition getAccountsWithRewardRecipientClause(final long id, final int height) {
+    return REWARD_RECIP_ASSIGN.RECIP_ID.eq(id).and(REWARD_RECIP_ASSIGN.FROM_HEIGHT.le(height));
+  }
+
+  private final VersionedEntityTable<Account.AccountAsset> accountAssetTable;
+
+  VersionedEntityTable<Account.RewardRecipientAssignment> rewardRecipientAssignmentTable;
+
+  VersionedBatchEntityTable<Account> accountTable;
 
   @Override
   public VersionedBatchEntityTable<Account> getAccountTable() {
