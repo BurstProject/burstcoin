@@ -4,6 +4,7 @@ import brs.Blockchain;
 import brs.BlockchainProcessor;
 import brs.Constants;
 import brs.EconomicClustering;
+import brs.Transaction;
 import brs.TransactionProcessor;
 import brs.services.ATService;
 import brs.services.AccountService;
@@ -19,6 +20,7 @@ import brs.services.PropertyService;
 import brs.services.SubscriptionService;
 import brs.services.TimeService;
 import brs.services.TradeService;
+import brs.services.TransactionService;
 import brs.util.Subnet;
 import brs.util.ThreadPool;
 import org.eclipse.jetty.server.*;
@@ -55,7 +57,7 @@ public final class API {
       AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
       TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService,
       SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService,
-      ThreadPool threadPool) {
+      ThreadPool threadPool, TransactionService transactionService) {
     enableDebugAPI = propertyService.getBooleanProperty("API.Debug");
     List<String> allowedBotHostsList = propertyService.getStringListProperty("brs.allowedBotHosts");
     if (!allowedBotHostsList.contains("*")) {
@@ -136,7 +138,7 @@ public final class API {
       ServletHolder peerServletHolder = new ServletHolder(new APIServlet(transactionProcessor, blockchain, blockchainProcessor, parameterService,
           accountService, aliasService, orderService, assetService, assetTransferService,
           tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
-          subscriptionService, atService, timeService, economicClustering));
+          subscriptionService, atService, timeService, economicClustering, transactionService));
       apiHandler.addServlet(peerServletHolder, "/burst");
 
       if (propertyService.getBooleanProperty("JETTY.API.GzipFilter")) {

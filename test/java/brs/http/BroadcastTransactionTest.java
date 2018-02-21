@@ -18,6 +18,7 @@ import brs.BurstException;
 import brs.Transaction;
 import brs.TransactionProcessor;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -30,11 +31,13 @@ public class BroadcastTransactionTest {
 
   private TransactionProcessor transactionProcessorMock;
   private ParameterService parameterServiceMock;
+  private TransactionService transactionServiceMock;
 
   @Before
   public void setUp() {
     this.transactionProcessorMock = mock(TransactionProcessor.class);
     this.parameterServiceMock = mock(ParameterService.class);
+    this.transactionServiceMock = mock(TransactionService.class);
 
     t = new BroadcastTransaction(transactionProcessorMock, parameterServiceMock);
   }
@@ -79,7 +82,7 @@ public class BroadcastTransactionTest {
 
     when(parameterServiceMock.parseTransaction(eq(mockTransactionBytesParameter), eq(mockTransactionJson))).thenReturn(mockTransaction);
 
-    Mockito.doThrow(BurstException.NotCurrentlyValidException.class).when(mockTransaction).validate();
+    Mockito.doThrow(BurstException.NotCurrentlyValidException.class).when(transactionServiceMock).validate(eq(mockTransaction));
 
     final JSONObject result = (JSONObject) t.processRequest(req);
 

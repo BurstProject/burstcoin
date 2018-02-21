@@ -102,7 +102,7 @@ public class SqlBlockchainStore implements BlockchainStore {
   }
 
   @Override
-  public BurstIterator<TransactionImpl> getAllTransactions() {
+  public BurstIterator<Transaction> getAllTransactions() {
     DSLContext ctx = Db.getDSLContext();
     return getTransactions(
       ctx,
@@ -112,7 +112,7 @@ public class SqlBlockchainStore implements BlockchainStore {
 
 
   @Override
-  public BurstIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
+  public BurstIterator<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                         int blockTimestamp, int from, int to) {
     int height = numberOfConfirmations > 0 ? Burst.getBlockchain().getHeight() - numberOfConfirmations : Integer.MAX_VALUE;
     if (height < 0) {
@@ -152,7 +152,7 @@ public class SqlBlockchainStore implements BlockchainStore {
   }
 
   @Override
-  public BurstIterator<TransactionImpl> getTransactions(DSLContext ctx, ResultSet rs) {
+  public BurstIterator<Transaction> getTransactions(DSLContext ctx, ResultSet rs) {
     return new DbIterator<>(ctx, rs, transactionDb::loadTransaction);
   }
 

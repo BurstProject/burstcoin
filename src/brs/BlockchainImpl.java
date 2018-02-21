@@ -188,17 +188,17 @@ public final class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public BurstIterator<TransactionImpl> getAllTransactions() {
+  public BurstIterator<Transaction> getAllTransactions() {
     return blockchainStore.getAllTransactions();
   }
 
   @Override
-  public BurstIterator<TransactionImpl> getTransactions(Account account, byte type, byte subtype, int blockTimestamp) {
+  public BurstIterator<Transaction> getTransactions(Account account, byte type, byte subtype, int blockTimestamp) {
     return getTransactions(account, 0, type, subtype, blockTimestamp, 0, -1);
   }
 
   @Override
-  public BurstIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
+  public BurstIterator<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                       int blockTimestamp, int from, int to) {
     return  blockchainStore.getTransactions(account, numberOfConfirmations, type, subtype, blockTimestamp, from, to);
   }

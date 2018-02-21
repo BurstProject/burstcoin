@@ -36,7 +36,7 @@ public class SqlEscrowStore implements EscrowStore {
         }
       };
   private final VersionedEntityTable<Escrow.Decision> decisionTable;
-  private final List<TransactionImpl> resultTransactions = new ArrayList<>();
+  private final List<Transaction> resultTransactions = new ArrayList<>();
 
 
   public SqlEscrowStore(DerivedTableManager derivedTableManager) {
@@ -117,7 +117,7 @@ public class SqlEscrowStore implements EscrowStore {
 
 
   @Override
-  public List<TransactionImpl> getResultTransactions() {
+  public List<Transaction> getResultTransactions() {
     return resultTransactions;
   }
 

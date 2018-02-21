@@ -31,7 +31,6 @@ import brs.Account;
 import brs.Attachment;
 import brs.Burst;
 import brs.Transaction;
-import brs.TransactionProcessor;
 import brs.TransactionProcessorImpl;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;

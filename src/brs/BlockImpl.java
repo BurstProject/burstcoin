@@ -1,6 +1,7 @@
 package brs;
 
 import brs.services.AccountService;
+import brs.services.TransactionService;
 import brs.util.DownloadCacheImpl;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -34,7 +35,7 @@ public class BlockImpl implements Block {
   private final int payloadLength;
   private final byte[] generationSignature;
   private final byte[] payloadHash;
-  private volatile List<TransactionImpl> blockTransactions;
+  private volatile List<Transaction> blockTransactions;
 
   private byte[] blockSignature;
 
@@ -57,7 +58,7 @@ public class BlockImpl implements Block {
 
   BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT,
       int payloadLength, byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature,
-      byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions,
+      byte[] blockSignature, byte[] previousBlockHash, List<Transaction> transactions,
       long nonce, byte[] blockATs) throws BurstException.ValidationException {
 
     if (payloadLength > Constants.MAX_PAYLOAD_LENGTH || payloadLength < 0) {
@@ -192,7 +193,7 @@ public class BlockImpl implements Block {
   }
 
   @Override
-  public List<TransactionImpl> getTransactions() {
+  public List<Transaction> getTransactions() {
     if (blockTransactions == null) {
       this.blockTransactions =
           Collections.unmodifiableList(transactionDb().findBlockTransactions(getId()));
@@ -321,11 +322,11 @@ public class BlockImpl implements Block {
           version == 1 ? null : Convert.parseHexString((String) blockData.get("previousBlockHash"));
       Long nonce = Convert.parseUnsignedLong((String) blockData.get("nonce"));
 
-      SortedMap<Long, TransactionImpl> blockTransactions = new TreeMap<>();
+      SortedMap<Long, Transaction> blockTransactions = new TreeMap<>();
       JSONArray transactionsData = (JSONArray) blockData.get("transactions");
       for (Object transactionData : transactionsData) {
-        TransactionImpl transaction =
-            TransactionImpl.parseTransaction((JSONObject) transactionData);
+        Transaction transaction =
+            Transaction.parseTransaction((JSONObject) transactionData);
         if (blockTransactions.put(transaction.getId(), transaction) != null) {
           throw new BurstException.NotValidException(
               "Block contains duplicate transactions: " + transaction.getStringId());
@@ -475,7 +476,7 @@ public class BlockImpl implements Block {
         return;
       }
 
-      for (TransactionImpl transaction : getTransactions()) {
+      for (Transaction transaction : getTransactions()) {
         if (!transaction.verifySignature()) {
           logger.info("Bad transaction signature during block pre-verification for tx: {} at block height: {}",
                       Convert.toUnsignedLong(transaction.getId()), getHeight());
@@ -487,7 +488,7 @@ public class BlockImpl implements Block {
   
   }
 
-  void apply(AccountService accountService) {
+  void apply(AccountService accountService, TransactionService transactionService) {
     Account generatorAccount = accountService.getOrAddAccount(getGeneratorId());
     generatorAccount.apply(generatorPublicKey, this.height);
     if (height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
@@ -507,7 +508,10 @@ public class BlockImpl implements Block {
       rewardAccount.addToBalanceAndUnconfirmedBalanceNQT(totalFeeNQT + getBlockReward());
       rewardAccount.addToForgedBalanceNQT(totalFeeNQT + getBlockReward());
     }
-    getTransactions().forEach(TransactionImpl::apply);
+
+    for(Transaction transaction : getTransactions()) {
+      transactionService.apply(transaction);
+    }
   }
 
   @Override

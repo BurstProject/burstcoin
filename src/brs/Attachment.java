@@ -34,12 +34,12 @@ public interface Attachment extends Appendix {
     }
 
     @Override
-    final void validate(Transaction transaction) throws BurstException.ValidationException {
+    public final void validate(Transaction transaction) throws BurstException.ValidationException {
       getTransactionType().validateAttachment(transaction);
     }
 
     @Override
-    final void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
+    public final void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
       getTransactionType().apply(transaction, senderAccount, recipientAccount);
     }
 

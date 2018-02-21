@@ -27,6 +27,7 @@ import brs.services.PropertyService;
 import brs.services.SubscriptionService;
 import brs.services.TimeService;
 import brs.services.TradeService;
+import brs.services.TransactionService;
 import brs.services.impl.ATServiceImpl;
 import brs.services.impl.AccountServiceImpl;
 import brs.services.impl.AliasServiceImpl;
@@ -41,6 +42,7 @@ import brs.services.impl.PropertyServiceImpl;
 import brs.services.impl.SubscriptionServiceImpl;
 import brs.services.impl.TimeServiceImpl;
 import brs.services.impl.TradeServiceImpl;
+import brs.services.impl.TransactionServiceImpl;
 import brs.user.Users;
 import brs.util.LoggerConfigurator;
 import brs.util.ThreadPool;
@@ -74,8 +76,6 @@ public final class Burst {
 
   private static PropertyService propertyService;
   private static EconomicClustering economicClustering;
-  // Temporary until BlockchainProcessorImpl is refactored
-  private static boolean readPropertiesSuccessfully = false;
 
   private static API api;
   private static Users users;
@@ -113,7 +113,6 @@ public final class Burst {
       throw new RuntimeException("Error loading brs.properties", e);
     }
 
-    readPropertiesSuccessfully = true;
     return new PropertyServiceImpl(properties);
   }
 
@@ -188,17 +187,22 @@ public final class Burst {
 
       economicClustering = new EconomicClustering(blockchain);
 
-      final BurstKey.LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory =
+      final BurstKey.LongKeyFactory<Transaction> unconfirmedTransactionDbKeyFactory =
           stores.getTransactionProcessorStore().getUnconfirmedTransactionDbKeyFactory();
 
 
-      final EntityTable<TransactionImpl> unconfirmedTransactionTable =
+      final EntityTable<Transaction> unconfirmedTransactionTable =
           stores.getTransactionProcessorStore().getUnconfirmedTransactionTable();
 
       final TimeService timeService = new TimeServiceImpl();
 
+
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
-      transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain, stores, timeService, dbs, accountService, threadPool);
+
+      transactionService = new TransactionServiceImpl(accountService, blockchain);
+
+      transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain, stores, timeService, dbs,
+          accountService, transactionService, threadPool);
 
       final ATService atService = new ATServiceImpl(stores.getAtStore());
       final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
@@ -212,7 +216,7 @@ public final class Burst {
       final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
       blockchainProcessor = new BlockchainProcessorImpl(threadPool, transactionProcessor, blockchain, propertyService, subscriptionService, timeService, accountService, derivedTableManager,
-          blockDb, transactionDb, economicClustering, blockchainStore, stores, escrowService);
+          blockDb, transactionDb, economicClustering, blockchainStore, stores, escrowService, transactionService);
 
       final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,
           digitalGoodsStoreService, blockchain, blockchainProcessor, transactionProcessor, atService);
@@ -227,7 +231,7 @@ public final class Burst {
       api = new API(transactionProcessor, blockchain, blockchainProcessor, parameterService,
           accountService, aliasService, orderService, assetService, assetTransferService,
           tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
-          subscriptionService, atService, timeService, economicClustering, propertyService, threadPool);
+          subscriptionService, atService, timeService, economicClustering, propertyService, threadPool, transactionService);
 
       users = new Users(propertyService);
       DebugTrace.init(propertyService, blockchainProcessor, tradeService, orderService, digitalGoodsStoreService);
@@ -276,7 +280,7 @@ public final class Burst {
     Peers.shutdown(threadPool);
     threadPool.shutdown();
     Db.shutdown();
-    if (readPropertiesSuccessfully && blockchainProcessor.getOclVerify()) {
+    if (blockchainProcessor != null && blockchainProcessor.getOclVerify()) {
       OCLPoC.destroy();
     }
     logger.info("BRS " + VERSION + " stopped.");
@@ -303,4 +307,9 @@ public final class Burst {
     return propertyService;
   }
 
+  static TransactionService transactionService;
+
+  public static TransactionService getTransactionService() {
+    return transactionService;
+  }
 }

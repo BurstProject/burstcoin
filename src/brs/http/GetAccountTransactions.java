@@ -11,7 +11,6 @@ import static brs.http.common.ResultFields.TRANSACTIONS_RESPONSE;
 
 import brs.Account;
 import brs.Blockchain;
-import brs.Burst;
 import brs.BurstException;
 import brs.Transaction;
 import brs.db.BurstIterator;
@@ -19,7 +18,6 @@ import brs.services.ParameterService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
-import java.lang.Math;
 import javax.servlet.http.HttpServletRequest;
 
 public final class GetAccountTransactions extends APIServlet.APIRequestHandler {

@@ -18,6 +18,7 @@ import brs.common.QuickMocker.MockParam;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.services.SubscriptionService;
+import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -32,6 +33,7 @@ public class SubscriptionCancelTest extends AbstractTransactionTest {
   private AccountService mockAccountService;
   private Blockchain mockBlockchain;
   private TransactionProcessor mockTransactionProcessor;
+  private TransactionService transactionServiceMock;
 
   @Before
   public void setUp() {
@@ -40,8 +42,9 @@ public class SubscriptionCancelTest extends AbstractTransactionTest {
     mockAccountService = mock(AccountService.class);
     mockBlockchain = mock(Blockchain.class);
     mockTransactionProcessor = mock(TransactionProcessor.class);
+    transactionServiceMock = mock(TransactionService.class);
 
-    t = new SubscriptionCancel(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService, mockSubscriptionService);
+    t = new SubscriptionCancel(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService, mockSubscriptionService, transactionServiceMock);
   }
 
   @Test

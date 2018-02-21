@@ -17,6 +17,7 @@ import brs.common.TestConstants;
 import brs.crypto.Crypto;
 import brs.services.AccountService;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,10 +30,11 @@ public class SetRewardRecipientTest extends AbstractTransactionTest {
   private Blockchain blockchainMock = mock(Blockchain.class);
   private AccountService accountServiceMock = mock(AccountService.class);
   private TransactionProcessor transactionProcessorMock = mock(TransactionProcessor.class);
+  private TransactionService transactionServiceMock = mock(TransactionService.class);
 
   @Before
   public void setUp() {
-    t = new SetRewardRecipient(parameterServiceMock, transactionProcessorMock, blockchainMock, accountServiceMock);
+    t = new SetRewardRecipient(parameterServiceMock, transactionProcessorMock, blockchainMock, accountServiceMock, transactionServiceMock);
   }
 
   @Test

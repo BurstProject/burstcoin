@@ -14,7 +14,7 @@ import brs.Escrow;
 import brs.Escrow.Decision;
 import brs.Escrow.DecisionType;
 import brs.Genesis;
-import brs.TransactionImpl;
+import brs.Transaction;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
@@ -38,7 +38,7 @@ public class EscrowServiceImpl implements EscrowService {
   private final EscrowStore escrowStore;
   private final Blockchain blockchain;
   private final AliasService aliasService;
-  private final List<TransactionImpl> resultTransactions;
+  private final List<Transaction> resultTransactions;
 
   public EscrowServiceImpl(EscrowStore escrowStore, Blockchain blockchain, AliasService aliasService) {
     this.escrowStore = escrowStore;
@@ -253,7 +253,7 @@ public class EscrowServiceImpl implements EscrowService {
   @Override
   public void saveResultTransaction(Block block, Long escrowId, Long recipientId, Long amountNQT, DecisionType decision, int blockchainHeight) {
     Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentEscrowResult(escrowId, decision, blockchainHeight);
-    TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte)1, Genesis.CREATOR_PUBLIC_KEY,
+    Transaction.Builder builder = new Transaction.Builder((byte)1, Genesis.CREATOR_PUBLIC_KEY,
         amountNQT, 0L, block.getTimestamp(), (short)1440, attachment);
     builder.senderId(0L)
         .recipientId(recipientId)
@@ -263,7 +263,7 @@ public class EscrowServiceImpl implements EscrowService {
         .ecBlockHeight(0)
         .ecBlockId(0L);
 
-    TransactionImpl transaction;
+    Transaction transaction;
     try {
       transaction = builder.build();
     }

@@ -8,6 +8,7 @@ import brs.services.EscrowService;
 import brs.services.PropertyService;
 import brs.services.SubscriptionService;
 import brs.services.TimeService;
+import brs.services.TransactionService;
 import brs.util.ThreadPool;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -54,6 +55,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private final EscrowService escrowService;
   private final TimeService timeService;
   private final AccountService accountService;
+  private final TransactionService transactionService;
   private TransactionProcessorImpl transactionProcessor;
   private EconomicClustering economicClustering;
   private BlockchainStore blockchainStore;
@@ -101,7 +103,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   public BlockchainProcessorImpl(ThreadPool threadPool, TransactionProcessorImpl transactionProcessor, BlockchainImpl blockchain, PropertyService propertyService,
       SubscriptionService subscriptionService, TimeService timeService, AccountService accountService, DerivedTableManager derivedTableManager,
-      BlockDb blockDb, TransactionDb transactionDb, EconomicClustering economicClustering, BlockchainStore blockchainStore, Stores stores, EscrowService escrowService) {
+      BlockDb blockDb, TransactionDb transactionDb, EconomicClustering economicClustering, BlockchainStore blockchainStore, Stores stores, EscrowService escrowService,
+      TransactionService transactionService) {
     this.transactionProcessor = transactionProcessor;
     this.timeService = timeService;
     this.derivedTableManager = derivedTableManager;
@@ -123,6 +126,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     validateAtScan = propertyService.getBooleanProperty("brs.forceValidate");
     this.economicClustering = economicClustering;
     this.escrowService = escrowService;
+    this.transactionService = transactionService;
 
     blockListeners.addListener(block -> {
       if (block.getHeight() % 5000 == 0) {
@@ -779,7 +783,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     logger.info("Genesis block not in database, starting from scratch");
     try {
-      List<TransactionImpl> transactions = new ArrayList<>();
+      List<Transaction> transactions = new ArrayList<>();
       MessageDigest digest = Crypto.sha256();
       transactions.forEach(transaction -> digest.update(transaction.getBytes()));
       ByteBuffer bf = ByteBuffer.allocate(0);
@@ -839,7 +843,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       long calculatedTotalFee = 0;
       MessageDigest digest = Crypto.sha256();
       
-      for (TransactionImpl transaction : block.getTransactions()) {
+      for (Transaction transaction : block.getTransactions()) {
         if (transaction.getTimestamp() > curTime + MAX_TIMESTAMP_DIFFERENCE) {
           throw new BlockOutOfOrderException("Invalid transaction timestamp: "
                 + transaction.getTimestamp() + ", current time is " + curTime);
@@ -874,7 +878,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               transaction);
         }
  
-        if (!transaction.verifyPublicKey()) {
+        if (!transactionService.verifyPublicKey(transaction)) {
           throw new TransactionNotAcceptedException("Wrong public key in transaction "
               + transaction.getStringId() + " at height " + previousLastBlock.getHeight(),
               transaction);
@@ -898,7 +902,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               "Transaction is a duplicate: " + transaction.getStringId(), transaction);
         }
         try {
-          transaction.validate();
+          transactionService.validate(transaction);
         } catch (BurstException.ValidationException e) {
           throw new TransactionNotAcceptedException(e.getMessage(), transaction);
         }
@@ -958,8 +962,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private void accept(BlockImpl block, Long remainingAmount, Long remainingFee)
       throws BlockNotAcceptedException {
     subscriptionService.clearRemovals();
-    for (TransactionImpl transaction : block.getTransactions()) {
-      if (!transaction.applyUnconfirmed()) {
+    for (Transaction transaction : block.getTransactions()) {
+      if (!transactionService.applyUnconfirmed(transaction)) {
         throw new TransactionNotAcceptedException(
             "Double spending transaction: " + transaction.getStringId(), transaction);
       }
@@ -992,7 +996,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       throw new BlockNotAcceptedException("Calculated remaining fee doesn't add up");
     }
     blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
-    block.apply(accountService);
+    block.apply(accountService, transactionService);
     subscriptionService.applyConfirmed(block, blockchain.getHeight());
     if (escrowService.isEnabled()) {
       escrowService.updateOnBlock(block, blockchain.getHeight());
@@ -1041,7 +1045,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     BlockImpl previousBlock = blockDb.findBlock(block.getPreviousBlockId());
     blockchain.setLastBlock(block, previousBlock);
-    block.getTransactions().forEach(TransactionImpl::unsetBlock);
+    block.getTransactions().forEach(Transaction::unsetBlock);
     blockDb.deleteBlocksFrom(block.getId());
     blockListeners.notify(block, Event.BLOCK_POPPED);
     return previousBlock;
@@ -1055,8 +1059,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   public void generateBlock(String secretPhrase, byte[] publicKey, Long nonce)
       throws BlockNotAcceptedException {
 
-    List<TransactionImpl> orderedUnconfirmedTransactions = new ArrayList<>();
-    try (FilteringIterator<TransactionImpl> transactions =
+    List<Transaction> orderedUnconfirmedTransactions = new ArrayList<>();
+    try (FilteringIterator<Transaction> transactions =
         new FilteringIterator<>(transactionProcessor.getAllUnconfirmedTransactions(),
                 transaction -> hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0))) {
       while (transactions.hasNext()) {
@@ -1066,7 +1070,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     BlockImpl previousBlock = blockchain.getLastBlock();
 
-    SortedSet<TransactionImpl> blockTransactions = new TreeSet<>();
+    SortedSet<Transaction> blockTransactions = new TreeSet<>();
 
     Map<TransactionType, Set<String>> duplicates = new HashMap<>();
 
@@ -1081,7 +1085,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
       int prevNumberOfNewTransactions = blockTransactions.size();
 
-      for (TransactionImpl transaction : orderedUnconfirmedTransactions) {
+      for (Transaction transaction : orderedUnconfirmedTransactions) {
 
         if (blockTransactions.size() >= Constants.MAX_NUMBER_OF_TRANSACTIONS) {
           break;
@@ -1117,7 +1121,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
 
         try {
-          transaction.validate();
+          transactionService.validate(transaction);
         } catch (BurstException.NotCurrentlyValidException e) {
           continue;
         } catch (BurstException.ValidationException e) {
@@ -1143,7 +1147,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         stores.beginTransaction();
         transactionProcessor.requeueAllUnconfirmedTransactions();
         // transactionProcessor.processTransactions(newTransactions, false);
-        blockTransactions.forEach(TransactionImpl::applyUnconfirmed);
+        blockTransactions.forEach(transactionService::applyUnconfirmed);
         totalFeeNQT += subscriptionService.calculateFees(blockTimestamp);
       } finally {
         stores.rollbackTransaction();
@@ -1199,7 +1203,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       logger.debug("Generate block failed: " + e.getMessage());
       Transaction transaction = e.getTransaction();
       logger.debug("Removing invalid transaction: " + transaction.getStringId());
-      transactionProcessor.removeUnconfirmedTransaction((TransactionImpl) transaction);
+      transactionProcessor.removeUnconfirmedTransaction((Transaction) transaction);
       throw e;
     } catch (BlockNotAcceptedException e) {
       logger.debug("Generate block failed: " + e.getMessage());

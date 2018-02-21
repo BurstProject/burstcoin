@@ -2,7 +2,7 @@ package brs.db.store;
 
 import brs.Account;
 import brs.BlockImpl;
-import brs.TransactionImpl;
+import brs.Transaction;
 import brs.db.BurstIterator;
 
 import java.util.List;
@@ -29,12 +29,12 @@ public interface BlockchainStore {
 
   int getTransactionCount();
 
-  BurstIterator<TransactionImpl> getAllTransactions();
+  BurstIterator<Transaction> getAllTransactions();
 
-  BurstIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
+  BurstIterator<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                  int blockTimestamp, int from, int to);
 
-  BurstIterator<TransactionImpl> getTransactions(DSLContext ctx, ResultSet rs);
+  BurstIterator<Transaction> getTransactions(DSLContext ctx, ResultSet rs);
 
   boolean addBlock(BlockImpl block);
 

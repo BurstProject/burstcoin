@@ -3,8 +3,8 @@ package brs;
 import brs.schema.tables.records.TransactionRecord;
 
 import java.sql.ResultSet;
-import java.util.List;
 
+import java.util.List;
 import org.jooq.DSLContext;
 
 public interface TransactionDb {
@@ -16,12 +16,12 @@ public interface TransactionDb {
 
   boolean hasTransactionByFullHash(String fullHash);
 
-  TransactionImpl loadTransaction(TransactionRecord transactionRecord) throws BurstException.ValidationException;
+  Transaction loadTransaction(TransactionRecord transactionRecord) throws BurstException.ValidationException;
 
-  TransactionImpl loadTransaction(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException;
+  Transaction loadTransaction(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException;
 
-  List<TransactionImpl> findBlockTransactions(long blockId);
+  List<Transaction> findBlockTransactions(long blockId);
 
-  void saveTransactions(List<TransactionImpl> transactions);
+  void saveTransactions(List<Transaction> transactions);
 
 }

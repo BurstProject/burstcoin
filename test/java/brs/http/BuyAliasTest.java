@@ -13,12 +13,14 @@ import brs.Alias.Offer;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.Constants;
+import brs.Transaction;
 import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -36,6 +38,7 @@ public class BuyAliasTest extends AbstractTransactionTest {
   private Blockchain blockchain;
   private AliasService aliasService;
   private AccountService accountServiceMock;
+  private TransactionService transactionServiceMock;
 
   @Before
   public void init() {
@@ -44,8 +47,9 @@ public class BuyAliasTest extends AbstractTransactionTest {
     blockchain = mock(Blockchain.class);
     aliasService = mock(AliasService.class);
     accountServiceMock = mock(AccountService.class);
+    transactionServiceMock = mock(TransactionService.class);
 
-    t = new BuyAlias(parameterServiceMock, transactionProcessorMock, blockchain, aliasService, accountServiceMock);
+    t = new BuyAlias(parameterServiceMock, transactionProcessorMock, blockchain, aliasService, accountServiceMock, transactionServiceMock);
   }
 
   @Test

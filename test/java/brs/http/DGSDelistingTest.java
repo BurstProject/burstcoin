@@ -14,6 +14,7 @@ import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.services.AccountService;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +27,7 @@ public class DGSDelistingTest extends AbstractTransactionTest {
   private TransactionProcessor mockTransactionProcessor;
   private Blockchain mockBlockchain;
   private AccountService mockAccountService;
+  private TransactionService transactionServiceMock;
 
   @Before
   public void setUp() {
@@ -33,8 +35,9 @@ public class DGSDelistingTest extends AbstractTransactionTest {
     mockBlockchain = mock(Blockchain.class);
     mockTransactionProcessor = mock(TransactionProcessor.class);
     mockAccountService = mock(AccountService.class);
+    transactionServiceMock = mock(TransactionService.class);
 
-    t = new DGSDelisting(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService);
+    t = new DGSDelisting(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService, transactionServiceMock);
   }
 
   @Test

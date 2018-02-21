@@ -1,6 +1,5 @@
 package brs;
 
-import brs.db.DerivedTable;
 import brs.peer.Peer;
 import brs.util.Observable;
 import org.json.simple.JSONObject;
@@ -49,9 +48,9 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
 
   class TransactionNotAcceptedException extends BlockNotAcceptedException {
 
-    private final TransactionImpl transaction;
+    private final Transaction transaction;
 
-    TransactionNotAcceptedException(String message, TransactionImpl transaction) {
+    TransactionNotAcceptedException(String message, Transaction transaction) {
       super(message  + " transaction: " + transaction.getJSONObject().toJSONString());
       this.transaction = transaction;
     }

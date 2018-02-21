@@ -12,7 +12,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.math.BigInteger;
 
 import static brs.Constants.*;

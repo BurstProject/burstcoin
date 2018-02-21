@@ -23,6 +23,7 @@ import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.services.AccountService;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +36,7 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
   private TransactionProcessor mockTransactionProcessor;
   private Blockchain mockBlockchain;
   private AccountService mockAccountService;
+  private TransactionService transactionServiceMock;
 
   @Before
   public void setUp() {
@@ -42,8 +44,9 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
     mockTransactionProcessor = mock(TransactionProcessor.class);
     mockBlockchain = mock(Blockchain.class);
     mockAccountService = mock(AccountService.class);
+    transactionServiceMock = mock(TransactionService.class);
 
-    t = new DGSDelivery(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService);
+    t = new DGSDelivery(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService, transactionServiceMock);
   }
 
   @Test

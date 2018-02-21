@@ -12,6 +12,7 @@ import brs.TransactionProcessor;
 import brs.services.AccountService;
 import brs.services.OrderService;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONStreamAware;
 
@@ -21,8 +22,8 @@ public final class CancelAskOrder extends CreateTransaction {
   private final Blockchain blockchain;
   private final OrderService orderService;
 
-  public CancelAskOrder(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, OrderService orderService) {
-    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, ORDER_PARAMETER);
+  public CancelAskOrder(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, OrderService orderService, TransactionService transactionService) {
+    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, transactionService, ORDER_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
     this.orderService = orderService;

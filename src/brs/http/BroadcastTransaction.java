@@ -8,6 +8,7 @@ import static brs.http.common.ResultFields.ERROR_RESPONSE;
 import static brs.http.common.ResultFields.FULL_HASH_RESPONSE;
 import static brs.http.common.ResultFields.TRANSACTION_RESPONSE;
 
+import brs.Burst;
 import brs.BurstException;
 import brs.Transaction;
 import brs.TransactionProcessor;
@@ -41,7 +42,7 @@ public final class BroadcastTransaction extends APIServlet.APIRequestHandler {
     Transaction transaction = parameterService.parseTransaction(transactionBytes, transactionJSON);
     JSONObject response = new JSONObject();
     try {
-      transaction.validate();
+      Burst.getTransactionService().validate(transaction);
       transactionProcessor.broadcast(transaction);
       response.put(TRANSACTION_RESPONSE, transaction.getStringId());
       response.put(FULL_HASH_RESPONSE, transaction.getFullHash());

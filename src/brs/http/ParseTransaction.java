@@ -11,6 +11,7 @@ import static brs.http.common.ResultFields.VERIFY_RESPONSE;
 import brs.BurstException;
 import brs.Transaction;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -24,10 +25,12 @@ public final class ParseTransaction extends APIServlet.APIRequestHandler {
   private static final Logger logger = LoggerFactory.getLogger(ParseTransaction.class);
 
   private final ParameterService parameterService;
+  private final TransactionService transactionService;
 
-  ParseTransaction(ParameterService parameterService) {
+  ParseTransaction(ParameterService parameterService, TransactionService transactionService) {
     super(new APITag[] {APITag.TRANSACTIONS}, TRANSACTION_BYTES_PARAMETER, TRANSACTION_JSON_PARAMETER);
     this.parameterService = parameterService;
+    this.transactionService = transactionService;
   }
 
   @Override
@@ -38,7 +41,7 @@ public final class ParseTransaction extends APIServlet.APIRequestHandler {
     Transaction transaction = parameterService.parseTransaction(transactionBytes, transactionJSON);
     JSONObject response = JSONData.unconfirmedTransaction(transaction);
     try {
-      transaction.validate();
+      transactionService.validate(transaction);
     } catch (BurstException.ValidationException|RuntimeException e) {
       logger.debug(e.getMessage(), e);
       response.put(VALIDATE_RESPONSE, false);
@@ -46,7 +49,7 @@ public final class ParseTransaction extends APIServlet.APIRequestHandler {
       response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid transaction: " + e.toString());
       response.put(ERROR_RESPONSE, e.getMessage());
     }
-    response.put(VERIFY_RESPONSE, transaction.verifySignature() && transaction.verifyPublicKey());
+    response.put(VERIFY_RESPONSE, transaction.verifySignature() && transactionService.verifyPublicKey(transaction));
     return response;
   }
 
