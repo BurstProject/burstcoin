@@ -29,7 +29,7 @@ public interface EscrowService {
 
   void doPayout(DecisionType result, Block block, int blockchainHeight, Escrow escrow);
 
-  abstract boolean isIdSigner(Long id, Escrow escrow);
+  boolean isIdSigner(Long id, Escrow escrow);
 
   void saveResultTransaction(Block block, Long escrowId, Long recipientId, Long amountNQT, DecisionType decision, int blockchainHeight);
 }

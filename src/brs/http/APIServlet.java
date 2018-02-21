@@ -16,6 +16,7 @@ import brs.services.AliasService;
 import brs.services.AssetAccountService;
 import brs.services.AssetService;
 import brs.services.AssetTransferService;
+import brs.services.BlockService;
 import brs.services.DGSGoodsStoreService;
 import brs.services.EscrowService;
 import brs.services.OrderService;
@@ -51,10 +52,10 @@ public final class APIServlet extends HttpServlet {
   public APIServlet(TransactionProcessor transactionProcessor, Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
       AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
       TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService,
-      SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, TransactionService transactionService) {
+      SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, TransactionService transactionService, BlockService blockService) {
     final Map<String, APIRequestHandler> map = new HashMap<>();
 
-    map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService));
+    map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService, transactionService));
     map.put("calculateFullHash", new CalculateFullHash());
     map.put("cancelAskOrder", new CancelAskOrder(parameterService, transactionProcessor, blockchain, accountService, orderService, transactionService));
     map.put("cancelBidOrder", new CancelBidOrder(parameterService, transactionProcessor, blockchain, accountService, orderService, transactionService));
@@ -75,7 +76,7 @@ public final class APIServlet extends HttpServlet {
     map.put("generateToken", GenerateToken.instance);
     map.put("getAccount", new GetAccount(parameterService, accountService));
     map.put("getAccountBlockIds", new GetAccountBlockIds(parameterService, blockchain));
-    map.put("getAccountBlocks", new GetAccountBlocks(blockchain, parameterService));
+    map.put("getAccountBlocks", new GetAccountBlocks(blockchain, parameterService, blockService));
     map.put("getAccountId", new GetAccountId());
     map.put("getAccountPublicKey", new GetAccountPublicKey(parameterService));
     map.put("getAccountTransactionIds", new GetAccountTransactionIds(parameterService, blockchain));
@@ -92,9 +93,9 @@ public final class APIServlet extends HttpServlet {
     map.put("getAssetsByIssuer", new GetAssetsByIssuer(parameterService, assetService, tradeService, assetTransferService, assetAccountService));
     map.put("getAssetAccounts", new GetAssetAccounts(parameterService, assetService));
     map.put("getBalance", new GetBalance(parameterService));
-    map.put("getBlock", new GetBlock(blockchain));
+    map.put("getBlock", new GetBlock(blockchain, blockService));
     map.put("getBlockId", new GetBlockId(blockchain));
-    map.put("getBlocks", new GetBlocks(blockchain));
+    map.put("getBlocks", new GetBlocks(blockchain, blockService));
     map.put("getBlockchainStatus", new GetBlockchainStatus(blockchainProcessor, blockchain, timeService));
     map.put("getConstants", GetConstants.instance);
     map.put("getDGSGoods", new GetDGSGoods(digitalGoodsStoreService));
@@ -173,7 +174,7 @@ public final class APIServlet extends HttpServlet {
     if (API.enableDebugAPI) {
       map.put("clearUnconfirmedTransactions", new ClearUnconfirmedTransactions(transactionProcessor));
       map.put("fullReset", new FullReset(blockchainProcessor));
-      map.put("popOff", new PopOff(blockchainProcessor, blockchain));
+      map.put("popOff", new PopOff(blockchainProcessor, blockchain, blockService));
       map.put("scan", new Scan(blockchainProcessor, blockchain));
     }
 

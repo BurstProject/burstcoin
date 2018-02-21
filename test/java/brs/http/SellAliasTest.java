@@ -13,7 +13,6 @@ import static org.mockito.Mockito.when;
 
 import brs.Account;
 import brs.Alias;
-import brs.Block;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.TransactionProcessor;

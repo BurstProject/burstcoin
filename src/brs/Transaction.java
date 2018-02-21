@@ -18,7 +18,7 @@ public class Transaction {
 
   private static final Logger logger = LoggerFactory.getLogger(Transaction.class);
 
-  public static final class Builder {
+  public static class Builder {
 
     private final short deadline;
     private final byte[] senderPublicKey;
@@ -320,7 +320,7 @@ public class Transaction {
     return blockId;
   }
 
-  void setBlock(Block block) {
+  public void setBlock(Block block) {
     this.block = block;
     this.blockId = block.getId();
     this.height = block.getHeight();

@@ -5,7 +5,6 @@ import brs.Alias;
 import brs.Attachment;
 import brs.Block;
 import brs.Blockchain;
-import brs.Burst;
 import brs.BurstException.NotValidException;
 import brs.Constants;
 import brs.Subscription;

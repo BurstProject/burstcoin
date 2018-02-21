@@ -1,7 +1,7 @@
 package brs.db.store;
 
 import brs.Account;
-import brs.BlockImpl;
+import brs.Block;
 import brs.Transaction;
 import brs.db.BurstIterator;
 
@@ -17,15 +17,15 @@ import org.jooq.DSLContext;
 public interface BlockchainStore {
 
 
-  BurstIterator<BlockImpl> getBlocks(int from, int to);
+  BurstIterator<Block> getBlocks(int from, int to);
 
-  BurstIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to);
+  BurstIterator<Block> getBlocks(Account account, int timestamp, int from, int to);
 
-  BurstIterator<BlockImpl> getBlocks(DSLContext ctx, ResultSet rs);
+  BurstIterator<Block> getBlocks(DSLContext ctx, ResultSet rs);
 
   List<Long> getBlockIdsAfter(long blockId, int limit);
 
-  List<BlockImpl> getBlocksAfter(long blockId, int limit);
+  List<Block> getBlocksAfter(long blockId, int limit);
 
   int getTransactionCount();
 
@@ -36,7 +36,7 @@ public interface BlockchainStore {
 
   BurstIterator<Transaction> getTransactions(DSLContext ctx, ResultSet rs);
 
-  boolean addBlock(BlockImpl block);
+  boolean addBlock(Block block);
 
   void scan(int height);
 }

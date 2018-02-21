@@ -23,12 +23,12 @@ public final class BlockchainImpl implements Blockchain {
     this.bcsl = new StampedLock();
   }
 
-  private final AtomicReference<BlockImpl> lastBlock = new AtomicReference<>();
+  private final AtomicReference<Block> lastBlock = new AtomicReference<>();
 
   @Override
-  public BlockImpl getLastBlock() {
+  public Block getLastBlock() {
     long stamp = bcsl.tryOptimisticRead();
-    BlockImpl retBlock= lastBlock.get();
+    Block retBlock= lastBlock.get();
     if (!bcsl.validate(stamp)) {
       stamp = bcsl.readLock();
       try {
@@ -41,7 +41,7 @@ public final class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public void setLastBlock(BlockImpl block) {
+  public void setLastBlock(Block block) {
     long stamp = bcsl.writeLock();
     try {
       lastBlock.set(block);
@@ -50,7 +50,7 @@ public final class BlockchainImpl implements Blockchain {
     }
   }
 
-  void setLastBlock(BlockImpl previousBlock, BlockImpl block) {
+  void setLastBlock(Block previousBlock, Block block) {
     long stamp = bcsl.writeLock();
     try {
       if (! lastBlock.compareAndSet(previousBlock, block)) {
@@ -64,7 +64,7 @@ public final class BlockchainImpl implements Blockchain {
   @Override
   public int getHeight() {
     long stamp = bcsl.tryOptimisticRead();  
-    BlockImpl last = lastBlock.get();
+    Block last = lastBlock.get();
     if (!bcsl.validate(stamp)) {
       stamp = bcsl.readLock();
       try {
@@ -77,8 +77,8 @@ public final class BlockchainImpl implements Blockchain {
   }
     
   @Override
-  public BlockImpl getLastBlock(int timestamp) {
-    BlockImpl block = getSafelastBlock();
+  public Block getLastBlock(int timestamp) {
+    Block block = getSafelastBlock();
     if (timestamp >= block.getTimestamp()) {
       return block;
     }
@@ -86,17 +86,17 @@ public final class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public BlockImpl getBlock(long blockId) {
-    BlockImpl block = getSafelastBlock();
+  public Block getBlock(long blockId) {
+    Block block = getSafelastBlock();
     if (block.getId() == blockId) {
       return block;
     }
     return blockDb.findBlock(blockId);
   }
   
-  private BlockImpl getSafelastBlock() {
+  private Block getSafelastBlock() {
     long stamp = bcsl.tryOptimisticRead();
-    BlockImpl block = lastBlock.get();
+    Block block = lastBlock.get();
     if (!bcsl.validate(stamp)) {
       stamp = bcsl.readLock();
       try {
@@ -114,17 +114,17 @@ public final class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public BurstIterator<BlockImpl> getBlocks(int from, int to) {
+  public BurstIterator<Block> getBlocks(int from, int to) {
     return blockchainStore.getBlocks(from, to);
   }
 
   @Override
-  public BurstIterator<BlockImpl> getBlocks(Account account, int timestamp) {
+  public BurstIterator<Block> getBlocks(Account account, int timestamp) {
     return getBlocks(account, timestamp, 0, -1);
   }
 
   @Override
-  public BurstIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to) {
+  public BurstIterator<Block> getBlocks(Account account, int timestamp, int from, int to) {
     return blockchainStore.getBlocks(account, timestamp, from, to);
   }
 
@@ -134,7 +134,7 @@ public final class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public List<BlockImpl> getBlocksAfter(long blockId, int limit) {
+  public List<Block> getBlocksAfter(long blockId, int limit) {
     return blockchainStore.getBlocksAfter(blockId, limit);
   }
 
@@ -151,8 +151,8 @@ public final class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public BlockImpl getBlockAtHeight(int height) {
-    BlockImpl block = getSafelastBlock();
+  public Block getBlockAtHeight(int height) {
+    Block block = getSafelastBlock();
     if (height > block.getHeight()) {
       throw new IllegalArgumentException("Invalid height " + height + ", current blockchain is at " + block.getHeight());
     }

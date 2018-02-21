@@ -194,7 +194,7 @@ public final class JSONData {
     return json;
   }
 
-  static JSONObject block(Block block, boolean includeTransactions, int currentBlockchainHeight) {
+  static JSONObject block(Block block, boolean includeTransactions, int currentBlockchainHeight, long blockReward) {
     JSONObject json = new JSONObject();
     json.put(BLOCK_RESPONSE, block.getStringId());
     json.put(HEIGHT_RESPONSE, block.getHeight());
@@ -206,7 +206,7 @@ public final class JSONData {
     json.put(NUMBER_OF_TRANSACTIONS_RESPONSE, block.getTransactions().size());
     json.put(TOTAL_AMOUNT_NQT_RESPONSE, String.valueOf(block.getTotalAmountNQT()));
     json.put(TOTAL_FEE_NQT_RESPONSE, String.valueOf(block.getTotalFeeNQT()));
-    json.put(BLOCK_REWARD_RESPONSE, Convert.toUnsignedLong(block.getBlockReward() / Constants.ONE_BURST));
+    json.put(BLOCK_REWARD_RESPONSE, Convert.toUnsignedLong(blockReward / Constants.ONE_BURST));
     json.put(PAYLOAD_LENGTH_RESPONSE, block.getPayloadLength());
     json.put(VERSION_RESPONSE, block.getVersion());
     json.put(BASE_TARGET_RESPONSE, Convert.toUnsignedLong(block.getBaseTarget()));

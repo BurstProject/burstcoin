@@ -2,7 +2,6 @@ package brs.blockchainlistener;
 
 import brs.Account;
 import brs.Block;
-import brs.DigitalGoodsStore.Goods;
 import brs.DigitalGoodsStore.Purchase;
 import brs.db.BurstIterator;
 import brs.services.AccountService;

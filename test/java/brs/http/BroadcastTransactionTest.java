@@ -39,7 +39,7 @@ public class BroadcastTransactionTest {
     this.parameterServiceMock = mock(ParameterService.class);
     this.transactionServiceMock = mock(TransactionService.class);
 
-    t = new BroadcastTransaction(transactionProcessorMock, parameterServiceMock);
+    t = new BroadcastTransaction(transactionProcessorMock, parameterServiceMock, transactionServiceMock);
   }
 
   @Test

@@ -19,6 +19,7 @@ import brs.services.AliasService;
 import brs.services.AssetAccountService;
 import brs.services.AssetService;
 import brs.services.AssetTransferService;
+import brs.services.BlockService;
 import brs.services.DGSGoodsStoreService;
 import brs.services.EscrowService;
 import brs.services.OrderService;
@@ -34,6 +35,7 @@ import brs.services.impl.AliasServiceImpl;
 import brs.services.impl.AssetAccountServiceImpl;
 import brs.services.impl.AssetServiceImpl;
 import brs.services.impl.AssetTransferServiceImpl;
+import brs.services.impl.BlockServiceImpl;
 import brs.services.impl.DGSGoodsStoreServiceImpl;
 import brs.services.impl.EscrowServiceImpl;
 import brs.services.impl.OrderServiceImpl;
@@ -44,6 +46,7 @@ import brs.services.impl.TimeServiceImpl;
 import brs.services.impl.TradeServiceImpl;
 import brs.services.impl.TransactionServiceImpl;
 import brs.user.Users;
+import brs.util.DownloadCacheImpl;
 import brs.util.LoggerConfigurator;
 import brs.util.ThreadPool;
 import brs.util.Time;
@@ -215,8 +218,11 @@ public final class Burst {
       final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
       final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
-      blockchainProcessor = new BlockchainProcessorImpl(threadPool, transactionProcessor, blockchain, propertyService, subscriptionService, timeService, accountService, derivedTableManager,
-          blockDb, transactionDb, economicClustering, blockchainStore, stores, escrowService, transactionService);
+      final DownloadCacheImpl downloadCache = new DownloadCacheImpl();
+
+      final BlockService blockService = new BlockServiceImpl(accountService, transactionService, blockchain, downloadCache);
+      blockchainProcessor = new BlockchainProcessorImpl(threadPool, blockService, transactionProcessor, blockchain, propertyService, subscriptionService, timeService, accountService, derivedTableManager,
+          blockDb, transactionDb, economicClustering, blockchainStore, stores, escrowService, transactionService, downloadCache);
 
       final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,
           digitalGoodsStoreService, blockchain, blockchainProcessor, transactionProcessor, atService);
@@ -231,7 +237,7 @@ public final class Burst {
       api = new API(transactionProcessor, blockchain, blockchainProcessor, parameterService,
           accountService, aliasService, orderService, assetService, assetTransferService,
           tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
-          subscriptionService, atService, timeService, economicClustering, propertyService, threadPool, transactionService);
+          subscriptionService, atService, timeService, economicClustering, propertyService, threadPool, transactionService, blockService);
 
       users = new Users(propertyService);
       DebugTrace.init(propertyService, blockchainProcessor, tradeService, orderService, digitalGoodsStoreService);

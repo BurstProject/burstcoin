@@ -6,7 +6,7 @@ import org.json.simple.JSONObject;
 
 import java.util.List;
 
-public interface BlockchainProcessor extends Observable<Block,BlockchainProcessor.Event> {
+public interface BlockchainProcessor extends Observable<Block, BlockchainProcessor.Event> {
 
   enum Event {
     BLOCK_PUSHED, BLOCK_POPPED, BLOCK_GENERATED, BLOCK_SCANNED,
@@ -50,7 +50,7 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
 
     private final Transaction transaction;
 
-    TransactionNotAcceptedException(String message, Transaction transaction) {
+    public TransactionNotAcceptedException(String message, Transaction transaction) {
       super(message  + " transaction: " + transaction.getJSONObject().toJSONString());
       this.transaction = transaction;
     }
@@ -63,7 +63,7 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
 
   class BlockOutOfOrderException extends BlockNotAcceptedException {
 
-    BlockOutOfOrderException(String message) {
+    public BlockOutOfOrderException(String message) {
       super(message);
     }
 

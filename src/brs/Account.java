@@ -450,7 +450,7 @@ public class Account {
     listeners.notify(this, Event.UNCONFIRMED_BALANCE);
   }
 
-  void addToForgedBalanceNQT(long amountNQT) {
+  public void addToForgedBalanceNQT(long amountNQT) {
     if (amountNQT == 0) {
       return;
     }

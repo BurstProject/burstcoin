@@ -16,6 +16,7 @@ import brs.Block;
 import brs.Blockchain;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
+import brs.services.BlockService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -25,13 +26,15 @@ public class GetBlockTest {
 
   private GetBlock t;
 
-  private Blockchain mockBlockchain;
+  private Blockchain blockchainMock;
+  private BlockService blockServiceMock;
 
   @Before
   public void setUp() {
-    mockBlockchain = mock(Blockchain.class);
+    blockchainMock = mock(Blockchain.class);
+    blockServiceMock = mock(BlockService.class);
 
-    t = new GetBlock(mockBlockchain);
+    t = new GetBlock(blockchainMock, blockServiceMock);
   }
 
   @Test
@@ -44,7 +47,7 @@ public class GetBlockTest {
 
     final Block mockBlock = mock(Block.class);
 
-    when(mockBlockchain.getBlock(eq(blockId))).thenReturn(mockBlock);
+    when(blockchainMock.getBlock(eq(blockId))).thenReturn(mockBlock);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
 
@@ -70,8 +73,8 @@ public class GetBlockTest {
 
     final Block mockBlock = mock(Block.class);
 
-    when(mockBlockchain.getHeight()).thenReturn(100);
-    when(mockBlockchain.getBlockAtHeight(eq(blockHeight))).thenReturn(mockBlock);
+    when(blockchainMock.getHeight()).thenReturn(100);
+    when(blockchainMock.getBlockAtHeight(eq(blockHeight))).thenReturn(mockBlock);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
 
@@ -106,7 +109,7 @@ public class GetBlockTest {
         new MockParam(HEIGHT_PARAMETER, heightValue)
     );
 
-    when(mockBlockchain.getHeight()).thenReturn(5);
+    when(blockchainMock.getHeight()).thenReturn(5);
 
     assertEquals(INCORRECT_HEIGHT, t.processRequest(req));
   }
@@ -121,7 +124,7 @@ public class GetBlockTest {
 
     final Block mockBlock = mock(Block.class);
 
-    when(mockBlockchain.getLastBlock(eq(timestamp))).thenReturn(mockBlock);
+    when(blockchainMock.getLastBlock(eq(timestamp))).thenReturn(mockBlock);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
 

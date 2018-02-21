@@ -3,6 +3,7 @@ package brs.http;
 import brs.Block;
 import brs.Blockchain;
 import brs.http.common.Parameters;
+import brs.services.BlockService;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
 
@@ -18,9 +19,12 @@ public final class GetBlock extends APIServlet.APIRequestHandler {
 
   private final Blockchain blockchain;
 
-  GetBlock(Blockchain blockchain) {
+  private final BlockService blockService;
+
+  GetBlock(Blockchain blockchain, BlockService blockService) {
     super(new APITag[] {APITag.BLOCKS}, BLOCK_PARAMETER, HEIGHT_PARAMETER, TIMESTAMP_PARAMETER, INCLUDE_TRANSACTIONS_PARAMETER);
     this.blockchain = blockchain;
+    this.blockService = blockService;
   }
 
   @Override
@@ -66,7 +70,7 @@ public final class GetBlock extends APIServlet.APIRequestHandler {
 
     boolean includeTransactions = Parameters.isTrue(req.getParameter(INCLUDE_TRANSACTIONS_PARAMETER));
 
-    return JSONData.block(blockData, includeTransactions, blockchain.getHeight());
+    return JSONData.block(blockData, includeTransactions, blockchain.getHeight(), blockService.getBlockReward(blockData));
 
   }
 

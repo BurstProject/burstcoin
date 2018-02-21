@@ -5,7 +5,6 @@ import brs.db.BlockDb;
 import brs.db.BurstIterator;
 import brs.db.store.BlockchainStore;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import org.jooq.DSLContext;
@@ -21,7 +20,7 @@ public class SqlBlockchainStore implements BlockchainStore {
   private final BlockDb blockDb = Burst.getDbs().getBlockDb();
 
   @Override
-  public BurstIterator<BlockImpl> getBlocks(int from, int to) {
+  public BurstIterator<Block> getBlocks(int from, int to) {
     try ( DSLContext ctx = Db.getDSLContext() ) {
       int blockchainHeight = Burst.getBlockchain().getHeight();
       return
@@ -38,7 +37,7 @@ public class SqlBlockchainStore implements BlockchainStore {
   }
 
   @Override
-  public BurstIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to) {
+  public BurstIterator<Block> getBlocks(Account account, int timestamp, int from, int to) {
     try ( DSLContext ctx = Db.getDSLContext() ) {
       int blockchainHeight      = Burst.getBlockchain().getHeight();
       SelectConditionStep query = ctx.selectFrom(BLOCK).where(BLOCK.GENERATOR_ID.eq(account.getId()));
@@ -58,7 +57,7 @@ public class SqlBlockchainStore implements BlockchainStore {
   }
 
   @Override
-  public BurstIterator<BlockImpl> getBlocks(DSLContext ctx, ResultSet rs) {
+  public BurstIterator<Block> getBlocks(DSLContext ctx, ResultSet rs) {
     return new DbIterator<>(ctx, rs, blockDb::loadBlock);
   }
 
@@ -80,7 +79,7 @@ public class SqlBlockchainStore implements BlockchainStore {
   }
 
   @Override
-  public List<BlockImpl> getBlocksAfter(long blockId, int limit) {
+  public List<Block> getBlocksAfter(long blockId, int limit) {
     if (limit > 1440) {
       throw new IllegalArgumentException("Can't get more than 1440 blocks at a time");
     }
@@ -88,7 +87,7 @@ public class SqlBlockchainStore implements BlockchainStore {
       return
         ctx.selectFrom(BLOCK).where(
           BLOCK.HEIGHT.gt( ctx.select(BLOCK.HEIGHT).from(BLOCK).where(BLOCK.ID.eq(blockId) ) )
-        ).orderBy(BLOCK.HEIGHT.asc()).limit(limit).fetchInto(BlockImpl.class);
+        ).orderBy(BLOCK.HEIGHT.asc()).limit(limit).fetchInto(Block.class);
     }
     catch ( Exception e ) {
       throw new RuntimeException(e.toString(), e);
@@ -157,7 +156,7 @@ public class SqlBlockchainStore implements BlockchainStore {
   }
 
   @Override
-  public boolean addBlock(BlockImpl block) {
+  public boolean addBlock(Block block) {
     DSLContext ctx = Db.getDSLContext();
     blockDb.saveBlock(ctx, block);
     return true;

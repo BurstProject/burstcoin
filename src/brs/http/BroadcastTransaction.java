@@ -13,6 +13,7 @@ import brs.BurstException;
 import brs.Transaction;
 import brs.TransactionProcessor;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import brs.util.Convert;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,12 +27,14 @@ public final class BroadcastTransaction extends APIServlet.APIRequestHandler {
 
   private final TransactionProcessor transactionProcessor;
   private final ParameterService parameterService;
+  private final TransactionService transactionService;
 
-  public BroadcastTransaction(TransactionProcessor transactionProcessor, ParameterService parameterService) {
+  public BroadcastTransaction(TransactionProcessor transactionProcessor, ParameterService parameterService, TransactionService transactionService) {
     super(new APITag[]{APITag.TRANSACTIONS}, TRANSACTION_BYTES_PARAMETER, TRANSACTION_JSON_PARAMETER);
 
     this.transactionProcessor = transactionProcessor;
     this.parameterService = parameterService;
+    this.transactionService = transactionService;
   }
 
   @Override
@@ -42,7 +45,7 @@ public final class BroadcastTransaction extends APIServlet.APIRequestHandler {
     Transaction transaction = parameterService.parseTransaction(transactionBytes, transactionJSON);
     JSONObject response = new JSONObject();
     try {
-      Burst.getTransactionService().validate(transaction);
+      transactionService.validate(transaction);
       transactionProcessor.broadcast(transaction);
       response.put(TRANSACTION_RESPONSE, transaction.getStringId());
       response.put(FULL_HASH_RESPONSE, transaction.getFullHash());
