@@ -87,13 +87,6 @@ public class BlockServiceImpl implements BlockService {
             "Can't verify generation signature because previous block is missing");
       }
 
-      // In case the verifier-Threads are not done with this yet - do it yourself.
-      synchronized (block) {
-        if (! block.isVerified()) {
-          preVerify(block);
-        }
-      }
-
       byte[] correctGenerationSignature = generator.calculateGenerationSignature(
           previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
       if (!Arrays.equals(block.getGenerationSignature(), correctGenerationSignature)) {
