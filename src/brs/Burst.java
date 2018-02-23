@@ -206,7 +206,7 @@ public final class Burst {
       final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
       final SubscriptionService subscriptionService = new SubscriptionServiceImpl(stores.getSubscriptionStore(), transactionDb, blockchain, aliasService, accountService);
       final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(blockchain, stores.getDigitalGoodsStoreStore(), accountService);
-      final EscrowService escrowService = new EscrowServiceImpl(stores.getEscrowStore(), blockchain, aliasService);
+      final EscrowService escrowService = new EscrowServiceImpl(stores.getEscrowStore(), blockchain, aliasService, accountService);
       final TradeService tradeService = new TradeServiceImpl(stores.getTradeStore());
       final AssetAccountService assetAccountService = new AssetAccountServiceImpl(stores.getAccountStore());
       final AssetTransferService assetTransferService = new AssetTransferServiceImpl(stores.getAssetTransferStore());

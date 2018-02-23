@@ -21,6 +21,7 @@ import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
 import brs.db.sql.DbKey.LinkKeyFactory;
 import brs.db.store.EscrowStore;
+import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.EscrowService;
 import java.util.ArrayList;
@@ -38,9 +39,10 @@ public class EscrowServiceImpl implements EscrowService {
   private final EscrowStore escrowStore;
   private final Blockchain blockchain;
   private final AliasService aliasService;
+  private final AccountService accountService;
   private final List<Transaction> resultTransactions;
 
-  public EscrowServiceImpl(EscrowStore escrowStore, Blockchain blockchain, AliasService aliasService) {
+  public EscrowServiceImpl(EscrowStore escrowStore, Blockchain blockchain, AliasService aliasService, AccountService accountService) {
     this.escrowStore = escrowStore;
     this.escrowTable = escrowStore.getEscrowTable();
     this.escrowDbKeyFactory = escrowStore.getEscrowDbKeyFactory();
@@ -49,6 +51,7 @@ public class EscrowServiceImpl implements EscrowService {
     this.resultTransactions = escrowStore.getResultTransactions();
     this.blockchain = blockchain;
     this.aliasService = aliasService;
+    this.accountService = accountService;
   }
 
   @Override
@@ -226,17 +229,17 @@ public class EscrowServiceImpl implements EscrowService {
   public synchronized void doPayout(DecisionType result, Block block, int blockchainHeight, Escrow escrow) {
     switch(result) {
       case RELEASE:
-        Account.getAccount(escrow.getRecipientId()).addToBalanceAndUnconfirmedBalanceNQT(escrow.getAmountNQT());
+        accountService.getAccount(escrow.getRecipientId()).addToBalanceAndUnconfirmedBalanceNQT(escrow.getAmountNQT());
         saveResultTransaction(block, escrow.getId(), escrow.getRecipientId(), escrow.getAmountNQT(), DecisionType.RELEASE, blockchainHeight);
         break;
       case REFUND:
-        Account.getAccount(escrow.getSenderId()).addToBalanceAndUnconfirmedBalanceNQT(escrow.getAmountNQT());
+        accountService.getAccount(escrow.getSenderId()).addToBalanceAndUnconfirmedBalanceNQT(escrow.getAmountNQT());
         saveResultTransaction(block, escrow.getId(), escrow.getSenderId(), escrow.getAmountNQT(), DecisionType.REFUND, blockchainHeight);
         break;
       case SPLIT:
         Long halfAmountNQT = escrow.getAmountNQT() / 2;
-        Account.getAccount(escrow.getRecipientId()).addToBalanceAndUnconfirmedBalanceNQT(halfAmountNQT);
-        Account.getAccount(escrow.getSenderId()).addToBalanceAndUnconfirmedBalanceNQT(escrow.getAmountNQT() - halfAmountNQT);
+        accountService.getAccount(escrow.getRecipientId()).addToBalanceAndUnconfirmedBalanceNQT(halfAmountNQT);
+        accountService.getAccount(escrow.getSenderId()).addToBalanceAndUnconfirmedBalanceNQT(escrow.getAmountNQT() - halfAmountNQT);
         saveResultTransaction(block, escrow.getId(), escrow.getRecipientId(), halfAmountNQT, DecisionType.SPLIT, blockchainHeight);
         saveResultTransaction(block, escrow.getId(), escrow.getSenderId(), escrow.getAmountNQT() - halfAmountNQT, DecisionType.SPLIT, blockchainHeight);
         break;
