@@ -63,15 +63,16 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private BlockchainStore blockchainStore;
   private BlockDb blockDb;
   private TransactionDb transactionDb;
-  public DownloadCacheImpl downloadCache;
+  private DownloadCacheImpl downloadCache;
   private DerivedTableManager derivedTableManager;
+  private Generator generator;
 
   public final static int MAX_TIMESTAMP_DIFFERENCE = 15;
   private boolean oclVerify;
   private int oclUnverifiedQueue;
 
   private final Semaphore gpuUsage = new Semaphore(2);
-  
+
   private boolean trimDerivedTables;
   private volatile int lastTrimHeight;
 
@@ -105,7 +106,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       PropertyService propertyService,
       SubscriptionService subscriptionService, TimeService timeService, AccountService accountService, DerivedTableManager derivedTableManager,
       BlockDb blockDb, TransactionDb transactionDb, EconomicClustering economicClustering, BlockchainStore blockchainStore, Stores stores, EscrowService escrowService,
-      TransactionService transactionService, DownloadCacheImpl downloadCache) {
+      TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator) {
     this.blockService = blockService;
     this.transactionProcessor = transactionProcessor;
     this.timeService = timeService;
@@ -118,6 +119,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     this.blockchainStore = blockchainStore;
     this.stores = stores;
     this.downloadCache = downloadCache;
+    this.generator = generator;
 
     oclVerify = propertyService.getBooleanProperty("GPU.Acceleration"); // use GPU acceleration ?
     oclUnverifiedQueue = propertyService.getIntProperty("GPU.UnverifiedQueue") == 0 ? 1000 : propertyService.getIntProperty("GPU.UnverifiedQueue");
@@ -1179,7 +1181,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     MessageDigest digest = Crypto.sha256();
     blockTransactions.forEach(transaction -> digest.update(transaction.getBytes()));
     byte[] payloadHash = digest.digest();
-    byte[] generationSignature = Burst.getGenerator().calculateGenerationSignature(
+    byte[] generationSignature = generator.calculateGenerationSignature(
         previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
     Block block;
     byte[] previousBlockHash = Crypto.sha256().digest(previousBlock.getBytes());

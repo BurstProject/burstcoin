@@ -1,6 +1,7 @@
 package brs;
 
 import brs.AT.HandleATBlockTransactionsListener;
+import brs.GeneratorImpl.MockGeneratorImpl;
 import brs.blockchainlistener.DevNullListener;
 import brs.common.Props;
 import brs.db.BlockDb;
@@ -69,7 +70,6 @@ public final class Burst {
   private static volatile Time time = new Time.EpochTime();
   private static Stores stores;
   private static Dbs dbs;
-  private static Generator generator;
 
   private static ThreadPool threadPool;
 
@@ -142,10 +142,6 @@ public final class Burst {
     return dbs;
   }
 
-  public static Generator getGenerator() {
-    return generator;
-  }
-
   public static int getEpochTime() {
     return time.getTime();
   }
@@ -181,8 +177,6 @@ public final class Burst {
 
       stores = new Stores(derivedTableManager);
 
-
-
       final TransactionDb transactionDb = dbs.getTransactionDb();
       final BlockDb blockDb =  dbs.getBlockDb();
       final BlockchainStore blockchainStore = stores.getBlockchainStore();
@@ -199,6 +193,7 @@ public final class Burst {
 
       final TimeService timeService = new TimeServiceImpl();
 
+      final Generator generator = propertyService.getBooleanProperty("brs.mockMining") ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService);
 
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
 
@@ -220,9 +215,12 @@ public final class Burst {
 
       final DownloadCacheImpl downloadCache = new DownloadCacheImpl();
 
-      final BlockService blockService = new BlockServiceImpl(accountService, transactionService, blockchain, downloadCache);
-      blockchainProcessor = new BlockchainProcessorImpl(threadPool, blockService, transactionProcessor, blockchain, propertyService, subscriptionService, timeService, accountService, derivedTableManager,
-          blockDb, transactionDb, economicClustering, blockchainStore, stores, escrowService, transactionService, downloadCache);
+      final BlockService blockService = new BlockServiceImpl(accountService, transactionService, blockchain, downloadCache, generator);
+      blockchainProcessor = new BlockchainProcessorImpl(threadPool, blockService, transactionProcessor, blockchain, propertyService, subscriptionService,
+          timeService, accountService, derivedTableManager,
+          blockDb, transactionDb, economicClustering, blockchainStore, stores, escrowService, transactionService, downloadCache, generator);
+
+      generator.generateForBlockchainProcessor(threadPool, blockchainProcessor);
 
       final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,
           digitalGoodsStoreService, blockchain, blockchainProcessor, transactionProcessor, atService);
@@ -237,16 +235,10 @@ public final class Burst {
       api = new API(transactionProcessor, blockchain, blockchainProcessor, parameterService,
           accountService, aliasService, orderService, assetService, assetTransferService,
           tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
-          subscriptionService, atService, timeService, economicClustering, propertyService, threadPool, transactionService, blockService);
+          subscriptionService, atService, timeService, economicClustering, propertyService, threadPool, transactionService, blockService, generator);
 
       users = new Users(propertyService);
       DebugTrace.init(propertyService, blockchainProcessor, tradeService, orderService, digitalGoodsStoreService);
-
-      if (propertyService.getBooleanProperty("brs.mockMining")) {
-        generator = new GeneratorImpl.MockGeneratorImpl(blockchainProcessor);
-      } else {
-        generator = new GeneratorImpl(blockchainProcessor, blockchain, timeService, threadPool);
-      }
 
       int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(propertyService.getIntProperty(Props.TIME_MULTIPLIER), 1) : 1;
 

@@ -31,44 +31,46 @@ public final class GeneratorImpl implements Generator {
   private static final ConcurrentMap<Long, GeneratorStateImpl> generators = new ConcurrentHashMap<>();
   private static final Collection<? extends GeneratorState> allGenerators = Collections.unmodifiableCollection(generators.values());
 
-  private BlockchainProcessor blockchainProcessor;
   private Blockchain blockchain;
 
-  private final Runnable generateBlockThread = () -> {
+  private final Runnable generateBlockThread(BlockchainProcessor blockchainProcessor) {
+    return () -> {
 
-    try {
-      if (blockchainProcessor.isScanning()) {
-        return;
-      }
       try {
-        long currentBlock = blockchain.getLastBlock().getHeight();
-        Iterator<Entry<Long, GeneratorStateImpl>> it = generators.entrySet().iterator();
-        while (it.hasNext()) {
-          Entry<Long, GeneratorStateImpl> generator = it.next();
-          if (currentBlock < generator.getValue().getBlock()) {
-            generator.getValue().forge();
-          } else {
-            it.remove();
-          }
+        if (blockchainProcessor.isScanning()) {
+          return;
         }
-      } catch (BlockchainProcessor.BlockNotAcceptedException e) {
-        logger.debug("Error in block generation thread", e);
+        try {
+          long currentBlock = blockchain.getLastBlock().getHeight();
+          Iterator<Entry<Long, GeneratorStateImpl>> it = generators.entrySet().iterator();
+          while (it.hasNext()) {
+            Entry<Long, GeneratorStateImpl> generator = it.next();
+            if (currentBlock < generator.getValue().getBlock()) {
+              generator.getValue().forge(blockchainProcessor);
+            } else {
+              it.remove();
+            }
+          }
+        } catch (BlockchainProcessor.BlockNotAcceptedException e) {
+          logger.debug("Error in block generation thread", e);
+        }
+      } catch (Throwable t) {
+        logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+        System.exit(1);
       }
-    } catch (Throwable t) {
-      logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-      System.exit(1);
-    }
 
-  };
-
+    };
+  }
   private TimeService timeService;
 
-  public GeneratorImpl(BlockchainProcessor blockchainProcessor, Blockchain blockchain, TimeService timeService, ThreadPool threadPool) {
-    this.blockchainProcessor = blockchainProcessor;
+  public GeneratorImpl(Blockchain blockchain, TimeService timeService) {
     this.blockchain = blockchain;
     this.timeService = timeService;
+  }
 
-    threadPool.scheduleThread("GenerateBlocks", generateBlockThread, 500, TimeUnit.MILLISECONDS);
+  @Override
+  public void generateForBlockchainProcessor(ThreadPool threadPool, BlockchainProcessor blockchainProcessor) {
+    threadPool.scheduleThread("GenerateBlocks", generateBlockThread(blockchainProcessor), 500, TimeUnit.MILLISECONDS);
   }
 
   void clear() {
@@ -212,7 +214,7 @@ public final class GeneratorImpl implements Generator {
       return block;
     }
 
-    private void forge() throws BlockchainProcessor.BlockNotAcceptedException {
+    private void forge(BlockchainProcessor blockchainProcessor) throws BlockchainProcessor.BlockNotAcceptedException {
       Block lastBlock = blockchain.getLastBlock();
 
       int elapsedTime = timeService.getEpochTime() - lastBlock.getTimestamp();
@@ -226,9 +228,10 @@ public final class GeneratorImpl implements Generator {
 
     private final Listeners<GeneratorState, Event> listeners = new Listeners<>();
 
-    private BlockchainProcessorImpl blockchainProcessor;
+    private BlockchainProcessor blockchainProcessor;
 
-    public MockGeneratorImpl(BlockchainProcessorImpl blockchainProcessor) {
+    @Override
+    public void generateForBlockchainProcessor(ThreadPool threadPool, BlockchainProcessor blockchainProcessor) {
       this.blockchainProcessor = blockchainProcessor;
     }
 

@@ -23,4 +23,6 @@ public interface BlockService {
   boolean verifyBlockSignature(Block block) throws BlockOutOfOrderException;
 
   void apply(Block block);
+
+  int getScoopNum(Block block);
 }

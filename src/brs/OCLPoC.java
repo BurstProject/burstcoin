@@ -239,7 +239,7 @@ final class OCLPoC {
         ids[i] = buffer.getLong();
         nonces[i] = buffer.getLong();
         buffer.clear();
-        scoopNums[i] = block.getScoopNum();
+        scoopNums[i] = blockService.getScoopNum(block);
         i++;
       }
       // logger.debug("finished preprocessing: " + blocks.size());

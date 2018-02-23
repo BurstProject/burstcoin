@@ -27,14 +27,16 @@ public class BlockServiceImpl implements BlockService {
   private final TransactionService transactionService;
   private final Blockchain blockchain;
   private DownloadCacheImpl downloadCache;
+  private Generator generator;
 
   private static final Logger logger = LoggerFactory.getLogger(BlockServiceImpl.class);
 
-  public BlockServiceImpl(AccountService accountService, TransactionService transactionService, Blockchain blockchain, DownloadCacheImpl downloadCache) {
+  public BlockServiceImpl(AccountService accountService, TransactionService transactionService, Blockchain blockchain, DownloadCacheImpl downloadCache, Generator generator) {
     this.accountService = accountService;
     this.transactionService = transactionService;
     this.blockchain = blockchain;
     this.downloadCache = downloadCache;
+    this.generator = generator;
   }
 
   @Override
@@ -93,7 +95,7 @@ public class BlockServiceImpl implements BlockService {
         }
       }
 
-      byte[] correctGenerationSignature = Burst.getGenerator().calculateGenerationSignature(
+      byte[] correctGenerationSignature = generator.calculateGenerationSignature(
           previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
       if (!Arrays.equals(block.getGenerationSignature(), correctGenerationSignature)) {
         return false;
@@ -122,9 +124,9 @@ public class BlockServiceImpl implements BlockService {
     try {
       // Pre-verify poc:
       if (scoopData == null) {
-        block.setPocTime(Burst.getGenerator().calculateHit(block.getGeneratorId(), block.getNonce(), block.getGenerationSignature(), block.getScoopNum(), block.getHeight()));
+        block.setPocTime(generator.calculateHit(block.getGeneratorId(), block.getNonce(), block.getGenerationSignature(), getScoopNum(block), block.getHeight()));
       } else {
-        block.setPocTime(Burst.getGenerator().calculateHit(block.getGeneratorId(), block.getNonce(), block.getGenerationSignature(), scoopData));
+        block.setPocTime(generator.calculateHit(block.getGeneratorId(), block.getNonce(), block.getGenerationSignature(), scoopData));
       }
     } catch (RuntimeException e) {
       logger.info("Error pre-verifying block generation signature", e);
@@ -281,5 +283,10 @@ public class BlockServiceImpl implements BlockService {
       block.setBaseTarget(newBaseTarget);
       block.setCumulativeDifficulty(previousBlock.getCumulativeDifficulty().add(Convert.two64.divide(BigInteger.valueOf(newBaseTarget))));
     }
+  }
+
+  @Override
+  public int getScoopNum(Block block) {
+    return generator.calculateScoop(block.getGenerationSignature(), block.getHeight());
   }
 }

@@ -240,10 +240,6 @@ public class Block {
     return nonce;
   }
 
-  public int getScoopNum() {
-    return Burst.getGenerator().calculateScoop(generationSignature, getHeight());
-  }
-
   public boolean equals(Object o) {
     return o instanceof Block && this.getId() == ((Block) o).getId();
   }

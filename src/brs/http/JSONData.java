@@ -194,14 +194,14 @@ public final class JSONData {
     return json;
   }
 
-  static JSONObject block(Block block, boolean includeTransactions, int currentBlockchainHeight, long blockReward) {
+  static JSONObject block(Block block, boolean includeTransactions, int currentBlockchainHeight, long blockReward, int scoopNum) {
     JSONObject json = new JSONObject();
     json.put(BLOCK_RESPONSE, block.getStringId());
     json.put(HEIGHT_RESPONSE, block.getHeight());
     putAccount(json, GENERATOR_RESPONSE, block.getGeneratorId());
     json.put(GENERATOR_PUBLIC_KEY_RESPONSE, Convert.toHexString(block.getGeneratorPublicKey()));
     json.put(NONCE_RESPONSE, Convert.toUnsignedLong(block.getNonce()));
-    json.put(SCOOP_NUM_RESPONSE, block.getScoopNum());
+    json.put(SCOOP_NUM_RESPONSE, scoopNum);
     json.put(TIMESTAMP_RESPONSE, block.getTimestamp());
     json.put(NUMBER_OF_TRANSACTIONS_RESPONSE, block.getTransactions().size());
     json.put(TOTAL_AMOUNT_NQT_RESPONSE, String.valueOf(block.getTotalAmountNQT()));

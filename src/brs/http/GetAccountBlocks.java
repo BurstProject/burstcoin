@@ -48,7 +48,7 @@ public final class GetAccountBlocks extends APIServlet.APIRequestHandler {
     try (BurstIterator<? extends Block> iterator = blockchain.getBlocks(account, timestamp, firstIndex, lastIndex)) {
       while (iterator.hasNext()) {
         Block block = iterator.next();
-        blocks.add(JSONData.block(block, includeTransactions, blockchain.getHeight(), blockService.getBlockReward(block)));
+        blocks.add(JSONData.block(block, includeTransactions, blockchain.getHeight(), blockService.getBlockReward(block), blockService.getScoopNum(block)));
       }
     }
 
