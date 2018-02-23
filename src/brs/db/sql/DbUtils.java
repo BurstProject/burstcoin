@@ -31,15 +31,6 @@ public final class DbUtils {
     }
   }
 
-  public static String quoteTableName(String table) {
-    switch (Db.getDatabaseType()) {
-      case FIREBIRD:
-        return table.equalsIgnoreCase("at") ? "\"" + table.toUpperCase() + "\"" : table;
-      default:
-        return table;
-    }
-  }
-
   public static void applyLimits(SelectQuery query, int from, int to ) {
     int limit = to >= 0 && to >= from && to < Integer.MAX_VALUE ? to - from + 1 : 0;
     if (limit > 0 && from > 0) {
@@ -51,36 +42,6 @@ public final class DbUtils {
     else if (from > 0) {
       query.addOffset(from);
     }
-  }
-
-  public static String limitsClause(int from, int to) {
-    int limit = to >= 0 && to >= from && to < Integer.MAX_VALUE ? to - from + 1 : 0;
-    switch (Db.getDatabaseType()) {
-      case FIREBIRD: {
-        if (limit > 0 && from > 0) {
-          return " ROWS ? TO ? ";
-        } else if (limit > 0) {
-          return " ROWS ? ";
-        } else if (from > 0) {
-          return " ROWS ? TO ? ";
-        } else {
-          return "";
-        }
-      }
-      default: {
-        if (limit > 0 && from > 0) {
-          return " LIMIT ? OFFSET ? ";
-        } else if (limit > 0) {
-          return " LIMIT ? ";
-        } else if (from > 0) {
-          return " OFFSET ? ";
-        } else {
-          return "";
-        }
-      }
-    }
-
-
   }
 
   public static void mergeInto(DSLContext ctx, Record record, TableImpl table, Field[] keyFields) {

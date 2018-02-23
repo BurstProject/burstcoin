@@ -97,7 +97,6 @@ brs.dbPassword=yourpassword
 
 - Proof of Capacity - ASIC proof / Energy efficient mining
 - Fast sync. with multithread CPU or OpenCL/GPU (optional)
-- Even faster "Quicksync" (load/store DB dumps)
 - Turing-complete smart contracts, via Automated Transactions (AT) https://ciyam.org/at/at.html
 - Asset Exchange and Digital Goods Store
 - Advanced transactions: Escrow and Subscription
