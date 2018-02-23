@@ -96,7 +96,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
           expiredTransactions.add(iterator.next());
         }
       }
-      if (expiredTransactions.size() > 0) {
+      if (! expiredTransactions.isEmpty()) {
         try {
           stores.beginTransaction();
           expiredTransactions.forEach(this::removeUnconfirmedTransaction);
@@ -132,7 +132,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
         if (Thread.currentThread().isInterrupted()) {
           return;
         }
-        if (transactionList.size() > 0) {
+        if (! transactionList.isEmpty()) {
           Peers.rebroadcastTransactions(transactionList);
         }
       } catch (Exception e) {
@@ -159,7 +159,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       public void run() {
         try {
           try {
-              if(lostTransactions.size() > 0) {
+              if(! lostTransactions.isEmpty()) {
                 List<Transaction> reAdded = processTransactions(lostTransactions, false);
 
                 if(enableTransactionRebroadcasting && timeService.getEpochTime() - blockchain.getLastBlock().getTimestamp() < 4 * 60) {

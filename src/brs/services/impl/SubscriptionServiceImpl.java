@@ -122,7 +122,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         appliedUnconfirmedSubscriptions.add(subscription);
       }
     }
-    if (appliedUnconfirmedSubscriptions.size() > 0) {
+    if (! appliedUnconfirmedSubscriptions.isEmpty()) {
       for (Subscription subscription : appliedUnconfirmedSubscriptions) {
         totalFeeNQT = Convert.safeAdd(totalFeeNQT, getFee());
         undoUnconfirmed(subscription);

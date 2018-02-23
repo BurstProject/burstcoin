@@ -26,7 +26,6 @@ import java.sql.PreparedStatement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Arrays;
 
 import org.jooq.impl.DSL;
 import org.jooq.DSLContext;
@@ -191,8 +190,12 @@ public final class Db {
   public static void shutdown() {
     if (DATABASE_TYPE == TYPE.H2) {
       try ( Connection con = cp.getConnection(); Statement stmt = con.createStatement() ) {
-        String shutDownCommand = Burst.getBooleanProperty("Db.H2.DefragOnShutdown") ? "SHUTDOWN DEFRAG" : "SHUTDOWN";
-        stmt.execute(shutDownCommand);// COMPACT is not giving good result.
+        // COMPACT is not giving good result.
+        if(Burst.getBooleanProperty("Db.H2.DefragOnShutdown")) {
+          stmt.execute("SHUTDOWN DEFRAG");
+        } else {
+          stmt.execute("SHUTDOWN");
+        }
       }
       catch (SQLException e) {
         logger.info(e.toString(), e);

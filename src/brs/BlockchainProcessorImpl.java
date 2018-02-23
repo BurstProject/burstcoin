@@ -203,13 +203,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           int poCVersion = 1;
           int pos = 0;
           List<Block> blocks = new LinkedList<>();
-          poCVersion = downloadCache.getPoCVersion(downloadCache.GetUnverifiedBlockIdFromPos(0));
+          poCVersion = downloadCache.getPoCVersion(downloadCache.getUnverifiedBlockIdFromPos(0));
           while ((downloadCache.getUnverifiedSize() - 1) > pos && blocks.size() < OCLPoC.getMaxItems()) {
-            long blockId = downloadCache.GetUnverifiedBlockIdFromPos(pos);
+            long blockId = downloadCache.getUnverifiedBlockIdFromPos(pos);
             if (downloadCache.getPoCVersion(blockId) != poCVersion) {
               break;
             }
-            blocks.add(downloadCache.GetBlock(blockId));
+            blocks.add(downloadCache.getBlock(blockId));
             pos+=1;
           }
           
@@ -254,7 +254,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         while (true) {
           if (downloadCache.getBlockCacheSize() > 0) {
             
-            Block currentBlock = downloadCache.GetNextBlock(lastId); /* this should fetch first block in cache */
+            Block currentBlock = downloadCache.getNextBlock(lastId); /* this should fetch first block in cache */
             if (currentBlock == null) {
               break;
             }
@@ -265,7 +265,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               }
               pushBlock(currentBlock);
               lastId = currentBlock.getId();
-              downloadCache.RemoveBlock(currentBlock);
+              downloadCache.removeBlock(currentBlock);
             
             } catch (BlockNotAcceptedException e) {
               logger.error("Block not accepted", e);
@@ -305,7 +305,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (peer != null) {
       peer.blacklist(e);
     }
-    downloadCache.ResetCache();
+    downloadCache.resetCache();
     logger.debug("Blacklisted peer and cleaned queue");
   }
 
@@ -328,7 +328,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             if (!getMoreBlocks) {
               return;
             }
-            if (downloadCache.IsFull()) {
+            if (downloadCache.isFull()) {
               return;
             }
             peerHasMore = true;
@@ -382,14 +382,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             /*
              * if we did not get the last block in chain as common block we will be downloading a
-             * fork. however if it is to far off we cannot process it anyway. CanBeFork will check
+             * fork. however if it is to far off we cannot process it anyway. canBeFork will check
              * where in chain this common block is fitting and return true if it is worth to
              * continue.
              */
 
             boolean saveInCache = true;
             if (commonBlockId != cacheLastBlockId) {
-              if (downloadCache.CanBeFork(commonBlockId)) {
+              if (downloadCache.canBeFork(commonBlockId)) {
                 // the fork is not that old. Lets see if we can get more precise.
                 commonBlockId = getCommonBlockId(peer, commonBlockId);
                 if (commonBlockId == 0 || !peerHasMore) {
@@ -412,7 +412,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
 
             // download blocks from peer
-            Block lastBlock = downloadCache.GetBlock(commonBlockId);
+            Block lastBlock = downloadCache.getBlock(commonBlockId);
             if(lastBlock == null) {
               logger.info("Error: lastBlock is null");
               return;
@@ -445,7 +445,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   block.setByteLength(blockData.toString().length());
                   blockService.calculateBaseTarget(block, lastBlock);
                   if (saveInCache) {
-                    downloadCache.AddBlock(block);
+                    downloadCache.addBlock(block);
                   } else {
                     forkBlocks.add(block);
                   }
@@ -468,11 +468,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               logger.trace("Unverified blocks: " + downloadCache.getUnverifiedSize());
               logger.trace("Blocks in cache: {}", downloadCache.size());
               logger.trace("Bytes in cache: " + downloadCache.getBlockCacheSize());
-            if (forkBlocks.size() > 0) {
+            if (! forkBlocks.isEmpty()) {
               /*
                * Since we cannot rely on peers reported cumulative difficulty we do
                * a final check to see that the CumulativeDifficulty actually is bigger
-               * before we do a popOff and switch chain. 
+               * before we do a popOff and switch chain.
                */
               if(lastBlock.getCumulativeDifficulty().compareTo(curCumulativeDifficulty) < 0) {
                 logger.debug("Peer claimed to have bigger cumulative difficulty but in reality it did not. Blacklisting.");
@@ -545,7 +545,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         for (Object milestoneBlockId : milestoneBlockIds) {
           long blockId = Convert.parseUnsignedLong((String) milestoneBlockId);
 
-          if (downloadCache.HasBlock(blockId)) {
+          if (downloadCache.hasBlock(blockId)) {
             if (lastMilestoneBlockId == null && milestoneBlockIds.size() > 1) {
               peerHasMore = false;
               logger.debug("Peer dont have more (cache)");
@@ -581,7 +581,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
         for (Object nextBlockId : nextBlockIds) {
           long blockId = Convert.parseUnsignedLong((String) nextBlockId);
-          if (!downloadCache.HasBlock(blockId)) {
+          if (!downloadCache.hasBlock(blockId)) {
             return commonBlockId;
           }
           commonBlockId = blockId;
@@ -686,7 +686,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       logger.warn("Successfully switched to better chain.");
     }
     logger.warn("Forkprocessing complete.");
-    downloadCache.ResetCache(); // Reset and set cached vars to chaindata.
+    downloadCache.resetCache(); // Reset and set cached vars to chaindata.
   }
 };
 
@@ -738,7 +738,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       newBlock.setHeight(chainblock.getHeight() + 1);
       newBlock.setByteLength(newBlock.toString().length());
       blockService.calculateBaseTarget(newBlock, chainblock);
-      downloadCache.AddBlock(newBlock);
+      downloadCache.addBlock(newBlock);
     } else {
       logger.debug("Peer sent us block: " + newBlock.getPreviousBlockId()
                  + " that does not match our chain.");
@@ -940,7 +940,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     } catch (BlockNotAcceptedException | ArithmeticException e) {
       stores.rollbackTransaction();
       blockchain.setLastBlock(previousLastBlock);
-      downloadCache.ResetCache();
+      downloadCache.resetCache();
       throw e;
     } finally {
       stores.endTransaction();
@@ -1007,7 +1007,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       escrowService.updateOnBlock(block, blockchain.getHeight());
     }
     blockListeners.notify(block, Event.AFTER_BLOCK_APPLY);
-    if (block.getTransactions().size() > 0) {
+    if (! block.getTransactions().isEmpty()) {
       transactionProcessor.notifyListeners(block.getTransactions(),
           TransactionProcessor.Event.ADDED_CONFIRMED_TRANSACTIONS);
     }
@@ -1203,7 +1203,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       blockListeners.notify(block, Event.BLOCK_GENERATED);
       logger.debug("Account " + Convert.toUnsignedLong(block.getGeneratorId()) + " generated block "
           + block.getStringId() + " at height " + block.getHeight());
-      downloadCache.ResetCache();
+      downloadCache.resetCache();
     } catch (TransactionNotAcceptedException e) {
       logger.debug("Generate block failed: " + e.getMessage());
       Transaction transaction = e.getTransaction();

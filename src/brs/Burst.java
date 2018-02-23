@@ -213,7 +213,7 @@ public final class Burst {
       final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
       final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
-      final DownloadCacheImpl downloadCache = new DownloadCacheImpl();
+      final DownloadCacheImpl downloadCache = new DownloadCacheImpl(propertyService, blockchain);
 
       final BlockService blockService = new BlockServiceImpl(accountService, transactionService, blockchain, downloadCache, generator);
       blockchainProcessor = new BlockchainProcessorImpl(threadPool, blockService, transactionProcessor, blockchain, propertyService, subscriptionService,

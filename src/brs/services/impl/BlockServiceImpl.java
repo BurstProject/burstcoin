@@ -4,7 +4,6 @@ import brs.Account;
 import brs.Block;
 import brs.Blockchain;
 import brs.BlockchainProcessor;
-import brs.Burst;
 import brs.Constants;
 import brs.Generator;
 import brs.Genesis;
@@ -79,7 +78,7 @@ public class BlockServiceImpl implements BlockService {
   }
 
   @Override
-  public boolean verifyGenerationSignature(Block block) throws BlockchainProcessor.BlockNotAcceptedException {
+  public boolean verifyGenerationSignature(final Block block) throws BlockchainProcessor.BlockNotAcceptedException {
     try {
       Block previousBlock = blockchain.getBlock(block.getPreviousBlockId());
 
@@ -211,7 +210,7 @@ public class BlockServiceImpl implements BlockService {
       Block itBlock = previousBlock;
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
       do {
-        itBlock = downloadCache.GetBlock(itBlock.getPreviousBlockId());
+        itBlock = downloadCache.getBlock(itBlock.getPreviousBlockId());
         avgBaseTarget = avgBaseTarget.add(BigInteger.valueOf(itBlock.getBaseTarget()));
       } while (itBlock.getHeight() > block.getHeight() - 4);
       avgBaseTarget = avgBaseTarget.divide(BigInteger.valueOf(4));
@@ -243,7 +242,7 @@ public class BlockServiceImpl implements BlockService {
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
       int blockCounter = 1;
       do {
-        itBlock = downloadCache.GetBlock(itBlock.getPreviousBlockId());
+        itBlock = downloadCache.getBlock(itBlock.getPreviousBlockId());
         blockCounter++;
         avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter))
             .add(BigInteger.valueOf(itBlock.getBaseTarget())))
