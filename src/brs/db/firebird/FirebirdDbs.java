@@ -30,7 +30,6 @@ public class FirebirdDbs implements Dbs {
 
 
   public FirebirdDbs() {
-    FirebirdDbVersion.init();
     this.blockDb       = new SqlBlockDb();
     this.transactionDb = new SqlTransactionDb();
     this.peerDb        = new SqlPeerDb();

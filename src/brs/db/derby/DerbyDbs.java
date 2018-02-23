@@ -29,7 +29,6 @@ public class DerbyDbs implements Dbs {
   private final PeerDb peerDb;
 
   public DerbyDbs() {
-    DerbyDbVersion.init();
     this.blockDb       = new SqlBlockDb();
     this.transactionDb = new SqlTransactionDb();
     this.peerDb        = new SqlPeerDb();
