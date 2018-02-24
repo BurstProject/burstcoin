@@ -5,12 +5,11 @@ import brs.Alias;
 import brs.Attachment;
 import brs.Block;
 import brs.Blockchain;
-import brs.Burst;
 import brs.BurstException.NotValidException;
 import brs.Constants;
 import brs.Subscription;
+import brs.Transaction;
 import brs.TransactionDb;
-import brs.TransactionImpl;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
@@ -37,7 +36,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
   private final TransactionDb transactionDb;
 
-  private static final List<TransactionImpl> paymentTransactions = new ArrayList<>();
+  private static final List<Transaction> paymentTransactions = new ArrayList<>();
   private static final List<Subscription> appliedSubscriptions = new ArrayList<>();
   private static final Set<Long> removeSubscriptions = new HashSet<>();
 
@@ -123,7 +122,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         appliedUnconfirmedSubscriptions.add(subscription);
       }
     }
-    if (appliedUnconfirmedSubscriptions.size() > 0) {
+    if (! appliedUnconfirmedSubscriptions.isEmpty()) {
       for (Subscription subscription : appliedUnconfirmedSubscriptions) {
         totalFeeNQT = Convert.safeAdd(totalFeeNQT, getFee());
         undoUnconfirmed(subscription);
@@ -194,7 +193,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     recipient.addToBalanceAndUnconfirmedBalanceNQT(subscription.getAmountNQT());
 
     Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentSubscriptionPayment(subscription.getId(), blockchainHeight);
-    TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte) 1,
+    Transaction.Builder builder = new Transaction.Builder((byte) 1,
         sender.getPublicKey(), subscription.getAmountNQT(),
         getFee(),
         subscription.getTimeNext(), (short) 1440, attachment);
@@ -207,7 +206,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
           .blockTimestamp(block.getTimestamp())
           .ecBlockHeight(0)
           .ecBlockId(0L);
-      TransactionImpl transaction = builder.build();
+      Transaction transaction = builder.build();
       if (!transactionDb.hasTransaction(transaction.getId())) {
         paymentTransactions.add(transaction);
       }

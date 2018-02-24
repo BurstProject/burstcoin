@@ -16,6 +16,7 @@ import brs.common.QuickMocker;
 import brs.crypto.EncryptedData;
 import brs.services.AccountService;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,6 +29,7 @@ public class DGSFeedbackTest extends AbstractTransactionTest {
   private AccountService mockAccountService;
   private Blockchain blockchain;
   private TransactionProcessor mockTransactionProcessor;
+  private TransactionService transactionServiceMock;
 
   @Before
   public void setUp() {
@@ -35,8 +37,9 @@ public class DGSFeedbackTest extends AbstractTransactionTest {
     mockAccountService = mock(AccountService.class);
     blockchain = mock(Blockchain.class);
     mockTransactionProcessor = mock(TransactionProcessor.class);
+    transactionServiceMock = mock(TransactionService.class);
 
-    t = new DGSFeedback(mockParameterService, mockTransactionProcessor, blockchain, mockAccountService);
+    t = new DGSFeedback(mockParameterService, mockTransactionProcessor, blockchain, mockAccountService, transactionServiceMock);
   }
 
   @Test

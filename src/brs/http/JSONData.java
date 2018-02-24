@@ -194,19 +194,19 @@ public final class JSONData {
     return json;
   }
 
-  static JSONObject block(Block block, boolean includeTransactions, int currentBlockchainHeight) {
+  static JSONObject block(Block block, boolean includeTransactions, int currentBlockchainHeight, long blockReward, int scoopNum) {
     JSONObject json = new JSONObject();
     json.put(BLOCK_RESPONSE, block.getStringId());
     json.put(HEIGHT_RESPONSE, block.getHeight());
     putAccount(json, GENERATOR_RESPONSE, block.getGeneratorId());
     json.put(GENERATOR_PUBLIC_KEY_RESPONSE, Convert.toHexString(block.getGeneratorPublicKey()));
     json.put(NONCE_RESPONSE, Convert.toUnsignedLong(block.getNonce()));
-    json.put(SCOOP_NUM_RESPONSE, block.getScoopNum());
+    json.put(SCOOP_NUM_RESPONSE, scoopNum);
     json.put(TIMESTAMP_RESPONSE, block.getTimestamp());
     json.put(NUMBER_OF_TRANSACTIONS_RESPONSE, block.getTransactions().size());
     json.put(TOTAL_AMOUNT_NQT_RESPONSE, String.valueOf(block.getTotalAmountNQT()));
     json.put(TOTAL_FEE_NQT_RESPONSE, String.valueOf(block.getTotalFeeNQT()));
-    json.put(BLOCK_REWARD_RESPONSE, Convert.toUnsignedLong(block.getBlockReward() / Constants.ONE_BURST));
+    json.put(BLOCK_REWARD_RESPONSE, Convert.toUnsignedLong(blockReward / Constants.ONE_BURST));
     json.put(PAYLOAD_LENGTH_RESPONSE, block.getPayloadLength());
     json.put(VERSION_RESPONSE, block.getVersion());
     json.put(BASE_TARGET_RESPONSE, Convert.toUnsignedLong(block.getBaseTarget()));

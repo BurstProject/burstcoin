@@ -228,7 +228,7 @@ public abstract class TransactionType {
   abstract void validateAttachment(Transaction transaction) throws BurstException.ValidationException;
 
   // return false iff double spending
-  final boolean applyUnconfirmed(Transaction transaction, Account senderAccount) {
+  public final boolean applyUnconfirmed(Transaction transaction, Account senderAccount) {
     long totalAmountNQT = Convert.safeAdd(transaction.getAmountNQT(), transaction.getFeeNQT());
     if (transaction.getReferencedTransactionFullHash() != null
         && transaction.getTimestamp() > Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP) {
@@ -264,7 +264,7 @@ public abstract class TransactionType {
 
   abstract void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount);
 
-  final void undoUnconfirmed(Transaction transaction, Account senderAccount) {
+  public final void undoUnconfirmed(Transaction transaction, Account senderAccount) {
     undoAttachmentUnconfirmed(transaction, senderAccount);
     senderAccount.addToUnconfirmedBalanceNQT(Convert.safeAdd(transaction.getAmountNQT(), transaction.getFeeNQT()));
     if (transaction.getReferencedTransactionFullHash() != null
@@ -2251,7 +2251,7 @@ public abstract class TransactionType {
 
   }
 
-  long minimumFeeNQT(int height, int appendagesSize) {
+  public long minimumFeeNQT(int height, int appendagesSize) {
     if (height < BASELINE_FEE_HEIGHT) {
       return 0; // No need to validate fees before baseline block
     }

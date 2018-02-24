@@ -11,7 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
-import brs.BlockImpl;
+import brs.Block;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.common.AbstractUnitTest;
@@ -55,9 +55,9 @@ public class GetAccountBlockIdsTest extends AbstractUnitTest {
     final Account mockAccount = mock(Account.class);
 
     String mockBlockStringId = "mockBlockStringId";
-    final BlockImpl mockBlock = mock(BlockImpl.class);
+    final Block mockBlock = mock(Block.class);
     when(mockBlock.getStringId()).thenReturn(mockBlockStringId);
-    final BurstIterator<BlockImpl> mockBlocksIterator = mockBurstIterator(mockBlock);
+    final BurstIterator<Block> mockBlocksIterator = mockBurstIterator(mockBlock);
 
     when(mockParameterService.getAccount(req)).thenReturn(mockAccount);
     when(mockBlockchain.getBlocks(eq(mockAccount), eq(timestamp), eq(firstIndex), eq(lastIndex)))

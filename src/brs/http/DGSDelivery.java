@@ -22,6 +22,7 @@ import brs.crypto.EncryptedData;
 import brs.http.common.Parameters;
 import brs.services.AccountService;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONStreamAware;
@@ -32,8 +33,8 @@ public final class DGSDelivery extends CreateTransaction {
   private final AccountService accountService;
   private final Blockchain blockchain;
 
-  DGSDelivery(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
-    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService,
+  DGSDelivery(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TransactionService transactionService) {
+    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, transactionService,
         PURCHASE_PARAMETER, DISCOUNT_NQT_PARAMETER, GOODS_TO_ENCRYPT_PARAMETER, GOODS_IS_TEXT_PARAMETER, GOODS_DATA_PARAMETER, GOODS_NONCE_PARAMETER);
     this.parameterService = parameterService;
     this.accountService = accountService;

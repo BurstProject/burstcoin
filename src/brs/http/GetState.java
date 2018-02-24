@@ -31,9 +31,10 @@ public final class GetState extends APIServlet.APIRequestHandler {
   private final AliasService aliasService;
   private final TimeService timeService;
   private final AssetService assetService;
+  private final Generator generator;
 
   GetState(Blockchain blockchain, TradeService tradeService, AccountService accountService, EscrowService escrowService, OrderService orderService,
-      AssetTransferService assetTransferService, AliasService aliasService, TimeService timeService, AssetService assetService) {
+      AssetTransferService assetTransferService, AliasService aliasService, TimeService timeService, AssetService assetService, Generator generator) {
     super(new APITag[] {APITag.INFO}, INCLUDE_COUNTS_PARAMETER);
     this.blockchain = blockchain;
     this.tradeService = tradeService;
@@ -44,6 +45,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
     this.aliasService = aliasService;
     this.timeService = timeService;
     this.assetService = assetService;
+    this.generator = generator;
   }
 
   @Override
@@ -92,7 +94,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
       //response.put("numberOfVotes", Vote.getCount());
     }
     response.put("numberOfPeers", Peers.getAllPeers().size());
-    response.put("numberOfUnlockedAccounts", Burst.getGenerator().getAllGenerators().size());
+    response.put("numberOfUnlockedAccounts", generator.getAllGenerators().size());
     Peer lastBlockchainFeeder = Burst.getBlockchainProcessor().getLastBlockchainFeeder();
     response.put("lastBlockchainFeeder", lastBlockchainFeeder == null ? null : lastBlockchainFeeder.getAnnouncedAddress());
     response.put("lastBlockchainFeederHeight", Burst.getBlockchainProcessor().getLastBlockchainFeederHeight());

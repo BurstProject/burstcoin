@@ -19,27 +19,27 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
   private static final Logger logger = LoggerFactory.getLogger(SqlTransactionProcessorStore.class);
 
-  protected final DbKey.LongKeyFactory<TransactionImpl> unconfirmedTransactionDbKeyFactory = new DbKey.LongKeyFactory<TransactionImpl>("id") {
+  protected final DbKey.LongKeyFactory<Transaction> unconfirmedTransactionDbKeyFactory = new DbKey.LongKeyFactory<Transaction>("id") {
 
       @Override
-      public BurstKey newKey(TransactionImpl transaction) {
+      public BurstKey newKey(Transaction transaction) {
         return transaction.getDbKey();
       }
 
     };
-  private final Set<TransactionImpl> lostTransactions = new HashSet<>();
+  private final Set<Transaction> lostTransactions = new HashSet<>();
   private final Map<Long, Integer> lostTransactionHeights = new HashMap<>();
 
-  private final EntitySqlTable<TransactionImpl> unconfirmedTransactionTable;
+  private final EntitySqlTable<Transaction> unconfirmedTransactionTable;
 
   public SqlTransactionProcessorStore(DerivedTableManager derivedTableManager) {
-    unconfirmedTransactionTable = new EntitySqlTable<TransactionImpl>("unconfirmed_transaction", brs.schema.Tables.UNCONFIRMED_TRANSACTION, unconfirmedTransactionDbKeyFactory, derivedTableManager) {
+    unconfirmedTransactionTable = new EntitySqlTable<Transaction>("unconfirmed_transaction", brs.schema.Tables.UNCONFIRMED_TRANSACTION, unconfirmedTransactionDbKeyFactory, derivedTableManager) {
 
       @Override
-      protected TransactionImpl load(DSLContext ctx, ResultSet rs) throws SQLException {
+      protected Transaction load(DSLContext ctx, ResultSet rs) throws SQLException {
         byte[] transactionBytes = rs.getBytes("transaction_bytes");
         try {
-          TransactionImpl transaction = TransactionImpl.parseTransaction(transactionBytes);
+          Transaction transaction = Transaction.parseTransaction(transactionBytes);
           transaction.setHeight(rs.getInt("transaction_height"));
           return transaction;
         } catch (BurstException.ValidationException e) {
@@ -48,7 +48,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
       }
 
       @Override
-      protected void save(DSLContext ctx, TransactionImpl transaction) {
+      protected void save(DSLContext ctx, Transaction transaction) {
         ctx.insertInto(
             UNCONFIRMED_TRANSACTION,
             UNCONFIRMED_TRANSACTION.ID, UNCONFIRMED_TRANSACTION.TRANSACTION_HEIGHT, UNCONFIRMED_TRANSACTION.FEE_PER_BYTE,
@@ -63,7 +63,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
       @Override
       public void rollback(int height) {
-        List<TransactionImpl> transactions = new ArrayList<>();
+        List<Transaction> transactions = new ArrayList<>();
         try (DSLContext ctx = Db.getDSLContext()) {
           try (ResultSet rs = ctx.selectFrom(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.HEIGHT.gt(height)).fetchResultSet()) {
             while (rs.next()) {
@@ -92,19 +92,19 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
   // WATCH: BUSINESS-LOGIC
   @Override
-  public void processLater(Collection<TransactionImpl> transactions) {
+  public void processLater(Collection<Transaction> transactions) {
     synchronized (Burst.getBlockchain()) {
       lostTransactions.addAll(transactions);
     }
   }
 
   @Override
-  public DbKey.LongKeyFactory<TransactionImpl> getUnconfirmedTransactionDbKeyFactory() {
+  public DbKey.LongKeyFactory<Transaction> getUnconfirmedTransactionDbKeyFactory() {
     return unconfirmedTransactionDbKeyFactory;
   }
 
   @Override
-  public Set<TransactionImpl> getLostTransactions() {
+  public Set<Transaction> getLostTransactions() {
     return lostTransactions;
   }
 
@@ -114,12 +114,12 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
   }
 
   @Override
-  public EntitySqlTable<TransactionImpl> getUnconfirmedTransactionTable() {
+  public EntitySqlTable<Transaction> getUnconfirmedTransactionTable() {
     return unconfirmedTransactionTable;
   }
 
   @Override
-  public BurstIterator<TransactionImpl> getExpiredTransactions() {
+  public BurstIterator<Transaction> getExpiredTransactions() {
     DSLContext ctx = Db.getDSLContext();
     return unconfirmedTransactionTable.getManyBy(
       ctx,

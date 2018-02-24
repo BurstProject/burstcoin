@@ -14,6 +14,7 @@ import brs.TransactionProcessor;
 import brs.services.AccountService;
 import brs.services.EscrowService;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -26,8 +27,8 @@ public final class EscrowSign extends CreateTransaction {
   private final EscrowService escrowService;
   private final Blockchain blockchain;
 	
-  EscrowSign(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, EscrowService escrowService) {
-    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, ESCROW_PARAMETER, DECISION_PARAMETER);
+  EscrowSign(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, EscrowService escrowService, TransactionService transactionService) {
+    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, transactionService, ESCROW_PARAMETER, DECISION_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
     this.escrowService = escrowService;

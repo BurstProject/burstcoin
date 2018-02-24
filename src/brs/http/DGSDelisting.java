@@ -11,6 +11,7 @@ import brs.DigitalGoodsStore;
 import brs.TransactionProcessor;
 import brs.services.AccountService;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONStreamAware;
 
@@ -19,8 +20,8 @@ public final class DGSDelisting extends CreateTransaction {
   private final ParameterService parameterService;
   private final Blockchain blockchain;
 
-  public DGSDelisting(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
-    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, GOODS_PARAMETER);
+  public DGSDelisting(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TransactionService transactionService) {
+    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, transactionService, GOODS_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
   }

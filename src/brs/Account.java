@@ -337,11 +337,11 @@ public class Account {
   // this.publicKey is set to null (in which case this.publicKey also gets set to key)
   // or
   // this.publicKey is already set to an array equal to key
-  boolean setOrVerify(byte[] key, int height) {
+  public boolean setOrVerify(byte[] key, int height) {
     return Burst.getStores().getAccountStore().setOrVerify(this, key, height);
   }
 
-  void apply(byte[] key, int height) {
+  public void apply(byte[] key, int height) {
     if (!setOrVerify(key, this.creationHeight)) {
       throw new IllegalStateException("Public key mismatch");
     }
@@ -450,7 +450,7 @@ public class Account {
     listeners.notify(this, Event.UNCONFIRMED_BALANCE);
   }
 
-  void addToForgedBalanceNQT(long amountNQT) {
+  public void addToForgedBalanceNQT(long amountNQT) {
     if (amountNQT == 0) {
       return;
     }

@@ -12,9 +12,6 @@ function usage() {
     cat << EOF
 usage: $0 [command] [arguments]
 
-  load       [filename or url]  quick import by loading a binary dump
-  loadsilent [filename or url]  quick import by loading a binary dump without interaction
-  dump       [filename]         create a binary dump usable for doing a quick import
   h2shell                       open a H2 shell for DB manipulation
   help                          shows the help you just read
   compile                       compile jar and create docs using maven
@@ -101,18 +98,6 @@ fi
 
 if [[ $# -gt 0 ]] ; then
     case "$MY_CMD" in
-        "load")
-            maybe_load_dump_usage
-            java -cp burst.jar:conf brs.db.quicksync.LoadBinDump "$MY_ARG"
-            ;;
-        "loadsilent")
-            maybe_load_dump_usage
-            java -cp burst.jar:conf brs.db.quicksync.LoadBinDump "$MY_ARG" -y
-            ;;
-        "dump")
-            maybe_load_dump_usage
-            java -cp burst.jar:conf brs.db.quicksync.CreateBinDump "$MY_ARG"
-            ;;
         "compile")
             if [ -d "maven/apache-maven-${MY_MAVEN_VERSION}" ]; then
                 PATH=maven/apache-maven-${MY_MAVEN_VERSION}/bin:$PATH

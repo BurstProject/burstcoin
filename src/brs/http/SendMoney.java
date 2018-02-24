@@ -9,6 +9,7 @@ import brs.BurstException;
 import brs.TransactionProcessor;
 import brs.services.AccountService;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONStreamAware;
 
@@ -16,8 +17,8 @@ public final class SendMoney extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  SendMoney(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
-    super(new APITag[]{APITag.ACCOUNTS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER);
+  SendMoney(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TransactionService transactionService) {
+    super(new APITag[]{APITag.ACCOUNTS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, transactionService, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER);
     this.parameterService = parameterService;
   }
 

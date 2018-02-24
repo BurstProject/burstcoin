@@ -18,6 +18,7 @@ import brs.common.QuickMocker.MockParam;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +32,7 @@ public class SetAliasTest extends AbstractTransactionTest {
   private Blockchain blockchainMock;
   private AccountService accountServiceMock;
   private AliasService aliasServiceMock;
+  private TransactionService transactionServiceMock;
 
   @Before
   public void setUp() {
@@ -39,8 +41,9 @@ public class SetAliasTest extends AbstractTransactionTest {
     blockchainMock = mock(Blockchain.class);
     accountServiceMock = mock(AccountService.class);
     aliasServiceMock = mock(AliasService.class);
+    transactionServiceMock = mock(TransactionService.class);
 
-    t = new SetAlias(parameterServiceMock, transactionProcessorMock, blockchainMock, accountServiceMock, aliasServiceMock);
+    t = new SetAlias(parameterServiceMock, transactionProcessorMock, blockchainMock, accountServiceMock, aliasServiceMock, transactionServiceMock);
   }
 
   @Test

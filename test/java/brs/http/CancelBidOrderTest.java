@@ -17,9 +17,11 @@ import brs.common.QuickMocker.MockParam;
 import brs.services.AccountService;
 import brs.services.OrderService;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class CancelBidOrderTest extends AbstractTransactionTest {
 
@@ -30,6 +32,7 @@ public class CancelBidOrderTest extends AbstractTransactionTest {
   private Blockchain blockchainMock;
   private AccountService accountServiceMock;
   private OrderService orderServiceMock;
+  private TransactionService transactionServiceMock;
 
   @Before
   public void setUp() {
@@ -38,8 +41,9 @@ public class CancelBidOrderTest extends AbstractTransactionTest {
     blockchainMock = mock(Blockchain.class);
     accountServiceMock = mock(AccountService.class);
     orderServiceMock = mock(OrderService.class);
+    transactionServiceMock = Mockito.mock(TransactionService.class);
 
-    t = new CancelBidOrder(parameterServiceMock, transactionProcessorMock, blockchainMock, accountServiceMock, orderServiceMock);
+    t = new CancelBidOrder(parameterServiceMock, transactionProcessorMock, blockchainMock, accountServiceMock, orderServiceMock, transactionServiceMock);
   }
 
   @Test

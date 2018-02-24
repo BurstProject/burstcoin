@@ -7,6 +7,7 @@ import brs.BurstException;
 import brs.TransactionProcessor;
 import brs.services.AccountService;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -26,8 +27,8 @@ public final class LeaseBalance extends CreateTransaction {
   private final AccountService accountService;
   private final Blockchain blockchain;
 
-  LeaseBalance(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
-    super(new APITag[] {APITag.FORGING}, parameterService, transactionProcessor, blockchain, accountService, PERIOD_PARAMETER, RECIPIENT_PARAMETER);
+  LeaseBalance(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TransactionService transactionService) {
+    super(new APITag[] {APITag.FORGING}, parameterService, transactionProcessor, blockchain, accountService, transactionService, PERIOD_PARAMETER, RECIPIENT_PARAMETER);
     this.parameterService = parameterService;
     this.accountService = accountService;
     this.blockchain = blockchain;

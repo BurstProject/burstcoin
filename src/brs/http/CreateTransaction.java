@@ -6,6 +6,7 @@ import brs.crypto.EncryptedData;
 import brs.http.common.Parameters;
 import brs.services.AccountService;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -56,6 +57,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
   private final TransactionProcessor transactionProcessor;
   private final Blockchain blockchain;
   private final AccountService accountService;
+  private final TransactionService transactionService;
 
   private static String[] addCommonParameters(String[] parameters) {
     String[] result = Arrays.copyOf(parameters, parameters.length + commonParameters.length);
@@ -63,13 +65,14 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
     return result;
   }
 
-  CreateTransaction(APITag[] apiTags, ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService,
+  CreateTransaction(APITag[] apiTags, ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TransactionService transactionService,
       String... parameters) {
     super(apiTags, addCommonParameters(parameters));
     this.parameterService = parameterService;
     this.transactionProcessor = transactionProcessor;
     this.blockchain = blockchain;
     this.accountService = accountService;
+    this.transactionService = transactionService;
   }
 
   final JSONStreamAware createTransaction(HttpServletRequest req, Account senderAccount, Attachment attachment)
@@ -187,11 +190,11 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         builder.encryptToSelfMessage(encryptToSelfMessage);
       }
       Transaction transaction = builder.build();
-      transaction.validate();
+      transactionService.validate(transaction);
 
       if (secretPhrase != null) {
         transaction.sign(secretPhrase);
-        transaction.validate(); // 2nd validate may be needed if validation requires id to be known
+        transactionService.validate(transaction); // 2nd validate may be needed if validation requires id to be known
         response.put(TRANSACTION_RESPONSE, transaction.getStringId());
         response.put(FULL_HASH_RESPONSE, transaction.getFullHash());
         response.put(TRANSACTION_BYTES_RESPONSE, Convert.toHexString(transaction.getBytes()));

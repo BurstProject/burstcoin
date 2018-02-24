@@ -11,13 +11,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
-import brs.BlockImpl;
+import brs.Block;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
+import brs.services.BlockService;
 import brs.services.ParameterService;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
@@ -27,20 +28,22 @@ import org.junit.Before;
 import org.junit.Test;
 import org.powermock.core.classloader.annotations.SuppressStaticInitializationFor;
 
-@SuppressStaticInitializationFor("brs.BlockImpl")
+@SuppressStaticInitializationFor("brs.Block")
 public class GetAccountBlocksTest extends AbstractUnitTest {
 
   private GetAccountBlocks t;
 
-  private Blockchain mockBlockchain;
-  private ParameterService mockParameterService;
+  private Blockchain blockchainMock;
+  private ParameterService parameterServiceMock;
+  private BlockService blockServiceMock;
 
   @Before
   public void setUp() {
-    mockBlockchain = mock(Blockchain.class);
-    mockParameterService = mock(ParameterService.class);
+    blockchainMock = mock(Blockchain.class);
+    parameterServiceMock = mock(ParameterService.class);
+    blockServiceMock = mock(BlockService.class);
 
-    t = new GetAccountBlocks(mockBlockchain, mockParameterService);
+    t = new GetAccountBlocks(blockchainMock, parameterServiceMock, blockServiceMock);
   }
 
   @Test
@@ -56,13 +59,13 @@ public class GetAccountBlocksTest extends AbstractUnitTest {
     );
 
     final Account mockAccount = mock(Account.class);
-    final BlockImpl mockBlock = mock(BlockImpl.class);
+    final Block mockBlock = mock(Block.class);
 
 
-    when(mockParameterService.getAccount(req)).thenReturn(mockAccount);
+    when(parameterServiceMock.getAccount(req)).thenReturn(mockAccount);
 
-    final BurstIterator<BlockImpl> mockBlockIterator = mockBurstIterator(Arrays.asList(mockBlock));
-    when(mockBlockchain.getBlocks(eq(mockAccount), eq(mockTimestamp), eq(mockFirstIndex), eq(mockLastIndex))).thenReturn(mockBlockIterator);
+    final BurstIterator<Block> mockBlockIterator = mockBurstIterator(Arrays.asList(mockBlock));
+    when(blockchainMock.getBlocks(eq(mockAccount), eq(mockTimestamp), eq(mockFirstIndex), eq(mockLastIndex))).thenReturn(mockBlockIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
 

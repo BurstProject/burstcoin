@@ -4,6 +4,7 @@ import brs.BurstException;
 import brs.Transaction;
 import brs.crypto.Crypto;
 import brs.services.ParameterService;
+import brs.services.TransactionService;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -31,10 +32,12 @@ public final class SignTransaction extends APIServlet.APIRequestHandler {
   private static final Logger logger = LoggerFactory.getLogger(SignTransaction.class);
 
   private final ParameterService parameterService;
+  private final TransactionService transactionService;
 
-  SignTransaction(ParameterService parameterService) {
+  SignTransaction(ParameterService parameterService, TransactionService transactionService) {
     super(new APITag[] {APITag.TRANSACTIONS}, UNSIGNED_TRANSACTION_BYTES_PARAMETER, UNSIGNED_TRANSACTION_JSON_PARAMETER, SECRET_PHRASE_PARAMETER);
     this.parameterService = parameterService;
+    this.transactionService = transactionService;
   }
 
   @Override
@@ -51,7 +54,7 @@ public final class SignTransaction extends APIServlet.APIRequestHandler {
 
     JSONObject response = new JSONObject();
     try {
-      transaction.validate();
+      transactionService.validate(transaction);
       if (transaction.getSignature() != null) {
         response.put(ERROR_CODE_RESPONSE, 4);
         response.put(ERROR_DESCRIPTION_RESPONSE, "Incorrect unsigned transaction - already signed");
@@ -67,7 +70,7 @@ public final class SignTransaction extends APIServlet.APIRequestHandler {
       response.put(FULL_HASH_RESPONSE, transaction.getFullHash());
       response.put(TRANSACTION_BYTES_RESPONSE, Convert.toHexString(transaction.getBytes()));
       response.put(SIGNATURE_HASH_RESPONSE, Convert.toHexString(Crypto.sha256().digest(transaction.getSignature())));
-      response.put(VERIFY_RESPONSE, transaction.verifySignature() && transaction.verifyPublicKey());
+      response.put(VERIFY_RESPONSE, transaction.verifySignature() && transactionService.verifyPublicKey(transaction));
     } catch (BurstException.ValidationException|RuntimeException e) {
       logger.debug(e.getMessage(), e);
       response.put(ERROR_CODE_RESPONSE, 4);

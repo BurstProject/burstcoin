@@ -19,6 +19,7 @@ import brs.TransactionProcessor;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.services.TimeService;
+import brs.services.TransactionService;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONStreamAware;
@@ -30,9 +31,9 @@ public final class DGSPurchase extends CreateTransaction {
   private AccountService accountService;
   private TimeService timeService;
 
-  DGSPurchase(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TimeService timeService) {
+  DGSPurchase(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TimeService timeService, TransactionService transactionService) {
     super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION},
-        parameterService, transactionProcessor, blockchain, accountService, GOODS_PARAMETER, PRICE_NQT_PARAMETER, QUANTITY_PARAMETER, DELIVERY_DEADLINE_TIMESTAMP_PARAMETER);
+        parameterService, transactionProcessor, blockchain, accountService, transactionService, GOODS_PARAMETER, PRICE_NQT_PARAMETER, QUANTITY_PARAMETER, DELIVERY_DEADLINE_TIMESTAMP_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
     this.accountService = accountService;

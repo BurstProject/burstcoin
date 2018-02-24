@@ -13,6 +13,7 @@ import brs.TransactionProcessor;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.services.SubscriptionService;
+import brs.services.TransactionService;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
@@ -25,8 +26,8 @@ public final class SubscriptionCancel extends CreateTransaction {
   private final Blockchain blockchain;
 
   public SubscriptionCancel(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService,
-      SubscriptionService subscriptionService) {
-    super(new APITag[]{APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, SUBSCRIPTION_PARAMETER);
+      SubscriptionService subscriptionService, TransactionService transactionService) {
+    super(new APITag[]{APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, transactionService, SUBSCRIPTION_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
     this.subscriptionService = subscriptionService;

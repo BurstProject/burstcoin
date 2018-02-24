@@ -23,6 +23,7 @@ import brs.common.QuickMocker.MockParam;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.services.TimeService;
+import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +37,7 @@ public class DGSPurchaseTest extends AbstractTransactionTest {
   private AccountService mockAccountService;
   private TransactionProcessor mockTransactionProcessor;
   private TimeService mockTimeService;
+  private TransactionService transactionServiceMock;
 
   @Before
   public void setUp() {
@@ -44,8 +46,9 @@ public class DGSPurchaseTest extends AbstractTransactionTest {
     mockAccountService = mock(AccountService.class);
     mockTransactionProcessor = mock(TransactionProcessor.class);
     mockTimeService = mock(TimeService.class);
+    transactionServiceMock = mock(TransactionService.class);
 
-    t = new DGSPurchase(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService, mockTimeService);
+    t = new DGSPurchase(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService, mockTimeService, transactionServiceMock);
   }
 
   @Test

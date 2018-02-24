@@ -33,6 +33,8 @@ import static org.jocl.CL.clReleaseMemObject;
 import static org.jocl.CL.clReleaseProgram;
 import static org.jocl.CL.clSetKernelArg;
 import static org.jocl.CL.setExceptionsEnabled;
+
+import brs.services.BlockService;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -206,7 +208,7 @@ final class OCLPoC {
     return maxItems;
   }
 
-  public static void validatePoC(Collection<BlockImpl> blocks, int PoCVersion, Generator generator) {
+  public static void validatePoC(Collection<Block> blocks, int PoCVersion, BlockService blockService) {
     try {
       // logger.debug("starting ocl verify for: " + blocks.size());
 
@@ -228,7 +230,7 @@ final class OCLPoC {
 
       ByteBuffer buffer = ByteBuffer.allocate(16);
       int i = 0;
-      for (BlockImpl block : blocks) {
+      for (Block block : blocks) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putLong(block.getGeneratorId());
         buffer.putLong(block.getNonce());
@@ -237,7 +239,7 @@ final class OCLPoC {
         ids[i] = buffer.getLong();
         nonces[i] = buffer.getLong();
         buffer.clear();
-        scoopNums[i] = block.getScoopNum();
+        scoopNums[i] = blockService.getScoopNum(block);
         i++;
       }
       // logger.debug("finished preprocessing: " + blocks.size());
@@ -335,7 +337,7 @@ final class OCLPoC {
       blocks.forEach((block) -> {
         try {
           scoopsBuffer.get(scoop);
-          block.preVerify(scoop, generator);
+          blockService.preVerify(block, scoop);
         } catch (BlockchainProcessor.BlockNotAcceptedException e) {
           throw new PreValidateFailException("Block failed to prevalidate", e, block);
         }
@@ -510,19 +512,19 @@ final class OCLPoC {
   }
 
   public static class PreValidateFailException extends RuntimeException {
-    final BlockImpl block;
+    final Block block;
 
-    PreValidateFailException(String message, BlockImpl block) {
+    PreValidateFailException(String message, Block block) {
       super(message);
       this.block = block;
     }
 
-    PreValidateFailException(String message, Throwable cause, BlockImpl block) {
+    PreValidateFailException(String message, Throwable cause, Block block) {
       super(message, cause);
       this.block = block;
     }
 
-    public BlockImpl getBlock() {
+    public Block getBlock() {
       return block;
     }
   }

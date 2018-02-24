@@ -52,7 +52,7 @@ public class SqlTransactionDb implements TransactionDb {
   }
 
   @Override
-  public TransactionImpl loadTransaction(TransactionRecord tr) throws BurstException.ValidationException {
+  public Transaction loadTransaction(TransactionRecord tr) throws BurstException.ValidationException {
     if (tr == null) {
       return null;
     }
@@ -64,7 +64,7 @@ public class SqlTransactionDb implements TransactionDb {
     }
 
     TransactionType transactionType = TransactionType.findTransactionType(tr.getType(), tr.getSubtype());
-    TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl(tr.getVersion(), tr.getSenderPublicKey(),
+    Transaction.Builder builder = new Transaction.Builder(tr.getVersion(), tr.getSenderPublicKey(),
             tr.getAmount(), tr.getFee(), tr.getTimestamp(), tr.getDeadline(),
             transactionType.parseAttachment(buffer, tr.getVersion()))
             .referencedTransactionFullHash(tr.getReferencedTransactionFullhash())
@@ -99,7 +99,7 @@ public class SqlTransactionDb implements TransactionDb {
   }
 
   @Override
-  public TransactionImpl loadTransaction(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException {
+  public Transaction loadTransaction(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException {
     // TODO: remove this method once SqlBlockchainStore no longer requires it
     try {
 
@@ -130,7 +130,7 @@ public class SqlTransactionDb implements TransactionDb {
       }
 
       TransactionType transactionType = TransactionType.findTransactionType(type, subtype);
-      TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl(version, senderPublicKey,
+      Transaction.Builder builder = new Transaction.Builder(version, senderPublicKey,
               amountNQT, feeNQT, timestamp, deadline,
               transactionType.parseAttachment(buffer, version))
               .referencedTransactionFullHash(referencedTransactionFullHash)
@@ -172,11 +172,11 @@ public class SqlTransactionDb implements TransactionDb {
   }
 
   @Override
-  public List<TransactionImpl> findBlockTransactions(long blockId) {
+  public List<Transaction> findBlockTransactions(long blockId) {
     try (DSLContext ctx = Db.getDSLContext();
          Cursor<TransactionRecord> transactionRecords = ctx.selectFrom(TRANSACTION).
                  where(TRANSACTION.BLOCK_ID.eq(blockId)).fetchLazy()) {
-      List<TransactionImpl> list = new ArrayList<>();
+      List<Transaction> list = new ArrayList<>();
       for (TransactionRecord transactionRecord : transactionRecords) {
         list.add(loadTransaction(transactionRecord));
       }
@@ -204,7 +204,7 @@ public class SqlTransactionDb implements TransactionDb {
     }
   }
 
-  public void saveTransactions(List<TransactionImpl> transactions) {
+  public void saveTransactions(List<Transaction> transactions) {
     if ( transactions.size() > 0 ) {
       try (DSLContext ctx = Db.getDSLContext()) {
         BatchBindStep insertBatch = ctx.batch(
@@ -221,7 +221,7 @@ public class SqlTransactionDb implements TransactionDb {
                 .values((Long) null, null, null, null, null, null, null, null, null, null, null,
                     null, null,
                     null, null, null, null, null, null, null, null, null, null, null));
-        for (TransactionImpl transaction : transactions) {
+        for (Transaction transaction : transactions) {
           insertBatch = insertBatch.bind(
               transaction.getId(),
               transaction.getDeadline(),

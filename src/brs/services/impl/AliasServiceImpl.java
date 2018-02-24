@@ -3,7 +3,6 @@ package brs.services.impl;
 import brs.Alias;
 import brs.Alias.Offer;
 import brs.Attachment;
-import brs.Burst;
 import brs.Transaction;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;

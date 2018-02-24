@@ -12,6 +12,7 @@ import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
 import brs.db.store.EscrowStore;
+import brs.services.AccountService;
 import brs.services.AliasService;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,8 +24,9 @@ public class EscrowServiceImplTest {
   private EscrowStore mockEscrowStore;
   private VersionedEntityTable<Escrow> mockEscrowTable;
   private LongKeyFactory<Escrow> mockEscrowDbKeyFactory;
-  private Blockchain blockchain;
-  private AliasService aliasService;
+  private Blockchain blockchainMock;
+  private AliasService aliasServiceMock;
+  private AccountService accountServiceMock;
 
   @Before
   public void setUp() {
@@ -32,10 +34,14 @@ public class EscrowServiceImplTest {
     mockEscrowTable = mock(VersionedEntityTable.class);
     mockEscrowDbKeyFactory = mock(LongKeyFactory.class);
 
+    blockchainMock = mock(Blockchain.class);
+    aliasServiceMock = mock(AliasService.class);
+    accountServiceMock = mock(AccountService.class);
+
     when(mockEscrowStore.getEscrowTable()).thenReturn(mockEscrowTable);
     when(mockEscrowStore.getEscrowDbKeyFactory()).thenReturn(mockEscrowDbKeyFactory);
 
-    t = new EscrowServiceImpl(mockEscrowStore, blockchain, aliasService);
+    t = new EscrowServiceImpl(mockEscrowStore, blockchainMock, aliasServiceMock, accountServiceMock);
   }
 
 

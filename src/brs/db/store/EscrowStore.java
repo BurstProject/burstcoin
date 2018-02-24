@@ -1,12 +1,11 @@
 package brs.db.store;
 
 import brs.Escrow;
-import brs.TransactionImpl;
+import brs.Transaction;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.sql.DbKey;
-
 import java.util.Collection;
 import java.util.List;
 
@@ -22,7 +21,7 @@ public interface EscrowStore {
 
   Collection<Escrow> getEscrowTransactionsByParticipant(Long accountId);
 
-  List<TransactionImpl> getResultTransactions();
+  List<Transaction> getResultTransactions();
 
   BurstIterator<Escrow.Decision> getDecisions(Long id);
 }
