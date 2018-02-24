@@ -48,7 +48,6 @@ import brs.services.impl.SubscriptionServiceImpl;
 import brs.services.impl.TimeServiceImpl;
 import brs.services.impl.TradeServiceImpl;
 import brs.services.impl.TransactionServiceImpl;
-import brs.user.Users;
 import brs.util.DownloadCacheImpl;
 import brs.util.LoggerConfigurator;
 import brs.util.ThreadPool;
@@ -83,7 +82,6 @@ public final class Burst {
   private static EconomicClustering economicClustering;
 
   private static API api;
-  private static Users users;
 
   private static PropertyService loadProperties() {
     final Properties defaultProperties = new Properties();
@@ -242,7 +240,6 @@ public final class Burst {
           tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
           subscriptionService, atService, timeService, economicClustering, propertyService, threadPool, transactionService, blockService, generator, apiTransactionManager);
 
-      users = new Users(propertyService);
       DebugTrace.init(propertyService, blockchainProcessor, tradeService, orderService, digitalGoodsStoreService);
 
       int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(propertyService.getInt(Props.TIME_MULTIPLIER), 1) : 1;
@@ -279,7 +276,6 @@ public final class Burst {
   public static void shutdown() {
     logger.info("Shutting down...");
     api.shutdown();
-    users.shutdown();
     Peers.shutdown(threadPool);
     threadPool.shutdown();
     Db.shutdown();
