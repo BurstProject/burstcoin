@@ -59,7 +59,7 @@ public final class API {
       AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
       TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService,
       SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService,
-      ThreadPool threadPool, TransactionService transactionService, BlockService blockService, Generator generator) {
+      ThreadPool threadPool, TransactionService transactionService, BlockService blockService, Generator generator, APITransactionManager apiTransactionManager) {
     enableDebugAPI = propertyService.getBoolean(Props.API_DEBUG);
     List<String> allowedBotHostsList = propertyService.getStringList(Props.BRS_ALLOWED_BOT_HOSTS);
     if (!allowedBotHostsList.contains("*")) {
@@ -140,7 +140,7 @@ public final class API {
       ServletHolder peerServletHolder = new ServletHolder(new APIServlet(transactionProcessor, blockchain, blockchainProcessor, parameterService,
           accountService, aliasService, orderService, assetService, assetTransferService,
           tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
-          subscriptionService, atService, timeService, economicClustering, transactionService, blockService, generator, propertyService));
+          subscriptionService, atService, timeService, economicClustering, transactionService, blockService, generator, propertyService, apiTransactionManager));
       apiHandler.addServlet(peerServletHolder, "/burst");
 
       if (propertyService.getBoolean("JETTY.API.GzipFilter")) {

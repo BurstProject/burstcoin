@@ -27,8 +27,8 @@ public final class EscrowSign extends CreateTransaction {
   private final EscrowService escrowService;
   private final Blockchain blockchain;
 	
-  EscrowSign(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, EscrowService escrowService, TransactionService transactionService) {
-    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, transactionService, ESCROW_PARAMETER, DECISION_PARAMETER);
+  EscrowSign(ParameterService parameterService, Blockchain blockchain, EscrowService escrowService, APITransactionManager apiTransactionManager) {
+    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, apiTransactionManager, ESCROW_PARAMETER, DECISION_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
     this.escrowService = escrowService;

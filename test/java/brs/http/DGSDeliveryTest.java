@@ -10,20 +10,20 @@ import static brs.http.common.Parameters.DISCOUNT_NQT_PARAMETER;
 import static brs.http.common.Parameters.GOODS_TO_ENCRYPT_PARAMETER;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.DigitalGoodsStore.Purchase;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.services.AccountService;
 import brs.services.ParameterService;
-import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,21 +32,19 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
 
   private DGSDelivery t;
 
-  private ParameterService mockParameterService;
-  private TransactionProcessor mockTransactionProcessor;
-  private Blockchain mockBlockchain;
-  private AccountService mockAccountService;
-  private TransactionService transactionServiceMock;
+  private ParameterService parameterServiceMock;
+  private Blockchain blockchainMock;
+  private AccountService accountServiceMock;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
-    mockParameterService = mock(ParameterService.class);
-    mockTransactionProcessor = mock(TransactionProcessor.class);
-    mockBlockchain = mock(Blockchain.class);
-    mockAccountService = mock(AccountService.class);
-    transactionServiceMock = mock(TransactionService.class);
+    parameterServiceMock = mock(ParameterService.class);
+    blockchainMock = mock(Blockchain.class);
+    accountServiceMock = mock(AccountService.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new DGSDelivery(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService, transactionServiceMock);
+    t = new DGSDelivery(parameterServiceMock, blockchainMock, accountServiceMock, apiTransactionManagerMock);
   }
 
   @Test
@@ -69,13 +67,12 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
 
     when(mockPurchase.isPending()).thenReturn(true);
 
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
-    when(mockParameterService.getPurchase(eq(req))).thenReturn(mockPurchase);
-    when(mockAccountService.getAccount(eq(mockPurchase.getBuyerId()))).thenReturn(mockBuyerAccount);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
+    when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
+    when(accountServiceMock.getAccount(eq(mockPurchase.getBuyerId()))).thenReturn(mockBuyerAccount);
 
-    super.prepareTransactionTest(req, mockParameterService, mockTransactionProcessor, mockSellerAccount);
-
-    t.processRequest(req);
+    final Attachment.DigitalGoodsDelivery attachment = (Attachment.DigitalGoodsDelivery) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
   }
 
   @Test
@@ -88,8 +85,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
     when(mockSellerAccount.getId()).thenReturn(1l);
     when(mockPurchase.getSellerId()).thenReturn(2l);
 
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
-    when(mockParameterService.getPurchase(eq(req))).thenReturn(mockPurchase);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
+    when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
 
     assertEquals(INCORRECT_PURCHASE, t.processRequest(req));
   }
@@ -106,8 +103,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
 
     when(mockPurchase.isPending()).thenReturn(false);
 
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
-    when(mockParameterService.getPurchase(eq(req))).thenReturn(mockPurchase);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
+    when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
 
     assertEquals(ALREADY_DELIVERED, t.processRequest(req));
   }
@@ -126,8 +123,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
 
     when(mockPurchase.isPending()).thenReturn(true);
 
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
-    when(mockParameterService.getPurchase(eq(req))).thenReturn(mockPurchase);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
+    when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
 
     assertEquals(INCORRECT_DGS_DISCOUNT, t.processRequest(req));
   }
@@ -146,8 +143,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
 
     when(mockPurchase.isPending()).thenReturn(true);
 
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
-    when(mockParameterService.getPurchase(eq(req))).thenReturn(mockPurchase);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
+    when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
 
     assertEquals(INCORRECT_DGS_DISCOUNT, t.processRequest(req));
   }
@@ -166,8 +163,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
 
     when(mockPurchase.isPending()).thenReturn(true);
 
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
-    when(mockParameterService.getPurchase(eq(req))).thenReturn(mockPurchase);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
+    when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
 
     assertEquals(INCORRECT_DGS_DISCOUNT, t.processRequest(req));
   }
@@ -188,8 +185,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
 
     when(mockPurchase.isPending()).thenReturn(true);
 
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
-    when(mockParameterService.getPurchase(eq(req))).thenReturn(mockPurchase);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
+    when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
 
     assertEquals(INCORRECT_DGS_DISCOUNT, t.processRequest(req));
   }
@@ -212,8 +209,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
 
     when(mockPurchase.isPending()).thenReturn(true);
 
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
-    when(mockParameterService.getPurchase(eq(req))).thenReturn(mockPurchase);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
+    when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
 
     assertEquals(INCORRECT_DGS_GOODS, t.processRequest(req));
   }
@@ -236,8 +233,8 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
 
     when(mockPurchase.isPending()).thenReturn(true);
 
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
-    when(mockParameterService.getPurchase(eq(req))).thenReturn(mockPurchase);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
+    when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
 
     assertEquals(INCORRECT_DGS_GOODS, t.processRequest(req));
   }

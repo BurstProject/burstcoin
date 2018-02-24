@@ -23,8 +23,8 @@ public final class PlaceAskOrder extends CreateTransaction {
   private final ParameterService parameterService;
   private final Blockchain blockchain;
 
-  PlaceAskOrder(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TransactionService transactionService) {
-    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, transactionService, ASSET_PARAMETER, QUANTITY_NQT_PARAMETER, PRICE_NQT_PARAMETER);
+  PlaceAskOrder(ParameterService parameterService, Blockchain blockchain, APITransactionManager apiTransactionManager) {
+    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, apiTransactionManager, ASSET_PARAMETER, QUANTITY_NQT_PARAMETER, PRICE_NQT_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
   }

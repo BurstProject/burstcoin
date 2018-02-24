@@ -2,11 +2,13 @@ package brs.http;
 
 import static brs.http.JSONResponses.UNKNOWN_GOODS;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.DigitalGoodsStore.Goods;
@@ -24,20 +26,16 @@ public class DGSDelistingTest extends AbstractTransactionTest {
   private DGSDelisting t;
 
   private ParameterService mockParameterService;
-  private TransactionProcessor mockTransactionProcessor;
   private Blockchain mockBlockchain;
-  private AccountService mockAccountService;
-  private TransactionService transactionServiceMock;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
     mockParameterService = mock(ParameterService.class);
     mockBlockchain = mock(Blockchain.class);
-    mockTransactionProcessor = mock(TransactionProcessor.class);
-    mockAccountService = mock(AccountService.class);
-    transactionServiceMock = mock(TransactionService.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new DGSDelisting(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService, transactionServiceMock);
+    t = new DGSDelisting(mockParameterService, mockBlockchain, apiTransactionManagerMock);
   }
 
   @Test
@@ -54,9 +52,8 @@ public class DGSDelistingTest extends AbstractTransactionTest {
     when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockAccount);
     when(mockParameterService.getGoods(eq(req))).thenReturn(mockGoods);
 
-    super.prepareTransactionTest(req, mockParameterService, mockTransactionProcessor, mockAccount);
-
-    t.processRequest(req);
+    final Attachment.DigitalGoodsDelisting attachment = (Attachment.DigitalGoodsDelisting) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
   }
 
   @Test

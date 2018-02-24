@@ -56,26 +56,26 @@ public final class APIServlet extends HttpServlet {
       AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
       TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService,
       SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, TransactionService transactionService,
-      BlockService blockService, Generator generator, PropertyService propertyService) {
+      BlockService blockService, Generator generator, PropertyService propertyService, APITransactionManager apiTransactionManager) {
     enforcePost = propertyService.getBoolean(Props.API_SERVER_ENFORCE_POST);
 
     final Map<String, APIRequestHandler> map = new HashMap<>();
 
     map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService, transactionService));
     map.put("calculateFullHash", new CalculateFullHash());
-    map.put("cancelAskOrder", new CancelAskOrder(parameterService, transactionProcessor, blockchain, accountService, orderService, transactionService));
-    map.put("cancelBidOrder", new CancelBidOrder(parameterService, transactionProcessor, blockchain, accountService, orderService, transactionService));
+    map.put("cancelAskOrder", new CancelAskOrder(parameterService, blockchain, orderService, apiTransactionManager));
+    map.put("cancelBidOrder", new CancelBidOrder(parameterService, blockchain, orderService, apiTransactionManager));
     //map.put("castVote", CastVote.instance);
     //map.put("createPoll", CreatePoll.instance);
     map.put("decryptFrom", new DecryptFrom(parameterService));
-    map.put("dgsListing", new DGSListing(parameterService, transactionProcessor, blockchain, accountService, transactionService));
-    map.put("dgsDelisting", new DGSDelisting(parameterService, transactionProcessor, blockchain, accountService, transactionService));
-    map.put("dgsDelivery", new DGSDelivery(parameterService, transactionProcessor, blockchain, accountService, transactionService));
-    map.put("dgsFeedback", new DGSFeedback(parameterService, transactionProcessor, blockchain, accountService, transactionService));
-    map.put("dgsPriceChange", new DGSPriceChange(parameterService, transactionProcessor, blockchain, accountService, transactionService));
-    map.put("dgsPurchase", new DGSPurchase(parameterService, transactionProcessor, blockchain, accountService, timeService, transactionService));
-    map.put("dgsQuantityChange", new DGSQuantityChange(parameterService, transactionProcessor, blockchain, accountService, transactionService));
-    map.put("dgsRefund", new DGSRefund(parameterService, transactionProcessor, blockchain, accountService, transactionService));
+    map.put("dgsListing", new DGSListing(parameterService, blockchain, apiTransactionManager));
+    map.put("dgsDelisting", new DGSDelisting(parameterService, blockchain, apiTransactionManager));
+    map.put("dgsDelivery", new DGSDelivery(parameterService, blockchain, accountService, apiTransactionManager));
+    map.put("dgsFeedback", new DGSFeedback(parameterService, blockchain, accountService, apiTransactionManager));
+    map.put("dgsPriceChange", new DGSPriceChange(parameterService, blockchain, apiTransactionManager));
+    map.put("dgsPurchase", new DGSPurchase(parameterService, blockchain, accountService, timeService, apiTransactionManager));
+    map.put("dgsQuantityChange", new DGSQuantityChange(parameterService, blockchain, apiTransactionManager));
+    map.put("dgsRefund", new DGSRefund(parameterService, blockchain, accountService, apiTransactionManager));
     map.put("decodeHallmark", new DecodeHallmark());
     map.put("decodeToken", new DecodeToken());
     map.put("encryptTo", new EncryptTo(parameterService, accountService));
@@ -88,8 +88,8 @@ public final class APIServlet extends HttpServlet {
     map.put("getAccountTransactionIds", new GetAccountTransactionIds(parameterService, blockchain));
     map.put("getAccountTransactions", new GetAccountTransactions(parameterService, blockchain));
     map.put("getAccountLessors", new GetAccountLessors(parameterService, blockchain));
-    map.put("sellAlias", new SellAlias(parameterService, transactionProcessor, blockchain, accountService, transactionService));
-    map.put("buyAlias", new BuyAlias(parameterService, transactionProcessor, blockchain, aliasService, accountService, transactionService));
+    map.put("sellAlias", new SellAlias(parameterService, blockchain, apiTransactionManager));
+    map.put("buyAlias", new BuyAlias(parameterService, blockchain, aliasService, apiTransactionManager));
     map.put("getAlias", new GetAlias(parameterService, aliasService));
     map.put("getAliases", new GetAliases(parameterService, aliasService));
     map.put("getAllAssets", new GetAllAssets(assetService, assetAccountService, assetTransferService, tradeService));
@@ -138,39 +138,39 @@ public final class APIServlet extends HttpServlet {
     map.put("getBidOrder", new GetBidOrder(orderService));
     map.put("getBidOrderIds", new GetBidOrderIds(parameterService, orderService));
     map.put("getBidOrders", new GetBidOrders(parameterService, orderService));
-    map.put("issueAsset", new IssueAsset(parameterService, transactionProcessor, blockchain, accountService, transactionService));
-    map.put("leaseBalance", new LeaseBalance(parameterService, transactionProcessor, blockchain, accountService, transactionService));
+    map.put("issueAsset", new IssueAsset(parameterService, blockchain, apiTransactionManager));
+    map.put("leaseBalance", new LeaseBalance(parameterService, blockchain, accountService, apiTransactionManager));
     map.put("longConvert", LongConvert.instance);
     map.put("markHost", MarkHost.instance);
     map.put("parseTransaction", new ParseTransaction(parameterService, transactionService));
-    map.put("placeAskOrder", new PlaceAskOrder(parameterService, transactionProcessor, blockchain, accountService, transactionService));
-    map.put("placeBidOrder", new PlaceBidOrder(parameterService, transactionProcessor, blockchain, accountService, transactionService));
+    map.put("placeAskOrder", new PlaceAskOrder(parameterService, blockchain, apiTransactionManager));
+    map.put("placeBidOrder", new PlaceBidOrder(parameterService, blockchain, apiTransactionManager));
     map.put("rsConvert", RSConvert.instance);
     map.put("readMessage", new ReadMessage(blockchain, accountService));
-    map.put("sendMessage", new SendMessage(parameterService, transactionProcessor, blockchain, accountService, transactionService));
-    map.put("sendMoney", new SendMoney(parameterService, transactionProcessor, blockchain, accountService, transactionService));
-    map.put("setAccountInfo", new SetAccountInfo(parameterService, transactionProcessor, blockchain, accountService, transactionService));
-    map.put("setAlias", new SetAlias(parameterService, transactionProcessor, blockchain, accountService, aliasService, transactionService));
+    map.put("sendMessage", new SendMessage(parameterService, apiTransactionManager));
+    map.put("sendMoney", new SendMoney(parameterService, apiTransactionManager));
+    map.put("setAccountInfo", new SetAccountInfo(parameterService, blockchain, apiTransactionManager));
+    map.put("setAlias", new SetAlias(parameterService, blockchain, aliasService, apiTransactionManager));
     map.put("signTransaction", new SignTransaction(parameterService, transactionService));
     //map.put("startForging", StartForging.instance);
     //map.put("stopForging", StopForging.instance);
     //map.put("getForging", GetForging.instance);
-    map.put("transferAsset", new TransferAsset(parameterService, transactionProcessor, blockchain, accountService, transactionService));
+    map.put("transferAsset", new TransferAsset(parameterService, blockchain, apiTransactionManager));
     map.put("getMiningInfo", new GetMiningInfo(blockchain));
     map.put("submitNonce", new SubmitNonce(accountService, blockchain, generator));
     map.put("getRewardRecipient", new GetRewardRecipient(parameterService, blockchain));
-    map.put("setRewardRecipient", new SetRewardRecipient(parameterService, transactionProcessor, blockchain, accountService, transactionService));
+    map.put("setRewardRecipient", new SetRewardRecipient(parameterService, blockchain, accountService, apiTransactionManager));
     map.put("getAccountsWithRewardRecipient", new GetAccountsWithRewardRecipient(parameterService, accountService));
-    map.put("sendMoneyEscrow", new SendMoneyEscrow(parameterService, transactionProcessor, blockchain, accountService, transactionService));
-    map.put("escrowSign", new EscrowSign(parameterService, transactionProcessor, blockchain, accountService, escrowService, transactionService));
+    map.put("sendMoneyEscrow", new SendMoneyEscrow(parameterService, blockchain, apiTransactionManager));
+    map.put("escrowSign", new EscrowSign(parameterService, blockchain, escrowService, apiTransactionManager));
     map.put("getEscrowTransaction", new GetEscrowTransaction(escrowService));
     map.put("getAccountEscrowTransactions", new GetAccountEscrowTransactions(parameterService, escrowService));
-    map.put("sendMoneySubscription", new SendMoneySubscription(parameterService, transactionProcessor, blockchain, accountService, transactionService));
-    map.put("subscriptionCancel", new SubscriptionCancel(parameterService, transactionProcessor, blockchain, accountService, subscriptionService, transactionService));
+    map.put("sendMoneySubscription", new SendMoneySubscription(parameterService, blockchain, apiTransactionManager));
+    map.put("subscriptionCancel", new SubscriptionCancel(parameterService, subscriptionService, blockchain, apiTransactionManager));
     map.put("getSubscription", new GetSubscription(subscriptionService));
     map.put("getAccountSubscriptions", new GetAccountSubscriptions(parameterService, subscriptionService));
     map.put("getSubscriptionsToAccount", new GetSubscriptionsToAccount(parameterService, subscriptionService));
-    map.put("createATProgram", new CreateATProgram(parameterService, transactionProcessor, blockchain, accountService, transactionService));
+    map.put("createATProgram", new CreateATProgram(parameterService, blockchain, apiTransactionManager));
     map.put("getAT", new GetAT(parameterService, accountService));
     map.put("getATDetails", new GetATDetails(parameterService, accountService));
     map.put("getATIds", new GetATIds(atService));

@@ -14,8 +14,10 @@ import static brs.http.common.Parameters.NAME_PARAMETER;
 import static brs.http.common.Parameters.QUANTITY_NQT_PARAMETER;
 import static brs.http.common.Parameters.QUANTITY_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.TransactionProcessor;
@@ -34,19 +36,15 @@ public class IssueAssetTest extends AbstractTransactionTest {
 
   private ParameterService mockParameterService;
   private Blockchain mockBlockchain;
-  private TransactionProcessor mockTransactionProcessor;
-  private AccountService mockAccountService;
-  private TransactionService transactionServiceMock;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
     mockParameterService = mock(ParameterService.class);
     mockBlockchain = mock(Blockchain.class);
-    mockTransactionProcessor = mock(TransactionProcessor.class);
-    mockAccountService = mock(AccountService.class);
-    transactionServiceMock = mock(TransactionService.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new IssueAsset(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService, transactionServiceMock);
+    t = new IssueAsset(mockParameterService, mockBlockchain, apiTransactionManagerMock);
   }
 
   @Test
@@ -58,9 +56,8 @@ public class IssueAssetTest extends AbstractTransactionTest {
         new MockParam(QUANTITY_NQT_PARAMETER, 5)
     );
 
-    prepareTransactionTest(req, mockParameterService, mockTransactionProcessor);
-
-    t.processRequest(req);
+    final Attachment.ColoredCoinsAssetIssuance attachment = (Attachment.ColoredCoinsAssetIssuance) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
   }
 
   @Test

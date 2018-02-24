@@ -6,11 +6,13 @@ import static brs.http.JSONResponses.INCORRECT_DGS_REFUND;
 import static brs.http.JSONResponses.INCORRECT_PURCHASE;
 import static brs.http.common.Parameters.REFUND_NQT_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.Constants;
@@ -32,19 +34,17 @@ public class DGSRefundTest extends AbstractTransactionTest {
 
   private ParameterService mockParameterService;
   private Blockchain mockBlockchain;
-  private TransactionProcessor mockTransactionProcessor;
   private AccountService mockAccountService;
-  private TransactionService transactionServiceMock;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
     mockParameterService = mock(ParameterService.class);
     mockBlockchain = mock(Blockchain.class);
-    mockTransactionProcessor = mock(TransactionProcessor.class);
     mockAccountService = mock(AccountService.class);
-    transactionServiceMock = mock(TransactionService.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new DGSRefund(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService, transactionServiceMock);
+    t = new DGSRefund(mockParameterService, mockBlockchain, mockAccountService, apiTransactionManagerMock);
   }
 
   @Test
@@ -69,9 +69,8 @@ public class DGSRefundTest extends AbstractTransactionTest {
 
     when(mockAccountService.getAccount(eq(mockPurchase.getBuyerId()))).thenReturn(mockBuyerAccount);
 
-    prepareTransactionTest(req, mockParameterService, mockTransactionProcessor, mockSellerAccount);
-
-    t.processRequest(req);
+    final Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
   }
 
   @Test

@@ -18,8 +18,8 @@ public final class SendMessage extends CreateTransaction {
 
   private final ParameterService parameterService;
 
-  SendMessage(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TransactionService transactionService) {
-    super(new APITag[] {APITag.MESSAGES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, transactionService, RECIPIENT_PARAMETER);
+  SendMessage(ParameterService parameterService, APITransactionManager apiTransactionManager) {
+    super(new APITag[] {APITag.MESSAGES, APITag.CREATE_TRANSACTION}, apiTransactionManager, RECIPIENT_PARAMETER);
     this.parameterService = parameterService;
   }
 

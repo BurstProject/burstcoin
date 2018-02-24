@@ -24,8 +24,8 @@ public final class SetAlias extends CreateTransaction {
   private final Blockchain blockchain;
   private final AliasService aliasService;
 
-  public SetAlias(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, AliasService aliasService, TransactionService transactionService) {
-    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, transactionService, ALIAS_NAME_PARAMETER, ALIAS_URI_PARAMETER);
+  public SetAlias(ParameterService parameterService, Blockchain blockchain, AliasService aliasService, APITransactionManager apiTransactionManager) {
+    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, apiTransactionManager, ALIAS_NAME_PARAMETER, ALIAS_URI_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
     this.aliasService = aliasService;

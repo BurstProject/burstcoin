@@ -7,9 +7,11 @@ import static brs.http.JSONResponses.MISSING_ALIAS_NAME;
 import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_URI_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 import brs.Account;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.TransactionProcessor;
@@ -28,35 +30,29 @@ public class SetAliasTest extends AbstractTransactionTest {
   private SetAlias t;
 
   private ParameterService parameterServiceMock;
-  private TransactionProcessor transactionProcessorMock;
   private Blockchain blockchainMock;
-  private AccountService accountServiceMock;
   private AliasService aliasServiceMock;
-  private TransactionService transactionServiceMock;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
     parameterServiceMock = mock(ParameterService.class);
-    transactionProcessorMock = mock(TransactionProcessor.class);
     blockchainMock = mock(Blockchain.class);
-    accountServiceMock = mock(AccountService.class);
     aliasServiceMock = mock(AliasService.class);
-    transactionServiceMock = mock(TransactionService.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new SetAlias(parameterServiceMock, transactionProcessorMock, blockchainMock, accountServiceMock, aliasServiceMock, transactionServiceMock);
+    t = new SetAlias(parameterServiceMock, blockchainMock, aliasServiceMock, apiTransactionManagerMock);
   }
 
   @Test
   public void processRequest() throws BurstException {
-    final Account mockSenderAccount = mock(Account.class);
     final HttpServletRequest req = QuickMocker.httpServletRequest(
         new MockParam(ALIAS_NAME_PARAMETER, "aliasName"),
         new MockParam(ALIAS_URI_PARAMETER, "aliasUrl")
     );
 
-    prepareTransactionTest(req, parameterServiceMock, transactionProcessorMock, mockSenderAccount);
-
-    t.processRequest(req);
+    final Attachment.MessagingAliasAssignment attachment = (Attachment.MessagingAliasAssignment) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
   }
 
   @Test

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import brs.Account;
 import brs.Attachment;
+import brs.Burst;
 import brs.BurstException;
 import brs.Transaction;
 import brs.Transaction.Builder;
@@ -19,28 +20,24 @@ import brs.common.AbstractUnitTest;
 import brs.common.TestConstants;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
+import org.json.simple.JSONStreamAware;
+import org.mockito.ArgumentCaptor;
 
 public abstract class AbstractTransactionTest extends AbstractUnitTest {
 
-  public void prepareTransactionTest(HttpServletRequest req, ParameterService parameterServiceMock, TransactionProcessor transactionProcessorMock) throws BurstException {
-    Account sellerAccount = mock(Account.class);
-    when(sellerAccount.getUnconfirmedBalanceNQT()).thenReturn(TestConstants.TEN_BURST);
-    prepareTransactionTest(req, parameterServiceMock, transactionProcessorMock, sellerAccount);
+  @FunctionalInterface
+  public interface TransactionCreationFunction<R> {
+    R apply() throws BurstException;
   }
 
-  public void prepareTransactionTest(HttpServletRequest req, ParameterService parameterServiceMock, TransactionProcessor transactionProcessorMock, Account senderAccount) throws BurstException {
-    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(senderAccount);
+  protected Attachment attachmentCreatedTransaction(TransactionCreationFunction r, APITransactionManager apiTransactionManagerMock) throws BurstException {
+    final ArgumentCaptor<Attachment> ac = ArgumentCaptor.forClass(Attachment.class);
 
-    Builder mockBuilder = mock(Builder.class);
-    when(mockBuilder.referencedTransactionFullHash(anyString())).thenReturn(mockBuilder);
-    when(transactionProcessorMock.newTransactionBuilder(any(byte[].class), anyLong(), anyLong(), anyShort(), any(Attachment.class))).thenReturn(mockBuilder);
+    when(apiTransactionManagerMock.createTransaction(any(HttpServletRequest.class), any(Account.class), any(Long.class), anyLong(), ac.capture(), anyLong())).thenReturn(mock(JSONStreamAware.class));
 
-    final Transaction transaction = mock(Transaction.class);
-    when(mockBuilder.build()).thenReturn(transaction);
-    when(transaction.getSignature()).thenReturn(new byte[5]);
-    when(transaction.getType()).thenReturn(DigitalGoods.DELISTING);
+    r.apply();
 
-    when(parameterServiceMock.getAccount(eq(req))).thenReturn(senderAccount);
+    return ac.getValue();
   }
 
 }
