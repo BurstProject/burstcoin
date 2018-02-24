@@ -46,7 +46,7 @@ public class CancelBidOrderTest extends AbstractTransactionTest {
 
   @Test
   public void processRequest() throws BurstException {
-    final String orderId = "123";
+    final int orderId = 123;
     final long orderAccountId = 1;
     final long senderAccountId = orderAccountId;
 
@@ -75,7 +75,7 @@ public class CancelBidOrderTest extends AbstractTransactionTest {
 
   @Test
   public void processRequest_orderDataMissingUnkownOrder() throws BurstException {
-    final String orderId = "123";
+    final int orderId = 123;
     final HttpServletRequest req = QuickMocker.httpServletRequest(
         new MockParam(ORDER_PARAMETER, orderId)
     );
@@ -87,7 +87,7 @@ public class CancelBidOrderTest extends AbstractTransactionTest {
 
   @Test
   public void processRequest_accountIdNotSameAsOrder() throws BurstException {
-    final String orderId = "123";
+    final int orderId = 123;
     final long orderAccountId = 1;
     final long senderAccountId = 2;
 
