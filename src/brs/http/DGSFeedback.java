@@ -5,10 +5,8 @@ import brs.Attachment;
 import brs.Blockchain;
 import brs.DigitalGoodsStore;
 import brs.BurstException;
-import brs.TransactionProcessor;
 import brs.services.AccountService;
 import brs.services.ParameterService;
-import brs.services.TransactionService;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,9 +21,8 @@ public final class DGSFeedback extends CreateTransaction {
   private final AccountService accountService;
   private final Blockchain blockchain;
 
-  DGSFeedback(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TransactionService transactionService) {
-    super(new APITag[] {APITag.DGS, APITag.CREATE_TRANSACTION},
-        parameterService, transactionProcessor, blockchain, accountService, transactionService, PURCHASE_PARAMETER);
+  DGSFeedback(ParameterService parameterService, Blockchain blockchain, AccountService accountService, APITransactionManager apiTransactionManager) {
+    super(new APITag[] {APITag.DGS, APITag.CREATE_TRANSACTION}, apiTransactionManager, PURCHASE_PARAMETER);
     this.parameterService = parameterService;
     this.accountService = accountService;
     this.blockchain = blockchain;

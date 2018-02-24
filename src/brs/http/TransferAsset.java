@@ -23,8 +23,8 @@ public final class TransferAsset extends CreateTransaction {
   private final ParameterService parameterService;
   private final Blockchain blockchain;
 
-  public TransferAsset(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TransactionService transactionService) {
-    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, transactionService, RECIPIENT_PARAMETER, ASSET_PARAMETER, QUANTITY_NQT_PARAMETER);
+  public TransferAsset(ParameterService parameterService, Blockchain blockchain, APITransactionManager apiTransactionManager) {
+    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, apiTransactionManager, RECIPIENT_PARAMETER, ASSET_PARAMETER, QUANTITY_NQT_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
   }

@@ -13,6 +13,8 @@ import brs.db.store.Dbs;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
 import brs.http.API;
+import brs.http.APITransactionManager;
+import brs.http.APITransactionManagerImpl;
 import brs.peer.Peers;
 import brs.services.ATService;
 import brs.services.AccountService;
@@ -168,7 +170,7 @@ public final class Burst {
 
       propertyService = loadProperties();
 
-      threadPool = new ThreadPool();
+      threadPool = new ThreadPool(propertyService);
 
       LoggerConfigurator.init();
 
@@ -193,7 +195,7 @@ public final class Burst {
 
       final TimeService timeService = new TimeServiceImpl();
 
-      final Generator generator = propertyService.getBooleanProperty("brs.mockMining") ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService);
+      final Generator generator = propertyService.getBoolean(Props.BRS_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService);
 
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
 
@@ -227,20 +229,23 @@ public final class Burst {
 
       addBlockchainListeners(blockchainProcessor, accountService, digitalGoodsStoreService, blockchain, dbs.getTransactionDb());
 
+      final APITransactionManager apiTransactionManager = new APITransactionManagerImpl(parameterService, transactionProcessor, blockchain, accountService, transactionService);
+
       Peers.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService, threadPool);
 
       // TODO this really should be better...
       TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService, assetService, orderService, assetTransferService, subscriptionService, escrowService);
 
+
       api = new API(transactionProcessor, blockchain, blockchainProcessor, parameterService,
           accountService, aliasService, orderService, assetService, assetTransferService,
           tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
-          subscriptionService, atService, timeService, economicClustering, propertyService, threadPool, transactionService, blockService, generator);
+          subscriptionService, atService, timeService, economicClustering, propertyService, threadPool, transactionService, blockService, generator, apiTransactionManager);
 
       users = new Users(propertyService);
       DebugTrace.init(propertyService, blockchainProcessor, tradeService, orderService, digitalGoodsStoreService);
 
-      int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(propertyService.getIntProperty(Props.TIME_MULTIPLIER), 1) : 1;
+      int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(propertyService.getInt(Props.TIME_MULTIPLIER), 1) : 1;
 
       threadPool.start(timeMultiplier);
       if (timeMultiplier > 1) {
@@ -285,27 +290,11 @@ public final class Burst {
     LoggerConfigurator.shutdown();
   }
 
-  public static Boolean getBooleanProperty(String name, boolean assume) {
-    return propertyService.getBooleanProperty(name, assume);
-  }
-
-  public static Boolean getBooleanProperty(String name) {
-    return propertyService.getBooleanProperty(name);
-  }
-
-  public static int getIntProperty(String name, int defaultValue) {
-    return propertyService.getIntProperty(name, defaultValue);
-  }
-
-  public static int getIntProperty(String name) {
-    return propertyService.getIntProperty(name);
-  }
-
   public static PropertyService getPropertyService() {
     return propertyService;
   }
 
-  static TransactionService transactionService;
+  private static TransactionService transactionService;
 
   public static TransactionService getTransactionService() {
     return transactionService;

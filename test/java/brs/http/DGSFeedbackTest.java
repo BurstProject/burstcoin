@@ -3,11 +3,13 @@ package brs.http;
 import static brs.http.JSONResponses.GOODS_NOT_DELIVERED;
 import static brs.http.JSONResponses.INCORRECT_PURCHASE;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.DigitalGoodsStore.Purchase;
@@ -25,21 +27,19 @@ public class DGSFeedbackTest extends AbstractTransactionTest {
 
   private DGSFeedback t;
 
-  private ParameterService mockParameterService;
-  private AccountService mockAccountService;
-  private Blockchain blockchain;
-  private TransactionProcessor mockTransactionProcessor;
-  private TransactionService transactionServiceMock;
+  private ParameterService parameterServiceMock;
+  private AccountService accountServiceMock;
+  private Blockchain blockchainMock;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
-    mockParameterService = mock(ParameterService.class);
-    mockAccountService = mock(AccountService.class);
-    blockchain = mock(Blockchain.class);
-    mockTransactionProcessor = mock(TransactionProcessor.class);
-    transactionServiceMock = mock(TransactionService.class);
+    parameterServiceMock = mock(ParameterService.class);
+    accountServiceMock = mock(AccountService.class);
+    blockchainMock = mock(Blockchain.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new DGSFeedback(mockParameterService, mockTransactionProcessor, blockchain, mockAccountService, transactionServiceMock);
+    t = new DGSFeedback(parameterServiceMock, blockchainMock, accountServiceMock, apiTransactionManagerMock);
   }
 
   @Test
@@ -51,18 +51,17 @@ public class DGSFeedbackTest extends AbstractTransactionTest {
     final Account mockSellerAccount = mock(Account.class);
     final EncryptedData mockEncryptedGoods = mock(EncryptedData.class);
 
-    when(mockParameterService.getPurchase(eq(req))).thenReturn(mockPurchase);
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockAccount);
-    when(mockAccountService.getAccount(eq(2L))).thenReturn(mockSellerAccount);
+    when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockAccount);
+    when(accountServiceMock.getAccount(eq(2L))).thenReturn(mockSellerAccount);
 
     when(mockAccount.getId()).thenReturn(1L);
     when(mockPurchase.getBuyerId()).thenReturn(1L);
     when(mockPurchase.getEncryptedGoods()).thenReturn(mockEncryptedGoods);
     when(mockPurchase.getSellerId()).thenReturn(2L);
 
-    super.prepareTransactionTest(req, mockParameterService, mockTransactionProcessor, mockAccount);
-
-    t.processRequest(req);
+    final Attachment.DigitalGoodsFeedback attachment = (Attachment.DigitalGoodsFeedback) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
   }
 
   @Test
@@ -72,8 +71,8 @@ public class DGSFeedbackTest extends AbstractTransactionTest {
     final Purchase mockPurchase = mock(Purchase.class);
     final Account mockAccount = mock(Account.class);
 
-    when(mockParameterService.getPurchase(eq(req))).thenReturn(mockPurchase);
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockAccount);
+    when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockAccount);
 
     when(mockAccount.getId()).thenReturn(1L);
     when(mockPurchase.getBuyerId()).thenReturn(2L);
@@ -88,8 +87,8 @@ public class DGSFeedbackTest extends AbstractTransactionTest {
     final Purchase mockPurchase = mock(Purchase.class);
     final Account mockAccount = mock(Account.class);
 
-    when(mockParameterService.getPurchase(eq(req))).thenReturn(mockPurchase);
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockAccount);
+    when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockAccount);
 
     when(mockAccount.getId()).thenReturn(1L);
     when(mockPurchase.getBuyerId()).thenReturn(1L);

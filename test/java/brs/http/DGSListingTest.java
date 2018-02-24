@@ -10,11 +10,15 @@ import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
 import static brs.http.common.Parameters.QUANTITY_PARAMETER;
 import static brs.http.common.Parameters.TAGS_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.TransactionProcessor;
@@ -23,9 +27,12 @@ import brs.common.QuickMocker.MockParam;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.services.TransactionService;
+import java.util.function.Function;
 import javax.servlet.http.HttpServletRequest;
+import org.json.simple.JSONStreamAware;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 public class DGSListingTest extends AbstractTransactionTest {
 
@@ -33,19 +40,15 @@ public class DGSListingTest extends AbstractTransactionTest {
 
   private ParameterService mockParameterService;
   private Blockchain mockBlockchain;
-  private TransactionProcessor mockTransactionProcessor;
-  private AccountService mockAccountService;
-  private TransactionService transactionServiceMock;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
     mockParameterService = mock(ParameterService.class);
     mockBlockchain = mock(Blockchain.class);
-    mockTransactionProcessor = mock(TransactionProcessor.class);
-    mockAccountService = mock(AccountService.class);
-    transactionServiceMock = mock(TransactionService.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new DGSListing(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService, transactionServiceMock);
+    t = new DGSListing(mockParameterService, mockBlockchain, apiTransactionManagerMock);
   }
 
   @Test
@@ -62,9 +65,10 @@ public class DGSListingTest extends AbstractTransactionTest {
 
     when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockAccount);
 
-    prepareTransactionTest(req, mockParameterService, mockTransactionProcessor, mockAccount);
+    final Attachment.DigitalGoodsListing attachment = (Attachment.DigitalGoodsListing) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
 
-    t.processRequest(req);
+    assertEquals("name", attachment.getName());
   }
 
   @Test

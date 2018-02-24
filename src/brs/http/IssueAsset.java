@@ -28,8 +28,8 @@ public final class IssueAsset extends CreateTransaction {
   private final ParameterService parameterService;
   private final Blockchain blockchain;
 
-  IssueAsset(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TransactionService transactionService) {
-    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, transactionService,
+  IssueAsset(ParameterService parameterService, Blockchain blockchain, APITransactionManager apiTransactionManager) {
+    super(new APITag[]{APITag.AE, APITag.CREATE_TRANSACTION}, apiTransactionManager,
         NAME_PARAMETER, DESCRIPTION_PARAMETER, QUANTITY_NQT_PARAMETER, DECIMALS_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;

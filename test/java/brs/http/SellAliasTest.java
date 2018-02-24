@@ -8,11 +8,13 @@ import static brs.http.JSONResponses.MISSING_PRICE;
 import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
 import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
 import brs.Alias;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.TransactionProcessor;
@@ -29,21 +31,17 @@ public class SellAliasTest extends AbstractTransactionTest {
 
   private SellAlias t;
 
-  private ParameterService mockParameterService;
-  private Blockchain mockBlockchain;
-  private TransactionProcessor mockTransactionProcessor;
-  private AccountService mockAccountService;
-  private TransactionService transactionServiceMock;
+  private ParameterService parameterServiceMock;
+  private Blockchain blockchainMock;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
-    mockParameterService = mock(ParameterService.class);
-    mockBlockchain = mock(Blockchain.class);
-    mockTransactionProcessor = mock(TransactionProcessor.class);
-    mockAccountService = mock(AccountService.class);
-    transactionServiceMock = mock(TransactionService.class);
+    parameterServiceMock = mock(ParameterService.class);
+    blockchainMock = mock(Blockchain.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new SellAlias(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService, transactionServiceMock);
+    t = new SellAlias(parameterServiceMock, blockchainMock, apiTransactionManagerMock);
   }
 
   @Test
@@ -63,12 +61,11 @@ public class SellAliasTest extends AbstractTransactionTest {
     final Account mockSender = mock(Account.class);
     when(mockSender.getId()).thenReturn(aliasAccountId);
 
-    when(mockParameterService.getSenderAccount(req)).thenReturn(mockSender);
-    when(mockParameterService.getAlias(req)).thenReturn(mockAlias);
+    when(parameterServiceMock.getSenderAccount(req)).thenReturn(mockSender);
+    when(parameterServiceMock.getAlias(req)).thenReturn(mockAlias);
 
-    prepareTransactionTest(req, mockParameterService, mockTransactionProcessor, mockSender);
-
-    t.processRequest(req);
+    final Attachment.MessagingAliasSell attachment = (Attachment.MessagingAliasSell) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
   }
 
   @Test
@@ -148,8 +145,8 @@ public class SellAliasTest extends AbstractTransactionTest {
     final Account mockSender = mock(Account.class);
     when(mockSender.getId()).thenReturn(mockSenderId);
 
-    when(mockParameterService.getSenderAccount(req)).thenReturn(mockSender);
-    when(mockParameterService.getAlias(req)).thenReturn(mockAlias);
+    when(parameterServiceMock.getSenderAccount(req)).thenReturn(mockSender);
+    when(parameterServiceMock.getAlias(req)).thenReturn(mockAlias);
 
     assertEquals(INCORRECT_ALIAS_OWNER, t.processRequest(req));
   }

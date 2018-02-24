@@ -1,6 +1,7 @@
 package brs.db.sql;
 
 import brs.Burst;
+import brs.common.Props;
 import brs.services.PropertyService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -49,14 +50,14 @@ public final class Db {
     String dbPassword;
 
     if (Constants.isTestnet) {
-      dbUrl = propertyService.getStringProperty("brs.testDbUrl");
-      dbUsername = propertyService.getStringProperty("brs.testDbUsername");
-      dbPassword = propertyService.getStringProperty("brs.testDbPassword");
+      dbUrl = propertyService.getString(Props.BRS_TEST_DB_URL);
+      dbUsername = propertyService.getString(Props.BRS_TEST_DB_USERNAME);
+      dbPassword = propertyService.getString(Props.BRS_TEST_DB_PASSWORD);
     }
     else {
-      dbUrl = propertyService.getStringProperty("brs.dbUrl");
-      dbUsername = propertyService.getStringProperty("brs.dbUsername");
-      dbPassword = propertyService.getStringProperty("brs.dbPassword");
+      dbUrl = propertyService.getString(Props.BRS_DB_URL);
+      dbUsername = propertyService.getString(Props.BRS_DB_USERNAME);
+      dbPassword = propertyService.getString(Props.BRS_DB_PASSWORD);
     }
     dialect = org.jooq.tools.jdbc.JDBCUtils.dialect(dbUrl);
 
@@ -70,7 +71,7 @@ public final class Db {
       if (dbPassword != null)
         config.setPassword(dbPassword);
 
-      config.setMaximumPoolSize(propertyService.getIntProperty("brs.dbMaximumPoolSize"));
+      config.setMaximumPoolSize(propertyService.getInt(Props.BRS_DB_MAXIMUM_POOL_SIZE));
 
       switch (DATABASE_TYPE) {
         case MARIADB:
@@ -138,7 +139,7 @@ public final class Db {
       cp = new HikariDataSource(config);
 
       if (DATABASE_TYPE == TYPE.H2) {
-        int defaultLockTimeout = Burst.getIntProperty("brs.dbDefaultLockTimeout") * 1000;
+        int defaultLockTimeout = propertyService.getInt(Props.BRS_DB_DEFAULT_LOCK_TIMEOUT) * 1000;
         try (Connection con = cp.getConnection();
              PreparedStatement stmt = con.prepareStatement("SET DEFAULT_LOCK_TIMEOUT ?")) {
           // stmt.executeUpdate(defaultLockTimeout);
@@ -191,7 +192,7 @@ public final class Db {
     if (DATABASE_TYPE == TYPE.H2) {
       try ( Connection con = cp.getConnection(); Statement stmt = con.createStatement() ) {
         // COMPACT is not giving good result.
-        if(Burst.getBooleanProperty("Db.H2.DefragOnShutdown")) {
+        if(Burst.getPropertyService().getBoolean(Props.DB_H2_DEFRAG_ON_SHUTDOWN)) {
           stmt.execute("SHUTDOWN DEFRAG");
         } else {
           stmt.execute("SHUTDOWN");

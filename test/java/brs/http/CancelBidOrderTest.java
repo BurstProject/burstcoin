@@ -3,11 +3,13 @@ package brs.http;
 import static brs.http.JSONResponses.UNKNOWN_ORDER;
 import static brs.http.common.Parameters.ORDER_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
 import brs.Account;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.Order.Bid;
@@ -28,22 +30,18 @@ public class CancelBidOrderTest extends AbstractTransactionTest {
   private CancelBidOrder t;
 
   private ParameterService parameterServiceMock;
-  private TransactionProcessor transactionProcessorMock;
   private Blockchain blockchainMock;
-  private AccountService accountServiceMock;
   private OrderService orderServiceMock;
-  private TransactionService transactionServiceMock;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
     parameterServiceMock = mock(ParameterService.class);
-    transactionProcessorMock = mock(TransactionProcessor.class);
     blockchainMock = mock(Blockchain.class);
-    accountServiceMock = mock(AccountService.class);
     orderServiceMock = mock(OrderService.class);
-    transactionServiceMock = Mockito.mock(TransactionService.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new CancelBidOrder(parameterServiceMock, transactionProcessorMock, blockchainMock, accountServiceMock, orderServiceMock, transactionServiceMock);
+    t = new CancelBidOrder(parameterServiceMock, blockchainMock, orderServiceMock, apiTransactionManagerMock);
   }
 
   @Test
@@ -64,7 +62,10 @@ public class CancelBidOrderTest extends AbstractTransactionTest {
     when(mockAccount.getId()).thenReturn(senderAccountId);
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockAccount);
 
-    t.processRequest(req);
+    final Attachment.ColoredCoinsBidOrderCancellation attachment = (brs.Attachment.ColoredCoinsBidOrderCancellation) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
+
+    assertEquals(orderId, attachment.getOrderId());
   }
 
   @Test(expected = ParameterException.class)

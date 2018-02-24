@@ -5,6 +5,7 @@ import static brs.http.common.Parameters.ASSET_PARAMETER;
 import static brs.http.common.Parameters.QUANTITY_NQT_PARAMETER;
 import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -12,6 +13,7 @@ import static org.mockito.Mockito.when;
 
 import brs.Account;
 import brs.Asset;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.TransactionProcessor;
@@ -28,15 +30,19 @@ public class TransferAssetTest extends AbstractTransactionTest {
 
   private TransferAsset t;
 
-  private ParameterService parameterServiceMock = mock(ParameterService.class);
-  private Blockchain blockchainMock = mock(Blockchain.class);
-  private AccountService accountServiceMock = mock(AccountService.class);
-  private TransactionProcessor transactionProcessorMock = mock(TransactionProcessor.class);
-  private TransactionService transactionServiceMock = mock(TransactionService.class);
+  private ParameterService parameterServiceMock;
+  private Blockchain blockchainMock;
+  private TransactionProcessor transactionProcessorMock;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
-    t = new TransferAsset(parameterServiceMock, transactionProcessorMock, blockchainMock, accountServiceMock, transactionServiceMock);
+    parameterServiceMock = mock(ParameterService.class);
+    blockchainMock = mock(Blockchain.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
+    transactionProcessorMock = mock(TransactionProcessor.class);
+
+    t = new TransferAsset(parameterServiceMock, blockchainMock, apiTransactionManagerMock);
   }
 
   @Test
@@ -59,9 +65,8 @@ public class TransferAssetTest extends AbstractTransactionTest {
 
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSenderAccount);
 
-    prepareTransactionTest(req, parameterServiceMock, transactionProcessorMock, mockSenderAccount);
-
-    t.processRequest(req);
+    final Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
   }
 
   @Test
@@ -81,8 +86,6 @@ public class TransferAssetTest extends AbstractTransactionTest {
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSenderAccount);
 
     when(mockSenderAccount.getUnconfirmedAssetBalanceQNT(anyLong())).thenReturn(2L);
-
-    prepareTransactionTest(req, parameterServiceMock, transactionProcessorMock);
 
     assertEquals(NOT_ENOUGH_ASSETS, t.processRequest(req));
   }

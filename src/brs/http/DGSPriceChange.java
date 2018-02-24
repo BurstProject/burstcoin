@@ -21,8 +21,8 @@ public final class DGSPriceChange extends CreateTransaction {
   private final ParameterService parameterService;
   private final Blockchain blockchain;
 
-  DGSPriceChange(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TransactionService transactionService) {
-    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, transactionService, GOODS_PARAMETER, PRICE_NQT_PARAMETER);
+  DGSPriceChange(ParameterService parameterService, Blockchain blockchain, APITransactionManager apiTransactionManager) {
+    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, apiTransactionManager, GOODS_PARAMETER, PRICE_NQT_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
   }

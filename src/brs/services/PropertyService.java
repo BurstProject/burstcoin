@@ -4,17 +4,18 @@ import java.util.List;
 
 public interface PropertyService {
 
-  Boolean getBooleanProperty(String name, boolean assume);
+  Boolean getBoolean(String name, boolean assume);
 
-  Boolean getBooleanProperty(String name);
+  Boolean getBoolean(String name);
 
-  int getIntProperty(String name, int defaultValue);
+  int getInt(String name, int defaultValue);
 
-  int getIntProperty(String name);
+  int getInt(String name);
 
-  String getStringProperty(String name, String defaultValue);
+  String getString(String name, String defaultValue);
 
-  String getStringProperty(String name);
+  String getString(String name);
 
-  List<String> getStringListProperty(String name);
+  List<String> getStringList(String name);
+
 }

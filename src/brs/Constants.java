@@ -1,6 +1,6 @@
 package brs;
 
-import brs.services.PropertyService;
+import brs.common.Props;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -27,7 +27,7 @@ public final class Constants {
   public static final long MAX_BALANCE_NQT = MAX_BALANCE_BURST * ONE_BURST;
   public static final long INITIAL_BASE_TARGET = 18325193796L;
   public static final long MAX_BASE_TARGET = 18325193796L;
-  public static final int MAX_ROLLBACK = Burst.getPropertyService().getIntProperty("brs.maxRollback");
+  public static final int MAX_ROLLBACK = Burst.getPropertyService().getInt(Props.BRS_MAX_ROLLBACK);
 
   public static final int MAX_ALIAS_URI_LENGTH = 1000;
   public static final int MAX_ALIAS_LENGTH = 100;
@@ -56,8 +56,8 @@ public final class Constants {
   public static final int MAX_DGS_LISTING_TAGS_LENGTH = 100;
   public static final int MAX_DGS_GOODS_LENGTH = 10240;
 
-  public static final boolean isTestnet = Burst.getPropertyService().getBooleanProperty("TEST.Net");
-  public static final boolean isOffline = Burst.getPropertyService().getBooleanProperty("brs.isOffline");
+  public static final boolean isTestnet = Burst.getPropertyService().getBoolean(Props.TEST_NET);
+  public static final boolean isOffline = Burst.getPropertyService().getBoolean(Props.BRS_IS_OFFLINE);
 
   public static final int ALIAS_SYSTEM_BLOCK = 0;
   public static final int ARBITRARY_MESSAGES_BLOCK = 0;

@@ -25,8 +25,8 @@ public final class DGSQuantityChange extends CreateTransaction {
   private final ParameterService parameterService;
   private final Blockchain blockchain;
 
-  DGSQuantityChange(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TransactionService transactionService) {
-    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, transactionService, GOODS_PARAMETER, DELTA_QUALITY_PARAMETER);
+  DGSQuantityChange(ParameterService parameterService, Blockchain blockchain, APITransactionManager apiTransactionManager) {
+    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, apiTransactionManager, GOODS_PARAMETER, DELTA_QUALITY_PARAMETER);
 
     this.parameterService = parameterService;
     this.blockchain = blockchain;

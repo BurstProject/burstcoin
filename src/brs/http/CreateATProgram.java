@@ -21,11 +21,8 @@ import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.Constants;
-import brs.TransactionProcessor;
 import brs.at.AT_Constants;
-import brs.services.AccountService;
 import brs.services.ParameterService;
-import brs.services.TransactionService;
 import brs.util.Convert;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -38,9 +35,8 @@ public final class CreateATProgram extends CreateTransaction {
   private final ParameterService parameterService;
   private final Blockchain blockchain;
 
-  CreateATProgram(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TransactionService transactionService) {
-    super(new APITag[]{APITag.AT, APITag.CREATE_TRANSACTION},
-        parameterService, transactionProcessor, blockchain, accountService, transactionService,
+  CreateATProgram(ParameterService parameterService, Blockchain blockchain, APITransactionManager apiTransactionManager) {
+    super(new APITag[]{APITag.AT, APITag.CREATE_TRANSACTION}, apiTransactionManager,
         NAME_PARAMETER, DESCRIPTION_PARAMETER, CREATION_BYTES_PARAMETER, CODE_PARAMETER, DATA_PARAMETER, DPAGES_PARAMETER, CSPAGES_PARAMETER, USPAGES_PARAMETER, MIN_ACTIVATION_AMOUNT_NQT_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;

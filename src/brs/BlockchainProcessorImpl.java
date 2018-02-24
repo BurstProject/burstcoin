@@ -1,5 +1,6 @@
 package brs;
 
+import brs.common.Props;
 import brs.db.store.BlockchainStore;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
@@ -120,18 +121,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     this.stores = stores;
     this.downloadCache = downloadCache;
     this.generator = generator;
-
-    oclVerify = propertyService.getBooleanProperty("GPU.Acceleration"); // use GPU acceleration ?
-    oclUnverifiedQueue = propertyService.getIntProperty("GPU.UnverifiedQueue") == 0 ? 1000 : propertyService.getIntProperty("GPU.UnverifiedQueue");
-
-    trimDerivedTables = propertyService.getBooleanProperty("brs.trimDerivedTables");
-
-
-    forceScan = propertyService.getBooleanProperty("brs.forceScan");
-    validateAtScan = propertyService.getBooleanProperty("brs.forceValidate");
     this.economicClustering = economicClustering;
     this.escrowService = escrowService;
     this.transactionService = transactionService;
+
+    oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
+    oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE, 1000);
+
+    trimDerivedTables = propertyService.getBoolean(Props.BRS_TRIM_DERIVED_TABLES);
+
+    forceScan = propertyService.getBoolean(Props.BRS_FORCE_SCAN);
+    validateAtScan = propertyService.getBoolean(Props.BRS_FORCE_VALIDATE);
 
     blockListeners.addListener(block -> {
       if (block.getHeight() % 5000 == 0) {
@@ -173,10 +173,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     threadPool.scheduleThread("GetMoreBlocks", getMoreBlocksThread, 2);
     threadPool.scheduleThread("ImportBlocks", blockImporterThread, 10);
-    if(propertyService.getBooleanProperty("GPU.Acceleration")) {
+    if (propertyService.getBoolean(Props.GPU_ACCELERATION)) {
       logger.debug("Starting preverifier thread in Open CL mode.");
       threadPool.scheduleThread("VerifyPoc", pocVerificationThread, 9);
-    }else {
+    } else {
       logger.debug("Starting preverifier thread in CPU mode.");
       threadPool.scheduleThreadCores("VerifyPoc", pocVerificationThread, 9);
     }
@@ -186,10 +186,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private final Runnable pocVerificationThread = () -> {
     boolean verifyWithOcl;
-    int QueueThreashold = oclVerify ? oclUnverifiedQueue : 0;
+    int queueThreshold = oclVerify ? oclUnverifiedQueue : 0;
     while (true) {
       int unVerified = downloadCache.getUnverifiedSize();
-      if (unVerified > QueueThreashold) { //Is there anything to verify
+      if (unVerified > queueThreshold) { //Is there anything to verify
         if (unVerified >= oclUnverifiedQueue && oclVerify) { //should we use Ocl?
           verifyWithOcl = true;
           if (!gpuUsage.tryAcquire()) { //is Ocl ready ?
@@ -219,9 +219,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           } catch (OCLPoC.PreValidateFailException e) {
             logger.info(e.toString(), e);
             blacklistClean(e.getBlock(), e);
-          }catch (OCLPoC.OCLCheckerException e) {
+          } catch (OCLPoC.OCLCheckerException e) {
             logger.info("Open CL error. slow verify will occur for the next "+oclUnverifiedQueue+" Blocks", e);
-          }catch (Exception e) {
+          } catch (Exception e) {
             logger.info("Unspecified Open CL error: ", e);
           } finally {
             gpuUsage.release();

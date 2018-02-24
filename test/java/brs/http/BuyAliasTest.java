@@ -4,12 +4,14 @@ import static brs.http.JSONResponses.INCORRECT_ALIAS_NOTFORSALE;
 import static brs.http.common.Parameters.AMOUNT_NQT_PARAMETER;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Alias;
 import brs.Alias.Offer;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.Constants;
@@ -34,29 +36,23 @@ public class BuyAliasTest extends AbstractTransactionTest {
   private BuyAlias t;
 
   private ParameterService parameterServiceMock;
-  private TransactionProcessor transactionProcessorMock;
   private Blockchain blockchain;
   private AliasService aliasService;
-  private AccountService accountServiceMock;
-  private TransactionService transactionServiceMock;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void init() {
     parameterServiceMock = mock(ParameterService.class);
-    transactionProcessorMock = mock(TransactionProcessor.class);
     blockchain = mock(Blockchain.class);
     aliasService = mock(AliasService.class);
-    accountServiceMock = mock(AccountService.class);
-    transactionServiceMock = mock(TransactionService.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new BuyAlias(parameterServiceMock, transactionProcessorMock, blockchain, aliasService, accountServiceMock, transactionServiceMock);
+    t = new BuyAlias(parameterServiceMock, blockchain, aliasService, apiTransactionManagerMock);
   }
 
   @Test
   public void processRequest() throws BurstException {
     final HttpServletRequest req = QuickMocker.httpServletRequestDefaultKeys(new MockParam(AMOUNT_NQT_PARAMETER, "" + Constants.ONE_BURST));
-
-    super.prepareTransactionTest(req, parameterServiceMock, transactionProcessorMock);
 
     final Offer mockOfferOnAlias = mock(Offer.class);
 
@@ -71,7 +67,8 @@ public class BuyAliasTest extends AbstractTransactionTest {
 
     when(parameterServiceMock.getAlias(eq(req))).thenReturn(mockAlias);
 
-    assertTrue(t.processRequest(req) instanceof JSONObject);
+    final Attachment.MessagingAliasBuy attachment = (Attachment.MessagingAliasBuy) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
   }
 
   @Test

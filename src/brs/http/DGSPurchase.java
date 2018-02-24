@@ -31,9 +31,8 @@ public final class DGSPurchase extends CreateTransaction {
   private AccountService accountService;
   private TimeService timeService;
 
-  DGSPurchase(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, TimeService timeService, TransactionService transactionService) {
-    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION},
-        parameterService, transactionProcessor, blockchain, accountService, transactionService, GOODS_PARAMETER, PRICE_NQT_PARAMETER, QUANTITY_PARAMETER, DELIVERY_DEADLINE_TIMESTAMP_PARAMETER);
+  DGSPurchase(ParameterService parameterService, Blockchain blockchain, AccountService accountService, TimeService timeService, APITransactionManager apiTransactionManager) {
+    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, apiTransactionManager, GOODS_PARAMETER, PRICE_NQT_PARAMETER, QUANTITY_PARAMETER, DELIVERY_DEADLINE_TIMESTAMP_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
     this.accountService = accountService;

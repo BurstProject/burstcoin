@@ -3,11 +3,13 @@ package brs.http;
 import static brs.http.JSONResponses.UNKNOWN_GOODS;
 import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.DigitalGoodsStore.Goods;
@@ -25,21 +27,17 @@ public class DGSPriceChangeTest extends AbstractTransactionTest {
 
   private DGSPriceChange t;
 
-  private ParameterService mockParameterService;
-  private Blockchain mockBlockchain;
-  private TransactionProcessor mockTransactionProcessor;
-  private AccountService mockAccountService;
-  private TransactionService transactionServiceMock;
+  private ParameterService parameterServiceMock;
+  private Blockchain blockchainMock;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
-    mockParameterService = mock(ParameterService.class);
-    mockBlockchain = mock(Blockchain.class);
-    mockTransactionProcessor = mock(TransactionProcessor.class);
-    mockAccountService = mock(AccountService.class);
-    transactionServiceMock = mock(TransactionService.class);
+    parameterServiceMock = mock(ParameterService.class);
+    blockchainMock = mock(Blockchain.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new DGSPriceChange(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService, transactionServiceMock);
+    t = new DGSPriceChange(parameterServiceMock, blockchainMock, apiTransactionManagerMock);
   }
 
   @Test
@@ -55,10 +53,11 @@ public class DGSPriceChangeTest extends AbstractTransactionTest {
     when(mockGoods.getSellerId()).thenReturn(1L);
     when(mockGoods.isDelisted()).thenReturn(false);
 
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockAccount);
-    when(mockParameterService.getGoods(eq(req))).thenReturn(mockGoods);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockAccount);
+    when(parameterServiceMock.getGoods(eq(req))).thenReturn(mockGoods);
 
-    t.processRequest(req);
+    final Attachment.DigitalGoodsPriceChange attachment = (Attachment.DigitalGoodsPriceChange) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
   }
 
   @Test
@@ -72,8 +71,8 @@ public class DGSPriceChangeTest extends AbstractTransactionTest {
     final Goods mockGoods = mock(Goods.class);
     when(mockGoods.isDelisted()).thenReturn(true);
 
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockAccount);
-    when(mockParameterService.getGoods(eq(req))).thenReturn(mockGoods);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockAccount);
+    when(parameterServiceMock.getGoods(eq(req))).thenReturn(mockGoods);
 
     assertEquals(UNKNOWN_GOODS, t.processRequest(req));
   }
@@ -91,8 +90,8 @@ public class DGSPriceChangeTest extends AbstractTransactionTest {
     when(mockGoods.getSellerId()).thenReturn(2L);
     when(mockGoods.isDelisted()).thenReturn(false);
 
-    when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockAccount);
-    when(mockParameterService.getGoods(eq(req))).thenReturn(mockGoods);
+    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockAccount);
+    when(parameterServiceMock.getGoods(eq(req))).thenReturn(mockGoods);
 
     assertEquals(UNKNOWN_GOODS, t.processRequest(req));
   }

@@ -1,6 +1,7 @@
 package brs.user;
 
 import brs.*;
+import brs.common.Props;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.services.PropertyService;
@@ -40,7 +41,7 @@ public final class Users {
 
   public Users(PropertyService propertyService) {
 
-    List<String> allowedUserHostsList = propertyService.getStringListProperty("brs.allowedUserHosts");
+    List<String> allowedUserHostsList = propertyService.getStringList(Props.BRS_ALLOWED_USER_HOSTS);
     if (! allowedUserHostsList.contains("*")) {
 
       // Temp hashset to store allowed subnets

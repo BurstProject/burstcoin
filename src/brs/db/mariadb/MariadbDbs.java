@@ -45,19 +45,4 @@ public class MariadbDbs implements Dbs {
     return peerDb;
   }
 
-  @Override
-  public void disableForeignKeyChecks(Connection con) throws SQLException {
-    try ( Statement stmt = con.createStatement() ) {
-      stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=0;");
-      stmt.executeUpdate("SET unique_checks=0;");
-    }
-  }
-
-  @Override
-  public void enableForeignKeyChecks(Connection con) throws SQLException {
-    try ( Statement stmt = con.createStatement() ) {
-      stmt.executeUpdate("SET FOREIGN_KEY_CHECKS=1;");
-      stmt.executeUpdate("SET unique_checks=1;");
-    }
-  }
 }
