@@ -87,7 +87,7 @@ public class CancelBidOrderTest extends AbstractTransactionTest {
 
   @Test
   public void processRequest_accountIdNotSameAsOrder() throws BurstException {
-    final String orderId = "123";
+    final int orderId = 123;
     final long orderAccountId = 1;
     final long senderAccountId = 2;
 
