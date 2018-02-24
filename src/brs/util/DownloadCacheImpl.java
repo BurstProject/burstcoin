@@ -2,6 +2,7 @@ package brs.util;
 
 import brs.Block;
 import brs.Blockchain;
+import brs.common.Props;
 import brs.services.PropertyService;
 import java.math.BigInteger;
 import java.util.Collection;
@@ -34,7 +35,7 @@ public final class DownloadCacheImpl {
   private final StampedLock dcsl = new StampedLock();
 
   public DownloadCacheImpl(PropertyService propertyService, Blockchain blockchain) {
-    this.blockCacheMB = propertyService.getIntProperty("brs.blockCacheMB") == 0 ? 40 : propertyService.getIntProperty("brs.blockCacheMB");
+    this.blockCacheMB = propertyService.getInt(Props.BRS_BLOCK_CACHE_MB, 40);
     this.blockchain = blockchain;
   }
 

@@ -168,7 +168,7 @@ public final class Burst {
 
       propertyService = loadProperties();
 
-      threadPool = new ThreadPool();
+      threadPool = new ThreadPool(propertyService);
 
       LoggerConfigurator.init();
 
@@ -193,7 +193,7 @@ public final class Burst {
 
       final TimeService timeService = new TimeServiceImpl();
 
-      final Generator generator = propertyService.getBooleanProperty("brs.mockMining") ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService);
+      final Generator generator = propertyService.getBoolean(Props.BRS_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService);
 
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
 
@@ -240,7 +240,7 @@ public final class Burst {
       users = new Users(propertyService);
       DebugTrace.init(propertyService, blockchainProcessor, tradeService, orderService, digitalGoodsStoreService);
 
-      int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(propertyService.getIntProperty(Props.TIME_MULTIPLIER), 1) : 1;
+      int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(propertyService.getInt(Props.TIME_MULTIPLIER), 1) : 1;
 
       threadPool.start(timeMultiplier);
       if (timeMultiplier > 1) {
@@ -285,27 +285,11 @@ public final class Burst {
     LoggerConfigurator.shutdown();
   }
 
-  public static Boolean getBooleanProperty(String name, boolean assume) {
-    return propertyService.getBooleanProperty(name, assume);
-  }
-
-  public static Boolean getBooleanProperty(String name) {
-    return propertyService.getBooleanProperty(name);
-  }
-
-  public static int getIntProperty(String name, int defaultValue) {
-    return propertyService.getIntProperty(name, defaultValue);
-  }
-
-  public static int getIntProperty(String name) {
-    return propertyService.getIntProperty(name);
-  }
-
   public static PropertyService getPropertyService() {
     return propertyService;
   }
 
-  static TransactionService transactionService;
+  private static TransactionService transactionService;
 
   public static TransactionService getTransactionService() {
     return transactionService;

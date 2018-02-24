@@ -1,5 +1,6 @@
 package brs;
 
+import brs.common.Props;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.EntityTable;
 import brs.db.BurstIterator;
@@ -68,11 +69,11 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     this.accountService = accountService;
     this.transactionService = transactionService;
 
-    this.enableTransactionRebroadcasting = propertyService.getBooleanProperty("brs.enableTransactionRebroadcasting");
-    this.testUnconfirmedTransactions = propertyService.getBooleanProperty("brs.testUnconfirmedTransactions");
+    this.enableTransactionRebroadcasting = propertyService.getBoolean(Props.BRS_ENABLE_TRANSACTION_REBROADCASTING);
+    this.testUnconfirmedTransactions = propertyService.getBoolean(Props.BRS_TEST_UNCONFIRMED_TRANSACTIONS);
 
-    this.rebroadcastAfter = propertyService.getIntProperty("brs.rebroadcastAfter") != 0 ? propertyService.getIntProperty("brs.rebroadcastAfter") : 4;
-    this.rebroadcastEvery = propertyService.getIntProperty("brs.rebroadcastEvery") != 0 ? propertyService.getIntProperty("brs.rebroadcastEvery") : 2;
+    this.rebroadcastAfter = propertyService.getInt(Props.BRS_REBROADCAST_AFTER, 4);
+    this.rebroadcastEvery = propertyService.getInt(Props.REBROADCAST_EVERY, 2);
 
     threadPool.scheduleThread("ProcessTransactions", processTransactionsThread, 5);
     threadPool.scheduleThread("RemoveUnconfirmedTransactions", removeUnconfirmedTransactionsThread, 60);

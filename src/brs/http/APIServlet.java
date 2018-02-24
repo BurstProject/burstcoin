@@ -11,6 +11,7 @@ import brs.BurstException;
 import brs.EconomicClustering;
 import brs.Generator;
 import brs.TransactionProcessor;
+import brs.common.Props;
 import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.AliasService;
@@ -22,6 +23,7 @@ import brs.services.DGSGoodsStoreService;
 import brs.services.EscrowService;
 import brs.services.OrderService;
 import brs.services.ParameterService;
+import brs.services.PropertyService;
 import brs.services.SubscriptionService;
 import brs.services.TimeService;
 import brs.services.TradeService;
@@ -54,7 +56,9 @@ public final class APIServlet extends HttpServlet {
       AccountService accountService, AliasService aliasService, OrderService orderService, AssetService assetService, AssetTransferService assetTransferService,
       TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService, AssetAccountService assetAccountService,
       SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, TransactionService transactionService,
-      BlockService blockService, Generator generator) {
+      BlockService blockService, Generator generator, PropertyService propertyService) {
+    enforcePost = propertyService.getBoolean(Props.API_SERVER_ENFORCE_POST);
+
     final Map<String, APIRequestHandler> map = new HashMap<>();
 
     map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService, transactionService));
@@ -213,7 +217,7 @@ public final class APIServlet extends HttpServlet {
 
   }
 
-  private static final boolean enforcePost = Burst.getBooleanProperty("API.ServerEnforcePOST");
+  private static boolean enforcePost;
 
   static Map<String, APIRequestHandler> apiRequestHandlers;
 

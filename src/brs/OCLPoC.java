@@ -34,6 +34,7 @@ import static org.jocl.CL.clReleaseProgram;
 import static org.jocl.CL.clSetKernelArg;
 import static org.jocl.CL.setExceptionsEnabled;
 
+import brs.common.Props;
 import brs.services.BlockService;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -88,11 +89,11 @@ final class OCLPoC {
   static void init() {}
   static {
     PropertyService propertyService = Burst.getPropertyService();
-    hashesPerEnqueue = propertyService.getIntProperty("GPU.HashesPerBatch") == 0 ? 1000 : propertyService.getIntProperty("GPU.HashesPerBatch");
-    MEM_PERCENT = propertyService.getIntProperty("GPU.MemPercent") == 0 ? DEFAULT_MEM_PERCENT : propertyService.getIntProperty("GPU.MemPercent");
+    hashesPerEnqueue = propertyService.getInt(Props.GPU_HASHES_PER_BATCH, 1000);
+    MEM_PERCENT = propertyService.getInt(Props.GPU_MEM_PERCENT, DEFAULT_MEM_PERCENT);
     
     try {
-      boolean autoChoose = Burst.getBooleanProperty("GPU.AutoDetect", true);
+      boolean autoChoose = propertyService.getBoolean(Props.GPU_AUTODETECT, true);
       setExceptionsEnabled(true);
 
       int platformIndex;
@@ -106,8 +107,8 @@ final class OCLPoC {
         deviceIndex = ac.getDevice();
         logger.info("Choosing Platform " + platformIndex + " - DeviceId: " + deviceIndex);
       } else {
-        platformIndex = Burst.getIntProperty("GPU.PlatformIdx");
-        deviceIndex = Burst.getIntProperty("GPU.DeviceIdx");
+        platformIndex = propertyService.getInt(Props.GPU_PLATFORM_IDX);
+        deviceIndex = propertyService.getInt(Props.GPU_DEVICE_IDX);
       }
 
       int[] numPlatforms = new int[1];

@@ -1,5 +1,6 @@
 package brs;
 
+import brs.common.Props;
 import brs.services.DGSGoodsStoreService;
 import brs.services.OrderService;
 import brs.services.PropertyService;
@@ -24,15 +25,15 @@ public final class DebugTrace {
   static DGSGoodsStoreService dgsGoodsStoreService;
 
   static void init(PropertyService propertyService, BlockchainProcessor blockchainProcessor, TradeService tradeService, OrderService orderService, DGSGoodsStoreService dgsGoodsStoreService) {
-    QUOTE = propertyService.getStringProperty("brs.debugTraceQuote", "");
-    SEPARATOR = propertyService.getStringProperty("brs.debugTraceSeparator", "\t");
-    LOG_UNCONFIRMED = propertyService.getBooleanProperty("brs.debugLogUnconfirmed");
+    QUOTE = propertyService.getString(Props.BRS_DEBUG_TRACE_QUOTE, "");
+    SEPARATOR = propertyService.getString(Props.BRS_DEBUG_TRACE_SEPARATOR, "\t");
+    LOG_UNCONFIRMED = propertyService.getBoolean(Props.BRS_DEBUG_LOG_CONFIRMED);
 
     DebugTrace.orderService = orderService;
     DebugTrace.dgsGoodsStoreService = dgsGoodsStoreService;
 
-    List<String> accountIdStrings = propertyService.getStringListProperty("brs.debugTraceAccounts");
-    String logName = propertyService.getStringProperty("brs.debugTraceLog");
+    List<String> accountIdStrings = propertyService.getStringList(Props.BRS_DEBUG_TRACE_ACCOUNTS);
+    String logName = propertyService.getString(Props.BRS_DEBUG_TRACE_LOG);
     if (accountIdStrings.isEmpty() || logName == null) {
       return;
     }
