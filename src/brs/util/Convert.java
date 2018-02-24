@@ -116,7 +116,7 @@ public final class Convert {
   }
 
   public static String emptyToNull(String s) {
-    return s == null || s.length() == 0 ? null : s;
+    return s == null || s.isEmpty() ? null : s;
   }
 
   public static String nullToEmpty(String s) {

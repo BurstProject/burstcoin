@@ -26,7 +26,7 @@ public final class Hallmark {
 
   public static String generateHallmark(String secretPhrase, String host, int weight, int date) {
 
-    if (host.length() == 0 || host.length() > 100) {
+    if (host.isEmpty() || host.length() > 100) {
       throw new IllegalArgumentException("Hostname length should be between 1 and 100");
     }
     if (weight <= 0 || weight > Constants.MAX_BALANCE_BURST) {

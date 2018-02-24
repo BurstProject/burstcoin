@@ -141,7 +141,7 @@ public final class Peers {
     }
 
     JSONObject json = new JSONObject();
-    if (myAddress != null && myAddress.length() > 0) {
+    if (myAddress != null && ! myAddress.isEmpty()) {
       try {
         URI uri = new URI("http://" + myAddress.trim());
         String host = uri.getHost();
@@ -701,7 +701,7 @@ public final class Peers {
 
     String announcedPeerAddress = address.equals(announcedAddress) ? peerAddress : normalizeHostAndPort(announcedAddress);
 
-    if (Peers.myAddress != null && Peers.myAddress.length() > 0 && Peers.myAddress.equalsIgnoreCase(announcedPeerAddress)) {
+    if (Peers.myAddress != null && ! Peers.myAddress.isEmpty() && Peers.myAddress.equalsIgnoreCase(announcedPeerAddress)) {
       return null;
     }
 
