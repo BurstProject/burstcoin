@@ -34,19 +34,22 @@ function upgrade_conf () {
         BRS=$(<$BRS_CFG_NAME)    # read in the config file content
         # P2P-related params
         BRS="${BRS//nxt\.shareMyAddress/P2P.shareMyAddress}"
-        BRS="${BRS//nxt\.peerServerPort/P2P.Port}"
-        BRS="${BRS//nxt\.peerServerHost/P2P.Listen}"
         BRS="${BRS//nxt\.myAddress/P2P.myAddress}"
+        BRS="${BRS//nxt\.peerServerHost/P2P.Listen}"
+        BRS="${BRS//nxt\.peerServerPort/P2P.Port}"
         BRS="${BRS//nxt\.myPlatform/P2P.myPlatform}"
         BRS="${BRS//nxt\.wellKnownPeers/P2P.BootstrapPeers}"
         BRS="${BRS//burst\.rebroadcastPeers/P2P.rebroadcastTo}"
         BRS="${BRS//burst\.connectWellKnownFirst/P2P.NumBootstrapConnections}"
         BRS="${BRS//nxt\.knownBlacklistedPeers/P2P.BlacklistedPeers}"
-        BRS="${BRS//brs\.maxNumberOfConnectedPublicPeers/P2P.MaxConnections}"
+        BRS="${BRS//nxt\.maxNumberOfConnectedPublicPeers/P2P.MaxConnections}"
         BRS="${BRS//nxt\.connectTimeout/P2P.TimeoutConnect_ms}"
         BRS="${BRS//nxt\.readTimeout/P2P.TimeoutRead_ms}"
         BRS="${BRS//nxt\.peerServerIdleTimeout/P2P.TimeoutIdle_ms}"
         BRS="${BRS//nxt\.blacklistingPeriod/P2P.BlacklistingTime_ms}"
+        BRS="${BRS//nxt\.sendToPeersLimit/P2P.TxResendThreshold}"
+        BRS="${BRS//nxt\.usePeersDb/P2P.usePeersDb}"
+        BRS="${BRS//nxt\.savePeers/P2P.savePeers}"
 
         # P2P Hallmarks
         BRS="${BRS//nxt\.enableHallmarkProtection/P2P.HallmarkProtection}"
@@ -55,13 +58,12 @@ function upgrade_conf () {
         BRS="${BRS//nxt\.pullThreshold/P2P.HallmarkPull}"
         BRS="${BRS///}"
         BRS="${BRS///}"
-        BRS="${BRS///}"
 
         # JETTY pass-through params
-        BRS="${BRS//nxt\.enablePeerServerDoSFilter/JETTY.DoSFilter}"
-        BRS="${BRS//nxt\.peerServerDoSFilter.maxRequestsPerSec/JETTY.DoSFilter.maxRequestsPerSec}"
-        BRS="${BRS//nxt\.peerServerDoSFilter.delayMs/JETTY.DoSFilter.delayMs}"
-        BRS="${BRS//nxt\.peerServerDoSFilter.maxRequestMs/JETTY.DoSFilter.maxRequestMs}"
+        BRS="${BRS//nxt\.enablePeerServerDoSFilter/JETTY.P2P.DoSFilter}"
+        BRS="${BRS//nxt\.peerServerDoSFilter.maxRequestsPerSec/JETTY.P2P.DoSFilter.maxRequestsPerSec}"
+        BRS="${BRS//nxt\.peerServerDoSFilter.delayMs/JETTY.P2P.DoSFilter.delayMs}"
+        BRS="${BRS//nxt\.peerServerDoSFilter.maxRequestMs/JETTY.P2P.DoSFilter.maxRequestMs}"
 
         # TEST-related params (TestNet)
         BRS="${BRS//nxt\.isTestnet/TEST.Net}"
