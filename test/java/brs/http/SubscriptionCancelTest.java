@@ -1,5 +1,6 @@
 package brs.http;
 
+import static brs.TransactionType.AdvancedPayment.SUBSCRIPTION_CANCEL;
 import static brs.http.common.Parameters.SUBSCRIPTION_PARAMETER;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static org.junit.Assert.assertEquals;
@@ -43,24 +44,28 @@ public class SubscriptionCancelTest extends AbstractTransactionTest {
 
   @Test
   public void processRequest() throws BurstException {
-    final long subscriptionId = 123L;
+    final Long subscriptionIdParameter = 123L;
 
     final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(SUBSCRIPTION_PARAMETER, subscriptionId)
+        new MockParam(SUBSCRIPTION_PARAMETER, subscriptionIdParameter)
     );
 
     final Account mockSender = mock(Account.class);
     when(mockSender.getId()).thenReturn(1L);
 
     final Subscription mockSubscription = mock(Subscription.class);
+    when(mockSubscription.getId()).thenReturn(subscriptionIdParameter);
     when(mockSubscription.getSenderId()).thenReturn(1L);
     when(mockSubscription.getRecipientId()).thenReturn(2L);
 
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSender);
-    when(subscriptionServiceMock.getSubscription(eq(subscriptionId))).thenReturn(mockSubscription);
+    when(subscriptionServiceMock.getSubscription(eq(subscriptionIdParameter))).thenReturn(mockSubscription);
 
     final Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
+
+    assertEquals(SUBSCRIPTION_CANCEL, attachment.getTransactionType());
+    assertEquals(subscriptionIdParameter, attachment.getSubscriptionId());
   }
 
   @Test

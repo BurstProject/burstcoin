@@ -1,5 +1,6 @@
 package brs.http;
 
+import static brs.TransactionType.BurstMining.REWARD_RECIPIENT_ASSIGNMENT;
 import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -11,7 +12,6 @@ import brs.Account;
 import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
-import brs.TransactionProcessor;
 import brs.common.JSONTestHelper;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
@@ -19,7 +19,6 @@ import brs.common.TestConstants;
 import brs.crypto.Crypto;
 import brs.services.AccountService;
 import brs.services.ParameterService;
-import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,6 +55,8 @@ public class SetRewardRecipientTest extends AbstractTransactionTest {
 
     final Attachment.BurstMiningRewardRecipientAssignment attachment = (Attachment.BurstMiningRewardRecipientAssignment) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
+
+    assertEquals(REWARD_RECIPIENT_ASSIGNMENT, attachment.getTransactionType());
   }
 
   @Test

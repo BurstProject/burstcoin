@@ -818,7 +818,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         throw new BlockOutOfOrderException("Previous block id doesn't match");
       }
 
-      if (block.getVersion() != getBlockVersion(previousLastBlock.getHeight())) {
+      if (block.getVersion() != getBlockVersion()) {
         throw new BlockNotAcceptedException("Invalid version " + block.getVersion());
       }
 
@@ -1054,7 +1054,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     return previousBlock;
   }
 
-  int getBlockVersion(int previousBlockHeight) {
+  int getBlockVersion() {
     return 3;
   }
 
@@ -1184,7 +1184,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     Block block;
     byte[] previousBlockHash = Crypto.sha256().digest(previousBlock.getBytes());
     try {
-      block = new Block(getBlockVersion(previousBlock.getHeight()), blockTimestamp,
+      block = new Block(getBlockVersion(), blockTimestamp,
           previousBlock.getId(), totalAmountNQT, totalFeeNQT, payloadLength, payloadHash, publicKey,
           generationSignature, null, previousBlockHash, new ArrayList<>(blockTransactions), nonce,
           byteATs);

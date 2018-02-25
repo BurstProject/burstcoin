@@ -1,5 +1,6 @@
 package brs.http;
 
+import static brs.TransactionType.DigitalGoods.PURCHASE;
 import static brs.http.JSONResponses.INCORRECT_DELIVERY_DEADLINE_TIMESTAMP;
 import static brs.http.JSONResponses.INCORRECT_PURCHASE_PRICE;
 import static brs.http.JSONResponses.INCORRECT_PURCHASE_QUANTITY;
@@ -19,13 +20,11 @@ import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.DigitalGoodsStore.Goods;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.services.TimeService;
-import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,7 +63,9 @@ public class DGSPurchaseTest extends AbstractTransactionTest {
     );
 
     final long mockSellerId = 123L;
+    final long mockGoodsId = 123L;
     final Goods mockGoods = mock(Goods.class);
+    when(mockGoods.getId()).thenReturn(mockGoodsId);
     when(mockGoods.isDelisted()).thenReturn(false);
     when(mockGoods.getQuantity()).thenReturn(10);
     when(mockGoods.getPriceNQT()).thenReturn(10L);
@@ -79,6 +80,12 @@ public class DGSPurchaseTest extends AbstractTransactionTest {
 
     final Attachment.DigitalGoodsPurchase attachment = (Attachment.DigitalGoodsPurchase) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
+
+    assertEquals(PURCHASE, attachment.getTransactionType());
+    assertEquals(goodsQuantity, attachment.getQuantity());
+    assertEquals(goodsPrice, attachment.getPriceNQT());
+    assertEquals(deliveryDeadlineTimestamp, attachment.getDeliveryDeadlineTimestamp());
+    assertEquals(mockGoodsId, attachment.getGoodsId());
   }
 
   @Test

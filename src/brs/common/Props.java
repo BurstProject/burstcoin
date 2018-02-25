@@ -45,7 +45,6 @@ public class Props {
   public static final String BRS_DB_DEFAULT_LOCK_TIMEOUT = "brs.dbDefaultLockTimeout";
 
   public static final String BRS_ALLOWED_BOT_HOSTS = "brs.allowedBotHosts";
-  public static final String BRS_ALLOWED_USER_HOSTS = "brs.allowedUserHosts";
 
   public static final String BRS_BLOCK_CACHE_MB = "brs.blockCacheMB";
 

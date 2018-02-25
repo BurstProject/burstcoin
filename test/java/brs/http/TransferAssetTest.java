@@ -1,5 +1,6 @@
 package brs.http;
 
+import static brs.TransactionType.ColoredCoins.ASSET_TRANSFER;
 import static brs.http.JSONResponses.NOT_ENOUGH_ASSETS;
 import static brs.http.common.Parameters.ASSET_PARAMETER;
 import static brs.http.common.Parameters.QUANTITY_NQT_PARAMETER;
@@ -19,9 +20,7 @@ import brs.BurstException;
 import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.services.AccountService;
 import brs.services.ParameterService;
-import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,26 +46,32 @@ public class TransferAssetTest extends AbstractTransactionTest {
 
   @Test
   public void processRequest() throws BurstException {
-    final Long assetId = 456L;
+    final long recipientParameter = 34L;
+    final long assetIdParameter = 456L;
+    final long quantityNQTParameter = 56L;
 
     final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(RECIPIENT_PARAMETER, "123"),
-        new MockParam(ASSET_PARAMETER, "" + assetId),
-        new MockParam(QUANTITY_NQT_PARAMETER, "2")
+        new MockParam(RECIPIENT_PARAMETER, recipientParameter),
+        new MockParam(ASSET_PARAMETER, assetIdParameter),
+        new MockParam(QUANTITY_NQT_PARAMETER, quantityNQTParameter)
     );
 
     Asset mockAsset = mock(Asset.class);
 
     when(parameterServiceMock.getAsset(eq(req))).thenReturn(mockAsset);
-    when(mockAsset.getId()).thenReturn(assetId);
+    when(mockAsset.getId()).thenReturn(assetIdParameter);
 
     final Account mockSenderAccount = mock(Account.class);
-    when(mockSenderAccount.getUnconfirmedAssetBalanceQNT(eq(assetId))).thenReturn(5L);
+    when(mockSenderAccount.getUnconfirmedAssetBalanceQNT(eq(assetIdParameter))).thenReturn(500L);
 
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSenderAccount);
 
     final Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
+
+    assertEquals(ASSET_TRANSFER, attachment.getTransactionType());
+    assertEquals(assetIdParameter, attachment.getAssetId());
+    assertEquals(quantityNQTParameter, attachment.getQuantityQNT());
   }
 
   @Test

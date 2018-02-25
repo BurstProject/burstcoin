@@ -331,7 +331,7 @@ final class PeerImpl implements Peer {
             }
           }
           String responseValue = byteArrayOutputStream.toString("UTF-8");
-          if (responseValue.length() > 0 && responseStream instanceof GZIPInputStream) {
+          if (! responseValue.isEmpty() && responseStream instanceof GZIPInputStream) {
             log += String.format("[length: %d, compression ratio: %.2f]", cis.getCount(), (double)cis.getCount() / (double)responseValue.length());
           }
           log += " >>> " + responseValue;
@@ -426,7 +426,7 @@ final class PeerImpl implements Peer {
             }
           }
           String responseValue = byteArrayOutputStream.toString("UTF-8");
-          if (responseValue.length() > 0 && responseStream instanceof GZIPInputStream) {
+          if (! responseValue.isEmpty() && responseStream instanceof GZIPInputStream) {
             log += String.format("[length: %d, compression ratio: %.2f]", cis.getCount(), (double)cis.getCount() / (double)responseValue.length());
           }
           log += " >>> " + responseValue;
@@ -488,7 +488,7 @@ final class PeerImpl implements Peer {
     return 0;
   }
 
-  void connect() {
+  void connect(int currentTime) {
     JSONObject response = send(Peers.myPeerInfoRequest);
     if (response != null) {
       application = (String)response.get("application");
@@ -513,7 +513,7 @@ final class PeerImpl implements Peer {
       else {
         blacklist();
       }
-      lastUpdated = Burst.getEpochTime();
+      lastUpdated = currentTime;
     }
     else {
       setState(State.NON_CONNECTED);

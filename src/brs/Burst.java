@@ -49,7 +49,6 @@ import brs.services.impl.SubscriptionServiceImpl;
 import brs.services.impl.TimeServiceImpl;
 import brs.services.impl.TradeServiceImpl;
 import brs.services.impl.TransactionServiceImpl;
-import brs.user.Users;
 import brs.util.DownloadCacheImpl;
 import brs.util.LoggerConfigurator;
 import brs.util.ThreadPool;
@@ -75,7 +74,7 @@ public final class Burst {
 
   private static final Logger logger = LoggerFactory.getLogger(Burst.class);
   private static Properties properties;
-  private static volatile Time time = new Time.EpochTime();
+
   private static Stores stores;
   private static Dbs dbs;
 
@@ -89,7 +88,6 @@ public final class Burst {
   private static EconomicClustering economicClustering;
 
   private static API api;
-  private static Users users;
 
   private static CacheManager cacheManager;
 
@@ -152,14 +150,6 @@ public final class Burst {
     return dbs;
   }
 
-  public static int getEpochTime() {
-    return time.getTime();
-  }
-
-  static void setTime(Time t) {
-    time = t;
-  }
-
   public static void main(String[] args) {
     Runtime.getRuntime().addShutdownHook(new Thread(Burst::shutdown));
     init();
@@ -188,7 +178,9 @@ public final class Burst {
       Db.init(propertyService);
       dbs = Db.getDbsByDatabaseType();
 
-      stores = new Stores(derivedTableManager);
+      final TimeService timeService = new TimeServiceImpl();
+
+      stores = new Stores(derivedTableManager, timeService);
 
       final TransactionDb transactionDb = dbs.getTransactionDb();
       final BlockDb blockDb =  dbs.getBlockDb();
@@ -204,13 +196,12 @@ public final class Burst {
       final EntityTable<Transaction> unconfirmedTransactionTable =
           stores.getTransactionProcessorStore().getUnconfirmedTransactionTable();
 
-      final TimeService timeService = new TimeServiceImpl();
 
       final Generator generator = propertyService.getBoolean(Props.BRS_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService);
 
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
 
-      transactionService = new TransactionServiceImpl(accountService, blockchain);
+      final TransactionService transactionService = new TransactionServiceImpl(accountService, blockchain);
 
       transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain, stores, timeService, dbs,
           accountService, transactionService, threadPool);
@@ -253,14 +244,13 @@ public final class Burst {
           tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
           subscriptionService, atService, timeService, economicClustering, propertyService, threadPool, transactionService, blockService, generator, apiTransactionManager);
 
-      users = new Users(propertyService);
       DebugTrace.init(propertyService, blockchainProcessor, tradeService, orderService, digitalGoodsStoreService);
 
       int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(propertyService.getInt(Props.TIME_MULTIPLIER), 1) : 1;
 
       threadPool.start(timeMultiplier);
       if (timeMultiplier > 1) {
-        setTime(new Time.FasterTime(Math.max(getEpochTime(), getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
+        timeService.setTime(new Time.FasterTime(Math.max(timeService.getEpochTime(), getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
         logger.info("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
       }
 
@@ -303,7 +293,6 @@ public final class Burst {
   public static void shutdown() {
     logger.info("Shutting down...");
     api.shutdown();
-    users.shutdown();
     Peers.shutdown(threadPool);
     threadPool.shutdown();
     cacheManager.close();
@@ -319,9 +308,4 @@ public final class Burst {
     return propertyService;
   }
 
-  private static TransactionService transactionService;
-
-  public static TransactionService getTransactionService() {
-    return transactionService;
-  }
 }

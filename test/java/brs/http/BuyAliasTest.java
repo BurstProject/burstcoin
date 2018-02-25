@@ -1,8 +1,8 @@
 package brs.http;
 
+import static brs.TransactionType.Messaging.ALIAS_BUY;
 import static brs.http.JSONResponses.INCORRECT_ALIAS_NOTFORSALE;
 import static brs.http.common.Parameters.AMOUNT_NQT_PARAMETER;
-import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
@@ -15,16 +15,11 @@ import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.Constants;
-import brs.Transaction;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.ParameterService;
-import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,6 +64,9 @@ public class BuyAliasTest extends AbstractTransactionTest {
 
     final Attachment.MessagingAliasBuy attachment = (Attachment.MessagingAliasBuy) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
+
+    assertEquals(ALIAS_BUY, attachment.getTransactionType());
+    assertEquals(mockAliasName, attachment.getAliasName());
   }
 
   @Test

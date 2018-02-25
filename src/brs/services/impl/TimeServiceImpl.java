@@ -1,12 +1,21 @@
 package brs.services.impl;
 
-import brs.Burst;
 import brs.services.TimeService;
+import brs.util.Time;
+import brs.util.Time.FasterTime;
 
 public class TimeServiceImpl implements TimeService {
 
+  private static volatile Time time = new Time.EpochTime();
+
   @Override
   public int getEpochTime() {
-    return Burst.getEpochTime();
+    return time.getTime();
   }
+
+  @Override
+  public void setTime(FasterTime t) {
+    time = t;
+  }
+
 }

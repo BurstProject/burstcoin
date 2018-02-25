@@ -1,5 +1,6 @@
 package brs.http;
 
+import static brs.TransactionType.DigitalGoods.FEEDBACK;
 import static brs.http.JSONResponses.GOODS_NOT_DELIVERED;
 import static brs.http.JSONResponses.INCORRECT_PURCHASE;
 import static org.junit.Assert.assertEquals;
@@ -13,12 +14,10 @@ import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.DigitalGoodsStore.Purchase;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.crypto.EncryptedData;
 import brs.services.AccountService;
 import brs.services.ParameterService;
-import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +45,9 @@ public class DGSFeedbackTest extends AbstractTransactionTest {
   public void processRequest() throws BurstException {
     final HttpServletRequest req = QuickMocker.httpServletRequest();
 
+    final long mockPurchaseId = 123L;
     final Purchase mockPurchase = mock(Purchase.class);
+    when(mockPurchase.getId()).thenReturn(mockPurchaseId);
     final Account mockAccount = mock(Account.class);
     final Account mockSellerAccount = mock(Account.class);
     final EncryptedData mockEncryptedGoods = mock(EncryptedData.class);
@@ -62,6 +63,9 @@ public class DGSFeedbackTest extends AbstractTransactionTest {
 
     final Attachment.DigitalGoodsFeedback attachment = (Attachment.DigitalGoodsFeedback) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
+
+    assertEquals(FEEDBACK, attachment.getTransactionType());
+    assertEquals(mockPurchaseId, attachment.getPurchaseId());
   }
 
   @Test

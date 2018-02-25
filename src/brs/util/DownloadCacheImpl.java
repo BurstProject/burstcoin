@@ -163,10 +163,10 @@ public final class DownloadCacheImpl {
     }
   }
 
-  public void removeUnverified(long BlockId) {
+  public void removeUnverified(long blockId) {
     long stamp = dcsl.writeLock();
     try {
-      unverified.remove(BlockId);
+      unverified.remove(blockId);
     } finally {
       dcsl.unlockWrite(stamp);
     }
@@ -183,19 +183,6 @@ public final class DownloadCacheImpl {
     }
   }
 
-/*  public void VerifyCacheIntegrity() {
-    if (blockCache.size() > 0) {
-      long checkBlockId = getLastBlockId();
-      while (checkBlockId != Burst.getBlockchain().getLastBlock().getId()) {
-        if (blockCache.get(checkBlockId) == null) {
-          resetCache();
-          break;
-        }
-        checkBlockId = blockCache.get(checkBlockId).getPreviousBlockId();
-      }
-    }
-  }*/
-
   public void resetCache() {
     long stamp = dcsl.writeLock();
     try {
@@ -207,30 +194,6 @@ public final class DownloadCacheImpl {
      dcsl.unlockWrite(stamp);
     }
     setLastVars();
-  }
-
-  public int getBlockHeight(long BlockId) {
-    long stamp = dcsl.tryOptimisticRead();
-    int retVal;
-    
-    if (blockCache.containsKey(BlockId)) {
-      retVal = blockCache.get(BlockId).getHeight();
-      if (dcsl.validate(stamp)) {
-        return retVal;
-      }
-    }
-    if (!dcsl.validate(stamp)) {
-     
-      stamp = dcsl.readLock();
-      try {
-        if (blockCache.containsKey(BlockId)) {
-          return blockCache.get(BlockId).getHeight();
-        }
-      } finally {
-         dcsl.unlockRead(stamp);
-      }
-    }
-    return blockchain.getBlock(BlockId).getHeight();
   }
 
   public Block getBlock(long BlockId) {
@@ -258,19 +221,7 @@ public final class DownloadCacheImpl {
     }
     return null;
   }
-    
-/*  public Block getBlock(Long BlockId) {
-    if (blockCache.containsKey(BlockId)) {
-      return (Block) blockCache.get(BlockId);
-    }
-    if (Burst.getBlockchain().hasBlock(BlockId)) {
-      return Burst.getBlockchain().getBlock(BlockId);
-    }
 
-    return null;
-  }
-*/
-  
   public Block getNextBlock(long prevBlockId) {
     long stamp = dcsl.tryOptimisticRead();
     Block retVal = getNextBlockInt(prevBlockId);
@@ -293,21 +244,6 @@ public final class DownloadCacheImpl {
     return null;
   }
 
- /* public void WaitForMapToBlockChain() {
-    synchronized (this) {
-      while (!reverseCache.containsKey(Burst.getBlockchain().getLastBlock().getId())) {
-        try {
-          printDebug();
-          this.wait(2000);
-        } catch (InterruptedException ignore) {
-          logger.trace("Interrupted: ", ignore);
-          Thread.currentThread().interrupt();
-        }
-      }
-    }
-  }
-*/
-  
   public boolean hasBlock(long BlockId) {
     long stamp = dcsl.tryOptimisticRead();
     boolean retVal =  blockCache.containsKey(BlockId);
@@ -362,44 +298,6 @@ public final class DownloadCacheImpl {
       dcsl.unlockWrite(stamp);
     }
   }
-  public void addBlockBatch(List<Block> blocks) {
-    long stamp = dcsl.writeLock();
-    try {
-      while(! blocks.isEmpty()) {
-        Block block = blocks.get(0);
-        blockCache.put(block.getId(), block);
-        reverseCache.put(block.getPreviousBlockId(), block.getId());
-        unverified.add(block.getId());
-        blockCacheSize += block.getByteLength();
-        lastBlockId = block.getId();
-        lastHeight = block.getHeight();
-        highestCumulativeDifficulty = block.getCumulativeDifficulty();
-        blocks.remove(0);
-      }
-    } finally {
-      dcsl.unlockWrite(stamp);
-    }
-  }
-
- /* public void SetCacheBackTo(long BadBlockId) {
-    // Starting from lowest point and erase all up to last block.
-    if (blockCache.containsKey(BadBlockId)) {
-      Block badBlock;
-      long id;
-      badBlock = (Block) blockCache.get(BadBlockId);
-      reverseCache.remove(badBlock.getPreviousBlockId());
-      blockCacheSize -= badBlock.getByteLength();
-      blockCache.remove(BadBlockId);
-      while (reverseCache.containsKey(BadBlockId)) {
-        id = reverseCache.get(BadBlockId);
-        reverseCache.remove(BadBlockId);
-        blockCacheSize -= ((Block) blockCache.get(id)).getByteLength();
-        blockCache.remove(id);
-        BadBlockId = id;
-      }
-      setLastVars();
-    }
-  }*/
 
   public boolean removeBlock(Block block) {
     long stamp = dcsl.tryOptimisticRead();

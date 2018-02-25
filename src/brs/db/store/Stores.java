@@ -1,6 +1,7 @@
 package brs.db.store;
 
 import brs.db.sql.*;
+import brs.services.TimeService;
 
 public class Stores {
   private final AccountStore accountStore;
@@ -16,7 +17,7 @@ public class Stores {
   private final TransactionProcessorStore transactionProcessorStore;
   private final SubscriptionStore subscriptionStore;
 
-  public Stores(DerivedTableManager derivedTableManager) {
+  public Stores(DerivedTableManager derivedTableManager, TimeService timeService) {
     this.accountStore              = new SqlAccountStore(derivedTableManager);
     this.aliasStore                = new SqlAliasStore(derivedTableManager);
     this.assetStore                = new SqlAssetStore(derivedTableManager);
@@ -27,7 +28,7 @@ public class Stores {
     this.escrowStore               = new SqlEscrowStore(derivedTableManager);
     this.orderStore                = new SqlOrderStore(derivedTableManager);
     this.tradeStore                = new SqlTradeStore(derivedTableManager);
-    this.transactionProcessorStore = new SqlTransactionProcessorStore(derivedTableManager);
+    this.transactionProcessorStore = new SqlTransactionProcessorStore(derivedTableManager, timeService);
     this.subscriptionStore         = new SqlSubscriptionStore(derivedTableManager);
   }
 

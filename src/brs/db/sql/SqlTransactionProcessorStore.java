@@ -5,6 +5,7 @@ import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.TransactionProcessorStore;
+import brs.services.TimeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.sql.ResultSet;
@@ -18,6 +19,7 @@ import org.jooq.SortField;
 public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
   private static final Logger logger = LoggerFactory.getLogger(SqlTransactionProcessorStore.class);
+  private final TimeService timeService;
 
   protected final DbKey.LongKeyFactory<Transaction> unconfirmedTransactionDbKeyFactory = new DbKey.LongKeyFactory<Transaction>("id") {
 
@@ -32,7 +34,9 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
 
   private final EntitySqlTable<Transaction> unconfirmedTransactionTable;
 
-  public SqlTransactionProcessorStore(DerivedTableManager derivedTableManager) {
+  public SqlTransactionProcessorStore(DerivedTableManager derivedTableManager, TimeService timeService) {
+    this.timeService = timeService;
+
     unconfirmedTransactionTable = new EntitySqlTable<Transaction>("unconfirmed_transaction", brs.schema.Tables.UNCONFIRMED_TRANSACTION, unconfirmedTransactionDbKeyFactory, derivedTableManager) {
 
       @Override
@@ -123,7 +127,7 @@ public class SqlTransactionProcessorStore implements TransactionProcessorStore {
     DSLContext ctx = Db.getDSLContext();
     return unconfirmedTransactionTable.getManyBy(
       ctx,
-      ctx.selectFrom(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.EXPIRATION.lt(Burst.getEpochTime())).getQuery(),
+      ctx.selectFrom(UNCONFIRMED_TRANSACTION).where(UNCONFIRMED_TRANSACTION.EXPIRATION.lt(timeService.getEpochTime())).getQuery(),
       true
     );
   }

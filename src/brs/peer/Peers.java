@@ -93,9 +93,11 @@ public final class Peers {
   private static final ExecutorService sendToPeersService = Executors.newCachedThreadPool();
   private static final ExecutorService sendingService = Executors.newFixedThreadPool(10);
 
+  private static TimeService timeService;
 
   public static void init(TimeService timeService, AccountService accountService, Blockchain blockchain, TransactionProcessor transactionProcessor,
       BlockchainProcessor blockchainProcessor, PropertyService propertyService, ThreadPool threadPool) {
+    Peers.timeService = timeService;
 
     myPlatform = propertyService.getString(Props.P2P_MY_PLATFORM);
     if ( propertyService.getString(Props.P2P_MY_ADDRESS) != null
@@ -141,7 +143,7 @@ public final class Peers {
     }
 
     JSONObject json = new JSONObject();
-    if (myAddress != null && myAddress.length() > 0) {
+    if (myAddress != null && ! myAddress.isEmpty()) {
       try {
         URI uri = new URI("http://" + myAddress.trim());
         String host = uri.getHost();
@@ -420,7 +422,7 @@ public final class Peers {
         while (numConnectedPeers < maxNumberOfConnectedPublicPeers && peers.size() > numConnectedPeers) {
           PeerImpl peer = (PeerImpl)getAnyPeer(ThreadLocalRandom.current().nextInt(2) == 0 ? Peer.State.NON_CONNECTED : Peer.State.DISCONNECTED, false);
           if (peer != null) {
-            peer.connect();
+            peer.connect(timeService.getEpochTime());
             /*
              * remove non connected peer. if peer is blacklisted, keep it to maintain blacklist time.
              * Peers should never be removed if total peers are below our target to prevent total erase of peers
@@ -439,10 +441,10 @@ public final class Peers {
           }
         }
 
-        int now = Burst.getEpochTime();
+        int now = timeService.getEpochTime();
         for (PeerImpl peer : peers.values()) {
           if (peer.getState() == Peer.State.CONNECTED && now - peer.getLastUpdated() > 3600) {
-            peer.connect();
+            peer.connect(timeService.getEpochTime());
             if(peer.getState() != Peer.State.CONNECTED && !peer.isBlacklisted() && peers.size() > maxNumberOfConnectedPublicPeers) {
               removePeer(peer);
             }
@@ -701,7 +703,7 @@ public final class Peers {
 
     String announcedPeerAddress = address.equals(announcedAddress) ? peerAddress : normalizeHostAndPort(announcedAddress);
 
-    if (Peers.myAddress != null && Peers.myAddress.length() > 0 && Peers.myAddress.equalsIgnoreCase(announcedPeerAddress)) {
+    if (Peers.myAddress != null && ! Peers.myAddress.isEmpty() && Peers.myAddress.equalsIgnoreCase(announcedPeerAddress)) {
       return null;
     }
 

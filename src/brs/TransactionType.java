@@ -451,7 +451,7 @@ public abstract class TransactionType {
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.MessagingAliasAssignment attachment = (Attachment.MessagingAliasAssignment) transaction.getAttachment();
-          if (attachment.getAliasName().length() == 0
+          if (attachment.getAliasName().isEmpty()
               || Convert.toBytes(attachment.getAliasName()).length > Constants.MAX_ALIAS_LENGTH
               || attachment.getAliasURI().length() > Constants.MAX_ALIAS_URI_LENGTH) {
             throw new BurstException.NotValidException("Invalid alias assignment: " + attachment.getJSONObject());
@@ -518,7 +518,7 @@ public abstract class TransactionType {
           final Attachment.MessagingAliasSell attachment =
               (Attachment.MessagingAliasSell) transaction.getAttachment();
           final String aliasName = attachment.getAliasName();
-          if (aliasName == null || aliasName.length() == 0) {
+          if (aliasName == null || aliasName.isEmpty()) {
             throw new BurstException.NotValidException("Missing alias name");
           }
           long priceNQT = attachment.getPriceNQT();
@@ -1088,7 +1088,7 @@ public abstract class TransactionType {
         @Override
         void doValidateAttachment(Transaction transaction) throws BurstException.ValidationException {
           Attachment.DigitalGoodsListing attachment = (Attachment.DigitalGoodsListing) transaction.getAttachment();
-          if (attachment.getName().length() == 0
+          if (attachment.getName().isEmpty()
               || attachment.getName().length() > Constants.MAX_DGS_LISTING_NAME_LENGTH
               || attachment.getDescription().length() > Constants.MAX_DGS_LISTING_DESCRIPTION_LENGTH
               || attachment.getTags().length() > Constants.MAX_DGS_LISTING_TAGS_LENGTH

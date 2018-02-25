@@ -1,6 +1,7 @@
 package brs.http;
 
 import brs.Token;
+import brs.services.TimeService;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
@@ -11,10 +12,11 @@ import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 
 public final class GenerateToken extends APIServlet.APIRequestHandler {
 
-  static final GenerateToken instance = new GenerateToken();
+  private final TimeService timeService;
 
-  private GenerateToken() {
+  GenerateToken(TimeService timeService) {
     super(new APITag[] {APITag.TOKENS}, WEBSITE, SECRET_PHRASE_PARAMETER);
+    this.timeService = timeService;
   }
 
   @Override
@@ -30,7 +32,7 @@ public final class GenerateToken extends APIServlet.APIRequestHandler {
 
     try {
 
-      String tokenString = Token.generateToken(secretPhrase, website.trim());
+      String tokenString = Token.generateToken(secretPhrase, website.trim(), timeService.getEpochTime());
 
       JSONObject response = new JSONObject();
       response.put(TOKEN, tokenString);

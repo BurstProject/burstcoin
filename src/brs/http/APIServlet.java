@@ -79,7 +79,7 @@ public final class APIServlet extends HttpServlet {
     map.put("decodeHallmark", new DecodeHallmark());
     map.put("decodeToken", new DecodeToken());
     map.put("encryptTo", new EncryptTo(parameterService, accountService));
-    map.put("generateToken", GenerateToken.instance);
+    map.put("generateToken", new GenerateToken(timeService));
     map.put("getAccount", new GetAccount(parameterService, accountService));
     map.put("getAccountBlockIds", new GetAccountBlockIds(parameterService, blockchain));
     map.put("getAccountBlocks", new GetAccountBlocks(blockchain, parameterService, blockService));

@@ -5,13 +5,13 @@ import brs.util.Convert;
 
 public final class Token {
 
-  public static String generateToken(String secretPhrase, String websiteString) {
+  public static String generateToken(String secretPhrase, String websiteString, int timestamp) {
 
     byte[] website = Convert.toBytes(websiteString);
     byte[] data = new byte[website.length + 32 + 4];
     System.arraycopy(website, 0, data, 0, website.length);
     System.arraycopy(Crypto.getPublicKey(secretPhrase), 0, data, website.length, 32);
-    int timestamp = Burst.getEpochTime();
+
     data[website.length + 32] = (byte)timestamp;
     data[website.length + 32 + 1] = (byte)(timestamp >> 8);
     data[website.length + 32 + 2] = (byte)(timestamp >> 16);

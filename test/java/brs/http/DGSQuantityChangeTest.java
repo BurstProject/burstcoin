@@ -15,12 +15,9 @@ import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.DigitalGoodsStore.Goods;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.services.AccountService;
 import brs.services.ParameterService;
-import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,11 +41,14 @@ public class DGSQuantityChangeTest extends AbstractTransactionTest {
 
   @Test
   public void processRequest() throws BurstException {
+    final int deltaQualityParameter = 5;
     final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(DELTA_QUALITY_PARAMETER, 10)
+        new MockParam(DELTA_QUALITY_PARAMETER, deltaQualityParameter)
     );
 
+    final long mockGoodsID = 123l;
     final Goods mockGoods = mock(Goods.class);
+    when(mockGoods.getId()).thenReturn(mockGoodsID);
     when(mockGoods.isDelisted()).thenReturn(false);
     when(mockGoods.getSellerId()).thenReturn(1L);
 
@@ -60,6 +60,10 @@ public class DGSQuantityChangeTest extends AbstractTransactionTest {
 
     final Attachment.DigitalGoodsQuantityChange attachment = (Attachment.DigitalGoodsQuantityChange) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
+
+    attachment.getTransactionType();
+    assertEquals(mockGoodsID, attachment.getGoodsId());
+    assertEquals(deltaQualityParameter, attachment.getDeltaQuantity());
   }
 
   @Test
