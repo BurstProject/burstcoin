@@ -488,7 +488,7 @@ final class PeerImpl implements Peer {
     return 0;
   }
 
-  void connect() {
+  void connect(int currentTime) {
     JSONObject response = send(Peers.myPeerInfoRequest);
     if (response != null) {
       application = (String)response.get("application");
@@ -513,7 +513,7 @@ final class PeerImpl implements Peer {
       else {
         blacklist();
       }
-      lastUpdated = Burst.getEpochTime();
+      lastUpdated = currentTime;
     }
     else {
       setState(State.NON_CONNECTED);

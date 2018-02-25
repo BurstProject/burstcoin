@@ -68,7 +68,7 @@ public final class Burst {
 
   private static final Logger logger = LoggerFactory.getLogger(Burst.class);
   private static Properties properties;
-  private static volatile Time time = new Time.EpochTime();
+
   private static Stores stores;
   private static Dbs dbs;
 
@@ -142,14 +142,6 @@ public final class Burst {
     return dbs;
   }
 
-  public static int getEpochTime() {
-    return time.getTime();
-  }
-
-  static void setTime(Time t) {
-    time = t;
-  }
-
   public static void main(String[] args) {
     Runtime.getRuntime().addShutdownHook(new Thread(Burst::shutdown));
     init();
@@ -175,7 +167,9 @@ public final class Burst {
       Db.init(propertyService);
       dbs = Db.getDbsByDatabaseType();
 
-      stores = new Stores(derivedTableManager);
+      final TimeService timeService = new TimeServiceImpl();
+
+      stores = new Stores(derivedTableManager, timeService);
 
       final TransactionDb transactionDb = dbs.getTransactionDb();
       final BlockDb blockDb =  dbs.getBlockDb();
@@ -191,13 +185,12 @@ public final class Burst {
       final EntityTable<Transaction> unconfirmedTransactionTable =
           stores.getTransactionProcessorStore().getUnconfirmedTransactionTable();
 
-      final TimeService timeService = new TimeServiceImpl();
 
       final Generator generator = propertyService.getBoolean(Props.BRS_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService);
 
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
 
-      transactionService = new TransactionServiceImpl(accountService, blockchain);
+      final TransactionService transactionService = new TransactionServiceImpl(accountService, blockchain);
 
       transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain, stores, timeService, dbs,
           accountService, transactionService, threadPool);
@@ -246,7 +239,7 @@ public final class Burst {
 
       threadPool.start(timeMultiplier);
       if (timeMultiplier > 1) {
-        setTime(new Time.FasterTime(Math.max(getEpochTime(), getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
+        timeService.setTime(new Time.FasterTime(Math.max(timeService.getEpochTime(), getBlockchain().getLastBlock().getTimestamp()), timeMultiplier));
         logger.info("TIME WILL FLOW " + timeMultiplier + " TIMES FASTER!");
       }
 
@@ -290,9 +283,4 @@ public final class Burst {
     return propertyService;
   }
 
-  private static TransactionService transactionService;
-
-  public static TransactionService getTransactionService() {
-    return transactionService;
-  }
 }
