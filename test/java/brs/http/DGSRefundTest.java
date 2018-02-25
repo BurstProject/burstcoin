@@ -1,5 +1,6 @@
 package brs.http;
 
+import static brs.TransactionType.DigitalGoods.REFUND;
 import static brs.http.JSONResponses.DUPLICATE_REFUND;
 import static brs.http.JSONResponses.GOODS_NOT_DELIVERED;
 import static brs.http.JSONResponses.INCORRECT_DGS_REFUND;
@@ -17,13 +18,11 @@ import brs.Blockchain;
 import brs.BurstException;
 import brs.Constants;
 import brs.DigitalGoodsStore.Purchase;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.crypto.EncryptedData;
 import brs.services.AccountService;
 import brs.services.ParameterService;
-import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,14 +48,18 @@ public class DGSRefundTest extends AbstractTransactionTest {
 
   @Test
   public void processRequest() throws BurstException {
+    final long refundNQTParameter = 5;
+
     final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(REFUND_NQT_PARAMETER, 5)
+        new MockParam(REFUND_NQT_PARAMETER, refundNQTParameter)
     );
 
     final Account mockSellerAccount = mock(Account.class);
     when(mockSellerAccount.getId()).thenReturn(1L);
 
+    long mockPurchaseId = 123L;
     final Purchase mockPurchase = mock(Purchase.class);
+    when(mockPurchase.getId()).thenReturn(mockPurchaseId);
     when(mockPurchase.getSellerId()).thenReturn(1L);
     when(mockPurchase.getBuyerId()).thenReturn(2L);
     when(mockPurchase.getRefundNote()).thenReturn(null);
@@ -71,6 +74,10 @@ public class DGSRefundTest extends AbstractTransactionTest {
 
     final Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
+
+    assertEquals(REFUND, attachment.getTransactionType());
+    assertEquals(refundNQTParameter, attachment.getRefundNQT());
+    assertEquals(mockPurchaseId, attachment.getPurchaseId());
   }
 
   @Test

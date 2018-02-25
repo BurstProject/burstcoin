@@ -1,5 +1,6 @@
 package brs.http;
 
+import static brs.TransactionType.Messaging.ALIAS_ASSIGNMENT;
 import static brs.http.JSONResponses.INCORRECT_ALIAS_LENGTH;
 import static brs.http.JSONResponses.INCORRECT_ALIAS_NAME;
 import static brs.http.JSONResponses.INCORRECT_URI_LENGTH;
@@ -10,17 +11,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
-import brs.Account;
 import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.ParameterService;
-import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,13 +43,20 @@ public class SetAliasTest extends AbstractTransactionTest {
 
   @Test
   public void processRequest() throws BurstException {
+    final String aliasNameParameter = "aliasNameParameter";
+    final String aliasUrl = "aliasUrl";
+
     final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(ALIAS_NAME_PARAMETER, "aliasName"),
-        new MockParam(ALIAS_URI_PARAMETER, "aliasUrl")
+        new MockParam(ALIAS_NAME_PARAMETER, aliasNameParameter),
+        new MockParam(ALIAS_URI_PARAMETER, aliasUrl)
     );
 
     final Attachment.MessagingAliasAssignment attachment = (Attachment.MessagingAliasAssignment) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
+
+    assertEquals(ALIAS_ASSIGNMENT, attachment.getTransactionType());
+    assertEquals(aliasNameParameter, attachment.getAliasName());
+    assertEquals(aliasUrl, attachment.getAliasURI());
   }
 
   @Test

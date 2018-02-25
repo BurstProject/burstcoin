@@ -1,6 +1,8 @@
 package brs.http;
 
 import static brs.Constants.MAX_BALANCE_NQT;
+import static brs.TransactionType.Messaging.ALIAS_BUY;
+import static brs.TransactionType.Messaging.ALIAS_SELL;
 import static brs.http.JSONResponses.INCORRECT_ALIAS_OWNER;
 import static brs.http.JSONResponses.INCORRECT_PRICE;
 import static brs.http.JSONResponses.INCORRECT_RECIPIENT;
@@ -17,12 +19,9 @@ import brs.Alias;
 import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.services.AccountService;
 import brs.services.ParameterService;
-import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,11 +45,11 @@ public class SellAliasTest extends AbstractTransactionTest {
 
   @Test
   public void processRequest() throws BurstException {
-    final int price = 10;
+    final int priceParameter = 10;
     final int recipientId = 5;
 
     final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(PRICE_NQT_PARAMETER, price),
+        new MockParam(PRICE_NQT_PARAMETER, priceParameter),
         new MockParam(RECIPIENT_PARAMETER, recipientId)
     );
 
@@ -66,6 +65,9 @@ public class SellAliasTest extends AbstractTransactionTest {
 
     final Attachment.MessagingAliasSell attachment = (Attachment.MessagingAliasSell) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
+
+    assertEquals(ALIAS_SELL, attachment.getTransactionType());
+    assertEquals(priceParameter, attachment.getPriceNQT());
   }
 
   @Test

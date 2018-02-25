@@ -1,5 +1,6 @@
 package brs.http;
 
+import static brs.TransactionType.ColoredCoins.BID_ORDER_CANCELLATION;
 import static brs.http.JSONResponses.UNKNOWN_ORDER;
 import static brs.http.common.Parameters.ORDER_PARAMETER;
 import static org.junit.Assert.assertEquals;
@@ -13,17 +14,13 @@ import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.Order.Bid;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.services.AccountService;
 import brs.services.OrderService;
 import brs.services.ParameterService;
-import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 public class CancelBidOrderTest extends AbstractTransactionTest {
 
@@ -65,6 +62,7 @@ public class CancelBidOrderTest extends AbstractTransactionTest {
     final Attachment.ColoredCoinsBidOrderCancellation attachment = (brs.Attachment.ColoredCoinsBidOrderCancellation) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
 
+    assertEquals(BID_ORDER_CANCELLATION, attachment.getTransactionType());
     assertEquals(orderId, attachment.getOrderId());
   }
 

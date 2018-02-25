@@ -1,6 +1,7 @@
 package brs.http;
 
 import static brs.Constants.MAX_BALANCE_NQT;
+import static brs.TransactionType.DigitalGoods.DELIVERY;
 import static brs.common.TestConstants.TEST_SECRET_PHRASE;
 import static brs.http.JSONResponses.ALREADY_DELIVERED;
 import static brs.http.JSONResponses.INCORRECT_DGS_DISCOUNT;
@@ -49,9 +50,12 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
 
   @Test
   public void processRequest() throws BurstException {
+    final long discountNQTParameter = 1;
+    final String goodsToEncryptParameter = "beef";
+
     final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(DISCOUNT_NQT_PARAMETER, "9"),
-        new MockParam(GOODS_TO_ENCRYPT_PARAMETER, "abc"),
+        new MockParam(DISCOUNT_NQT_PARAMETER, discountNQTParameter),
+        new MockParam(GOODS_TO_ENCRYPT_PARAMETER, goodsToEncryptParameter),
         new MockParam(SECRET_PHRASE_PARAMETER, TEST_SECRET_PHRASE)
     );
 
@@ -73,6 +77,9 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
 
     final Attachment.DigitalGoodsDelivery attachment = (Attachment.DigitalGoodsDelivery) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
+
+    assertEquals(DELIVERY, attachment.getTransactionType());
+    assertEquals(discountNQTParameter, attachment.getDiscountNQT());
   }
 
   @Test

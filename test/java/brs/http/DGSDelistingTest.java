@@ -1,5 +1,6 @@
 package brs.http;
 
+import static brs.TransactionType.DigitalGoods.DELISTING;
 import static brs.http.JSONResponses.UNKNOWN_GOODS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -12,11 +13,8 @@ import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.DigitalGoodsStore.Goods;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
-import brs.services.AccountService;
 import brs.services.ParameterService;
-import brs.services.TransactionService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,6 +52,9 @@ public class DGSDelistingTest extends AbstractTransactionTest {
 
     final Attachment.DigitalGoodsDelisting attachment = (Attachment.DigitalGoodsDelisting) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
+
+    assertEquals(DELISTING, attachment.getTransactionType());
+    assertEquals(mockGoods.getId(), attachment.getGoodsId());
   }
 
   @Test
