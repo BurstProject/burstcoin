@@ -847,7 +847,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       long calculatedTotalAmount = 0;
       long calculatedTotalFee = 0;
       MessageDigest digest = Crypto.sha256();
-      
       for (Transaction transaction : block.getTransactions()) {
         if (transaction.getTimestamp() > curTime + MAX_TIMESTAMP_DIFFERENCE) {
           throw new BlockOutOfOrderException("Invalid transaction timestamp: "
@@ -932,7 +931,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       blockService.setPrevious(block, previousLastBlock);
       blockListeners.notify(block, Event.BEFORE_BLOCK_ACCEPT);
       transactionProcessor.requeueAllUnconfirmedTransactions();
-      accountService.flushAccountTable();
       addBlock(block);
       accept(block, remainingAmount, remainingFee);
       derivedTableManager.getDerivedTables().forEach(DerivedTable::finish);

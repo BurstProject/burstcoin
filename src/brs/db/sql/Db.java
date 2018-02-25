@@ -307,6 +307,7 @@ public final class Db {
     }
     transactionCaches.get().clear();
     transactionBatches.get().clear();
+    Burst.flushCache();
   }
 
   public static void endTransaction() {

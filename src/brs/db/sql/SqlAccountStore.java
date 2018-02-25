@@ -8,6 +8,7 @@ import brs.db.VersionedEntityTable;
 import brs.db.store.AccountStore;
 import brs.db.store.DerivedTableManager;
 import brs.util.Convert;
+import org.jooq.BatchBindStep;
 import org.slf4j.LoggerFactory;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -108,23 +109,22 @@ public class SqlAccountStore implements AccountStore {
       }
 
       @Override
-      protected void updateUsing(DSLContext ctx, Account account) {
-        brs.schema.tables.records.AccountRecord accountRecord = ctx.newRecord(ACCOUNT);
-        accountRecord.setCreationHeight(account.getCreationHeight());
-        accountRecord.setPublicKey(account.getPublicKey());
-        accountRecord.setKeyHeight(account.getKeyHeight());
-        accountRecord.setBalance(account.getBalanceNQT());
-        accountRecord.setUnconfirmedBalance(account.getUnconfirmedBalanceNQT());
-        accountRecord.setForgedBalance(account.getForgedBalanceNQT());
-        accountRecord.setName(account.getName());
-        accountRecord.setDescription(account.getDescription());
-        accountRecord.setId(account.getId());
-        accountRecord.setHeight(Burst.getBlockchain().getHeight());
-        accountRecord.setLatest(true);
-        DbUtils.mergeInto(
-            ctx, accountRecord, ACCOUNT,
-            ( new Field[] { accountRecord.field("id"), accountRecord.field("height") } )
-        );
+      protected void bulkInsert(DSLContext ctx, ArrayList<Account> accounts) {
+        BatchBindStep insertBatch = ctx.batch(ctx.insertInto(ACCOUNT, ACCOUNT.ID, ACCOUNT.HEIGHT, ACCOUNT.CREATION_HEIGHT,
+            ACCOUNT.PUBLIC_KEY, ACCOUNT.KEY_HEIGHT, ACCOUNT.BALANCE, ACCOUNT.UNCONFIRMED_BALANCE,
+            ACCOUNT.FORGED_BALANCE, ACCOUNT.NAME, ACCOUNT.DESCRIPTION, ACCOUNT.LATEST)
+            .values((Long) null, null, null, null, null, null, null, null, null, null, null));
+        for ( Account account: accounts ) {
+          DbKey dbKey = (DbKey)accountDbKeyFactory.newKey(account.getId());
+          if ( ! getCache().containsKey(dbKey) ) {
+            getCache().put(dbKey, account);
+          }
+          insertBatch.bind(account.getId(), Burst.getBlockchain().getHeight(),
+              account.getCreationHeight(), account.getPublicKey(), account.getKeyHeight(),
+              account.getBalanceNQT(), account.getUnconfirmedBalanceNQT(),
+              account.getForgedBalanceNQT(), account.getName(), account.getDescription(), true);
+        }
+        insertBatch.execute();
       }
     };
   }
@@ -143,7 +143,6 @@ public class SqlAccountStore implements AccountStore {
   public VersionedBatchEntityTable<Account> getAccountTable() {
     return accountTable;
   }
-
 
   @Override
   public VersionedEntityTable<Account.RewardRecipientAssignment> getRewardRecipientAssignmentTable() {

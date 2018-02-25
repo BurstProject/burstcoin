@@ -8,6 +8,7 @@ import brs.db.BlockDb;
 import brs.db.BurstKey;
 import brs.db.EntityTable;
 import brs.db.sql.Db;
+import brs.db.sql.DbKey;
 import brs.db.store.BlockchainStore;
 import brs.db.store.Dbs;
 import brs.db.store.DerivedTableManager;
@@ -59,6 +60,11 @@ import java.io.InputStream;
 import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.ehcache.CacheManager;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.ehcache.Cache;
 
 public final class Burst {
 
@@ -84,6 +90,8 @@ public final class Burst {
 
   private static API api;
   private static Users users;
+
+  private static CacheManager cacheManager;
 
   private static PropertyService loadProperties() {
     final Properties defaultProperties = new Properties();
@@ -167,6 +175,9 @@ public final class Burst {
       long startTime = System.currentTimeMillis();
 
       DerivedTableManager derivedTableManager = new DerivedTableManager();
+      cacheManager = CacheManagerBuilder.newCacheManagerBuilder().withCache(
+         "account", CacheConfigurationBuilder.newCacheConfigurationBuilder(DbKey.class, Account.class, ResourcePoolsBuilder.heap(100)).build()
+      ).build(true);
 
       propertyService = loadProperties();
 
@@ -266,6 +277,19 @@ public final class Burst {
     }
   }
 
+  public static Cache getCache(String name) {
+    switch (name) {
+      case "account":
+        return cacheManager.getCache(name, DbKey.class, Account.class);
+      default:
+        return null;
+    }
+  }
+
+  public static void flushCache() {
+    getCache("account").clear();
+  }
+
   private static void addBlockchainListeners(BlockchainProcessor blockchainProcessor, AccountService accountService, DGSGoodsStoreService goodsService, Blockchain blockchain,
      TransactionDb transactionDb) {
 
@@ -282,6 +306,7 @@ public final class Burst {
     users.shutdown();
     Peers.shutdown(threadPool);
     threadPool.shutdown();
+    cacheManager.close();
     Db.shutdown();
     if (blockchainProcessor != null && blockchainProcessor.getOclVerify()) {
       OCLPoC.destroy();

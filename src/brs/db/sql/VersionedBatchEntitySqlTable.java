@@ -1,5 +1,6 @@
 package brs.db.sql;
 
+import brs.Burst;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedBatchEntityTable;
@@ -7,6 +8,7 @@ import brs.db.store.DerivedTableManager;
 import java.sql.SQLException;
 import java.util.*;
 import org.apache.commons.lang.ArrayUtils;
+import org.ehcache.Cache;
 import org.jooq.impl.TableImpl;
 import org.jooq.Condition;
 import org.jooq.SelectQuery;
@@ -20,7 +22,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     super(table, tableClass, dbKeyFactory, derivedTableManager);
   }
 
-  protected abstract void updateUsing(DSLContext ctx, T t);
+  protected abstract void bulkInsert(DSLContext ctx, ArrayList<T> t);
 
   @Override
   public boolean delete(T t) {
@@ -28,7 +30,8 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
       throw new IllegalStateException("Not in transaction");
     }
     DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
-    Db.getBatch(table).put(dbKey, null);
+    getCache().remove(dbKey);
+    Db.getBatch(table).remove(dbKey, null);
     Db.getCache(table).remove(dbKey);
 
     return true;
@@ -36,12 +39,19 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
 
   @Override
   public T get(BurstKey dbKey) {
-    if(Db.isInTransaction()) {
+    if ( getCache().containsKey(dbKey) ) {
+      return (T)getCache().get(dbKey);
+    }
+    else if(Db.isInTransaction()) {
       if(Db.getBatch(table).containsKey(dbKey)) {
         return (T)Db.getBatch(table).get(dbKey);
       }
     }
-    return super.get(dbKey);
+    T item = (T) super.get(dbKey);
+    if ( item != null ) {
+      getCache().put(dbKey, item);
+    }
+    return item;
   }
 
   @Override
@@ -52,6 +62,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     DbKey dbKey = (DbKey)dbKeyFactory.newKey(t);
     Db.getBatch(table).put(dbKey, t);
     Db.getCache(table).put(dbKey, t);
+    getCache().put(dbKey, t);
   }
 
   @Override
@@ -79,13 +90,17 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
       updateBatch.execute();
     }
 
-    // ToDo: do a real batch here?
-    List<Map.Entry<DbKey,Object>> entries = new ArrayList<>(Db.getBatch(table).entrySet());
-    for ( Map.Entry<DbKey,Object> entry: entries) {
-      if(entry.getValue() != null) {
-        updateUsing(ctx, (T)entry.getValue());
+    List<Map.Entry<DbKey, Object>> entries = new ArrayList<>(Db.getBatch(table).entrySet());
+    HashMap<DbKey, T> itemOf = new HashMap<>();
+    for (Map.Entry<DbKey, Object> entry : entries) {
+      if (entry.getValue() != null) {
+        itemOf.put(entry.getKey(), (T) entry.getValue());
       }
     }
+    if ( itemOf.size() > 0 ) {
+      bulkInsert(ctx, new ArrayList<T>(itemOf.values()));
+    }
+    Db.getBatch(table).clear();
   }
 
   @Override
@@ -211,4 +226,15 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     super.truncate();
     Db.getBatch(table).clear();
   }
+
+  @Override
+  public Cache getCache() {
+    return brs.Burst.getCache(table);
+  }
+
+  @Override
+  public void flushCache() {
+    getCache().clear();
+  }
+
 }
