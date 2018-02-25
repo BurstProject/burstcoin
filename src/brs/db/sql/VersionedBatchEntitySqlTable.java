@@ -1,13 +1,11 @@
 package brs.db.sql;
 
-import brs.Burst;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
+import brs.db.DBCacheManagerImpl;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.store.DerivedTableManager;
-import java.sql.SQLException;
 import java.util.*;
-import org.apache.commons.lang.ArrayUtils;
 import org.ehcache.Cache;
 import org.jooq.impl.TableImpl;
 import org.jooq.Condition;
@@ -18,8 +16,12 @@ import org.jooq.DSLContext;
 import org.jooq.SortField;
 
 public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySqlTable<T> implements VersionedBatchEntityTable<T> {
-  protected VersionedBatchEntitySqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory, DerivedTableManager derivedTableManager) {
+
+  private DBCacheManagerImpl dbCacheManager;
+
+  protected VersionedBatchEntitySqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory, DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager) {
     super(table, tableClass, dbKeyFactory, derivedTableManager);
+    this.dbCacheManager = dbCacheManager;
   }
 
   protected abstract void bulkInsert(DSLContext ctx, ArrayList<T> t);
@@ -229,7 +231,7 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
 
   @Override
   public Cache getCache() {
-    return brs.Burst.getCache(table);
+    return dbCacheManager.getCache(table);
   }
 
   @Override
