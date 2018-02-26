@@ -11,6 +11,7 @@ import brs.services.PropertyService;
 import brs.services.SubscriptionService;
 import brs.services.TimeService;
 import brs.services.TransactionService;
+import brs.statistics.StatisticsManagerImpl;
 import brs.util.ThreadPool;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -66,6 +67,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private TransactionDb transactionDb;
   private DownloadCacheImpl downloadCache;
   private DerivedTableManager derivedTableManager;
+  private final StatisticsManagerImpl statisticsManager;
   private Generator generator;
 
   public final static int MAX_TIMESTAMP_DIFFERENCE = 15;
@@ -86,9 +88,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private boolean forceScan;
   private boolean validateAtScan;
 
-  private int addedBlockCount = 0;
-  private int firstBlockAdded = 0;
-
   private final Runnable debugInfoThread = () -> {
     logger.info("Unverified blocks: " + downloadCache.getUnverifiedSize());
     logger.info("Blocks in cache: " + downloadCache.size());
@@ -107,7 +106,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       PropertyService propertyService,
       SubscriptionService subscriptionService, TimeService timeService, AccountService accountService, DerivedTableManager derivedTableManager,
       BlockDb blockDb, TransactionDb transactionDb, EconomicClustering economicClustering, BlockchainStore blockchainStore, Stores stores, EscrowService escrowService,
-      TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator) {
+      TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator, StatisticsManagerImpl statisticsManager) {
     this.blockService = blockService;
     this.transactionProcessor = transactionProcessor;
     this.timeService = timeService;
@@ -124,6 +123,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     this.economicClustering = economicClustering;
     this.escrowService = escrowService;
     this.transactionService = transactionService;
+    this.statisticsManager = statisticsManager;
 
     oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
     oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE, 1000);
@@ -944,16 +944,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       stores.endTransaction();
     }
     logger.debug("Successfully pushed " + block.getId() + " (height " + block.getHeight() + ")");
-  
 
-    if ( addedBlockCount++ == 0 ) {
-      firstBlockAdded = timeService.getEpochTime();
-    }
-    else if ( addedBlockCount % 500 == 0 ) {
-      logger.info("handling {} blocks/s", String.format("%.2f", 500 / (float) (timeService.getEpochTime() - firstBlockAdded)));
-   //   downloadCache.printDebug();
-      addedBlockCount = 0;
-    }
+    statisticsManager.blockAdded();
 
     blockListeners.notify(block, Event.BLOCK_PUSHED);
 

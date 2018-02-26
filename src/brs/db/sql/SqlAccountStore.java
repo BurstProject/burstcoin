@@ -3,7 +3,7 @@ package brs.db.sql;
 import brs.Account;
 import brs.Burst;
 import brs.db.BurstIterator;
-import brs.db.DBCacheManagerImpl;
+import brs.db.cache.DBCacheManagerImpl;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.VersionedEntityTable;
 import brs.db.store.AccountStore;

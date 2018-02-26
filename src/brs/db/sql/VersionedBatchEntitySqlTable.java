@@ -2,7 +2,7 @@ package brs.db.sql;
 
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
-import brs.db.DBCacheManagerImpl;
+import brs.db.cache.DBCacheManagerImpl;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.store.DerivedTableManager;
 import java.util.*;

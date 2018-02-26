@@ -2,7 +2,7 @@ package brs.db.sql;
 
 import brs.Burst;
 import brs.common.Props;
-import brs.db.DBCacheManagerImpl;
+import brs.db.cache.DBCacheManagerImpl;
 import brs.services.PropertyService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
