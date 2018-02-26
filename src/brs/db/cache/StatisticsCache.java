@@ -31,7 +31,6 @@ public class StatisticsCache<K, V> implements Cache<K, V> {
 
   @Override
   public void put(K k, V v) throws CacheWritingException {
-    statisticsManager.puttingObjectIntoCache(cacheName);
     wrappedCache.put(k, v);
   }
 

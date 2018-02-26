@@ -31,10 +31,6 @@ public class StatisticsManagerImpl {
     getCacheStatisticsOverview(cacheName).cacheMiss();
   }
 
-  public void puttingObjectIntoCache(String cacheName) {
-    getCacheStatisticsOverview(cacheName).cacheAdd();
-  }
-
   private CacheStatisticsOverview getCacheStatisticsOverview(String cacheName) {
     if(! this.cacheStatistics.containsKey(cacheName)) {
       this.cacheStatistics.put(cacheName, new CacheStatisticsOverview(cacheName));
@@ -63,7 +59,6 @@ public class StatisticsManagerImpl {
     private long cacheHits;
     private long cacheMisses;
 
-    private long totalCacheAdds;
     private long totalCacheHits;
     private long totalCacheMisses;
 
@@ -78,11 +73,7 @@ public class StatisticsManagerImpl {
       cacheHits = 0;
       cacheMisses = 0;
 
-      return String.format("Cache:%s Hit Ratio:%.2f%% Total Hit Ratio:%.2f%% Total inserts:%s", cacheName, hitRatio * 100, totalHitRatio * 100, totalCacheAdds);
-    }
-
-    private void cacheAdd() {
-      totalCacheAdds++;
+      return String.format("Cache:%s Hit Ratio:%.2f%% Total Hit Ratio:%.2f%%", cacheName, hitRatio * 100, totalHitRatio * 100);
     }
 
     private void cacheHit() {
