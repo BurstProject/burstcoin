@@ -239,4 +239,8 @@ public abstract class VersionedBatchEntitySqlTable<T> extends VersionedEntitySql
     getCache().clear();
   }
 
+  @Override
+  public void fillCache(ArrayList<Long> ids) {
+  }
+
 }

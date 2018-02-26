@@ -1,5 +1,6 @@
 package brs.db;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.ehcache.Cache;
@@ -68,4 +69,6 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
   Cache getCache();
 
   void flushCache();
+
+  void fillCache(ArrayList<Long> ids);
 }

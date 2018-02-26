@@ -8,8 +8,12 @@ import brs.db.VersionedBatchEntityTable;
 import brs.db.VersionedEntityTable;
 import brs.db.store.AccountStore;
 import brs.db.store.DerivedTableManager;
+import brs.schema.tables.records.AccountRecord;
 import brs.util.Convert;
+import java.util.stream.Collectors;
+import org.ehcache.Cache;
 import org.jooq.BatchBindStep;
+import org.jooq.Cursor;
 import org.slf4j.LoggerFactory;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -126,6 +130,37 @@ public class SqlAccountStore implements AccountStore {
               account.getForgedBalanceNQT(), account.getName(), account.getDescription(), true);
         }
         insertBatch.execute();
+      }
+
+      @Override
+      public void fillCache(ArrayList<Long> ids) {
+        try ( DSLContext ctx = Db.getDSLContext() ) {
+          Cursor<AccountRecord> cursor = null;
+          try {
+            cursor = ctx.selectFrom(brs.schema.Tables.ACCOUNT).where(
+                brs.schema.Tables.ACCOUNT.LATEST.isTrue()
+            ).and(
+                brs.schema.Tables.ACCOUNT.ID
+                    .in(ids.stream().distinct().collect(Collectors.toList()))
+            ).fetchLazy();
+
+            while (cursor.hasNext()) {
+              AccountRecord account = cursor.fetchNext();
+              try {
+                DbKey dbKey = (DbKey)accountDbKeyFactory.newKey(account.getId());
+                getCache().put(dbKey, new SqlAccount(account.intoResultSet()));
+              }
+              catch ( SQLException e ) {
+                // ignore
+              }
+            }
+          }
+          finally {
+            if (cursor != null) {
+              cursor.close();
+            }
+          }
+        }
       }
     };
   }

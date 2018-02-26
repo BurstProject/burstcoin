@@ -48,6 +48,9 @@ import brs.util.FilteringIterator;
 import brs.util.JSON;
 import brs.util.Listener;
 import brs.util.Listeners;
+import brs.db.sql.SqlAccountStore;
+import brs.db.sql.Db;
+import org.jooq.DSLContext;
 
 public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
@@ -847,6 +850,20 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       long calculatedTotalAmount = 0;
       long calculatedTotalFee = 0;
       MessageDigest digest = Crypto.sha256();
+
+      ArrayList<Long> accountIds = new ArrayList<Long>();
+      try (DSLContext ctx = Db.getDSLContext()) {
+        block.getTransactions().forEach(t -> {
+          if (t.getRecipientId() != 0L)
+            accountIds.add(t.getRecipientId());
+          if (t.getSenderId() != 0L)
+            accountIds.add(t.getSenderId());
+        });
+        if (accountIds.size() > 0) {
+          stores.getAccountStore().getAccountTable().fillCache(accountIds);
+        }
+      }
+
       for (Transaction transaction : block.getTransactions()) {
         if (transaction.getTimestamp() > curTime + MAX_TIMESTAMP_DIFFERENCE) {
           throw new BlockOutOfOrderException("Invalid transaction timestamp: "
