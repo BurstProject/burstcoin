@@ -3,6 +3,7 @@ package brs.db.sql;
 import brs.Account;
 import brs.Burst;
 import brs.db.BurstIterator;
+import brs.db.DBCacheManagerImpl;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.VersionedEntityTable;
 import brs.db.store.AccountStore;
@@ -45,7 +46,7 @@ public class SqlAccountStore implements AccountStore {
         }
     };
 
-  public SqlAccountStore(DerivedTableManager derivedTableManager) {
+  public SqlAccountStore(DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager) {
     rewardRecipientAssignmentTable = new VersionedEntitySqlTable<Account.RewardRecipientAssignment>("reward_recip_assign", brs.schema.Tables.REWARD_RECIP_ASSIGN, rewardRecipientAssignmentDbKeyFactory, derivedTableManager) {
 
       @Override
@@ -102,7 +103,7 @@ public class SqlAccountStore implements AccountStore {
 
     };
 
-    accountTable = new VersionedBatchEntitySqlTable<Account>("account", brs.schema.Tables.ACCOUNT, accountDbKeyFactory, derivedTableManager) {
+    accountTable = new VersionedBatchEntitySqlTable<Account>("account", brs.schema.Tables.ACCOUNT, accountDbKeyFactory, derivedTableManager, dbCacheManager) {
       @Override
       protected Account load(DSLContext ctx, ResultSet rs) throws SQLException {
         return new SqlAccount(rs);

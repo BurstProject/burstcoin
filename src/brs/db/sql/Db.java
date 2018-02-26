@@ -2,6 +2,7 @@ package brs.db.sql;
 
 import brs.Burst;
 import brs.common.Props;
+import brs.db.DBCacheManagerImpl;
 import brs.services.PropertyService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -44,7 +45,11 @@ public final class Db {
   private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionBatches = new ThreadLocal<>();
   private static TYPE DATABASE_TYPE;
 
-  public static void init(PropertyService propertyService) {
+  private static DBCacheManagerImpl dbCacheManager;
+
+  public static void init(PropertyService propertyService, DBCacheManagerImpl dbCacheManager) {
+    Db.dbCacheManager = dbCacheManager;
+
     String dbUrl;
     String dbUsername;
     String dbPassword;
@@ -307,7 +312,7 @@ public final class Db {
     }
     transactionCaches.get().clear();
     transactionBatches.get().clear();
-    Burst.flushCache();
+    dbCacheManager.flushCache();
   }
 
   public static void endTransaction() {
