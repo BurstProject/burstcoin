@@ -6,7 +6,7 @@ import brs.blockchainlistener.DevNullListener;
 import brs.common.Props;
 import brs.db.BlockDb;
 import brs.db.BurstKey;
-import brs.db.DBCacheManagerImpl;
+import brs.db.cache.DBCacheManagerImpl;
 import brs.db.EntityTable;
 import brs.db.sql.Db;
 
@@ -50,6 +50,7 @@ import brs.services.impl.SubscriptionServiceImpl;
 import brs.services.impl.TimeServiceImpl;
 import brs.services.impl.TradeServiceImpl;
 import brs.services.impl.TransactionServiceImpl;
+import brs.statistics.StatisticsManagerImpl;
 import brs.util.DownloadCacheImpl;
 import brs.util.LoggerConfigurator;
 import brs.util.ThreadPool;
@@ -160,9 +161,12 @@ public final class Burst {
     try {
       long startTime = System.currentTimeMillis();
 
-      DerivedTableManager derivedTableManager = new DerivedTableManager();
+      final TimeService timeService = new TimeServiceImpl();
 
-      dbCacheManager = new DBCacheManagerImpl();
+      final DerivedTableManager derivedTableManager = new DerivedTableManager();
+
+      final StatisticsManagerImpl statisticsManager = new StatisticsManagerImpl(timeService);
+      dbCacheManager = new DBCacheManagerImpl(statisticsManager);
 
       propertyService = loadProperties();
 
@@ -173,7 +177,6 @@ public final class Burst {
       Db.init(propertyService, dbCacheManager);
       dbs = Db.getDbsByDatabaseType();
 
-      final TimeService timeService = new TimeServiceImpl();
 
       stores = new Stores(derivedTableManager, dbCacheManager, timeService);
 
@@ -217,7 +220,7 @@ public final class Burst {
       final BlockService blockService = new BlockServiceImpl(accountService, transactionService, blockchain, downloadCache, generator);
       blockchainProcessor = new BlockchainProcessorImpl(threadPool, blockService, transactionProcessor, blockchain, propertyService, subscriptionService,
           timeService, accountService, derivedTableManager,
-          blockDb, transactionDb, economicClustering, blockchainStore, stores, escrowService, transactionService, downloadCache, generator);
+          blockDb, transactionDb, economicClustering, blockchainStore, stores, escrowService, transactionService, downloadCache, generator, statisticsManager);
 
       generator.generateForBlockchainProcessor(threadPool, blockchainProcessor);
 
