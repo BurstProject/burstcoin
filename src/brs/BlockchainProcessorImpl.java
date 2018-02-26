@@ -859,7 +859,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           if (t.getSenderId() != 0L)
             accountIds.add(t.getSenderId());
         });
-        if (accountIds.size() > 0) {
+        if (!accountIds.isEmpty()) {
           stores.getAccountStore().getAccountTable().fillCache(accountIds);
         }
       }
