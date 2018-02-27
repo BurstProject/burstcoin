@@ -17,7 +17,7 @@ jquery.rss.min.js  180204 jMZFnqgk/XQDYHVdaLBtSIKIFLAXPzyeCratYIu70z8GHOuxPx3mQU
 jsbn2.js           180203 cdUKnzFHcY4XFVKjQDizxT8KsIxm4/QP09T/OPUzPwG3qjx/GjU+IEB5ZZK/tua6
 jsbn.js            180203 Ru0ghEmPwQkXCUzH0MnI4ENe1VOnfhKMYBlQlBxFTTZWoD2FXeZGgxMExPBuP0iL
 maskedinput.js     180203 Gd0civMHv8hDIyoYW93P+Qylpgf33p4EVrcCGLU6U7qIWEBpiSpZTyr97yvDXoKi
-pako.js            180203 813Y/LAoYFGn5YMkdRVLO9Be3VLbHlWb6+EUXQvQI6M/8iEkFVA/0a+r6bewzLqe
+pako.min.js        180227 /Dozgal5hQaXErIqQTlUHkj+FNDLXHv4HISt/dfkCS5UrANMOYie1urQogG0QhxC
 qrcode.js          180203 0B/45e2to395pfnCkbfqwKFFwAa7zXdvd42eAFJa3Vm8KZ/jmHdn93XdWi//7MDS
 webdb.js           180203 ls39os/gcYY5lIz4PNhfyBDtVesdw3WwwM02lTi8/ycTpginDkszyQFf9wVvTxcb
 

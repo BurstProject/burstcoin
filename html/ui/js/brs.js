@@ -4,7 +4,7 @@
  * @depends {3rdparty/big.js}
  * @depends {3rdparty/jsbn.js}
  * @depends {3rdparty/jsbn2.js}
- * @depends {3rdparty/pako.js}
+ * @depends {3rdparty/pako.min.js}
  * @depends {3rdparty/webdb.js}
  * @depends {3rdparty/ajaxmultiqueue.js}
  * @depends {3rdparty/notify.min.js}
