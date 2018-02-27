@@ -11,7 +11,7 @@ big.min.js         180225 BWcgDmoCXi+1663OmG90jk7M9rKeNHdZNVGSkq7LStLwsG62LF3MwB
 bootstrap.min.js   180219 Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa
 clipboard.js       180203 E8q4FF0C3cBKqHxayVjOHWaPICaSEqWybiuRAkkxVrUO21syLamc+aHtgFVYTbe2
 notify.min.js      180219 Qnyy4lkYCL9J8NhIWAT7bMPccirUwfiBj7PLqr1ZBlSSJ0+A2XDB0UlqZcg+0VGS
-i18next.js         180203 zd9+xsXTO8I12YKO9I72ZhKI9Qa+4nUzoqbYPMsUBIt+IZio8wLxNULPppITb9rR
+i18next.min.js     180227 X4jdmLV1bQZERlyBmLg6XKIekmkGCaCl4GnEMPFPZ7v8wy8MRQX8XdDFSlnwDf1p
 jquery.min.js      180204 tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT
 jquery.rss.min.js  180204 jMZFnqgk/XQDYHVdaLBtSIKIFLAXPzyeCratYIu70z8GHOuxPx3mQUWsNWC1o9uq
 jsbn2.js           180203 cdUKnzFHcY4XFVKjQDizxT8KsIxm4/QP09T/OPUzPwG3qjx/GjU+IEB5ZZK/tua6

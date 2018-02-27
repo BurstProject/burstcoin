@@ -144,7 +144,7 @@ public final class Db {
       cp = new HikariDataSource(config);
 
       if (DATABASE_TYPE == TYPE.H2) {
-        int defaultLockTimeout = propertyService.getInt(Props.BRS_DB_DEFAULT_LOCK_TIMEOUT) * 1000;
+        int defaultLockTimeout = propertyService.getInt(Props.DB_LOCK_TIMEOUT) * 1000;
         try (Connection con = cp.getConnection();
              PreparedStatement stmt = con.prepareStatement("SET DEFAULT_LOCK_TIMEOUT ?")) {
           // stmt.executeUpdate(defaultLockTimeout);
