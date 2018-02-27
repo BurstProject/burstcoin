@@ -55,14 +55,14 @@ public final class Db {
     String dbPassword;
 
     if (Constants.isTestnet) {
-      dbUrl = propertyService.getString(Props.BRS_TEST_DB_URL);
-      dbUsername = propertyService.getString(Props.BRS_TEST_DB_USERNAME);
-      dbPassword = propertyService.getString(Props.BRS_TEST_DB_PASSWORD);
+      dbUrl = propertyService.getString(Props.DEV_DB_URL);
+      dbUsername = propertyService.getString(Props.DEV_DB_USERNAME);
+      dbPassword = propertyService.getString(Props.DEV_DB_PASSWORD);
     }
     else {
-      dbUrl = propertyService.getString(Props.BRS_DB_URL);
-      dbUsername = propertyService.getString(Props.BRS_DB_USERNAME);
-      dbPassword = propertyService.getString(Props.BRS_DB_PASSWORD);
+      dbUrl = propertyService.getString(Props.DB_URL);
+      dbUsername = propertyService.getString(Props.DB_USERNAME);
+      dbPassword = propertyService.getString(Props.DB_PASSWORD);
     }
     dialect = org.jooq.tools.jdbc.JDBCUtils.dialect(dbUrl);
 
@@ -76,7 +76,7 @@ public final class Db {
       if (dbPassword != null)
         config.setPassword(dbPassword);
 
-      config.setMaximumPoolSize(propertyService.getInt(Props.BRS_DB_MAXIMUM_POOL_SIZE));
+      config.setMaximumPoolSize(propertyService.getInt(Props.DB_CONNECTIONS));
 
       switch (DATABASE_TYPE) {
         case MARIADB:

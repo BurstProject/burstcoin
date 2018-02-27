@@ -195,7 +195,7 @@ public final class Burst {
           stores.getTransactionProcessorStore().getUnconfirmedTransactionTable();
 
 
-      final Generator generator = propertyService.getBoolean(Props.BRS_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService);
+      final Generator generator = propertyService.getBoolean(Props.DEV_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService);
 
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
 
@@ -244,7 +244,7 @@ public final class Burst {
 
       DebugTrace.init(propertyService, blockchainProcessor, tradeService, orderService, digitalGoodsStoreService);
 
-      int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(propertyService.getInt(Props.TIME_MULTIPLIER), 1) : 1;
+      int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(propertyService.getInt(Props.DEV_TIMEWARP), 1) : 1;
 
       threadPool.start(timeMultiplier);
       if (timeMultiplier > 1) {

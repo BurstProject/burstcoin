@@ -65,18 +65,33 @@ function upgrade_conf () {
         BRS="${BRS//nxt\.peerServerDoSFilter.delayMs/JETTY.P2P.DoSFilter.delayMs}"
         BRS="${BRS//nxt\.peerServerDoSFilter.maxRequestMs/JETTY.P2P.DoSFilter.maxRequestMs}"
 
-        # TEST-related params (TestNet)
-        BRS="${BRS//nxt\.isTestnet/TEST.Net}"
-        BRS="${BRS//nxt\.testnetPeers/TEST.Peers}"
+        # DEVELOPMENT-related params (TestNet, Offline, Debug, Timewarp etc.)
+        BRS="${BRS//nxt\.isTestnet/DEV.TestNet}"
+        BRS="${BRS//nxt\.testnetPeers/DEV.TestNet.Peers}"
+        BRS="${BRS//nxt\.isOffline/DEV.Offline}"
+        BRS="${BRS//nxt\.time.Multiplier/DEV.TimeWarp}"
+        BRS="${BRS//burst\.mockMining/DEV.mockMining}"
+        BRS="${BRS//nxt\.testDbUrl/DEV.DB.Url}"
+        # that bug may be in
+        BRS="${BRS//nxt\.testDUsername/DEV.DB.Username}"
+        BRS="${BRS//nxt\.testDbUsername/DEV.DB.Username}"
+        BRS="${BRS//nxt\.testDbPassword/DEV.DB.Password}"
 
         # API-related params
-        BRS="${BRS//nxt.enableAPIServer/}"
-        BRS="${BRS///}"
-        BRS="${BRS///}"
+        BRS="${BRS//nxt\.enableAPIServer/}"
         BRS="${BRS///}"
         BRS="${BRS///}"
         
         # DB-related params
+        BRS="${BRS//nxt\.dbUrl/DB.Url}"
+        BRS="${BRS//nxt\.dbUsername/DB.Username}"
+        BRS="${BRS//nxt\.dbPassword/DB.Password}"
+        BRS="${BRS//nxt\.dbMaximumPoolSize/DB.Connections}"
+        BRS="${BRS///}"
+        BRS="${BRS///}"
+        BRS="${BRS///}"
+        BRS="${BRS///}"
+
         # GPU-related params
         BRS="${BRS//burst\.oclVerify/GPU.Acceleration}"
         BRS="${BRS//burst\.oclAuto/GPU.AutoDetect}"

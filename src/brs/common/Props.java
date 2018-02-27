@@ -2,25 +2,40 @@ package brs.common;
 
 public class Props {
 
-  public static final String TIME_MULTIPLIER = "brs.timeMultiplier";
+  // DEV options
+  public static final String DEV_OFFLINE = "DEV.Offline";
+  public static final String DEV_TESTNET = "DEV.TestNet";
+  
+  public static final String DEV_TIMEWARP = "DEV.TimeWarp";
+  public static final String DEV_MOCK_MINING = "DEV.mockMining";
 
+  public static final String DEV_DB_URL = "DEV.DB.Url";
+  public static final String DEV_DB_USERNAME = "DEV.DB.Username";
+  public static final String DEV_DB_PASSWORD = "DEV.DB.Password";
+
+
+
+  // GPU options 
   public static final String GPU_ACCELERATION = "GPU.Acceleration";
-  public static final String GPU_UNVERIFIED_QUEUE = "GPU.UnverifiedQueue";
-  public static final String GPU_HASHES_PER_BATCH = "GPU.HashesPerBatch";
-  public static final String GPU_MEM_PERCENT = "GPU.MemPercent";
   public static final String GPU_AUTODETECT = "GPU.AutoDetect";
   public static final String GPU_PLATFORM_IDX = "GPU.PlatformIdx";
   public static final String GPU_DEVICE_IDX = "GPU.DeviceIdx";
+  public static final String GPU_UNVERIFIED_QUEUE = "GPU.UnverifiedQueue";
+  public static final String GPU_HASHES_PER_BATCH = "GPU.HashesPerBatch";
+  public static final String GPU_MEM_PERCENT = "GPU.MemPercent";
 
+  // DB options
+  public static final String DB_URL = "DB.Url";
+  public static final String DB_USERNAME = "DB.Username";
+  public static final String DB_PASSWORD = "DB.Password";
+  public static final String DB_CONNECTIONS = "DB.Connections";  
+  public static final String DB_LOCK_TIMEOUT = "DB.LockTimeout";
+
+  
   public static final String BRS_TRIM_DERIVED_TABLES = "brs.trimDerivedTables";
 
   public static final String BRS_FORCE_SCAN = "brs.forceScan";
   public static final String BRS_FORCE_VALIDATE = "brs.forceValidate";
-
-  public static final String BRS_MOCK_MINING = "brs.mockMining";
-
-  public static final String TEST_NET = "TEST.Net";
-  public static final String BRS_IS_OFFLINE = "brs.isOffline";
 
   public static final String BRS_DEBUG_TRACE_QUOTE = "brs.debugTraceQuote";
   public static final String BRS_DEBUG_TRACE_SEPARATOR = "brs.debugTraceSeparator";
@@ -34,15 +49,6 @@ public class Props {
   public static final String BRS_REBROADCAST_AFTER = "brs.rebroadcastAfter";
   public static final String REBROADCAST_EVERY = "brs.rebroadcastEvery";
   public static final String DB_H2_DEFRAG_ON_SHUTDOWN = "Db.H2.DefragOnShutdown";
-
-  public static final String BRS_TEST_DB_URL = "brs.testDbUrl";
-  public static final String BRS_TEST_DB_USERNAME = "brs.testDbUsername";
-  public static final String BRS_TEST_DB_PASSWORD = "brs.testDbPassword";
-  public static final String BRS_DB_URL = "brs.dbUrl";
-  public static final String BRS_DB_USERNAME = "brs.dbUsername";
-  public static final String BRS_DB_PASSWORD = "brs.dbPassword";
-  public static final String BRS_DB_MAXIMUM_POOL_SIZE = "brs.dbMaximumPoolSize";
-  public static final String BRS_DB_DEFAULT_LOCK_TIMEOUT = "brs.dbDefaultLockTimeout";
 
   public static final String BRS_ALLOWED_BOT_HOSTS = "brs.allowedBotHosts";
 
