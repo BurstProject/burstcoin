@@ -63,7 +63,7 @@ var BRS = (function(BRS, $, undefined) {
 
 	if (typeof PassPhraseGenerator == "undefined") {
 	    $.when(
-		$.getScript("js/crypto/3rdparty/seedrandom.js"),
+		$.getScript("js/crypto/3rdparty/seedrandom.min.js"),
 		$.getScript("js/crypto/passphrasegenerator.js")
 	    ).done(function() {
 		$loading.hide();

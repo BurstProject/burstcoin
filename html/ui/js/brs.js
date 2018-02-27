@@ -13,8 +13,8 @@
  * @depends {crypto/curve25519_.js}
  * @depends {crypto/passphrasegenerator.js}
  * @depends {crypto/sha256worker.js}
- * @depends {crypto/3rdparty/cryptojs/aes.js}
- * @depends {crypto/3rdparty/cryptojs/sha256.js}
+ * @depends {crypto/3rdparty/aes.js}
+ * @depends {crypto/3rdparty/sha256.js}
  * @depends {crypto/3rdparty/jssha256.js}
  * @depends {crypto/3rdparty/seedrandom.js}
  * @depends {util/converters.js}
