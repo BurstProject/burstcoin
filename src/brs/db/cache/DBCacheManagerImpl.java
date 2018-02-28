@@ -20,15 +20,13 @@ public class DBCacheManagerImpl {
 
   private final boolean statisticsEnabled;
 
-  private final static HashMap<String, CacheConfiguration> caches = new HashMap<String, CacheConfiguration>(){
-    {
-      put("account", CacheConfigurationBuilder.newCacheConfigurationBuilder(DbKey.class, Account.class, ResourcePoolsBuilder.heap(100)).build());
-    }
-  };
+  private final HashMap<String, CacheConfiguration> caches = new HashMap<String, CacheConfiguration>();
 
   public DBCacheManagerImpl(StatisticsManagerImpl statisticsManager) {
     this.statisticsManager = statisticsManager;
     statisticsEnabled = true;
+
+    caches.put("account", CacheConfigurationBuilder.newCacheConfigurationBuilder(DbKey.class, Account.class, ResourcePoolsBuilder.heap(100)).build());
 
     CacheManagerBuilder cacheBuilder = CacheManagerBuilder.newCacheManagerBuilder();
     for (Map.Entry<String, CacheConfiguration> cache : caches.entrySet()) {
