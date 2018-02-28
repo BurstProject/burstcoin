@@ -43,7 +43,7 @@ public class DBCacheManagerImpl {
 
   private Cache getEHCache(String name) {
     CacheConfiguration cacheConfiguration = caches.get(name);
-    return cacheManager.getCache(name, cacheConfiguration.getKeyType().getClass(), cacheConfiguration.getValueType().getClass());
+    return cacheManager.getCache(name, cacheConfiguration.getKeyType(), cacheConfiguration.getValueType());
   }
 
   public Cache getCache(String name) {
