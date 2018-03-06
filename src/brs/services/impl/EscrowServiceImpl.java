@@ -229,17 +229,17 @@ public class EscrowServiceImpl implements EscrowService {
   public synchronized void doPayout(DecisionType result, Block block, int blockchainHeight, Escrow escrow) {
     switch(result) {
       case RELEASE:
-        accountService.getAccount(escrow.getRecipientId()).addToBalanceAndUnconfirmedBalanceNQT(escrow.getAmountNQT());
+        accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getAccount(escrow.getRecipientId()), escrow.getAmountNQT());
         saveResultTransaction(block, escrow.getId(), escrow.getRecipientId(), escrow.getAmountNQT(), DecisionType.RELEASE, blockchainHeight);
         break;
       case REFUND:
-        accountService.getAccount(escrow.getSenderId()).addToBalanceAndUnconfirmedBalanceNQT(escrow.getAmountNQT());
+        accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getAccount(escrow.getSenderId()), escrow.getAmountNQT());
         saveResultTransaction(block, escrow.getId(), escrow.getSenderId(), escrow.getAmountNQT(), DecisionType.REFUND, blockchainHeight);
         break;
       case SPLIT:
         Long halfAmountNQT = escrow.getAmountNQT() / 2;
-        accountService.getAccount(escrow.getRecipientId()).addToBalanceAndUnconfirmedBalanceNQT(halfAmountNQT);
-        accountService.getAccount(escrow.getSenderId()).addToBalanceAndUnconfirmedBalanceNQT(escrow.getAmountNQT() - halfAmountNQT);
+        accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getAccount(escrow.getRecipientId()), halfAmountNQT);
+        accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getAccount(escrow.getSenderId()), escrow.getAmountNQT() - halfAmountNQT);
         saveResultTransaction(block, escrow.getId(), escrow.getRecipientId(), halfAmountNQT, DecisionType.SPLIT, blockchainHeight);
         saveResultTransaction(block, escrow.getId(), escrow.getSenderId(), escrow.getAmountNQT() - halfAmountNQT, DecisionType.SPLIT, blockchainHeight);
         break;
@@ -256,7 +256,7 @@ public class EscrowServiceImpl implements EscrowService {
   @Override
   public void saveResultTransaction(Block block, Long escrowId, Long recipientId, Long amountNQT, DecisionType decision, int blockchainHeight) {
     Attachment.AbstractAttachment attachment = new Attachment.AdvancedPaymentEscrowResult(escrowId, decision, blockchainHeight);
-    Transaction.Builder builder = new Transaction.Builder((byte)1, Genesis.CREATOR_PUBLIC_KEY,
+    Transaction.Builder builder = new Transaction.Builder((byte)1, Genesis.getCreatorPublicKey(),
         amountNQT, 0L, block.getTimestamp(), (short)1440, attachment);
     builder.senderId(0L)
         .recipientId(recipientId)
