@@ -218,7 +218,7 @@ public final class Peers {
     savePeers        = usePeersDb && propertyService.getBoolean(Props.BRS_SAVE_PEERS);
     getMorePeers     = propertyService.getBoolean(Props.BRS_GET_MORE_PEERS);
     getMorePeersThreshold = propertyService.getInt(Props.BRS_GET_MORE_PEERS_THRESHOLD);
-    dumpPeersVersion = propertyService.getString(Props.BRS_DUMP_PEERS_VERSION);
+    dumpPeersVersion = propertyService.getString(Props.DEV_DUMP_PEERS_VERSION);
 
     final List<Future<String>> unresolvedPeers = Collections.synchronizedList(new ArrayList<Future<String>>());
 
