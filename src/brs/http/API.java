@@ -61,7 +61,7 @@ public final class API {
       SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService,
       ThreadPool threadPool, TransactionService transactionService, BlockService blockService, Generator generator, APITransactionManager apiTransactionManager) {
     enableDebugAPI = propertyService.getBoolean(Props.API_DEBUG);
-    List<String> allowedBotHostsList = propertyService.getStringList(Props.BRS_ALLOWED_BOT_HOSTS);
+    List<String> allowedBotHostsList = propertyService.getStringList(Props.API_ALLOWED);
     if (!allowedBotHostsList.contains("*")) {
       // Temp hashset to store allowed subnets
       Set<Subnet> allowedSubnets = new HashSet<>();
@@ -69,19 +69,21 @@ public final class API {
       for (String allowedHost : allowedBotHostsList) {
         try {
           allowedSubnets.add(Subnet.createInstance(allowedHost));
-        } catch (UnknownHostException e) {
-          logger.error("Error adding allowed bot host '" + allowedHost + "'", e);
+        }
+        catch (UnknownHostException e) {
+          logger.error("Error adding allowed host/subnet '" + allowedHost + "'", e);
         }
       }
       allowedBotHosts = Collections.unmodifiableSet(allowedSubnets);
-    } else {
+    }
+    else {
       allowedBotHosts = null;
     }
 
     boolean enableAPIServer = propertyService.getBoolean(Props.API_SERVER);
     if (enableAPIServer) {
-      final int port = Constants.isTestnet ? TESTNET_API_PORT : propertyService.getInt(Props.API_SERVER_PORT);
-      final String host = propertyService.getString(Props.API_SERVER_HOST);
+      final int port = Constants.isTestnet ? TESTNET_API_PORT : propertyService.getInt(Props.API_PORT);
+      final String host = propertyService.getString(Props.API_LISTEN);
       apiServer = new Server();
       ServerConnector connector;
 

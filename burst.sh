@@ -50,6 +50,7 @@ function upgrade_conf () {
         BRS="${BRS//nxt\.sendToPeersLimit/P2P.TxResendThreshold}"
         BRS="${BRS//nxt\.usePeersDb/P2P.usePeersDb}"
         BRS="${BRS//nxt\.savePeers/P2P.savePeers}"
+        BRS="${BRS//nxt\.getMorePeers/P2P.getMorePeers}"
         BRS="${BRS//nxt\.enableTransactionRebroadcasting/P2P.enableTxRebroadcast}"
         BRS="${BRS//burst\.rebroadcastAfter/P2P.rebroadcastTxAfter}"
         BRS="${BRS//burst\.rebroadcastEvery/P2P.rebroadcastTxEvery}"
@@ -84,16 +85,30 @@ function upgrade_conf () {
         BRS="${BRS//nxt\.dumpPeersVersion/DEV.dumpPeersVersion}"
         BRS="${BRS//nxt\.forceValidate/DEV.forceValidate}"
         BRS="${BRS//nxt\.forceScan/DEV.forceScan}"
+        # Development/Logging/Debugging
+        BRS="${BRS//nxt\.debugTraceLog/brs.debugTraceLog}"
+        BRS="${BRS//nxt\.communicationLoggingMask/brs.communicationLoggingMask}"
+        BRS="${BRS//nxt\.debugTraceAccounts/brs.debugTraceAccounts}"
+        BRS="${BRS//nxt\.debugTraceSeparator/brs.debugTraceSeparator}"
+        BRS="${BRS//nxt\.debugTraceQuote/brs.debugTraceQuote}"
+        BRS="${BRS//nxt\.debugLogUnconfirmed/brs.debugLogUnconfirmed}"
+
         
         # API-related params
         BRS="${BRS//nxt\.enableAPIServer/API.Server}"
         BRS="${BRS//nxt\.enableDebugAPI/API.Debug}"
         BRS="${BRS//nxt\.keyStorePath/API.SSL_keyStorePath}"
         BRS="${BRS//nxt\.keyStorePassword/API.SSL_keyStorePassword}"
-        BRS="${BRS///}"
-        BRS="${BRS///}"
-        BRS="${BRS///}"
-        BRS="${BRS///}"
+        BRS="${BRS//nxt\.allowedBotHosts/API.allowed}"
+        BRS="${BRS//nxt\.apiServerHost/API.Listen}"
+        BRS="${BRS//nxt\.apiServerPort/API.Port}"
+        BRS="${BRS//nxt\.apiServerIdleTimeout/API.ServerIdleTimeout}"
+        BRS="${BRS//nxt\.apiSSL/API.SSL}"
+        BRS="${BRS//nxt\.apiServerEnforcePOST/API.ServerEnforcePOST}"
+        BRS="${BRS//nxt\.apiServerCORS/API.CrossOriginFilter}"
+        BRS="${BRS//nxt\.apiResourceBase/API.UI_Dir}"
+        BRS="${BRS//nxt\.javadocResourceBase/API.Doc_Dir}"
+
         
         # DB-related params
         BRS="${BRS//nxt\.dbUrl/DB.Url}"

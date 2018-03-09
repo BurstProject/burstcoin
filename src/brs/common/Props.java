@@ -18,6 +18,16 @@ public class Props {
   public static final String DEV_FORCE_VALIDATE = "DEV.forceValidate";
   public static final String DEV_FORCE_SCAN     = "DEV.forceScan";
 
+  public static final String BRS_DEBUG_TRACE_QUOTE = "brs.debugTraceQuote";
+  public static final String BRS_DEBUG_TRACE_SEPARATOR = "brs.debugTraceSeparator";
+  public static final String BRS_DEBUG_LOG_CONFIRMED = "brs.debugLogUnconfirmed";
+  public static final String BRS_DEBUG_TRACE_ACCOUNTS = "brs.debugTraceAccounts";
+
+  public static final String BRS_DEBUG_TRACE_LOG = "brs.debugTraceLog";
+  public static final String BRS_COMMUNICATION_LOGGING_MASK = "brs.communicationLoggingMask";
+
+
+  
   // GPU options 
   public static final String GPU_ACCELERATION     = "GPU.Acceleration";
   public static final String GPU_AUTODETECT       = "GPU.AutoDetect";
@@ -31,7 +41,6 @@ public class Props {
   public static final String CPU_NUM_CORES = "CPU.NumCores";
 
 
-
   // DB options
   public static final String DB_URL          = "DB.Url";
   public static final String DB_USERNAME     = "DB.Username";
@@ -42,17 +51,10 @@ public class Props {
   public static final String DB_TRIM_DERIVED_TABLES = "DB.trimDerivedTables";
   public static final String DB_MAX_ROLLBACK        = "DB.maxRollback";
 
-  public static final String BRS_DEBUG_TRACE_QUOTE = "brs.debugTraceQuote";
-  public static final String BRS_DEBUG_TRACE_SEPARATOR = "brs.debugTraceSeparator";
-  public static final String BRS_DEBUG_LOG_CONFIRMED = "brs.debugLogUnconfirmed";
-  public static final String BRS_DEBUG_TRACE_ACCOUNTS = "brs.debugTraceAccounts";
-  public static final String BRS_DEBUG_TRACE_LOG = "brs.debugTraceLog";
-
   public static final String BRS_TEST_UNCONFIRMED_TRANSACTIONS = "brs.testUnconfirmedTransactions";
 
   public static final String DB_H2_DEFRAG_ON_SHUTDOWN = "Db.H2.DefragOnShutdown";
 
-  public static final String BRS_ALLOWED_BOT_HOSTS = "brs.allowedBotHosts";
 
   public static final String BRS_BLOCK_CACHE_MB = "brs.blockCacheMB";
 
@@ -62,6 +64,7 @@ public class Props {
 
   public static final String P2P_MY_PLATFORM = "P2P.myPlatform";
   public static final String P2P_MY_ADDRESS  = "P2P.myAddress";
+  public static final String P2P_LISTEN      = "P2P.Listen";
   public static final String P2P_PORT        = "P2P.Port";
   public static final String P2P_SHARE_MY_ADDRESS = "P2P.shareMyAddress";
   public static final String P2P_MY_HALLMARK = "P2P.myHallmark";
@@ -79,16 +82,24 @@ public class Props {
   public static final String P2P_HALLMARK_PULL = "P2P.HallmarkPull";
   public static final String P2P_BLACKLISTING_TIME_MS = "P2P.BlacklistingTime_ms";
 
-  public static final String P2P_LISTEN = "P2P.Listen";
   public static final String P2P_TIMEOUT_IDLE_MS = "P2P.TimeoutIdle_ms";
+
+  public static final String P2P_USE_PEERS_DB        = "P2P.usePeersDb";
+  public static final String P2P_SAVE_PEERS          = "P2P.savePeers";
+  public static final String P2P_GET_MORE_PEERS      = "P2P.getMorePeers";
+  public static final String P2P_GET_MORE_PEERS_THRESHOLD = "P2P.getMorePeersThreshold";
+
 
 
   // API options
-  public static final String API_DEBUG = "API.Debug";
-  public static final String API_SSL    = "API.SSL";
-  public static final String API_SERVER = "API.Server";
-  public static final String API_SERVER_PORT = "API.ServerPort";
-  public static final String API_SERVER_HOST = "API.ServerHost";
+  public static final String API_DEBUG   = "API.Debug";
+  public static final String API_SSL     = "API.SSL";
+  public static final String API_SERVER  = "API.Server";
+  public static final String API_ALLOWED = "API.allowed";
+
+  public static final String API_LISTEN  = "API.Listen";
+  public static final String API_PORT    = "API.Port";
+
   public static final String API_DOC_DIR = "API.Doc_Dir";
   public static final String API_UI_DIR  = "API.UI_Dir";
   public static final String API_CROSS_ORIGIN_FILTER = "API.CrossOriginFilter";
@@ -133,13 +144,8 @@ public class Props {
   public static final String JETTY_P2P_DOS_FILTER_MANAGED_ATTR = "JETTY.P2P.DoSFilter.managedAttr";
 
   public static final String TEST_PEERS = "TEST.Peers";
-  public static final String BRS_COMMUNICATION_LOGGING_MASK = "brs.communicationLoggingMask";
-  public static final String BRS_SEND_TO_PEERS_LIMIT = "brs.sendToPeersLimit";
-  public static final String BRS_USE_PEERS_DB = "brs.usePeersDb";
-  public static final String BRS_SAVE_PEERS = "brs.savePeers";
-  public static final String BRS_GET_MORE_PEERS = "brs.getMorePeers";
-  public static final String BRS_GET_MORE_PEERS_THRESHOLD = "brs.getMorePeersThreshold";
 
+  public static final String BRS_SEND_TO_PEERS_LIMIT = "brs.sendToPeersLimit";
 
   private Props() { //no need to construct
   }

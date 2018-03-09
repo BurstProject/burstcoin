@@ -33,8 +33,8 @@ public abstract class AbstractIT {
     props.setProperty(Props.DB_CONNECTIONS, "1");
 
     props.setProperty(Props.API_SERVER, "on");
-    props.setProperty(Props.API_SERVER_HOST, "127.0.0.1");
-    props.setProperty(Props.API_SERVER_PORT, "8125");
+    props.setProperty(Props.API_LISTEN, "127.0.0.1");
+    props.setProperty(Props.API_PORT,   "8125");
 
     return props;
   }
