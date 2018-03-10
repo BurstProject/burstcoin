@@ -463,7 +463,7 @@ public interface AT_API {
    * @param state AT machine state
    * @param val1
    * @param val2
-   * @return 
+   * @return time+minutes
    */
   long add_Minutes_to_Timestamp(long val1, long val2, AT_Machine_State state);
 
