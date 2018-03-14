@@ -255,9 +255,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   };
   private final Runnable blockImporterThread = () -> {
     try {
-      Long lastId = blockchain.getLastBlock().getId();
       while (true) {
         while (downloadCache.getBlockCacheSize() > 0) {
+            Long lastId = blockchain.getLastBlock().getId();
             Block currentBlock = downloadCache.getNextBlock(lastId); /* this should fetch first block in cache */
             if (currentBlock == null) {
               break;
