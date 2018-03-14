@@ -100,7 +100,7 @@ brs.dbPassword=yourpassword
 For a general overview of Burst history see https://burstwiki.org/wiki/History_of_Burst
 
 ```
-2017-03-15 2.0.0
+2018-03-15 2.0.0
            BRS - Burst Reference Software:
            Burst namespace, some NXT legacy is in API data sent P2P
            streamlined configuration namespace, more logical and intuitive

@@ -555,7 +555,9 @@ public final class Peers {
               if (! myPeer.isBlacklisted() && myPeer.getAnnouncedAddress() != null
                   && myPeer.getState() == Peer.State.CONNECTED && myPeer.shareAddress()
                   && ! addedAddresses.contains(myPeer.getAnnouncedAddress())
-                  && ! myPeer.getAnnouncedAddress().equals(peer.getAnnouncedAddress())) {
+                  && ! myPeer.getAnnouncedAddress().equals(peer.getAnnouncedAddress())
+                  && ! myPeer.getVersion().startsWith(Burst.LEGACY_VER)
+                  ) {
                 myPeers.add(myPeer.getAnnouncedAddress());
               }
             }
