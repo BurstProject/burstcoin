@@ -1,6 +1,7 @@
 package brs;
 
 import brs.common.Props;
+import brs.db.cache.DBCacheManagerImpl;
 import brs.db.store.BlockchainStore;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
@@ -69,6 +70,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private DerivedTableManager derivedTableManager;
   private final StatisticsManagerImpl statisticsManager;
   private Generator generator;
+  private final DBCacheManagerImpl dbCacheManager;
 
   public static final int MAX_TIMESTAMP_DIFFERENCE = 15;
   private boolean oclVerify;
@@ -106,7 +108,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       PropertyService propertyService,
       SubscriptionService subscriptionService, TimeService timeService, DerivedTableManager derivedTableManager,
       BlockDb blockDb, TransactionDb transactionDb, EconomicClustering economicClustering, BlockchainStore blockchainStore, Stores stores, EscrowService escrowService,
-      TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator, StatisticsManagerImpl statisticsManager) {
+      TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator, StatisticsManagerImpl statisticsManager, DBCacheManagerImpl dbCacheManager) {
     this.blockService = blockService;
     this.transactionProcessor = transactionProcessor;
     this.timeService = timeService;
@@ -123,6 +125,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     this.escrowService = escrowService;
     this.transactionService = transactionService;
     this.statisticsManager = statisticsManager;
+    this.dbCacheManager = dbCacheManager;
 
     oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
     oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE, 1000);
@@ -750,6 +753,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   public void fullReset() {
     // blockDb.deleteBlock(Genesis.GENESIS_BLOCK_ID); // fails with stack overflow in H2
     blockDb.deleteAll(false);
+    dbCacheManager.flushCache();
+    downloadCache.resetCache();
     addGenesisBlock();
     scan(0);
   }
@@ -1032,7 +1037,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         block = popLastBlock();
       }
       derivedTableManager.getDerivedTables().forEach(table -> table.rollback(commonBlock.getHeight()));
+      stores.getTransactionProcessorStore().getUnconfirmedTransactionTable().truncate();
+      dbCacheManager.flushCache();
       stores.commitTransaction();
+      downloadCache.resetCache();
     } catch (RuntimeException e) {
       stores.rollbackTransaction();
       logger.debug("Error popping off to " + commonBlock.getHeight(), e);
