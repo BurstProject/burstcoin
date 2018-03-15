@@ -17,13 +17,6 @@ usage: $0 [command] [arguments]
 EOF
 }
 
-function maybe_load_dump_usage () {
-    if [ -z "$MY_ARG" ]; then
-        usage
-        exit 1
-    fi
-}
-
 function upgrade_conf () {
     BRS_CFG_NAME="conf/nxt-default.properties"
 
