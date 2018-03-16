@@ -113,6 +113,7 @@ public final class Peers {
       myAddress = externalIPAddress;
     }
     else {
+      myAddress = propertyService.getString("P2P.myAddress");
     }
 
     if (myAddress != null && myAddress.endsWith(":" + TESTNET_PEER_PORT) && !Constants.isTestnet) {
@@ -371,6 +372,7 @@ public final class Peers {
         };
         new Thread(GwDiscover).start();
 
+        peerServer.setHandler(peerHandler);
         peerServer.setStopAtShutdown(true);
         threadPool.runBeforeStart(new Runnable() {
             @Override
