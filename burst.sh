@@ -113,7 +113,6 @@ function upgrade_conf () {
         BRS="${BRS//nxt\.trimDerivedTables/DB.trimDerivedTables}"
         BRS="${BRS//nxt\.maxRollback/DB.maxRollback}"
         BRS="${BRS//nxt\.dbDefaultLockTimeout/DB.LockTimeout}"
-        BRS="${BRS///}"
 
         # GPU-related params
         BRS="${BRS//burst\.oclVerify/GPU.Acceleration}"
