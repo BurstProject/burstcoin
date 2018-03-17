@@ -13,8 +13,8 @@ and fair Proof-of-Capacity (PoC) consensus algorithm.
 This wallet version is developed and maintained by the PoC consortium
 (PoCC) and supports a multitude of database backends. The two builtin
 backends are:
-- MariaDB (recommended, but complex installation)
-- H2 (for compatibility/migration purposes)
+- MariaDB (recommended)
+- H2 (embedded, easier install)
 
 Other DB backends are supported by the Burstcoin DB manager:
 https://github.com/PoC-Consortium/burstcoin-db-manager
@@ -30,6 +30,16 @@ installation for you.
 
 Burstcoin can be built from source using maven or - preferably - via
 the provided `burst.sh compile` script within this repository.
+
+##### Upgrading your wallet config from 1.3.6cg
+
+```
+burst.sh upgrade
+```
+will take the old `nxt-default.properties`/`nxt.properties` files and
+create `brs-default.properties.converted`/`brs.properties.converted`
+files in the conf directory. This should give you a headstart with the
+new option naming system.
 
 #### Windows
 
@@ -107,5 +117,7 @@ To improve scalability and performance, the core development team uses
 as its preferred Java Profiler.
 
 ## [Credits](doc/Credits.md)
+
+## [Development Info](doc/Refactoring.md)
 
 ## [References/Links](doc/References.md)
