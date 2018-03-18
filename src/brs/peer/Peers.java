@@ -8,12 +8,12 @@ import brs.services.TimeService;
 import brs.util.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.DoSFilter;
-import org.eclipse.jetty.servlets.GzipFilter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -294,6 +294,41 @@ public final class Peers {
     static void init(TimeService timeService, AccountService accountService, Blockchain blockchain, TransactionProcessor transactionProcessor,
         BlockchainProcessor blockchainProcessor, PropertyService propertyService, ThreadPool threadPool) {
       if (Peers.shareMyAddress) {
+        Runnable GwDiscover = () -> {
+          GatewayDiscover gatewayDiscover = new GatewayDiscover();
+          gatewayDiscover.setTimeout(2000);
+          try {
+            gatewayDiscover.discover();
+          }
+          catch (IOException|SAXException|ParserConfigurationException e) {
+          }
+          logger.trace("Looking for Gateway Devices");
+          gateway = gatewayDiscover.getValidGateway();
+
+          if (gateway != null) {
+            gateway.setHttpReadTimeout(2000);
+            try {
+              InetAddress localAddress = gateway.getLocalAddress();
+              String externalIPAddress = gateway.getExternalIPAddress();
+              logger.info("Attempting to map {0}:{1} -> {2}:{3} on Gateway {0} ({1})",
+                  externalIPAddress, port, localAddress, port, gateway.getModelName(), gateway.getModelDescription());
+              PortMappingEntry portMapping = new PortMappingEntry();
+              if (gateway.getSpecificPortMappingEntry(port, "TCP", portMapping)) {
+                logger.info("Port was already mapped. Aborting test.");
+              }
+              else {
+                if (gateway.addPortMapping(port, port, localAddress.getHostAddress(), "TCP", "burstcoin")) {
+                  logger.info("UPNP Mapping successful");
+                }
+              }
+            }
+            catch (IOException|SAXException e) {
+              logger.error("Can't start UPNP", e);
+            }
+          }
+        };
+        new Thread(GwDiscover).start();
+
         peerServer = new Server();
         ServerConnector connector = new ServerConnector(peerServer);
         port = Constants.isTestnet ? TESTNET_PEER_PORT : Peers.myPeerServerPort;
@@ -312,14 +347,6 @@ public final class Peers {
         ServletHandler peerHandler = new ServletHandler();
         peerHandler.addServletWithMapping(peerServletHolder, "/*");
 
-        if (isGzipEnabled) {
-          FilterHolder gzipFilterHolder = peerHandler.addFilterWithMapping(GzipFilter.class, "/*", FilterMapping.DEFAULT);
-          gzipFilterHolder.setInitParameter("methods",     propertyService.getString(Props.JETTY_P2P_GZIP_FILTER_METHODS));
-          gzipFilterHolder.setInitParameter("bufferSize",  propertyService.getString(Props.JETTY_P2P_GZIP_FILTER_BUFFER_SIZE));
-          gzipFilterHolder.setInitParameter("minGzipSize", propertyService.getString(Props.JETTY_P2P_GZIP_FILTER_MIN_GZIP_SIZE));
-          gzipFilterHolder.setAsyncSupported(true);
-        }
-
         if (propertyService.getBoolean("JETTY.P2P.DoSFilter")) {
           FilterHolder dosFilterHolder = peerHandler.addFilterWithMapping(DoSFilter.class, "/*", FilterMapping.DEFAULT);
           dosFilterHolder.setInitParameter("maxRequestsPerSec", propertyService.getString(Props.JETTY_P2P_DOS_FILTER_MAX_REQUESTS_PER_SEC));
@@ -337,42 +364,18 @@ public final class Peers {
           dosFilterHolder.setAsyncSupported(true);
         }
 
-        Runnable GwDiscover = () -> {
-          GatewayDiscover gatewayDiscover = new GatewayDiscover();
-          gatewayDiscover.setTimeout(2000);
-          try {
-            gatewayDiscover.discover();
-          }
-          catch (IOException|SAXException|ParserConfigurationException e) {
-          }
-          logger.trace("Looking for Gateway Devices");
-          gateway = gatewayDiscover.getValidGateway();
-
-          if (gateway != null) {
-            gateway.setHttpReadTimeout(2000);
-            try {
-              InetAddress localAddress = gateway.getLocalAddress();
-              String externalIPAddress = gateway.getExternalIPAddress();
-              logger.info("Attempting to map {0}:{1} -> {2}:{3} on Gateway {0} ({1})",
-                          externalIPAddress, port, localAddress, port, gateway.getModelName(), gateway.getModelDescription());
-              PortMappingEntry portMapping = new PortMappingEntry();
-              if (gateway.getSpecificPortMappingEntry(port, "TCP", portMapping)) {
-                logger.info("Port was already mapped. Aborting test.");
-              }
-              else {
-                if (gateway.addPortMapping(port, port, localAddress.getHostAddress(), "TCP", "burstcoin")) {
-                  logger.info("UPNP Mapping successful");
-                }
-              }
-            }
-            catch (IOException|SAXException e) {
-              logger.error("Can't start UPNP", e);
-            }
-          }
-        };
-        new Thread(GwDiscover).start();
-
-        peerServer.setHandler(peerHandler);
+        if (isGzipEnabled) {
+          GzipHandler gzipHandler = new GzipHandler();
+          gzipHandler.setIncludedMethods(propertyService.getString(Props.JETTY_P2P_GZIP_FILTER_METHODS));
+          gzipHandler.setInflateBufferSize(propertyService.getInt(Props.JETTY_P2P_GZIP_FILTER_BUFFER_SIZE));
+          gzipHandler.setMinGzipSize(propertyService.getInt(Props.JETTY_P2P_GZIP_FILTER_MIN_GZIP_SIZE));
+          gzipHandler.setIncludedMimeTypes("text/plain");
+          gzipHandler.setHandler(peerHandler);
+          peerServer.setHandler(gzipHandler);
+        }
+        else {
+          peerServer.setHandler(peerHandler);
+        }
         peerServer.setStopAtShutdown(true);
         threadPool.runBeforeStart(new Runnable() {
             @Override

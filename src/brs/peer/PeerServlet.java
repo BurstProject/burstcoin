@@ -137,18 +137,11 @@ public final class PeerServlet extends HttpServlet {
     resp.setContentType("text/plain; charset=UTF-8");
     try {
       long byteCount;
-      if (isGzipEnabled) {
-        try (Writer writer = new OutputStreamWriter(resp.getOutputStream(), "UTF-8")) {
-          response.writeJSONString(writer);
-        }
-        byteCount = ((Response) ((HttpServletResponseWrapper) resp).getResponse()).getContentCount();
-      } else {
-        CountingOutputStream cos = new CountingOutputStream(resp.getOutputStream());
-        try (Writer writer = new OutputStreamWriter(cos, "UTF-8")) {
-          response.writeJSONString(writer);
-        }
-        byteCount = cos.getCount();
+      CountingOutputStream cos = new CountingOutputStream(resp.getOutputStream());
+      try (Writer writer = new OutputStreamWriter(cos, "UTF-8")) {
+        response.writeJSONString(writer);
       }
+      byteCount = cos.getCount();
       if (peer != null) {
         peer.updateUploadedVolume(byteCount);
       }
