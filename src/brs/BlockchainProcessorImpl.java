@@ -327,6 +327,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             if (!getMoreBlocks) {
               return;
             }
+            //unlocking cache for writing.
+            //This must be done before we query where to add blocks.
+            downloadCache.unlockCache();
+            
             if (downloadCache.isFull()) {
               return;
             }
