@@ -501,7 +501,7 @@ final class H2DbVersion {
       case 175:
         apply("CREATE INDEX IF NOT EXISTS account_id_latest_idx ON account(id, latest)");
       case 176:
-        apply("ALTER TABLE alias ALTER COLUMN alias_name_lower TO alias_name_lower VARCHAR NOT NULL");
+        apply("ALTER TABLE alias ALTER COLUMN alias_name_lower VARCHAR NOT NULL");
       case 177:
         return;
       default:
