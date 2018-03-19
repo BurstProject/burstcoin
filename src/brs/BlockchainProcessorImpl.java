@@ -407,7 +407,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               }
             }
 
-            List<Block> forkBlocks = new ArrayList<>();
+         //   List<Block> forkBlocks = new ArrayList<>();
             JSONArray nextBlocks = getNextBlocks(peer, commonBlockId);
             if (nextBlocks == null || nextBlocks.isEmpty()) {
               logger.debug("Peer did not feed us any blocks");
@@ -450,7 +450,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   if (saveInCache) {
                     downloadCache.addBlock(block);
                   } else {
-                    forkBlocks.add(block);
+                    downloadCache.addForkBlock(block);
                   }
                   lastBlock = block;
                 } catch (RuntimeException | BurstException.ValidationException e) {
@@ -471,7 +471,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               logger.trace("Unverified blocks: " + downloadCache.getUnverifiedSize());
               logger.trace("Blocks in cache: {}", downloadCache.size());
               logger.trace("Bytes in cache: " + downloadCache.getBlockCacheSize());
-            if (! forkBlocks.isEmpty()) {
+            if (!saveInCache) {
               /*
                * Since we cannot rely on peers reported cumulative difficulty we do
                * a final check to see that the CumulativeDifficulty actually is bigger
@@ -480,10 +480,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               if(lastBlock.getCumulativeDifficulty().compareTo(curCumulativeDifficulty) < 0) {
                 logger.debug("Peer claimed to have bigger cumulative difficulty but in reality it did not. Blacklisting.");
                 peer.blacklist();
-                forkBlocks.clear();
+                downloadCache.resetForkBlocks();;
                 break;
               }
-              processFork(peer, forkBlocks, commonBlockId);
+              processFork(peer, downloadCache.getForkList(), commonBlockId);
             }
 
           } catch (BurstException.StopException e) {

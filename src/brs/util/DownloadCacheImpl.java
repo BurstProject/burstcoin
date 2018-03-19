@@ -5,6 +5,7 @@ import brs.Blockchain;
 import brs.common.Props;
 import brs.services.PropertyService;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -19,6 +20,7 @@ public final class DownloadCacheImpl {
   private final int blockCacheMB;
 
   protected final Map<Long, Block> blockCache = new LinkedHashMap<>();
+  protected final List<Block> forkCache = new ArrayList<>();
   protected final Map<Long, Long> reverseCache = new LinkedHashMap<>();
   protected final List<Long> unverified = new LinkedList<>();
 
@@ -237,6 +239,7 @@ public final class DownloadCacheImpl {
       unverified.clear();
       blockCacheSize = 0;
       lockedCache = true;
+      forkCache.clear();
     } finally {
      dcsl.unlockWrite(stamp);
     }
@@ -244,6 +247,14 @@ public final class DownloadCacheImpl {
   }
 
   public Block getBlock(long BlockId) {
+	//search the forkCache if we have a forkList
+    if(!forkCache.isEmpty()) {
+      for (Block block : forkCache) {
+        if(block.getId() == BlockId) {
+        	return block;
+        }
+      }
+    }
     long stamp = dcsl.tryOptimisticRead();
     Block retVal = getBlockInt(BlockId);
     if (!dcsl.validate(stamp)) {
@@ -346,6 +357,15 @@ public final class DownloadCacheImpl {
         dcsl.unlockWrite(stamp);
       }
     }
+  }
+  public void addForkBlock(Block block) {
+    forkCache.add(block);
+  }
+  public void resetForkBlocks() {
+    forkCache.clear();  
+  }
+  public List<Block> getForkList(){
+    return forkCache;
   }
 
   public boolean removeBlock(Block block) {
