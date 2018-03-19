@@ -6,46 +6,79 @@ import brs.db.BurstIterator;
 import brs.db.store.BlockchainStore;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.StampedLock;
 
 public final class BlockchainImpl implements Blockchain {
 
   private final TransactionDb transactionDb;
   private final BlockDb blockDb;
   private final BlockchainStore blockchainStore;
-
+  
+  private final StampedLock bcsl;
+  
   BlockchainImpl(TransactionDb transactionDb, BlockDb blockDb, BlockchainStore blockchainStore) {
     this.transactionDb = transactionDb;
     this.blockDb = blockDb;
     this.blockchainStore = blockchainStore;
+    this.bcsl = new StampedLock();
   }
 
-  private final AtomicReference<BlockImpl> lastBlock = new AtomicReference<>();
+  private final AtomicReference<Block> lastBlock = new AtomicReference<>();
 
   @Override
-  public BlockImpl getLastBlock() {
-    return lastBlock.get();
+  public Block getLastBlock() {
+    long stamp = bcsl.tryOptimisticRead();
+    Block retBlock= lastBlock.get();
+    if (!bcsl.validate(stamp)) {
+      stamp = bcsl.readLock();
+      try {
+        retBlock= lastBlock.get();
+      } finally {
+        bcsl.unlockRead(stamp);
+      }
+   }
+   return retBlock;
   }
 
   @Override
-  public void setLastBlock(BlockImpl block) {
-    lastBlock.set(block);
+  public void setLastBlock(Block block) {
+    long stamp = bcsl.writeLock();
+    try {
+      lastBlock.set(block);
+    } finally {
+      bcsl.unlockWrite(stamp);
+    }
   }
 
-  void setLastBlock(BlockImpl previousBlock, BlockImpl block) {
-    if (! lastBlock.compareAndSet(previousBlock, block)) {
-      throw new IllegalStateException("Last block is no longer previous block");
+  void setLastBlock(Block previousBlock, Block block) {
+    long stamp = bcsl.writeLock();
+    try {
+      if (! lastBlock.compareAndSet(previousBlock, block)) {
+        throw new IllegalStateException("Last block is no longer previous block");
+      }
+    } finally {
+      bcsl.unlockWrite(stamp);
     }
   }
 
   @Override
   public int getHeight() {
-    BlockImpl last = lastBlock.get();
+    long stamp = bcsl.tryOptimisticRead();  
+    Block last = lastBlock.get();
+    if (!bcsl.validate(stamp)) {
+      stamp = bcsl.readLock();
+      try {
+        last = lastBlock.get();
+      } finally {
+        bcsl.unlockRead(stamp);
+      }
+    }
     return last == null ? 0 : last.getHeight();
   }
     
   @Override
-  public BlockImpl getLastBlock(int timestamp) {
-    BlockImpl block = lastBlock.get();
+  public Block getLastBlock(int timestamp) {
+    Block block = getSafelastBlock();
     if (timestamp >= block.getTimestamp()) {
       return block;
     }
@@ -53,31 +86,45 @@ public final class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public BlockImpl getBlock(long blockId) {
-    BlockImpl block = lastBlock.get();
+  public Block getBlock(long blockId) {
+    Block block = getSafelastBlock();
     if (block.getId() == blockId) {
       return block;
     }
     return blockDb.findBlock(blockId);
   }
-
-  @Override
-  public boolean hasBlock(long blockId) {
-    return lastBlock.get().getId() == blockId || blockDb.hasBlock(blockId);
+  
+  private Block getSafelastBlock() {
+    long stamp = bcsl.tryOptimisticRead();
+    Block block = lastBlock.get();
+    if (!bcsl.validate(stamp)) {
+      stamp = bcsl.readLock();
+      try {
+        block = lastBlock.get();
+      } finally {
+        bcsl.unlockRead(stamp);
+      }
+    }
+    return block;
   }
 
   @Override
-  public BurstIterator<BlockImpl> getBlocks(int from, int to) {
+  public boolean hasBlock(long blockId) {
+    return getSafelastBlock().getId() == blockId || blockDb.hasBlock(blockId);
+  }
+
+  @Override
+  public BurstIterator<Block> getBlocks(int from, int to) {
     return blockchainStore.getBlocks(from, to);
   }
 
   @Override
-  public BurstIterator<BlockImpl> getBlocks(Account account, int timestamp) {
+  public BurstIterator<Block> getBlocks(Account account, int timestamp) {
     return getBlocks(account, timestamp, 0, -1);
   }
 
   @Override
-  public BurstIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to) {
+  public BurstIterator<Block> getBlocks(Account account, int timestamp, int from, int to) {
     return blockchainStore.getBlocks(account, timestamp, from, to);
   }
 
@@ -87,13 +134,13 @@ public final class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public List<BlockImpl> getBlocksAfter(long blockId, int limit) {
+  public List<Block> getBlocksAfter(long blockId, int limit) {
     return blockchainStore.getBlocksAfter(blockId, limit);
   }
 
   @Override
   public long getBlockIdAtHeight(int height) {
-    Block block = lastBlock.get();
+    Block block = getSafelastBlock();
     if (height > block.getHeight()) {
       throw new IllegalArgumentException("Invalid height " + height + ", current blockchain is at " + block.getHeight());
     }
@@ -104,8 +151,8 @@ public final class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public BlockImpl getBlockAtHeight(int height) {
-    BlockImpl block = lastBlock.get();
+  public Block getBlockAtHeight(int height) {
+    Block block = getSafelastBlock();
     if (height > block.getHeight()) {
       throw new IllegalArgumentException("Invalid height " + height + ", current blockchain is at " + block.getHeight());
     }
@@ -141,17 +188,17 @@ public final class BlockchainImpl implements Blockchain {
   }
 
   @Override
-  public BurstIterator<TransactionImpl> getAllTransactions() {
+  public BurstIterator<Transaction> getAllTransactions() {
     return blockchainStore.getAllTransactions();
   }
 
   @Override
-  public BurstIterator<TransactionImpl> getTransactions(Account account, byte type, byte subtype, int blockTimestamp) {
+  public BurstIterator<Transaction> getTransactions(Account account, byte type, byte subtype, int blockTimestamp) {
     return getTransactions(account, 0, type, subtype, blockTimestamp, 0, -1);
   }
 
   @Override
-  public BurstIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
+  public BurstIterator<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype,
                                                       int blockTimestamp, int from, int to) {
     return  blockchainStore.getTransactions(account, numberOfConfirmations, type, subtype, blockTimestamp, from, to);
   }

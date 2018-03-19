@@ -1,5 +1,6 @@
 package brs.http;
 
+import static brs.TransactionType.Messaging.ALIAS_ASSIGNMENT;
 import static brs.http.JSONResponses.INCORRECT_ALIAS_LENGTH;
 import static brs.http.JSONResponses.INCORRECT_ALIAS_NAME;
 import static brs.http.JSONResponses.INCORRECT_URI_LENGTH;
@@ -7,15 +8,14 @@ import static brs.http.JSONResponses.MISSING_ALIAS_NAME;
 import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_URI_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
-import brs.Account;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
@@ -27,33 +27,36 @@ public class SetAliasTest extends AbstractTransactionTest {
   private SetAlias t;
 
   private ParameterService parameterServiceMock;
-  private TransactionProcessor transactionProcessorMock;
   private Blockchain blockchainMock;
-  private AccountService accountServiceMock;
   private AliasService aliasServiceMock;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
     parameterServiceMock = mock(ParameterService.class);
-    transactionProcessorMock = mock(TransactionProcessor.class);
     blockchainMock = mock(Blockchain.class);
-    accountServiceMock = mock(AccountService.class);
     aliasServiceMock = mock(AliasService.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new SetAlias(parameterServiceMock, transactionProcessorMock, blockchainMock, accountServiceMock, aliasServiceMock);
+    t = new SetAlias(parameterServiceMock, blockchainMock, aliasServiceMock, apiTransactionManagerMock);
   }
 
   @Test
   public void processRequest() throws BurstException {
-    final Account mockSenderAccount = mock(Account.class);
+    final String aliasNameParameter = "aliasNameParameter";
+    final String aliasUrl = "aliasUrl";
+
     final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(ALIAS_NAME_PARAMETER, "aliasName"),
-        new MockParam(ALIAS_URI_PARAMETER, "aliasUrl")
+        new MockParam(ALIAS_NAME_PARAMETER, aliasNameParameter),
+        new MockParam(ALIAS_URI_PARAMETER, aliasUrl)
     );
 
-    prepareTransactionTest(req, parameterServiceMock, transactionProcessorMock, mockSenderAccount);
+    final Attachment.MessagingAliasAssignment attachment = (Attachment.MessagingAliasAssignment) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
 
-    t.processRequest(req);
+    assertEquals(ALIAS_ASSIGNMENT, attachment.getTransactionType());
+    assertEquals(aliasNameParameter, attachment.getAliasName());
+    assertEquals(aliasUrl, attachment.getAliasURI());
   }
 
   @Test

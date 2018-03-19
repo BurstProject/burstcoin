@@ -9,8 +9,6 @@ import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.DigitalGoodsStore;
-import brs.TransactionProcessor;
-import brs.services.AccountService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONStreamAware;
@@ -20,8 +18,8 @@ public final class DGSPriceChange extends CreateTransaction {
   private final ParameterService parameterService;
   private final Blockchain blockchain;
 
-  DGSPriceChange(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
-    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, GOODS_PARAMETER, PRICE_NQT_PARAMETER);
+  DGSPriceChange(ParameterService parameterService, Blockchain blockchain, APITransactionManager apiTransactionManager) {
+    super(new APITag[]{APITag.DGS, APITag.CREATE_TRANSACTION}, apiTransactionManager, GOODS_PARAMETER, PRICE_NQT_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
   }

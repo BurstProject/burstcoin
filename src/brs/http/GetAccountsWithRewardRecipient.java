@@ -1,5 +1,6 @@
 package brs.http;
 
+import static brs.http.common.Parameters.ACCOUNTS_RESPONSE;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 
 import brs.Account;
@@ -30,32 +31,19 @@ public final class GetAccountsWithRewardRecipient extends APIServlet.APIRequestH
     JSONObject response = new JSONObject();
 		
     Account targetAccount = parameterService.getAccount(req);
-		
-    // long height = Burst.getBlockchain().getLastBlock().getHeight();
-		
+
     JSONArray accounts = new JSONArray();
-    /*for(Account account : Account.getAllAccounts()) {
-      long recip;
-      if(account.getRewardRecipientFrom() > height + 1) {
-      recip = 0L; // this api is intended for pools, so drop changing users a few blocks early to avoid overpaying
-      }
-      else {
-      recip = account.getRewardRecipient();
-      }
-      if(targetAccount.getId() == recip) {
-      accounts.add(Convert.toUnsignedLong(account.getId()));
-      }
-      }*/
+
     BurstIterator<Account.RewardRecipientAssignment> assignments = accountService.getAccountsWithRewardRecipient(targetAccount.getId());
     while(assignments.hasNext()) {
       Account.RewardRecipientAssignment assignment = assignments.next();
-      accounts.add(Convert.toUnsignedLong(assignment.accountId));
+      accounts.add(Convert.toUnsignedLong(assignment.getAccountId()));
     }
-    if(targetAccount.getRewardRecipientAssignment() == null) {
+    if(accountService.getRewardRecipientAssignment(targetAccount) == null) {
       accounts.add(Convert.toUnsignedLong(targetAccount.getId()));
     }
 		
-    response.put("accounts", accounts);
+    response.put(ACCOUNTS_RESPONSE, accounts);
 		
     return response;
   }

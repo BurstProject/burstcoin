@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.jooq.DSLContext;
+import org.jooq.BatchBindStep;
 
 import static brs.schema.Tables.TRANSACTION;
 
@@ -51,7 +52,7 @@ public class SqlTransactionDb implements TransactionDb {
   }
 
   @Override
-  public TransactionImpl loadTransaction(TransactionRecord tr) throws BurstException.ValidationException {
+  public Transaction loadTransaction(TransactionRecord tr) throws BurstException.ValidationException {
     if (tr == null) {
       return null;
     }
@@ -63,7 +64,7 @@ public class SqlTransactionDb implements TransactionDb {
     }
 
     TransactionType transactionType = TransactionType.findTransactionType(tr.getType(), tr.getSubtype());
-    TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl(tr.getVersion(), tr.getSenderPublicKey(),
+    Transaction.Builder builder = new Transaction.Builder(tr.getVersion(), tr.getSenderPublicKey(),
             tr.getAmount(), tr.getFee(), tr.getTimestamp(), tr.getDeadline(),
             transactionType.parseAttachment(buffer, tr.getVersion()))
             .referencedTransactionFullHash(tr.getReferencedTransactionFullhash())
@@ -98,7 +99,7 @@ public class SqlTransactionDb implements TransactionDb {
   }
 
   @Override
-  public TransactionImpl loadTransaction(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException {
+  public Transaction loadTransaction(DSLContext ctx, ResultSet rs) throws BurstException.ValidationException {
     // TODO: remove this method once SqlBlockchainStore no longer requires it
     try {
 
@@ -129,7 +130,7 @@ public class SqlTransactionDb implements TransactionDb {
       }
 
       TransactionType transactionType = TransactionType.findTransactionType(type, subtype);
-      TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl(version, senderPublicKey,
+      Transaction.Builder builder = new Transaction.Builder(version, senderPublicKey,
               amountNQT, feeNQT, timestamp, deadline,
               transactionType.parseAttachment(buffer, version))
               .referencedTransactionFullHash(referencedTransactionFullHash)
@@ -171,11 +172,11 @@ public class SqlTransactionDb implements TransactionDb {
   }
 
   @Override
-  public List<TransactionImpl> findBlockTransactions(long blockId) {
+  public List<Transaction> findBlockTransactions(long blockId) {
     try (DSLContext ctx = Db.getDSLContext();
          Cursor<TransactionRecord> transactionRecords = ctx.selectFrom(TRANSACTION).
                  where(TRANSACTION.BLOCK_ID.eq(blockId)).fetchLazy()) {
-      List<TransactionImpl> list = new ArrayList<>();
+      List<Transaction> list = new ArrayList<>();
       for (TransactionRecord transactionRecord : transactionRecords) {
         list.add(loadTransaction(transactionRecord));
       }
@@ -203,39 +204,53 @@ public class SqlTransactionDb implements TransactionDb {
     }
   }
 
-  public void saveTransactions(List<TransactionImpl> transactions) {
-    DSLContext ctx = Db.getDSLContext();
-
-    List<Insert<TransactionRecord>> inserts = new ArrayList<>(transactions.size());
-    for (TransactionImpl transaction : transactions) {
-      Insert<TransactionRecord> insert = ctx.insertInto(TRANSACTION).
-              set(TRANSACTION.ID, transaction.getId()).
-              set(TRANSACTION.DEADLINE, transaction.getDeadline()).
-              set(TRANSACTION.SENDER_PUBLIC_KEY, transaction.getSenderPublicKey()).
-              set(TRANSACTION.RECIPIENT_ID, ( transaction.getRecipientId() == 0 ? null : transaction.getRecipientId() )).
-              set(TRANSACTION.AMOUNT, transaction.getAmountNQT()).
-              set(TRANSACTION.FEE, transaction.getFeeNQT()).
-              set(TRANSACTION.REFERENCED_TRANSACTION_FULLHASH, Convert.parseHexString(transaction.getReferencedTransactionFullHash())).
-              set(TRANSACTION.HEIGHT, transaction.getHeight()).
-              set(TRANSACTION.BLOCK_ID, transaction.getBlockId()).
-              set(TRANSACTION.SIGNATURE, transaction.getSignature()).
-              set(TRANSACTION.TIMESTAMP, transaction.getTimestamp()).
-              set(TRANSACTION.TYPE, transaction.getType().getType()).
-              set(TRANSACTION.SUBTYPE, transaction.getType().getSubtype()).
-              set(TRANSACTION.SENDER_ID, transaction.getSenderId()).
-              set(TRANSACTION.ATTACHMENT_BYTES, getAttachmentBytes(transaction)).
-              set(TRANSACTION.BLOCK_TIMESTAMP, transaction.getBlockTimestamp()).
-              set(TRANSACTION.FULL_HASH, Convert.parseHexString(transaction.getFullHash())).
-              set(TRANSACTION.VERSION, transaction.getVersion()).
-              set(TRANSACTION.HAS_MESSAGE, transaction.getMessage() != null).
-              set(TRANSACTION.HAS_ENCRYPTED_MESSAGE, transaction.getEncryptedMessage() != null).
-              set(TRANSACTION.HAS_PUBLIC_KEY_ANNOUNCEMENT, transaction.getPublicKeyAnnouncement() != null).
-              set(TRANSACTION.HAS_ENCRYPTTOSELF_MESSAGE, transaction.getEncryptToSelfMessage() != null).
-              set(TRANSACTION.EC_BLOCK_HEIGHT, transaction.getECBlockHeight()).
-              set(TRANSACTION.EC_BLOCK_ID, transaction.getECBlockId() != 0 ? transaction.getECBlockId() : null);
-
-        inserts.add(insert);
+  public void saveTransactions(List<Transaction> transactions) {
+    if ( transactions.size() > 0 ) {
+      try (DSLContext ctx = Db.getDSLContext()) {
+        BatchBindStep insertBatch = ctx.batch(
+            ctx.insertInto(TRANSACTION, TRANSACTION.ID, TRANSACTION.DEADLINE,
+                TRANSACTION.SENDER_PUBLIC_KEY, TRANSACTION.RECIPIENT_ID, TRANSACTION.AMOUNT,
+                TRANSACTION.FEE, TRANSACTION.REFERENCED_TRANSACTION_FULLHASH, TRANSACTION.HEIGHT,
+                TRANSACTION.BLOCK_ID, TRANSACTION.SIGNATURE, TRANSACTION.TIMESTAMP,
+                TRANSACTION.TYPE,
+                TRANSACTION.SUBTYPE, TRANSACTION.SENDER_ID, TRANSACTION.ATTACHMENT_BYTES,
+                TRANSACTION.BLOCK_TIMESTAMP, TRANSACTION.FULL_HASH, TRANSACTION.VERSION,
+                TRANSACTION.HAS_MESSAGE, TRANSACTION.HAS_ENCRYPTED_MESSAGE,
+                TRANSACTION.HAS_PUBLIC_KEY_ANNOUNCEMENT, TRANSACTION.HAS_ENCRYPTTOSELF_MESSAGE,
+                TRANSACTION.EC_BLOCK_HEIGHT, TRANSACTION.EC_BLOCK_ID)
+                .values((Long) null, null, null, null, null, null, null, null, null, null, null,
+                    null, null,
+                    null, null, null, null, null, null, null, null, null, null, null));
+        for (Transaction transaction : transactions) {
+          insertBatch = insertBatch.bind(
+              transaction.getId(),
+              transaction.getDeadline(),
+              transaction.getSenderPublicKey(),
+              (transaction.getRecipientId() == 0 ? null : transaction.getRecipientId()),
+              transaction.getAmountNQT(),
+              transaction.getFeeNQT(),
+              Convert.parseHexString(transaction.getReferencedTransactionFullHash()),
+              transaction.getHeight(),
+              transaction.getBlockId(),
+              transaction.getSignature(),
+              transaction.getTimestamp(),
+              transaction.getType().getType(),
+              transaction.getType().getSubtype(),
+              transaction.getSenderId(),
+              getAttachmentBytes(transaction),
+              transaction.getBlockTimestamp(),
+              Convert.parseHexString(transaction.getFullHash()),
+              transaction.getVersion(),
+              transaction.getMessage() != null,
+              transaction.getEncryptedMessage() != null,
+              transaction.getPublicKeyAnnouncement() != null,
+              transaction.getEncryptToSelfMessage() != null,
+              transaction.getECBlockHeight(),
+              (transaction.getECBlockId() != 0 ? transaction.getECBlockId() : null)
+          );
+        }
+        insertBatch.execute();
+      }
     }
-    ctx.batch(inserts).execute();
   }
 }

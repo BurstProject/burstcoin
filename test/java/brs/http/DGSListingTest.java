@@ -10,17 +10,18 @@ import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
 import static brs.http.common.Parameters.QUANTITY_PARAMETER;
 import static brs.http.common.Parameters.TAGS_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
-import brs.TransactionProcessor;
+import brs.TransactionType.DigitalGoods;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.services.AccountService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
@@ -32,36 +33,46 @@ public class DGSListingTest extends AbstractTransactionTest {
 
   private ParameterService mockParameterService;
   private Blockchain mockBlockchain;
-  private TransactionProcessor mockTransactionProcessor;
-  private AccountService mockAccountService;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
     mockParameterService = mock(ParameterService.class);
     mockBlockchain = mock(Blockchain.class);
-    mockTransactionProcessor = mock(TransactionProcessor.class);
-    mockAccountService = mock(AccountService.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new DGSListing(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService);
+    t = new DGSListing(mockParameterService, mockBlockchain, apiTransactionManagerMock);
   }
 
   @Test
   public void processRequest() throws BurstException {
     final Account mockAccount = mock(Account.class);
 
+    final String dgsName = "dgsName";
+    final String dgsDescription = "dgsDescription";
+    final String tags = "tags";
+    final int priceNqt = 123;
+    final int quantity = 5;
+
     final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(PRICE_NQT_PARAMETER, 123),
-        new MockParam(QUANTITY_PARAMETER, 1),
-        new MockParam(NAME_PARAMETER, "name"),
-        new MockParam(DESCRIPTION_PARAMETER, "description"),
-        new MockParam(TAGS_PARAMETER, "tags")
+        new MockParam(PRICE_NQT_PARAMETER, priceNqt),
+        new MockParam(QUANTITY_PARAMETER, quantity),
+        new MockParam(NAME_PARAMETER, dgsName),
+        new MockParam(DESCRIPTION_PARAMETER, dgsDescription),
+        new MockParam(TAGS_PARAMETER, tags)
     );
 
     when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockAccount);
 
-    prepareTransactionTest(req, mockParameterService, mockTransactionProcessor, mockAccount);
+    final Attachment.DigitalGoodsListing attachment = (Attachment.DigitalGoodsListing) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
 
-    t.processRequest(req);
+    assertEquals(DigitalGoods.LISTING, attachment.getTransactionType());
+    assertEquals(dgsName, attachment.getName());
+    assertEquals(dgsDescription, attachment.getDescription());
+    assertEquals(tags, attachment.getTags());
+    assertEquals(priceNqt, attachment.getPriceNQT());
+    assertEquals(quantity, attachment.getQuantity());
   }
 
   @Test

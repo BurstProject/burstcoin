@@ -2,7 +2,6 @@ package brs.blockchainlistener;
 
 import brs.Account;
 import brs.Block;
-import brs.DigitalGoodsStore.Goods;
 import brs.DigitalGoodsStore.Purchase;
 import brs.db.BurstIterator;
 import brs.services.AccountService;
@@ -26,9 +25,8 @@ public class DevNullListener implements Listener<Block> {
       while (purchases.hasNext()) {
         Purchase purchase = purchases.next();
         Account buyer = accountService.getAccount(purchase.getBuyerId());
-        buyer.addToUnconfirmedBalanceNQT(Convert.safeMultiply(purchase.getQuantity(), purchase.getPriceNQT()));
-        Goods goods = goodsService.getGoods(purchase.getGoodsId());
-        goodsService.changeQuantity(goods.getId(), purchase.getQuantity());
+        accountService.addToUnconfirmedBalanceNQT(buyer, Convert.safeMultiply(purchase.getQuantity(), purchase.getPriceNQT()));
+        goodsService.changeQuantity(purchase.getGoodsId(), purchase.getQuantity(), true);
         goodsService.setPending(purchase, false);
       }
     }

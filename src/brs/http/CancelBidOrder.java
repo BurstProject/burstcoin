@@ -5,8 +5,6 @@ import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.Order;
-import brs.TransactionProcessor;
-import brs.services.AccountService;
 import brs.services.OrderService;
 import brs.services.ParameterService;
 import org.json.simple.JSONStreamAware;
@@ -22,8 +20,8 @@ public final class CancelBidOrder extends CreateTransaction {
   private final Blockchain blockchain;
   private final OrderService orderService;
 
-  public CancelBidOrder(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, OrderService orderService) {
-    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, ORDER_PARAMETER);
+  public CancelBidOrder(ParameterService parameterService, Blockchain blockchain, OrderService orderService, APITransactionManager apiTransactionManager) {
+    super(new APITag[] {APITag.AE, APITag.CREATE_TRANSACTION}, apiTransactionManager, ORDER_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
     this.orderService = orderService;

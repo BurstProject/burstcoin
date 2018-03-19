@@ -1,6 +1,8 @@
 package brs.db.store;
 
+import brs.db.cache.DBCacheManagerImpl;
 import brs.db.sql.*;
+import brs.services.TimeService;
 
 public class Stores {
   private final AccountStore accountStore;
@@ -16,19 +18,19 @@ public class Stores {
   private final TransactionProcessorStore transactionProcessorStore;
   private final SubscriptionStore subscriptionStore;
 
-  public Stores() {
-    this.accountStore              = new SqlAccountStore();
-    this.aliasStore                = new SqlAliasStore();
-    this.assetStore                = new SqlAssetStore();
-    this.assetTransferStore        = new SqlAssetTransferStore();
-    this.atStore                   = new SqlATStore();
+  public Stores(DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager, TimeService timeService) {
+    this.accountStore              = new SqlAccountStore(derivedTableManager, dbCacheManager);
+    this.aliasStore                = new SqlAliasStore(derivedTableManager);
+    this.assetStore                = new SqlAssetStore(derivedTableManager);
+    this.assetTransferStore        = new SqlAssetTransferStore(derivedTableManager);
+    this.atStore                   = new SqlATStore(derivedTableManager);
     this.blockchainStore           = new SqlBlockchainStore();
-    this.digitalGoodsStoreStore    = new SqlDigitalGoodsStoreStore();
-    this.escrowStore               = new SqlEscrowStore();
-    this.orderStore                = new SqlOrderStore();
-    this.tradeStore                = new SqlTradeStore();
-    this.transactionProcessorStore = new SqlTransactionProcessorStore();
-    this.subscriptionStore         = new SqlSubscriptionStore();
+    this.digitalGoodsStoreStore    = new SqlDigitalGoodsStoreStore(derivedTableManager);
+    this.escrowStore               = new SqlEscrowStore(derivedTableManager);
+    this.orderStore                = new SqlOrderStore(derivedTableManager);
+    this.tradeStore                = new SqlTradeStore(derivedTableManager);
+    this.transactionProcessorStore = new SqlTransactionProcessorStore(derivedTableManager, timeService);
+    this.subscriptionStore         = new SqlSubscriptionStore(derivedTableManager);
   }
 
   public AccountStore getAccountStore() {

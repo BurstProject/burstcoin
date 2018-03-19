@@ -4,6 +4,7 @@ import brs.Subscription;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
+import brs.db.store.DerivedTableManager;
 import brs.db.store.SubscriptionStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,26 +26,29 @@ public class SqlSubscriptionStore implements SubscriptionStore {
       }
     };
 
-  private final VersionedEntityTable<Subscription> subscriptionTable =
-      new VersionedEntitySqlTable<Subscription>("subscription", brs.schema.Tables.SUBSCRIPTION, subscriptionDbKeyFactory) {
-        @Override
-        protected Subscription load(DSLContext ctx, ResultSet rs) throws SQLException {
-          return new SqlSubscription(rs);
-        }
+  private final VersionedEntityTable<Subscription> subscriptionTable;
 
-        @Override
-        protected void save(DSLContext ctx, Subscription subscription) throws SQLException {
-          saveSubscription(ctx, subscription);
-        }
+  public SqlSubscriptionStore(DerivedTableManager derivedTableManager) {
+    subscriptionTable = new VersionedEntitySqlTable<Subscription>("subscription", brs.schema.Tables.SUBSCRIPTION, subscriptionDbKeyFactory, derivedTableManager) {
+      @Override
+      protected Subscription load(DSLContext ctx, ResultSet rs) throws SQLException {
+        return new SqlSubscription(rs);
+      }
 
-        @Override
-        protected List<SortField> defaultSort() {
-          List<SortField> sort = new ArrayList<>();
-          sort.add(tableClass.field("time_next", Integer.class).asc());
-          sort.add(tableClass.field("id", Long.class).asc());
-          return sort;
-        }
-      };
+      @Override
+      protected void save(DSLContext ctx, Subscription subscription) throws SQLException {
+        saveSubscription(ctx, subscription);
+      }
+
+      @Override
+      protected List<SortField> defaultSort() {
+        List<SortField> sort = new ArrayList<>();
+        sort.add(tableClass.field("time_next", Integer.class).asc());
+        sort.add(tableClass.field("id", Long.class).asc());
+        return sort;
+      }
+    };
+  }
 
   private static Condition getByParticipantClause(final long id) {
     return SUBSCRIPTION.SENDER_ID.eq(id).or(SUBSCRIPTION.RECIPIENT_ID.eq(id));

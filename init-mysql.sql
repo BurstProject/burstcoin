@@ -1,7 +1,7 @@
-drop database burstwallet;
-create database burstwallet
+drop database if exists brs_master;
+create database brs_master
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-use burstwallet;
+use brs_master;
 CREATE TABLE version(
     next_update INT NOT NULL
 );

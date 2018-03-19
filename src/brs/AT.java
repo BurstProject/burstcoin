@@ -45,15 +45,15 @@ public class AT extends AT_Machine_State {
       public void notify(Block block) {
         pendingFees.forEach((key, value) -> {
           Account atAccount = accountService.getAccount(key);
-          atAccount.addToBalanceAndUnconfirmedBalanceNQT(-value);
+          accountService.addToBalanceAndUnconfirmedBalanceNQT(atAccount, -value);
         });
 
-        List<TransactionImpl> transactions = new ArrayList<>();
+        List<Transaction> transactions = new ArrayList<>();
         for (AT_Transaction atTransaction : pendingTransactions) {
-          accountService.getAccount(AT_API_Helper.getLong(atTransaction.getSenderId())).addToBalanceAndUnconfirmedBalanceNQT(-atTransaction.getAmount());
-          accountService.addOrGetAccount(AT_API_Helper.getLong(atTransaction.getRecipientId())).addToBalanceAndUnconfirmedBalanceNQT(atTransaction.getAmount());
+          accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getAccount(AT_API_Helper.getLong(atTransaction.getSenderId())), -atTransaction.getAmount());
+          accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getOrAddAccount(AT_API_Helper.getLong(atTransaction.getRecipientId())), atTransaction.getAmount());
 
-          TransactionImpl.BuilderImpl builder = new TransactionImpl.BuilderImpl((byte) 1, Genesis.CREATOR_PUBLIC_KEY,
+          Transaction.Builder builder = new Transaction.Builder((byte) 1, Genesis.getCreatorPublicKey(),
               atTransaction.getAmount(), 0L, block.getTimestamp(), (short) 1440, Attachment.AT_PAYMENT);
 
           builder.senderId(AT_API_Helper.getLong(atTransaction.getSenderId()))
@@ -70,7 +70,7 @@ public class AT extends AT_Machine_State {
           }
 
           try {
-            TransactionImpl transaction = builder.build();
+            Transaction transaction = builder.build();
             if (!transactionDb.hasTransaction(transaction.getId())) {
               transactions.add(transaction);
             }
@@ -251,7 +251,7 @@ public class AT extends AT_Machine_State {
 
     at.saveState();
 
-    Account account = Account.addOrGetAccount(atId);
+    Account account = Account.getOrAddAccount(atId);
     account.apply(new byte[32], height);
   }
 

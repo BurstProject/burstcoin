@@ -33,6 +33,9 @@ import static org.jocl.CL.clReleaseMemObject;
 import static org.jocl.CL.clReleaseProgram;
 import static org.jocl.CL.clSetKernelArg;
 import static org.jocl.CL.setExceptionsEnabled;
+
+import brs.common.Props;
+import brs.services.BlockService;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -42,6 +45,7 @@ import java.util.Collection;
 import org.jocl.CLException;
 import org.jocl.Pointer;
 import org.jocl.Sizeof;
+import brs.services.PropertyService;
 import org.jocl.cl_command_queue;
 import org.jocl.cl_context;
 import org.jocl.cl_context_properties;
@@ -60,12 +64,8 @@ final class OCLPoC {
 
   private static final int DEFAULT_MEM_PERCENT = 50;
 
-  private static final int hashesPerEnqueue = Burst.getIntProperty("GPU.HashesPerBatch") == 0
-                                            ? 1000
-                                            : Burst.getIntProperty("GPU.HashesPerBatch");
-  private static final int MEM_PERCENT = Burst.getIntProperty("GPU.MemPercent") == 0
-                                       ? DEFAULT_MEM_PERCENT
-                                       : Burst.getIntProperty("GPU.MemPercent");
+  private static final int hashesPerEnqueue;
+  private static final int MEM_PERCENT;
 
   private static cl_context ctx;
   private static cl_command_queue queue;
@@ -86,9 +86,14 @@ final class OCLPoC {
       + 4 // scoop num
       + MiningPlot.SCOOP_SIZE; // output scoop
 
+  static void init() {}
   static {
+    PropertyService propertyService = Burst.getPropertyService();
+    hashesPerEnqueue = propertyService.getInt(Props.GPU_HASHES_PER_BATCH, 1000);
+    MEM_PERCENT = propertyService.getInt(Props.GPU_MEM_PERCENT, DEFAULT_MEM_PERCENT);
+    
     try {
-      boolean autoChoose = Burst.getBooleanProperty("GPU.AutoDetect", true);
+      boolean autoChoose = propertyService.getBoolean(Props.GPU_AUTODETECT, true);
       setExceptionsEnabled(true);
 
       int platformIndex;
@@ -102,8 +107,8 @@ final class OCLPoC {
         deviceIndex = ac.getDevice();
         logger.info("Choosing Platform " + platformIndex + " - DeviceId: " + deviceIndex);
       } else {
-        platformIndex = Burst.getIntProperty("GPU.PlatformIdx");
-        deviceIndex = Burst.getIntProperty("GPU.DeviceIdx");
+        platformIndex = propertyService.getInt(Props.GPU_PLATFORM_IDX);
+        deviceIndex = propertyService.getInt(Props.GPU_DEVICE_IDX);
       }
 
       int[] numPlatforms = new int[1];
@@ -204,7 +209,7 @@ final class OCLPoC {
     return maxItems;
   }
 
-  public static void validatePoC(Collection<BlockImpl> blocks, int PoCVersion) {
+  public static void validatePoC(Collection<Block> blocks, int PoCVersion, BlockService blockService) {
     try {
       // logger.debug("starting ocl verify for: " + blocks.size());
 
@@ -226,7 +231,7 @@ final class OCLPoC {
 
       ByteBuffer buffer = ByteBuffer.allocate(16);
       int i = 0;
-      for (BlockImpl block : blocks) {
+      for (Block block : blocks) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putLong(block.getGeneratorId());
         buffer.putLong(block.getNonce());
@@ -235,7 +240,7 @@ final class OCLPoC {
         ids[i] = buffer.getLong();
         nonces[i] = buffer.getLong();
         buffer.clear();
-        scoopNums[i] = block.getScoopNum();
+        scoopNums[i] = blockService.getScoopNum(block);
         i++;
       }
       // logger.debug("finished preprocessing: " + blocks.size());
@@ -325,7 +330,7 @@ final class OCLPoC {
         }
       }
 
-      // logger.debug("finished ocl, doing rest: " + blocks.size());
+    //  logger.debug("finished ocl, doing rest: " + blocks.size());
 
       ByteBuffer scoopsBuffer = ByteBuffer.wrap(scoopsOut);
       byte[] scoop = new byte[MiningPlot.SCOOP_SIZE];
@@ -333,7 +338,7 @@ final class OCLPoC {
       blocks.forEach((block) -> {
         try {
           scoopsBuffer.get(scoop);
-          block.preVerify(scoop);
+          blockService.preVerify(block, scoop);
         } catch (BlockchainProcessor.BlockNotAcceptedException e) {
           throw new PreValidateFailException("Block failed to prevalidate", e, block);
         }
@@ -508,19 +513,19 @@ final class OCLPoC {
   }
 
   public static class PreValidateFailException extends RuntimeException {
-    final BlockImpl block;
+    final Block block;
 
-    PreValidateFailException(String message, BlockImpl block) {
+    PreValidateFailException(String message, Block block) {
       super(message);
       this.block = block;
     }
 
-    PreValidateFailException(String message, Throwable cause, BlockImpl block) {
+    PreValidateFailException(String message, Throwable cause, Block block) {
       super(message, cause);
       this.block = block;
     }
 
-    public BlockImpl getBlock() {
+    public Block getBlock() {
       return block;
     }
   }

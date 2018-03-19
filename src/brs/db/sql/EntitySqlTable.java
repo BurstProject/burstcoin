@@ -4,6 +4,7 @@ import brs.Burst;
 import brs.db.EntityTable;
 import brs.db.BurstIterator;
 import brs.db.BurstKey;
+import brs.db.store.DerivedTableManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.ResultSet;
@@ -23,12 +24,12 @@ public abstract class EntitySqlTable<T> extends DerivedSqlTable implements Entit
   private final boolean multiversion;
   private final List<SortField> defaultSort;
 
-  protected EntitySqlTable(String table, TableImpl<?> tableClass, BurstKey.Factory<T> dbKeyFactory) {
-    this(table, tableClass, dbKeyFactory, false);
+  protected EntitySqlTable(String table, TableImpl<?> tableClass, BurstKey.Factory<T> dbKeyFactory, DerivedTableManager derivedTableManager) {
+    this(table, tableClass, dbKeyFactory, false, derivedTableManager);
   }
 
-  EntitySqlTable(String table, TableImpl<?> tableClass, BurstKey.Factory<T> dbKeyFactory, boolean multiversion) {
-    super(table, tableClass);
+  EntitySqlTable(String table, TableImpl<?> tableClass, BurstKey.Factory<T> dbKeyFactory, boolean multiversion, DerivedTableManager derivedTableManager) {
+    super(table, tableClass, derivedTableManager);
     this.dbKeyFactory = (DbKey.Factory<T>) dbKeyFactory;
     this.multiversion = multiversion;
     this.defaultSort  = new ArrayList<>();

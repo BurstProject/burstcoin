@@ -16,7 +16,7 @@ final class GetInfo extends PeerServlet.PeerRequestHandler {
   JSONStreamAware processRequest(JSONObject request, Peer peer) {
     PeerImpl peerImpl = (PeerImpl)peer;
     String announcedAddress = (String)request.get("announcedAddress");
-    if (announcedAddress != null && (announcedAddress = announcedAddress.trim()).length() > 0) {
+    if (announcedAddress != null && ! (announcedAddress = announcedAddress.trim()).isEmpty()) {
       if (peerImpl.getAnnouncedAddress() != null && ! announcedAddress.equals(peerImpl.getAnnouncedAddress())) {
         // force verification of changed announced address
         peerImpl.setState(Peer.State.NON_CONNECTED);

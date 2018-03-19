@@ -1,6 +1,7 @@
 package brs.http;
 
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
+import static brs.http.common.Parameters.ESCROWS_RESPONSE;
 
 import brs.Account;
 import brs.BurstException;
@@ -29,7 +30,7 @@ public final class GetAccountEscrowTransactions extends APIServlet.APIRequestHan
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     final Account account = parameterService.getAccount(req);
 
-    Collection<Escrow> accountEscrows = escrowService.getEscrowTransactionsByParticipent(account.getId());
+    Collection<Escrow> accountEscrows = escrowService.getEscrowTransactionsByParticipant(account.getId());
 
     JSONObject response = new JSONObject();
 
@@ -39,7 +40,7 @@ public final class GetAccountEscrowTransactions extends APIServlet.APIRequestHan
       escrows.add(JSONData.escrowTransaction(escrow));
     }
 
-    response.put("escrows", escrows);
+    response.put(ESCROWS_RESPONSE, escrows);
     return response;
   }
 }

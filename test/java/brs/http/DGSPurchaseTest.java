@@ -1,5 +1,6 @@
 package brs.http;
 
+import static brs.TransactionType.DigitalGoods.PURCHASE;
 import static brs.http.JSONResponses.INCORRECT_DELIVERY_DEADLINE_TIMESTAMP;
 import static brs.http.JSONResponses.INCORRECT_PURCHASE_PRICE;
 import static brs.http.JSONResponses.INCORRECT_PURCHASE_QUANTITY;
@@ -9,15 +10,16 @@ import static brs.http.common.Parameters.DELIVERY_DEADLINE_TIMESTAMP_PARAMETER;
 import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
 import static brs.http.common.Parameters.QUANTITY_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.DigitalGoodsStore.Goods;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.services.AccountService;
@@ -34,18 +36,18 @@ public class DGSPurchaseTest extends AbstractTransactionTest {
   private ParameterService mockParameterService;
   private Blockchain mockBlockchain;
   private AccountService mockAccountService;
-  private TransactionProcessor mockTransactionProcessor;
   private TimeService mockTimeService;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
     mockParameterService = mock(ParameterService.class);
     mockBlockchain = mock(Blockchain.class);
     mockAccountService = mock(AccountService.class);
-    mockTransactionProcessor = mock(TransactionProcessor.class);
     mockTimeService = mock(TimeService.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new DGSPurchase(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService, mockTimeService);
+    t = new DGSPurchase(mockParameterService, mockBlockchain, mockAccountService, mockTimeService, apiTransactionManagerMock);
   }
 
   @Test
@@ -61,13 +63,14 @@ public class DGSPurchaseTest extends AbstractTransactionTest {
     );
 
     final long mockSellerId = 123L;
+    final long mockGoodsId = 123L;
     final Goods mockGoods = mock(Goods.class);
+    when(mockGoods.getId()).thenReturn(mockGoodsId);
     when(mockGoods.isDelisted()).thenReturn(false);
     when(mockGoods.getQuantity()).thenReturn(10);
     when(mockGoods.getPriceNQT()).thenReturn(10L);
     when(mockGoods.getSellerId()).thenReturn(mockSellerId);
 
-    final Account mockBuyerAccount = mock(Account.class);
     final Account mockSellerAccount = mock(Account.class);
 
     when(mockParameterService.getGoods(eq(req))).thenReturn(mockGoods);
@@ -75,9 +78,14 @@ public class DGSPurchaseTest extends AbstractTransactionTest {
 
     when(mockAccountService.getAccount(eq(mockSellerId))).thenReturn(mockSellerAccount);
 
-    super.prepareTransactionTest(req, mockParameterService, mockTransactionProcessor, mockBuyerAccount);
+    final Attachment.DigitalGoodsPurchase attachment = (Attachment.DigitalGoodsPurchase) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
 
-    t.processRequest(req);
+    assertEquals(PURCHASE, attachment.getTransactionType());
+    assertEquals(goodsQuantity, attachment.getQuantity());
+    assertEquals(goodsPrice, attachment.getPriceNQT());
+    assertEquals(deliveryDeadlineTimestamp, attachment.getDeliveryDeadlineTimestamp());
+    assertEquals(mockGoodsId, attachment.getGoodsId());
   }
 
   @Test

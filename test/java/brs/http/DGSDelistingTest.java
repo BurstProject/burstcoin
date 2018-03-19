@@ -1,18 +1,19 @@
 package brs.http;
 
+import static brs.TransactionType.DigitalGoods.DELISTING;
 import static brs.http.JSONResponses.UNKNOWN_GOODS;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.DigitalGoodsStore.Goods;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
-import brs.services.AccountService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
@@ -23,18 +24,16 @@ public class DGSDelistingTest extends AbstractTransactionTest {
   private DGSDelisting t;
 
   private ParameterService mockParameterService;
-  private TransactionProcessor mockTransactionProcessor;
   private Blockchain mockBlockchain;
-  private AccountService mockAccountService;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
     mockParameterService = mock(ParameterService.class);
     mockBlockchain = mock(Blockchain.class);
-    mockTransactionProcessor = mock(TransactionProcessor.class);
-    mockAccountService = mock(AccountService.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new DGSDelisting(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService);
+    t = new DGSDelisting(mockParameterService, mockBlockchain, apiTransactionManagerMock);
   }
 
   @Test
@@ -51,9 +50,11 @@ public class DGSDelistingTest extends AbstractTransactionTest {
     when(mockParameterService.getSenderAccount(eq(req))).thenReturn(mockAccount);
     when(mockParameterService.getGoods(eq(req))).thenReturn(mockGoods);
 
-    super.prepareTransactionTest(req, mockParameterService, mockTransactionProcessor, mockAccount);
+    final Attachment.DigitalGoodsDelisting attachment = (Attachment.DigitalGoodsDelisting) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
 
-    t.processRequest(req);
+    assertEquals(DELISTING, attachment.getTransactionType());
+    assertEquals(mockGoods.getId(), attachment.getGoodsId());
   }
 
   @Test

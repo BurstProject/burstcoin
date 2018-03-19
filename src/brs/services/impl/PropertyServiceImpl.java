@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 public class PropertyServiceImpl implements PropertyService {
 
   private final Logger logger = LoggerFactory.getLogger(Burst.class);
-  private static final String LOG_UNDEF_NAME_DEFAULT = "{} undefined. Default: {}";
+  private static final String LOG_UNDEF_NAME_DEFAULT = "{} undefined. Default: >{}<";
 
   private final Properties properties;
 
@@ -21,7 +21,7 @@ public class PropertyServiceImpl implements PropertyService {
   }
 
   @Override
-  public Boolean getBooleanProperty(String name, boolean assume) {
+  public Boolean getBoolean(String name, boolean assume) {
     String value = properties.getProperty(name);
 
     if (value != null) {
@@ -41,12 +41,12 @@ public class PropertyServiceImpl implements PropertyService {
   }
 
   @Override
-  public Boolean getBooleanProperty(String name) {
-    return getBooleanProperty(name, false);
+  public Boolean getBoolean(String name) {
+    return getBoolean(name, false);
   }
 
   @Override
-  public int getIntProperty(String name, int defaultValue) {
+  public int getInt(String name, int defaultValue) {
     try {
       String value = properties.getProperty(name);
       int radix = 10;
@@ -69,12 +69,12 @@ public class PropertyServiceImpl implements PropertyService {
   }
 
   @Override
-  public int getIntProperty(String name) {
-    return getIntProperty(name, 0);
+  public int getInt(String name) {
+    return getInt(name, 0);
   }
 
   @Override
-  public String getStringProperty(String name, String defaultValue) {
+  public String getString(String name, String defaultValue) {
     String value = properties.getProperty(name);
     if (value != null && !"".equals(value)) {
       logger.debug(name + " = \"" + value + "\"");
@@ -87,20 +87,20 @@ public class PropertyServiceImpl implements PropertyService {
   }
 
   @Override
-  public String getStringProperty(String name) {
-    return getStringProperty(name, null);
+  public String getString(String name) {
+    return getString(name, null);
   }
 
   @Override
-  public List<String> getStringListProperty(String name) {
-    String value = getStringProperty(name);
-    if (value == null || value.length() == 0) {
+  public List<String> getStringList(String name) {
+    String value = getString(name);
+    if (value == null || value.isEmpty()) {
       return Collections.emptyList();
     }
     List<String> result = new ArrayList<>();
     for (String s : value.split(";")) {
       s = s.trim();
-      if (s.length() > 0) {
+      if (! s.isEmpty()) {
         result.add(s);
       }
     }

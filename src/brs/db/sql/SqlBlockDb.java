@@ -1,5 +1,6 @@
 package brs.db.sql;
 
+import brs.Block;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -13,7 +14,6 @@ import org.jooq.impl.TableImpl;
 
 import java.util.Optional;
 import java.math.BigInteger;
-import brs.BlockImpl;
 import brs.db.BlockDb;
 import brs.BurstException;
 import brs.Burst;
@@ -28,7 +28,7 @@ public class SqlBlockDb implements BlockDb {
 
   private static final Logger logger = LoggerFactory.getLogger(BlockDb.class);
 
-  public BlockImpl findBlock(long blockId) {
+  public Block findBlock(long blockId) {
     try (DSLContext ctx = Db.getDSLContext()) {
       return loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.ID.eq(blockId)).fetchAny());
     }
@@ -51,9 +51,9 @@ public class SqlBlockDb implements BlockDb {
     return id;
   }
 
-  public BlockImpl findBlockAtHeight(int height) {
+  public Block findBlockAtHeight(int height) {
     try (DSLContext ctx = Db.getDSLContext()) {
-      BlockImpl block = loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchAny());
+      Block block = loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.HEIGHT.eq(height)).fetchAny());
       if (block == null) {
           throw new RuntimeException("Block at height " + height + " not found in database!");
       }
@@ -64,7 +64,7 @@ public class SqlBlockDb implements BlockDb {
     }
   }
 
-  public BlockImpl findLastBlock() {
+  public Block findLastBlock() {
     try (DSLContext ctx = Db.getDSLContext()) {
       return loadBlock(ctx.selectFrom(BLOCK).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchAny());
     }
@@ -73,7 +73,7 @@ public class SqlBlockDb implements BlockDb {
     }
   }
 
-  public BlockImpl findLastBlock(int timestamp) {
+  public Block findLastBlock(int timestamp) {
     try (DSLContext ctx = Db.getDSLContext()) {
       return loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.TIMESTAMP.lessOrEqual(timestamp)).orderBy(BLOCK.DB_ID.desc()).limit(1).fetchAny());
     }
@@ -82,7 +82,7 @@ public class SqlBlockDb implements BlockDb {
     }
   }
 
-  public BlockImpl loadBlock(DSLContext ctx, ResultSet rs)
+  public Block loadBlock(DSLContext ctx, ResultSet rs)
       throws BurstException.ValidationException {
     try {
       int version                     = rs.getInt("version");
@@ -104,7 +104,7 @@ public class SqlBlockDb implements BlockDb {
       long nonce                      = rs.getLong("nonce");
       byte[] blockATs                 = rs.getBytes("ats");
 
-      return new BlockImpl(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT,
+      return new Block(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT,
           payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature,
           previousBlockHash, cumulativeDifficulty, baseTarget, nextBlockId, height, id, nonce,
           blockATs);
@@ -113,7 +113,7 @@ public class SqlBlockDb implements BlockDb {
     }
   }
 
-  public BlockImpl loadBlock(BlockRecord r) throws BurstException.ValidationException {
+  public Block loadBlock(BlockRecord r) throws BurstException.ValidationException {
     int version                     = r.getVersion();
     int timestamp                   = r.getTimestamp();
     long previousBlockId            = Optional.ofNullable(r.getPreviousBlockId()).orElse(0L);
@@ -133,12 +133,12 @@ public class SqlBlockDb implements BlockDb {
     long nonce                      = r.getNonce();
     byte[] blockATs                 = r.getAts();
 
-    return new BlockImpl(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
+    return new Block(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                          generatorPublicKey, generationSignature, blockSignature, previousBlockHash,
                          cumulativeDifficulty, baseTarget, nextBlockId, height, id, nonce, blockATs);
   }
 
-  public void saveBlock(DSLContext ctx, BlockImpl block) {
+  public void saveBlock(DSLContext ctx, Block block) {
     ctx.insertInto(BLOCK, BLOCK.ID, BLOCK.VERSION, BLOCK.TIMESTAMP, BLOCK.PREVIOUS_BLOCK_ID,
         BLOCK.TOTAL_AMOUNT, BLOCK.TOTAL_FEE, BLOCK.PAYLOAD_LENGTH, BLOCK.GENERATOR_PUBLIC_KEY,
         BLOCK.PREVIOUS_BLOCK_HASH, BLOCK.CUMULATIVE_DIFFICULTY, BLOCK.BASE_TARGET, BLOCK.HEIGHT,
@@ -185,11 +185,6 @@ public class SqlBlockDb implements BlockDb {
     Integer blockHeight = (Integer) ctx.fetchValue(blockHeightQuery.fetchResultSet());
 
     if (blockHeight != null) {
-      UpdateQuery unlinkFromPreviousQuery = ctx.updateQuery(BLOCK);
-      unlinkFromPreviousQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
-      unlinkFromPreviousQuery.addValue(BLOCK.PREVIOUS_BLOCK_ID, (Long) null);
-      unlinkFromPreviousQuery.execute();
-
       DeleteQuery deleteQuery = ctx.deleteQuery(BLOCK);
       deleteQuery.addConditions(BLOCK.field("height", Integer.class).ge(blockHeight));
       deleteQuery.execute();

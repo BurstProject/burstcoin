@@ -10,8 +10,6 @@ import brs.Attachment;
 import brs.Blockchain;
 import brs.Constants;
 import brs.BurstException;
-import brs.TransactionProcessor;
-import brs.services.AccountService;
 import brs.services.ParameterService;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -23,8 +21,8 @@ public final class SendMoneySubscription extends CreateTransaction {
   private final ParameterService parameterService;
   private final Blockchain blockchain;
 	
-  public SendMoneySubscription(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
-    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER, FREQUENCY_PARAMETER);
+  public SendMoneySubscription(ParameterService parameterService, Blockchain blockchain, APITransactionManager apiTransactionManager) {
+    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, apiTransactionManager, RECIPIENT_PARAMETER, AMOUNT_NQT_PARAMETER, FREQUENCY_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
   }

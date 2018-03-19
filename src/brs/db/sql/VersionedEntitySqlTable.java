@@ -3,6 +3,7 @@ package brs.db.sql;
 import brs.Burst;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
+import brs.db.store.DerivedTableManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -16,8 +17,8 @@ import org.jooq.Field;
 
 public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> implements VersionedEntityTable<T> {
 
-  protected VersionedEntitySqlTable(String table, TableImpl<?> tableClass, BurstKey.Factory<T> dbKeyFactory) {
-    super(table, tableClass, dbKeyFactory, true);
+  protected VersionedEntitySqlTable(String table, TableImpl<?> tableClass, BurstKey.Factory<T> dbKeyFactory, DerivedTableManager derivedTableManager) {
+    super(table, tableClass, dbKeyFactory, true, derivedTableManager);
   }
 
   @Override
@@ -131,6 +132,7 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
     if (!Db.isInTransaction()) {
       throw new IllegalStateException("Not in transaction");
     }
+
     DSLContext ctx = Db.getDSLContext();
     SelectQuery selectMaxHeightQuery = ctx.selectQuery();
     selectMaxHeightQuery.addFrom(tableClass);
@@ -159,18 +161,11 @@ public abstract class VersionedEntitySqlTable<T> extends EntitySqlTable<T> imple
         throw new RuntimeException(e.toString(), e);
       }
 
-      SelectQuery keepQuery = ctx.selectQuery();
-      keepQuery.addFrom(tableClass);
-      keepQuery.addSelect(tableClass.field("db_id", Long.class));
-      keepQuery.addConditions(tableClass.field("height", Integer.class).ge(height));
-      keepQuery.asTable("pocc");
-
       //        Table<Record> keepQuery = ctx.select(tableClass.field("db_id", Long.class)).from(tableClass).where(tableClass.field("height", Integer.class).ge(height)).asTable("pocc");
       DeleteQuery deleteQuery = ctx.deleteQuery(tableClass);
       deleteQuery.addConditions(
-        tableClass.field("height", Long.class).lt(height),
-        tableClass.field("latest", Boolean.class).isFalse(),
-        tableClass.field("db_id", Long.class).notIn(ctx.select(keepQuery.fields()).from(keepQuery))
+        tableClass.field("height", Long.class).lt(height - brs.Constants.MAX_ROLLBACK),
+        tableClass.field("latest", Boolean.class).isFalse()
       );
 
       deleteQuery.execute();

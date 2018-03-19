@@ -1,6 +1,8 @@
 package brs.http;
 
 import static brs.Constants.MAX_BALANCE_NQT;
+import static brs.TransactionType.Messaging.ALIAS_BUY;
+import static brs.TransactionType.Messaging.ALIAS_SELL;
 import static brs.http.JSONResponses.INCORRECT_ALIAS_OWNER;
 import static brs.http.JSONResponses.INCORRECT_PRICE;
 import static brs.http.JSONResponses.INCORRECT_RECIPIENT;
@@ -8,18 +10,17 @@ import static brs.http.JSONResponses.MISSING_PRICE;
 import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
 import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
 import brs.Alias;
-import brs.Block;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.services.AccountService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
@@ -29,28 +30,26 @@ public class SellAliasTest extends AbstractTransactionTest {
 
   private SellAlias t;
 
-  private ParameterService mockParameterService;
-  private Blockchain mockBlockchain;
-  private TransactionProcessor mockTransactionProcessor;
-  private AccountService mockAccountService;
+  private ParameterService parameterServiceMock;
+  private Blockchain blockchainMock;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
-    mockParameterService = mock(ParameterService.class);
-    mockBlockchain = mock(Blockchain.class);
-    mockTransactionProcessor = mock(TransactionProcessor.class);
-    mockAccountService = mock(AccountService.class);
+    parameterServiceMock = mock(ParameterService.class);
+    blockchainMock = mock(Blockchain.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new SellAlias(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService);
+    t = new SellAlias(parameterServiceMock, blockchainMock, apiTransactionManagerMock);
   }
 
   @Test
   public void processRequest() throws BurstException {
-    final int price = 10;
+    final int priceParameter = 10;
     final int recipientId = 5;
 
     final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(PRICE_NQT_PARAMETER, price),
+        new MockParam(PRICE_NQT_PARAMETER, priceParameter),
         new MockParam(RECIPIENT_PARAMETER, recipientId)
     );
 
@@ -61,12 +60,14 @@ public class SellAliasTest extends AbstractTransactionTest {
     final Account mockSender = mock(Account.class);
     when(mockSender.getId()).thenReturn(aliasAccountId);
 
-    when(mockParameterService.getSenderAccount(req)).thenReturn(mockSender);
-    when(mockParameterService.getAlias(req)).thenReturn(mockAlias);
+    when(parameterServiceMock.getSenderAccount(req)).thenReturn(mockSender);
+    when(parameterServiceMock.getAlias(req)).thenReturn(mockAlias);
 
-    prepareTransactionTest(req, mockParameterService, mockTransactionProcessor, mockSender);
+    final Attachment.MessagingAliasSell attachment = (Attachment.MessagingAliasSell) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
 
-    t.processRequest(req);
+    assertEquals(ALIAS_SELL, attachment.getTransactionType());
+    assertEquals(priceParameter, attachment.getPriceNQT());
   }
 
   @Test
@@ -146,8 +147,8 @@ public class SellAliasTest extends AbstractTransactionTest {
     final Account mockSender = mock(Account.class);
     when(mockSender.getId()).thenReturn(mockSenderId);
 
-    when(mockParameterService.getSenderAccount(req)).thenReturn(mockSender);
-    when(mockParameterService.getAlias(req)).thenReturn(mockAlias);
+    when(parameterServiceMock.getSenderAccount(req)).thenReturn(mockSender);
+    when(parameterServiceMock.getAlias(req)).thenReturn(mockAlias);
 
     assertEquals(INCORRECT_ALIAS_OWNER, t.processRequest(req));
   }

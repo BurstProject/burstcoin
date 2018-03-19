@@ -2,6 +2,7 @@ package brs.db.sql;
 
 import brs.db.BurstKey;
 import brs.db.ValuesTable;
+import brs.db.store.DerivedTableManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -16,12 +17,12 @@ public abstract class ValuesSqlTable<T,V> extends DerivedSqlTable implements Val
   private final boolean multiversion;
   protected final DbKey.Factory<T> dbKeyFactory;
 
-  protected ValuesSqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory) {
-    this(table, tableClass, dbKeyFactory, false);
+  protected ValuesSqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory, DerivedTableManager derivedTableManager) {
+    this(table, tableClass, dbKeyFactory, false, derivedTableManager);
   }
 
-  ValuesSqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory, boolean multiversion) {
-    super(table, tableClass);
+  ValuesSqlTable(String table, TableImpl<?> tableClass, DbKey.Factory<T> dbKeyFactory, boolean multiversion, DerivedTableManager derivedTableManager) {
+    super(table, tableClass, derivedTableManager);
     this.dbKeyFactory = dbKeyFactory;
     this.multiversion = multiversion;
   }

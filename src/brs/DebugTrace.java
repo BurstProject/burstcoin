@@ -1,5 +1,7 @@
 package brs;
 
+import brs.common.Props;
+import brs.services.AccountService;
 import brs.services.DGSGoodsStoreService;
 import brs.services.OrderService;
 import brs.services.PropertyService;
@@ -23,16 +25,19 @@ public final class DebugTrace {
   static OrderService orderService;
   static DGSGoodsStoreService dgsGoodsStoreService;
 
-  static void init(PropertyService propertyService, BlockchainProcessor blockchainProcessor, TradeService tradeService, OrderService orderService, DGSGoodsStoreService dgsGoodsStoreService) {
-    QUOTE = propertyService.getStringProperty("brs.debugTraceQuote", "");
-    SEPARATOR = propertyService.getStringProperty("brs.debugTraceSeparator", "\t");
-    LOG_UNCONFIRMED = propertyService.getBooleanProperty("brs.debugLogUnconfirmed");
+  static void init(PropertyService propertyService, BlockchainProcessor blockchainProcessor,
+                   AccountService accountService, TradeService tradeService,
+                   OrderService orderService, DGSGoodsStoreService dgsGoodsStoreService) {
+
+    QUOTE           = propertyService.getString(Props.BRS_DEBUG_TRACE_QUOTE, "\"");
+    SEPARATOR       = propertyService.getString(Props.BRS_DEBUG_TRACE_SEPARATOR, "\t");
+    LOG_UNCONFIRMED = propertyService.getBoolean(Props.BRS_DEBUG_LOG_CONFIRMED);
 
     DebugTrace.orderService = orderService;
     DebugTrace.dgsGoodsStoreService = dgsGoodsStoreService;
 
-    List<String> accountIdStrings = propertyService.getStringListProperty("brs.debugTraceAccounts");
-    String logName = propertyService.getStringProperty("brs.debugTraceLog");
+    List<String> accountIdStrings = propertyService.getStringList(Props.BRS_DEBUG_TRACE_ACCOUNTS);
+    String logName = propertyService.getString(Props.BRS_DEBUG_TRACE_LOG);
     if (accountIdStrings.isEmpty() || logName == null) {
       return;
     }
@@ -44,22 +49,22 @@ public final class DebugTrace {
       }
       accountIds.add(Convert.parseUnsignedLong(accountId));
     }
-    final DebugTrace debugTrace = addDebugTrace(accountIds, logName, blockchainProcessor, tradeService);
+    final DebugTrace debugTrace = addDebugTrace(accountIds, logName, blockchainProcessor, accountService, tradeService);
     blockchainProcessor.addListener(block -> debugTrace.resetLog(), BlockchainProcessor.Event.RESCAN_BEGIN);
     logger.debug("Debug tracing of " + (accountIdStrings.contains("*") ? "ALL"
                                         : String.valueOf(accountIds.size())) + " accounts enabled");
   }
 
-  public static DebugTrace addDebugTrace(Set<Long> accountIds, String logName, BlockchainProcessor blockchainProcessor, TradeService tradeService) {
+  public static DebugTrace addDebugTrace(Set<Long> accountIds, String logName, BlockchainProcessor blockchainProcessor, AccountService accountService, TradeService tradeService) {
     final DebugTrace debugTrace = new DebugTrace(accountIds, logName);
     tradeService.addListener(debugTrace::trace, Trade.Event.TRADE);
-    Account.addListener(account -> debugTrace.trace(account, false), Account.Event.BALANCE);
+    accountService.addListener(account -> debugTrace.trace(account, false), Account.Event.BALANCE);
     if (LOG_UNCONFIRMED) {
-      Account.addListener(account -> debugTrace.trace(account, true), Account.Event.UNCONFIRMED_BALANCE);
+      accountService.addListener(account -> debugTrace.trace(account, true), Account.Event.UNCONFIRMED_BALANCE);
     }
-    Account.addAssetListener(accountAsset -> debugTrace.trace(accountAsset, false), Account.Event.ASSET_BALANCE);
+    accountService.addAssetListener(accountAsset -> debugTrace.trace(accountAsset, false), Account.Event.ASSET_BALANCE);
     if (LOG_UNCONFIRMED) {
-      Account.addAssetListener(accountAsset -> debugTrace.trace(accountAsset, true), Account.Event.UNCONFIRMED_ASSET_BALANCE);
+      accountService.addAssetListener(accountAsset -> debugTrace.trace(accountAsset, true), Account.Event.UNCONFIRMED_ASSET_BALANCE);
     }
     blockchainProcessor.addListener(debugTrace::traceBeforeAccept, BlockchainProcessor.Event.BEFORE_BLOCK_ACCEPT);
     blockchainProcessor.addListener(debugTrace::trace, BlockchainProcessor.Event.BEFORE_BLOCK_APPLY);

@@ -1,13 +1,12 @@
 package brs;
 
-import brs.db.DerivedTable;
 import brs.peer.Peer;
 import brs.util.Observable;
 import org.json.simple.JSONObject;
 
 import java.util.List;
 
-public interface BlockchainProcessor extends Observable<Block,BlockchainProcessor.Event> {
+public interface BlockchainProcessor extends Observable<Block, BlockchainProcessor.Event> {
 
   enum Event {
     BLOCK_PUSHED, BLOCK_POPPED, BLOCK_GENERATED, BLOCK_SCANNED,
@@ -39,9 +38,6 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
 
   List<? extends Block> popOffTo(int height);
 
-  void registerDerivedTable(DerivedTable table);
-
-
   class BlockNotAcceptedException extends BurstException {
 
     BlockNotAcceptedException(String message) {
@@ -52,9 +48,9 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
 
   class TransactionNotAcceptedException extends BlockNotAcceptedException {
 
-    private final TransactionImpl transaction;
+    private final Transaction transaction;
 
-    TransactionNotAcceptedException(String message, TransactionImpl transaction) {
+    public TransactionNotAcceptedException(String message, Transaction transaction) {
       super(message  + " transaction: " + transaction.getJSONObject().toJSONString());
       this.transaction = transaction;
     }
@@ -67,7 +63,7 @@ public interface BlockchainProcessor extends Observable<Block,BlockchainProcesso
 
   class BlockOutOfOrderException extends BlockNotAcceptedException {
 
-    BlockOutOfOrderException(String message) {
+    public BlockOutOfOrderException(String message) {
       super(message);
     }
 

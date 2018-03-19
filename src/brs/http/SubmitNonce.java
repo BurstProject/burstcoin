@@ -7,7 +7,6 @@ import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
 import brs.Account;
 import brs.Blockchain;
 import brs.Generator;
-import brs.Burst;
 import brs.crypto.Crypto;
 import brs.services.AccountService;
 import brs.util.Convert;
@@ -21,12 +20,14 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
 
   private final AccountService accountService;
   private final Blockchain blockchain;
+  private final Generator generator;
 
-  SubmitNonce(AccountService accountService, Blockchain blockchain) {
+  SubmitNonce(AccountService accountService, Blockchain blockchain, Generator generator) {
     super(new APITag[] {APITag.MINING}, SECRET_PHRASE_PARAMETER, NONCE_PARAMETER, ACCOUNT_ID_PARAMETER);
 
     this.accountService = accountService;
     this.blockchain = blockchain;
+    this.generator = generator;
   }
 	
   @Override
@@ -55,7 +56,7 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
       }
 			
       if(genAccount != null) {
-        Account.RewardRecipientAssignment assignment = genAccount.getRewardRecipientAssignment();
+        Account.RewardRecipientAssignment assignment = accountService.getRewardRecipientAssignment(genAccount);
         Long rewardId;
         if(assignment == null) {
           rewardId = genAccount.getId();
@@ -77,9 +78,9 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
       }
     }
 		
-    Generator.GeneratorState generator = null;
+    Generator.GeneratorState generatorState = null;
     if(accountId == null || secretAccount == null) {
-      generator = Burst.getGenerator().addNonce(secret, nonce);
+      generatorState = generator.addNonce(secret, nonce);
     }
     else {
       Account genAccount = accountService.getAccount(Convert.parseUnsignedLong(accountId));
@@ -88,18 +89,18 @@ public final class SubmitNonce extends APIServlet.APIRequestHandler {
       }
       else {
         byte[] publicKey = genAccount.getPublicKey();
-        generator = Burst.getGenerator().addNonce(secret, nonce, publicKey);
+        generatorState = generator.addNonce(secret, nonce, publicKey);
       }
     }
 		
-    if(generator == null) {
+    if(generatorState == null) {
       response.put("result", "failed to create generator");
       return response;
     }
 		
     //response.put("result", "deadline: " + generator.getDeadline());
     response.put("result", "success");
-    response.put("deadline", generator.getDeadline());
+    response.put("deadline", generatorState.getDeadline());
 		
     return response;
   }

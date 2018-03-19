@@ -1,7 +1,9 @@
 package brs.db;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.ehcache.Cache;
 import org.jooq.DSLContext;
 import org.jooq.Condition;
 import org.jooq.SelectQuery;
@@ -63,4 +65,10 @@ public interface VersionedBatchEntityTable<T> extends DerivedTable, EntityTable<
 
   @Override
   void truncate();
+
+  Cache getCache();
+
+  void flushCache();
+
+  void fillCache(ArrayList<Long> ids);
 }

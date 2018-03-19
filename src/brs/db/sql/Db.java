@@ -1,29 +1,25 @@
 package brs.db.sql;
 
 import brs.Burst;
+import brs.common.Props;
+import brs.db.cache.DBCacheManagerImpl;
 import brs.services.PropertyService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import brs.Constants;
-import brs.db.firebird.FirebirdDbs;
 import brs.db.h2.H2Dbs;
 import brs.db.mariadb.MariadbDbs;
 import brs.db.store.Dbs;
-import org.firebirdsql.management.FBManager;
-import org.firebirdsql.gds.impl.GDSType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import org.jooq.impl.DSL;
 import org.jooq.DSLContext;
@@ -35,29 +31,34 @@ public final class Db {
   private static final Logger logger = LoggerFactory.getLogger(Db.class);
 
   private static HikariDataSource cp;
+  private static SQLDialect dialect;
   private static final ThreadLocal<DbConnection> localConnection = new ThreadLocal<>();
   private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionCaches = new ThreadLocal<>();
   private static final ThreadLocal<Map<String, Map<DbKey, Object>>> transactionBatches = new ThreadLocal<>();
-  private static TYPE DATABASE_TYPE;
 
-  public static void init(PropertyService propertyService) {
+  private static DBCacheManagerImpl dbCacheManager;
+
+  public static void init(PropertyService propertyService, DBCacheManagerImpl dbCacheManager) {
+    Db.dbCacheManager = dbCacheManager;
+
     String dbUrl;
     String dbUsername;
     String dbPassword;
 
     if (Constants.isTestnet) {
-      dbUrl = propertyService.getStringProperty("brs.testDbUrl");
-      dbUsername = propertyService.getStringProperty("brs.testDbUsername");
-      dbPassword = propertyService.getStringProperty("brs.testDbPassword");
-    } else {
-      dbUrl = propertyService.getStringProperty("brs.dbUrl");
-      dbUsername = propertyService.getStringProperty("brs.dbUsername");
-      dbPassword = propertyService.getStringProperty("brs.dbPassword");
+      dbUrl = propertyService.getString(Props.DEV_DB_URL);
+      dbUsername = propertyService.getString(Props.DEV_DB_USERNAME);
+      dbPassword = propertyService.getString(Props.DEV_DB_PASSWORD);
     }
+    else {
+      dbUrl = propertyService.getString(Props.DB_URL);
+      dbUsername = propertyService.getString(Props.DB_USERNAME);
+      dbPassword = propertyService.getString(Props.DB_PASSWORD);
+    }
+    dialect = org.jooq.tools.jdbc.JDBCUtils.dialect(dbUrl);
 
     logger.debug("Database jdbc url set to: " + dbUrl);
     try {
-      DATABASE_TYPE = TYPE.getTypeFromJdbcUrl(dbUrl);
       HikariConfig config = new HikariConfig();
       config.setJdbcUrl(dbUrl);
       if (dbUsername != null)
@@ -65,9 +66,10 @@ public final class Db {
       if (dbPassword != null)
         config.setPassword(dbPassword);
 
-      config.setMaximumPoolSize(propertyService.getIntProperty("brs.dbMaximumPoolSize"));
+      config.setMaximumPoolSize(propertyService.getInt(Props.DB_CONNECTIONS));
 
-      switch (DATABASE_TYPE) {
+      switch (dialect) {
+        case MYSQL:
         case MARIADB:
           config.setAutoCommit(true);
           config.addDataSourceProperty("cachePrepStmts", "true");
@@ -78,42 +80,6 @@ public final class Db {
           config.addDataSourceProperty("useServerPrepStmts", "false");
           config.addDataSourceProperty("rewriteBatchedStatements", "true");
           config.setConnectionInitSql("SET NAMES utf8mb4;");
-          break;
-        case FIREBIRD:
-          String jnaPath = System.getProperty("jna.library.path");
-          if ( jnaPath == null || jnaPath.isEmpty() ) {
-            Path path = Paths.get(
-                                  "lib/firebird/"
-                                  + (Objects.equals(System.getProperty("sun.arch.data.model"), "32") ? "32" : "64" )
-                                  + "/"
-                                  ).toAbsolutePath();
-            System.setProperty("jna.library.path", path.toString());
-            logger.info("Set jna.library.path to: " + path.toString());
-          }
-          Class.forName("org.firebirdsql.jdbc.FBDriver");
-
-          config.setAutoCommit(true);
-          config.addDataSourceProperty("encoding", "UTF8");
-          config.addDataSourceProperty("cachePrepStmts", "true");
-          config.addDataSourceProperty("prepStmtCacheSize", "250");
-          config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-          config.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
-
-          if (dbUrl.startsWith("jdbc:firebirdsql:embedded:")) {
-            String firebirdDb = dbUrl.replaceFirst("^jdbc:firebirdsql:embedded:", "").replaceFirst("\\?.*$", "");
-
-            if (!new File(firebirdDb).isFile()) {
-              FBManager manager = new FBManager(GDSType.getType("EMBEDDED"));
-              manager.start();
-              manager.createDatabase(
-                                     firebirdDb,
-                                     ( dbUsername != null ? dbUsername : "" ),
-                                     ( dbPassword != null ? dbPassword : "" )
-                                     );
-              manager.stop();
-            }
-          }
-
           break;
         case H2:
           Class.forName("org.h2.Driver");
@@ -128,11 +94,11 @@ public final class Db {
 
       cp = new HikariDataSource(config);
 
-      if (DATABASE_TYPE == TYPE.H2) {
-        int defaultLockTimeout = Burst.getIntProperty("brs.dbDefaultLockTimeout") * 1000;
+      if (dialect == SQLDialect.H2) {
+        int defaultLockTimeout = propertyService.getInt(Props.DB_LOCK_TIMEOUT) * 1000;
         try (Connection con = cp.getConnection();
-             Statement stmt = con.createStatement()) {
-          stmt.executeUpdate("SET DEFAULT_LOCK_TIMEOUT " + defaultLockTimeout);
+             PreparedStatement stmt = con.prepareStatement("SET DEFAULT_LOCK_TIMEOUT ?")) {
+          // stmt.executeUpdate(defaultLockTimeout);
         } catch (SQLException e) {
           throw new RuntimeException(e.toString(), e);
         }
@@ -143,29 +109,27 @@ public final class Db {
     }
   }
 
-
   private Db() {
   } // never
 
   public static Dbs getDbsByDatabaseType(){
-    switch (Db.getDatabaseType()) 
-    {
+    switch (dialect) {
+      case MYSQL:
       case MARIADB:
         logger.info("Using mariadb Backend");
         return new MariadbDbs();
-      case FIREBIRD:
-        logger.info("Using Firebird Backend");
-        return new FirebirdDbs();
       case H2:
         logger.info("Using h2 Backend");
         return new H2Dbs();
       default:
-        throw new RuntimeException("Error initializing wallet: Unknown database type");
+        logger.info("Using generic Backend with Dialect " + dialect.getName());
+        return new SqlDbs();
     }
   }
-  
+
+
   public static void analyzeTables() {
-    if (DATABASE_TYPE == TYPE.H2) {
+    if (dialect == SQLDialect.H2) {
       try (Connection con = cp.getConnection();
            Statement stmt = con.createStatement()) {
         stmt.execute("ANALYZE SAMPLE_SIZE 0");
@@ -176,10 +140,14 @@ public final class Db {
   }
 
   public static void shutdown() {
-    if (DATABASE_TYPE == TYPE.H2) {
+    if (dialect == SQLDialect.H2) {
       try ( Connection con = cp.getConnection(); Statement stmt = con.createStatement() ) {
-        String shutDownCommand = Burst.getBooleanProperty("Db.H2.DefragOnShutdown") ? "SHUTDOWN DEFRAG" : "SHUTDOWN";
-        stmt.execute(shutDownCommand);// COMPACT is not giving good result. 
+        // COMPACT is not giving good result.
+        if(Burst.getPropertyService().getBoolean(Props.DB_H2_DEFRAG_ON_SHUTDOWN)) {
+          stmt.execute("SHUTDOWN DEFRAG");
+        } else {
+          stmt.execute("SHUTDOWN");
+        }
       }
       catch (SQLException e) {
         logger.info(e.toString(), e);
@@ -195,7 +163,6 @@ public final class Db {
   }
 
   public static Connection getConnection() throws SQLException {
-    logger.trace(">>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + Thread.currentThread().getStackTrace()[2].getMethodName());
     Connection con = localConnection.get();
     if (con != null) {
       return con;
@@ -207,9 +174,8 @@ public final class Db {
   }
 
   public static final DSLContext getDSLContext() {
-    Connection con     = localConnection.get();
-    SQLDialect dialect =  DATABASE_TYPE == TYPE.H2 ? SQLDialect.H2 : DATABASE_TYPE == TYPE.FIREBIRD ? SQLDialect.FIREBIRD : SQLDialect.MARIADB;
-    Settings settings  = new Settings();
+    Connection con    = localConnection.get();
+    Settings settings = new Settings();
     settings.setRenderSchema(Boolean.FALSE);
 
     if ( con == null ) {
@@ -291,6 +257,7 @@ public final class Db {
     }
     transactionCaches.get().clear();
     transactionBatches.get().clear();
+    dbCacheManager.flushCache();
   }
 
   public static void endTransaction() {
@@ -304,26 +271,6 @@ public final class Db {
     transactionBatches.get().clear();
     transactionBatches.set(null);
     DbUtils.close(con);
-  }
-
-  public static TYPE getDatabaseType() {
-    return DATABASE_TYPE;
-  }
-
-  public enum TYPE {
-    H2,
-    MARIADB,
-    FIREBIRD;
-
-    public static TYPE getTypeFromJdbcUrl(String jdbcUrl) {
-      if (jdbcUrl.contains("jdbc:mysql") || jdbcUrl.contains("jdbc:mariadb"))
-        return MARIADB;
-      if (jdbcUrl.contains("jdbc:firebirdsql"))
-        return FIREBIRD;
-      if (jdbcUrl.contains("jdbc:h2"))
-        return H2;
-      throw new IllegalArgumentException("Unable to determine database type from this: '" + jdbcUrl + "'");
-    }
   }
 
   private static class DbConnection extends FilteredConnection {

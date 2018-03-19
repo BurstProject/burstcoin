@@ -108,8 +108,4 @@ public class Alias {
     }
   }
 
-  public static Alias getAlias(String aliasName) {
-    return Burst.getStores().getAliasStore().getAlias(aliasName);
-  }
-
 }

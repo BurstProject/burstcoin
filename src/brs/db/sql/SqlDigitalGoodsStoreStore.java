@@ -7,6 +7,7 @@ import brs.db.BurstIterator;
 import brs.db.BurstKey;
 import brs.db.VersionedEntityTable;
 import brs.db.VersionedValuesTable;
+import brs.db.store.DerivedTableManager;
 import brs.db.store.DigitalGoodsStoreStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,58 +40,10 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
         }
       };
 
-  private final VersionedEntityTable<DigitalGoodsStore.Purchase> purchaseTable
-    = new VersionedEntitySqlTable<DigitalGoodsStore.Purchase>("purchase", brs.schema.Tables.PURCHASE, purchaseDbKeyFactory) {
-        @Override
-        protected DigitalGoodsStore.Purchase load(DSLContext ctx, ResultSet rs) throws SQLException {
-          return new SQLPurchase(rs);
-        }
-
-        @Override
-        protected void save(DSLContext ctx, DigitalGoodsStore.Purchase purchase) throws SQLException {
-          savePurchase(ctx, purchase);
-        }
-
-        @Override
-        protected List<SortField> defaultSort() {
-          List<SortField> sort = new ArrayList<>();
-          sort.add(tableClass.field("timestamp", Integer.class).desc());
-          sort.add(tableClass.field("id", Long.class).asc());
-          return sort;
-        }
-      };
+  private final VersionedEntityTable<DigitalGoodsStore.Purchase> purchaseTable;
 
   @Deprecated
-  private final VersionedValuesTable<DigitalGoodsStore.Purchase, EncryptedData> feedbackTable
-    = new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, EncryptedData>("purchase_feedback", brs.schema.Tables.PURCHASE_FEEDBACK, feedbackDbKeyFactory) {
-
-        @Override
-        protected EncryptedData load(DSLContext ctx, ResultSet rs) throws SQLException {
-          byte[] data = rs.getBytes("feedback_data");
-          byte[] nonce = rs.getBytes("feedback_nonce");
-          return new EncryptedData(data, nonce);
-        }
-
-        @Override
-        protected void save(DSLContext ctx, DigitalGoodsStore.Purchase purchase, EncryptedData encryptedData) {
-          byte[] data  = null;
-          byte[] nonce = null;
-          if ( encryptedData.getData() != null ) {
-            data  = encryptedData.getData();
-            nonce = encryptedData.getNonce();
-          }
-          ctx.insertInto(
-            PURCHASE_FEEDBACK,
-            PURCHASE_FEEDBACK.ID,
-            PURCHASE_FEEDBACK.FEEDBACK_DATA, PURCHASE_FEEDBACK.FEEDBACK_NONCE,
-            PURCHASE_FEEDBACK.HEIGHT, PURCHASE_FEEDBACK.LATEST
-          ).values(
-            purchase.getId(),
-            data, nonce,
-            brs.Burst.getBlockchain().getHeight(), true
-          ).execute();
-        }
-      };
+  private final VersionedValuesTable<DigitalGoodsStore.Purchase, EncryptedData> feedbackTable;
 
   protected final DbKey.LongKeyFactory<DigitalGoodsStore.Purchase> publicFeedbackDbKeyFactory
     = new DbKey.LongKeyFactory<DigitalGoodsStore.Purchase>("id") {
@@ -100,29 +53,7 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
         }
       };
 
-  private final VersionedValuesTable<DigitalGoodsStore.Purchase, String> publicFeedbackTable
-    = new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, String>("purchase_public_feedback", brs.schema.Tables.PURCHASE_PUBLIC_FEEDBACK, publicFeedbackDbKeyFactory) {
-
-        @Override
-        protected String load(DSLContext ctx, ResultSet rs) throws SQLException {
-          return rs.getString("public_feedback");
-        }
-
-        @Override
-        protected void save(DSLContext ctx, DigitalGoodsStore.Purchase purchase, String publicFeedback) throws SQLException {
-          brs.schema.tables.records.PurchasePublicFeedbackRecord feedbackRecord = ctx.newRecord(
-            PURCHASE_PUBLIC_FEEDBACK
-          );
-          feedbackRecord.setId(purchase.getId());
-          feedbackRecord.setPublicFeedback(publicFeedback);
-          feedbackRecord.setHeight(brs.Burst.getBlockchain().getHeight());
-          feedbackRecord.setLatest(true);
-          DbUtils.mergeInto(
-            ctx, feedbackRecord, PURCHASE_PUBLIC_FEEDBACK,
-            ( new Field[] { feedbackRecord.field("id"), feedbackRecord.field("height") } )
-          );
-        }
-      };
+  private final VersionedValuesTable<DigitalGoodsStore.Purchase, String> publicFeedbackTable;
 
   private final BurstKey.LongKeyFactory<DigitalGoodsStore.Goods> goodsDbKeyFactory = new DbKey.LongKeyFactory<DigitalGoodsStore.Goods>("id") {
       @Override
@@ -131,27 +62,104 @@ public class SqlDigitalGoodsStoreStore implements DigitalGoodsStoreStore {
       }
     };
 
-  private final VersionedEntityTable<DigitalGoodsStore.Goods> goodsTable
-    = new VersionedEntitySqlTable<DigitalGoodsStore.Goods>("goods", brs.schema.Tables.GOODS, goodsDbKeyFactory) {
+  private final VersionedEntityTable<DigitalGoodsStore.Goods> goodsTable;
 
-        @Override
-        protected DigitalGoodsStore.Goods load(DSLContext ctx, ResultSet rs) throws SQLException {
-          return new SQLGoods(rs);
-        }
+  public SqlDigitalGoodsStoreStore(DerivedTableManager derivedTableManager) {
+    purchaseTable = new VersionedEntitySqlTable<DigitalGoodsStore.Purchase>("purchase", brs.schema.Tables.PURCHASE, purchaseDbKeyFactory, derivedTableManager) {
+      @Override
+      protected DigitalGoodsStore.Purchase load(DSLContext ctx, ResultSet rs) throws SQLException {
+        return new SQLPurchase(rs);
+      }
 
-        @Override
-        protected void save(DSLContext ctx, DigitalGoodsStore.Goods goods) throws SQLException {
-          saveGoods(ctx, goods);
-        }
+      @Override
+      protected void save(DSLContext ctx, DigitalGoodsStore.Purchase purchase) throws SQLException {
+        savePurchase(ctx, purchase);
+      }
 
-        @Override
-        protected List<SortField> defaultSort() {
-          List<SortField> sort = new ArrayList<>();
-          sort.add(brs.schema.Tables.GOODS.field("timestamp", Integer.class).desc());
-          sort.add(brs.schema.Tables.GOODS.field("id", Long.class).asc());
-          return sort;
+      @Override
+      protected List<SortField> defaultSort() {
+        List<SortField> sort = new ArrayList<>();
+        sort.add(tableClass.field("timestamp", Integer.class).desc());
+        sort.add(tableClass.field("id", Long.class).asc());
+        return sort;
+      }
+    };
+
+    feedbackTable = new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, EncryptedData>("purchase_feedback", brs.schema.Tables.PURCHASE_FEEDBACK, feedbackDbKeyFactory, derivedTableManager) {
+
+      @Override
+      protected EncryptedData load(DSLContext ctx, ResultSet rs) throws SQLException {
+        byte[] data = rs.getBytes("feedback_data");
+        byte[] nonce = rs.getBytes("feedback_nonce");
+        return new EncryptedData(data, nonce);
+      }
+
+      @Override
+      protected void save(DSLContext ctx, DigitalGoodsStore.Purchase purchase, EncryptedData encryptedData) {
+        byte[] data  = null;
+        byte[] nonce = null;
+        if ( encryptedData.getData() != null ) {
+          data  = encryptedData.getData();
+          nonce = encryptedData.getNonce();
         }
-      };
+        ctx.insertInto(
+            PURCHASE_FEEDBACK,
+            PURCHASE_FEEDBACK.ID,
+            PURCHASE_FEEDBACK.FEEDBACK_DATA, PURCHASE_FEEDBACK.FEEDBACK_NONCE,
+            PURCHASE_FEEDBACK.HEIGHT, PURCHASE_FEEDBACK.LATEST
+        ).values(
+            purchase.getId(),
+            data, nonce,
+            brs.Burst.getBlockchain().getHeight(), true
+        ).execute();
+      }
+    };
+
+    publicFeedbackTable
+        = new VersionedValuesSqlTable<DigitalGoodsStore.Purchase, String>("purchase_public_feedback", brs.schema.Tables.PURCHASE_PUBLIC_FEEDBACK, publicFeedbackDbKeyFactory, derivedTableManager) {
+
+      @Override
+      protected String load(DSLContext ctx, ResultSet rs) throws SQLException {
+        return rs.getString("public_feedback");
+      }
+
+      @Override
+      protected void save(DSLContext ctx, DigitalGoodsStore.Purchase purchase, String publicFeedback) throws SQLException {
+        brs.schema.tables.records.PurchasePublicFeedbackRecord feedbackRecord = ctx.newRecord(
+            PURCHASE_PUBLIC_FEEDBACK
+        );
+        feedbackRecord.setId(purchase.getId());
+        feedbackRecord.setPublicFeedback(publicFeedback);
+        feedbackRecord.setHeight(brs.Burst.getBlockchain().getHeight());
+        feedbackRecord.setLatest(true);
+        DbUtils.mergeInto(
+            ctx, feedbackRecord, PURCHASE_PUBLIC_FEEDBACK,
+            ( new Field[] { feedbackRecord.field("id"), feedbackRecord.field("height") } )
+        );
+      }
+    };
+
+    goodsTable = new VersionedEntitySqlTable<DigitalGoodsStore.Goods>("goods", brs.schema.Tables.GOODS, goodsDbKeyFactory, derivedTableManager) {
+
+      @Override
+      protected DigitalGoodsStore.Goods load(DSLContext ctx, ResultSet rs) throws SQLException {
+        return new SQLGoods(rs);
+      }
+
+      @Override
+      protected void save(DSLContext ctx, DigitalGoodsStore.Goods goods) throws SQLException {
+        saveGoods(ctx, goods);
+      }
+
+      @Override
+      protected List<SortField> defaultSort() {
+        List<SortField> sort = new ArrayList<>();
+        sort.add(brs.schema.Tables.GOODS.field("timestamp", Integer.class).desc());
+        sort.add(brs.schema.Tables.GOODS.field("id", Long.class).asc());
+        return sort;
+      }
+    };
+  }
 
   @Override
   public BurstIterator<DigitalGoodsStore.Purchase> getExpiredPendingPurchases(final int timestamp) {

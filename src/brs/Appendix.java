@@ -75,9 +75,9 @@ public interface Appendix {
       return transactionVersion == 0 ? version == 0 : version > 0;
     }
 
-    abstract void validate(Transaction transaction) throws BurstException.ValidationException;
+    public abstract void validate(Transaction transaction) throws BurstException.ValidationException;
 
-    abstract void apply(Transaction transaction, Account senderAccount, Account recipientAccount);
+    public abstract void apply(Transaction transaction, Account senderAccount, Account recipientAccount);
 
   }
 
@@ -149,7 +149,7 @@ public interface Appendix {
     }
 
     @Override
-    void validate(Transaction transaction) throws BurstException.ValidationException {
+    public void validate(Transaction transaction) throws BurstException.ValidationException {
       if (this.isText && transaction.getVersion() == 0) {
         throw new BurstException.NotValidException("Text messages not yet enabled");
       }
@@ -162,7 +162,7 @@ public interface Appendix {
     }
 
     @Override
-    void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {}
+    public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {}
 
     public byte[] getMessage() {
       return message;
@@ -222,7 +222,7 @@ public interface Appendix {
     }
 
     @Override
-    void validate(Transaction transaction) throws BurstException.ValidationException {
+    public void validate(Transaction transaction) throws BurstException.ValidationException {
       if (encryptedData.getData().length > Constants.MAX_ENCRYPTED_MESSAGE_LENGTH) {
         throw new BurstException.NotValidException("Max encrypted message length exceeded");
       }
@@ -232,7 +232,7 @@ public interface Appendix {
       }
     }
 
-    void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {}
+    public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {}
 
     public final EncryptedData getEncryptedData() {
       return encryptedData;
@@ -278,7 +278,7 @@ public interface Appendix {
     }
 
     @Override
-    void validate(Transaction transaction) throws BurstException.ValidationException {
+    public void validate(Transaction transaction) throws BurstException.ValidationException {
       super.validate(transaction);
       if (! transaction.getType().hasRecipient()) {
         throw new BurstException.NotValidException("Encrypted messages cannot be attached to transactions with no recipient");
@@ -324,7 +324,7 @@ public interface Appendix {
     }
 
     @Override
-    void validate(Transaction transaction) throws BurstException.ValidationException {
+    public void validate(Transaction transaction) throws BurstException.ValidationException {
       super.validate(transaction);
       if (transaction.getVersion() == 0) {
         throw new BurstException.NotValidException("Encrypt-to-self message attachments not enabled for version 0 transactions");
@@ -381,7 +381,7 @@ public interface Appendix {
     }
 
     @Override
-    void validate(Transaction transaction) throws BurstException.ValidationException {
+    public void validate(Transaction transaction) throws BurstException.ValidationException {
       if (! transaction.getType().hasRecipient()) {
         throw new BurstException.NotValidException("PublicKeyAnnouncement cannot be attached to transactions with no recipient");
       }
@@ -402,7 +402,7 @@ public interface Appendix {
     }
 
     @Override
-    void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
+    public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
       if (recipientAccount.setOrVerify(publicKey, transaction.getHeight())) {
         recipientAccount.apply(this.publicKey, transaction.getHeight());
       }

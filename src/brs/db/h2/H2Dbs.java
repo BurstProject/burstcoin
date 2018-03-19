@@ -5,10 +5,6 @@ import brs.db.BlockDb;
 import brs.db.PeerDb;
 import brs.db.store.Dbs;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-
 import brs.db.sql.SqlBlockDb;
 import brs.db.sql.SqlTransactionDb;
 import brs.db.sql.SqlPeerDb;
@@ -45,17 +41,4 @@ public class H2Dbs implements Dbs {
     return peerDb;
   }
 
-  @Override
-  public void disableForeignKeyChecks(Connection con) throws SQLException {
-    try ( Statement stmt = con.createStatement() ) {
-      stmt.executeUpdate("SET REFERENTIAL_INTEGRITY FALSE");
-    }
-  }
-
-  @Override
-  public void enableForeignKeyChecks(Connection con) throws SQLException {
-    try ( Statement stmt = con.createStatement() ) {
-      stmt.executeUpdate("SET REFERENTIAL_INTEGRITY TRUE");
-    }
-  }
 }

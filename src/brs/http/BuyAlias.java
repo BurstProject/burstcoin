@@ -9,13 +9,10 @@ import brs.Alias;
 import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
-import brs.TransactionProcessor;
-import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONStreamAware;
-
 
 public final class BuyAlias extends CreateTransaction {
 
@@ -23,8 +20,8 @@ public final class BuyAlias extends CreateTransaction {
   private final AliasService aliasService;
   private final Blockchain blockchain;
 
-  public BuyAlias(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AliasService aliasService, AccountService accountService) {
-    super(new APITag[]{APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, ALIAS_PARAMETER, ALIAS_NAME_PARAMETER);
+  public BuyAlias(ParameterService parameterService, Blockchain blockchain, AliasService aliasService, APITransactionManager apiTransactionManager) {
+    super(new APITag[]{APITag.ALIASES, APITag.CREATE_TRANSACTION}, apiTransactionManager, ALIAS_PARAMETER, ALIAS_NAME_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
     this.aliasService = aliasService;

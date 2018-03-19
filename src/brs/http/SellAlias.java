@@ -1,7 +1,6 @@
 package brs.http;
 
 import brs.*;
-import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import org.json.simple.JSONStreamAware;
@@ -14,15 +13,13 @@ import static brs.http.common.Parameters.ALIAS_PARAMETER;
 import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
 import static brs.http.common.Parameters.RECIPIENT_PARAMETER;
 
-
 public final class SellAlias extends CreateTransaction {
 
   private final ParameterService parameterService;
   private final Blockchain blockchain;
 
-  SellAlias(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
-    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService,
-        ALIAS_PARAMETER, ALIAS_NAME_PARAMETER, RECIPIENT_PARAMETER, PRICE_NQT_PARAMETER);
+  SellAlias(ParameterService parameterService, Blockchain blockchain, APITransactionManager apiTransactionManager) {
+    super(new APITag[] {APITag.ALIASES, APITag.CREATE_TRANSACTION}, apiTransactionManager, ALIAS_PARAMETER, ALIAS_NAME_PARAMETER, RECIPIENT_PARAMETER, PRICE_NQT_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
   }

@@ -10,25 +10,25 @@ public interface Blockchain {
     
   Block getLastBlock(int timestamp);
 
-  void setLastBlock(BlockImpl block);
+  void setLastBlock(Block blockImpl);
 
   int getHeight();
 
-  Block getBlock(long blockId);
+  Block getBlock(long blockImplId);
 
   Block getBlockAtHeight(int height);
 
-  boolean hasBlock(long blockId);
+  boolean hasBlock(long blockImplId);
 
-  BurstIterator<BlockImpl> getBlocks(int from, int to);
+  BurstIterator<Block> getBlocks(int from, int to);
 
-  BurstIterator<BlockImpl> getBlocks(Account account, int timestamp);
+  BurstIterator<Block> getBlocks(Account account, int timestamp);
     
-  BurstIterator<BlockImpl> getBlocks(Account account, int timestamp, int from, int to);
+  BurstIterator<Block> getBlocks(Account account, int timestamp, int from, int to);
 
-  List<Long> getBlockIdsAfter(long blockId, int limit);
+  List<Long> getBlockIdsAfter(long blockImplId, int limit);
 
-  List<? extends Block> getBlocksAfter(long blockId, int limit);
+  List<? extends Block> getBlocksAfter(long blockImplId, int limit);
 
   long getBlockIdAtHeight(int height);
 
@@ -42,10 +42,10 @@ public interface Blockchain {
 
   int getTransactionCount();
 
-  BurstIterator<TransactionImpl> getAllTransactions();
+  BurstIterator<Transaction> getAllTransactions();
 
-  BurstIterator<TransactionImpl> getTransactions(Account account, byte type, byte subtype, int blockTimestamp);
+  BurstIterator<Transaction> getTransactions(Account account, byte type, byte subtype, int blockImplTimestamp);
 
-  BurstIterator<TransactionImpl> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockTimestamp, int from, int to);
+  BurstIterator<Transaction> getTransactions(Account account, int numberOfConfirmations, byte type, byte subtype, int blockImplTimestamp, int from, int to);
 
 }

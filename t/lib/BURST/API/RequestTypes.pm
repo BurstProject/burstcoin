@@ -140,7 +140,7 @@ our $reqtypes = [ # we want to define a sequence of tests
             lastBlock => '//int',
             application => {
                 type => '//str',
-                value => "NRS",
+                value => "BRS",
             },
             time       => '//int',
             version    => '//str',
@@ -446,7 +446,7 @@ sub talk2wallet {
     }
 
 
-    
+
     $request = HTTP::Request->new('GET',
                                   "$config{server_url}$path");
 

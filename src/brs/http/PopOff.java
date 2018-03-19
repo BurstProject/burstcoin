@@ -8,6 +8,7 @@ import static brs.http.common.ResultFields.ERROR_RESPONSE;
 import brs.Block;
 import brs.Blockchain;
 import brs.BlockchainProcessor;
+import brs.services.BlockService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -19,11 +20,13 @@ public final class PopOff extends APIServlet.APIRequestHandler {
 
   private final BlockchainProcessor blockchainProcessor;
   private final Blockchain blockchain;
+  private final BlockService blockService;
 
-  PopOff(BlockchainProcessor blockchainProcessor, Blockchain blockchain) {
+  PopOff(BlockchainProcessor blockchainProcessor, Blockchain blockchain, BlockService blockService) {
     super(new APITag[] {APITag.DEBUG}, NUM_BLOCKS_PARAMETER, HEIGHT_PARAMETER);
     this.blockchainProcessor = blockchainProcessor;
     this.blockchain = blockchain;
+    this.blockService = blockService;
   }
 
   @Override
@@ -52,7 +55,7 @@ public final class PopOff extends APIServlet.APIRequestHandler {
       return response;
     }
     for (Block block : blocks) {
-      blocksJSON.add(JSONData.block(block, true, blockchain.getHeight()));
+      blocksJSON.add(JSONData.block(block, true, blockchain.getHeight(), blockService.getBlockReward(block), blockService.getScoopNum(block)));
     }
     response.put(BLOCKS_RESPONSE, blocksJSON);
     return response;

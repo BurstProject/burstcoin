@@ -8,7 +8,6 @@ import brs.Account;
 import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
-import brs.TransactionProcessor;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import org.json.simple.JSONObject;
@@ -22,8 +21,8 @@ public final class SetRewardRecipient extends CreateTransaction {
   private final Blockchain blockchain;
   private AccountService accountService;
 
-  public SetRewardRecipient(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService) {
-    super(new APITag[] {APITag.ACCOUNTS, APITag.MINING, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, RECIPIENT_PARAMETER);
+  public SetRewardRecipient(ParameterService parameterService, Blockchain blockchain, AccountService accountService, APITransactionManager apiTransactionManager) {
+    super(new APITag[] {APITag.ACCOUNTS, APITag.MINING, APITag.CREATE_TRANSACTION}, apiTransactionManager, RECIPIENT_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
     this.accountService = accountService;

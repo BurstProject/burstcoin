@@ -1,21 +1,23 @@
 package brs.http;
 
+import static brs.TransactionType.DigitalGoods.REFUND;
 import static brs.http.JSONResponses.DUPLICATE_REFUND;
 import static brs.http.JSONResponses.GOODS_NOT_DELIVERED;
 import static brs.http.JSONResponses.INCORRECT_DGS_REFUND;
 import static brs.http.JSONResponses.INCORRECT_PURCHASE;
 import static brs.http.common.Parameters.REFUND_NQT_PARAMETER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
+import brs.Attachment;
 import brs.Blockchain;
 import brs.BurstException;
 import brs.Constants;
 import brs.DigitalGoodsStore.Purchase;
-import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.crypto.EncryptedData;
@@ -31,29 +33,33 @@ public class DGSRefundTest extends AbstractTransactionTest {
 
   private ParameterService mockParameterService;
   private Blockchain mockBlockchain;
-  private TransactionProcessor mockTransactionProcessor;
   private AccountService mockAccountService;
+  private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
     mockParameterService = mock(ParameterService.class);
     mockBlockchain = mock(Blockchain.class);
-    mockTransactionProcessor = mock(TransactionProcessor.class);
     mockAccountService = mock(AccountService.class);
+    apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new DGSRefund(mockParameterService, mockTransactionProcessor, mockBlockchain, mockAccountService);
+    t = new DGSRefund(mockParameterService, mockBlockchain, mockAccountService, apiTransactionManagerMock);
   }
 
   @Test
   public void processRequest() throws BurstException {
+    final long refundNQTParameter = 5;
+
     final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(REFUND_NQT_PARAMETER, 5)
+        new MockParam(REFUND_NQT_PARAMETER, refundNQTParameter)
     );
 
     final Account mockSellerAccount = mock(Account.class);
     when(mockSellerAccount.getId()).thenReturn(1L);
 
+    long mockPurchaseId = 123L;
     final Purchase mockPurchase = mock(Purchase.class);
+    when(mockPurchase.getId()).thenReturn(mockPurchaseId);
     when(mockPurchase.getSellerId()).thenReturn(1L);
     when(mockPurchase.getBuyerId()).thenReturn(2L);
     when(mockPurchase.getRefundNote()).thenReturn(null);
@@ -66,9 +72,12 @@ public class DGSRefundTest extends AbstractTransactionTest {
 
     when(mockAccountService.getAccount(eq(mockPurchase.getBuyerId()))).thenReturn(mockBuyerAccount);
 
-    prepareTransactionTest(req, mockParameterService, mockTransactionProcessor, mockSellerAccount);
+    final Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
+    assertNotNull(attachment);
 
-    t.processRequest(req);
+    assertEquals(REFUND, attachment.getTransactionType());
+    assertEquals(refundNQTParameter, attachment.getRefundNQT());
+    assertEquals(mockPurchaseId, attachment.getPurchaseId());
   }
 
   @Test

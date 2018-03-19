@@ -10,8 +10,6 @@ import brs.Attachment;
 import brs.Blockchain;
 import brs.Escrow;
 import brs.BurstException;
-import brs.TransactionProcessor;
-import brs.services.AccountService;
 import brs.services.EscrowService;
 import brs.services.ParameterService;
 import brs.util.Convert;
@@ -26,8 +24,8 @@ public final class EscrowSign extends CreateTransaction {
   private final EscrowService escrowService;
   private final Blockchain blockchain;
 	
-  EscrowSign(ParameterService parameterService, TransactionProcessor transactionProcessor, Blockchain blockchain, AccountService accountService, EscrowService escrowService) {
-    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, parameterService, transactionProcessor, blockchain, accountService, ESCROW_PARAMETER, DECISION_PARAMETER);
+  EscrowSign(ParameterService parameterService, Blockchain blockchain, EscrowService escrowService, APITransactionManager apiTransactionManager) {
+    super(new APITag[] {APITag.TRANSACTIONS, APITag.CREATE_TRANSACTION}, apiTransactionManager, ESCROW_PARAMETER, DECISION_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
     this.escrowService = escrowService;
@@ -63,9 +61,7 @@ public final class EscrowSign extends CreateTransaction {
     }
 		
     Account sender = parameterService.getSenderAccount(req);
-    if(!(escrow.getSenderId().equals(sender.getId())) &&
-       !(escrow.getRecipientId().equals(sender.getId())) &&
-       !escrow.isIdSigner(sender.getId())) {
+    if(! isValidUser(escrow, sender)) {
       JSONObject response = new JSONObject();
       response.put(ERROR_CODE_RESPONSE, 5);
       response.put(ERROR_DESCRIPTION_RESPONSE, "Invalid or not specified action");
@@ -89,5 +85,12 @@ public final class EscrowSign extends CreateTransaction {
     Attachment.AdvancedPaymentEscrowSign attachment = new Attachment.AdvancedPaymentEscrowSign(escrow.getId(), decision, blockchain.getHeight());
 		
     return createTransaction(req, sender, null, 0, attachment);
+  }
+
+  private boolean isValidUser(Escrow escrow, Account sender) {
+    return
+        escrow.getSenderId().equals(sender.getId()) ||
+        escrow.getRecipientId().equals(sender.getId()) ||
+        escrowService.isIdSigner(sender.getId(), escrow);
   }
 }
