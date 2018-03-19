@@ -19,13 +19,10 @@ final class H2DbVersion {
     try (Connection con = Db.beginTransaction(); Statement stmt = con.createStatement()) {
       int nextUpdate = 1;
       try ( ResultSet rs = stmt.executeQuery("SELECT next_update FROM version") ) {
-        if (! rs.next()) {
+        if (! rs.next() || ! rs.isLast()) {
           throw new RuntimeException("Invalid version table");
         }
         nextUpdate = rs.getInt("next_update");
-        if (! rs.isLast()) {
-          throw new RuntimeException("Invalid version table");
-        }
         logger.info("Database update may take a while if needed, current db version " + (nextUpdate - 1) + "...");
       } catch (SQLException e) {
         logger.info("Initializing an empty database");
@@ -34,7 +31,7 @@ final class H2DbVersion {
         Db.commitTransaction();
       }
       update(nextUpdate);
-    } catch (SQLException e) {
+    } catch (RuntimeException|SQLException e) {
       Db.rollbackTransaction();
       throw new RuntimeException(e.toString(), e);
     } finally {
@@ -504,6 +501,8 @@ final class H2DbVersion {
       case 175:
         apply("CREATE INDEX IF NOT EXISTS account_id_latest_idx ON account(id, latest)");
       case 176:
+        apply("ALTER TABLE alias ALTER COLUMN alias_name_lower TO alias_name_lower VARCHAR NOT NULL");
+      case 177:
         return;
       default:
         throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");
