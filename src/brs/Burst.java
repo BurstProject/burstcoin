@@ -283,12 +283,18 @@ public final class Burst {
   }
 
   public static void shutdown() {
+    shutdown(false);
+  }
+
+  public static void shutdown(boolean ignoreDBShutdown) {
     logger.info("Shutting down...");
     api.shutdown();
     Peers.shutdown(threadPool);
     threadPool.shutdown();
     dbCacheManager.close();
-    Db.shutdown();
+    if(! ignoreDBShutdown) {
+      Db.shutdown();
+    }
     if (blockchainProcessor != null && blockchainProcessor.getOclVerify()) {
       OCLPoC.destroy();
     }
