@@ -284,7 +284,8 @@ public final class Burst {
 
   public static void shutdown() {
     logger.info("Shutting down...");
-    api.shutdown();
+    if (api != null)
+      api.shutdown();
     Peers.shutdown(threadPool);
     threadPool.shutdown();
     dbCacheManager.close();
