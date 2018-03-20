@@ -239,7 +239,6 @@ public final class DownloadCacheImpl {
       unverified.clear();
       blockCacheSize = 0;
       lockedCache = true;
-      forkCache.clear();
     } finally {
      dcsl.unlockWrite(stamp);
     }
