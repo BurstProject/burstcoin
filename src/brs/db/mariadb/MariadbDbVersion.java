@@ -12,18 +12,26 @@ import java.sql.Statement;
 final class MariadbDbVersion {
 
   private static final Logger logger = LoggerFactory.getLogger(MariadbDbVersion.class);
+  private static final String CHARSET = "utf8mb4";
 
   static void init() {
     try (Connection con = Db.beginTransaction(); Statement stmt = con.createStatement()) {
+      // try to check for a valid charset, cause there are so many tools around, which
+      // use the latin1 default charsets :-(
+      try ( ResultSet rs = stmt.executeQuery("SHOW VARIABLES LIKE \"character_set_database\"") ) {
+        if (rs.next()) {
+          String dbCharset = rs.getString(2);
+          if ( ! dbCharset.equalsIgnoreCase(CHARSET) ) {
+            throw new RuntimeException("Invalid database charset >" + dbCharset + "< - needs to be >" + CHARSET + "<");
+          }
+        }
+      }
       int nextUpdate = 1;
       try ( ResultSet rs = stmt.executeQuery("SELECT next_update FROM version") ) {
-        if (! rs.next()) {
+        if (! rs.next() || ! rs.isLast()) {
           throw new RuntimeException("Invalid version table");
         }
         nextUpdate = rs.getInt("next_update");
-        if (! rs.isLast()) {
-          throw new RuntimeException("Invalid version table");
-        }
         logger.info("Database update may take a while if needed, current db version " + (nextUpdate - 1) + "...");
       } catch (SQLException e) {
         logger.info("Initializing an empty database");
@@ -32,7 +40,7 @@ final class MariadbDbVersion {
         Db.commitTransaction();
       }
       update(nextUpdate, con.getCatalog());
-    } catch (SQLException e) {
+    } catch (RuntimeException|SQLException e) {
       Db.rollbackTransaction();
       throw new RuntimeException(e.toString(), e);
     } finally {
@@ -75,9 +83,9 @@ final class MariadbDbVersion {
               + "    PRIMARY KEY (db_id)"
               + ");");
       case 2:
-        apply("CREATE TRIGGER lower_alias_name_insert BEFORE INSERT ON alias FOR EACH ROW SET NEW.alias_name_lower = LOWER(NEW.alias_name);");
+        apply("UPDATE version set next_update = '2';");
       case 3:
-        apply("CREATE TRIGGER lower_alias_name_update BEFORE UPDATE ON alias FOR EACH ROW SET NEW.alias_name_lower = LOWER(NEW.alias_name);");
+        apply("UPDATE version set next_update = '3';");
       case 4:
         apply("CREATE UNIQUE INDEX alias_id_height_idx ON alias(id, height DESC);");
       case 5:
@@ -557,6 +565,10 @@ final class MariadbDbVersion {
       case 175:
         apply("CREATE INDEX account_id_latest_idx ON account(id, latest);");
       case 176:
+        apply("DROP TRIGGER IF EXISTS lower_alias_name_insert;");
+      case 177:
+        apply("DROP TRIGGER IF EXISTS lower_alias_name_update;");
+      case 178:
         return;
       default:
         throw new RuntimeException("Database inconsistent with code, probably trying to run older code on newer database");
