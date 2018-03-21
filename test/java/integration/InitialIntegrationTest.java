@@ -13,12 +13,14 @@ import org.junit.Test;
 public class InitialIntegrationTest extends AbstractIT {
 
   @Test
-  public void canStartIntegrationTest() throws IOException, ParseException {
+  public void canStartIntegrationTest() throws IOException, ParseException, InterruptedException {
     super.processBlock(getJSONFirstBlock());
 
     final String expectedBlockGenerator = "BURST-5BE2-6SGA-K455-BCCY3";
 
     final JSONObject foundAccount = apiSender.getAccount(expectedBlockGenerator);
+
+    Thread.sleep(200);
 
     assertEquals(expectedBlockGenerator, foundAccount.get("accountRS"));
     assertEquals("1000000000000", foundAccount.get(BALANCE_NQT_RESPONSE));
