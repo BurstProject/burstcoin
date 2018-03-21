@@ -1,15 +1,27 @@
 package integration;
 
+import static brs.http.common.ResultFields.BALANCE_NQT_RESPONSE;
+import static org.junit.Assert.assertEquals;
+
 import integration.common.AbstractIT;
 import integration.common.BlockMessageBuilder;
+import java.io.IOException;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 import org.junit.Test;
 
 public class InitialIntegrationTest extends AbstractIT {
 
   @Test
-  public void canStartIntegrationTest() {
+  public void canStartIntegrationTest() throws IOException, ParseException {
     super.processBlock(getJSONFirstBlock());
+
+    final String expectedBlockGenerator = "BURST-5BE2-6SGA-K455-BCCY3";
+
+    final JSONObject foundAccount = apiSender.getAccount(expectedBlockGenerator);
+
+    assertEquals(expectedBlockGenerator, foundAccount.get("accountRS"));
+    assertEquals("1000000000000", foundAccount.get(BALANCE_NQT_RESPONSE));
   }
 
   public JSONObject getJSONFirstBlock() {

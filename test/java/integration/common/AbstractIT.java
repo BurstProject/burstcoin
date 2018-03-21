@@ -26,6 +26,8 @@ public abstract class AbstractIT {
 
   private ProcessBlock processBlock;
 
+  protected APISender apiSender = new APISender();
+
   @Before
   public void setUp() {
     mockStatic(Peers.class);
