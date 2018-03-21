@@ -327,6 +327,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             if (!getMoreBlocks) {
               return;
             }
+            //unlocking cache for writing.
+            //This must be done before we query where to add blocks.
+            downloadCache.unlockCache();
+            
             if (downloadCache.isFull()) {
               return;
             }
@@ -396,6 +400,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   return;
                 }
                 saveInCache = false;
+                downloadCache.resetForkBlocks();
               } else {
                 logger.warn("Our peer want to feed us a fork that is more than "
                     + Constants.MAX_ROLLBACK + " blocks old.");
@@ -403,7 +408,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               }
             }
 
-            List<Block> forkBlocks = new ArrayList<>();
+         //   List<Block> forkBlocks = new ArrayList<>();
             JSONArray nextBlocks = getNextBlocks(peer, commonBlockId);
             if (nextBlocks == null || nextBlocks.isEmpty()) {
               logger.debug("Peer did not feed us any blocks");
@@ -418,56 +423,56 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
             // loop blocks and make sure they fit in chain
          
-              Block block;
-              JSONObject blockData;
-              List<Block> blocks = new ArrayList<>();
+            Block block;
+            JSONObject blockData;
+            List<Block> blocks = new ArrayList<>();
               
-              for (Object o : nextBlocks) {
-                blockData = (JSONObject) o;
-                try {
-                  block = Block.parseBlock(blockData);
-                  if (block == null) {
-                    logger.debug("Unable to process downloaded blocks.");
-                    return;
-                  }
-                  // Make sure it maps back to chain
-                  if (lastBlock.getId() != block.getPreviousBlockId()) {
-                    logger.debug("Discarding downloaded data. Last downloaded blocks is rubbish");
-                    logger.debug("DB blockID: " + lastBlock.getId() + " DB blockheight:"
-                        + lastBlock.getHeight() + " Downloaded previd:"
-                        + block.getPreviousBlockId());
-                    return;
-                  }
-                  // set height and cumulative difficulty to block
-                  block.setHeight(lastBlock.getHeight() + 1);
-                  block.setPeer(peer);
-                  block.setByteLength(blockData.toString().length());
-                  blockService.calculateBaseTarget(block, lastBlock);
-                  if (saveInCache) {
-                    downloadCache.addBlock(block);
-                  } else {
-                    forkBlocks.add(block);
-                  }
-                  lastBlock = block;
-                } catch (RuntimeException | BurstException.ValidationException e) {
-                  logger.info("Failed to parse block: {}" + e.toString(), e);
-                  logger.info("Failed to parse block trace: " + e.getStackTrace());
-                  peer.blacklist(e);
-                  return;
-                } catch (Exception e) {
-                  logger.warn("Unhandled exception {}" + e.toString(), e);
-                  logger.warn("Unhandled exception trace: " + e.getStackTrace());
-                }
-                //executor shutdown? 
-                if (Thread.currentThread().isInterrupted()) {
+            for (Object o : nextBlocks) {
+              blockData = (JSONObject) o;
+              try {
+                block = Block.parseBlock(blockData);
+                if (block == null) {
+                  logger.debug("Unable to process downloaded blocks.");
                   return;
                 }
-              } // end block loop
-         
-              logger.trace("Unverified blocks: " + downloadCache.getUnverifiedSize());
-              logger.trace("Blocks in cache: {}", downloadCache.size());
-              logger.trace("Bytes in cache: " + downloadCache.getBlockCacheSize());
-            if (! forkBlocks.isEmpty()) {
+                // Make sure it maps back to chain
+                if (lastBlock.getId() != block.getPreviousBlockId()) {
+                  logger.debug("Discarding downloaded data. Last downloaded blocks is rubbish");
+                  logger.debug("DB blockID: " + lastBlock.getId() + " DB blockheight:"
+                      + lastBlock.getHeight() + " Downloaded previd:"
+                      + block.getPreviousBlockId());
+                  return;
+                }
+                // set height and cumulative difficulty to block
+                block.setHeight(lastBlock.getHeight() + 1);
+                block.setPeer(peer);
+                block.setByteLength(blockData.toString().length());
+                blockService.calculateBaseTarget(block, lastBlock);
+                if (saveInCache) {
+                  downloadCache.addBlock(block);
+                } else {
+                  downloadCache.addForkBlock(block);
+                }
+                lastBlock = block;
+              } catch (RuntimeException | BurstException.ValidationException e) {
+                logger.info("Failed to parse block: {}" + e.toString(), e);
+                logger.info("Failed to parse block trace: " + e.getStackTrace());
+                peer.blacklist(e);
+                return;
+              } catch (Exception e) {
+                logger.warn("Unhandled exception {}" + e.toString(), e);
+                logger.warn("Unhandled exception trace: " + e.getStackTrace());
+              }
+              //executor shutdown? 
+              if (Thread.currentThread().isInterrupted()) {
+                return;
+              }
+            } // end block loop
+
+            logger.trace("Unverified blocks: " + downloadCache.getUnverifiedSize());
+            logger.trace("Blocks in cache: {}", downloadCache.size());
+            logger.trace("Bytes in cache: " + downloadCache.getBlockCacheSize());
+            if (!saveInCache) {
               /*
                * Since we cannot rely on peers reported cumulative difficulty we do
                * a final check to see that the CumulativeDifficulty actually is bigger
@@ -476,10 +481,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               if(lastBlock.getCumulativeDifficulty().compareTo(curCumulativeDifficulty) < 0) {
                 logger.debug("Peer claimed to have bigger cumulative difficulty but in reality it did not. Blacklisting.");
                 peer.blacklist();
-                forkBlocks.clear();
+                downloadCache.resetForkBlocks();
                 break;
               }
-              processFork(peer, forkBlocks, commonBlockId);
+              processFork(peer, downloadCache.getForkList(), commonBlockId);
             }
 
           } catch (BurstException.StopException e) {
@@ -646,6 +651,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       for (Block block : forkBlocks) {
         if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
           try {
+            blockService.preVerify(block);
             pushBlock(block);
             pushedForkBlocks += 1;
           } catch (BlockNotAcceptedException e) {
@@ -674,6 +680,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       for (int i = myPoppedOffBlocks.size() - 1; i >= 0; i--) {
         Block block = myPoppedOffBlocks.remove(i);
         try {
+          blockService.preVerify(block);
           pushBlock(block);
         } catch (BlockNotAcceptedException e) {
           logger.warn("Popped off block no longer acceptable: " + block.getJSONObject().toJSONString(), e);
@@ -685,6 +692,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       logger.warn("Successfully switched to better chain.");
     }
     logger.warn("Forkprocessing complete.");
+    downloadCache.resetForkBlocks();
     downloadCache.resetCache(); // Reset and set cached vars to chaindata.
   }
 };

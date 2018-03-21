@@ -3,10 +3,6 @@ CREATE DATABASE brs_master
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE brs_master;
 
-CREATE TABLE version(
-    next_update INT NOT NULL
-);
-INSERT INTO version (next_update) VALUES (178);
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -614,8 +610,10 @@ CREATE TABLE `version` (
   `next_update` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
+INSERT INTO `version` (`next_update`) VALUES (178);
+
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
