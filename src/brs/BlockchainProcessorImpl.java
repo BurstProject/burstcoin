@@ -329,7 +329,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             }
             //unlocking cache for writing.
             //This must be done before we query where to add blocks.
-            downloadCache.unlockCache();
+            //We sync the cache in event of popoff
+            synchronized (downloadCache){
+           	  downloadCache.unlockCache();
+            }
+            
             
             if (downloadCache.isFull()) {
               return;
@@ -449,7 +453,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 block.setByteLength(blockData.toString().length());
                 blockService.calculateBaseTarget(block, lastBlock);
                 if (saveInCache) {
-                  downloadCache.addBlock(block);
+                  if(! downloadCache.addBlock(block)) {
+                	//we stop the loop since cahce has been locked
+                    return;
+                 }
                 } else {
                   downloadCache.addForkBlock(block);
                 }
@@ -1036,25 +1043,27 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       return Collections.emptyList();
     }
     List<Block> poppedOffBlocks = new ArrayList<>();
-    try {
-      stores.beginTransaction();
-      Block block = blockchain.getLastBlock();
-      logger.debug("Rollback from " + block.getHeight() + " to " + commonBlock.getHeight());
-      while (block.getId() != commonBlock.getId() && block.getId() != Genesis.GENESIS_BLOCK_ID) {
-        poppedOffBlocks.add(block);
-        block = popLastBlock();
+    synchronized (downloadCache) {
+      try {
+        stores.beginTransaction();
+        Block block = blockchain.getLastBlock();
+        logger.debug("Rollback from " + block.getHeight() + " to " + commonBlock.getHeight());
+        while (block.getId() != commonBlock.getId() && block.getId() != Genesis.GENESIS_BLOCK_ID) {
+          poppedOffBlocks.add(block);
+          block = popLastBlock();
+        }
+        derivedTableManager.getDerivedTables().forEach(table -> table.rollback(commonBlock.getHeight()));
+        stores.getTransactionProcessorStore().getUnconfirmedTransactionTable().truncate();
+        dbCacheManager.flushCache();
+        stores.commitTransaction();
+        downloadCache.resetCache();
+      } catch (RuntimeException e) {
+        stores.rollbackTransaction();
+        logger.debug("Error popping off to " + commonBlock.getHeight(), e);
+        throw e;
+      } finally {
+        stores.endTransaction();
       }
-      derivedTableManager.getDerivedTables().forEach(table -> table.rollback(commonBlock.getHeight()));
-      stores.getTransactionProcessorStore().getUnconfirmedTransactionTable().truncate();
-      dbCacheManager.flushCache();
-      stores.commitTransaction();
-      downloadCache.resetCache();
-    } catch (RuntimeException e) {
-      stores.rollbackTransaction();
-      logger.debug("Error popping off to " + commonBlock.getHeight(), e);
-      throw e;
-    } finally {
-      stores.endTransaction();
     }
     return poppedOffBlocks;
   }
