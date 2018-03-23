@@ -167,10 +167,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     // }, Event.RESCAN_END);
 
     threadPool.runBeforeStart(() -> {
-      stores.beginTransaction();
-      stores.getTransactionProcessorStore().getUnconfirmedTransactionTable().truncate();
-      stores.commitTransaction();
-      stores.endTransaction();
       addGenesisBlock();
       if (forceScan) {
         scan(0);
@@ -1053,7 +1049,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           block = popLastBlock();
         }
         derivedTableManager.getDerivedTables().forEach(table -> table.rollback(commonBlock.getHeight()));
-        stores.getTransactionProcessorStore().getUnconfirmedTransactionTable().truncate();
         dbCacheManager.flushCache();
         stores.commitTransaction();
         downloadCache.resetCache();

@@ -100,6 +100,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       if (! expiredTransactions.isEmpty()) {
         try {
           stores.beginTransaction();
+          accountService.flushAccountTable();
           expiredTransactions.forEach(this::removeUnconfirmedTransaction);
           stores.commitTransaction();
 
@@ -315,6 +316,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
           removed.add(transaction);
         }
       }
+      accountService.flushAccountTable();
       unconfirmedTransactionTable.truncate();
       stores.commitTransaction();
     } catch (Exception e) {
@@ -346,6 +348,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     if (!stores.isInTransaction()) {
         try {
           stores.beginTransaction();
+          accountService.flushAccountTable();
           removeUnconfirmedTransaction(transaction);
           stores.commitTransaction();
         } catch (Exception e) {
@@ -453,6 +456,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
           } else {
             addedDoubleSpendingTransactions.add(transaction);
           }
+          accountService.flushAccountTable();
           stores.commitTransaction();
         } catch (Exception e) {
           stores.rollbackTransaction();
