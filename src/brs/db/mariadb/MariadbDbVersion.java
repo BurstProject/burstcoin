@@ -13,6 +13,7 @@ final class MariadbDbVersion {
 
   private static final Logger logger = LoggerFactory.getLogger(MariadbDbVersion.class);
   private static final String CHARSET = "utf8mb4";
+  private static int initialDbVersion = 0;
 
   static void init() {
     try (Connection con = Db.beginTransaction(); Statement stmt = con.createStatement()) {
@@ -31,7 +32,12 @@ final class MariadbDbVersion {
         if (! rs.next() || ! rs.isLast()) {
           throw new RuntimeException("Invalid version table");
         }
-        nextUpdate = rs.getInt("next_update");
+        nextUpdate       = rs.getInt("next_update");
+        initialDbVersion = nextUpdate - 1;
+        // wallets with DB release 175 had a broken trim function, which deleted way too much data
+        if ( initialDbVersion >= 170 && initialDbVersion <= 175 ) {
+          throw new RuntimeException("Your database looks inconsistent. Please drop and recreate your database.");
+        }
         logger.info("Database update may take a while if needed, current db version " + (nextUpdate - 1) + "...");
       } catch (SQLException e) {
         logger.info("Initializing an empty database");
@@ -565,9 +571,11 @@ final class MariadbDbVersion {
       case 175:
         apply("CREATE INDEX account_id_latest_idx ON account(id, latest);");
       case 176:
-        apply("DROP TRIGGER IF EXISTS lower_alias_name_insert;");
+        // doing index things works only with super privileges; to avoid weird exceptions for
+        // those who never had the index, we check for the prior version of the db
+        apply( initialDbVersion == 0 ? "UPDATE version set next_update = '176';" : "DROP TRIGGER IF EXISTS lower_alias_name_insert;");
       case 177:
-        apply("DROP TRIGGER IF EXISTS lower_alias_name_update;");
+        apply( initialDbVersion == 0 ? "UPDATE version set next_update = '177';" : "DROP TRIGGER IF EXISTS lower_alias_name_update;");
       case 178:
         return;
       default:
