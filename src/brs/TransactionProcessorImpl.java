@@ -40,6 +40,8 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 
   private final EntityTable<Transaction> unconfirmedTransactionTable;
 
+  private final Object incTransactionSyncObj = new Object();
+  
   private final Set<Transaction> nonBroadcastedTransactions = Collections.newSetFromMap(new ConcurrentHashMap<Transaction,Boolean>());
   private final Listeners<List<? extends Transaction>,Event> transactionListeners = new Listeners<>();
   private final Set<Transaction> lostTransactions = new HashSet<>();
@@ -406,6 +408,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   List<Transaction> processTransactions(Collection<Transaction> transactions, final boolean sendToPeers) {
+    synchronized (incTransactionSyncObj) {
     if (transactions.isEmpty()) {
       return Collections.emptyList();
     }
@@ -481,5 +484,5 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     }
     return addedUnconfirmedTransactions;
   }
-
+  }
 }
