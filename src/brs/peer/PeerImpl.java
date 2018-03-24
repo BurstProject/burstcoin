@@ -313,7 +313,7 @@ final class PeerImpl implements Peer {
       CountingOutputStream cos = new CountingOutputStream(connection.getOutputStream());
       try (Writer writer = new BufferedWriter(new OutputStreamWriter(cos, "UTF-8"))) {
         request.writeJSONString(writer);
-      }
+      } // rico666: no catch?
       updateUploadedVolume(cos.getCount());
 
       if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -375,7 +375,7 @@ final class PeerImpl implements Peer {
     }
 
     if (showLog) {
-      logger.info(log + "\n");
+      logger.info(log);
     }
 
     if (connection != null) {
