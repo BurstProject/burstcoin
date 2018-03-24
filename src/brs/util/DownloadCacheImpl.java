@@ -341,7 +341,7 @@ public final class DownloadCacheImpl {
     return (curHeight - block.getHeight()) <= Constants.MAX_ROLLBACK;
   }
 
-  public void addBlock(Block block) {
+  public boolean addBlock(Block block) {
     if(!getLockState()) {
 	  long stamp = dcsl.writeLock();
       try {
@@ -352,10 +352,12 @@ public final class DownloadCacheImpl {
         lastBlockId = block.getId();
         lastHeight = block.getHeight();
         highestCumulativeDifficulty = block.getCumulativeDifficulty();
+        return true;
       } finally {
         dcsl.unlockWrite(stamp);
       }
     }
+    return false;
   }
   public void addForkBlock(Block block) {
     forkCache.add(block);
