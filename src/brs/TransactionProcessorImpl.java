@@ -428,7 +428,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
             break; // not ready to process transactions
           }
 
-          if (dbs.getTransactionDb().hasTransaction(transaction.getId()) || unconfirmedTransactionTable.get(transaction.getDbKey()) != null) {
+          if (dbs.getTransactionDb().hasTransaction(transaction.getId()) || stores.getTransactionProcessorStore().hasTransaction(transaction.getId())) {
             stores.commitTransaction();
             continue;
           }
