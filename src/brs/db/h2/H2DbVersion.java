@@ -477,8 +477,6 @@ final class H2DbVersion {
       case 152:
         apply("CREATE INDEX IF NOT EXISTS transaction_recipient_id_amount_height_idx ON transaction (recipient_id, amount, height)");
       case 153:
-        logger.warn("If this is a ");
-        //                BlockchainProcessorImpl.getInstance().forceScanAtStart();
         apply(null);
       case 154:
         apply("DROP INDEX IF EXISTS account_guaranteed_balance_id_height_idx");

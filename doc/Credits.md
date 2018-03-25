@@ -59,4 +59,6 @@ base are not mentioned, however. In alphabetical order:
 Other contributors
 
 Accepted pull requests improving the wallet quality in several areas
-were made by @Doncode, @naiduv
+were made by @ChrisMaroglou, @DarkS0il, @Doncode, @HeosSacer,
+@InjectedPie, @jake-b, @llybin, @naiduv, @umbrellacorp03,
+@velmyshanovnyi
