@@ -924,9 +924,6 @@ public final class Peers {
   private static int getNumberOfConnectedPublicPeers() {
     int numberOfConnectedPeers = 0;
     for (Peer peer : peers.values()) {
-      // If hallmark enabled below  if line will return 0.
-      // if (peer.getState() == Peer.State.CONNECTED) && peer.getAnnouncedAddress() != null
-      //     && (! Peers.enableHallmarkProtection || peer.getWeight() > 0)) {
       if (peer.getState() == Peer.State.CONNECTED) {
         numberOfConnectedPeers++;
       }
