@@ -153,7 +153,6 @@ public final class Burst {
 
   public static void main(String[] args) {
     validateVersionNotDev(VERSION);
-
     Runtime.getRuntime().addShutdownHook(new Thread(Burst::shutdown));
     init();
   }

@@ -184,5 +184,5 @@ if [[ $# -gt 0 ]] ; then
             ;;
     esac
 else
-    java -cp burst.jar:conf brs.Burst
+    java $BRS_DEVSTART -cp burst.jar:conf brs.Burst
 fi
