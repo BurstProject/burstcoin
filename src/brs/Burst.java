@@ -152,10 +152,22 @@ public final class Burst {
   }
 
   public static void main(String[] args) {
+    validateVersionNotDev(VERSION);
     Runtime.getRuntime().addShutdownHook(new Thread(Burst::shutdown));
     init();
   }
 
+  private static void validateVersionNotDev(String version) {
+    if(isDevVersion(version) && System.getProperty("dev") == null) {
+      logger.error("THIS IS A DEVELOPMENT WALLET, PLEASE DO NOT USE THIS");
+      System.exit(0);
+    }
+  }
+
+  private static boolean isDevVersion(String version) {
+    return Integer.parseInt(version.split("\\.")[1]) % 2 != 0;
+  }
+  
   public static void init(Properties customProperties) {
     loadWallet(new PropertyServiceImpl(customProperties));
   }
