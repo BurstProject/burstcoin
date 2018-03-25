@@ -4,6 +4,8 @@ import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 
+import brs.common.TestConstants;
+import brs.common.TestInfrastructure;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +42,7 @@ public class APISender {
 
     post.setEntity(new UrlEncodedFormEntity(urlParameters));
 
-    final HttpResponse result = httpclient.execute(new HttpHost("localhost", 8125), post);
+    final HttpResponse result = httpclient.execute(new HttpHost("localhost", TestInfrastructure.TEST_API_PORT), post);
 
     return (JSONObject) parser.parse(EntityUtils.toString(result.getEntity(), "UTF-8"));
   }
