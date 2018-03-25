@@ -40,7 +40,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 
   private final EntityTable<Transaction> unconfirmedTransactionTable;
 
-  private final Object incTransactionSyncObj = new Object();
+  private final Object unconfirmedTransactionsSyncObj = new Object();
   
   private final Set<Transaction> nonBroadcastedTransactions = Collections.newSetFromMap(new ConcurrentHashMap<Transaction,Boolean>());
   private final Listeners<List<? extends Transaction>,Event> transactionListeners = new Listeners<>();
@@ -90,9 +90,12 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       });
     }
   }
-
+  public Object getUnconfirmedTransactionsSyncObj() {
+	  return unconfirmedTransactionsSyncObj;
+  }
   private final Runnable removeUnconfirmedTransactionsThread = () -> {
-    try {
+    synchronized (unconfirmedTransactionsSyncObj) {
+	try {
       List<Transaction> expiredTransactions = new ArrayList<>();
       try (BurstIterator<Transaction> iterator = stores.getTransactionProcessorStore().getExpiredTransactions()) {
         while (iterator.hasNext()) {
@@ -105,7 +108,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
           accountService.flushAccountTable();
           expiredTransactions.forEach(this::removeUnconfirmedTransaction);
           stores.commitTransaction();
-
         } catch (Exception e) {
           logger.error(e.toString(), e);
           stores.rollbackTransaction();
@@ -117,6 +119,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     } catch (Exception e) {
       logger.debug("Error removing unconfirmed transactions", e);
     }
+  }
   };
   private final Runnable rebroadcastTransactionsThread = () -> {
 
@@ -408,7 +411,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   List<Transaction> processTransactions(Collection<Transaction> transactions, final boolean sendToPeers) {
-    synchronized (incTransactionSyncObj) {
+    synchronized (unconfirmedTransactionsSyncObj) {
     if (transactions.isEmpty()) {
       return Collections.emptyList();
     }

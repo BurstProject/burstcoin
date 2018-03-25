@@ -1040,24 +1040,26 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     List<Block> poppedOffBlocks = new ArrayList<>();
     synchronized (downloadCache) {
-      try {
-        stores.beginTransaction();
-        Block block = blockchain.getLastBlock();
-        logger.debug("Rollback from " + block.getHeight() + " to " + commonBlock.getHeight());
-        while (block.getId() != commonBlock.getId() && block.getId() != Genesis.GENESIS_BLOCK_ID) {
-          poppedOffBlocks.add(block);
-          block = popLastBlock();
+      synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
+        try {
+          stores.beginTransaction();
+          Block block = blockchain.getLastBlock();
+          logger.debug("Rollback from " + block.getHeight() + " to " + commonBlock.getHeight());
+          while (block.getId() != commonBlock.getId() && block.getId() != Genesis.GENESIS_BLOCK_ID) {
+            poppedOffBlocks.add(block);
+            block = popLastBlock();
+          }
+          derivedTableManager.getDerivedTables().forEach(table -> table.rollback(commonBlock.getHeight()));
+          dbCacheManager.flushCache();
+          stores.commitTransaction();
+          downloadCache.resetCache();
+        } catch (RuntimeException e) {
+          stores.rollbackTransaction();
+          logger.debug("Error popping off to " + commonBlock.getHeight(), e);
+          throw e;
+        } finally {
+          stores.endTransaction();
         }
-        derivedTableManager.getDerivedTables().forEach(table -> table.rollback(commonBlock.getHeight()));
-        dbCacheManager.flushCache();
-        stores.commitTransaction();
-        downloadCache.resetCache();
-      } catch (RuntimeException e) {
-        stores.rollbackTransaction();
-        logger.debug("Error popping off to " + commonBlock.getHeight(), e);
-        throw e;
-      } finally {
-        stores.endTransaction();
       }
     }
     return poppedOffBlocks;
