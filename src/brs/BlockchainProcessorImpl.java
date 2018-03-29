@@ -13,6 +13,9 @@ import brs.services.TimeService;
 import brs.services.TransactionService;
 import brs.statistics.StatisticsManagerImpl;
 import brs.util.ThreadPool;
+
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -422,7 +425,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               return;
             }
             // loop blocks and make sure they fit in chain
-         
+                       
             Block block;
             JSONObject blockData;
             List<Block> blocks = new ArrayList<>();
@@ -818,7 +821,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   private void pushBlock(final Block block) throws BlockNotAcceptedException {
-    stores.beginTransaction(); //top of try
+	synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
+	stores.beginTransaction(); //top of try
     int curTime = timeService.getEpochTime();
     
     Block previousLastBlock = null;
@@ -970,14 +974,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       stores.endTransaction();
     }
     logger.debug("Successfully pushed " + block.getId() + " (height " + block.getHeight() + ")");
-
     statisticsManager.blockAdded();
-
     blockListeners.notify(block, Event.BLOCK_PUSHED);
-
     if (block.getTimestamp() >= timeService.getEpochTime() - MAX_TIMESTAMP_DIFFERENCE) {
       Peers.sendToSomePeers(block);
     }
+	} //end synchronized
   }
 
   private void accept(Block block, Long remainingAmount, Long remainingFee)
@@ -989,6 +991,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             "Double spending transaction: " + transaction.getStringId(), transaction);
       }
     }
+    
     long calculatedRemainingAmount = 0;
     long calculatedRemainingFee = 0;
     // ATs

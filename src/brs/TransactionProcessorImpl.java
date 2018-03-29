@@ -382,7 +382,8 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   private void processPeerTransactions(JSONArray transactionsData) throws BurstException.ValidationException {
-    if (blockchain.getLastBlock().getTimestamp() < timeService.getEpochTime() - 60 * 1440 && ! testUnconfirmedTransactions) {
+	synchronized (unconfirmedTransactionsSyncObj) {
+	if (blockchain.getLastBlock().getTimestamp() < timeService.getEpochTime() - 60 * 1440 && ! testUnconfirmedTransactions) {
       return;
     }
     if (blockchain.getHeight() <= Constants.NQT_BLOCK) {
@@ -408,10 +409,11 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     }
     processTransactions(transactions, true);
     nonBroadcastedTransactions.removeAll(transactions);
+	}
   }
 
   List<Transaction> processTransactions(Collection<Transaction> transactions, final boolean sendToPeers) {
-    synchronized (unconfirmedTransactionsSyncObj) {
+   
     if (transactions.isEmpty()) {
       return Collections.emptyList();
     }
@@ -486,6 +488,5 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       transactionListeners.notify(addedDoubleSpendingTransactions, Event.ADDED_DOUBLESPENDING_TRANSACTIONS);
     }
     return addedUnconfirmedTransactions;
-  }
   }
 }
