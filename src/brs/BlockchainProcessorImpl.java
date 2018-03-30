@@ -265,6 +265,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               if (!currentBlock.isVerified()) {
                 downloadCache.removeUnverified(currentBlock.getId());
                 blockService.preVerify(currentBlock);
+                logger.debug("block was not preverified");
               }
               pushBlock(currentBlock);
               lastId = currentBlock.getId();
@@ -640,6 +641,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         Thread.currentThread().interrupt();
       }
     }
+    synchronized (downloadCache) {
+      synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
     logger.warn("Cache is now processed. Starting to process fork.");
     Block forkBlock = blockchain.getBlock(forkBlockId);
 
@@ -700,6 +703,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     logger.warn("Forkprocessing complete.");
     downloadCache.resetForkBlocks();
     downloadCache.resetCache(); // Reset and set cached vars to chaindata.
+  }
+  }
   }
 };
 

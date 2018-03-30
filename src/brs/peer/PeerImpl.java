@@ -48,6 +48,7 @@ final class PeerImpl implements Peer {
       this.port = new URL("http://" + announcedAddress).getPort();
     } catch (MalformedURLException ignore) {}
     this.state = State.NON_CONNECTED;
+    this.version = ""; //not null
     this.shareAddress = true;
   }
 
