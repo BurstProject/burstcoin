@@ -12,7 +12,11 @@ import brs.services.SubscriptionService;
 import brs.services.TimeService;
 import brs.services.TransactionService;
 import brs.statistics.StatisticsManagerImpl;
+import brs.services.AccountService;
 import brs.util.ThreadPool;
+
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -57,6 +61,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private final Stores stores;
   private BlockchainImpl blockchain;
   private BlockService blockService;
+  private AccountService accountService;
   private final SubscriptionService subscriptionService;
   private final EscrowService escrowService;
   private final TimeService timeService;
@@ -108,7 +113,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       PropertyService propertyService,
       SubscriptionService subscriptionService, TimeService timeService, DerivedTableManager derivedTableManager,
       BlockDb blockDb, TransactionDb transactionDb, EconomicClustering economicClustering, BlockchainStore blockchainStore, Stores stores, EscrowService escrowService,
-      TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator, StatisticsManagerImpl statisticsManager, DBCacheManagerImpl dbCacheManager) {
+      TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator, StatisticsManagerImpl statisticsManager, DBCacheManagerImpl dbCacheManager, AccountService accountService) {
     this.blockService = blockService;
     this.transactionProcessor = transactionProcessor;
     this.timeService = timeService;
@@ -126,7 +131,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     this.transactionService = transactionService;
     this.statisticsManager = statisticsManager;
     this.dbCacheManager = dbCacheManager;
-
+    this.accountService = accountService;
+    
     oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
     oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE, 1000);
 
@@ -262,6 +268,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               if (!currentBlock.isVerified()) {
                 downloadCache.removeUnverified(currentBlock.getId());
                 blockService.preVerify(currentBlock);
+                logger.debug("block was not preverified");
               }
               pushBlock(currentBlock);
               lastId = currentBlock.getId();
@@ -422,7 +429,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               return;
             }
             // loop blocks and make sure they fit in chain
-         
+                       
             Block block;
             JSONObject blockData;
             List<Block> blocks = new ArrayList<>();
@@ -637,6 +644,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         Thread.currentThread().interrupt();
       }
     }
+    synchronized (downloadCache) {
+      synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
     logger.warn("Cache is now processed. Starting to process fork.");
     Block forkBlock = blockchain.getBlock(forkBlockId);
 
@@ -697,6 +706,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     logger.warn("Forkprocessing complete.");
     downloadCache.resetForkBlocks();
     downloadCache.resetCache(); // Reset and set cached vars to chaindata.
+  }
+  }
   }
 };
 
@@ -818,7 +829,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   private void pushBlock(final Block block) throws BlockNotAcceptedException {
-    stores.beginTransaction(); //top of try
+	synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
+	stores.beginTransaction(); //top of try
     int curTime = timeService.getEpochTime();
     
     Block previousLastBlock = null;
@@ -957,6 +969,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       blockService.setPrevious(block, previousLastBlock);
       blockListeners.notify(block, Event.BEFORE_BLOCK_ACCEPT);
       transactionProcessor.requeueAllUnconfirmedTransactions();
+      accountService.flushAccountTable();
       addBlock(block);
       accept(block, remainingAmount, remainingFee);
       derivedTableManager.getDerivedTables().forEach(DerivedTable::finish);
@@ -970,14 +983,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       stores.endTransaction();
     }
     logger.debug("Successfully pushed " + block.getId() + " (height " + block.getHeight() + ")");
-
     statisticsManager.blockAdded();
-
     blockListeners.notify(block, Event.BLOCK_PUSHED);
-
     if (block.getTimestamp() >= timeService.getEpochTime() - MAX_TIMESTAMP_DIFFERENCE) {
       Peers.sendToSomePeers(block);
     }
+	} //end synchronized
   }
 
   private void accept(Block block, Long remainingAmount, Long remainingFee)
@@ -989,6 +1000,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             "Double spending transaction: " + transaction.getStringId(), transaction);
       }
     }
+    
     long calculatedRemainingAmount = 0;
     long calculatedRemainingFee = 0;
     // ATs
@@ -1030,7 +1042,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   private List<Block> popOffTo(Block commonBlock) {
-    if (commonBlock.getHeight() < getMinRollbackHeight()) {
+  
+	  if (commonBlock.getHeight() < getMinRollbackHeight()) {
         throw new IllegalArgumentException("Rollback to height " + commonBlock.getHeight()
             + " not suppported, " + "current height " + blockchain.getHeight());
     }
@@ -1041,6 +1054,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     List<Block> poppedOffBlocks = new ArrayList<>();
     synchronized (downloadCache) {
       synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
+    	//Burst.getTransactionProcessor().clearUnconfirmedTransactions();
         try {
           stores.beginTransaction();
           Block block = blockchain.getLastBlock();
