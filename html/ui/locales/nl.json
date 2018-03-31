@@ -909,9 +909,9 @@
     "seller_account_id": "Verkopers Account ID",
     "status_new_account_old": "Welkom op je nieuwe BURST account. Je account ID is <strong>__account_id__<\/strong>. Het beste kun je het nu vullen met enkele coins.",
     "dgs_table_product": "Product",
-    "dgs_table_price": "Price",
-    "dgs_table_description": "Description",
-    "dgs_table_quantity": "Quantity",
-    "dgs_table_seller": "Seller",
+    "dgs_table_price": "Prijs",
+    "dgs_table_description": "Omschrijving",
+    "dgs_table_quantity": "Hoeveelheid",
+    "dgs_table_seller": "Verkoper",
     "dgs_table_product_id": "Product ID"
 }
