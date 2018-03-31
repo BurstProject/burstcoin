@@ -1054,7 +1054,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     List<Block> poppedOffBlocks = new ArrayList<>();
     synchronized (downloadCache) {
       synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
-    	Burst.getTransactionProcessor().clearUnconfirmedTransactions();
+    	//Burst.getTransactionProcessor().clearUnconfirmedTransactions();
         try {
           stores.beginTransaction();
           Block block = blockchain.getLastBlock();
