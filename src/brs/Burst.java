@@ -167,7 +167,7 @@ public final class Burst {
   private static boolean isDevVersion(String version) {
     return Integer.parseInt(version.split("\\.")[1]) % 2 != 0;
   }
-  
+
   public static void init(Properties customProperties) {
     loadWallet(new PropertyServiceImpl(customProperties));
   }
@@ -295,13 +295,19 @@ public final class Burst {
   }
 
   public static void shutdown() {
+    shutdown(false);
+  }
+
+  public static void shutdown(boolean ignoreDBShutdown) {
     logger.info("Shutting down...");
     if (api != null)
       api.shutdown();
     Peers.shutdown(threadPool);
     threadPool.shutdown();
     dbCacheManager.close();
-    Db.shutdown();
+    if(! ignoreDBShutdown) {
+      Db.shutdown();
+    }
     if (blockchainProcessor != null && blockchainProcessor.getOclVerify()) {
       OCLPoC.destroy();
     }
