@@ -113,7 +113,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       PropertyService propertyService,
       SubscriptionService subscriptionService, TimeService timeService, DerivedTableManager derivedTableManager,
       BlockDb blockDb, TransactionDb transactionDb, EconomicClustering economicClustering, BlockchainStore blockchainStore, Stores stores, EscrowService escrowService,
-      TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator, StatisticsManagerImpl statisticsManager, DBCacheManagerImpl dbCacheManager, AccountService accountSerice) {
+      TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator, StatisticsManagerImpl statisticsManager, DBCacheManagerImpl dbCacheManager, AccountService accountService) {
     this.blockService = blockService;
     this.transactionProcessor = transactionProcessor;
     this.timeService = timeService;
