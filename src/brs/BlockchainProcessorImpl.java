@@ -12,6 +12,7 @@ import brs.services.SubscriptionService;
 import brs.services.TimeService;
 import brs.services.TransactionService;
 import brs.statistics.StatisticsManagerImpl;
+import brs.services.AccountService;
 import brs.util.ThreadPool;
 
 import java.io.FileWriter;
@@ -60,6 +61,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private final Stores stores;
   private BlockchainImpl blockchain;
   private BlockService blockService;
+  private AccountService accountService;
   private final SubscriptionService subscriptionService;
   private final EscrowService escrowService;
   private final TimeService timeService;
@@ -111,7 +113,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       PropertyService propertyService,
       SubscriptionService subscriptionService, TimeService timeService, DerivedTableManager derivedTableManager,
       BlockDb blockDb, TransactionDb transactionDb, EconomicClustering economicClustering, BlockchainStore blockchainStore, Stores stores, EscrowService escrowService,
-      TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator, StatisticsManagerImpl statisticsManager, DBCacheManagerImpl dbCacheManager) {
+      TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator, StatisticsManagerImpl statisticsManager, DBCacheManagerImpl dbCacheManager, AccountService accountSerice) {
     this.blockService = blockService;
     this.transactionProcessor = transactionProcessor;
     this.timeService = timeService;
@@ -129,7 +131,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     this.transactionService = transactionService;
     this.statisticsManager = statisticsManager;
     this.dbCacheManager = dbCacheManager;
-
+    this.accountService = accountService;
+    
     oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
     oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE, 1000);
 
@@ -966,6 +969,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       blockService.setPrevious(block, previousLastBlock);
       blockListeners.notify(block, Event.BEFORE_BLOCK_ACCEPT);
       transactionProcessor.requeueAllUnconfirmedTransactions();
+      accountService.flushAccountTable();
       addBlock(block);
       accept(block, remainingAmount, remainingFee);
       derivedTableManager.getDerivedTables().forEach(DerivedTable::finish);
