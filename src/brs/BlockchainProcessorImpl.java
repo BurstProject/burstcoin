@@ -1038,7 +1038,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   private List<Block> popOffTo(Block commonBlock) {
-    if (commonBlock.getHeight() < getMinRollbackHeight()) {
+  
+	  if (commonBlock.getHeight() < getMinRollbackHeight()) {
         throw new IllegalArgumentException("Rollback to height " + commonBlock.getHeight()
             + " not suppported, " + "current height " + blockchain.getHeight());
     }
@@ -1049,6 +1050,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     List<Block> poppedOffBlocks = new ArrayList<>();
     synchronized (downloadCache) {
       synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
+    	Burst.getTransactionProcessor().clearUnconfirmedTransactions();
         try {
           stores.beginTransaction();
           Block block = blockchain.getLastBlock();
