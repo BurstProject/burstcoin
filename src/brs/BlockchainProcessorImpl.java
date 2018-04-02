@@ -1235,6 +1235,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     block.sign(secretPhrase);
     blockService.setPrevious(block, previousBlock);
     try {
+      blockService.preVerify(block);
       pushBlock(block);
       blockListeners.notify(block, Event.BLOCK_GENERATED);
       logger.debug("Account " + Convert.toUnsignedLong(block.getGeneratorId()) + " generated block "
