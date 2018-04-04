@@ -195,18 +195,22 @@ if [[ $# -gt 0 ]] ; then
                     echo
                     echo "Please enter your connection details"
                     read -rp  "Host     (localhost) : " P_HOST
+                    read -rp  "Database (brs_master): " P_DATA
                     read -rp  "Username (brs_user)  : " P_USER
                     read -rsp "Password empty       : " P_PASS
                     [ -z $P_HOST ] && P_HOST="localhost"
                     [ -z $P_USER ] && P_USER="brs_user"
+                    [ -z $P_DATA ] && P_DATA="brs_master"
                     [ -z $P_PASS ] || P_PASS="-p$P_PASS"
                     echo
-                    if mysql -u$P_USER $P_PASS -h$P_HOST < "$MY_DIR/init-mysql.sql"; then
-                        if wget https://download.cryptoguru.org/burst/wallet/brs.mariadb.zip ; then
-                            if unzip brs.mariadb.zip ; then
-                                if mysql -u$P_USER $P_PASS -h$P_HOST brs_master < brs.mariadb.sql ; then
-                                    echo "import sucessfull"
-                                    exit
+                    if mysql -u$P_USER $P_PASS -h$P_HOST -e "DROP DATABASE if EXISTS $P_DATA; CREATE DATABASE $P_DATA CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"; then
+                        if mysql -u$P_USER $P_PASS -h$P_HOST -D $P_DATA < "$MY_DIR/init-mysql.sql"; then
+                            if wget https://download.cryptoguru.org/burst/wallet/brs.mariadb.zip ; then
+                                if unzip brs.mariadb.zip ; then
+                                    if mysql -u$P_USER $P_PASS -h$P_HOST -D $P_DATA < brs.mariadb.sql ; then
+                                        echo "import sucessfull"
+                                        exit
+                                    fi
                                 fi
                             fi
                         fi
