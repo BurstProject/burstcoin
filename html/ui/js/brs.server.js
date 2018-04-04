@@ -272,10 +272,7 @@ var BRS = (function(BRS, $, undefined) {
 	}
     async = (async === undefined ? true : async);
     if(async == false){
-      for (var prop in data) {
-        url+="&" + prop;
-        url+="="+data[prop];
-      }
+      url += "&" + $.param(data);
       var client = new XMLHttpRequest();
       client.open("GET", url, false); 
       client.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
