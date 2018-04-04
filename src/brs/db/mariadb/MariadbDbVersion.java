@@ -41,7 +41,7 @@ final class MariadbDbVersion {
         logger.info("Database update may take a while if needed, current db version " + (nextUpdate - 1) + "...");
       } catch (SQLException e) {
         logger.info("Initializing an empty database");
-        stmt.executeUpdate("CREATE TABLE version (next_update INT NOT NULL)");
+        stmt.executeUpdate("CREATE TABLE version (next_update INT NOT NULL) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         stmt.executeUpdate("INSERT INTO version VALUES (1)");
         Db.commitTransaction();
       }
@@ -87,7 +87,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 2:
         apply("UPDATE version set next_update = '2';");
       case 3:
@@ -113,7 +113,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 8:
         apply("CREATE UNIQUE INDEX account_id_height_idx ON account(id, height DESC);");
       case 9:
@@ -127,14 +127,14 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 11:
         apply("CREATE UNIQUE INDEX alias_offer_id_height_idx ON alias_offer(id, height DESC);");
       case 12:
         apply("CREATE TABLE peer("
               + "    address VARCHAR(100) NOT NULL,"
               + "    primary KEY (ADDRESS)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 13:
         apply("CREATE TABLE transaction("
               + "    db_id BIGINT AUTO_INCREMENT,"
@@ -163,7 +163,7 @@ final class MariadbDbVersion {
               + "    ec_block_id BIGINT DEFAULT NULL,"
               + "    has_encrypttoself_message BOOLEAN DEFAULT FALSE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 14:
         apply("CREATE INDEX transaction_block_timestamp_idx ON transaction(block_timestamp DESC);");
       case 15:
@@ -187,7 +187,7 @@ final class MariadbDbVersion {
               + "    decimals TINYINT NOT NULL,"
               + "    height INT NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 21:
         apply("CREATE UNIQUE INDEX asset_id_idx ON asset(id);");
       case 22:
@@ -208,7 +208,7 @@ final class MariadbDbVersion {
               + "    timestamp INT NOT NULL,"
               + "    height INT NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 24:
         apply("CREATE UNIQUE INDEX trade_ask_bid_idx ON trade(ask_order_id, bid_order_id);");
       case 25:
@@ -229,7 +229,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 29:
         apply("CREATE UNIQUE INDEX ask_order_id_height_idx ON ask_order(id, height DESC);");
       case 30:
@@ -250,7 +250,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 34:
         apply("CREATE UNIQUE INDEX bid_order_id_height_idx ON bid_order(id, height DESC);");
       case 35:
@@ -274,7 +274,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 39:
         apply("CREATE UNIQUE INDEX goods_id_height_idx ON goods(id, height DESC);");
       case 40:
@@ -306,7 +306,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 43:
         apply("CREATE UNIQUE INDEX purchase_id_height_idx ON purchase(id, height DESC);");
       case 44:
@@ -327,7 +327,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 49:
         apply("CREATE UNIQUE INDEX account_asset_id_height_idx ON account_asset(account_id, asset_id, height DESC);");
       case 50:
@@ -341,7 +341,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 52:
         apply("CREATE INDEX purchase_feedback_id_height_idx ON purchase_feedback(id, height DESC);");
       case 53:
@@ -352,7 +352,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 54:
         apply("CREATE INDEX purchase_public_feedback_id_height_idx ON purchase_public_feedback(id, height DESC);");
       case 55:
@@ -366,7 +366,7 @@ final class MariadbDbVersion {
               + "    transaction_bytes BLOB NOT NULL,"
               + "    height INT NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 56:
         apply("CREATE UNIQUE INDEX unconfirmed_transaction_id_idx ON unconfirmed_transaction(id);");
       case 57:
@@ -382,7 +382,7 @@ final class MariadbDbVersion {
               + "    timestamp INT NOT NULL,"
               + "    height INT NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 59:
         apply("CREATE UNIQUE INDEX asset_transfer_id_idx ON asset_transfer(id);");
       case 60:
@@ -401,7 +401,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 64:
         apply("CREATE UNIQUE INDEX reward_recip_assign_account_id_height_idx ON reward_recip_assign(account_id, height DESC);");
       case 65:
@@ -419,7 +419,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 67:
         apply("CREATE UNIQUE INDEX escrow_id_height_idx ON escrow(id, height DESC);");
       case 68:
@@ -437,7 +437,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 72:
         apply("CREATE UNIQUE INDEX escrow_decision_escrow_id_account_id_height_idx ON escrow_decision(escrow_id, account_id, height DESC);");
       case 73:
@@ -456,7 +456,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 76:
         apply("CREATE UNIQUE INDEX subscription_id_height_idx ON subscription(id, height DESC);");
       case 77:
@@ -480,7 +480,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 80:
         apply("CREATE UNIQUE INDEX at_id_height_idx ON at(id, height DESC);");
       case 81:
@@ -499,7 +499,7 @@ final class MariadbDbVersion {
               + "    height INT NOT NULL,"
               + "    latest BOOLEAN DEFAULT TRUE NOT NULL,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 83:
         apply("CREATE UNIQUE INDEX at_state_at_id_height_idx ON at_state(at_id, height DESC);");
       case 84:
@@ -527,7 +527,7 @@ final class MariadbDbVersion {
               + "    nonce BIGINT NOT NULL,"
               + "    ats BLOB,"
               + "    PRIMARY KEY (db_id)"
-              + ");");
+              + ") ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
       case 86:
         apply("CREATE UNIQUE INDEX block_id_idx ON block(id);");
       case 87:
