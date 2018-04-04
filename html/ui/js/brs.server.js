@@ -270,14 +270,27 @@ var BRS = (function(BRS, $, undefined) {
 	if (requestType == "broadcastTransaction") {
 	    type = "POST";
 	}
-
+    async = (async === undefined ? true : async);
+    if(async == false){
+      for (var prop in data) {
+        url+="&" + prop;
+        url+="="+data[prop];
+      }
+      var client = new XMLHttpRequest();
+      client.open("GET", url, false); 
+      client.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
+      client.data = data;
+      client.send();
+      var response = JSON.parse(client.responseText);
+      callback(response,data);
+    }else{
 	ajaxCall({
 	    url: url,
 	    crossDomain: true,
 	    dataType: "json",
 	    type: type,
 	    timeout: 30000,
-	    async: (async === undefined ? true : async),
+	    async: true,
 	    currentPage: currentPage,
 	    currentSubPage: currentSubPage,
 	    shouldRetry: (type == "GET" ? 2 : undefined),
@@ -427,7 +440,7 @@ var BRS = (function(BRS, $, undefined) {
 	    }
 	});
     }
-
+    }
     BRS.verifyAndSignTransactionBytes = function(transactionBytes, signature, requestType, data) {
 	var transaction = {};
 
