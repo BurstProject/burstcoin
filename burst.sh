@@ -208,7 +208,8 @@ if [[ $# -gt 0 ]] ; then
                             if wget https://download.cryptoguru.org/burst/wallet/brs.mariadb.zip ; then
                                 if unzip brs.mariadb.zip ; then
                                     if mysql -u$P_USER $P_PASS -h$P_HOST -D $P_DATA < brs.mariadb.sql ; then
-                                        echo "import sucessfull"
+                                        echo "import sucessfull - please remove brs.mariadb.zip"
+                                        rm brs.mariadb.sql
                                         exit
                                     fi
                                 fi
@@ -221,7 +222,7 @@ if [[ $# -gt 0 ]] ; then
                     if wget https://download.cryptoguru.org/burst/wallet/brs.h2.zip ; then
                         if unzip brs.h2.zip ; then
                             if mv burst.mv.db "$MY_DIR/burst_db"; then
-                                echo "import sucessfull"
+                                echo "import sucessfull - please remove brs.h2.zip"
                                 exit
                             fi
                         fi
