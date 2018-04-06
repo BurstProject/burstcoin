@@ -16,7 +16,7 @@ usage: $0 [command] [arguments]
   help                          shows the help you just read
   compile                       compile jar and create docs using maven
   upgrade                       upgrade the config files to BRS format
-  import [mariadb|h2]           drop current db, download and import a mariadb dump or a full h2 db
+  import [mariadb|h2]           DELETE current DB, then gets a new mariadb or H2
 EOF
 }
 
@@ -135,6 +135,18 @@ function upgrade_conf () {
     fi
 }
 
+function exists_or_get {
+    if [ -f $1 ]; then
+        echo "$1 already present - won't download"
+    else
+        if ! hash wget 2>/dev/null; then
+            echo "please install wget"
+            exit 99
+        fi
+        wget https://download.cryptoguru.org/burst/wallet/$1
+    fi
+}
+
 if [ -z `which java 2>/dev/null` ]; then
     echo "please install java from eg. https://java.com/download/"
     exit 1
@@ -180,10 +192,6 @@ if [[ $# -gt 0 ]] ; then
             upgrade_conf nxt.properties
             ;;
         "import")
-            if ! hash wget 2>/dev/null; then
-                echo "please install wget"
-                exit 99
-            fi
             if ! hash unzip 2>/dev/null; then
                 echo "please install unzip"
                 exit 99
@@ -203,33 +211,44 @@ if [[ $# -gt 0 ]] ; then
                     [ -z $P_DATA ] && P_DATA="brs_master"
                     [ -z $P_PASS ] || P_PASS="-p$P_PASS"
                     echo
-                    if mysql -u$P_USER $P_PASS -h$P_HOST -e "DROP DATABASE if EXISTS $P_DATA; CREATE DATABASE $P_DATA CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"; then
-                        if mysql -u$P_USER $P_PASS -h$P_HOST -D $P_DATA < "$MY_DIR/init-mysql.sql"; then
-                            if wget https://download.cryptoguru.org/burst/wallet/brs.mariadb.zip ; then
-                                if unzip brs.mariadb.zip ; then
+
+                    if exists_or_get brs.mariadb.zip ; then
+                        if unzip brs.mariadb.zip ; then
+                            if mysql -u$P_USER $P_PASS -h$P_HOST -e "DROP DATABASE if EXISTS $P_DATA; CREATE DATABASE $P_DATA CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"; then
+                                if mysql -u$P_USER $P_PASS -h$P_HOST -D $P_DATA < "$MY_DIR/init-mysql.sql"; then
                                     if mysql -u$P_USER $P_PASS -h$P_HOST -D $P_DATA < brs.mariadb.sql ; then
-                                        echo "import sucessfull - please remove brs.mariadb.zip"
+                                        echo "import successful - please remove brs.mariadb.zip"
                                         rm brs.mariadb.sql
                                         exit
                                     fi
                                 fi
                             fi
+                        else
+                            echo "unpacking mariadb archive failed"
                         fi
+                    else
+                        echo "getting mariadb archive failed"
                     fi
                 elif [[ $2 == "h2" ]]; then
-                    mkdir -p "$MY_DIR/burst_db"
-                    rm -f burst_db/burst.trace.db
-                    if wget https://download.cryptoguru.org/burst/wallet/brs.h2.zip ; then
+                    if exists_or_get brs.h2.zip ; then
+                        mkdir -p "$MY_DIR/burst_db"
+                        rm -f burst_db/burst.trace.db
                         if unzip brs.h2.zip ; then
                             if mv burst.mv.db "$MY_DIR/burst_db"; then
-                                echo "import sucessfull - please remove brs.h2.zip"
+                                echo "import successful - please remove brs.h2.zip"
                                 exit
                             fi
+                        else
+                            echo "unpacking H2 archive failed"
                         fi
+                    else
+                        echo "getting H2 archive failed"
                     fi
                 fi
+                echo "DB import did not succeed"
+            else
+                echo "cancelling DB import by user request"
             fi
-            echo "import did not succeed"
             ;;
         "h2shell")
             java -cp burst.jar org.h2.tools.Shell
