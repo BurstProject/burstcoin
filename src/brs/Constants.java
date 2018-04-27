@@ -6,8 +6,6 @@ import java.util.TimeZone;
 
 public final class Constants {
 
-  public static final int POC2_START_BLOCK = Integer.MAX_VALUE; //change to enable PoC2 blocks
-
   public static final int BURST_DIFF_ADJUST_CHANGE_BLOCK = 2700;
 
   public static final long BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK = 6500;
@@ -67,16 +65,19 @@ public final class Constants {
   public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = 0;
   public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
   public static final int VOTING_SYSTEM_BLOCK = isTestnet ? 0 : Integer.MAX_VALUE;
-  public static final int DIGITAL_GOODS_STORE_BLOCK = 11800;
+  public static final int DIGITAL_GOODS_STORE_BLOCK = isTestnet ? 1440 : 11800;
   public static final int PUBLIC_KEY_ANNOUNCEMENT_BLOCK = Integer.MAX_VALUE;
 
   public static final int MAX_AUTOMATED_TRANSACTION_NAME_LENGTH = 30;
   public static final int MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH = 1000;
-  protected static final int AUTOMATED_TRANSACTION_BLOCK = 49200;
+  protected static final int AUTOMATED_TRANSACTION_BLOCK = isTestnet ? 1440 : 49200;
   public static final int AT_BLOCK_PAYLOAD = MAX_PAYLOAD_LENGTH / 2;
-  public static final int AT_FIX_BLOCK_2 = 67000;
-  public static final int AT_FIX_BLOCK_3 = 92000;
-  public static final int AT_FIX_BLOCK_4 = 255000;
+  public static final int AT_FIX_BLOCK_2 = isTestnet ? 2880 : 67000;
+  public static final int AT_FIX_BLOCK_3 = isTestnet ? 4320 : 92000;
+  public static final int AT_FIX_BLOCK_4 = isTestnet ? 5760 : 255000;
+
+  //public static final int POC2_START_BLOCK = Integer.MAX_VALUE; //change to enable PoC2 blocks
+  public static final int POC2_START_BLOCK = isTestnet ? 144000 : 500000; // PoC2 at 500k on MainNet, 144k on TestNet
 
   public static final String MIN_VERSION = "1.3";
 

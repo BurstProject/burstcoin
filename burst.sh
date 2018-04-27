@@ -161,7 +161,7 @@ if [[ $# -gt 0 ]] ; then
 
             ## check if command exists
             if hash mvn 2>/dev/null; then
-                mvn package
+                mvn -DskipTests=true package
                 mvn javadoc:javadoc-no-fork
                 rm -rf html/ui/doc
                 mkdir -p html/ui/doc
