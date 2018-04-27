@@ -1025,7 +1025,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (remainingAmount != null && remainingAmount != calculatedRemainingAmount) {
       throw new BlockNotAcceptedException("Calculated remaining amount doesn't add up");
     }
-    if (remainingFee != null && remainingFee != calculatedRemainingFee && (!Constants.isTestnet || Burst.getBlockchain().getHeight() > 22574)) {
+    if (remainingFee != null && remainingFee != calculatedRemainingFee) {
       throw new BlockNotAcceptedException("Calculated remaining fee doesn't add up");
     }
     blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
