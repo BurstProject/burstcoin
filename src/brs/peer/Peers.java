@@ -182,9 +182,9 @@ public final class Peers {
     json.put("requestType", "getInfo");
     myPeerInfoRequest = JSON.prepareRequest(json);
 
-    rebroadcastPeers = Collections.unmodifiableSet(new HashSet<>(propertyService.getStringList(Props.P2P_REBROADCAST_TO)));
+    rebroadcastPeers = Collections.unmodifiableSet(new HashSet<>(propertyService.getStringList(Constants.isTestnet ? Props.DEV_P2P_REBROADCAST_TO : Props.P2P_REBROADCAST_TO)));
 
-    List<String> wellKnownPeersList = propertyService.getStringList(Constants.isTestnet ? Props.TEST_PEERS : Props.P2P_BOOTSTRAP_PEERS);
+    List<String> wellKnownPeersList = propertyService.getStringList(Constants.isTestnet ? Props.DEV_P2P_BOOTSTRAP_PEERS : Props.P2P_BOOTSTRAP_PEERS);
 
     for(String rePeer : rebroadcastPeers) {
       if(!wellKnownPeersList.contains(rePeer)) {
