@@ -67,7 +67,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
   }
 
   long minimumFeeNQT() {
-    return Constants.ONE_BURST;
+    return Constants.FEE_QUANT;
   }
 
 }
