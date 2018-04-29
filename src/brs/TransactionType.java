@@ -39,6 +39,7 @@ public abstract class TransactionType {
   private static final byte TYPE_AUTOMATED_TRANSACTIONS = 22;
 
   private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;
+  private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT_MULTI_OUT = 1;
 
   private static final byte SUBTYPE_MESSAGING_ARBITRARY_MESSAGE = 0;
   private static final byte SUBTYPE_MESSAGING_ALIAS_ASSIGNMENT = 1;
