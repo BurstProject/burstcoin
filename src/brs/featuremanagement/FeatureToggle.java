@@ -4,11 +4,15 @@ public enum FeatureToggle {
 
   POC2(
       new FeatureDuration(500000, null),
-      new FeatureDuration( 88000, null)
+      new FeatureDuration( 88000, null),
+      "DEV.Feature.POC2.start",
+      "DEV.Feature.POC2.end"
   ),
   PRE_DYMAXION(
       new FeatureDuration(500000, null),
-      new FeatureDuration( 88000, null)
+      new FeatureDuration( 88000, null),
+      "DEV.Feature.PRE_DYMAXION.start",
+      "DEV.Feature.PRE_DYMAXION.end"
   ),
   DYMAXION(
       // tba

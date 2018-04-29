@@ -47,21 +47,8 @@ public class FeatureServiceImpl implements FeatureService {
   }
 
   private FeatureDuration getPropertiesAlteredDuration(FeatureToggle featureToggle) {
-    int propertyValueDurationStart = -1;
-    try {
-      propertyValueDurationStart = propertyService.getInt(featureToggle.getPropertyNameStartBlock(), -1);
-    }
-    catch ( NullPointerException e ) {
-      // ignore
-    }
-    
-    int propertyValueDurationEnd = -1;
-    try {
-      propertyValueDurationEnd = propertyService.getInt(featureToggle.getPropertyNameStartBlock(), -1);
-    }
-    catch ( NullPointerException e ) {
-      // ignore
-    }
+    final int propertyValueDurationStart = featureToggle.getPropertyNameStartBlock() == null ? propertyService.getInt(featureToggle.getPropertyNameStartBlock(), -1) : -1;
+    final int propertyValueDurationEnd = featureToggle.getPropertyNameStartBlock() == null ? propertyService.getInt(featureToggle.getPropertyNameStartBlock(), -1) : -1;
 
     if(propertyValueDurationStart != -1 || propertyValueDurationEnd != -1) {
       return new FeatureDuration(
