@@ -12,11 +12,21 @@ function usage() {
     cat << EOF
 usage: $0 [command] [arguments]
 
-  h2shell                       open a H2 shell for DB manipulation
   help                          shows the help you just read
   compile                       compile jar and create docs using maven
-  upgrade                       upgrade the config files to BRS format
+  h2shell                       open a H2 shell for DB manipulation
   import [mariadb|h2]           DELETE current DB, then gets a new mariadb or H2
+  switch <instance>             switch config file to instance (MainNet,TestNet...)
+  upgrade                       upgrade the config files to BRS format
+
+
+"switch" option is for developers who need to quickly switch between various
+configurations files. If you have
+  conf/brs.properties.MainNet
+  conf/brs.properties.TestNet
+  conf/brs.properties.LocalDev
+you can activate your MainNet config with "burst.sh switch MainNet" 
+
 EOF
 }
 
@@ -187,9 +197,8 @@ if [[ $# -gt 0 ]] ; then
                 fi
             fi
             ;;
-        "upgrade")
-            upgrade_conf nxt-default.properties
-            upgrade_conf nxt.properties
+        "h2shell")
+            java -cp burst.jar org.h2.tools.Shell
             ;;
         "import")
             if ! hash unzip 2>/dev/null; then
@@ -199,7 +208,7 @@ if [[ $# -gt 0 ]] ; then
             read -p "Do you want to remove the current databases, download and import new one? " -n 1 -r
             echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
-                if [[ $2 == "mariadb" ]]; then
+                if [[ $MY_ARG == "mariadb" ]]; then
                     echo
                     echo "Please enter your connection details"
                     read -rp  "Host     (localhost) : " P_HOST
@@ -229,7 +238,7 @@ if [[ $# -gt 0 ]] ; then
                     else
                         echo "getting mariadb archive failed"
                     fi
-                elif [[ $2 == "h2" ]]; then
+                elif [[ $MY_ARG == "h2" ]]; then
                     if exists_or_get brs.h2.zip ; then
                         mkdir -p "$MY_DIR/burst_db"
                         rm -f burst_db/burst.trace.db
@@ -250,8 +259,21 @@ if [[ $# -gt 0 ]] ; then
                 echo "cancelling DB import by user request"
             fi
             ;;
-        "h2shell")
-            java -cp burst.jar org.h2.tools.Shell
+        "switch")
+            CONF_BASE=conf/brs.properties         # our symlink
+            CONF_TGT=brs.properties.$MY_ARG       # target of our symlink
+
+            if [[ (-L "$CONF_BASE" || ! -f $CONF_BASE) &&  -f "conf/$CONF_TGT" ]]
+            then
+                rm -f $CONF_BASE
+                ln -s $CONF_TGT $CONF_BASE 
+            else
+                echo "$CONF_BASE exists and not a symlink or conf/$CONF_TGT nonexistant."
+            fi
+            ;;
+        "upgrade")
+            upgrade_conf nxt-default.properties
+            upgrade_conf nxt.properties
             ;;
         *)
             usage
