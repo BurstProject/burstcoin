@@ -111,6 +111,8 @@ public abstract class TransactionType {
         switch (subtype) {
           case SUBTYPE_PAYMENT_ORDINARY_PAYMENT:
             return Payment.ORDINARY;
+          case SUBTYPE_PAYMENT_ORDINARY_PAYMENT_MULTI_OUT:
+            return Payment.MULTI_OUT;
           default:
             return null;   
         }
@@ -304,21 +306,16 @@ public abstract class TransactionType {
     }
 
     @Override
-    final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+    boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
       return true;
     }
 
     @Override
-    final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+    void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
     }
 
     @Override
-    final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-    }
-
-    @Override
-    public final boolean hasRecipient() {
-      return true;
+    void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
     }
 
     public static final TransactionType ORDINARY = new Payment() {
@@ -345,7 +342,68 @@ public abstract class TransactionType {
           }
         }
 
+        @Override
+        public final boolean hasRecipient() {
+          return true;
+       }
+
       };
+
+    public static final TransactionType MULTI_OUT = new Payment() {
+
+      @Override
+      public final byte getSubtype() { return TransactionType.SUBTYPE_PAYMENT_ORDINARY_PAYMENT_MULTI_OUT; }
+
+      @Override
+      public Attachment.PaymentMultiOutCreation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        return new Attachment.PaymentMultiOutCreation(buffer, transactionVersion);
+      }
+
+      @Override
+      Attachment.PaymentMultiOutCreation parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        return new Attachment.PaymentMultiOutCreation(attachmentData);
+      }
+
+      @Override
+      void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
+        Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
+        if (attachment.getAmountNQT() <= 0 || attachment.getAmountNQT() >= Constants.MAX_BALANCE_NQT || attachment.getRecipients().size() < 2) {
+          throw new BurstException.NotValidException("Invalid multi out payment");
+        }
+      }
+
+      @Override
+      final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        logger.trace("TransactionType MULTI_OUT_PAYMENT;");
+        Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
+        Long totalAmountNQT = attachment.getAmountNQT();
+        if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT) {
+          return false;
+        }
+        accountService.addToUnconfirmedBalanceNQT(senderAccount, -totalAmountNQT);
+        return true;
+      }
+
+      @Override
+      final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
+        Long totalAmountNQT = attachment.getAmountNQT();
+        accountService.addToBalanceNQT(senderAccount, -totalAmountNQT);
+        attachment.getRecipients().forEach(e -> { accountService.addToBalanceNQT(accountService.getOrAddAccount(e.getKey()), e.getValue()); });
+      }
+
+      @Override
+      final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
+        Long totalAmountNQT = attachment.getAmountNQT();
+        accountService.addToUnconfirmedBalanceNQT(senderAccount, totalAmountNQT);
+      }
+
+      @Override
+      public final boolean hasRecipient() {
+        return false;
+      }
+    };
 
   }
 

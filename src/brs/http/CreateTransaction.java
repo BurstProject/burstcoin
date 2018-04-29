@@ -42,6 +42,11 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
     return result;
   }
 
+  CreateTransaction(APITag[] apiTags, APITransactionManager apiTransactionManager, boolean replaceParameters, String... parameters) {
+    super(apiTags, replaceParameters ? parameters : addCommonParameters(parameters));
+    this.apiTransactionManager = apiTransactionManager;
+  }
+
   CreateTransaction(APITag[] apiTags, APITransactionManager apiTransactionManager, String... parameters) {
     super(apiTags, addCommonParameters(parameters));
     this.apiTransactionManager = apiTransactionManager;
