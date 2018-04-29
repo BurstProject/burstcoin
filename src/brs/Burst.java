@@ -268,7 +268,7 @@ public final class Burst {
 
       DebugTrace.init(propertyService, blockchainProcessor, accountService, tradeService, orderService, digitalGoodsStoreService);
 
-      int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(propertyService.getInt(Props.DEV_TIMEWARP), 1) : 1;
+      int timeMultiplier = (propertyService.getBoolean(Props.DEV_TESTNET) && propertyService.getBoolean(Props.DEV_OFFLINE)) ? Math.max(propertyService.getInt(Props.DEV_TIMEWARP), 1) : 1;
 
       threadPool.start(timeMultiplier);
       if (timeMultiplier > 1) {
@@ -280,7 +280,7 @@ public final class Burst {
       logger.info("Initialization took " + (currentTime - startTime) + " ms");
       logger.info("BRS " + VERSION + " started successfully.");
 
-      if (Constants.isTestnet) {
+      if (propertyService.getBoolean(Props.DEV_TESTNET)) {
         logger.info("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
       }
     } catch (Exception e) {

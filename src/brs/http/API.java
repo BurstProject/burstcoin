@@ -65,7 +65,7 @@ public final class API {
     boolean enableAPIServer = propertyService.getBoolean(Props.API_SERVER);
     if (enableAPIServer) {
       final String host = propertyService.getString(Props.API_LISTEN);
-      final int    port = Constants.isTestnet ? TESTNET_API_PORT : propertyService.getInt(Props.API_PORT);
+      final int    port = propertyService.getBoolean(Props.DEV_TESTNET) ? TESTNET_API_PORT : propertyService.getInt(Props.API_PORT);
       apiServer = new Server();
       ServerConnector connector;
 

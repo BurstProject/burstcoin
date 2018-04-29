@@ -1,6 +1,7 @@
 package brs.peer;
 
 import brs.*;
+import brs.common.Props;
 import brs.util.Convert;
 import brs.util.CountingInputStream;
 import brs.util.CountingOutputStream;
@@ -292,7 +293,7 @@ final class PeerImpl implements Peer {
       buf.append(address);
       if (port <= 0) {
         buf.append(':');
-        buf.append(Constants.isTestnet ? Peers.TESTNET_PEER_PORT : Peers.DEFAULT_PEER_PORT);
+        buf.append(Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? Peers.TESTNET_PEER_PORT : Peers.DEFAULT_PEER_PORT);
       }
       buf.append("/burst");
       URL url = new URL(buf.toString());
