@@ -28,21 +28,29 @@ my $ua      = LWP::UserAgent->new(
 #    ssl_opts => { verify_hostname => 1 },
 );
 
-my $URLBASE = 'http://localhost:8125/burst?requestType=';
-
 my %config = (
-    server_url     => $URLBASE,
+    protocol    => ($ENV{BRS_APITEST_PROTO}  // 'http'),
+    server      => ($ENV{BRS_APITEST_SERVER} // 'localhost'),
+    port        => ($ENV{BRS_APITEST_PORT}   // 8125),
     max_retries => 3,
 );
 
+my $API_URL = $config{protocol}
+            . '://'
+            . $config{server}
+            . ':'
+            . $config{port}
+            . '/burst'
+            ;
 
 # skip: default 0 (if to skip that test)
-# type: default GET
+# meth: http method (default GET)
 # args: default none/undef
 our $reqtypes = [ # we want to define a sequence of tests
     # {{{ getAllAssets
     {
         name => 'getAllAssets',
+        meth => 'POST',
         required => {
             assets => {
                 type => '//arr',
@@ -373,28 +381,42 @@ sub loop_reqtypes {
     my $tests = 0;
 
   LOOP_REQS:
-    for my $rtype (@{$reqtypes}) {
-        next LOOP_REQS if ($rtype->{skip});
+    for my $rtype (@{$reqtypes}) {                          # iterate all tests
+        my $rt_name = $rtype->{name};                       # get reqestType names (defines also name of test)
 
-        my $rt_name   = $rtype->{name};
-        my $rt_schema = build_schema($rtype);
-        my $rt_args   = $rtype->{args};
-        my $reply     = talk2wallet($rt_name, $rt_args);
+        if ($rtype->{skip}) {                               # Skip handling
+            say "$rt_name skipped by user request.";
+            next LOOP_REQS;
+        }
 
-        print Dumper($reply) if $rtype->{debug};
+        my $rt_args   = {                                   # build hashref with arguments for a given requestType
+            requestType => $rt_name,                        # the requestType itself is a key => value argument
+            %{$rtype->{args} // {}}                               # add the argument payload
+        };
 
-        my $valid   = $rt_schema->check($reply);
-        my $testtxt = $rt_name                             # build test text
-                    . ($rtype->{txt} ? " - $$rtype{txt}"   # with more than just req name
-                                     : '')                 # if available
-                                     ;
-        ok($valid, $testtxt);
+        my $rt_meth = $rtype->{meth} // 'GET';              # use HTTP method (default: GET)
+        my $reply   = talk2wallet($rt_meth, $rt_args);      # make the API request
+
+        print Dumper($reply) if $rtype->{debug};            # debug what's going on
+
+        my $rt_schema = build_schema($rtype);               # build the Data::Rx schema for the validation
+        my $valid     = $rt_schema->check($reply);          # perform the Data::Rx schema check
+        my $testtxt   = $rt_name                            # build test text
+                      . ($rtype->{txt} ? " - $$rtype{txt}"  # with more than just req name
+                                       : '')                # if available
+                                       ;
+        ok($valid, $testtxt);                               # judge the actual test (valid/not valid) and inform user
         $tests++;
 
-        if (!$valid) {
-            print Dumper($reply);
-            my $rx_failure = $rt_schema->assert_valid($reply);
-            print Dumper($rx_failure);
+        if (!$valid) {                                      # if test result wasn't valid/no success
+            eval {                                          # catch exceptions
+                say Dumper($reply);
+                my $rx_failure  = $rt_schema->assert_valid($reply);
+                my @rx_failures = $rx_failure->failures;
+            };
+            if ($@) {
+                say "CATCH";
+            }
         }
     }
 
@@ -421,39 +443,22 @@ sub build_schema {
 # {{{ talk2wallet                  talk to the wallet
 
 sub talk2wallet {
-    my $path    = shift;                # relative URL on server
-    my $send    = shift;                # data to send to server
+    my $method  = shift;                # use GET/POST/...
+    my $data    = shift;                # data to send to server
     my $verbose = shift // 1;           # do we want status reports (default: yes)
 
-    my $json    = JSON->new->utf8->allow_blessed->allow_bignum;       # create JSON object with features
-    my $request;
+    my $URI = $API_URL . '?' . hash2get($data);
 
-    if (defined $send) {
-#    print "$config{server_url}$path\n";
+    #say "$method -> $URI";
 
-    #     my $content = $json->encode($send);                               # convert Perl structure to JSON
-    #     my $header  = HTTP::Headers->new(                                 # construct HTTP header
-    #         Content_Length => length($content),
-    #         Content_Type   => 'application/json;charset=utf-8'
-    #     );
-    #     $request = HTTP::Request->new('POST',
-    #                                   "$config{server_url}$path",
-    #                                   $header,
-    #                                   $content);
-    # }
-    # else {
-        $path .= ('&' . hash2get($send));
-    }
+    my $request = HTTP::Request->new($method,
+                                     $URI);
 
+    my $retries  = $config{max_retries};                              # number of retries in case the server does not answer
+    my $response = _get_srv_response($request, $verbose);             # hold the response from the server.
+    my $json     = JSON->new->utf8->allow_blessed->allow_bignum;      # create JSON object with features (for wallet answer)
 
-
-    $request = HTTP::Request->new('GET',
-                                  "$config{server_url}$path");
-
-    my $retries  = $config{max_retries};                    # number of retries in case the server does not answer
-    my $response = _get_srv_response($request, $verbose);   # hold the response from the server.
-
-    return $json->decode($response);                        # decode answer to Perl structure
+    return $json->decode($response);                                  # decode JSON answer to Perl structure
 }
 
 # }}}
@@ -470,7 +475,7 @@ sub _get_srv_response {
     while ($retries--) {                                         # prepare to have to retry connecting to server
         $response = $ua->request($request);                      # get answer
 
-        last SRVCON_LOOP if ($response->is_success);        # end connect loop if all ok
+        last SRVCON_LOOP if ($response->is_success);             # end connect loop if all ok
 
         # HERE: Problems connecting to server. So retry.
         my $status = $response->status_line;                     # get status line message
