@@ -14,6 +14,7 @@ import brs.db.store.BlockchainStore;
 import brs.db.store.Dbs;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
+import brs.featuremanagement.FeatureServiceImpl;
 import brs.http.API;
 import brs.http.APITransactionManager;
 import brs.http.APITransactionManagerImpl;
@@ -83,6 +84,7 @@ public final class Burst {
   private static TransactionProcessorImpl transactionProcessor;
 
   private static PropertyService propertyService;
+  private static FeatureServiceImpl featureService;
 
   private static EconomicClustering economicClustering;
 
@@ -233,6 +235,8 @@ public final class Burst {
       final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
       final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
+      Burst.featureService = new FeatureServiceImpl(blockchain, aliasService, propertyService);
+
       final DownloadCacheImpl downloadCache = new DownloadCacheImpl(propertyService, blockchain);
 
       final BlockService blockService = new BlockServiceImpl(accountService, transactionService, blockchain, downloadCache, generator);
@@ -319,4 +323,7 @@ public final class Burst {
     return propertyService;
   }
 
+  public static FeatureServiceImpl getFeatureService() {
+    return featureService;
+  }
 }
