@@ -220,7 +220,7 @@ public final class Burst {
       final TransactionService transactionService = new TransactionServiceImpl(accountService, blockchain);
 
       transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain, stores, timeService, dbs,
-          accountService, transactionService, threadPool);
+          accountService, transactionService, threadPool, dbCacheManager);
 
       final ATService atService = new ATServiceImpl(stores.getAtStore());
       final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());

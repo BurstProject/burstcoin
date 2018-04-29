@@ -19,7 +19,7 @@ public class TestConstants {
 
   public static final String DEADLINE = "400";
 
-  public static final String FEE = "" + Constants.ONE_BURST;
+  public static final String FEE = "" + Constants.FEE_QUANT;
 
   public static final long TEN_BURST = Constants.ONE_BURST * 10;
 }

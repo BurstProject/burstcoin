@@ -77,11 +77,8 @@ public abstract class TransactionType {
   private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT = 5;
 
   private static final int BASELINE_FEE_HEIGHT = 1; // At release time must be less than current block - 1440
-  private static final Fee BASELINE_FEE = new Fee(Constants.ONE_BURST, 0);
-  private static final Fee BASELINE_ASSET_ISSUANCE_FEE = new Fee(1000 * Constants.ONE_BURST, 0);
-  private static final int NEXT_FEE_HEIGHT = Integer.MAX_VALUE;
-  private static final Fee NEXT_FEE = new Fee(Constants.ONE_BURST, 0);
-  private static final Fee NEXT_ASSET_ISSUANCE_FEE = new Fee(1000 * Constants.ONE_BURST, 0);
+  private static final Fee BASELINE_FEE = new Fee(Constants.FEE_QUANT, 0);
+  private static final Fee BASELINE_ASSET_ISSUANCE_FEE = new Fee(Constants.ASSET_ISSUANCE_FEE_NQT, 0);
 
   private static Blockchain blockchain;
   private static AccountService accountService;
@@ -668,11 +665,6 @@ public abstract class TransactionType {
         @Override
         public Fee getBaselineFee() {
           return BASELINE_ASSET_ISSUANCE_FEE;
-        }
-
-        @Override
-        public Fee getNextFee() {
-          return NEXT_ASSET_ISSUANCE_FEE;
         }
 
         @Override
@@ -2245,21 +2237,12 @@ public abstract class TransactionType {
     if (height < BASELINE_FEE_HEIGHT) {
       return 0; // No need to validate fees before baseline block
     }
-    Fee fee;
-    if (height >= NEXT_FEE_HEIGHT) {
-      fee = getNextFee();
-    } else {
-      fee = getBaselineFee();
-    }
+    Fee fee = getBaselineFee();
     return Convert.safeAdd(fee.getConstantFee(), Convert.safeMultiply(appendagesSize, fee.getAppendagesFee()));
   }
 
   protected Fee getBaselineFee() {
     return BASELINE_FEE;
-  }
-
-  protected Fee getNextFee() {
-    return NEXT_FEE;
   }
 
   public static final class Fee {

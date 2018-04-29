@@ -26,13 +26,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
+import java.util.stream.Collectors;
+import org.ehcache.Cache;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -1100,14 +1104,45 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   public void generateBlock(String secretPhrase, byte[] publicKey, Long nonce)
       throws BlockNotAcceptedException {
 
+    stores.beginTransaction();
+
+    ArrayList<Transaction> unconfirmedTransactionsOrderedByFee = new ArrayList<>();
+    dbCacheManager.getCache("unconfirmedTransaction").forEach(
+        e -> {
+          Transaction transaction = (Transaction) ((Cache.Entry) e).getValue();
+          unconfirmedTransactionsOrderedByFee.add(transaction);
+        }
+    );
+    unconfirmedTransactionsOrderedByFee.sort((o2, o1) -> ((Long)o1.getFeeNQT()).compareTo(o2.getFeeNQT()));
+
+    int blocksize = Constants.MAX_NUMBER_OF_TRANSACTIONS;
     List<Transaction> orderedUnconfirmedTransactions = new ArrayList<>();
-    try (FilteringIterator<Transaction> transactions =
-        new FilteringIterator<>(transactionProcessor.getAllUnconfirmedTransactions(),
-                transaction -> hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0))) {
-      while (transactions.hasNext()) {
-        orderedUnconfirmedTransactions.add(transactions.next());
-      }
+
+    for ( Transaction transaction : unconfirmedTransactionsOrderedByFee ) {
+      do {
+        Long slotFee = blocksize * Constants.FEE_QUANT;
+        if (transaction.getFeeNQT() >= slotFee) {
+          if (transactionService.applyUnconfirmed(transaction)) {
+            if (hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0)) {
+              orderedUnconfirmedTransactions.add(transaction);
+              blocksize--;
+            }
+          }
+          else {
+            dbCacheManager.getCache("unconfirmedTransaction").remove(transaction.getId());
+          }
+        }
+        else {
+          blocksize--;
+        }
+      } while ( blocksize > 0 );
     }
+
+    accountService.flushAccountTable();
+    stores.rollbackTransaction();
+    stores.commitTransaction();
+    stores.endTransaction();
+
 
     Block previousBlock = blockchain.getLastBlock();
 
@@ -1166,7 +1201,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         } catch (BurstException.NotCurrentlyValidException e) {
           continue;
         } catch (BurstException.ValidationException e) {
-          transactionProcessor.removeUnconfirmedTransaction(transaction);
+          dbCacheManager.getCache("unconfirmedTransaction").remove(transaction.getId());
           continue;
         }
 
@@ -1187,7 +1222,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       try {
         stores.beginTransaction();
         transactionProcessor.requeueAllUnconfirmedTransactions();
-        // transactionProcessor.processTransactions(newTransactions, false);
+        // transactionProcessor.AavenprocessTransactions(newTransactions, false);
         blockTransactions.forEach(transactionService::applyUnconfirmed);
         totalFeeNQT += subscriptionService.calculateFees(blockTimestamp);
       } finally {
@@ -1245,7 +1280,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       logger.debug("Generate block failed: " + e.getMessage());
       Transaction transaction = e.getTransaction();
       logger.debug("Removing invalid transaction: " + transaction.getStringId());
-      transactionProcessor.removeUnconfirmedTransaction(transaction);
+      dbCacheManager.getCache("unconfirmedTransaction").remove(transaction.getId());
       throw e;
     } catch (BlockNotAcceptedException e) {
       logger.debug("Generate block failed: " + e.getMessage());
