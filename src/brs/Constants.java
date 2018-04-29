@@ -1,5 +1,7 @@
 package brs;
 
+import static brs.featuremanagement.FeatureToggle.PRE_DYMAXION;
+
 import brs.common.Props;
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -18,8 +20,7 @@ public final class Constants {
   public static final int BURST_SUBSCRIPTION_MAX_FREQ = 31536000;
 
   public static final int BLOCK_HEADER_LENGTH = 232;
-  //public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
-  public static final int MAX_NUMBER_OF_TRANSACTIONS = 1020;
+  public static final int MAX_NUMBER_OF_TRANSACTIONS = Burst.getFeatureService().isActive(PRE_DYMAXION) ? 1020 : 255;
   public static final int MAX_PAYLOAD_LENGTH = MAX_NUMBER_OF_TRANSACTIONS * 176;
   public static final long MAX_BALANCE_BURST = 2158812800L;
   
@@ -63,14 +64,9 @@ public final class Constants {
   public static final boolean isTestnet = Burst.getPropertyService().getBoolean(Props.DEV_TESTNET);
   public static final boolean isOffline = Burst.getPropertyService().getBoolean(Props.DEV_OFFLINE);
 
-  public static final int ALIAS_SYSTEM_BLOCK = 0;
-  public static final int ARBITRARY_MESSAGES_BLOCK = 0;
   public static final int NQT_BLOCK = 0;
-  public static final int FRACTIONAL_BLOCK = 0;
-  public static final int ASSET_EXCHANGE_BLOCK = 0;
   public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = 0;
   public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
-  public static final int VOTING_SYSTEM_BLOCK = isTestnet ? 0 : Integer.MAX_VALUE;
   public static final int DIGITAL_GOODS_STORE_BLOCK = isTestnet ? 1440 : 11800;
   public static final int PUBLIC_KEY_ANNOUNCEMENT_BLOCK = Integer.MAX_VALUE;
 
@@ -81,9 +77,6 @@ public final class Constants {
   public static final int AT_FIX_BLOCK_2 = isTestnet ? 2880 : 67000;
   public static final int AT_FIX_BLOCK_3 = isTestnet ? 4320 : 92000;
   public static final int AT_FIX_BLOCK_4 = isTestnet ? 5760 : 255000;
-
-  //public static final int POC2_START_BLOCK = Integer.MAX_VALUE; //change to enable PoC2 blocks
-  public static final int POC2_START_BLOCK = isTestnet ? 144000 : 500000; // PoC2 at 500k on MainNet, 144k on TestNet
 
   public static final String MIN_VERSION = "1.3";
 

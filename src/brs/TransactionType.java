@@ -1,5 +1,9 @@
 package brs;
 
+import static brs.Constants.FEE_QUANT;
+import static brs.Constants.ONE_BURST;
+import static brs.featuremanagement.FeatureToggle.PRE_DYMAXION;
+
 import brs.Attachment.AbstractAttachment;
 import brs.Attachment.AutomatedTransactionsCreation;
 import brs.BurstException.NotValidException;
@@ -78,7 +82,7 @@ public abstract class TransactionType {
   private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT = 5;
 
   private static final int BASELINE_FEE_HEIGHT = 1; // At release time must be less than current block - 1440
-  private static final Fee BASELINE_FEE = new Fee(Constants.FEE_QUANT, 0);
+  private static final Fee BASELINE_FEE = new Fee((Burst.getFeatureService().isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST), 0);
   private static final Fee BASELINE_ASSET_ISSUANCE_FEE = new Fee(Constants.ASSET_ISSUANCE_FEE_NQT, 0);
 
   private static Blockchain blockchain;

@@ -1,5 +1,8 @@
 package brs.util;
 
+import static brs.featuremanagement.FeatureToggle.POC2;
+
+import brs.featuremanagement.FeatureService;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -17,7 +20,10 @@ public class MiningPlot {
 
   private byte[] data = new byte[PLOT_SIZE];
 
-  public MiningPlot(long addr, long nonce, int blockHeight) {
+  private FeatureService featureService;
+
+  public MiningPlot(long addr, long nonce, int blockHeight, FeatureService featureService) {
+    this.featureService = featureService;
     ByteBuffer base_buffer = ByteBuffer.allocate(16);
     base_buffer.putLong(addr);
     base_buffer.putLong(nonce);
@@ -41,7 +47,7 @@ public class MiningPlot {
       data[i] = (byte) (gendata[i] ^ finalhash[i % HASH_SIZE]);
     }
     //PoC2 Rearrangement
-    if (blockHeight >= Constants.POC2_START_BLOCK) {
+    if (featureService.isActive(POC2)) {
       byte[] hashBuffer = new byte[HASH_SIZE];
       int revPos = PLOT_SIZE - HASH_SIZE; //Start at second hash in last scoop
       for (int pos = 32; pos < (PLOT_SIZE / 2); pos += 64) { //Start at second hash in first scoop

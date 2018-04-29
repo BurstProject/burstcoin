@@ -5,14 +5,22 @@ import static brs.common.AliasNames.DYMAXION_START_BLOCK;
 
 public enum FeatureToggle {
 
-  FEATURE_ONE(new FeatureDuration(null, 420000)), FEATURE_TWO(new FeatureDuration(420000, 430000), new FeatureDuration(20000, 30000)), FEATURE_THREE(new FeatureDuration(DYMAXION_START_BLOCK, DYMAXION_END_BLOCK));
+  POC2(
+      new FeatureDuration(500000, null),
+      new FeatureDuration( 88000, null)
+  ),
+  PRE_DYMAXION(
+      new FeatureDuration(500000, null),
+      new FeatureDuration( 88000, null)
+  ),
+  DYMAXION(
+      // tba
+      new FeatureDuration(Integer.MAX_VALUE, null),
+      new FeatureDuration(Integer.MAX_VALUE, null)
+  );
 
   private final FeatureDuration featureDurationProductionNet;
   private final FeatureDuration featureDurationTestNet;
-
-  FeatureToggle(FeatureDuration featureDurationProduction) {
-    this(featureDurationProduction, featureDurationProduction);
-  }
 
   FeatureToggle(FeatureDuration featureDurationProductionNet, FeatureDuration featureDurationTestNet) {
     this.featureDurationProductionNet = featureDurationProductionNet;

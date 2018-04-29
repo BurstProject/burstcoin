@@ -6,6 +6,9 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
+import static brs.Constants.FEE_QUANT;
+import static brs.Constants.ONE_BURST;
+import static brs.featuremanagement.FeatureToggle.PRE_DYMAXION;
 import static brs.http.common.Parameters.BROADCAST_PARAMETER;
 import static brs.http.common.Parameters.DEADLINE_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_DATA_PARAMETER;
@@ -72,7 +75,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
   }
 
   long minimumFeeNQT() {
-    return Constants.FEE_QUANT;
+    return Burst.getFeatureService().isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST;
   }
 
 }
