@@ -577,6 +577,7 @@
     "no_asset_found": "Aset tidak ditemukan.",
     "no_asset_search_results": "Aset tidak ditemukan yang cocok dengan permintaan pencarian.",
     "no_asset_selected": "Silakan pilih aset di sidebar kiri.",
+    "no_asset_transfer_history": "No asset transfer history available.",
     "no_blocks_found": "Blok tidak ditemukan.",
     "no_buy_orders_for_asset": "Tidak ada pesanan untuk membeli aset ini.",
     "no_completed_orders_found": "Menyelesaikan pesanan tidak ditemukan.",
@@ -854,6 +855,7 @@
     "transfer": "Transfer",
     "transfer_alias": "Mentransfer Alias",
     "transfer_asset": "Transfer Aset",
+    "transfer_history": "Transfer History",
     "transfer_in_progress": "Mentransfer dalam kemajuan",
     "type": "Tipe",
     "unconfirmed_balance": "Saldo yang belum dikonfirmasi",
@@ -912,5 +914,5 @@
     "you_received_assets_plural": "You received <a href='#' data-goto-asset='__asset__'>__count__ __name__ assets<\/a>.",
     "you_received_message": "You received a <a href='#' data-goto-messages-account='__account__'>message</a> from __name__.",
     "you_sold_assets": "You sold or transferred <a href='#' data-goto-asset='__asset__'>1 __name__ asset<\/a>.",
-    "you_sold_assets_plural": "You sold or transferred <a href='#' data-goto-asset='__asset__'>__count__ __name__ assets<\/a>.",
+    "you_sold_assets_plural": "You sold or transferred <a href='#' data-goto-asset='__asset__'>__count__ __name__ assets<\/a>."
 }
