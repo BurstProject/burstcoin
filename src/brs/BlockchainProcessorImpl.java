@@ -1,6 +1,8 @@
 package brs;
 
 import static brs.Constants.FEE_QUANT;
+import static brs.Constants.MAX_NUMBER_OF_TRANSACTIONS;
+import static brs.Constants.MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION;
 import static brs.Constants.ONE_BURST;
 import static brs.featuremanagement.FeatureToggle.PRE_DYMAXION;
 
@@ -1119,7 +1121,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     );
     unconfirmedTransactionsOrderedByFee.sort((o2, o1) -> ((Long)o1.getFeeNQT()).compareTo(o2.getFeeNQT()));
 
-    int blocksize = Constants.MAX_NUMBER_OF_TRANSACTIONS;
+    int blocksize = Burst.getFeatureService().isActive(PRE_DYMAXION) ? MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION : MAX_NUMBER_OF_TRANSACTIONS;
     List<Transaction> orderedUnconfirmedTransactions = new ArrayList<>();
 
     for ( Transaction transaction : unconfirmedTransactionsOrderedByFee ) {
@@ -1161,13 +1163,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     int blockTimestamp = timeService.getEpochTime();
 
     while (payloadLength <= Constants.MAX_PAYLOAD_LENGTH
-        && blockTransactions.size() <= Constants.MAX_NUMBER_OF_TRANSACTIONS) {
+        && blockTransactions.size() <= (Burst.getFeatureService().isActive(PRE_DYMAXION) ? MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION : MAX_NUMBER_OF_TRANSACTIONS)) {
 
       int prevNumberOfNewTransactions = blockTransactions.size();
 
       for (Transaction transaction : orderedUnconfirmedTransactions) {
 
-        if (blockTransactions.size() >= Constants.MAX_NUMBER_OF_TRANSACTIONS) {
+        if (blockTransactions.size() >= (Burst.getFeatureService().isActive(PRE_DYMAXION) ? MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION : MAX_NUMBER_OF_TRANSACTIONS)) {
           break;
         }
 

@@ -1,5 +1,9 @@
 package brs;
 
+import static brs.Constants.MAX_NUMBER_OF_TRANSACTIONS;
+import static brs.Constants.MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION;
+import static brs.featuremanagement.FeatureToggle.PRE_DYMAXION;
+
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -76,7 +80,7 @@ public class Block {
     this.previousBlockHash = previousBlockHash;
     if (transactions != null) {
       this.blockTransactions = Collections.unmodifiableList(transactions);
-      if (blockTransactions.size() > Constants.MAX_NUMBER_OF_TRANSACTIONS) {
+      if (blockTransactions.size() > (Burst.getFeatureService().isActive(PRE_DYMAXION) ? MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION : MAX_NUMBER_OF_TRANSACTIONS)) {
         throw new BurstException.NotValidException(
             "attempted to create a block with " + blockTransactions.size() + " transactions");
       }
