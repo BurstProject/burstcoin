@@ -24,6 +24,7 @@ public final class Constants {
   public static final int MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION = 1020;
 
   public static final int MAX_PAYLOAD_LENGTH = MAX_NUMBER_OF_TRANSACTIONS * 176;
+  public static final int MAX_PAYLOAD_LENGTH_PRE_DYMAXION = MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION * 176;
   public static final long MAX_BALANCE_BURST = 2158812800L;
   
   public static final long FEE_QUANT =    735000;

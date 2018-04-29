@@ -3,6 +3,8 @@ package brs;
 import static brs.Constants.FEE_QUANT;
 import static brs.Constants.MAX_NUMBER_OF_TRANSACTIONS;
 import static brs.Constants.MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION;
+import static brs.Constants.MAX_PAYLOAD_LENGTH;
+import static brs.Constants.MAX_PAYLOAD_LENGTH_PRE_DYMAXION;
 import static brs.Constants.ONE_BURST;
 import static brs.featuremanagement.FeatureToggle.PRE_DYMAXION;
 
@@ -1162,7 +1164,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     int blockTimestamp = timeService.getEpochTime();
 
-    while (payloadLength <= Constants.MAX_PAYLOAD_LENGTH
+    while (payloadLength <= (Burst.getFeatureService().isActive(PRE_DYMAXION) ? MAX_PAYLOAD_LENGTH_PRE_DYMAXION : MAX_PAYLOAD_LENGTH)
         && blockTransactions.size() <= (Burst.getFeatureService().isActive(PRE_DYMAXION) ? MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION : MAX_NUMBER_OF_TRANSACTIONS)) {
 
       int prevNumberOfNewTransactions = blockTransactions.size();
@@ -1175,7 +1177,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
         int transactionLength = transaction.getSize();
         if (blockTransactions.contains(transaction)
-            || payloadLength + transactionLength > Constants.MAX_PAYLOAD_LENGTH) {
+            || payloadLength + transactionLength > (Burst.getFeatureService().isActive(PRE_DYMAXION) ? MAX_PAYLOAD_LENGTH_PRE_DYMAXION : MAX_PAYLOAD_LENGTH)) {
           continue;
         }
 
@@ -1243,7 +1245,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     AT.clearPendingFees();
     AT.clearPendingTransactions();
     AT_Block atBlock = AT_Controller.getCurrentBlockATs(
-        Constants.MAX_PAYLOAD_LENGTH - payloadLength, previousBlock.getHeight() + 1);
+        (Burst.getFeatureService().isActive(PRE_DYMAXION) ? MAX_PAYLOAD_LENGTH_PRE_DYMAXION : MAX_PAYLOAD_LENGTH) - payloadLength, previousBlock.getHeight() + 1);
     byte[] byteATs = atBlock.getBytesForBlock();
 
     // digesting AT Bytes
