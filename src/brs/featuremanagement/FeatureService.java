@@ -1,6 +1,4 @@
-package brs.services;
-
-import brs.common.FeatureToggle;
+package brs.featuremanagement;
 
 public interface FeatureService {
 

@@ -1,26 +1,28 @@
-package brs.services.impl;
+package brs.featuremanagement;
 
 import static brs.common.AliasNames.DYMAXION_END_BLOCK;
 import static brs.common.AliasNames.DYMAXION_START_BLOCK;
-import static brs.common.FeatureToggle.FEATURE_THREE;
-import static brs.common.FeatureToggle.FEATURE_TWO;
+import static brs.featuremanagement.FeatureToggle.FEATURE_THREE;
+import static brs.featuremanagement.FeatureToggle.FEATURE_TWO;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Alias;
 import brs.Blockchain;
+import brs.common.Props;
 import brs.services.AliasService;
+import brs.services.PropertyService;
 import org.junit.Before;
 import org.junit.Test;
 
 public class FeatureServiceImplTest {
 
   private Blockchain blockchainMock;
-
   private AliasService aliasServiceMock;
+  private PropertyService propertyServiceMock;
 
   private FeatureServiceImpl t;
 
@@ -28,8 +30,11 @@ public class FeatureServiceImplTest {
   public void setUp() {
     blockchainMock = mock(Blockchain.class);
     aliasServiceMock = mock(AliasService.class);
+    propertyServiceMock = mock(PropertyService.class);
 
-    t = new FeatureServiceImpl(blockchainMock, aliasServiceMock);
+    when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(false);
+
+    t = new FeatureServiceImpl(blockchainMock, aliasServiceMock, propertyServiceMock);
   }
 
   @Test
@@ -49,6 +54,19 @@ public class FeatureServiceImplTest {
   @Test
   public void isActive_hardcodedHeights_afterConstraints() {
     when(blockchainMock.getHeight()).thenReturn(430001);
+
+    assertFalse(t.isActive(FEATURE_TWO));
+  }
+
+  @Test
+  public void isActive_hardcodedHeights_forTestNet() {
+    when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(true);
+
+    when(blockchainMock.getHeight()).thenReturn(29999);
+
+    assertTrue(t.isActive(FEATURE_TWO));
+
+    when(blockchainMock.getHeight()).thenReturn(30000);
 
     assertFalse(t.isActive(FEATURE_TWO));
   }
