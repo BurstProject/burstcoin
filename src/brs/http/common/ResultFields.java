@@ -9,7 +9,7 @@ public class ResultFields {
   public static final String BALANCE_QNT_RESPONSE = "balanceQNT";
   public static final String UNCONFIRMED_BALANCE_NQT_RESPONSE = "unconfirmedBalanceNQT";
   public static final String UNCONFIRMED_BALANCE_QNT_RESPONSE = "unconfirmedBalanceQNT";
-  public static final String EFFECTIVE_BALANCE_NQT_RESPONSE = "effectiveBalanceBURST";
+  public static final String EFFECTIVE_BALANCE_NQT_RESPONSE = "effectiveBalanceNXT";
   public static final String FORGED_BALANCE_NQT_RESPONSE = "forgedBalanceNQT";
   public static final String GUARANTEED_BALANCE_NQT_RESPONSE = "guaranteedBalanceNQT";
   public static final String TRANSACTION_RESPONSE = "transaction";
