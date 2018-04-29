@@ -14,6 +14,7 @@ import brs.db.store.BlockchainStore;
 import brs.db.store.Dbs;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
+import brs.featuremanagement.FeatureService;
 import brs.featuremanagement.FeatureServiceImpl;
 import brs.http.API;
 import brs.http.APITransactionManager;
@@ -84,7 +85,7 @@ public final class Burst {
   private static TransactionProcessorImpl transactionProcessor;
 
   private static PropertyService propertyService;
-  private static FeatureServiceImpl featureService;
+  private static FeatureService featureService;
 
   private static EconomicClustering economicClustering;
 
@@ -205,6 +206,9 @@ public final class Burst {
       final BlockchainStore blockchainStore = stores.getBlockchainStore();
       blockchain = new BlockchainImpl(transactionDb, blockDb, blockchainStore);
 
+      final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
+      featureService = new FeatureServiceImpl(blockchain, aliasService, propertyService);
+
       economicClustering = new EconomicClustering(blockchain);
 
       final BurstKey.LongKeyFactory<Transaction> unconfirmedTransactionDbKeyFactory =
@@ -215,7 +219,7 @@ public final class Burst {
           stores.getTransactionProcessorStore().getUnconfirmedTransactionTable();
 
 
-      final Generator generator = propertyService.getBoolean(Props.DEV_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService);
+      final Generator generator = propertyService.getBoolean(Props.DEV_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService, featureService);
 
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
 
@@ -225,7 +229,6 @@ public final class Burst {
           accountService, transactionService, threadPool, dbCacheManager);
 
       final ATService atService = new ATServiceImpl(stores.getAtStore());
-      final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
       final SubscriptionService subscriptionService = new SubscriptionServiceImpl(stores.getSubscriptionStore(), transactionDb, blockchain, aliasService, accountService);
       final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(blockchain, stores.getDigitalGoodsStoreStore(), accountService);
       final EscrowService escrowService = new EscrowServiceImpl(stores.getEscrowStore(), blockchain, aliasService, accountService);
@@ -235,9 +238,7 @@ public final class Burst {
       final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
       final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
-      Burst.featureService = new FeatureServiceImpl(blockchain, aliasService, propertyService);
-
-      final DownloadCacheImpl downloadCache = new DownloadCacheImpl(propertyService, blockchain);
+      final DownloadCacheImpl downloadCache = new DownloadCacheImpl(propertyService, featureService, blockchain);
 
       final BlockService blockService = new BlockServiceImpl(accountService, transactionService, blockchain, downloadCache, generator);
       blockchainProcessor = new BlockchainProcessorImpl(threadPool, blockService, transactionProcessor, blockchain, propertyService, subscriptionService,
@@ -323,7 +324,6 @@ public final class Burst {
     return propertyService;
   }
 
-  public static FeatureServiceImpl getFeatureService() {
-    return featureService;
-  }
+  public static FeatureService getFeatureService() { return featureService; }
+
 }

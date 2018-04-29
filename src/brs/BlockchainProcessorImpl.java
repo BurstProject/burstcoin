@@ -1,5 +1,9 @@
 package brs;
 
+import static brs.Constants.FEE_QUANT;
+import static brs.Constants.ONE_BURST;
+import static brs.featuremanagement.FeatureToggle.PRE_DYMAXION;
+
 import brs.common.Props;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.store.BlockchainStore;
@@ -1120,7 +1124,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     for ( Transaction transaction : unconfirmedTransactionsOrderedByFee ) {
       do {
-        Long slotFee = blocksize * Constants.FEE_QUANT;
+        Long slotFee = Burst.getFeatureService().isActive(PRE_DYMAXION) ? blocksize * FEE_QUANT : ONE_BURST;
         if (transaction.getFeeNQT() >= slotFee) {
           if (transactionService.applyUnconfirmed(transaction)) {
             if (hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0)) {

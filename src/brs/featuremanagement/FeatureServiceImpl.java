@@ -66,7 +66,7 @@ public class FeatureServiceImpl implements FeatureService {
     final Integer minimumFeatureHeight = minimumFeatureHeight(featureDuration);
     final Integer maximumFeatureHeight = maximumFeatureHeight(featureDuration);
 
-    return (minimumFeatureHeight == null || minimumFeatureHeight < currentBlockHeight) &&
+    return (minimumFeatureHeight == null || minimumFeatureHeight <= currentBlockHeight) &&
         (maximumFeatureHeight == null || maximumFeatureHeight > currentBlockHeight);
   }
 

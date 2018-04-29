@@ -1,5 +1,6 @@
 package brs;
 
+import brs.featuremanagement.FeatureService;
 import brs.services.TimeService;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -62,10 +63,12 @@ public final class GeneratorImpl implements Generator {
     };
   }
   private TimeService timeService;
+  private FeatureService featureService;
 
-  public GeneratorImpl(Blockchain blockchain, TimeService timeService) {
+  public GeneratorImpl(Blockchain blockchain, TimeService timeService, FeatureService featureService) {
     this.blockchain = blockchain;
     this.timeService = timeService;
+    this.featureService = featureService;
   }
 
   @Override
@@ -141,7 +144,7 @@ public final class GeneratorImpl implements Generator {
   @Override
   public BigInteger calculateHit(long accountId, long nonce, byte[] genSig, int scoop, int blockHeight) {
 
-    MiningPlot plot = new MiningPlot(accountId, nonce, blockHeight);
+    MiningPlot plot = new MiningPlot(accountId, nonce, blockHeight, featureService);
 
     Shabal256 md = new Shabal256();
     md.update(genSig);
