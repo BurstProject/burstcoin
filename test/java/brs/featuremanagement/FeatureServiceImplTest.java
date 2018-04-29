@@ -6,7 +6,9 @@ import static brs.featuremanagement.FeatureToggle.DYMAXION;
 import static brs.featuremanagement.FeatureToggle.POC2;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -60,9 +62,33 @@ public class FeatureServiceImplTest {
     assertFalse(t.isActive(POC2));
   }
 
+  /*
+  @Test
+  public void isActive_hardcodedHeights_propertyOverriding_shouldNotWorkWhenNotTestNet() {
+    when(blockchainMock.getHeight()).thenReturn(49999);
+
+    when(propertyServiceMock.getInt(eq(Props.DEV_FEATURE_POC2_END), eq(-1))).thenReturn(50000);
+    when(propertyServiceMock.getInt(isNull(), eq(-1))).thenReturn(-1);
+
+    assertFalse(t.isActive(FEATURE_FOUR));
+  }
+
+  @Test
+  public void isActive_hardcodedHeights_propertyOverriding_shouldWorkWhenTestNet() {
+    when(blockchainMock.getHeight()).thenReturn(49999);
+
+    when(propertyServiceMock.getInt(eq(Props.DEV_FEATURE_POC2_END), eq(-1))).thenReturn(50000);
+    when(propertyServiceMock.getInt(isNull(), eq(-1))).thenReturn(-1);
+    when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(true);
+
+    assertTrue(t.isActive(FEATURE_FOUR));
+  }
+  */
+
   @Test
   public void isActive_hardcodedHeights_forTestNet() {
     when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(true);
+    when(propertyServiceMock.getInt(isNull(), anyInt())).thenReturn(-1);
 
     when(blockchainMock.getHeight()).thenReturn(88999);
 

@@ -20,6 +20,8 @@ public class Props {
 
   public static final String DEV_P2P_REBROADCAST_TO  = "DEV.P2P.rebroadcastTo";
   public static final String DEV_P2P_BOOTSTRAP_PEERS = "DEV.P2P.BootstrapPeers";
+
+  public static final String DEV_FEATURE_POC2_END = "DEV.Feature.PoC2.end";
   
   public static final String BRS_DEBUG_TRACE_QUOTE = "brs.debugTraceQuote";
   public static final String BRS_DEBUG_TRACE_SEPARATOR = "brs.debugTraceSeparator";

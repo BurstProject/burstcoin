@@ -30,7 +30,34 @@ public class FeatureServiceImpl implements FeatureService {
   }
 
   private boolean isActive(FeatureToggle featureToggle, boolean testNet) {
-    return isActive(testNet ? featureToggle.getFeatureDurationTestNet() : featureToggle.getFeatureDurationProductionNet());
+    FeatureDuration duration = null;
+
+    if(testNet) {
+      duration = getPropertiesAlteredDuration(featureToggle);
+      if(duration == null) {
+        duration = featureToggle.getFeatureDurationTestNet();
+      }
+    }
+
+    if(duration == null) {
+      duration = featureToggle.getFeatureDurationProductionNet();
+    }
+
+    return isActive(duration);
+  }
+
+  private FeatureDuration getPropertiesAlteredDuration(FeatureToggle featureToggle) {
+    final int propertyValueDurationStart = propertyService.getInt(featureToggle.getPropertyNameStartBlock(), -1);
+    final int propertyValueDurationEnd = propertyService.getInt(featureToggle.getPropertyNameEndBlock(), -1);
+
+    if(propertyValueDurationStart != -1 || propertyValueDurationEnd != -1) {
+      return new FeatureDuration(
+          propertyValueDurationStart == -1 ? null: propertyValueDurationStart,
+          propertyValueDurationEnd == -1 ? null: propertyValueDurationEnd
+      );
+    } else {
+      return null;
+    }
   }
 
   private boolean isActive(FeatureDuration featureDuration) {
@@ -39,7 +66,7 @@ public class FeatureServiceImpl implements FeatureService {
     final Integer minimumFeatureHeight = minimumFeatureHeight(featureDuration);
     final Integer maximumFeatureHeight = maximumFeatureHeight(featureDuration);
 
-    return (minimumFeatureHeight == null || minimumFeatureHeight < currentBlockHeight) &&
+    return (minimumFeatureHeight == null || minimumFeatureHeight <= currentBlockHeight) &&
         (maximumFeatureHeight == null || maximumFeatureHeight > currentBlockHeight);
   }
 

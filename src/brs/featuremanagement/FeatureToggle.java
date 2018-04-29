@@ -1,8 +1,5 @@
 package brs.featuremanagement;
 
-import static brs.common.AliasNames.DYMAXION_END_BLOCK;
-import static brs.common.AliasNames.DYMAXION_START_BLOCK;
-
 public enum FeatureToggle {
 
   POC2(
@@ -21,10 +18,18 @@ public enum FeatureToggle {
 
   private final FeatureDuration featureDurationProductionNet;
   private final FeatureDuration featureDurationTestNet;
+  private final String propertyNameStartBlock;
+  private final String propertyNameEndBlock;
 
   FeatureToggle(FeatureDuration featureDurationProductionNet, FeatureDuration featureDurationTestNet) {
+    this(featureDurationProductionNet, featureDurationTestNet, null, null);
+  }
+
+  FeatureToggle(FeatureDuration featureDurationProductionNet, FeatureDuration featureDurationTestNet, String propertyNameStartBlock, String propertyNameEndBlock) {
     this.featureDurationProductionNet = featureDurationProductionNet;
     this.featureDurationTestNet = featureDurationTestNet;
+    this.propertyNameStartBlock = propertyNameStartBlock;
+    this.propertyNameEndBlock = propertyNameEndBlock;
   }
 
   public FeatureDuration getFeatureDurationProductionNet() {
@@ -35,5 +40,11 @@ public enum FeatureToggle {
     return featureDurationTestNet;
   }
 
+  public String getPropertyNameStartBlock() {
+    return propertyNameStartBlock;
+  }
 
+  public String getPropertyNameEndBlock() {
+    return propertyNameEndBlock;
+  }
 }
