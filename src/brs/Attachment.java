@@ -160,7 +160,7 @@ public interface Attachment extends Appendix {
 
   final class PaymentMultiOutCreation extends AbstractAttachment {
 
-    private final LinkedHashMap<Long, Long> recipientOf = new HashMap<>();
+    private final LinkedHashMap<Long, Long> recipientOf = new LinkedHashMap<>();
 
     PaymentMultiOutCreation(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
