@@ -188,11 +188,14 @@ public interface Attachment extends Appendix {
     PaymentMultiOutCreation(JSONObject attachmentData) throws BurstException.NotValidException {
       super(attachmentData);
 
-      Set<Entry<String,Long>> recipients = ((JSONObject)attachmentData.get(RECIPIENTS_PARAMETER)).entrySet();
+      JSONArray recipients = (JSONArray)attachmentData.get(RECIPIENTS_PARAMETER);
       HashMap<Long,Boolean> recipientOf = new HashMap<>();
-      for(Entry<String, Long> recipient : recipients ) {
-        long recipientId = (new BigInteger(recipient.getKey())).longValue();
-        long amountNQT   = recipient.getValue();
+
+      for (int i = 0; i < recipients.size(); i++) {
+        JSONArray recipient = (JSONArray) recipients.get(i);
+
+        long recipientId = new BigInteger((String) recipient.get(0)).longValue();
+        long amountNQT   = (Long) recipient.get(1);
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
 
