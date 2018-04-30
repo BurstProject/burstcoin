@@ -70,6 +70,7 @@ import brs.TransactionType.Payment;
 import brs.crypto.EncryptedData;
 import brs.http.common.Parameters;
 import brs.util.Convert;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -183,7 +184,7 @@ public interface Attachment extends Appendix {
 
       Set<Entry<String,Long>> recipients = ((JSONObject)attachmentData.get(RECIPIENTS_PARAMETER)).entrySet();
       for(Entry<String, Long> recipient : recipients ) {
-        long recipientId = Convert.parseUnsignedLong(recipient.getKey());
+        long recipientId = (new BigInteger(recipient.getKey())).longValue();
         long amountNQT   = recipient.getValue();
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
@@ -200,7 +201,7 @@ public interface Attachment extends Appendix {
       super(blockchainHeight);
 
       for(Entry<String, Long> recipient : recipients ) {
-        long recipientId = Convert.parseUnsignedLong(recipient.getKey());
+        long recipientId = (new BigInteger(recipient.getKey())).longValue();
         long amountNQT   = recipient.getValue();
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
