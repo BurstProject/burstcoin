@@ -181,10 +181,10 @@ public interface Attachment extends Appendix {
     PaymentMultiOutCreation(JSONObject attachmentData) throws BurstException.NotValidException {
       super(attachmentData);
 
-      Set<Entry<String,String>> recipients = ((JSONObject)attachmentData.get(RECIPIENTS_PARAMETER)).entrySet();
-      for(Entry<String, String> recipient : recipients ) {
+      Set<Entry<String,Long>> recipients = ((JSONObject)attachmentData.get(RECIPIENTS_PARAMETER)).entrySet();
+      for(Entry<String, Long> recipient : recipients ) {
         long recipientId = Convert.parseUnsignedLong(recipient.getKey());
-        long amountNQT   = Convert.parseUnsignedLong(recipient.getValue());
+        long amountNQT   = recipient.getValue();
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
 
@@ -196,11 +196,11 @@ public interface Attachment extends Appendix {
       }
     }
 
-    public PaymentMultiOutCreation(Collection<Entry<Long, Long>> recipients, int blockchainHeight) throws BurstException.NotValidException {
+    public PaymentMultiOutCreation(Collection<Entry<String, Long>> recipients, int blockchainHeight) throws BurstException.NotValidException {
       super(blockchainHeight);
 
-      for(Entry<Long, Long> recipient : recipients ) {
-        long recipientId = recipient.getKey();
+      for(Entry<String, Long> recipient : recipients ) {
+        long recipientId = Convert.parseUnsignedLong(recipient.getKey());
         long amountNQT   = recipient.getValue();
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");

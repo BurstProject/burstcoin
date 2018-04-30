@@ -74,15 +74,15 @@ public final class SendMoneyMulti extends CreateTransaction {
       return response;
     }
 		
-    Collection<Entry<Long, Long>> recipients = new ArrayList<>();
+    Collection<Entry<String, Long>> recipients = new ArrayList<>();
 
     long totalAmountNQT = 0;
     try {
       for(String transactionString : transactionArray) {
         String recipientArray[] = transactionString.split(":", 2);
-        long recipientId = Convert.parseAccountId(recipientArray[0]);
-        long amountNQT   = Convert.parseUnsignedLong(recipientArray[1]);
-        recipients.add( new SimpleEntry<Long,Long>(recipientId, amountNQT) );
+        Long recipientId = Convert.parseAccountId(recipientArray[0]);
+        Long amountNQT   = Convert.parseUnsignedLong(recipientArray[1]);
+        recipients.add( new SimpleEntry<String,Long>("" + recipientId, amountNQT) );
         totalAmountNQT += amountNQT;
       }
     }
