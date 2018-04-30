@@ -4,6 +4,7 @@ import static brs.common.AliasNames.DYMAXION_END_BLOCK;
 import static brs.common.AliasNames.DYMAXION_START_BLOCK;
 import static brs.fluxcapacitor.FeatureToggle.DYMAXION;
 import static brs.fluxcapacitor.FeatureToggle.POC2;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -114,5 +115,50 @@ public class FluxCapacitorImplTest {
     when(aliasServiceMock.getAlias(eq(DYMAXION_END_BLOCK))).thenReturn(endAlias);
 
     assertTrue(t.isActive(DYMAXION));
+  }
+
+  @Test
+  public void getInt_defaultValue() {
+    when(blockchainMock.getHeight()).thenReturn(88000);
+
+    assertEquals((Integer) 255, t.getInt(FluxInt.BLOCK_SIZE));
+  }
+
+  @Test
+  public void getInt_firstHistoricalValue() {
+    when(blockchainMock.getHeight()).thenReturn(500000);
+
+    assertEquals((Integer) 1020, t.getInt(FluxInt.BLOCK_SIZE));
+  }
+
+  @Test
+  public void getInt_defaultValue_testNet() {
+    when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(true);
+
+    when(blockchainMock.getHeight()).thenReturn(5);
+
+    assertEquals((Integer) 255, t.getInt(FluxInt.BLOCK_SIZE));
+  }
+
+  @Test
+  public void getInt_firstHistoricalValue_testNet() {
+    when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(true);
+
+    when(blockchainMock.getHeight()).thenReturn(88000);
+
+    assertEquals((Integer) 1020, t.getInt(FluxInt.BLOCK_SIZE));
+  }
+
+  @Test
+  public void getInt_propertyValues_testNet() {
+    when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(true);
+
+    when(propertyServiceMock.getString(eq(Props.DEV_BLOCK_SIZE_SETTING))).thenReturn("50;100:1;200:2000");
+
+    when(blockchainMock.getHeight()).thenReturn(88000);
+
+    assertEquals((Integer) 50, t.getInt(FluxInt.BLOCK_SIZE, 1));
+    assertEquals((Integer) 1, t.getInt(FluxInt.BLOCK_SIZE, 100));
+    assertEquals((Integer) 2000, t.getInt(FluxInt.BLOCK_SIZE, 202));
   }
 }
