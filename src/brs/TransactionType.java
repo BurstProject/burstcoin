@@ -392,7 +392,7 @@ public abstract class TransactionType {
         Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
         Long totalAmountNQT = attachment.getAmountNQT();
         accountService.addToBalanceNQT(senderAccount, -totalAmountNQT);
-        attachment.getRecipients().forEach(e -> { accountService.addToBalanceNQT(accountService.getOrAddAccount(e.getKey()), e.getValue()); });
+        attachment.getRecipients().forEach(a -> { accountService.addToBalanceNQT(accountService.getOrAddAccount(a.get(0)), a.get(1)); });
       }
 
       @Override
