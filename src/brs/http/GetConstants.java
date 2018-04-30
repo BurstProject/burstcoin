@@ -2,7 +2,7 @@ package brs.http;
 
 import static brs.Constants.MAX_PAYLOAD_LENGTH;
 import static brs.Constants.MAX_PAYLOAD_LENGTH_PRE_DYMAXION;
-import static brs.featuremanagement.FeatureToggle.PRE_DYMAXION;
+import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
 
 import brs.Burst;
 import brs.Constants;
@@ -27,7 +27,7 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
     JSONObject response = new JSONObject();
     response.put("genesisBlockId", Convert.toUnsignedLong(Genesis.GENESIS_BLOCK_ID));
     response.put("genesisAccountId", Convert.toUnsignedLong(Genesis.CREATOR_ID));
-    response.put("maxBlockPayloadLength", (Burst.getFeatureService().isActive(PRE_DYMAXION) ? MAX_PAYLOAD_LENGTH_PRE_DYMAXION : MAX_PAYLOAD_LENGTH));
+    response.put("maxBlockPayloadLength", (Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? MAX_PAYLOAD_LENGTH_PRE_DYMAXION : MAX_PAYLOAD_LENGTH));
     response.put("maxArbitraryMessageLength", Constants.MAX_ARBITRARY_MESSAGE_LENGTH);
 
     JSONArray transactionTypes = new JSONArray();

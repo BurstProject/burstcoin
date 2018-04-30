@@ -1,4 +1,4 @@
-package brs.featuremanagement;
+package brs.fluxcapacitor;
 
 public class FeatureDuration {
 

@@ -2,7 +2,7 @@ package brs;
 
 import static brs.Constants.FEE_QUANT;
 import static brs.Constants.ONE_BURST;
-import static brs.featuremanagement.FeatureToggle.PRE_DYMAXION;
+import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
 
 import brs.Attachment.AbstractAttachment;
 import brs.Attachment.AutomatedTransactionsCreation;
@@ -2304,7 +2304,7 @@ public abstract class TransactionType {
   }
 
   protected Fee getBaselineFee() {
-    return new Fee((Burst.getFeatureService().isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST), 0);
+    return new Fee((Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST), 0);
   }
 
   public static final class Fee {

@@ -1,9 +1,9 @@
-package brs.featuremanagement;
+package brs.fluxcapacitor;
 
 import static brs.common.AliasNames.DYMAXION_END_BLOCK;
 import static brs.common.AliasNames.DYMAXION_START_BLOCK;
-import static brs.featuremanagement.FeatureToggle.DYMAXION;
-import static brs.featuremanagement.FeatureToggle.POC2;
+import static brs.fluxcapacitor.FeatureToggle.DYMAXION;
+import static brs.fluxcapacitor.FeatureToggle.POC2;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -21,13 +21,13 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class FeatureServiceImplTest {
+public class FluxCapacitorImplTest {
 
   private Blockchain blockchainMock;
   private AliasService aliasServiceMock;
   private PropertyService propertyServiceMock;
 
-  private FeatureServiceImpl t;
+  private FluxCapacitorImpl t;
 
   @Before
   public void setUp() {
@@ -37,7 +37,7 @@ public class FeatureServiceImplTest {
 
     when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(false);
 
-    t = new FeatureServiceImpl(blockchainMock, aliasServiceMock, propertyServiceMock);
+    t = new FluxCapacitorImpl(blockchainMock, aliasServiceMock, propertyServiceMock);
   }
 
   @Test

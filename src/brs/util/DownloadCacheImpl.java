@@ -1,13 +1,12 @@
 package brs.util;
 
-import static brs.featuremanagement.FeatureToggle.POC2;
+import static brs.fluxcapacitor.FeatureToggle.POC2;
 
 import brs.Block;
 import brs.Blockchain;
 import brs.common.Props;
-import brs.featuremanagement.FeatureService;
+import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.PropertyService;
-import java.awt.datatransfer.FlavorEvent;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +30,7 @@ public final class DownloadCacheImpl {
   private final Logger logger = LoggerFactory.getLogger(DownloadCacheImpl.class);
 
   private final Blockchain blockchain;
-  private final FeatureService featureService;
+  private final FluxCapacitor fluxCapacitor;
 
   private int blockCacheSize = 0;
 
@@ -44,9 +43,9 @@ public final class DownloadCacheImpl {
   private boolean lockedCache = false;
   
   
-  public DownloadCacheImpl(PropertyService propertyService, FeatureService featureService, Blockchain blockchain) {
+  public DownloadCacheImpl(PropertyService propertyService, FluxCapacitor fluxCapacitor, Blockchain blockchain) {
     this.blockCacheMB = propertyService.getInt(Props.BRS_BLOCK_CACHE_MB, 40);
-    this.featureService = featureService;
+    this.fluxCapacitor = fluxCapacitor;
     this.blockchain = blockchain;
   }
 
@@ -409,7 +408,7 @@ public final class DownloadCacheImpl {
 
   public int getPoCVersion(long blockId) {
     Block blockImpl = getBlock(blockId);
-    return (blockImpl == null || ! featureService.isActive(POC2) ) ? 1 : 2;
+    return (blockImpl == null || ! fluxCapacitor.isActive(POC2) ) ? 1 : 2;
   }
   
   public long getLastBlockId() {

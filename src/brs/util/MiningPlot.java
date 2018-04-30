@@ -1,12 +1,11 @@
 package brs.util;
 
-import static brs.featuremanagement.FeatureToggle.POC2;
+import static brs.fluxcapacitor.FeatureToggle.POC2;
 
-import brs.featuremanagement.FeatureService;
+import brs.fluxcapacitor.FluxCapacitor;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import brs.Constants;
 import brs.crypto.hash.Shabal256;
 
 public class MiningPlot {
@@ -20,10 +19,10 @@ public class MiningPlot {
 
   private byte[] data = new byte[PLOT_SIZE];
 
-  private FeatureService featureService;
+  private FluxCapacitor fluxCapacitor;
 
-  public MiningPlot(long addr, long nonce, int blockHeight, FeatureService featureService) {
-    this.featureService = featureService;
+  public MiningPlot(long addr, long nonce, int blockHeight, FluxCapacitor fluxCapacitor) {
+    this.fluxCapacitor = fluxCapacitor;
     ByteBuffer base_buffer = ByteBuffer.allocate(16);
     base_buffer.putLong(addr);
     base_buffer.putLong(nonce);
@@ -47,7 +46,7 @@ public class MiningPlot {
       data[i] = (byte) (gendata[i] ^ finalhash[i % HASH_SIZE]);
     }
     //PoC2 Rearrangement
-    if (featureService.isActive(POC2)) {
+    if (fluxCapacitor.isActive(POC2)) {
       byte[] hashBuffer = new byte[HASH_SIZE];
       int revPos = PLOT_SIZE - HASH_SIZE; //Start at second hash in last scoop
       for (int pos = 32; pos < (PLOT_SIZE / 2); pos += 64) { //Start at second hash in first scoop
