@@ -71,8 +71,11 @@ import brs.crypto.EncryptedData;
 import brs.http.common.Parameters;
 import brs.util.Convert;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import org.json.simple.JSONArray;
@@ -160,10 +163,12 @@ public interface Attachment extends Appendix {
 
   final class PaymentMultiOutCreation extends AbstractAttachment {
 
-    private final LinkedHashMap<Long, Long> recipientOf = new LinkedHashMap<>();
+    private final ArrayList<ArrayList<Long>> recipients = new ArrayList<>();
 
     PaymentMultiOutCreation(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
+
+      HashMap<Long,Boolean> recipientOf = new HashMap<>();
       while (buffer.hasRemaining()) {
         long recipientId = buffer.getLong();
         long amountNQT = buffer.getLong();
@@ -171,10 +176,10 @@ public interface Attachment extends Appendix {
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
 
-        // merge duplicate recipients by up- summing the values
-        recipientOf.put(recipientId, amountNQT);
+        recipientOf.put(recipientId, true);
+        this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
       }
-      if (recipientOf.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipientOf.size() <= 1) {
+      if (recipients.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipients.size() <= 1) {
         throw new BurstException.NotValidException(
             "Invalid number of recipients listed on multi out transaction");
       }
@@ -184,15 +189,17 @@ public interface Attachment extends Appendix {
       super(attachmentData);
 
       Set<Entry<String,Long>> recipients = ((JSONObject)attachmentData.get(RECIPIENTS_PARAMETER)).entrySet();
+      HashMap<Long,Boolean> recipientOf = new HashMap<>();
       for(Entry<String, Long> recipient : recipients ) {
         long recipientId = (new BigInteger(recipient.getKey())).longValue();
         long amountNQT   = recipient.getValue();
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
 
-        recipientOf.put(recipientId, amountNQT);
+        recipientOf.put(recipientId, true);
+        this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
       }
-      if (recipientOf.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipientOf.size() <= 1) {
+      if (recipients.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipients.size() <= 1) {
         throw new BurstException.NotValidException(
             "Invalid number of recipients listed on multi out transaction");
       }
@@ -201,6 +208,7 @@ public interface Attachment extends Appendix {
     public PaymentMultiOutCreation(Collection<Entry<String, Long>> recipients, int blockchainHeight) throws BurstException.NotValidException {
       super(blockchainHeight);
 
+      HashMap<Long,Boolean> recipientOf = new HashMap<>();
       for(Entry<String, Long> recipient : recipients ) {
         long recipientId = (new BigInteger(recipient.getKey())).longValue();
         long amountNQT   = recipient.getValue();
@@ -210,9 +218,10 @@ public interface Attachment extends Appendix {
         if (amountNQT < 0)
           throw new BurstException.NotValidException("Negative amountNQT on multi out transaction");
 
-        recipientOf.put(recipientId, amountNQT);
+        recipientOf.put(recipientId, true);
+        this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
       }
-      if (recipientOf.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipientOf.size() <= 1) {
+      if (recipients.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipients.size() <= 1) {
         throw new BurstException.NotValidException(
             "Invalid number of recipients listed on multi out transaction");
       }
@@ -225,19 +234,19 @@ public interface Attachment extends Appendix {
 
     @Override
     int getMySize() {
-      return recipientOf.size() * 16;
+      return recipients.size() * 16;
     }
 
     @Override
     void putMyBytes(ByteBuffer buffer) {
-      this.recipientOf.forEach((k,v) -> { buffer.putLong(k); buffer.putLong(v); });
+      this.recipients.forEach((a) -> { buffer.putLong(a.get(0)); buffer.putLong(a.get(1)); });
     }
 
     @Override
     void putMyJSON(JSONObject attachment) {
-      JSONObject recipients = new JSONObject();
-      this.recipientOf.forEach((recipientId, value) -> {
-        recipients.put(Convert.toUnsignedLong(recipientId), value);
+      JSONArray recipients = new JSONArray();
+      this.recipients.forEach(a -> {
+        recipients.add( new JSONArray() {{ add(Convert.toUnsignedLong(a.get(0))); add(a.get(1)); }});
       });
       attachment.put(RECIPIENTS_RESPONSE, recipients);
     }
@@ -249,14 +258,14 @@ public interface Attachment extends Appendix {
 
     public Long getAmountNQT() {
       long amountNQT = 0;
-      for ( long currentAmountNQT : recipientOf.values() ) {
-        amountNQT += currentAmountNQT;
+      for ( ArrayList<Long> recipient : recipients ) {
+        amountNQT += recipient.get(1);
       }
       return amountNQT;
     }
 
-    public Collection<Entry<Long, Long>> getRecipients() {
-      return Collections.unmodifiableCollection(recipientOf.entrySet());
+    public Collection<ArrayList<Long>> getRecipients() {
+      return Collections.unmodifiableCollection(recipients);
     }
   }
 
