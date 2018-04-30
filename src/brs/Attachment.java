@@ -72,6 +72,7 @@ import brs.http.common.Parameters;
 import brs.util.Convert;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.Set;
 import org.json.simple.JSONArray;
@@ -159,7 +160,7 @@ public interface Attachment extends Appendix {
 
   final class PaymentMultiOutCreation extends AbstractAttachment {
 
-    private final HashMap<Long, Long> recipientOf = new HashMap<>();
+    private final LinkedHashMap<Long, Long> recipientOf = new HashMap<>();
 
     PaymentMultiOutCreation(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
