@@ -121,14 +121,14 @@ public class FluxCapacitorImplTest {
   public void getInt_defaultValue() {
     when(blockchainMock.getHeight()).thenReturn(88000);
 
-    assertEquals((Integer) 255, t.getInt(FluxInt.BLOCK_SIZE));
+    assertEquals((Integer) 255, t.getInt(FluxInt.MAX_NUMBER_TRANSACTIONS));
   }
 
   @Test
   public void getInt_firstHistoricalValue() {
     when(blockchainMock.getHeight()).thenReturn(500000);
 
-    assertEquals((Integer) 1020, t.getInt(FluxInt.BLOCK_SIZE));
+    assertEquals((Integer) 1020, t.getInt(FluxInt.MAX_NUMBER_TRANSACTIONS));
   }
 
   @Test
@@ -137,7 +137,7 @@ public class FluxCapacitorImplTest {
 
     when(blockchainMock.getHeight()).thenReturn(5);
 
-    assertEquals((Integer) 255, t.getInt(FluxInt.BLOCK_SIZE));
+    assertEquals((Integer) 255, t.getInt(FluxInt.MAX_NUMBER_TRANSACTIONS));
   }
 
   @Test
@@ -146,7 +146,7 @@ public class FluxCapacitorImplTest {
 
     when(blockchainMock.getHeight()).thenReturn(88000);
 
-    assertEquals((Integer) 1020, t.getInt(FluxInt.BLOCK_SIZE));
+    assertEquals((Integer) 1020, t.getInt(FluxInt.MAX_NUMBER_TRANSACTIONS));
   }
 
   @Test
@@ -157,8 +157,8 @@ public class FluxCapacitorImplTest {
 
     when(blockchainMock.getHeight()).thenReturn(88000);
 
-    assertEquals((Integer) 50, t.getInt(FluxInt.BLOCK_SIZE, 1));
-    assertEquals((Integer) 1, t.getInt(FluxInt.BLOCK_SIZE, 100));
-    assertEquals((Integer) 2000, t.getInt(FluxInt.BLOCK_SIZE, 202));
+    assertEquals((Integer) 50, t.getInt(FluxInt.MAX_NUMBER_TRANSACTIONS, 1));
+    assertEquals((Integer) 1, t.getInt(FluxInt.MAX_NUMBER_TRANSACTIONS, 100));
+    assertEquals((Integer) 2000, t.getInt(FluxInt.MAX_NUMBER_TRANSACTIONS, 202));
   }
 }

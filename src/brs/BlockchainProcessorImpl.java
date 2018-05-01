@@ -1,10 +1,6 @@
 package brs;
 
 import static brs.Constants.FEE_QUANT;
-import static brs.Constants.MAX_NUMBER_OF_TRANSACTIONS;
-import static brs.Constants.MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION;
-import static brs.Constants.MAX_PAYLOAD_LENGTH;
-import static brs.Constants.MAX_PAYLOAD_LENGTH_PRE_DYMAXION;
 import static brs.Constants.ONE_BURST;
 import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
 
@@ -13,6 +9,7 @@ import brs.db.cache.DBCacheManagerImpl;
 import brs.db.store.BlockchainStore;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
+import brs.fluxcapacitor.FluxInt;
 import brs.services.BlockService;
 import brs.services.EscrowService;
 import brs.services.PropertyService;
@@ -1117,7 +1114,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     );
     unconfirmedTransactionsOrderedByFee.sort((o2, o1) -> ((Long)o1.getFeeNQT()).compareTo(o2.getFeeNQT()));
 
-    int blocksize = Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION : MAX_NUMBER_OF_TRANSACTIONS;
+    int blocksize = Burst.getFluxCapacitor().getInt(FluxInt.MAX_NUMBER_TRANSACTIONS);
     List<Transaction> orderedUnconfirmedTransactions = new ArrayList<>();
 
     for ( Transaction transaction : unconfirmedTransactionsOrderedByFee ) {
@@ -1158,20 +1155,21 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
     int blockTimestamp = timeService.getEpochTime();
 
-    while (payloadLength <= (Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? MAX_PAYLOAD_LENGTH_PRE_DYMAXION : MAX_PAYLOAD_LENGTH)
-        && blockTransactions.size() <= (Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION : MAX_NUMBER_OF_TRANSACTIONS)) {
+    final int maxPayloadLength = Burst.getFluxCapacitor().getInt(FluxInt.MAX_PAYLOAD_LENGTH);
+    final int maxNumberOfTransactions = Burst.getFluxCapacitor().getInt(FluxInt.MAX_NUMBER_TRANSACTIONS);
+
+    while (payloadLength <= maxPayloadLength && blockTransactions.size() <= maxNumberOfTransactions) {
 
       int prevNumberOfNewTransactions = blockTransactions.size();
 
       for (Transaction transaction : orderedUnconfirmedTransactions) {
 
-        if (blockTransactions.size() >= (Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION : MAX_NUMBER_OF_TRANSACTIONS)) {
+        if (blockTransactions.size() >= maxNumberOfTransactions) {
           break;
         }
 
         int transactionLength = transaction.getSize();
-        if (blockTransactions.contains(transaction)
-            || payloadLength + transactionLength > (Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? MAX_PAYLOAD_LENGTH_PRE_DYMAXION : MAX_PAYLOAD_LENGTH)) {
+        if (blockTransactions.contains(transaction) || payloadLength + transactionLength > maxPayloadLength) {
           continue;
         }
 
@@ -1238,8 +1236,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     // ATs for block
     AT.clearPendingFees();
     AT.clearPendingTransactions();
-    AT_Block atBlock = AT_Controller.getCurrentBlockATs(
-        (Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? MAX_PAYLOAD_LENGTH_PRE_DYMAXION : MAX_PAYLOAD_LENGTH) - payloadLength, previousBlock.getHeight() + 1);
+    AT_Block atBlock = AT_Controller.getCurrentBlockATs(maxPayloadLength - payloadLength, previousBlock.getHeight() + 1);
     byte[] byteATs = atBlock.getBytesForBlock();
 
     // digesting AT Bytes
