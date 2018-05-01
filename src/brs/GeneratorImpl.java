@@ -1,6 +1,6 @@
 package brs;
 
-import brs.featuremanagement.FeatureService;
+import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.TimeService;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -63,12 +63,12 @@ public final class GeneratorImpl implements Generator {
     };
   }
   private TimeService timeService;
-  private FeatureService featureService;
+  private FluxCapacitor fluxCapacitor;
 
-  public GeneratorImpl(Blockchain blockchain, TimeService timeService, FeatureService featureService) {
+  public GeneratorImpl(Blockchain blockchain, TimeService timeService, FluxCapacitor fluxCapacitor) {
     this.blockchain = blockchain;
     this.timeService = timeService;
-    this.featureService = featureService;
+    this.fluxCapacitor = fluxCapacitor;
   }
 
   @Override
@@ -144,7 +144,7 @@ public final class GeneratorImpl implements Generator {
   @Override
   public BigInteger calculateHit(long accountId, long nonce, byte[] genSig, int scoop, int blockHeight) {
 
-    MiningPlot plot = new MiningPlot(accountId, nonce, blockHeight, featureService);
+    MiningPlot plot = new MiningPlot(accountId, nonce, blockHeight, fluxCapacitor);
 
     Shabal256 md = new Shabal256();
     md.update(genSig);

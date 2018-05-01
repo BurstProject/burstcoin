@@ -14,8 +14,8 @@ import brs.db.store.BlockchainStore;
 import brs.db.store.Dbs;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
-import brs.featuremanagement.FeatureService;
-import brs.featuremanagement.FeatureServiceImpl;
+import brs.fluxcapacitor.FluxCapacitor;
+import brs.fluxcapacitor.FluxCapacitorImpl;
 import brs.http.API;
 import brs.http.APITransactionManager;
 import brs.http.APITransactionManagerImpl;
@@ -85,7 +85,7 @@ public final class Burst {
   private static TransactionProcessorImpl transactionProcessor;
 
   private static PropertyService propertyService;
-  private static FeatureService featureService;
+  private static FluxCapacitor fluxCapacitor;
 
   private static EconomicClustering economicClustering;
 
@@ -207,7 +207,7 @@ public final class Burst {
       blockchain = new BlockchainImpl(transactionDb, blockDb, blockchainStore);
 
       final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
-      featureService = new FeatureServiceImpl(blockchain, aliasService, propertyService);
+      fluxCapacitor = new FluxCapacitorImpl(blockchain, aliasService, propertyService);
 
       economicClustering = new EconomicClustering(blockchain);
 
@@ -219,7 +219,7 @@ public final class Burst {
           stores.getTransactionProcessorStore().getUnconfirmedTransactionTable();
 
 
-      final Generator generator = propertyService.getBoolean(Props.DEV_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService, featureService);
+      final Generator generator = propertyService.getBoolean(Props.DEV_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService, fluxCapacitor);
 
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
 
@@ -238,7 +238,7 @@ public final class Burst {
       final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
       final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
-      final DownloadCacheImpl downloadCache = new DownloadCacheImpl(propertyService, featureService, blockchain);
+      final DownloadCacheImpl downloadCache = new DownloadCacheImpl(propertyService, fluxCapacitor, blockchain);
 
       final BlockService blockService = new BlockServiceImpl(accountService, transactionService, blockchain, downloadCache, generator);
       blockchainProcessor = new BlockchainProcessorImpl(threadPool, blockService, transactionProcessor, blockchain, propertyService, subscriptionService,
@@ -324,6 +324,6 @@ public final class Burst {
     return propertyService;
   }
 
-  public static FeatureService getFeatureService() { return featureService; }
+  public static FluxCapacitor getFluxCapacitor() { return fluxCapacitor; }
 
 }

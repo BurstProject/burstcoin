@@ -1,7 +1,5 @@
 package brs;
 
-import static brs.featuremanagement.FeatureToggle.PRE_DYMAXION;
-
 import brs.common.Props;
 import java.util.Calendar;
 import java.util.TimeZone;

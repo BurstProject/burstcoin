@@ -1,9 +1,10 @@
-package brs.featuremanagement;
+package brs.fluxcapacitor;
 
 import static brs.common.AliasNames.DYMAXION_END_BLOCK;
 import static brs.common.AliasNames.DYMAXION_START_BLOCK;
-import static brs.featuremanagement.FeatureToggle.DYMAXION;
-import static brs.featuremanagement.FeatureToggle.POC2;
+import static brs.fluxcapacitor.FeatureToggle.DYMAXION;
+import static brs.fluxcapacitor.FeatureToggle.POC2;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -21,13 +22,13 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class FeatureServiceImplTest {
+public class FluxCapacitorImplTest {
 
   private Blockchain blockchainMock;
   private AliasService aliasServiceMock;
   private PropertyService propertyServiceMock;
 
-  private FeatureServiceImpl t;
+  private FluxCapacitorImpl t;
 
   @Before
   public void setUp() {
@@ -37,7 +38,7 @@ public class FeatureServiceImplTest {
 
     when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(false);
 
-    t = new FeatureServiceImpl(blockchainMock, aliasServiceMock, propertyServiceMock);
+    t = new FluxCapacitorImpl(blockchainMock, aliasServiceMock, propertyServiceMock);
   }
 
   @Test
@@ -114,5 +115,50 @@ public class FeatureServiceImplTest {
     when(aliasServiceMock.getAlias(eq(DYMAXION_END_BLOCK))).thenReturn(endAlias);
 
     assertTrue(t.isActive(DYMAXION));
+  }
+
+  @Test
+  public void getInt_defaultValue() {
+    when(blockchainMock.getHeight()).thenReturn(88000);
+
+    assertEquals((Integer) 255, t.getInt(FluxInt.MAX_NUMBER_TRANSACTIONS));
+  }
+
+  @Test
+  public void getInt_firstHistoricalValue() {
+    when(blockchainMock.getHeight()).thenReturn(500000);
+
+    assertEquals((Integer) 1020, t.getInt(FluxInt.MAX_NUMBER_TRANSACTIONS));
+  }
+
+  @Test
+  public void getInt_defaultValue_testNet() {
+    when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(true);
+
+    when(blockchainMock.getHeight()).thenReturn(5);
+
+    assertEquals((Integer) 255, t.getInt(FluxInt.MAX_NUMBER_TRANSACTIONS));
+  }
+
+  @Test
+  public void getInt_firstHistoricalValue_testNet() {
+    when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(true);
+
+    when(blockchainMock.getHeight()).thenReturn(88000);
+
+    assertEquals((Integer) 1020, t.getInt(FluxInt.MAX_NUMBER_TRANSACTIONS));
+  }
+
+  @Test
+  public void getInt_propertyValues_testNet() {
+    when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(true);
+
+    when(propertyServiceMock.getString(eq(Props.DEV_BLOCK_SIZE_SETTING))).thenReturn("50;100:1;200:2000");
+
+    when(blockchainMock.getHeight()).thenReturn(88000);
+
+    assertEquals((Integer) 50, t.getInt(FluxInt.MAX_NUMBER_TRANSACTIONS, 1));
+    assertEquals((Integer) 1, t.getInt(FluxInt.MAX_NUMBER_TRANSACTIONS, 100));
+    assertEquals((Integer) 2000, t.getInt(FluxInt.MAX_NUMBER_TRANSACTIONS, 202));
   }
 }

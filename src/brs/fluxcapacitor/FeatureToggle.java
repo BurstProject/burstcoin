@@ -1,23 +1,23 @@
-package brs.featuremanagement;
+package brs.fluxcapacitor;
 
 public enum FeatureToggle {
 
   POC2(
-      new FeatureDuration(500000, null),
-      new FeatureDuration( 88000, null),
+      new FeatureDuration(HistoricalMoments.POC2, null),
+      new FeatureDuration(HistoricalMoments.POC2_TN, null),
       "DEV.Feature.POC2.start",
       "DEV.Feature.POC2.end"
   ),
   PRE_DYMAXION(
-      new FeatureDuration(500000, null),
-      new FeatureDuration( 88000, null),
+      new FeatureDuration(HistoricalMoments.PRE_DYMAXION, null),
+      new FeatureDuration(HistoricalMoments.PRE_DYMAXION_TN, null),
       "DEV.Feature.PRE_DYMAXION.start",
       "DEV.Feature.PRE_DYMAXION.end"
   ),
   DYMAXION(
       // tba
-      new FeatureDuration(Integer.MAX_VALUE, null),
-      new FeatureDuration(Integer.MAX_VALUE, null)
+      new FeatureDuration(HistoricalMoments.DYMAXION, null),
+      new FeatureDuration(HistoricalMoments.DYMAXION_TN, null)
   );
 
   private final FeatureDuration featureDurationProductionNet;

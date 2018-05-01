@@ -2,10 +2,9 @@ package brs.common;
 
 import static brs.Constants.FEE_QUANT;
 import static brs.Constants.ONE_BURST;
-import static brs.featuremanagement.FeatureToggle.PRE_DYMAXION;
+import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
 
 import brs.Burst;
-import brs.Constants;
 import brs.crypto.Crypto;
 
 public class TestConstants {
@@ -24,7 +23,7 @@ public class TestConstants {
 
   public static final String DEADLINE = "400";
 
-  public static final String FEE = "" + ( Burst.getFeatureService().isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST );
+  public static final String FEE = "" + ( Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST );
 
   public static final long TEN_BURST = ONE_BURST * 10;
 }
