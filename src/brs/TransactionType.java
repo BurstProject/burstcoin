@@ -44,6 +44,7 @@ public abstract class TransactionType {
 
   private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;
   private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT_MULTI_OUT = 1;
+  private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT_MULTI_SAME_OUT = 2;
 
   private static final byte SUBTYPE_MESSAGING_ARBITRARY_MESSAGE = 0;
   private static final byte SUBTYPE_MESSAGING_ALIAS_ASSIGNMENT = 1;
@@ -400,6 +401,58 @@ public abstract class TransactionType {
         Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
         Long totalAmountNQT = attachment.getAmountNQT();
         accountService.addToUnconfirmedBalanceNQT(senderAccount, totalAmountNQT);
+      }
+
+      @Override
+      public final boolean hasRecipient() {
+        return false;
+      }
+    };
+
+    public static final TransactionType MULTI_SAME_OUT = new Payment() {
+
+      @Override
+      public final byte getSubtype() { return TransactionType.SUBTYPE_PAYMENT_ORDINARY_PAYMENT_MULTI_SAME_OUT; }
+
+      @Override
+      public Attachment.PaymentMultiSameOutCreation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        return new Attachment.PaymentMultiSameOutCreation(buffer, transactionVersion);
+      }
+
+      @Override
+      Attachment.PaymentMultiSameOutCreation parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        return new Attachment.PaymentMultiSameOutCreation(attachmentData);
+      }
+
+      @Override
+      void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
+        Attachment.PaymentMultiSameOutCreation attachment = (Attachment.PaymentMultiSameOutCreation) transaction.getAttachment();
+        if ( attachment.getRecipients().size() < 2 && ( transaction.getAmountNQT() % attachment.getRecipients().size() == 0 ) ) {
+          throw new BurstException.NotValidException("Invalid multi out payment");
+        }
+      }
+
+      @Override
+      final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        logger.trace("TransactionType MULTI_SAME_OUT_PAYMENT;");
+        if (senderAccount.getUnconfirmedBalanceNQT() < transaction.getAmountNQT()) {
+          return false;
+        }
+        accountService.addToUnconfirmedBalanceNQT(senderAccount, -transaction.getAmountNQT());
+        return true;
+      }
+
+      @Override
+      final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        Attachment.PaymentMultiSameOutCreation attachment = (Attachment.PaymentMultiSameOutCreation) transaction.getAttachment();
+        Long amountNQT = transaction.getAmountNQT() / attachment.getRecipients().size();
+        accountService.addToBalanceNQT(senderAccount, -transaction.getAmountNQT());
+        attachment.getRecipients().forEach(a -> { accountService.addToBalanceNQT(accountService.getOrAddAccount(a), amountNQT); });
+      }
+
+      @Override
+      final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        accountService.addToUnconfirmedBalanceNQT(senderAccount, transaction.getAmountNQT());
       }
 
       @Override
