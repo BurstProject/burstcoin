@@ -25,7 +25,6 @@ import org.junit.Test;
 public class FluxCapacitorImplTest {
 
   private Blockchain blockchainMock;
-  private AliasService aliasServiceMock;
   private PropertyService propertyServiceMock;
 
   private FluxCapacitorImpl t;
@@ -33,12 +32,11 @@ public class FluxCapacitorImplTest {
   @Before
   public void setUp() {
     blockchainMock = mock(Blockchain.class);
-    aliasServiceMock = mock(AliasService.class);
     propertyServiceMock = mock(PropertyService.class);
 
     when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(false);
 
-    t = new FluxCapacitorImpl(blockchainMock, aliasServiceMock, propertyServiceMock);
+    t = new FluxCapacitorImpl(blockchainMock, propertyServiceMock);
   }
 
   @Test
@@ -56,35 +54,11 @@ public class FluxCapacitorImplTest {
   }
 
   @Test
-  @Ignore
   public void isActive_hardcodedHeights_afterConstraints() {
     when(blockchainMock.getHeight()).thenReturn(430001);
 
     assertFalse(t.isActive(POC2));
   }
-
-  /*
-  @Test
-  public void isActive_hardcodedHeights_propertyOverriding_shouldNotWorkWhenNotTestNet() {
-    when(blockchainMock.getHeight()).thenReturn(49999);
-
-    when(propertyServiceMock.getInt(eq(Props.DEV_FEATURE_POC2_END), eq(-1))).thenReturn(50000);
-    when(propertyServiceMock.getInt(isNull(), eq(-1))).thenReturn(-1);
-
-    assertFalse(t.isActive(FEATURE_FOUR));
-  }
-
-  @Test
-  public void isActive_hardcodedHeights_propertyOverriding_shouldWorkWhenTestNet() {
-    when(blockchainMock.getHeight()).thenReturn(49999);
-
-    when(propertyServiceMock.getInt(eq(Props.DEV_FEATURE_POC2_END), eq(-1))).thenReturn(50000);
-    when(propertyServiceMock.getInt(isNull(), eq(-1))).thenReturn(-1);
-    when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(true);
-
-    assertTrue(t.isActive(FEATURE_FOUR));
-  }
-  */
 
   @Test
   public void isActive_hardcodedHeights_forTestNet() {
@@ -98,23 +72,6 @@ public class FluxCapacitorImplTest {
     when(blockchainMock.getHeight()).thenReturn(30000);
 
     assertFalse(t.isActive(POC2));
-  }
-
-  @Test
-  @Ignore
-  public void isActive_aliasBoundHeights_withinConstraints() {
-    when(blockchainMock.getHeight()).thenReturn(5000);
-
-    final Alias startAlias = mock(Alias.class);
-    when(startAlias.getAliasURI()).thenReturn("1000");
-
-    final Alias endAlias = mock(Alias.class);
-    when(endAlias.getAliasURI()).thenReturn("9999");
-
-    when(aliasServiceMock.getAlias(eq(DYMAXION_START_BLOCK))).thenReturn(startAlias);
-    when(aliasServiceMock.getAlias(eq(DYMAXION_END_BLOCK))).thenReturn(endAlias);
-
-    assertTrue(t.isActive(DYMAXION));
   }
 
   @Test

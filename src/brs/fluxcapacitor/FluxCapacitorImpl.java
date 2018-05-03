@@ -1,7 +1,6 @@
 package brs.fluxcapacitor;
 
 import brs.Blockchain;
-import brs.services.AliasService;
 import brs.services.PropertyService;
 
 public class FluxCapacitorImpl implements FluxCapacitor {
@@ -11,10 +10,10 @@ public class FluxCapacitorImpl implements FluxCapacitor {
   private final FeatureCapacitor featureCapacitor;
   private final TypeCapacitor<Integer> intCapacitor;
 
-  public FluxCapacitorImpl(Blockchain blockchain, AliasService aliasService, PropertyService propertyService) {
+  public FluxCapacitorImpl(Blockchain blockchain, PropertyService propertyService) {
     this.blockchain = blockchain;
 
-    featureCapacitor = new FeatureCapacitor(aliasService, propertyService);
+    featureCapacitor = new FeatureCapacitor(propertyService);
     intCapacitor = new IntCapacitor(propertyService);
   }
 
@@ -25,7 +24,7 @@ public class FluxCapacitorImpl implements FluxCapacitor {
 
   @Override
   public boolean isActive(FeatureToggle featureToggle, int height) {
-    return featureCapacitor.isActive(featureToggle, height);
+    return featureCapacitor.getValueAtHeight(featureToggle.getFlux(), height);
   }
 
   @Override

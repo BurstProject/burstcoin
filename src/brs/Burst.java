@@ -207,7 +207,7 @@ public final class Burst {
       blockchain = new BlockchainImpl(transactionDb, blockDb, blockchainStore);
 
       final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
-      fluxCapacitor = new FluxCapacitorImpl(blockchain, aliasService, propertyService);
+      fluxCapacitor = new FluxCapacitorImpl(blockchain, propertyService);
 
       economicClustering = new EconomicClustering(blockchain);
 
