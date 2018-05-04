@@ -258,7 +258,7 @@ public class Transaction implements Comparable<Transaction> {
       throw new BurstException.NotValidException("Invalid attachment " + attachment + " for transaction of type " + type);
     }
 
-    if (! type.hasRecipient() && attachment.getTransactionType() != Payment.MULTI_OUT) {
+    if (! type.hasRecipient() && attachment.getTransactionType() != Payment.MULTI_OUT && attachment.getTransactionType != Payment.MULTI_OUT_SAME) {
       if (recipientId != 0 || getAmountNQT() != 0) {
         throw new BurstException.NotValidException("Transactions of this type must have recipient == Genesis, amount == 0");
       }
