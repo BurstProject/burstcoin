@@ -1,54 +1,32 @@
 package brs.fluxcapacitor;
 
+import brs.fluxcapacitor.FluxHistory.Element;
+import java.util.Arrays;
+
 public enum FeatureToggle {
 
-  POC2(
-      new FeatureDuration(HistoricalMoments.POC2, null),
-      new FeatureDuration(HistoricalMoments.POC2_TN, null),
-      "DEV.Feature.POC2.start",
-      "DEV.Feature.POC2.end"
-  ),
-  PRE_DYMAXION(
-      new FeatureDuration(HistoricalMoments.PRE_DYMAXION, null),
-      new FeatureDuration(HistoricalMoments.PRE_DYMAXION_TN, null),
-      "DEV.Feature.PRE_DYMAXION.start",
-      "DEV.Feature.PRE_DYMAXION.end"
-  ),
-  DYMAXION(
-      // tba
-      new FeatureDuration(HistoricalMoments.DYMAXION, null),
-      new FeatureDuration(HistoricalMoments.DYMAXION_TN, null)
-  );
+  POC2(new FluxValue<>(
+      new FluxHistory<>(false, Arrays.asList(new Element<>(HistoricalMoments.POC2, true))),
+      new FluxHistory<>(false, Arrays.asList(new Element<>(HistoricalMoments.POC2_TN, true))),
+      "DEV.Feature.POC2")),
+  PRE_DYMAXION(new FluxValue<>(
+      new FluxHistory<>(false, Arrays.asList(new Element<>(HistoricalMoments.PRE_DYMAXION, true))),
+      new FluxHistory<>(false, Arrays.asList(new Element<>(HistoricalMoments.PRE_DYMAXION_TN, true))),
+      "DEV.Feature.PRE_DYMAXION")),
+  DYMAXION(new FluxValue<>(
+      //TBA
+      new FluxHistory<>(false, Arrays.asList(new Element<>(HistoricalMoments.DYMAXION, true))),
+      new FluxHistory<>(false, Arrays.asList(new Element<>(HistoricalMoments.DYMAXION_TN, true)))
+  ));
 
-  private final FeatureDuration featureDurationProductionNet;
-  private final FeatureDuration featureDurationTestNet;
-  private final String propertyNameStartBlock;
-  private final String propertyNameEndBlock;
+  private FluxValue<Boolean> flux;
 
-  FeatureToggle(FeatureDuration featureDurationProductionNet, FeatureDuration featureDurationTestNet) {
-    this(featureDurationProductionNet, featureDurationTestNet, null, null);
+  FeatureToggle(FluxValue<Boolean> flux) {
+    this.flux = flux;
   }
 
-  FeatureToggle(FeatureDuration featureDurationProductionNet, FeatureDuration featureDurationTestNet, String propertyNameStartBlock, String propertyNameEndBlock) {
-    this.featureDurationProductionNet = featureDurationProductionNet;
-    this.featureDurationTestNet = featureDurationTestNet;
-    this.propertyNameStartBlock = propertyNameStartBlock;
-    this.propertyNameEndBlock = propertyNameEndBlock;
+  public FluxValue<Boolean> getFlux() {
+    return flux;
   }
 
-  public FeatureDuration getFeatureDurationProductionNet() {
-    return featureDurationProductionNet;
-  }
-
-  public FeatureDuration getFeatureDurationTestNet() {
-    return featureDurationTestNet;
-  }
-
-  public String getPropertyNameStartBlock() {
-    return propertyNameStartBlock;
-  }
-
-  public String getPropertyNameEndBlock() {
-    return propertyNameEndBlock;
-  }
 }
