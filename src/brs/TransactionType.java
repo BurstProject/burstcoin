@@ -117,6 +117,8 @@ public abstract class TransactionType {
             return Payment.ORDINARY;
           case SUBTYPE_PAYMENT_ORDINARY_PAYMENT_MULTI_OUT:
             return Payment.MULTI_OUT;
+          case SUBTYPE_PAYMENT_ORDINARY_PAYMENT_MULTI_SAME_OUT:
+            return Payment.MULTI_SAME_OUT;
           default:
             return null;   
         }
