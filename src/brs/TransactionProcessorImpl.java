@@ -8,6 +8,7 @@ import brs.db.BurstKey;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.store.Dbs;
 import brs.db.store.Stores;
+import brs.fluxcapacitor.FeatureToggle;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.services.AccountService;
@@ -330,7 +331,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 	}
   }
   int getTransactionVersion(int previousBlockHeight) {
-    return previousBlockHeight < Constants.DIGITAL_GOODS_STORE_BLOCK ? 0 : 1;
+    return Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE, previousBlockHeight) ? 1 : 0;
   }
 
   // Watch: This is not really clean

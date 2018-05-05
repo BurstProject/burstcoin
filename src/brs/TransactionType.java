@@ -11,6 +11,8 @@ import brs.BurstException.ValidationException;
 import brs.at.AT_Constants;
 import brs.at.AT_Controller;
 import brs.at.AT_Exception;
+import brs.fluxcapacitor.FeatureToggle;
+import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.AccountService;
 import brs.services.AliasService;
 import brs.services.AssetService;
@@ -86,6 +88,7 @@ public abstract class TransactionType {
   private static final Fee BASELINE_ASSET_ISSUANCE_FEE = new Fee(Constants.ASSET_ISSUANCE_FEE_NQT, 0);
 
   private static Blockchain blockchain;
+  private static FluxCapacitor fluxCapacitor;
   private static AccountService accountService;
   private static DGSGoodsStoreService dgsGoodsStoreService;
   private static AliasService aliasService;
@@ -96,9 +99,11 @@ public abstract class TransactionType {
   private static EscrowService escrowService;
 
   // Temporary...
-  static void init(Blockchain blockchain, AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService, AliasService aliasService, AssetService assetService, OrderService orderService,
+  static void init(Blockchain blockchain, FluxCapacitor fluxCapacitor,
+      AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService, AliasService aliasService, AssetService assetService, OrderService orderService,
       AssetTransferService assetTransferService, SubscriptionService subscriptionService, EscrowService escrowService) {
     TransactionType.blockchain = blockchain;
+    TransactionType.fluxCapacitor = fluxCapacitor;
     TransactionType.accountService = accountService;
     TransactionType.dgsGoodsStoreService = dgsGoodsStoreService;
     TransactionType.aliasService = aliasService;
@@ -509,7 +514,7 @@ public abstract class TransactionType {
           if (transaction.getAmountNQT() != 0) {
             throw new BurstException.NotValidException("Invalid arbitrary message: " + attachment.getJSONObject());
           }
-          if (blockchain.getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK && transaction.getMessage() == null) {
+          if (! fluxCapacitor.isActive(FeatureToggle.DIGITAL_GOODS_STORE) && transaction.getMessage() == null) {
             throw new BurstException.NotCurrentlyValidException("Missing message appendix not allowed before DGS block");
           }
         }
@@ -610,7 +615,7 @@ public abstract class TransactionType {
 
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-          if (blockchain.getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+          if (! fluxCapacitor.isActive(FeatureToggle.DIGITAL_GOODS_STORE, blockchain.getLastBlock().getHeight())) {
             throw new BurstException.NotYetEnabledException("Alias transfer not yet enabled at height " + blockchain.getLastBlock().getHeight());
           }
           if (transaction.getAmountNQT() != 0) {
@@ -683,7 +688,7 @@ public abstract class TransactionType {
 
         @Override
         void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-          if (blockchain.getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+          if (! fluxCapacitor.isActive(FeatureToggle.DIGITAL_GOODS_STORE, blockchain.getLastBlock().getHeight())) {
             throw new BurstException.NotYetEnabledException("Alias transfer not yet enabled at height " + blockchain.getLastBlock().getHeight());
           }
           final Attachment.MessagingAliasBuy attachment =
@@ -1147,7 +1152,7 @@ public abstract class TransactionType {
 
     @Override
     final void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-      if (blockchain.getLastBlock().getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+      if (! fluxCapacitor.isActive(FeatureToggle.DIGITAL_GOODS_STORE, blockchain.getLastBlock().getHeight())) {
         throw new BurstException.NotYetEnabledException("Digital goods listing not yet enabled at height " + blockchain.getLastBlock().getHeight());
       }
       if (transaction.getAmountNQT() != 0) {
@@ -1725,7 +1730,7 @@ public abstract class TransactionType {
 
         @Override
         boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
-          if (blockchain.getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+          if (! fluxCapacitor.isActive(FeatureToggle.DIGITAL_GOODS_STORE)) {
             return false; // sync fails after 7007 without this
           }
           return isDuplicate(BurstMining.REWARD_RECIPIENT_ASSIGNMENT, Convert.toUnsignedLong(transaction.getSenderId()), duplicates);
@@ -2253,7 +2258,7 @@ public abstract class TransactionType {
         void doValidateAttachment(Transaction transaction)
           throws ValidationException {
           //System.out.println("validating attachment");
-          if (blockchain.getLastBlock().getHeight()< Constants.AUTOMATED_TRANSACTION_BLOCK){
+          if (! fluxCapacitor.isActive(FeatureToggle.AUTOMATED_TRANSACTION_BLOCK, blockchain.getLastBlock().getHeight())) {
             throw new BurstException.NotYetEnabledException("Automated Transactions not yet enabled at height " + blockchain.getLastBlock().getHeight());
           }
           if (transaction.getSignature() != null && accountService.getAccount(transaction.getId()) != null) {
@@ -2273,7 +2278,7 @@ public abstract class TransactionType {
           if (transaction.getFeeNQT() <  requiredFee){
             throw new BurstException.NotValidException("Insufficient fee for AT creation. Minimum: " + Convert.toUnsignedLong(requiredFee / Constants.ONE_BURST));
           }
-          if (blockchain.getHeight() >= Constants.AT_FIX_BLOCK_3) {
+          if (fluxCapacitor.isActive(FeatureToggle.AT_FIX_BLOCK_3)) {
             if (attachment.getName().length() > Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH) {
               throw new BurstException.NotValidException("Name of automated transaction over size limit");
             }
@@ -2357,7 +2362,7 @@ public abstract class TransactionType {
   }
 
   protected Fee getBaselineFee() {
-    return new Fee((Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST), 0);
+    return new Fee((fluxCapacitor.isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST), 0);
   }
 
   public static final class Fee {

@@ -4,6 +4,7 @@ import brs.Appendix.AbstractAppendix;
 import brs.TransactionType.Payment;
 import brs.crypto.Crypto;
 import brs.db.BurstKey;
+import brs.fluxcapacitor.FeatureToggle;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -434,7 +435,7 @@ public class Transaction implements Comparable<Transaction> {
       buffer.put((byte) ((version << 4) | ( type.getSubtype() & 0xff ) ));
       buffer.putInt(timestamp);
       buffer.putShort(deadline);
-      if(type.isSigned() || Burst.getBlockchain().getHeight() < Constants.AT_FIX_BLOCK_4) {
+      if(type.isSigned() || ! Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_4)) {
         buffer.put(senderPublicKey);
       }
       else {
