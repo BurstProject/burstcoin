@@ -5,6 +5,7 @@ import brs.Constants;
 import brs.Burst;
 import brs.Transaction;
 import brs.crypto.Crypto;
+import brs.fluxcapacitor.FeatureToggle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,7 +113,7 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
       return -1;
     }
 		
-    if( (tx.getMessage() == null || state.getHeight() >= Constants.AT_FIX_BLOCK_2) && state.minActivationAmount() <= tx.getAmountNQT() ) {
+    if( (tx.getMessage() == null || Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_2, state.getHeight())) && state.minActivationAmount() <= tx.getAmountNQT() ) {
       return tx.getAmountNQT() - state.minActivationAmount();
     }
 
@@ -263,8 +264,9 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 
   @Override
   public long get_Current_Balance( AT_Machine_State state ) {
-    if(state.getHeight() < Constants.AT_FIX_BLOCK_2 )
+    if(! Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_2, state.getHeight())) {
       return 0;
+    }
 		
     //long balance = Account.getAccount( AT_API_Helper.getLong(state.getId()) ).getBalanceNQT();
     return state.getG_balance();
@@ -272,8 +274,9 @@ public class AT_API_Platform_Impl extends AT_API_Impl {
 
   @Override
   public long get_Previous_Balance( AT_Machine_State state ) {
-    if(state.getHeight() < Constants.AT_FIX_BLOCK_2 )
+    if(! Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_2, state.getHeight())) {
       return 0;
+    }
 		
     return state.getP_balance();
   }

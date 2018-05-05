@@ -1,5 +1,7 @@
 package brs;
 
+import brs.fluxcapacitor.FeatureToggle;
+
 /**
  * Economic Clustering concept (EC) solves the most critical flaw of "classical" Proof-of-Stake - the problem called
  * "Nothing-at-Stake".
@@ -36,7 +38,7 @@ public final class EconomicClustering {
   }
 
   public boolean verifyFork(Transaction transaction) {
-    if (blockchain.getHeight() < Constants.DIGITAL_GOODS_STORE_BLOCK) {
+    if (! Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE)) {
       return true;
     }
     if (transaction.getReferencedTransactionFullHash() != null) {

@@ -9,6 +9,7 @@ import brs.db.cache.DBCacheManagerImpl;
 import brs.db.store.BlockchainStore;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
+import brs.fluxcapacitor.FeatureToggle;
 import brs.fluxcapacitor.FluxInt;
 import brs.services.BlockService;
 import brs.services.EscrowService;
@@ -928,7 +929,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               + transaction.getStringId() + " at height " + previousLastBlock.getHeight(),
               transaction);
         }
-        if (blockchain.getHeight() >= Constants.AUTOMATED_TRANSACTION_BLOCK) {
+        if (Burst.getFluxCapacitor().isActive(FeatureToggle.AUTOMATED_TRANSACTION_BLOCK)) {
           if (! economicClustering.verifyFork(transaction)) {
             logger.debug("Block " + block.getStringId() + " height "
                 + (previousLastBlock.getHeight() + 1)
@@ -1183,7 +1184,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           continue;
         }
 
-        if (blockchain.getHeight() >= Constants.AUTOMATED_TRANSACTION_BLOCK) {
+        if (Burst.getFluxCapacitor().isActive(FeatureToggle.AUTOMATED_TRANSACTION_BLOCK)) {
           if (!economicClustering.verifyFork(transaction)) {
             logger.debug("Including transaction that was generated on a fork: "
                 + transaction.getStringId() + " ecBlockHeight " + transaction.getECBlockHeight()

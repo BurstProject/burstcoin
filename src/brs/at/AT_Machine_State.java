@@ -7,8 +7,10 @@
 
 package brs.at;
 
+import brs.Burst;
 import brs.Constants;
 
+import brs.fluxcapacitor.FeatureToggle;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Collection;
@@ -97,7 +99,7 @@ public class AT_Machine_State {
       ByteBuffer bytes = ByteBuffer.allocate( getSize() );
       bytes.order( ByteOrder.LITTLE_ENDIAN );
 
-      if(getHeight() >= Constants.AT_FIX_BLOCK_2) {
+      if(Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_2)) {
         flags[0] = (byte)((running?1:0)
                           | (stopped?1:0) << 1
                           | (finished?1:0) << 2
