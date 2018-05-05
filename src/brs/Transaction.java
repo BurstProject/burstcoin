@@ -1,6 +1,7 @@
 package brs;
 
 import brs.Appendix.AbstractAppendix;
+import brs.TransactionType.Payment;
 import brs.crypto.Crypto;
 import brs.db.BurstKey;
 import brs.util.Convert;
@@ -14,7 +15,7 @@ import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.util.*;
 
-public class Transaction {
+public class Transaction implements Comparable<Transaction> {
 
   private static final Logger logger = LoggerFactory.getLogger(Transaction.class);
 
@@ -257,7 +258,7 @@ public class Transaction {
       throw new BurstException.NotValidException("Invalid attachment " + attachment + " for transaction of type " + type);
     }
 
-    if (! type.hasRecipient()) {
+    if (! type.hasRecipient() && attachment.getTransactionType() != Payment.MULTI_OUT && attachment.getTransactionType() != Payment.MULTI_SAME_OUT) {
       if (recipientId != 0 || getAmountNQT() != 0) {
         throw new BurstException.NotValidException("Transactions of this type must have recipient == Genesis, amount == 0");
       }

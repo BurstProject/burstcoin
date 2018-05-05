@@ -43,6 +43,7 @@
     <jaxb.version>2.3.0</jaxb.version>
     <weupnp.version>0.1.4</weupnp.version>
     <ehcache.version>3.5.0</ehcache.version>
+    <apachehttpclient.version>4.5.2</apachehttpclient.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -258,6 +259,12 @@
       <artifactId>ehcache</artifactId>
       <version>${ehcache.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${apachehttpclient.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -357,6 +364,7 @@
                   <fileset dir="${project.basedir}">
                     <include name="Burst_Wallet.url"/>
                     <include name="genscoop.cl"/>
+                    <include name="init-mysql.sql"/>
                     <include name="LICENSE.txt"/>
                     <include name="README.md"/>
                     <include name="README_refactoring.md"/>

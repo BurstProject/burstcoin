@@ -17,14 +17,14 @@ backends are:
 - H2 (embedded, easier install)
 
 Other DB backends are supported by the Burstcoin DB manager:
-https://github.com/PoC-Consortium/burstcoin-db-manager
+<https://github.com/PoC-Consortium/burstcoin-db-manager>
 
 
 ### Software Installation
 
 #### Linux (Debian, Ubuntu)
 
-Please take a look at http://package.cryptoguru.org/ where you can
+Please take a look at <http://package.cryptoguru.org/> where you can
 find the burstcoincg package. This will take care of the MariaDB
 installation for you.
 
@@ -47,7 +47,7 @@ new option naming system.
 
 In the conf directory, copy `brs-default.properties` into a new file named `brs.properties`.
 
-Download and install MariaDB https://mariadb.com/downloads/mariadb-tx
+Download and install MariaDB <https://mariadb.com/downloads/mariadb-tx>
 
 The MariaDb installation will ask to setup a password for the root user. 
 Add this password to the `brs.properties` file created above in the following section:
@@ -60,13 +60,21 @@ DB.Password=YOUR_PASSWORD
 The MariaDB installation will also install HeidiSQL, a gui tool to administer MariaDb.
 Use it to connect to the newly created mariaDb server and create a new DB called `burstwallet`. 
 
-#### Unix-like systems
+#### MacOS
 
-Please install Java 8 (JRE 1.8) manually and run it by using `burst.sh`
+Plase use beatsbears' comfortable script <https://github.com/beatsbears/macos_burst/>
+to install and maintain the Burst wallet on your Mac.
+An older howto at ecomineearth
+<https://ecomine.earth/macoswalletinstallguide/> basically describes
+the manual steps the script above does for you.
+
+#### Other Unix-like systems
+
+Please install Java 8 (JRE 1.8) manually and run the wallet by using `burst.sh`
 You can get further information calling `burst.sh help`
 
 A good HowTo for running the wallet on a mac can be found here
-https://www.reddit.com/r/burstcoin/comments/7lrdc1/guide_to_getting_the_poc_wallet_running_on_a_mac/
+<https://www.reddit.com/r/burstcoin/comments/7lrdc1/guide_to_getting_the_poc_wallet_running_on_a_mac/>
 
 
 ##### Configure and Initialize MariaDB
@@ -79,7 +87,7 @@ initialize your database with these statements:
 echo "CREATE DATABASE brs_master; 
       CREATE USER 'brs_user'@'localhost' IDENTIFIED BY 'yourpassword';
       GRANT ALL PRIVILEGES ON brs_master.* TO 'brs_user'@'localhost';" | mysql -uroot
-mysql -uroot brs_master < init-mysql.sql
+mysql -uroot < init-mysql.sql
 ```
 
 ##### Configure your Wallet
@@ -96,7 +104,7 @@ DB.Password=yourpassword
 
 - Proof of Capacity - ASIC proof / Energy efficient mining
 - Fast sync. with multithread CPU or OpenCL/GPU (optional)
-- Turing-complete smart contracts, via Automated Transactions (AT) https://ciyam.org/at/at.html
+- Turing-complete smart contracts, via Automated Transactions (AT) <https://ciyam.org/at/at.html>
 - Asset Exchange and Digital Goods Store
 - Encrypted Messaging
 - No ICO/Airdrops/Premine
@@ -104,7 +112,7 @@ DB.Password=yourpassword
 ## Specification
 
 - 4 minute block time
-- 2,158,812,800 coins total (see https://burstwiki.org/wiki/Block_Reward)
+- 2,158,812,800 coins total (see <https://burstwiki.org/wiki/Block_Reward>)
 - Block reward starts at 10,000/block
 - Block Reward Decreases at 5% each month
 
@@ -116,8 +124,7 @@ To improve scalability and performance, the core development team uses
 <a href="https://www.ej-technologies.com/products/jprofiler/overview.html">JProfiler</a>
 as its preferred Java Profiler.
 
-## [Credits](doc/Credits.md)
-
+## [Known Issues](doc/KnownIssues.md)
 ## [Development Info](doc/Refactoring.md)
-
+## [Credits](doc/Credits.md)
 ## [References/Links](doc/References.md)

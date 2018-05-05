@@ -1,6 +1,7 @@
 package brs.peer;
 
 import brs.*;
+import brs.common.Props;
 import brs.util.Convert;
 import brs.util.CountingInputStream;
 import brs.util.CountingOutputStream;
@@ -48,6 +49,7 @@ final class PeerImpl implements Peer {
       this.port = new URL("http://" + announcedAddress).getPort();
     } catch (MalformedURLException ignore) {}
     this.state = State.NON_CONNECTED;
+    this.version = ""; //not null
     this.shareAddress = true;
   }
 
@@ -64,7 +66,7 @@ final class PeerImpl implements Peer {
   public boolean isState(State cmp_state) {
     return state == cmp_state;
   }
-  
+
   void setState(State state) {
     if (this.state == state) {
       return;
@@ -126,7 +128,7 @@ final class PeerImpl implements Peer {
         }
       }
       catch (NumberFormatException e) {
-          isOldVersion = true;
+        isOldVersion = true;
       }
     }
   }
@@ -216,7 +218,7 @@ final class PeerImpl implements Peer {
 
   @Override
   public boolean isBlacklisted() {
-   // logger.debug("isBlacklisted - BL time: " + blacklistingTime + " Oldvers: " + isOldVersion + " PeerAddr: " + peerAddress);
+    // logger.debug("isBlacklisted - BL time: " + blacklistingTime + " Oldvers: " + isOldVersion + " PeerAddr: " + peerAddress);
     return blacklistingTime > 0 || isOldVersion || Peers.knownBlacklistedPeers.contains(peerAddress);
   }
 
@@ -291,7 +293,7 @@ final class PeerImpl implements Peer {
       buf.append(address);
       if (port <= 0) {
         buf.append(':');
-        buf.append(Constants.isTestnet ? Peers.TESTNET_PEER_PORT : Peers.DEFAULT_PEER_PORT);
+        buf.append(Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? Peers.TESTNET_PEER_PORT : Peers.DEFAULT_PEER_PORT);
       }
       buf.append("/burst");
       URL url = new URL(buf.toString());
@@ -313,7 +315,7 @@ final class PeerImpl implements Peer {
       CountingOutputStream cos = new CountingOutputStream(connection.getOutputStream());
       try (Writer writer = new BufferedWriter(new OutputStreamWriter(cos, "UTF-8"))) {
         request.writeJSONString(writer);
-      }
+      } // rico666: no catch?
       updateUploadedVolume(cos.getCount());
 
       if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -338,13 +340,15 @@ final class PeerImpl implements Peer {
           log += " >>> " + responseValue;
           showLog = true;
           response = (JSONObject) JSONValue.parse(responseValue);
-        } else {
+        }
+        else {
           try (Reader reader = new BufferedReader(new InputStreamReader(responseStream, "UTF-8"))) {
             response = (JSONObject)JSONValue.parse(reader);
           }
         }
         updateDownloadedVolume(cis.getCount());
-      } else {
+      }
+      else {
 
         if ((Peers.communicationLoggingMask & Peers.LOGGING_MASK_NON200_RESPONSES) != 0) {
           log += " >>> Peer responded with HTTP " + connection.getResponseCode() + " code!";
@@ -373,7 +377,7 @@ final class PeerImpl implements Peer {
     }
 
     if (showLog) {
-      logger.info(log + "\n");
+      logger.info(log);
     }
 
     if (connection != null) {
@@ -570,7 +574,7 @@ final class PeerImpl implements Peer {
       // totalWeight should never be zero - cause this would result in a division by zero exception
       // so we force a weight of one if it's zero. that makes a division by totalWeight a noop in general
       if ( totalWeight == 0 ) {
-          totalWeight = 1;
+        totalWeight = 1;
       }
 
       for (PeerImpl peer : groupedPeers) {

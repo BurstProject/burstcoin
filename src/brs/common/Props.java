@@ -18,6 +18,13 @@ public class Props {
   public static final String DEV_FORCE_VALIDATE = "DEV.forceValidate";
   public static final String DEV_FORCE_SCAN     = "DEV.forceScan";
 
+  public static final String DEV_P2P_REBROADCAST_TO  = "DEV.P2P.rebroadcastTo";
+  public static final String DEV_P2P_BOOTSTRAP_PEERS = "DEV.P2P.BootstrapPeers";
+
+  public static final String DEV_FEATURE_POC2_END = "DEV.Feature.PoC2.end";
+
+  public static final String DEV_BLOCK_SIZE_SETTING = "DEV.FluxInt.BlockSize";
+  
   public static final String BRS_DEBUG_TRACE_QUOTE = "brs.debugTraceQuote";
   public static final String BRS_DEBUG_TRACE_SEPARATOR = "brs.debugTraceSeparator";
   public static final String BRS_DEBUG_LOG_CONFIRMED = "brs.debugLogUnconfirmed";
@@ -27,8 +34,8 @@ public class Props {
   public static final String BRS_COMMUNICATION_LOGGING_MASK = "brs.communicationLoggingMask";
 
 
-  
-  // GPU options 
+
+  // GPU options
   public static final String GPU_ACCELERATION     = "GPU.Acceleration";
   public static final String GPU_AUTODETECT       = "GPU.AutoDetect";
   public static final String GPU_PLATFORM_IDX     = "GPU.PlatformIdx";
@@ -45,7 +52,7 @@ public class Props {
   public static final String DB_URL          = "DB.Url";
   public static final String DB_USERNAME     = "DB.Username";
   public static final String DB_PASSWORD     = "DB.Password";
-  public static final String DB_CONNECTIONS  = "DB.Connections";  
+  public static final String DB_CONNECTIONS  = "DB.Connections";
   public static final String DB_LOCK_TIMEOUT = "DB.LockTimeout";
 
   public static final String DB_TRIM_DERIVED_TABLES = "DB.trimDerivedTables";
@@ -66,6 +73,7 @@ public class Props {
   public static final String P2P_MY_ADDRESS  = "P2P.myAddress";
   public static final String P2P_LISTEN      = "P2P.Listen";
   public static final String P2P_PORT        = "P2P.Port";
+  public static final String P2P_UPNP        = "P2P.UPnP";
   public static final String P2P_SHARE_MY_ADDRESS = "P2P.shareMyAddress";
   public static final String P2P_MY_HALLMARK = "P2P.myHallmark";
   public static final String P2P_ENABLE_TX_REBROADCAST = "P2P.enableTxRebroadcast";
@@ -141,8 +149,6 @@ public class Props {
   public static final String JETTY_P2P_DOS_FILTER_REMOTE_PORT = "JETTY.P2P.DoSFilter.remotePort";
   public static final String JETTY_P2P_DOS_FILTER_IP_WHITELIST = "JETTY.P2P.DoSFilter.ipWhitelist";
   public static final String JETTY_P2P_DOS_FILTER_MANAGED_ATTR = "JETTY.P2P.DoSFilter.managedAttr";
-
-  public static final String TEST_PEERS = "TEST.Peers";
 
   public static final String BRS_SEND_TO_PEERS_LIMIT = "brs.sendToPeersLimit";
 

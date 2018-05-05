@@ -9,7 +9,7 @@ public class ResultFields {
   public static final String BALANCE_QNT_RESPONSE = "balanceQNT";
   public static final String UNCONFIRMED_BALANCE_NQT_RESPONSE = "unconfirmedBalanceNQT";
   public static final String UNCONFIRMED_BALANCE_QNT_RESPONSE = "unconfirmedBalanceQNT";
-  public static final String EFFECTIVE_BALANCE_NQT_RESPONSE = "effectiveBalanceBURST";
+  public static final String EFFECTIVE_BALANCE_NQT_RESPONSE = "effectiveBalanceNXT";
   public static final String FORGED_BALANCE_NQT_RESPONSE = "forgedBalanceNQT";
   public static final String GUARANTEED_BALANCE_NQT_RESPONSE = "guaranteedBalanceNQT";
   public static final String TRANSACTION_RESPONSE = "transaction";
@@ -89,7 +89,7 @@ public class ResultFields {
   public static final String DISCOUNT_NQT_RESPONSE = "discountNQT";
   public static final String REFUND_NQT_RESPONSE = "refundNQT";
   public static final String PURCHASES_RESPONSE = "purchases";
-  public static final String ALIAS_NAME_RESPONSE = "aliasNameResponse";
+  public static final String ALIAS_NAME_RESPONSE = "aliasName";
   public static final String ALIAS_URI_RESPONSE = "aliasURI";
   public static final String ALIAS_RESPONSE = "alias";
   public static final String ID_RESPONSE = "id";

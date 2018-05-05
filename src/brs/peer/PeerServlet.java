@@ -37,8 +37,10 @@ public final class PeerServlet extends HttpServlet {
 
   private final Map<String,PeerRequestHandler> peerRequestHandlers;
 
-  public PeerServlet(TimeService timeService, AccountService accountService, Blockchain blockchain, TransactionProcessor transactionProcessor,
-      BlockchainProcessor blockchainProcessor) {
+  public PeerServlet(TimeService timeService, AccountService accountService,
+                     Blockchain blockchain,
+                     TransactionProcessor transactionProcessor,
+                     BlockchainProcessor blockchainProcessor) {
     final Map<String,PeerRequestHandler> map = new HashMap<>();
     map.put("addPeers", AddPeers.instance);
     map.put("getCumulativeDifficulty", new GetCumulativeDifficulty(blockchain));
@@ -137,6 +139,7 @@ public final class PeerServlet extends HttpServlet {
     resp.setContentType("text/plain; charset=UTF-8");
     try {
       long byteCount;
+
       CountingOutputStream cos = new CountingOutputStream(resp.getOutputStream());
       try (Writer writer = new OutputStreamWriter(cos, "UTF-8")) {
         response.writeJSONString(writer);

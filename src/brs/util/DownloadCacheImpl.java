@@ -1,10 +1,14 @@
 package brs.util;
 
+import static brs.fluxcapacitor.FeatureToggle.POC2;
+
 import brs.Block;
 import brs.Blockchain;
 import brs.common.Props;
+import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.PropertyService;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -19,12 +23,14 @@ public final class DownloadCacheImpl {
   private final int blockCacheMB;
 
   protected final Map<Long, Block> blockCache = new LinkedHashMap<>();
+  protected final List<Block> forkCache = new ArrayList<>();
   protected final Map<Long, Long> reverseCache = new LinkedHashMap<>();
   protected final List<Long> unverified = new LinkedList<>();
 
   private final Logger logger = LoggerFactory.getLogger(DownloadCacheImpl.class);
 
   private final Blockchain blockchain;
+  private final FluxCapacitor fluxCapacitor;
 
   private int blockCacheSize = 0;
 
@@ -33,9 +39,13 @@ public final class DownloadCacheImpl {
   private BigInteger highestCumulativeDifficulty = BigInteger.ZERO;
 
   private final StampedLock dcsl = new StampedLock();
-
-  public DownloadCacheImpl(PropertyService propertyService, Blockchain blockchain) {
+  
+  private boolean lockedCache = false;
+  
+  
+  public DownloadCacheImpl(PropertyService propertyService, FluxCapacitor fluxCapacitor, Blockchain blockchain) {
     this.blockCacheMB = propertyService.getInt(Props.BRS_BLOCK_CACHE_MB, 40);
+    this.fluxCapacitor = fluxCapacitor;
     this.blockchain = blockchain;
   }
 
@@ -55,6 +65,49 @@ public final class DownloadCacheImpl {
       return retVal;
     }
     return blockchain.getHeight();
+  }
+  public void lockCache() {
+    long stamp = dcsl.writeLock();
+	try {
+	  lockedCache = true;
+	} finally {
+	  dcsl.unlockWrite(stamp);
+	}
+	setLastVars();
+  }
+  public void unlockCache() {
+    long stamp = dcsl.tryOptimisticRead();
+	boolean retVal = lockedCache;
+	if (!dcsl.validate(stamp)) {
+	  stamp = dcsl.readLock();
+	  try {
+	    retVal = lockedCache;
+	  } finally {
+	    dcsl.unlockRead(stamp);
+	  }
+	}
+	
+	if(retVal == true) {
+	  stamp = dcsl.writeLock();
+	  try {
+	    lockedCache = false;
+	  } finally {
+		dcsl.unlockWrite(stamp);
+      }	
+	}
+  }
+  private boolean getLockState() {
+    long stamp = dcsl.tryOptimisticRead();
+	boolean retVal = lockedCache;
+	if (!dcsl.validate(stamp)) {
+	  stamp = dcsl.readLock();
+	  try {
+	    retVal = lockedCache;
+      } finally {
+		dcsl.unlockRead(stamp);
+      }
+    }
+	return retVal;
   }
   
   public int getBlockCacheSize() {
@@ -190,6 +243,7 @@ public final class DownloadCacheImpl {
       reverseCache.clear();
       unverified.clear();
       blockCacheSize = 0;
+      lockedCache = true;
     } finally {
      dcsl.unlockWrite(stamp);
     }
@@ -197,6 +251,14 @@ public final class DownloadCacheImpl {
   }
 
   public Block getBlock(long BlockId) {
+	//search the forkCache if we have a forkList
+    if(!forkCache.isEmpty()) {
+      for (Block block : forkCache) {
+        if(block.getId() == BlockId) {
+        	return block;
+        }
+      }
+    }
     long stamp = dcsl.tryOptimisticRead();
     Block retVal = getBlockInt(BlockId);
     if (!dcsl.validate(stamp)) {
@@ -284,19 +346,32 @@ public final class DownloadCacheImpl {
     return (curHeight - block.getHeight()) <= Constants.MAX_ROLLBACK;
   }
 
-  public void addBlock(Block block) {
-    long stamp = dcsl.writeLock();
-    try {
-      blockCache.put(block.getId(), block);
-      reverseCache.put(block.getPreviousBlockId(), block.getId());
-      unverified.add(block.getId());
-      blockCacheSize += block.getByteLength();
-      lastBlockId = block.getId();
-      lastHeight = block.getHeight();
-      highestCumulativeDifficulty = block.getCumulativeDifficulty();
-    } finally {
-      dcsl.unlockWrite(stamp);
+  public boolean addBlock(Block block) {
+    if(!getLockState()) {
+	  long stamp = dcsl.writeLock();
+      try {
+        blockCache.put(block.getId(), block);
+        reverseCache.put(block.getPreviousBlockId(), block.getId());
+        unverified.add(block.getId());
+        blockCacheSize += block.getByteLength();
+        lastBlockId = block.getId();
+        lastHeight = block.getHeight();
+        highestCumulativeDifficulty = block.getCumulativeDifficulty();
+        return true;
+      } finally {
+        dcsl.unlockWrite(stamp);
+      }
     }
+    return false;
+  }
+  public void addForkBlock(Block block) {
+    forkCache.add(block);
+  }
+  public void resetForkBlocks() {
+    forkCache.clear();  
+  }
+  public List<Block> getForkList(){
+    return forkCache;
   }
 
   public boolean removeBlock(Block block) {
@@ -333,7 +408,7 @@ public final class DownloadCacheImpl {
 
   public int getPoCVersion(long blockId) {
     Block blockImpl = getBlock(blockId);
-    return (blockImpl == null || blockImpl.getHeight() < Constants.POC2_START_BLOCK) ? 1 : 2;
+    return (blockImpl == null || ! fluxCapacitor.isActive(POC2) ) ? 1 : 2;
   }
   
   public long getLastBlockId() {

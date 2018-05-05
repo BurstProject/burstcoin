@@ -6,14 +6,27 @@ MY_SELF=$0
 MY_CMD=$1
 MY_ARG=$2
 
+MY_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
 function usage() {
     cat << EOF
 usage: $0 [command] [arguments]
 
-  h2shell                       open a H2 shell for DB manipulation
   help                          shows the help you just read
   compile                       compile jar and create docs using maven
+  h2shell                       open a H2 shell for DB manipulation
+  import [mariadb|h2]           DELETE current DB, then gets a new mariadb or H2
+  switch <instance>             switch config file to instance (MainNet,TestNet...)
   upgrade                       upgrade the config files to BRS format
+
+
+"switch" option is for developers who need to quickly switch between various
+configurations files. If you have
+  conf/brs.properties.MainNet
+  conf/brs.properties.TestNet
+  conf/brs.properties.LocalDev
+you can activate your MainNet config with "burst.sh switch MainNet" 
+
 EOF
 }
 
@@ -132,6 +145,18 @@ function upgrade_conf () {
     fi
 }
 
+function exists_or_get {
+    if [ -f $1 ]; then
+        echo "$1 already present - won't download"
+    else
+        if ! hash wget 2>/dev/null; then
+            echo "please install wget"
+            exit 99
+        fi
+        wget https://download.cryptoguru.org/burst/wallet/$1
+    fi
+}
+
 if [ -z `which java 2>/dev/null` ]; then
     echo "please install java from eg. https://java.com/download/"
     exit 1
@@ -146,7 +171,7 @@ if [[ $# -gt 0 ]] ; then
 
             ## check if command exists
             if hash mvn 2>/dev/null; then
-                mvn package
+                mvn -DskipTests=true package
                 mvn javadoc:javadoc-no-fork
                 rm -rf html/ui/doc
                 mkdir -p html/ui/doc
@@ -172,17 +197,88 @@ if [[ $# -gt 0 ]] ; then
                 fi
             fi
             ;;
+        "h2shell")
+            java -cp burst.jar org.h2.tools.Shell
+            ;;
+        "import")
+            if ! hash unzip 2>/dev/null; then
+                echo "please install unzip"
+                exit 99
+            fi
+            read -p "Do you want to remove the current databases, download and import new one? " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                if [[ $MY_ARG == "mariadb" ]]; then
+                    echo
+                    echo "Please enter your connection details"
+                    read -rp  "Host     (localhost) : " P_HOST
+                    read -rp  "Database (brs_master): " P_DATA
+                    read -rp  "Username (brs_user)  : " P_USER
+                    read -rsp "Password empty       : " P_PASS
+                    [ -z $P_HOST ] && P_HOST="localhost"
+                    [ -z $P_USER ] && P_USER="brs_user"
+                    [ -z $P_DATA ] && P_DATA="brs_master"
+                    [ -z $P_PASS ] || P_PASS="-p$P_PASS"
+                    echo
+
+                    if exists_or_get brs.mariadb.zip ; then
+                        if unzip brs.mariadb.zip ; then
+                            if mysql -u$P_USER $P_PASS -h$P_HOST -e "DROP DATABASE if EXISTS $P_DATA; CREATE DATABASE $P_DATA CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"; then
+                                if mysql -u$P_USER $P_PASS -h$P_HOST -D $P_DATA < "$MY_DIR/init-mysql.sql"; then
+                                    if mysql -u$P_USER $P_PASS -h$P_HOST -D $P_DATA < brs.mariadb.sql ; then
+                                        echo "import successful - please remove brs.mariadb.zip"
+                                        rm brs.mariadb.sql
+                                        exit
+                                    fi
+                                fi
+                            fi
+                        else
+                            echo "unpacking mariadb archive failed"
+                        fi
+                    else
+                        echo "getting mariadb archive failed"
+                    fi
+                elif [[ $MY_ARG == "h2" ]]; then
+                    if exists_or_get brs.h2.zip ; then
+                        mkdir -p "$MY_DIR/burst_db"
+                        rm -f burst_db/burst.trace.db
+                        if unzip brs.h2.zip ; then
+                            if mv burst.mv.db "$MY_DIR/burst_db"; then
+                                echo "import successful - please remove brs.h2.zip"
+                                exit
+                            fi
+                        else
+                            echo "unpacking H2 archive failed"
+                        fi
+                    else
+                        echo "getting H2 archive failed"
+                    fi
+                fi
+                echo "DB import did not succeed"
+            else
+                echo "cancelling DB import by user request"
+            fi
+            ;;
+        "switch")
+            CONF_BASE=conf/brs.properties         # our symlink
+            CONF_TGT=brs.properties.$MY_ARG       # target of our symlink
+
+            if [[ (-L "$CONF_BASE" || ! -f $CONF_BASE) &&  -f "conf/$CONF_TGT" ]]
+            then
+                rm -f $CONF_BASE
+                ln -s $CONF_TGT $CONF_BASE 
+            else
+                echo "$CONF_BASE exists and not a symlink or conf/$CONF_TGT nonexistant."
+            fi
+            ;;
         "upgrade")
             upgrade_conf nxt-default.properties
             upgrade_conf nxt.properties
-            ;;
-        "h2shell")
-            java -cp burst.jar org.h2.tools.Shell
             ;;
         *)
             usage
             ;;
     esac
 else
-    java -cp burst.jar:conf brs.Burst
+    java $BRS_DEVSTART -cp burst.jar:conf brs.Burst
 fi

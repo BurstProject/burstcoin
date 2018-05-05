@@ -6,7 +6,6 @@ import brs.db.cache.DBCacheManagerImpl;
 import brs.services.PropertyService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import brs.Constants;
 import brs.db.h2.H2Dbs;
 import brs.db.mariadb.MariadbDbs;
 import brs.db.store.Dbs;
@@ -45,7 +44,7 @@ public final class Db {
     String dbUsername;
     String dbPassword;
 
-    if (Constants.isTestnet) {
+    if (Burst.getPropertyService().getBoolean(Props.DEV_TESTNET)) {
       dbUrl = propertyService.getString(Props.DEV_DB_URL);
       dbUsername = propertyService.getString(Props.DEV_DB_USERNAME);
       dbPassword = propertyService.getString(Props.DEV_DB_PASSWORD);
@@ -112,7 +111,7 @@ public final class Db {
   private Db() {
   } // never
 
-  public static Dbs getDbsByDatabaseType(){
+  public static Dbs getDbsByDatabaseType() {
     switch (dialect) {
       case MYSQL:
       case MARIADB:
@@ -155,6 +154,9 @@ public final class Db {
       finally {
         logger.info("Database shutdown completed.");
       }
+    }
+    if ( ! cp.isClosed() ) {
+      cp.close();
     }
   }
 

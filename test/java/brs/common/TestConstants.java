@@ -1,6 +1,10 @@
 package brs.common;
 
-import brs.Constants;
+import static brs.Constants.FEE_QUANT;
+import static brs.Constants.ONE_BURST;
+import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
+
+import brs.Burst;
 import brs.crypto.Crypto;
 
 public class TestConstants {
@@ -19,7 +23,7 @@ public class TestConstants {
 
   public static final String DEADLINE = "400";
 
-  public static final String FEE = "" + Constants.ONE_BURST;
+  public static final String FEE = "" + ( Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST );
 
-  public static final long TEN_BURST = Constants.ONE_BURST * 10;
+  public static final long TEN_BURST = ONE_BURST * 10;
 }

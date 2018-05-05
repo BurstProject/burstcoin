@@ -1,5 +1,9 @@
 package brs;
 
+import static brs.Constants.FEE_QUANT;
+import static brs.Constants.ONE_BURST;
+import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
+
 import brs.Attachment.AbstractAttachment;
 import brs.Attachment.AutomatedTransactionsCreation;
 import brs.BurstException.NotValidException;
@@ -39,6 +43,8 @@ public abstract class TransactionType {
   private static final byte TYPE_AUTOMATED_TRANSACTIONS = 22;
 
   private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;
+  private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT_MULTI_OUT = 1;
+  private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT_MULTI_SAME_OUT = 2;
 
   private static final byte SUBTYPE_MESSAGING_ARBITRARY_MESSAGE = 0;
   private static final byte SUBTYPE_MESSAGING_ALIAS_ASSIGNMENT = 1;
@@ -77,11 +83,7 @@ public abstract class TransactionType {
   private static final byte SUBTYPE_ADVANCED_PAYMENT_SUBSCRIPTION_PAYMENT = 5;
 
   private static final int BASELINE_FEE_HEIGHT = 1; // At release time must be less than current block - 1440
-  private static final Fee BASELINE_FEE = new Fee(Constants.ONE_BURST, 0);
-  private static final Fee BASELINE_ASSET_ISSUANCE_FEE = new Fee(1000 * Constants.ONE_BURST, 0);
-  private static final int NEXT_FEE_HEIGHT = Integer.MAX_VALUE;
-  private static final Fee NEXT_FEE = new Fee(Constants.ONE_BURST, 0);
-  private static final Fee NEXT_ASSET_ISSUANCE_FEE = new Fee(1000 * Constants.ONE_BURST, 0);
+  private static final Fee BASELINE_ASSET_ISSUANCE_FEE = new Fee(Constants.ASSET_ISSUANCE_FEE_NQT, 0);
 
   private static Blockchain blockchain;
   private static AccountService accountService;
@@ -113,6 +115,10 @@ public abstract class TransactionType {
         switch (subtype) {
           case SUBTYPE_PAYMENT_ORDINARY_PAYMENT:
             return Payment.ORDINARY;
+          case SUBTYPE_PAYMENT_ORDINARY_PAYMENT_MULTI_OUT:
+            return Payment.MULTI_OUT;
+          case SUBTYPE_PAYMENT_ORDINARY_PAYMENT_MULTI_SAME_OUT:
+            return Payment.MULTI_SAME_OUT;
           default:
             return null;   
         }
@@ -306,21 +312,16 @@ public abstract class TransactionType {
     }
 
     @Override
-    final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+    boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
       return true;
     }
 
     @Override
-    final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+    void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
     }
 
     @Override
-    final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-    }
-
-    @Override
-    public final boolean hasRecipient() {
-      return true;
+    void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
     }
 
     public static final TransactionType ORDINARY = new Payment() {
@@ -347,7 +348,120 @@ public abstract class TransactionType {
           }
         }
 
+        @Override
+        public final boolean hasRecipient() {
+          return true;
+       }
+
       };
+
+    public static final TransactionType MULTI_OUT = new Payment() {
+
+      @Override
+      public final byte getSubtype() { return TransactionType.SUBTYPE_PAYMENT_ORDINARY_PAYMENT_MULTI_OUT; }
+
+      @Override
+      public Attachment.PaymentMultiOutCreation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        return new Attachment.PaymentMultiOutCreation(buffer, transactionVersion);
+      }
+
+      @Override
+      Attachment.PaymentMultiOutCreation parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        return new Attachment.PaymentMultiOutCreation(attachmentData);
+      }
+
+      @Override
+      void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
+        Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
+        if (attachment.getAmountNQT() <= 0 || attachment.getAmountNQT() >= Constants.MAX_BALANCE_NQT || attachment.getRecipients().size() < 2) {
+          throw new BurstException.NotValidException("Invalid multi out payment");
+        }
+      }
+
+      @Override
+      final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        logger.trace("TransactionType MULTI_OUT_PAYMENT;");
+        Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
+        Long totalAmountNQT = attachment.getAmountNQT();
+        if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT) {
+          return false;
+        }
+        accountService.addToUnconfirmedBalanceNQT(senderAccount, -totalAmountNQT);
+        return true;
+      }
+
+      @Override
+      final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
+        Long totalAmountNQT = attachment.getAmountNQT();
+        accountService.addToBalanceNQT(senderAccount, -totalAmountNQT);
+        attachment.getRecipients().forEach(a -> { accountService.addToBalanceNQT(accountService.getOrAddAccount(a.get(0)), a.get(1)); });
+      }
+
+      @Override
+      final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
+        Long totalAmountNQT = attachment.getAmountNQT();
+        accountService.addToUnconfirmedBalanceNQT(senderAccount, totalAmountNQT);
+      }
+
+      @Override
+      public final boolean hasRecipient() {
+        return false;
+      }
+    };
+
+    public static final TransactionType MULTI_SAME_OUT = new Payment() {
+
+      @Override
+      public final byte getSubtype() { return TransactionType.SUBTYPE_PAYMENT_ORDINARY_PAYMENT_MULTI_SAME_OUT; }
+
+      @Override
+      public Attachment.PaymentMultiSameOutCreation parseAttachment(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+        return new Attachment.PaymentMultiSameOutCreation(buffer, transactionVersion);
+      }
+
+      @Override
+      Attachment.PaymentMultiSameOutCreation parseAttachment(JSONObject attachmentData) throws BurstException.NotValidException {
+        return new Attachment.PaymentMultiSameOutCreation(attachmentData);
+      }
+
+      @Override
+      void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
+        Attachment.PaymentMultiSameOutCreation attachment = (Attachment.PaymentMultiSameOutCreation) transaction.getAttachment();
+        if ( attachment.getRecipients().size() < 2 && ( transaction.getAmountNQT() % attachment.getRecipients().size() == 0 ) ) {
+          throw new BurstException.NotValidException("Invalid multi out payment");
+        }
+      }
+
+      @Override
+      final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        logger.trace("TransactionType MULTI_SAME_OUT_PAYMENT;");
+        if (senderAccount.getUnconfirmedBalanceNQT() < transaction.getAmountNQT()) {
+          return false;
+        }
+        accountService.addToUnconfirmedBalanceNQT(senderAccount, -transaction.getAmountNQT());
+        return true;
+      }
+
+      @Override
+      final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+        Attachment.PaymentMultiSameOutCreation attachment = (Attachment.PaymentMultiSameOutCreation) transaction.getAttachment();
+        Long amountNQT = transaction.getAmountNQT() / attachment.getRecipients().size();
+        accountService.addToBalanceNQT(senderAccount, -transaction.getAmountNQT());
+        attachment.getRecipients().forEach(a -> { accountService.addToBalanceNQT(accountService.getOrAddAccount(a), amountNQT); });
+      }
+
+      @Override
+      final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        accountService.addToUnconfirmedBalanceNQT(senderAccount, transaction.getAmountNQT());
+      }
+
+      @Override
+      public final boolean hasRecipient() {
+        return false;
+      }
+    };
 
   }
 
@@ -668,11 +782,6 @@ public abstract class TransactionType {
         @Override
         public Fee getBaselineFee() {
           return BASELINE_ASSET_ISSUANCE_FEE;
-        }
-
-        @Override
-        public Fee getNextFee() {
-          return NEXT_ASSET_ISSUANCE_FEE;
         }
 
         @Override
@@ -2245,21 +2354,12 @@ public abstract class TransactionType {
     if (height < BASELINE_FEE_HEIGHT) {
       return 0; // No need to validate fees before baseline block
     }
-    Fee fee;
-    if (height >= NEXT_FEE_HEIGHT) {
-      fee = getNextFee();
-    } else {
-      fee = getBaselineFee();
-    }
+    Fee fee = getBaselineFee();
     return Convert.safeAdd(fee.getConstantFee(), Convert.safeMultiply(appendagesSize, fee.getAppendagesFee()));
   }
 
   protected Fee getBaselineFee() {
-    return BASELINE_FEE;
-  }
-
-  protected Fee getNextFee() {
-    return NEXT_FEE;
+    return new Fee((Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST), 0);
   }
 
   public static final class Fee {

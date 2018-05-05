@@ -14,6 +14,8 @@ import brs.db.store.BlockchainStore;
 import brs.db.store.Dbs;
 import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
+import brs.fluxcapacitor.FluxCapacitor;
+import brs.fluxcapacitor.FluxCapacitorImpl;
 import brs.http.API;
 import brs.http.APITransactionManager;
 import brs.http.APITransactionManagerImpl;
@@ -83,6 +85,7 @@ public final class Burst {
   private static TransactionProcessorImpl transactionProcessor;
 
   private static PropertyService propertyService;
+  private static FluxCapacitor fluxCapacitor;
 
   private static EconomicClustering economicClustering;
 
@@ -152,8 +155,20 @@ public final class Burst {
   }
 
   public static void main(String[] args) {
+    validateVersionNotDev(VERSION);
     Runtime.getRuntime().addShutdownHook(new Thread(Burst::shutdown));
     init();
+  }
+
+  private static void validateVersionNotDev(String version) {
+    if(isDevVersion(version) && System.getProperty("dev") == null) {
+      logger.error("THIS IS A DEVELOPMENT WALLET, PLEASE DO NOT USE THIS");
+      System.exit(0);
+    }
+  }
+
+  private static boolean isDevVersion(String version) {
+    return Integer.parseInt(version.split("\\.")[1]) % 2 != 0;
   }
 
   public static void init(Properties customProperties) {
@@ -191,6 +206,9 @@ public final class Burst {
       final BlockchainStore blockchainStore = stores.getBlockchainStore();
       blockchain = new BlockchainImpl(transactionDb, blockDb, blockchainStore);
 
+      final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
+      fluxCapacitor = new FluxCapacitorImpl(blockchain, propertyService);
+
       economicClustering = new EconomicClustering(blockchain);
 
       final BurstKey.LongKeyFactory<Transaction> unconfirmedTransactionDbKeyFactory =
@@ -201,17 +219,16 @@ public final class Burst {
           stores.getTransactionProcessorStore().getUnconfirmedTransactionTable();
 
 
-      final Generator generator = propertyService.getBoolean(Props.DEV_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService);
+      final Generator generator = propertyService.getBoolean(Props.DEV_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService, fluxCapacitor);
 
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
 
       final TransactionService transactionService = new TransactionServiceImpl(accountService, blockchain);
 
       transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain, stores, timeService, dbs,
-          accountService, transactionService, threadPool);
+          accountService, transactionService, threadPool, dbCacheManager);
 
       final ATService atService = new ATServiceImpl(stores.getAtStore());
-      final AliasService aliasService = new AliasServiceImpl(stores.getAliasStore());
       final SubscriptionService subscriptionService = new SubscriptionServiceImpl(stores.getSubscriptionStore(), transactionDb, blockchain, aliasService, accountService);
       final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(blockchain, stores.getDigitalGoodsStoreStore(), accountService);
       final EscrowService escrowService = new EscrowServiceImpl(stores.getEscrowStore(), blockchain, aliasService, accountService);
@@ -221,13 +238,13 @@ public final class Burst {
       final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
       final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
 
-      final DownloadCacheImpl downloadCache = new DownloadCacheImpl(propertyService, blockchain);
+      final DownloadCacheImpl downloadCache = new DownloadCacheImpl(propertyService, fluxCapacitor, blockchain);
 
       final BlockService blockService = new BlockServiceImpl(accountService, transactionService, blockchain, downloadCache, generator);
       blockchainProcessor = new BlockchainProcessorImpl(threadPool, blockService, transactionProcessor, blockchain, propertyService, subscriptionService,
           timeService, derivedTableManager,
           blockDb, transactionDb, economicClustering, blockchainStore, stores, escrowService, transactionService, downloadCache, generator, statisticsManager,
-          dbCacheManager);
+          dbCacheManager, accountService);
 
       generator.generateForBlockchainProcessor(threadPool, blockchainProcessor);
 
@@ -251,7 +268,7 @@ public final class Burst {
 
       DebugTrace.init(propertyService, blockchainProcessor, accountService, tradeService, orderService, digitalGoodsStoreService);
 
-      int timeMultiplier = (Constants.isTestnet && Constants.isOffline) ? Math.max(propertyService.getInt(Props.DEV_TIMEWARP), 1) : 1;
+      int timeMultiplier = (propertyService.getBoolean(Props.DEV_TESTNET) && propertyService.getBoolean(Props.DEV_OFFLINE)) ? Math.max(propertyService.getInt(Props.DEV_TIMEWARP), 1) : 1;
 
       threadPool.start(timeMultiplier);
       if (timeMultiplier > 1) {
@@ -263,7 +280,7 @@ public final class Burst {
       logger.info("Initialization took " + (currentTime - startTime) + " ms");
       logger.info("BRS " + VERSION + " started successfully.");
 
-      if (Constants.isTestnet) {
+      if (propertyService.getBoolean(Props.DEV_TESTNET)) {
         logger.info("RUNNING ON TESTNET - DO NOT USE REAL ACCOUNTS!");
       }
     } catch (Exception e) {
@@ -283,12 +300,19 @@ public final class Burst {
   }
 
   public static void shutdown() {
+    shutdown(false);
+  }
+
+  public static void shutdown(boolean ignoreDBShutdown) {
     logger.info("Shutting down...");
-    api.shutdown();
+    if (api != null)
+      api.shutdown();
     Peers.shutdown(threadPool);
     threadPool.shutdown();
     dbCacheManager.close();
-    Db.shutdown();
+    if(! ignoreDBShutdown) {
+      Db.shutdown();
+    }
     if (blockchainProcessor != null && blockchainProcessor.getOclVerify()) {
       OCLPoC.destroy();
     }
@@ -299,5 +323,7 @@ public final class Burst {
   public static PropertyService getPropertyService() {
     return propertyService;
   }
+
+  public static FluxCapacitor getFluxCapacitor() { return fluxCapacitor; }
 
 }
