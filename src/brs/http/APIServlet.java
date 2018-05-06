@@ -76,7 +76,6 @@ public final class APIServlet extends HttpServlet {
     map.put("dgsPurchase", new DGSPurchase(parameterService, blockchain, accountService, timeService, apiTransactionManager));
     map.put("dgsQuantityChange", new DGSQuantityChange(parameterService, blockchain, apiTransactionManager));
     map.put("dgsRefund", new DGSRefund(parameterService, blockchain, accountService, apiTransactionManager));
-    map.put("decodeHallmark", new DecodeHallmark());
     map.put("decodeToken", new DecodeToken());
     map.put("encryptTo", new EncryptTo(parameterService, accountService));
     map.put("generateToken", new GenerateToken(timeService));
@@ -141,7 +140,6 @@ public final class APIServlet extends HttpServlet {
     map.put("issueAsset", new IssueAsset(parameterService, blockchain, apiTransactionManager));
     map.put("leaseBalance", new LeaseBalance(parameterService, blockchain, accountService, apiTransactionManager));
     map.put("longConvert", LongConvert.instance);
-    map.put("markHost", MarkHost.instance);
     map.put("parseTransaction", new ParseTransaction(parameterService, transactionService));
     map.put("placeAskOrder", new PlaceAskOrder(parameterService, blockchain, apiTransactionManager, accountService));
     map.put("placeBidOrder", new PlaceBidOrder(parameterService, blockchain, apiTransactionManager));

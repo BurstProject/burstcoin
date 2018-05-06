@@ -23,8 +23,6 @@ public interface Peer extends Comparable<Peer> {
 
   String getSoftware();
 
-  Hallmark getHallmark();
-
   int getWeight();
 
   boolean shareAddress();

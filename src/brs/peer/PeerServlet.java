@@ -110,10 +110,6 @@ public final class PeerServlet extends HttpServlet {
         }
       }
       peer.updateDownloadedVolume(cis.getCount());
-      if (! peer.analyzeHallmark(peer.getPeerAddress(), (String)request.get("hallmark"))) {
-        peer.blacklist();
-        return;
-      }
 
       if (request.get(PROTOCOL) != null && request.get(PROTOCOL).equals("B1")) {
         PeerRequestHandler peerRequestHandler = peerRequestHandlers.get(request.get("requestType"));

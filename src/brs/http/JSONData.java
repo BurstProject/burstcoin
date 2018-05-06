@@ -99,7 +99,6 @@ import brs.Alias.Offer;
 import brs.at.AT_API_Helper;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
-import brs.peer.Hallmark;
 import brs.peer.Peer;
 import brs.db.BurstIterator;
 import brs.services.AccountService;
@@ -287,17 +286,6 @@ public final class JSONData {
     return json;
   }
 
-  static JSONObject hallmark(Hallmark hallmark) {
-    JSONObject json = new JSONObject();
-    putAccount(json, "account", Account.getId(hallmark.getPublicKey()));
-    json.put("host", hallmark.getHost());
-    json.put("weight", hallmark.getWeight());
-    String dateString = Hallmark.formatDate(hallmark.getDate());
-    json.put("date", dateString);
-    json.put("valid", hallmark.isValid());
-    return json;
-  }
-
   static JSONObject token(Token token) {
     JSONObject json = new JSONObject();
     putAccount(json, "account", Account.getId(token.getPublicKey()));
@@ -311,9 +299,6 @@ public final class JSONData {
     json.put("state", peer.getState().ordinal());
     json.put("announcedAddress", peer.getAnnouncedAddress());
     json.put("shareAddress", peer.shareAddress());
-    if (peer.getHallmark() != null) {
-      json.put("hallmark", peer.getHallmark().getHallmarkString());
-    }
     json.put("weight", peer.getWeight());
     json.put("downloadedVolume", peer.getDownloadedVolume());
     json.put("uploadedVolume", peer.getUploadedVolume());

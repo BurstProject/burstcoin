@@ -65,13 +65,6 @@ function upgrade_conf () {
         BRS="${BRS//burst\.rebroadcastEvery/P2P.rebroadcastTxEvery}"
         BRS="${BRS//nxt\.enablePeerServerGZIPFilter/JETTY.P2P.GZIPFilter}"
 
-        
-        ### P2P Hallmarks
-        BRS="${BRS//nxt\.enableHallmarkProtection/P2P.HallmarkProtection}"
-        BRS="${BRS//nxt\.myHallmark/P2P.myHallmark}"
-        BRS="${BRS//nxt\.pushThreshold/P2P.HallmarkPush}"
-        BRS="${BRS//nxt\.pullThreshold/P2P.HallmarkPull}"
-
         ### JETTY pass-through params
         BRS="${BRS//nxt\.enablePeerServerDoSFilter/JETTY.P2P.DoSFilter}"
         BRS="${BRS//nxt\.peerServerDoSFilter.maxRequestsPerSec/JETTY.P2P.DoSFilter.maxRequestsPerSec}"

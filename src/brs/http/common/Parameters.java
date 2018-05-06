@@ -99,7 +99,6 @@ public class Parameters {
   public static final String UNSIGNED_TRANSACTION_JSON_PARAMETER = "unsignedTransactionJSON";
   public static final String AMOUNT_BURST_PARAMETER = "amountNXT";
   public static final String FEE_BURST_PARAMETER = "feeNXT";
-  public static final String HALLMARK_PARAMETER = "hallmark";
   public static final String IN_STOCK_ONLY_PARAMETER = "inStockOnly";
   public static final String COMPLETED_PARAMETER = "completed";
   public static final String PEER_PARAMETER = "peer";
