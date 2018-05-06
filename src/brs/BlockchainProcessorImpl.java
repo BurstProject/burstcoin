@@ -1104,45 +1104,45 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   public void generateBlock(String secretPhrase, byte[] publicKey, Long nonce)
       throws BlockNotAcceptedException {
 
-    stores.beginTransaction();
-
-    ArrayList<Transaction> unconfirmedTransactionsOrderedByFee = new ArrayList<>();
-    dbCacheManager.getCache("unconfirmedTransaction").forEach(
-        e -> {
-          Transaction transaction = (Transaction) ((Cache.Entry) e).getValue();
-          unconfirmedTransactionsOrderedByFee.add(transaction);
-        }
-    );
-    unconfirmedTransactionsOrderedByFee.sort((o2, o1) -> ((Long)o1.getFeeNQT()).compareTo(o2.getFeeNQT()));
-
-    int blocksize = Burst.getFluxCapacitor().getInt(FluxInt.MAX_NUMBER_TRANSACTIONS);
     List<Transaction> orderedUnconfirmedTransactions = new ArrayList<>();
+    try {
+      stores.beginTransaction();
 
-    for ( Transaction transaction : unconfirmedTransactionsOrderedByFee ) {
-      do {
-        Long slotFee = Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? blocksize * FEE_QUANT : ONE_BURST;
-        if (transaction.getFeeNQT() >= slotFee) {
-          if (transactionService.applyUnconfirmed(transaction)) {
-            if (hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0)) {
-              orderedUnconfirmedTransactions.add(transaction);
-              blocksize--;
+      ArrayList<Transaction> unconfirmedTransactionsOrderedByFee = new ArrayList<>();
+      dbCacheManager.getCache("unconfirmedTransaction").forEach(e -> {
+        Transaction transaction = (Transaction) ((Cache.Entry) e).getValue();
+        unconfirmedTransactionsOrderedByFee.add(transaction);
+      });
+      unconfirmedTransactionsOrderedByFee.sort((o2, o1) -> ((Long) o1.getFeeNQT()).compareTo(o2.getFeeNQT()));
+
+      int blocksize = Burst.getFluxCapacitor().getInt(FluxInt.MAX_NUMBER_TRANSACTIONS);
+      for (Transaction transaction : unconfirmedTransactionsOrderedByFee) {
+        do {
+          Long slotFee = Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? blocksize * FEE_QUANT : ONE_BURST;
+          if (transaction.getFeeNQT() >= slotFee) {
+            if (transactionService.applyUnconfirmed(transaction)) {
+              if (hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0)) {
+                orderedUnconfirmedTransactions.add(transaction);
+                blocksize--;
+              }
+            } else {
+              dbCacheManager.getCache("unconfirmedTransaction").remove(transaction.getId());
             }
+          } else {
+            blocksize--;
           }
-          else {
-            dbCacheManager.getCache("unconfirmedTransaction").remove(transaction.getId());
-          }
-        }
-        else {
-          blocksize--;
-        }
-      } while ( blocksize > 0 && dbCacheManager.getCache("unconfirmedTransaction").containsKey(transaction.getId()));
+        } while (blocksize > 0 && dbCacheManager.getCache("unconfirmedTransaction").containsKey(transaction.getId()));
+      }
+      accountService.flushAccountTable();
+      stores.commitTransaction();
     }
-
-    accountService.flushAccountTable();
-    stores.rollbackTransaction();
-    stores.commitTransaction();
-    stores.endTransaction();
-
+    catch (Exception e) {
+      stores.rollbackTransaction();
+      throw e;
+    }
+    finally {
+      stores.endTransaction();
+    }
 
     Block previousBlock = blockchain.getLastBlock();
 
