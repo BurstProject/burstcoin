@@ -192,11 +192,6 @@ final class PeerImpl implements Peer {
   }
 
   @Override
-  public int getWeight() {
-    return 0;
-  }
-
-  @Override
   public boolean isBlacklisted() {
     // logger.debug("isBlacklisted - BL time: " + blacklistingTime + " Oldvers: " + isOldVersion + " PeerAddr: " + peerAddress);
     return blacklistingTime > 0 || isOldVersion || Peers.knownBlacklistedPeers.contains(peerAddress);
@@ -465,12 +460,6 @@ final class PeerImpl implements Peer {
 
   @Override
   public int compareTo(Peer o) {
-    if (getWeight() > o.getWeight()) {
-      return -1;
-    }
-    else if (getWeight() < o.getWeight()) {
-      return 1;
-    }
     return 0;
   }
 

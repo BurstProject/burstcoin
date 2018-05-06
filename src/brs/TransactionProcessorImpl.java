@@ -169,7 +169,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 
                 lostTransactions.clear();
               }
-            Peer peer = Peers.getAnyPeer(Peer.State.CONNECTED, true);
+            Peer peer = Peers.getAnyPeer(Peer.State.CONNECTED);
             if (peer == null) {
               return;
             }

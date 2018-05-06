@@ -50,6 +50,8 @@ public final class Peers {
   static final int LOGGING_MASK_200_RESPONSES = 4;
   static int communicationLoggingMask;
 
+  private static final Random r = new Random();
+
   static Set<String> wellKnownPeers;
   static Set<String> knownBlacklistedPeers;
 
@@ -71,8 +73,6 @@ public final class Peers {
   private static boolean useUpnp;
   private static boolean shareMyAddress;
   private static int maxNumberOfConnectedPublicPeers;
-  private static int pushThreshold;
-  private static int pullThreshold;
   private static int sendToPeersLimit;
   private static boolean usePeersDb;
   private static boolean savePeers;
@@ -405,7 +405,7 @@ public final class Peers {
          * if peers size is equal or below connected value we have nothing to connect to
          */
         while (numConnectedPeers < maxNumberOfConnectedPublicPeers && peers.size() > numConnectedPeers) {
-          PeerImpl peer = (PeerImpl)getAnyPeer(ThreadLocalRandom.current().nextInt(2) == 0 ? Peer.State.NON_CONNECTED : Peer.State.DISCONNECTED, false);
+          PeerImpl peer = (PeerImpl)getAnyPeer(ThreadLocalRandom.current().nextInt(2) == 0 ? Peer.State.NON_CONNECTED : Peer.State.DISCONNECTED);
           if (peer != null) {
             peer.connect(timeService.getEpochTime());
             /*
@@ -515,7 +515,7 @@ public final class Peers {
               return;
             }
 
-            Peer peer = getAnyPeer(Peer.State.CONNECTED, true);
+            Peer peer = getAnyPeer(Peer.State.CONNECTED);
             if (peer == null) {
               return;
             }
@@ -819,7 +819,7 @@ public final class Peers {
   }
 
 
-  public static Peer getAnyPeer(Peer.State state, boolean applyPullThreshold) {
+  public static Peer getAnyPeer(Peer.State state) {
 
     if(!connectWellKnownFinished) {
       int wellKnownConnected = 0;
@@ -838,33 +838,13 @@ public final class Peers {
     List<Peer> selectedPeers = new ArrayList<>();
     for (Peer peer : peers.values()) {
       if (! peer.isBlacklisted() && peer.getState() == state && peer.shareAddress()
-          && (!applyPullThreshold || peer.getWeight() >= Peers.pullThreshold)
           && (connectWellKnownFinished || peer.getState() == Peer.State.CONNECTED || peer.isWellKnown())) {
         selectedPeers.add(peer);
       }
     }
 
-    if (selectedPeers.size() > 0) {
-
-      long totalWeight = 0;
-      for (Peer peer : selectedPeers) {
-        long weight = peer.getWeight();
-        if (weight == 0) {
-          weight = 1;
-        }
-        totalWeight += weight;
-      }
-
-      long hit = ThreadLocalRandom.current().nextLong(totalWeight);
-      for (Peer peer : selectedPeers) {
-        long weight = peer.getWeight();
-        if (weight == 0) {
-          weight = 1;
-        }
-        if ((hit -= weight) < 0) {
-          return peer;
-        }
-      }
+    if (! selectedPeers.isEmpty()) {
+      return selectedPeers.get(r.nextInt(selectedPeers.size()));
     }
     return null;
   }

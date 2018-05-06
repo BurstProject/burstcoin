@@ -299,7 +299,6 @@ public final class JSONData {
     json.put("state", peer.getState().ordinal());
     json.put("announcedAddress", peer.getAnnouncedAddress());
     json.put("shareAddress", peer.shareAddress());
-    json.put("weight", peer.getWeight());
     json.put("downloadedVolume", peer.getDownloadedVolume());
     json.put("uploadedVolume", peer.getUploadedVolume());
     json.put("application", peer.getApplication());
