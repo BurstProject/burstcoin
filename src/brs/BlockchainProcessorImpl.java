@@ -1116,8 +1116,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       unconfirmedTransactionsOrderedByFee.sort((o2, o1) -> ((Long) o1.getFeeNQT()).compareTo(o2.getFeeNQT()));
 
       int blocksize = Burst.getFluxCapacitor().getInt(FluxInt.MAX_NUMBER_TRANSACTIONS);
+      boolean transactionHasBeenHandled = false;
       for (Transaction transaction : unconfirmedTransactionsOrderedByFee) {
         do {
+          transactionHasBeenHandled = false;
           Long slotFee = Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? blocksize * FEE_QUANT : ONE_BURST;
           if (transaction.getFeeNQT() >= slotFee) {
             if (transactionService.applyUnconfirmed(transaction)) {
@@ -1125,13 +1127,16 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 orderedUnconfirmedTransactions.add(transaction);
                 blocksize--;
               }
-            } else {
+            }
+            else {
               dbCacheManager.getCache("unconfirmedTransaction").remove(transaction.getId());
             }
-          } else {
+            transactionHasBeenHandled = true;
+          }
+          else {
             blocksize--;
           }
-        } while (blocksize > 0 && dbCacheManager.getCache("unconfirmedTransaction").containsKey(transaction.getId()));
+        } while (blocksize > 0 || ! transactionHasBeenHandled);
       }
       accountService.flushAccountTable();
       stores.commitTransaction();
