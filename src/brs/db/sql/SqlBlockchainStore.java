@@ -29,7 +29,7 @@ public class SqlBlockchainStore implements BlockchainStore {
         getBlocks(
           ctx,
           ctx.selectFrom(BLOCK).where(
-            BLOCK.HEIGHT.between(blockchainHeight - Math.max(from, 0)).and(to > 0 ? blockchainHeight - to : 0)
+            BLOCK.HEIGHT.between(to > 0 ? blockchainHeight - to : 0).and(blockchainHeight - Math.max(from, 0))
           ).orderBy(BLOCK.HEIGHT.desc()).fetchResultSet()
         );
     }
