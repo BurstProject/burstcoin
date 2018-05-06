@@ -1135,7 +1135,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         else {
           blocksize--;
         }
-      } while ( blocksize > 0 );
+      } while ( blocksize > 0 && dbCacheManager.getCache("unconfirmedTransaction").containsKey(transaction.getId()));
     }
 
     accountService.flushAccountTable();
