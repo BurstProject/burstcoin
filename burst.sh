@@ -56,7 +56,6 @@ function upgrade_conf () {
         BRS="${BRS//nxt\.readTimeout/P2P.TimeoutRead_ms}"
         BRS="${BRS//nxt\.peerServerIdleTimeout/P2P.TimeoutIdle_ms}"
         BRS="${BRS//nxt\.blacklistingPeriod/P2P.BlacklistingTime_ms}"
-        BRS="${BRS//nxt\.sendToPeersLimit/P2P.TxResendThreshold}"
         BRS="${BRS//nxt\.usePeersDb/P2P.usePeersDb}"
         BRS="${BRS//nxt\.savePeers/P2P.savePeers}"
         BRS="${BRS//nxt\.getMorePeers/P2P.getMorePeers}"
