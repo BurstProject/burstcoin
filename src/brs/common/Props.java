@@ -93,7 +93,7 @@ public class Props {
   public static final String P2P_GET_MORE_PEERS      = "P2P.getMorePeers";
   public static final String P2P_GET_MORE_PEERS_THRESHOLD = "P2P.getMorePeersThreshold";
 
-
+  public static final String P2P_SEND_TO_LIMIT = "P2P.sendToLimit";
 
   // API options
   public static final String API_DEBUG   = "API.Debug";
@@ -145,8 +145,6 @@ public class Props {
   public static final String JETTY_P2P_DOS_FILTER_REMOTE_PORT = "JETTY.P2P.DoSFilter.remotePort";
   public static final String JETTY_P2P_DOS_FILTER_IP_WHITELIST = "JETTY.P2P.DoSFilter.ipWhitelist";
   public static final String JETTY_P2P_DOS_FILTER_MANAGED_ATTR = "JETTY.P2P.DoSFilter.managedAttr";
-
-  public static final String BRS_SEND_TO_PEERS_LIMIT = "brs.sendToPeersLimit";
 
   private Props() { //no need to construct
   }
