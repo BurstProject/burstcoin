@@ -42,6 +42,20 @@ var BRS = (function(BRS, $, undefined) {
 	$(target).scrollTop(0);
     })
 
+    $(".ordinary-nav a").on("click", function(e) {
+        $(".multi-out").hide();
+        $(".ordinary").fadeIn();
+        $(".ordinary-nav").toggleClass("active");
+        $(".multi-out-nav").toggleClass("active");
+    });
+
+    $(".multi-out-nav a").on("click", function(e) {
+        $(".ordinary").hide();
+        $(".multi-out").fadeIn();
+        $(".ordinary-nav").toggleClass("active");
+        $(".multi-out-nav").toggleClass("active");
+    });
+
     $(".add_message").on("change", function(e) {
 	if ($(this).is(":checked")) {
 	    $(this).closest("form").find(".optional_message").fadeIn();
