@@ -31,8 +31,6 @@ public final class JSONResponses {
   public static final JSONStreamAware MISSING_ORDER = missing(ORDER_PARAMETER);
   public static final JSONStreamAware INCORRECT_ORDER = incorrect(ORDER_PARAMETER);
   public static final JSONStreamAware UNKNOWN_ORDER = unknown(ORDER_PARAMETER);
-  public static final JSONStreamAware MISSING_HALLMARK = missing(HALLMARK_PARAMETER);
-  public static final JSONStreamAware INCORRECT_HALLMARK = incorrect(HALLMARK_PARAMETER);
   public static final JSONStreamAware MISSING_WEBSITE = missing(WEBSITE_PARAMETER);
   public static final JSONStreamAware INCORRECT_WEBSITE = incorrect(WEBSITE_PARAMETER);
   public static final JSONStreamAware MISSING_TOKEN = missing(TOKEN_PARAMETER);

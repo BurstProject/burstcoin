@@ -27,20 +27,15 @@ final class PeerImpl implements Peer {
   private volatile String announcedAddress;
   private volatile int port;
   private volatile boolean shareAddress;
-  private volatile Hallmark hallmark;
   private volatile String platform;
   private volatile String application;
   private volatile String version;
   private volatile boolean isOldVersion;
-  private volatile long adjustedWeight;
   private volatile long blacklistingTime;
   private volatile State state;
   private volatile long downloadedVolume;
   private volatile long uploadedVolume;
   private volatile int lastUpdated;
-  private volatile long hallmarkBalance = -1;
-  private volatile int hallmarkBalanceHeight;
-
 
   PeerImpl(String peerAddress, String announcedAddress) {
     this.peerAddress = peerAddress;
@@ -194,26 +189,6 @@ final class PeerImpl implements Peer {
   @Override
   public boolean isRebroadcastTarget() {
     return announcedAddress != null && Peers.rebroadcastPeers.contains(announcedAddress);
-  }
-
-  @Override
-  public Hallmark getHallmark() {
-    return hallmark;
-  }
-
-  @Override
-  public int getWeight() {
-    if (hallmark == null) {
-      return 0;
-    }
-    if (hallmarkBalance == -1 || hallmarkBalanceHeight < Burst.getBlockchain().getHeight() - 60) {
-      long accountId = hallmark.getAccountId();
-      Account account = Account.getAccount(accountId);
-      hallmarkBalance = account == null ? 0 : account.getBalanceNQT();
-      hallmarkBalanceHeight = Burst.getBlockchain().getHeight();
-    }
-
-    return (int)(adjustedWeight * (hallmarkBalance / Constants.ONE_BURST) / Constants.MAX_BALANCE_BURST);
   }
 
   @Override
@@ -485,12 +460,6 @@ final class PeerImpl implements Peer {
 
   @Override
   public int compareTo(Peer o) {
-    if (getWeight() > o.getWeight()) {
-      return -1;
-    }
-    else if (getWeight() < o.getWeight()) {
-      return 1;
-    }
     return 0;
   }
 
@@ -512,91 +481,14 @@ final class PeerImpl implements Peer {
         setAnnouncedAddress(peerAddress);
         //logger.debug("Connected to peer without announced address, setting to " + peerAddress);
       }
-      if (analyzeHallmark(announcedAddress, (String)response.get("hallmark"))) {
-        setState(State.CONNECTED);
-        Peers.updateAddress(this);
-      }
-      else {
-        blacklist();
-      }
+
+      setState(State.CONNECTED);
+      Peers.updateAddress(this);
       lastUpdated = currentTime;
     }
     else {
       setState(State.NON_CONNECTED);
     }
-  }
-
-  boolean analyzeHallmark(String address, final String hallmarkString) {
-
-    if (hallmarkString == null && this.hallmark == null) {
-      return true;
-    }
-
-    if (this.hallmark != null && this.hallmark.getHallmarkString().equals(hallmarkString)) {
-      return true;
-    }
-
-    if (hallmarkString == null) {
-      this.hallmark = null;
-      return true;
-    }
-
-    try {
-      URI uri = new URI("http://" + address.trim());
-      String host = uri.getHost();
-
-      Hallmark hallmark = Hallmark.parseHallmark(hallmarkString);
-      if (!hallmark.isValid()
-          || !(hallmark.getHost().equals(host) || InetAddress.getByName(host).equals(InetAddress.getByName(hallmark.getHost())))) {
-        //logger.debug("Invalid hallmark for " + host + ", hallmark host is " + hallmark.getHost());
-        return false;
-      }
-      this.hallmark = hallmark;
-      long accountId = Account.getId(hallmark.getPublicKey());
-      List<PeerImpl> groupedPeers = new ArrayList<>();
-      int mostRecentDate = 0;
-      long totalWeight = 0;
-      for (PeerImpl peer : Peers.allPeers) {
-        if (peer.hallmark == null) {
-          continue;
-        }
-        if (accountId == peer.hallmark.getAccountId()) {
-          groupedPeers.add(peer);
-          if (peer.hallmark.getDate() > mostRecentDate) {
-            mostRecentDate = peer.hallmark.getDate();
-            totalWeight = peer.getHallmarkWeight(mostRecentDate);
-          } else {
-            totalWeight += peer.getHallmarkWeight(mostRecentDate);
-          }
-        }
-      }
-
-      // totalWeight should never be zero - cause this would result in a division by zero exception
-      // so we force a weight of one if it's zero. that makes a division by totalWeight a noop in general
-      if ( totalWeight == 0 ) {
-        totalWeight = 1;
-      }
-
-      for (PeerImpl peer : groupedPeers) {
-        peer.adjustedWeight = Constants.MAX_BALANCE_BURST * peer.getHallmarkWeight(mostRecentDate) / totalWeight;
-        Peers.notifyListeners(peer, Peers.Event.WEIGHT);
-      }
-
-      return true;
-
-    } catch (UnknownHostException ignore) {
-    } catch (URISyntaxException | RuntimeException e) {
-      logger.debug("Failed to analyze hallmark for peer " + address + ", " + e.toString(), e);
-    }
-    return false;
-
-  }
-
-  private int getHallmarkWeight(int date) {
-    if (hallmark == null || ! hallmark.isValid() || hallmark.getDate() != date) {
-      return 0;
-    }
-    return hallmark.getWeight();
   }
 
 }

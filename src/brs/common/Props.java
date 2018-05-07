@@ -75,7 +75,6 @@ public class Props {
   public static final String P2P_PORT        = "P2P.Port";
   public static final String P2P_UPNP        = "P2P.UPnP";
   public static final String P2P_SHARE_MY_ADDRESS = "P2P.shareMyAddress";
-  public static final String P2P_MY_HALLMARK = "P2P.myHallmark";
   public static final String P2P_ENABLE_TX_REBROADCAST = "P2P.enableTxRebroadcast";
   public static final String P2P_REBROADCAST_TO  = "P2P.rebroadcastTo";
   public static final String P2P_BOOTSTRAP_PEERS = "P2P.BootstrapPeers";
@@ -85,9 +84,6 @@ public class Props {
   public static final String P2P_MAX_CONNECTIONS = "P2P.MaxConnections";
   public static final String P2P_TIMEOUT_CONNECT_MS = "P2P.TimeoutConnect_ms";
   public static final String P2P_TIMEOUT_READ_MS = "P2P.TimeoutRead_ms";
-  public static final String P2P_HALLMARK_PROTECTION = "P2P.HallmarkProtection";
-  public static final String P2P_HALLMARK_PUSH = "P2P.HallmarkPush";
-  public static final String P2P_HALLMARK_PULL = "P2P.HallmarkPull";
   public static final String P2P_BLACKLISTING_TIME_MS = "P2P.BlacklistingTime_ms";
 
   public static final String P2P_TIMEOUT_IDLE_MS = "P2P.TimeoutIdle_ms";

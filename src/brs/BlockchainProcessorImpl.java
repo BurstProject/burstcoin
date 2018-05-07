@@ -346,7 +346,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               return;
             }
             peerHasMore = true;
-            Peer peer = Peers.getAnyPeer(Peer.State.CONNECTED, true);
+            Peer peer = Peers.getAnyPeer(Peer.State.CONNECTED);
             if (peer == null) {
               logger.debug("No peer connected.");
               return;
