@@ -18,7 +18,7 @@
                             <div class="input-group">
                                 <input type="text" class="form-control" name="recipient" id="send_money_recipient" placeholder="Recipient Account" data-i18n="[placeholder]recipient_account" autofocus tabindex="1" />
                                 <span class="input-group-btn btn-group recipient_selector">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span></button>
+                                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span></button>
                                 <ul class="dropdown-menu scrollable-menu" role="menu" style="right:0;left:auto;"></ul>
                                 </span>
                             </div>
@@ -93,14 +93,90 @@
                         <input type="hidden" name="merchant_info" value="" data-default="" />
                     </form>
                 </div>
-            </div>
-            <div class="multi-out">
-                Multi-Out
+                <div class="multi-out">
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <div class="form-group" style="margin-bottom:5px">
+                        <input type="checkbox" name="same_out" id="send_money_same_out" value="1" /> <label for="send_money_same_out" style="font-weight:normal;" tabindex="10" data-i18n="do_not_broadcast">Same Out</label>
+                    </div>
+                    <div class="multi-out-recipients">
+                        <div class="row">
+                            <div class="col-xs-6 col-sm-6 col-md-6">
+                                <div class="form-group">
+                                    <label for="send_money_recipient" data-i18n="recipient">RECIPIENT</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="recipient" id="send_money_recipient" placeholder="Recipient Account" data-i18n="[placeholder]recipient_account" autofocus tabindex="1" />
+                                        <span class="input-group-btn btn-group recipient_selector">
+                                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span></button>
+                                        <ul class="dropdown-menu scrollable-menu" role="menu" style="right:0;left:auto;"></ul>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-5 col-sm-5 col-md-5">
+                                <div class="form-group">
+                                    <label for="send_money_amount" data-i18n="amount">AMOUNT</label>
+                                    <div class="input-group">
+                                        <input type="text" name="amountNXT" id="send_money_amount" step="any" min="0" class="form-control" placeholder="Amount" data-i18n="[placeholder]amount" tabindex="3">
+                                        <span class="input-group-addon">BURST</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-1 col-sm-1 col-md-1" style="padding-top:25px; padding-left: 0px !important;">
+                                <a href="#" class="btn btn-default remove_recipient"><span class="glyphicon glyphicon-remove"></span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12">
+                            <button type="button" class="btn btn-default add_recipients" style="width: 100%; margin-bottom: 10px">Add Recipient</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12">
+                            <div class="form-group">
+                                <label for="send_money_fee" data-i18n="fee">FEE</label>
+                                <div class="input-group">
+                                    <input type="number" name="feeNXT" id="send_money_fee" class="form-control" step="any" min="0.00735" placeholder="Fee" data-i18n="[placeholder]fee" data-default="0.00735" value="0.00735" tabindex="4">
+                                    <span class="input-group-addon">BURST</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer" style="margin-top:0;">
-                <div class="advanced_info"><strong data-i18n="fee">Fee</strong>: <span class="advanced_fee">0.00735 BURST</span> - <a href="#" data-i18n="advanced">advanced</a></div>
+                <div class="advanced_info ordinary"><strong data-i18n="fee">Fee</strong>: <span class="advanced_fee">0.00735 BURST</span> - <a href="#" data-i18n="advanced">advanced</a></div>
                 <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
                 <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="send_burst;[data-loading-text]submitting">Send BURST</button>
+            </div>
+            <!-- Multi Out additional recipient -->
+            <div class="hide" id="additional_multi_out_recipient">
+                <div class="row">
+                    <div class="col-xs-6 col-sm-6 col-md-6">
+                        <div class="form-group">
+                            <label for="send_money_recipient" data-i18n="recipient">RECIPIENT</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="recipient" id="send_money_recipient" placeholder="Recipient Account" data-i18n="[placeholder]recipient_account" autofocus tabindex="1" />
+                                <span class="input-group-btn btn-group recipient_selector">
+                                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span></button>
+                                <ul class="dropdown-menu scrollable-menu" role="menu" style="right:0;left:auto;"></ul>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-5 col-sm-5 col-md-5">
+                        <div class="form-group">
+                            <label for="send_money_amount" data-i18n="amount">AMOUNT</label>
+                            <div class="input-group">
+                                <input type="text" name="amountNXT" id="send_money_amount" step="any" min="0" class="form-control" placeholder="Amount" data-i18n="[placeholder]amount" tabindex="3">
+                                <span class="input-group-addon">BURST</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-1 col-sm-1 col-md-1" style="padding-top:25px; padding-left: 0px !important;">
+                        <a href="#" class="btn btn-default remove_recipient"><span class="glyphicon glyphicon-remove"></span></a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

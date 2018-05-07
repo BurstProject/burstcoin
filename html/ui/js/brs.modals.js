@@ -42,6 +42,10 @@ var BRS = (function(BRS, $, undefined) {
 	$(target).scrollTop(0);
     })
 
+    // hide multi-out
+    $(".multi-out").hide();
+    $(".hide").hide();
+
     $(".ordinary-nav a").on("click", function(e) {
         $(".multi-out").hide();
         $(".ordinary").fadeIn();
@@ -55,6 +59,24 @@ var BRS = (function(BRS, $, undefined) {
         $(".ordinary-nav").toggleClass("active");
         $(".multi-out-nav").toggleClass("active");
     });
+
+    // multi-out inputs
+    var recipients = 1; //initlal text box count
+    var max_fields = 64;
+    $(".add_recipients").on("click", function(e) { //on add input button click
+        console.log("clicked")
+          e.preventDefault();
+          if (recipients < max_fields) { //max input box allowed
+              recipients++; //text box increment
+              $(".multi-out-recipients").append($("#additional_multi_out_recipient").html()); //add input box
+          }
+    });
+
+    $(".remove_button").on("click", function(e) { //user click on remove text
+          e.preventDefault();
+          $(this).parent('div').remove();
+          recipients--;
+    })
 
     $(".add_message").on("change", function(e) {
 	if ($(this).is(":checked")) {
