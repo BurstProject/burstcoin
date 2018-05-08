@@ -1,6 +1,7 @@
 package brs.http;
 
 import static brs.TransactionType.AdvancedPayment.ESCROW_SIGN;
+import static brs.fluxcapacitor.FeatureToggle.DIGITAL_GOODS_STORE;
 import static brs.http.common.Parameters.DECISION_PARAMETER;
 import static brs.http.common.Parameters.ESCROW_PARAMETER;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
@@ -9,22 +10,30 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import brs.Account;
 import brs.Attachment;
 import brs.Blockchain;
+import brs.Burst;
 import brs.BurstException;
 import brs.Escrow;
 import brs.Escrow.DecisionType;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
+import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.EscrowService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(Burst.class)
 public class EscrowSignTest extends AbstractTransactionTest {
 
   private ParameterService parameterServiceMock;
@@ -61,6 +70,10 @@ public class EscrowSignTest extends AbstractTransactionTest {
     final Account sender = mock(Account.class);
     when(sender.getId()).thenReturn(senderId);
 
+    mockStatic(Burst.class);
+    final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(DIGITAL_GOODS_STORE);
+    when(Burst.getFluxCapacitor()).thenReturn(fluxCapacitor);
+
     when(escrowServiceMock.getEscrowTransaction(eq(escrowId))).thenReturn(escrow);
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(sender);
 
@@ -92,6 +105,10 @@ public class EscrowSignTest extends AbstractTransactionTest {
     when(escrowServiceMock.getEscrowTransaction(eq(escrowId))).thenReturn(escrow);
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(sender);
 
+    mockStatic(Burst.class);
+    final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(DIGITAL_GOODS_STORE);
+    when(Burst.getFluxCapacitor()).thenReturn(fluxCapacitor);
+
     final Attachment.AdvancedPaymentEscrowSign attachment = (brs.Attachment.AdvancedPaymentEscrowSign) attachmentCreatedTransaction(() -> t.processRequest(req),
         apiTransactionManagerMock);
     assertNotNull(attachment);
@@ -116,6 +133,10 @@ public class EscrowSignTest extends AbstractTransactionTest {
 
     final Account sender = mock(Account.class);
     when(sender.getId()).thenReturn(senderId);
+
+    mockStatic(Burst.class);
+    final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(DIGITAL_GOODS_STORE);
+    when(Burst.getFluxCapacitor()).thenReturn(fluxCapacitor);
 
     when(escrowServiceMock.isIdSigner(eq(senderId), eq(escrow))).thenReturn(true);
 
