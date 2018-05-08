@@ -64,7 +64,6 @@ var BRS = (function(BRS, $, undefined) {
     var recipients = 1; //initlal text box count
     var max_fields = 64;
     $(".add_recipients").on("click", function(e) { //on add input button click
-        console.log("clicked")
           e.preventDefault();
           if (recipients < max_fields) { //max input box allowed
               recipients++; //text box increment
@@ -72,11 +71,11 @@ var BRS = (function(BRS, $, undefined) {
           }
     });
 
-    $(".remove_button").on("click", function(e) { //user click on remove text
+    $(document).on("click", ".remove_recipient .remove_recipient_button", function(e) { //user click on remove text
           e.preventDefault();
-          $(this).parent('div').remove();
+          $(this).parent().parent('div').remove();
           recipients--;
-    })
+    });
 
     $(".add_message").on("change", function(e) {
 	if ($(this).is(":checked")) {
