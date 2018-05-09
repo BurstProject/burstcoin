@@ -1,4 +1,4 @@
-package integration.common;
+package it.common;
 
 import static brs.peer.ProcessBlock.ACCEPTED;
 import static org.junit.Assert.assertEquals;
@@ -10,7 +10,6 @@ import brs.common.TestInfrastructure;
 import brs.peer.Peers;
 import brs.peer.ProcessBlock;
 import java.util.Properties;
-import org.h2.jdbc.JdbcSQLException;
 import org.json.simple.JSONObject;
 import org.junit.After;
 import org.junit.Before;

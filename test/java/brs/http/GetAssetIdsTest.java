@@ -5,16 +5,16 @@ import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.ResultFields.ASSET_IDS_RESPONSE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Asset;
+import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
-import brs.services.AssetService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -25,13 +25,13 @@ public class GetAssetIdsTest extends AbstractUnitTest {
 
   private GetAssetIds t;
 
-  private AssetService mockAssetService;
+  private AssetExchange mockAssetExchange;
 
   @Before
   public void setUp() {
-    mockAssetService = mock(AssetService.class);
+    mockAssetExchange = mock(AssetExchange.class);
 
-    t = new GetAssetIds(mockAssetService);
+    t = new GetAssetIds(mockAssetExchange);
   }
 
   @Test
@@ -44,7 +44,7 @@ public class GetAssetIdsTest extends AbstractUnitTest {
 
     final BurstIterator<Asset> mockAssetIterator = mockBurstIterator(mockAsset);
 
-    when(mockAssetService.getAllAssets(eq(firstIndex), eq(lastIndex)))
+    when(mockAssetExchange.getAllAssets(eq(firstIndex), eq(lastIndex)))
         .thenReturn(mockAssetIterator);
 
     final HttpServletRequest req = QuickMocker.httpServletRequest(

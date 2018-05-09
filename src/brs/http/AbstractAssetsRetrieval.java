@@ -1,23 +1,17 @@
 package brs.http;
 
 import brs.Asset;
+import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
-import brs.services.AssetAccountService;
-import brs.services.AssetTransferService;
-import brs.services.TradeService;
 import org.json.simple.JSONArray;
 
 public abstract class AbstractAssetsRetrieval extends APIServlet.APIRequestHandler  {
 
-  private final TradeService tradeService;
-  private final AssetTransferService assetTransferService;
-  private final AssetAccountService assetAccountService;
+  private final AssetExchange assetExchange;
 
-  public AbstractAssetsRetrieval(APITag[] apiTags, TradeService tradeService, AssetTransferService assetTransferService, AssetAccountService assetAccountService, String... parameters) {
+  public AbstractAssetsRetrieval(APITag[] apiTags, AssetExchange assetExchange, String... parameters) {
     super(apiTags, parameters);
-    this.tradeService = tradeService;
-    this.assetTransferService = assetTransferService;
-    this.assetAccountService = assetAccountService;
+    this.assetExchange = assetExchange;
   }
 
   protected JSONArray assetsToJson(BurstIterator<Asset> assets) {
@@ -26,9 +20,9 @@ public abstract class AbstractAssetsRetrieval extends APIServlet.APIRequestHandl
     while (assets.hasNext()) {
       final Asset asset = assets.next();
 
-      int tradeCount = tradeService.getTradeCount(asset.getId());
-      int transferCount = assetTransferService.getTransferCount(asset.getId());
-      int accountsCount = assetAccountService.getAssetAccountsCount(asset.getId());
+      int tradeCount = assetExchange.getTradeCount(asset.getId());
+      int transferCount = assetExchange.getTransferCount(asset.getId());
+      int accountsCount = assetExchange.getAssetAccountsCount(asset.getId());
 
       assetsJSONArray.add(JSONData.asset(asset, tradeCount, transferCount, accountsCount));
     }

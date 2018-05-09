@@ -5,8 +5,8 @@ import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.ResultFields.OPEN_ORDERS_RESPONSE;
 
 import brs.Order;
+import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
-import brs.services.OrderService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -15,11 +15,11 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetAllOpenAskOrders extends APIServlet.APIRequestHandler {
 
-  private final OrderService orderService;
+  private final AssetExchange assetExchange;
 
-  GetAllOpenAskOrders(OrderService orderService) {
+  GetAllOpenAskOrders(AssetExchange assetExchange) {
     super(new APITag[] {APITag.AE}, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
-    this.orderService = orderService;
+    this.assetExchange = assetExchange;
   }
 
   @Override
@@ -31,7 +31,7 @@ public final class GetAllOpenAskOrders extends APIServlet.APIRequestHandler {
     int firstIndex = ParameterParser.getFirstIndex(req);
     int lastIndex = ParameterParser.getLastIndex(req);
 
-    try (BurstIterator<Order.Ask> askOrders = orderService.getAllAskOrders(firstIndex, lastIndex)) {
+    try (BurstIterator<Order.Ask> askOrders = assetExchange.getAllAskOrders(firstIndex, lastIndex)) {
       while (askOrders.hasNext()) {
         ordersData.add(JSONData.askOrder(askOrders.next()));
       }

@@ -4,17 +4,14 @@ import static brs.http.common.Parameters.INCLUDE_COUNTS_PARAMETER;
 import static brs.http.common.ResultFields.TIME_RESPONSE;
 
 import brs.*;
+import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.services.AccountService;
 import brs.services.AliasService;
-import brs.services.AssetService;
-import brs.services.AssetTransferService;
 import brs.services.EscrowService;
-import brs.services.OrderService;
 import brs.services.TimeService;
-import brs.services.TradeService;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
@@ -23,28 +20,22 @@ import javax.servlet.http.HttpServletRequest;
 public final class GetState extends APIServlet.APIRequestHandler {
 
   private final Blockchain blockchain;
-  private final TradeService tradeService;
+  private final AssetExchange assetExchange;
   private final AccountService accountService;
   private final EscrowService escrowService;
-  private final OrderService orderService;
-  private final AssetTransferService assetTransferService;
   private final AliasService aliasService;
   private final TimeService timeService;
-  private final AssetService assetService;
   private final Generator generator;
 
-  GetState(Blockchain blockchain, TradeService tradeService, AccountService accountService, EscrowService escrowService, OrderService orderService,
-      AssetTransferService assetTransferService, AliasService aliasService, TimeService timeService, AssetService assetService, Generator generator) {
+  GetState(Blockchain blockchain, AssetExchange assetExchange, AccountService accountService, EscrowService escrowService,
+      AliasService aliasService, TimeService timeService, Generator generator) {
     super(new APITag[] {APITag.INFO}, INCLUDE_COUNTS_PARAMETER);
     this.blockchain = blockchain;
-    this.tradeService = tradeService;
+    this.assetExchange = assetExchange;
     this.accountService = accountService;
     this.escrowService = escrowService;
-    this.orderService = orderService;
-    this.assetTransferService = assetTransferService;
     this.aliasService = aliasService;
     this.timeService = timeService;
-    this.assetService = assetService;
     this.generator = generator;
   }
 
@@ -81,14 +72,14 @@ public final class GetState extends APIServlet.APIRequestHandler {
       response.put("numberOfBlocks", blockchain.getHeight() + 1);
       response.put("numberOfTransactions", blockchain.getTransactionCount());
       response.put("numberOfAccounts", accountService.getCount());
-      response.put("numberOfAssets", assetService.getCount());
-      int askCount = orderService.getAskCount();
-      int bidCount = orderService.getBidCount();
+      response.put("numberOfAssets", assetExchange.getAssetsCount());
+      int askCount = assetExchange.getAskCount();
+      int bidCount = assetExchange.getBidCount();
       response.put("numberOfOrders", askCount + bidCount);
       response.put("numberOfAskOrders", askCount);
       response.put("numberOfBidOrders", bidCount);
-      response.put("numberOfTrades", tradeService.getCount());
-      response.put("numberOfTransfers", assetTransferService.getAssetTransferCount());
+      response.put("numberOfTrades", assetExchange.getTradesCount());
+      response.put("numberOfTransfers", assetExchange.getAssetTransferCount());
       response.put("numberOfAliases", aliasService.getAliasCount());
       //response.put("numberOfPolls", Poll.getCount());
       //response.put("numberOfVotes", Vote.getCount());

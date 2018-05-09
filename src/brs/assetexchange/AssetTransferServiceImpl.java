@@ -1,4 +1,4 @@
-package brs.services.impl;
+package brs.assetexchange;
 
 import brs.AssetTransfer;
 import brs.AssetTransfer.Event;
@@ -9,11 +9,10 @@ import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.sql.EntitySqlTable;
 import brs.db.store.AssetTransferStore;
-import brs.services.AssetTransferService;
 import brs.util.Listener;
 import brs.util.Listeners;
 
-public class AssetTransferServiceImpl implements AssetTransferService {
+class AssetTransferServiceImpl {
 
   private final Listeners<AssetTransfer, Event> listeners = new Listeners<>();
 
@@ -36,27 +35,22 @@ public class AssetTransferServiceImpl implements AssetTransferService {
     return listeners.removeListener(listener, eventType);
   }
 
-  @Override
   public BurstIterator<AssetTransfer> getAssetTransfers(long assetId, int from, int to) {
     return assetTransferStore.getAssetTransfers(assetId, from, to);
   }
 
-  @Override
   public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
     return assetTransferStore.getAccountAssetTransfers(accountId, assetId, from, to);
   }
 
-  @Override
   public int getTransferCount(long assetId) {
     return assetTransferStore.getTransferCount(assetId);
   }
 
-  @Override
   public int getAssetTransferCount() {
     return assetTransferTable.getCount();
   }
 
-  @Override
   public AssetTransfer addAssetTransfer(Transaction transaction, Attachment.ColoredCoinsAssetTransfer attachment) {
     BurstKey dbKey = transferDbKeyFactory.newKey(transaction.getId());
     AssetTransfer assetTransfer = new AssetTransfer(dbKey, transaction, attachment);

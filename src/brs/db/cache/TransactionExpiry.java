@@ -12,16 +12,16 @@ public class TransactionExpiry implements ExpiryPolicy<Long, Transaction> {
 
   @Override
   public Duration getExpiryForCreation(Long key, Transaction value) {
-    return Duration.ofSeconds(value.getExpiration() - time.getTime());
+    return Duration.ofSeconds((long) value.getExpiration() - time.getTime());
   }
 
   @Override
   public Duration getExpiryForAccess(Long key, Supplier<? extends Transaction> value) {
-    return Duration.ofSeconds(value.get().getExpiration() - time.getTime());
+    return Duration.ofSeconds((long) value.get().getExpiration() - time.getTime());
   }
 
   @Override
   public Duration getExpiryForUpdate(Long key, Supplier<? extends Transaction> oldValue, Transaction newValue) {
-    return Duration.ofSeconds(newValue.getExpiration() - time.getTime());
+    return Duration.ofSeconds((long) newValue.getExpiration() - time.getTime());
   }
 }

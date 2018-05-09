@@ -1,4 +1,4 @@
-package brs.services.impl;
+package brs.assetexchange;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;

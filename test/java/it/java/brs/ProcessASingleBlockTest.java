@@ -1,19 +1,19 @@
-package integration;
+package it.java.brs;
 
 import static brs.http.common.ResultFields.BALANCE_NQT_RESPONSE;
 import static org.junit.Assert.assertEquals;
 
-import integration.common.AbstractIT;
-import integration.common.BlockMessageBuilder;
+import it.common.AbstractIT;
+import it.common.BlockMessageBuilder;
 import java.io.IOException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
 
-public class InitialIntegrationTest extends AbstractIT {
+public class ProcessASingleBlockTest extends AbstractIT {
 
   @Test
-  public void canStartIntegrationTest() throws IOException, ParseException, InterruptedException {
+  public void canProcessASingleBlock() throws IOException, ParseException, InterruptedException {
     super.processBlock(getJSONFirstBlock());
 
     final String expectedBlockGenerator = "BURST-5BE2-6SGA-K455-BCCY3";

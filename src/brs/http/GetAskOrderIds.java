@@ -7,8 +7,8 @@ import static brs.http.common.ResultFields.ASK_ORDER_IDS_RESPONSE;
 
 import brs.BurstException;
 import brs.Order;
+import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
-import brs.services.OrderService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
@@ -19,12 +19,12 @@ import org.json.simple.JSONStreamAware;
 public final class GetAskOrderIds extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
-  private final OrderService orderService;
+  private final AssetExchange assetExchange;
 
-  GetAskOrderIds(ParameterService parameterService, OrderService orderService) {
+  GetAskOrderIds(ParameterService parameterService, AssetExchange assetExchange) {
     super(new APITag[]{APITag.AE}, ASSET_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
     this.parameterService = parameterService;
-    this.orderService = orderService;
+    this.assetExchange = assetExchange;
   }
 
   @Override
@@ -35,7 +35,7 @@ public final class GetAskOrderIds extends APIServlet.APIRequestHandler {
     int lastIndex = ParameterParser.getLastIndex(req);
 
     JSONArray orderIds = new JSONArray();
-    try (BurstIterator<Order.Ask> askOrders = orderService.getSortedAskOrders(assetId, firstIndex, lastIndex)) {
+    try (BurstIterator<Order.Ask> askOrders = assetExchange.getSortedAskOrders(assetId, firstIndex, lastIndex)) {
       while (askOrders.hasNext()) {
         orderIds.add(Convert.toUnsignedLong(askOrders.next().getId()));
       }

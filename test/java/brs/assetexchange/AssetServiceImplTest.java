@@ -1,6 +1,7 @@
-package brs.services.impl;
+package brs.assetexchange;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -18,9 +19,6 @@ import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.sql.EntitySqlTable;
 import brs.db.store.AssetStore;
-import brs.services.AssetAccountService;
-import brs.services.AssetTransferService;
-import brs.services.TradeService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -29,18 +27,18 @@ public class AssetServiceImplTest extends AbstractUnitTest {
 
   private AssetServiceImpl t;
 
-  private AssetAccountService assetAccountServiceMock;
-  private AssetTransferService assetTransferServicMock;
-  private TradeService tradeServiceMock;
+  private AssetAccountServiceImpl assetAccountServiceMock;
+  private AssetTransferServiceImpl assetTransferServicMock;
+  private TradeServiceImpl tradeServiceMock;
   private AssetStore assetStoreMock;
   private EntitySqlTable assetTableMock;
   private LongKeyFactory assetDbKeyFactoryMock;
 
   @Before
   public void setUp() {
-    assetAccountServiceMock = mock(AssetAccountService.class);
-    assetTransferServicMock = mock(AssetTransferService.class);
-    tradeServiceMock = mock(TradeService.class);
+    assetAccountServiceMock = mock(AssetAccountServiceImpl.class);
+    assetTransferServicMock = mock(AssetTransferServiceImpl.class);
+    tradeServiceMock = mock(TradeServiceImpl.class);
 
     assetStoreMock = mock(AssetStore.class);
     assetTableMock = mock(EntitySqlTable.class);
@@ -159,7 +157,7 @@ public class AssetServiceImplTest extends AbstractUnitTest {
   public void getCount() {
     when(assetTableMock.getCount()).thenReturn(5);
 
-    assertEquals(5, t.getCount());
+    assertEquals(5, t.getAssetsCount());
   }
 
   @Test

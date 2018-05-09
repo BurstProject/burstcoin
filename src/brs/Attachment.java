@@ -68,16 +68,12 @@ import static brs.http.common.ResultFields.URI_RESPONSE;
 
 import brs.TransactionType.Payment;
 import brs.crypto.EncryptedData;
-import brs.http.common.Parameters;
 import brs.util.Convert;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -247,11 +243,17 @@ public interface Attachment extends Appendix {
 
     @Override
     void putMyJSON(JSONObject attachment) {
-      JSONArray recipients = new JSONArray();
-      this.recipients.forEach(a -> {
-        recipients.add( new JSONArray() {{ add(Convert.toUnsignedLong(a.get(0))); add(a.get(1)); }});
-      });
-      attachment.put(RECIPIENTS_RESPONSE, recipients);
+      final JSONArray recipientsJSON = new JSONArray();
+
+      this.recipients.stream()
+        .map(recipient -> {
+          final JSONArray recipientJSON = new JSONArray();
+          recipientJSON.add(Convert.toUnsignedLong(recipient.get(0)));
+          recipientJSON.add(recipient.get(1));
+          return recipientJSON;
+        }).forEach(recipientsJSON::add);
+
+      attachment.put(RECIPIENTS_RESPONSE, recipientsJSON);
     }
 
     @Override

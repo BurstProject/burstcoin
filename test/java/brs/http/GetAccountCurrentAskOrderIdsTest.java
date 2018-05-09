@@ -14,11 +14,11 @@ import static org.mockito.Mockito.when;
 import brs.Account;
 import brs.BurstException;
 import brs.Order.Ask;
+import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
-import brs.services.OrderService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
@@ -31,14 +31,14 @@ public class GetAccountCurrentAskOrderIdsTest extends AbstractUnitTest {
   private GetAccountCurrentAskOrderIds t;
 
   private ParameterService mockParameterService;
-  private OrderService mockOrderService;
+  private AssetExchange mockAssetExchange;
 
   @Before
   public void setUp() {
     mockParameterService = mock(ParameterService.class);
-    mockOrderService = mock(OrderService.class);
+    mockAssetExchange = mock(AssetExchange.class);
 
-    t = new GetAccountCurrentAskOrderIds(mockParameterService, mockOrderService);
+    t = new GetAccountCurrentAskOrderIds(mockParameterService, mockAssetExchange);
   }
 
   @Test
@@ -62,7 +62,7 @@ public class GetAccountCurrentAskOrderIdsTest extends AbstractUnitTest {
 
     final BurstIterator<Ask> mockAskIterator = mockBurstIterator(mockAsk);
 
-    when(mockOrderService.getAskOrdersByAccount(eq(accountId), eq(firstIndex), eq(lastIndex))).thenReturn(mockAskIterator);
+    when(mockAssetExchange.getAskOrdersByAccount(eq(accountId), eq(firstIndex), eq(lastIndex))).thenReturn(mockAskIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
 
@@ -98,7 +98,7 @@ public class GetAccountCurrentAskOrderIdsTest extends AbstractUnitTest {
 
     final BurstIterator<Ask> mockAskIterator = mockBurstIterator(mockAsk);
 
-    when(mockOrderService.getAskOrdersByAccountAsset(eq(accountId), eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockAskIterator);
+    when(mockAssetExchange.getAskOrdersByAccountAsset(eq(accountId), eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockAskIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
 

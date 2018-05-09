@@ -17,10 +17,10 @@ import brs.Blockchain;
 import brs.Burst;
 import brs.BurstException;
 import brs.Order.Bid;
+import brs.assetexchange.AssetExchange;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.fluxcapacitor.FluxCapacitor;
-import brs.services.OrderService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
@@ -37,17 +37,17 @@ public class CancelBidOrderTest extends AbstractTransactionTest {
 
   private ParameterService parameterServiceMock;
   private Blockchain blockchainMock;
-  private OrderService orderServiceMock;
+  private AssetExchange assetExchangeMock;
   private APITransactionManager apiTransactionManagerMock;
 
   @Before
   public void setUp() {
     parameterServiceMock = mock(ParameterService.class);
     blockchainMock = mock(Blockchain.class);
-    orderServiceMock = mock(OrderService.class);
+    assetExchangeMock = mock(AssetExchange.class);
     apiTransactionManagerMock = mock(APITransactionManager.class);
 
-    t = new CancelBidOrder(parameterServiceMock, blockchainMock, orderServiceMock, apiTransactionManagerMock);
+    t = new CancelBidOrder(parameterServiceMock, blockchainMock, assetExchangeMock, apiTransactionManagerMock);
   }
 
   @Test
@@ -62,7 +62,7 @@ public class CancelBidOrderTest extends AbstractTransactionTest {
 
     final Bid mockBidOrder = mock(Bid.class);
     when(mockBidOrder.getAccountId()).thenReturn(orderAccountId);
-    when(orderServiceMock.getBidOrder(eq(123L))).thenReturn(mockBidOrder);
+    when(assetExchangeMock.getBidOrder(eq(123L))).thenReturn(mockBidOrder);
 
     final Account mockAccount = mock(Account.class);
     when(mockAccount.getId()).thenReturn(senderAccountId);
@@ -91,7 +91,7 @@ public class CancelBidOrderTest extends AbstractTransactionTest {
         new MockParam(ORDER_PARAMETER, orderId)
     );
 
-    when(orderServiceMock.getBidOrder(eq(123L))).thenReturn(null);
+    when(assetExchangeMock.getBidOrder(eq(123L))).thenReturn(null);
 
     assertEquals(UNKNOWN_ORDER, t.processRequest(req));
   }
@@ -108,7 +108,7 @@ public class CancelBidOrderTest extends AbstractTransactionTest {
 
     final Bid mockBidOrder = mock(Bid.class);
     when(mockBidOrder.getAccountId()).thenReturn(orderAccountId);
-    when(orderServiceMock.getBidOrder(eq(123L))).thenReturn(mockBidOrder);
+    when(assetExchangeMock.getBidOrder(eq(123L))).thenReturn(mockBidOrder);
 
     final Account mockAccount = mock(Account.class);
     when(mockAccount.getId()).thenReturn(senderAccountId);
