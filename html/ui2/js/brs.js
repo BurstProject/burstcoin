@@ -247,7 +247,7 @@ var BRS = (function(BRS, $, undefined) {
 		BRS.state = response;
 
 		if (firstTime) {
-		    $("#brs_version").html(BRS.state.version).removeClass("loading_dots");
+		    $("#brs_version, #brs_version_dashboard").html(BRS.state.version).removeClass("loading_dots");
 		    BRS.getBlock(BRS.state.lastBlock, BRS.handleInitialBlocks);
 		}
 		else if (BRS.state.isScanning) {
@@ -579,7 +579,7 @@ var BRS = (function(BRS, $, undefined) {
 	    BRS.accountInfo = response;
 
 	    if (response.errorCode) {
-		$("#account_balance, #account_forged_balance").html("0");
+		$("#account_balance, #account_forged_balance, #account_balance_sendmoney").html("0");
 		$("#account_nr_assets").html("0");
 
 		if (BRS.accountInfo.errorCode == 5) {
@@ -679,7 +679,7 @@ var BRS = (function(BRS, $, undefined) {
 		    }
 		}
 
-		$("#account_balance").html(BRS.formatStyledAmount(response.unconfirmedBalanceNQT));
+		$("#account_balance, #account_balance_sendmoney").html(BRS.formatStyledAmount(response.unconfirmedBalanceNQT));
 		$("#account_forged_balance").html(BRS.formatStyledAmount(response.forgedBalanceNQT));
 
 		var nr_assets = 0;
@@ -700,7 +700,7 @@ var BRS = (function(BRS, $, undefined) {
 	    }
 
 	    if (firstRun) {
-		$("#account_balance, #account_forged_balance, #account_nr_assets").removeClass("loading_dots");
+		$("#account_balance, #account_forged_balance, #account_nr_assets, #account_balance_sendmoney").removeClass("loading_dots");
 	    }
 
 	    if (callback) {

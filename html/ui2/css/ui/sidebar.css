@@ -128,3 +128,39 @@
 .sidebar-menu .active > .treeview-menu {
   display: block;
 }
+.sidebar-form {
+  border-radius: 3px;
+  border: 1px solid #374850;
+  margin: 10px 10px;
+}
+.sidebar-form input[type="text"],
+.sidebar-form .btn {
+  box-shadow: none;
+  background-color: #374850;
+  border: 1px solid transparent;
+  height: 35px;
+}
+.sidebar-form input[type="text"] {
+  color: #666;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 2px;
+}
+.sidebar-form input[type="text"]:focus,
+.sidebar-form input[type="text"]:focus + .input-group-btn .btn {
+  background-color: #fff;
+  color: #999;
+  box-shadow: none;
+  background-color: #374850;
+}
+.sidebar-form input[type="text"]:focus + .input-group-btn .btn {
+  border-left-color: #fff;
+}
+.sidebar-form .btn {
+  color: #999;
+  border-top-left-radius: 0;
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
+  border-bottom-left-radius: 0;
+}
