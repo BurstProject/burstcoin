@@ -71,7 +71,7 @@ public final class SendMoneyMultiSame extends CreateTransaction {
     long totalAmountNQT = amountNQT * recipientsArray.length;
     try {
       for(String recipientId : recipientsArray) {
-        recipients.add(Convert.parseAccountId(recipientId));
+        recipients.add(Convert.parseUnsignedLong(recipientId));
       }
     }
     catch(Exception e) {
