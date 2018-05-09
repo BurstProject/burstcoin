@@ -4,9 +4,12 @@ import static brs.http.common.Parameters.DEADLINE_PARAMETER;
 import static brs.http.common.Parameters.FEE_QT_PARAMETER;
 import static brs.http.common.Parameters.PUBLIC_KEY_PARAMETER;
 import static brs.http.common.Parameters.SECRET_PHRASE_PARAMETER;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import brs.fluxcapacitor.FeatureToggle;
+import brs.fluxcapacitor.FluxCapacitor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +17,14 @@ import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 
 public class QuickMocker {
+
+  public static FluxCapacitor fluxCapacitorEnabledFunctionalities(FeatureToggle... enabledToggles) {
+    final FluxCapacitor mockCapacitor = mock(FluxCapacitor.class);
+    for (FeatureToggle ft : enabledToggles) {
+      when(mockCapacitor.isActive(eq(ft))).thenReturn(true);
+    }
+    return mockCapacitor;
+  }
 
   public static HttpServletRequest httpServletRequest(MockParam... parameters) {
     final HttpServletRequest mockedRequest = mock(HttpServletRequest.class);
@@ -72,6 +83,7 @@ public class QuickMocker {
   }
 
   public static class JSONParam {
+
     private final String key;
     private final Object value;
 

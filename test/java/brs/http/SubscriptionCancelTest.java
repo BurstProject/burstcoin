@@ -1,6 +1,7 @@
 package brs.http;
 
 import static brs.TransactionType.AdvancedPayment.SUBSCRIPTION_CANCEL;
+import static brs.fluxcapacitor.FeatureToggle.DIGITAL_GOODS_STORE;
 import static brs.http.common.Parameters.SUBSCRIPTION_PARAMETER;
 import static brs.http.common.ResultFields.ERROR_CODE_RESPONSE;
 import static org.junit.Assert.assertEquals;
@@ -8,21 +9,29 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import brs.Account;
 import brs.Attachment;
 import brs.Blockchain;
+import brs.Burst;
 import brs.BurstException;
 import brs.Subscription;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
+import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.ParameterService;
 import brs.services.SubscriptionService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(Burst.class)
 public class SubscriptionCancelTest extends AbstractTransactionTest {
 
   private SubscriptionCancel t;
@@ -60,6 +69,10 @@ public class SubscriptionCancelTest extends AbstractTransactionTest {
 
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSender);
     when(subscriptionServiceMock.getSubscription(eq(subscriptionIdParameter))).thenReturn(mockSubscription);
+
+    mockStatic(Burst.class);
+    final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(DIGITAL_GOODS_STORE);
+    when(Burst.getFluxCapacitor()).thenReturn(fluxCapacitor);
 
     final Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
