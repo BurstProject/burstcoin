@@ -203,22 +203,14 @@ public final class Burst {
 
       economicClustering = new EconomicClustering(blockchain);
 
-      final BurstKey.LongKeyFactory<Transaction> unconfirmedTransactionDbKeyFactory =
-          stores.getTransactionProcessorStore().getUnconfirmedTransactionDbKeyFactory();
-
-
-      final EntityTable<Transaction> unconfirmedTransactionTable =
-          stores.getTransactionProcessorStore().getUnconfirmedTransactionTable();
-
-
       final Generator generator = propertyService.getBoolean(Props.DEV_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService, fluxCapacitor);
 
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
 
       final TransactionService transactionService = new TransactionServiceImpl(accountService, blockchain);
 
-      transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain, stores, timeService, dbs,
-          accountService, transactionService, threadPool, dbCacheManager);
+      transactionProcessor = new TransactionProcessorImpl(propertyService, economicClustering, blockchain, stores, timeService, dbs,
+          accountService, transactionService, threadPool);
 
       final ATService atService = new ATServiceImpl(stores.getAtStore());
       final SubscriptionService subscriptionService = new SubscriptionServiceImpl(stores.getSubscriptionStore(), transactionDb, blockchain, aliasService, accountService);
@@ -296,6 +288,7 @@ public final class Burst {
     Peers.shutdown(threadPool);
     threadPool.shutdown();
     dbCacheManager.close();
+    stores.getUnconfirmedTransactionStore().close();
     if(! ignoreDBShutdown) {
       Db.shutdown();
     }

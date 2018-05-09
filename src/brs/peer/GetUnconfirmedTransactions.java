@@ -22,11 +22,8 @@ final class GetUnconfirmedTransactions extends PeerServlet.PeerRequestHandler {
     JSONObject response = new JSONObject();
 
     JSONArray transactionsData = new JSONArray();
-    try (BurstIterator<? extends Transaction> transactions = transactionProcessor.getAllUnconfirmedTransactions()) {
-      while (transactions.hasNext()) {
-        Transaction transaction = transactions.next();
-        transactionsData.add(transaction.getJSONObject());
-      }
+    for ( Transaction transaction : transactionProcessor.getAllUnconfirmedTransactions() ) {
+      transactionsData.add(transaction.getJSONObject());
     }
 
     response.put("unconfirmedTransactions", transactionsData);

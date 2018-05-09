@@ -37,14 +37,11 @@ public final class GetUnconfirmedTransactions extends APIServlet.APIRequestHandl
     }
 
     JSONArray transactions = new JSONArray();
-    try (BurstIterator<? extends Transaction> transactionsIterator = transactionProcessor.getAllUnconfirmedTransactions()) {
-      while (transactionsIterator.hasNext()) {
-        Transaction transaction = transactionsIterator.next();
-        if (accountId != 0 && !(accountId == transaction.getSenderId() || accountId == transaction.getRecipientId())) {
-          continue;
-        }
-        transactions.add(JSONData.unconfirmedTransaction(transaction));
+    for ( Transaction transaction : transactionProcessor.getAllUnconfirmedTransactions()) {
+      if (accountId != 0 && !(accountId == transaction.getSenderId() || accountId == transaction.getRecipientId())) {
+        continue;
       }
+      transactions.add(JSONData.unconfirmedTransaction(transaction));
     }
 
     JSONObject response = new JSONObject();

@@ -1,11 +1,7 @@
 package brs;
 
 import brs.common.Props;
-import brs.db.BurstKey.LongKeyFactory;
-import brs.db.EntityTable;
-import brs.db.BurstIterator;
 import brs.db.BurstKey;
-import brs.db.cache.DBCacheManagerImpl;
 import brs.db.store.Dbs;
 import brs.db.store.Stores;
 import brs.fluxcapacitor.FeatureToggle;
@@ -19,6 +15,7 @@ import brs.util.JSON;
 import brs.util.Listener;
 import brs.util.Listeners;
 import brs.util.ThreadPool;
+import org.ehcache.Cache;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -38,10 +35,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   private final int rebroadcastAfter;
   private final int rebroadcastEvery;
 
-  private final BurstKey.LongKeyFactory<Transaction> unconfirmedTransactionDbKeyFactory;
-
-  private final EntityTable<Transaction> unconfirmedTransactionTable;
-
   private final Object unconfirmedTransactionsSyncObj = new Object();
   
   private final Set<Transaction> nonBroadcastedTransactions = Collections.newSetFromMap(new ConcurrentHashMap<Transaction,Boolean>());
@@ -56,13 +49,11 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   private Dbs dbs;
   private Blockchain blockchain;
   private AccountService accountService;
-  private DBCacheManagerImpl dbCacheManager;
+  private UnconfirmedTransactionStore unconfirmedTransactionStore;
 
-  public TransactionProcessorImpl(LongKeyFactory<Transaction> unconfirmedTransactionDbKeyFactory, EntityTable<Transaction> unconfirmedTransactionTable,
-      PropertyService propertyService, EconomicClustering economicClustering, Blockchain blockchain, Stores stores, TimeService timeService, Dbs dbs, AccountService accountService,
-      TransactionService transactionService, ThreadPool threadPool, DBCacheManagerImpl dbCacheManager) {
-    this.unconfirmedTransactionDbKeyFactory = unconfirmedTransactionDbKeyFactory;
-    this.unconfirmedTransactionTable = unconfirmedTransactionTable;
+  public TransactionProcessorImpl(PropertyService propertyService,
+      EconomicClustering economicClustering, Blockchain blockchain, Stores stores, TimeService timeService, Dbs dbs, AccountService accountService,
+      TransactionService transactionService, ThreadPool threadPool) {
 
     this.economicClustering = economicClustering;
     this.blockchain = blockchain;
@@ -80,18 +71,16 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     this.rebroadcastAfter = propertyService.getInt(Props.P2P_REBROADCAST_AFTER, 4);
     this.rebroadcastEvery = propertyService.getInt(Props.P2P_REBROADCAST_EVERY, 2);
 
-    this.dbCacheManager = dbCacheManager;
-//    threadPool.scheduleThread("ProcessTransactions", processTransactionsThread, 5);
-//    if (enableTransactionRebroadcasting) {
-//      threadPool.scheduleThread("RebroadcastTransactions", rebroadcastTransactionsThread, 60);
-//      threadPool.runAfterStart(() -> {
-//        try (BurstIterator<Transaction> oldNonBroadcastedTransactions = getAllUnconfirmedTransactions()) {
-//          while(oldNonBroadcastedTransactions.hasNext()) {
-//            nonBroadcastedTransactions.add(oldNonBroadcastedTransactions.next());
-//          }
-//        }
-//      });
-//    }
+    this.unconfirmedTransactionStore = stores.getUnconfirmedTransactionStore();
+    threadPool.scheduleThread("ProcessTransactions", processTransactionsThread, 5);
+    if (enableTransactionRebroadcasting) {
+      threadPool.scheduleThread("RebroadcastTransactions", rebroadcastTransactionsThread, 60);
+      threadPool.runAfterStart(() -> {
+        unconfirmedTransactionStore.forEach(transaction -> {
+          nonBroadcastedTransactions.add(transaction);
+        });
+      });
+    }
   }
   public Object getUnconfirmedTransactionsSyncObj() {
 	  return unconfirmedTransactionsSyncObj;
@@ -215,13 +204,13 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   @Override
-  public BurstIterator<Transaction> getAllUnconfirmedTransactions() {
-    return unconfirmedTransactionTable.getAll(0, -1);
+  public ArrayList<Transaction> getAllUnconfirmedTransactions() {
+    return unconfirmedTransactionStore.getAll();
   }
 
   @Override
   public Transaction getUnconfirmedTransaction(long transactionId) {
-    return unconfirmedTransactionTable.get(unconfirmedTransactionDbKeyFactory.newKey(transactionId));
+    return unconfirmedTransactionStore.get(transactionId);
   }
 
   @Override
@@ -249,7 +238,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       logger.info("Transaction " + transaction.getStringId() + " already in blockchain, will not broadcast again");
       return;
     }
-    if (unconfirmedTransactionTable.get(((Transaction) transaction).getDbKey()) != null) {
+    if (unconfirmedTransactionStore.exists(transaction.getId())) {
       if (enableTransactionRebroadcasting) {
         nonBroadcastedTransactions.add((Transaction) transaction);
         logger.info("Transaction " + transaction.getStringId() + " already in unconfirmed pool, will re-broadcast");
@@ -293,15 +282,14 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     List<Transaction> removed = new ArrayList<>();
     try {
       stores.beginTransaction();
-      try (BurstIterator<Transaction> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
-        while(unconfirmedTransactions.hasNext()) {
-          Transaction transaction = unconfirmedTransactions.next();
-          transactionService.undoUnconfirmed(transaction);
-          removed.add(transaction);
-        }
-      }
+      unconfirmedTransactionStore.forEach(
+          transaction -> {
+            transactionService.undoUnconfirmed(transaction);
+            removed.add(transaction);
+          }
+      );
       accountService.flushAccountTable();
-      unconfirmedTransactionTable.truncate();
+      unconfirmedTransactionStore.clear();
       stores.commitTransaction();
     } catch (Exception e) {
       logger.error(e.toString(), e);
@@ -316,19 +304,18 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   void requeueAllUnconfirmedTransactions() {
-	synchronized (unconfirmedTransactionsSyncObj) {
-    List<Transaction> removed = new ArrayList<>();
-    try (BurstIterator<Transaction> unconfirmedTransactions = getAllUnconfirmedTransactions()) {
-      while(unconfirmedTransactions.hasNext()) {
-        Transaction transaction = unconfirmedTransactions.next();
-        transactionService.undoUnconfirmed(transaction);
-        removed.add(transaction);
-        lostTransactions.add(transaction);
-      }
+    synchronized (unconfirmedTransactionsSyncObj) {
+      List<Transaction> removed = new ArrayList<>();
+      unconfirmedTransactionStore.forEach(
+          transaction -> {
+            transactionService.undoUnconfirmed(transaction);
+            removed.add(transaction);
+            lostTransactions.add(transaction);
+          }
+      );
+      unconfirmedTransactionStore.clear();
+      transactionListeners.notify(removed, Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
     }
-    unconfirmedTransactionTable.truncate();
-    transactionListeners.notify(removed, Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
-	}
   }
   int getTransactionVersion(int previousBlockHeight) {
     return Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE, previousBlockHeight) ? 1 : 0;
@@ -336,7 +323,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 
   // Watch: This is not really clean
   void processLater(Collection<Transaction> transactions) {
-    stores.getTransactionProcessorStore().processLater(transactions);
+    unconfirmedTransactionStore.put(transactions);
   }
 
   private void processPeerTransactions(JSONArray transactionsData) throws BurstException.ValidationException {
@@ -393,7 +380,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
             break; // not ready to process transactions
           }
 
-          if (dbs.getTransactionDb().hasTransaction(transaction.getId()) || stores.getTransactionProcessorStore().hasTransaction(transaction.getId())) {
+          if (dbs.getTransactionDb().hasTransaction(transaction.getId()) || unconfirmedTransactionStore.exists(transaction.getId())) {
             stores.commitTransaction();
             continue;
           }
@@ -406,7 +393,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
             continue;
           }
 
-          // ToDo: add to cacheManager
           if (sendToPeers) {
             if (nonBroadcastedTransactions.contains(transaction)) {
               logger.debug("Received back transaction " + transaction.getStringId()
@@ -417,7 +403,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
               sendToPeersTransactions.add(transaction);
             }
           }
-          dbCacheManager.getCache("unconfirmedTransaction").put(transaction.getId(), transaction);
+          unconfirmedTransactionStore.put(transaction);
           addedUnconfirmedTransactions.add(transaction);
           stores.commitTransaction();
         } catch (Exception e) {

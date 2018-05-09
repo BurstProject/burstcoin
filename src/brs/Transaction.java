@@ -404,13 +404,6 @@ public class Transaction implements Comparable<Transaction> {
     return senderId;
   }
 
-  public BurstKey getDbKey() {
-    if (dbKey == null) {
-      dbKey = Burst.getStores().getTransactionProcessorStore().getUnconfirmedTransactionDbKeyFactory().newKey(getId());
-    }
-    return dbKey;
-  }
-
   public Appendix.Message getMessage() {
     return message;
   }
