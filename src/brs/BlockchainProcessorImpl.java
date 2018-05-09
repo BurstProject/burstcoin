@@ -11,6 +11,7 @@ import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
 import brs.fluxcapacitor.FeatureToggle;
 import brs.fluxcapacitor.FluxInt;
+import brs.schema.tables.UnconfirmedTransaction;
 import brs.services.BlockService;
 import brs.services.EscrowService;
 import brs.services.PropertyService;
@@ -117,7 +118,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       PropertyService propertyService,
       SubscriptionService subscriptionService, TimeService timeService, DerivedTableManager derivedTableManager,
       BlockDb blockDb, TransactionDb transactionDb, EconomicClustering economicClustering, BlockchainStore blockchainStore, Stores stores, EscrowService escrowService,
-      TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator, StatisticsManagerImpl statisticsManager, DBCacheManagerImpl dbCacheManager, AccountService accountService) {
+      TransactionService transactionService, DownloadCacheImpl downloadCache, Generator generator, StatisticsManagerImpl statisticsManager, DBCacheManagerImpl dbCacheManager,
+      AccountService accountService) {
     this.blockService = blockService;
     this.transactionProcessor = transactionProcessor;
     this.timeService = timeService;
@@ -136,7 +138,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     this.statisticsManager = statisticsManager;
     this.dbCacheManager = dbCacheManager;
     this.accountService = accountService;
-    
+
     oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
     oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE, 1000);
 
@@ -1103,16 +1105,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   @Override
   public void generateBlock(String secretPhrase, byte[] publicKey, Long nonce)
       throws BlockNotAcceptedException {
-
+    UnconfirmedTransactionStore unconfirmedTransactionStore = stores.getUnconfirmedTransactionStore();
     List<Transaction> orderedUnconfirmedTransactions = new ArrayList<>();
     try {
       stores.beginTransaction();
 
-      ArrayList<Transaction> unconfirmedTransactionsOrderedByFee = new ArrayList<>();
-      dbCacheManager.getCache("unconfirmedTransaction").forEach(e -> {
-        Transaction transaction = (Transaction) ((Cache.Entry) e).getValue();
-        unconfirmedTransactionsOrderedByFee.add(transaction);
-      });
+      ArrayList<Transaction> unconfirmedTransactionsOrderedByFee = unconfirmedTransactionStore.getAll();
       unconfirmedTransactionsOrderedByFee.sort((o2, o1) -> ((Long) o1.getFeeNQT()).compareTo(o2.getFeeNQT()));
 
       int blocksize = Burst.getFluxCapacitor().getInt(FluxInt.MAX_NUMBER_TRANSACTIONS);
@@ -1128,7 +1126,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               }
             }
             else {
-              dbCacheManager.getCache("unconfirmedTransaction").remove(transaction.getId());
+              unconfirmedTransactionStore.remove(transaction);
             }
             transactionHasBeenHandled = true;
           }
