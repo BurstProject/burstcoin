@@ -1,10 +1,9 @@
-package integration.common;
+package it.common;
 
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 
-import brs.common.TestConstants;
 import brs.common.TestInfrastructure;
 import java.io.IOException;
 import java.util.ArrayList;
