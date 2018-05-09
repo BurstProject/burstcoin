@@ -2,6 +2,8 @@ package brs;
 
 import brs.AT.HandleATBlockTransactionsListener;
 import brs.GeneratorImpl.MockGeneratorImpl;
+import brs.assetexchange.AssetExchange;
+import brs.assetexchange.AssetExchangeImpl;
 import brs.blockchainlistener.DevNullListener;
 import brs.common.Props;
 import brs.db.BlockDb;
@@ -23,34 +25,24 @@ import brs.peer.Peers;
 import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.AliasService;
-import brs.services.AssetAccountService;
-import brs.services.AssetService;
-import brs.services.AssetTransferService;
 import brs.services.BlockService;
 import brs.services.DGSGoodsStoreService;
 import brs.services.EscrowService;
-import brs.services.OrderService;
 import brs.services.ParameterService;
 import brs.services.PropertyService;
 import brs.services.SubscriptionService;
 import brs.services.TimeService;
-import brs.services.TradeService;
 import brs.services.TransactionService;
 import brs.services.impl.ATServiceImpl;
 import brs.services.impl.AccountServiceImpl;
 import brs.services.impl.AliasServiceImpl;
-import brs.services.impl.AssetAccountServiceImpl;
-import brs.services.impl.AssetServiceImpl;
-import brs.services.impl.AssetTransferServiceImpl;
 import brs.services.impl.BlockServiceImpl;
 import brs.services.impl.DGSGoodsStoreServiceImpl;
 import brs.services.impl.EscrowServiceImpl;
-import brs.services.impl.OrderServiceImpl;
 import brs.services.impl.ParameterServiceImpl;
 import brs.services.impl.PropertyServiceImpl;
 import brs.services.impl.SubscriptionServiceImpl;
 import brs.services.impl.TimeServiceImpl;
-import brs.services.impl.TradeServiceImpl;
 import brs.services.impl.TransactionServiceImpl;
 import brs.statistics.StatisticsManagerImpl;
 import brs.util.DownloadCacheImpl;
@@ -232,11 +224,8 @@ public final class Burst {
       final SubscriptionService subscriptionService = new SubscriptionServiceImpl(stores.getSubscriptionStore(), transactionDb, blockchain, aliasService, accountService);
       final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(blockchain, stores.getDigitalGoodsStoreStore(), accountService);
       final EscrowService escrowService = new EscrowServiceImpl(stores.getEscrowStore(), blockchain, aliasService, accountService);
-      final TradeService tradeService = new TradeServiceImpl(stores.getTradeStore());
-      final AssetAccountService assetAccountService = new AssetAccountServiceImpl(stores.getAccountStore());
-      final AssetTransferService assetTransferService = new AssetTransferServiceImpl(stores.getAssetTransferStore());
-      final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
-      final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
+
+      final AssetExchange assetExchange = new AssetExchangeImpl(accountService, stores.getTradeStore(), stores.getAccountStore(), stores.getAssetTransferStore(), stores.getAssetStore(), stores.getOrderStore());
 
       final DownloadCacheImpl downloadCache = new DownloadCacheImpl(propertyService, fluxCapacitor, blockchain);
 
@@ -248,7 +237,7 @@ public final class Burst {
 
       generator.generateForBlockchainProcessor(threadPool, blockchainProcessor);
 
-      final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,
+      final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetExchange,
           digitalGoodsStoreService, blockchain, blockchainProcessor, transactionProcessor, atService);
 
       addBlockchainListeners(blockchainProcessor, accountService, digitalGoodsStoreService, blockchain, dbs.getTransactionDb());
@@ -257,14 +246,13 @@ public final class Burst {
 
       Peers.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService, threadPool);
 
-      TransactionType.init(blockchain, fluxCapacitor, accountService, digitalGoodsStoreService, aliasService, assetService, orderService, assetTransferService, subscriptionService, escrowService);
+      TransactionType.init(blockchain, fluxCapacitor, accountService, digitalGoodsStoreService, aliasService, assetExchange, subscriptionService, escrowService);
 
       api = new API(transactionProcessor, blockchain, blockchainProcessor, parameterService,
-          accountService, aliasService, orderService, assetService, assetTransferService,
-          tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
+          accountService, aliasService, assetExchange, escrowService, digitalGoodsStoreService,
           subscriptionService, atService, timeService, economicClustering, propertyService, threadPool, transactionService, blockService, generator, apiTransactionManager);
 
-      DebugTrace.init(propertyService, blockchainProcessor, accountService, tradeService, orderService, digitalGoodsStoreService);
+      DebugTrace.init(propertyService, blockchainProcessor, accountService, assetExchange, digitalGoodsStoreService);
 
       int timeMultiplier = (propertyService.getBoolean(Props.DEV_TESTNET) && propertyService.getBoolean(Props.DEV_OFFLINE)) ? Math.max(propertyService.getInt(Props.DEV_TIMEWARP), 1) : 1;
 

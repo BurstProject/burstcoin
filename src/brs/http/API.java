@@ -2,10 +2,10 @@ package brs.http;
 
 import brs.Blockchain;
 import brs.BlockchainProcessor;
-import brs.Constants;
 import brs.EconomicClustering;
 import brs.Generator;
 import brs.TransactionProcessor;
+import brs.assetexchange.AssetExchange;
 import brs.common.Props;
 import brs.services.*;
 import brs.util.Subnet;
@@ -34,10 +34,9 @@ public final class API {
 
   public API(TransactionProcessor transactionProcessor,
              Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
-             AccountService accountService, AliasService aliasService, OrderService orderService,
-             AssetService assetService, AssetTransferService assetTransferService,
-             TradeService tradeService, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService,
-             AssetAccountService assetAccountService, SubscriptionService subscriptionService, ATService atService,
+             AccountService accountService, AliasService aliasService,
+             AssetExchange assetExchange, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService,
+             SubscriptionService subscriptionService, ATService atService,
              TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService,
              ThreadPool threadPool, TransactionService transactionService, BlockService blockService,
              Generator generator, APITransactionManager apiTransactionManager) {
@@ -120,8 +119,7 @@ public final class API {
       }
 
       ServletHolder peerServletHolder = new ServletHolder(new APIServlet(transactionProcessor, blockchain, blockchainProcessor, parameterService,
-                                                                         accountService, aliasService, orderService, assetService, assetTransferService,
-                                                                         tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
+                                                                         accountService, aliasService, assetExchange, escrowService, digitalGoodsStoreService,
                                                                          subscriptionService, atService, timeService, economicClustering, transactionService, blockService, generator, propertyService, apiTransactionManager));
       apiHandler.addServlet(peerServletHolder, "/burst");
 

@@ -1,4 +1,4 @@
-package brs.services.impl;
+package brs.assetexchange;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
@@ -13,7 +13,6 @@ import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
 import brs.db.store.OrderStore;
 import brs.services.AccountService;
-import brs.services.TradeService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,7 +27,7 @@ public class OrderServiceImplTest {
   private LongKeyFactory<Bid> mockBidOrderDbKeyFactory;
 
   private AccountService accountServiceMock;
-  private TradeService tradeServiceMock;
+  private TradeServiceImpl tradeServiceMock;
 
   @Before
   public void setUp() {
@@ -39,7 +38,7 @@ public class OrderServiceImplTest {
     mockBidOrderDbKeyFactory = mock(LongKeyFactory.class);
 
     accountServiceMock = mock(AccountService.class);
-    tradeServiceMock = mock(TradeService.class);
+    tradeServiceMock = mock(TradeServiceImpl.class);
 
     when(orderStoreMock.getAskOrderTable()).thenReturn(mockAskOrderTable);
     when(orderStoreMock.getAskOrderDbKeyFactory()).thenReturn(mockAskOrderDbKeyFactory);

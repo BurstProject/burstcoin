@@ -18,11 +18,11 @@ import static org.mockito.Mockito.when;
 import brs.Asset;
 import brs.BurstException;
 import brs.Order.Ask;
+import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
-import brs.services.OrderService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
@@ -33,16 +33,16 @@ import org.junit.Test;
 public class GetAskOrdersTest extends AbstractUnitTest {
 
   private ParameterService parameterServiceMock;
-  private OrderService orderServiceMock;
+  private AssetExchange assetExchangeMock;
 
   private GetAskOrders t;
 
   @Before
   public void setUp() {
     parameterServiceMock = mock(ParameterService.class);
-    orderServiceMock = mock(OrderService.class);
+    assetExchangeMock = mock(AssetExchange.class);
 
-    t = new GetAskOrders(parameterServiceMock, orderServiceMock);
+    t = new GetAskOrders(parameterServiceMock, assetExchangeMock);
   }
 
   @Test
@@ -74,7 +74,7 @@ public class GetAskOrdersTest extends AbstractUnitTest {
 
     final BurstIterator<Ask> askIterator = this.mockBurstIterator(askOrder1, askOrder2);
 
-    when(orderServiceMock.getSortedAskOrders(eq(assetIndex), eq(firstIndex), eq(lastIndex))).thenReturn(askIterator);
+    when(assetExchangeMock.getSortedAskOrders(eq(assetIndex), eq(firstIndex), eq(lastIndex))).thenReturn(askIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
     assertNotNull(result);

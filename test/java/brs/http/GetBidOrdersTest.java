@@ -13,11 +13,11 @@ import static org.mockito.Mockito.when;
 import brs.Asset;
 import brs.BurstException;
 import brs.Order.Bid;
+import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
-import brs.services.OrderService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
@@ -30,14 +30,14 @@ public class GetBidOrdersTest extends AbstractUnitTest {
   private GetBidOrders t;
 
   private ParameterService mockParameterService;
-  private OrderService mockOrderService;
+  private AssetExchange mockAssetExchange;
 
   @Before
   public void setUp() {
     mockParameterService = mock(ParameterService.class);
-    mockOrderService = mock(OrderService.class);
+    mockAssetExchange = mock(AssetExchange.class);
 
-    t = new GetBidOrders(mockParameterService, mockOrderService);
+    t = new GetBidOrders(mockParameterService, mockAssetExchange);
   }
 
   @Test
@@ -61,7 +61,7 @@ public class GetBidOrdersTest extends AbstractUnitTest {
     final BurstIterator<Bid> mockBidIterator = mockBurstIterator(mockBid);
 
     when(mockParameterService.getAsset(req)).thenReturn(mockAsset);
-    when(mockOrderService.getSortedBidOrders(eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockBidIterator);
+    when(mockAssetExchange.getSortedBidOrders(eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockBidIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
     assertNotNull(result);

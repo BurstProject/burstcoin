@@ -3,7 +3,6 @@ package brs.http;
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.INCLUDE_ASSET_INFO_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
-import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
 import static brs.http.common.Parameters.TIMESTAMP_PARAMETER;
 import static brs.http.common.ResultFields.ASSET_RESPONSE;
 import static brs.http.common.ResultFields.NAME_RESPONSE;
@@ -11,8 +10,7 @@ import static brs.http.common.ResultFields.PRICE_NQT_RESPONSE;
 import static brs.http.common.ResultFields.TRADES_RESPONSE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -21,12 +19,11 @@ import static org.mockito.Mockito.when;
 import brs.Asset;
 import brs.BurstException;
 import brs.Trade;
+import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
-import brs.services.AssetService;
-import brs.services.TradeService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -37,15 +34,13 @@ public class GetAllTradesTest extends AbstractUnitTest {
 
   private GetAllTrades t;
 
-  private TradeService mockTradeService;
-  private AssetService mockAssetService;
+  private AssetExchange mockAssetExchange;
 
   @Before
   public void setUp() {
-    mockTradeService = mock(TradeService.class);
-    mockAssetService = mock(AssetService.class);
+    mockAssetExchange = mock(AssetExchange.class);
 
-    t = new GetAllTrades(mockTradeService, mockAssetService);
+    t = new GetAllTrades(mockAssetExchange);
   }
 
   @Test
@@ -75,8 +70,8 @@ public class GetAllTradesTest extends AbstractUnitTest {
 
     final BurstIterator<Trade> mockTradeIterator = mockBurstIterator(mockTrade);
 
-    when(mockTradeService.getAllTrades(eq(0), eq(-1))).thenReturn(mockTradeIterator);
-    when(mockAssetService.getAsset(eq(mockAssetId))).thenReturn(mockAsset);
+    when(mockAssetExchange.getAllTrades(eq(0), eq(-1))).thenReturn(mockTradeIterator);
+    when(mockAssetExchange.getAsset(eq(mockAssetId))).thenReturn(mockAsset);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
     assertNotNull(result);
@@ -115,7 +110,7 @@ public class GetAllTradesTest extends AbstractUnitTest {
 
     final BurstIterator<Trade> mockTradeIterator = mockBurstIterator(mockTrade);
 
-    when(mockTradeService.getAllTrades(eq(0), eq(-1))).thenReturn(mockTradeIterator);
+    when(mockAssetExchange.getAllTrades(eq(0), eq(-1))).thenReturn(mockTradeIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
     assertNotNull(result);
@@ -131,7 +126,7 @@ public class GetAllTradesTest extends AbstractUnitTest {
     assertEquals("" + mockAssetId, tradeAssetInfoResult.get(ASSET_RESPONSE));
     assertEquals(null, tradeAssetInfoResult.get(NAME_RESPONSE));
 
-    verify(mockAssetService, never()).getAsset(eq(mockAssetId));
+    verify(mockAssetExchange, never()).getAsset(eq(mockAssetId));
   }
 
 }

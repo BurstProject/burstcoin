@@ -6,10 +6,7 @@ import static brs.http.common.Parameters.ASSETS_PARAMETER;
 import static brs.http.common.ResultFields.ASSETS_RESPONSE;
 
 import brs.Asset;
-import brs.services.AssetAccountService;
-import brs.services.AssetService;
-import brs.services.AssetTransferService;
-import brs.services.TradeService;
+import brs.assetexchange.AssetExchange;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
@@ -18,17 +15,11 @@ import org.json.simple.JSONStreamAware;
 
 public final class GetAssets extends APIServlet.APIRequestHandler {
 
-  private final AssetService assetService;
-  private final AssetAccountService assetAccountService;
-  private final AssetTransferService assetTransferService;
-  private final TradeService tradeService;
+  private final AssetExchange assetExchange;
 
-  public GetAssets(AssetService assetService, AssetAccountService assetAccountService, AssetTransferService assetTransferService, TradeService tradeService) {
+  public GetAssets(AssetExchange assetExchange) {
     super(new APITag[]{APITag.AE}, ASSETS_PARAMETER, ASSETS_PARAMETER, ASSETS_PARAMETER); // limit to 3 for testing
-    this.assetService = assetService;
-    this.assetAccountService = assetAccountService;
-    this.assetTransferService = assetTransferService;
-    this.tradeService = tradeService;
+    this.assetExchange = assetExchange;
   }
 
   @Override
@@ -44,14 +35,14 @@ public final class GetAssets extends APIServlet.APIRequestHandler {
         continue;
       }
       try {
-        Asset asset = assetService.getAsset(Convert.parseUnsignedLong(assetIdString));
+        Asset asset = assetExchange.getAsset(Convert.parseUnsignedLong(assetIdString));
         if (asset == null) {
           return UNKNOWN_ASSET;
         }
 
-        int tradeCount = tradeService.getTradeCount(asset.getId());
-        int transferCount = assetTransferService.getTransferCount(asset.getId());
-        int accountsCount = assetAccountService.getAssetAccountsCount(asset.getId());
+        int tradeCount = assetExchange.getTradeCount(asset.getId());
+        int transferCount = assetExchange.getTransferCount(asset.getId());
+        int accountsCount = assetExchange.getAssetAccountsCount(asset.getId());
 
         assetsJSONArray.add(JSONData.asset(asset, tradeCount, transferCount, accountsCount));
       } catch (RuntimeException e) {
