@@ -282,7 +282,6 @@ public interface Attachment extends Appendix {
       HashMap<Long,Boolean> recipientOf = new HashMap<>();
       while (buffer.hasRemaining()) {
         long recipientId = buffer.getLong();
-        long amountNQT = buffer.getLong();
 
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi same out transaction");
