@@ -304,9 +304,7 @@ public interface Attachment extends Appendix {
       HashMap<Long,Boolean> recipientOf = new HashMap<>();
 
       for (int i = 0; i < recipients.size(); i++) {
-        JSONArray recipient = (JSONArray) recipients.get(i);
-
-        long recipientId = new BigInteger((String) recipient.get(0)).longValue();
+        long recipientId = new BigInteger((String) recipients.get(i)).longValue();
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi same out transaction");
 
