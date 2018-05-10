@@ -1,6 +1,7 @@
 package brs.http;
 
 import static brs.TransactionType.DigitalGoods.PURCHASE;
+import static brs.fluxcapacitor.FeatureToggle.DIGITAL_GOODS_STORE;
 import static brs.http.JSONResponses.INCORRECT_DELIVERY_DEADLINE_TIMESTAMP;
 import static brs.http.JSONResponses.INCORRECT_PURCHASE_PRICE;
 import static brs.http.JSONResponses.INCORRECT_PURCHASE_QUANTITY;
@@ -14,21 +15,29 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import brs.Account;
 import brs.Attachment;
 import brs.Blockchain;
+import brs.Burst;
 import brs.BurstException;
 import brs.DigitalGoodsStore.Goods;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
+import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import brs.services.TimeService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(Burst.class)
 public class DGSPurchaseTest extends AbstractTransactionTest {
 
   private DGSPurchase t;
@@ -77,6 +86,10 @@ public class DGSPurchaseTest extends AbstractTransactionTest {
     when(mockTimeService.getEpochTime()).thenReturn(10);
 
     when(mockAccountService.getAccount(eq(mockSellerId))).thenReturn(mockSellerAccount);
+
+    mockStatic(Burst.class);
+    final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(DIGITAL_GOODS_STORE);
+    when(Burst.getFluxCapacitor()).thenReturn(fluxCapacitor);
 
     final Attachment.DigitalGoodsPurchase attachment = (Attachment.DigitalGoodsPurchase) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);

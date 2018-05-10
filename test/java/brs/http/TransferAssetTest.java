@@ -1,6 +1,7 @@
 package brs.http;
 
 import static brs.TransactionType.ColoredCoins.ASSET_TRANSFER;
+import static brs.fluxcapacitor.FeatureToggle.DIGITAL_GOODS_STORE;
 import static brs.http.JSONResponses.NOT_ENOUGH_ASSETS;
 import static brs.http.common.Parameters.ASSET_PARAMETER;
 import static brs.http.common.Parameters.QUANTITY_QNT_PARAMETER;
@@ -11,21 +12,29 @@ import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import brs.Account;
 import brs.Asset;
 import brs.Attachment;
 import brs.Blockchain;
+import brs.Burst;
 import brs.BurstException;
 import brs.TransactionProcessor;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
+import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(Burst.class)
 public class TransferAssetTest extends AbstractTransactionTest {
 
   private TransferAsset t;
@@ -68,6 +77,10 @@ public class TransferAssetTest extends AbstractTransactionTest {
     when(accountServiceMock.getUnconfirmedAssetBalanceQNT(eq(mockSenderAccount), eq(assetIdParameter))).thenReturn(500L);
 
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSenderAccount);
+
+    mockStatic(Burst.class);
+    final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(DIGITAL_GOODS_STORE);
+    when(Burst.getFluxCapacitor()).thenReturn(fluxCapacitor);
 
     final Attachment.ColoredCoinsAssetTransfer attachment = (Attachment.ColoredCoinsAssetTransfer) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);

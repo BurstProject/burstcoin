@@ -1,4 +1,4 @@
-package integration.common;
+package it.common;
 
 import java.util.HashMap;
 import java.util.Map;

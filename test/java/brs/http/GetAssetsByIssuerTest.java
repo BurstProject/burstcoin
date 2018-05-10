@@ -13,23 +13,19 @@ import static brs.http.common.ResultFields.NUMBER_OF_TRANSFERS_RESPONSE;
 import static brs.http.common.ResultFields.QUANTITY_QNT_RESPONSE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Account;
 import brs.Asset;
+import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
-import brs.services.AssetAccountService;
-import brs.services.AssetService;
-import brs.services.AssetTransferService;
 import brs.services.ParameterService;
-import brs.services.TradeService;
 import java.util.Arrays;
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -41,20 +37,14 @@ public class GetAssetsByIssuerTest extends AbstractUnitTest {
   private GetAssetsByIssuer t;
 
   private ParameterService mockParameterService;
-  private AssetService mockAssetService;
-  private AssetAccountService mockAssetAccountService;
-  private AssetTransferService mockAssetTransferService;
-  private TradeService mockTradeService;
+  private AssetExchange mockAssetExchange;
 
   @Before
   public void setUp() {
     mockParameterService = mock(ParameterService.class);
-    mockAssetService = mock(AssetService.class);
-    mockAssetAccountService = mock(AssetAccountService.class);
-    mockAssetTransferService = mock(AssetTransferService.class);
-    mockTradeService = mock(TradeService.class);
+    mockAssetExchange = mock(AssetExchange.class);
 
-    t = new GetAssetsByIssuer(mockParameterService, mockAssetService, mockTradeService, mockAssetTransferService, mockAssetAccountService);
+    t = new GetAssetsByIssuer(mockParameterService, mockAssetExchange);
   }
 
   @Test
@@ -84,10 +74,10 @@ public class GetAssetsByIssuerTest extends AbstractUnitTest {
 
     final BurstIterator<Asset> mockAssetIterator = mockBurstIterator(mockAsset);
 
-    when(mockAssetService.getAssetsIssuedBy(eq(mockAccount.getId()), eq(firstIndex), eq(lastIndex))).thenReturn(mockAssetIterator);
-    when(mockAssetAccountService.getAssetAccountsCount(eq(mockAssetId))).thenReturn(1);
-    when(mockAssetTransferService.getTransferCount(eq(mockAssetId))).thenReturn(2);
-    when(mockTradeService.getTradeCount(eq(mockAssetId))).thenReturn(3);
+    when(mockAssetExchange.getAssetsIssuedBy(eq(mockAccount.getId()), eq(firstIndex), eq(lastIndex))).thenReturn(mockAssetIterator);
+    when(mockAssetExchange.getAssetAccountsCount(eq(mockAssetId))).thenReturn(1);
+    when(mockAssetExchange.getTransferCount(eq(mockAssetId))).thenReturn(2);
+    when(mockAssetExchange.getTradeCount(eq(mockAssetId))).thenReturn(3);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
     assertNotNull(result);

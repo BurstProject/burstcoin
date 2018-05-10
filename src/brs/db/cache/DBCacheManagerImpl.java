@@ -1,9 +1,7 @@
 package brs.db.cache;
 
 import brs.Account;
-import brs.Transaction;
 import brs.db.sql.DbKey;
-import brs.schema.tables.UnconfirmedTransaction;
 import brs.statistics.StatisticsManagerImpl;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +27,6 @@ public class DBCacheManagerImpl {
     statisticsEnabled = true;
 
     caches.put("account", CacheConfigurationBuilder.newCacheConfigurationBuilder(DbKey.class, Account.class, ResourcePoolsBuilder.heap(8192)).build());
-    caches.put("unconfirmedTransaction", CacheConfigurationBuilder.newCacheConfigurationBuilder(Long.class, Transaction.class, ResourcePoolsBuilder.heap(8192)).withExpiry(new TransactionExpiry()).build());
 
     CacheManagerBuilder cacheBuilder = CacheManagerBuilder.newCacheManagerBuilder();
     for (Map.Entry<String, CacheConfiguration> cache : caches.entrySet()) {
@@ -55,7 +52,7 @@ public class DBCacheManagerImpl {
   public void flushCache() {
     for (String cacheName : caches.keySet()) {
       Cache cache = getEHCache(cacheName);
-      if ( cache != null && cacheName != "unconfirmedTransaction" )
+      if ( cache != null )
         cache.clear();
     }
   }

@@ -8,8 +8,8 @@ import static brs.http.common.ResultFields.ASK_ORDER_IDS_RESPONSE;
 
 import brs.BurstException;
 import brs.Order;
+import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
-import brs.services.OrderService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
@@ -19,14 +19,13 @@ import org.json.simple.JSONStreamAware;
 
 public final class GetAccountCurrentAskOrderIds extends APIServlet.APIRequestHandler {
 
-
   private final ParameterService parameterService;
-  private final OrderService orderService;
+  private final AssetExchange assetExchange;
 
-  GetAccountCurrentAskOrderIds(ParameterService parameterService, OrderService orderService) {
+  GetAccountCurrentAskOrderIds(ParameterService parameterService, AssetExchange assetExchange) {
     super(new APITag[]{APITag.ACCOUNTS, APITag.AE}, ACCOUNT_PARAMETER, ASSET_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
     this.parameterService = parameterService;
-    this.orderService = orderService;
+    this.assetExchange = assetExchange;
   }
 
   @Override
@@ -43,9 +42,9 @@ public final class GetAccountCurrentAskOrderIds extends APIServlet.APIRequestHan
 
     BurstIterator<Order.Ask> askOrders;
     if (assetId == 0) {
-      askOrders = orderService.getAskOrdersByAccount(accountId, firstIndex, lastIndex);
+      askOrders = assetExchange.getAskOrdersByAccount(accountId, firstIndex, lastIndex);
     } else {
-      askOrders = orderService.getAskOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex);
+      askOrders = assetExchange.getAskOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex);
     }
     JSONArray orderIds = new JSONArray();
     try {

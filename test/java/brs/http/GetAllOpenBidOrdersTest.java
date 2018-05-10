@@ -14,13 +14,12 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import brs.Order.Ask;
 import brs.Order.Bid;
+import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
-import brs.services.OrderService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -30,13 +29,13 @@ public class GetAllOpenBidOrdersTest extends AbstractUnitTest {
 
   private GetAllOpenBidOrders t;
 
-  private OrderService mockOrderService;
+  private AssetExchange mockAssetExchange;
 
   @Before
   public void setUp() {
-    mockOrderService = mock(OrderService.class);
+    mockAssetExchange = mock(AssetExchange.class);
 
-    t = new GetAllOpenBidOrders(mockOrderService);
+    t = new GetAllOpenBidOrders(mockAssetExchange);
   }
 
   @Test
@@ -52,7 +51,7 @@ public class GetAllOpenBidOrdersTest extends AbstractUnitTest {
     final int lastIndex = 2;
 
     final BurstIterator<Bid> mockIterator = mockBurstIterator(mockBidOrder);
-    when(mockOrderService.getAllBidOrders(eq(firstIndex), eq(lastIndex)))
+    when(mockAssetExchange.getAllBidOrders(eq(firstIndex), eq(lastIndex)))
         .thenReturn(mockIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(QuickMocker.httpServletRequest(

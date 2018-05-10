@@ -17,13 +17,11 @@ import static org.mockito.Mockito.when;
 
 import brs.Asset;
 import brs.BurstException;
+import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.services.AssetAccountService;
-import brs.services.AssetTransferService;
 import brs.services.ParameterService;
-import brs.services.TradeService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -32,20 +30,16 @@ import org.junit.Test;
 public class GetAssetTest extends AbstractUnitTest {
 
   private ParameterService parameterServiceMock;
-  private AssetAccountService assetAccountServiceMock;
-  private AssetTransferService assetTransferServiceMock;
-  private TradeService tradeServiceMock;
+  private AssetExchange mockAssetExchange;
 
   private GetAsset t;
 
   @Before
   public void setUp() {
     parameterServiceMock = mock(ParameterService.class);
-    assetAccountServiceMock = mock(AssetAccountService.class);
-    assetTransferServiceMock = mock(AssetTransferService.class);
-    tradeServiceMock = mock(TradeService.class);
+    mockAssetExchange = mock(AssetExchange.class);
 
-    t = new GetAsset(parameterServiceMock, assetAccountServiceMock, assetTransferServiceMock, tradeServiceMock);
+    t = new GetAsset(parameterServiceMock, mockAssetExchange);
   }
 
   @Test
@@ -68,9 +62,9 @@ public class GetAssetTest extends AbstractUnitTest {
     int transferCount = 2;
     int assetAccountsCount = 3;
 
-    when(tradeServiceMock.getTradeCount(eq(assetId))).thenReturn(tradeCount);
-    when(assetTransferServiceMock.getTransferCount(eq(assetId))).thenReturn(transferCount);
-    when(assetAccountServiceMock.getAssetAccountsCount(eq(assetId))).thenReturn(assetAccountsCount);
+    when(mockAssetExchange.getTradeCount(eq(assetId))).thenReturn(tradeCount);
+    when(mockAssetExchange.getTransferCount(eq(assetId))).thenReturn(transferCount);
+    when(mockAssetExchange.getAssetAccountsCount(eq(assetId))).thenReturn(assetAccountsCount);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
 

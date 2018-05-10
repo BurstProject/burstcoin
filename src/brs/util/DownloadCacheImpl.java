@@ -435,7 +435,7 @@ public final class DownloadCacheImpl {
     
   public Block getLastBlock() {
     Long iLd = getLastCacheId();
-    if (iLd != null) {
+    if (iLd != null && blockCache.containsKey(iLd)) {
       long stamp = dcsl.tryOptimisticRead();
       Block retBlock = blockCache.get(iLd);
       if (!dcsl.validate(stamp)) {

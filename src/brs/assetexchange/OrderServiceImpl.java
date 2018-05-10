@@ -1,4 +1,4 @@
-package brs.services.impl;
+package brs.assetexchange;
 
 import brs.Account;
 import brs.Attachment;
@@ -14,11 +14,9 @@ import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedEntityTable;
 import brs.db.store.OrderStore;
 import brs.services.AccountService;
-import brs.services.OrderService;
-import brs.services.TradeService;
 import brs.util.Convert;
 
-public class OrderServiceImpl implements OrderService {
+class OrderServiceImpl {
 
   private final OrderStore orderStore;
   private final VersionedEntityTable<Ask> askOrderTable;
@@ -26,9 +24,9 @@ public class OrderServiceImpl implements OrderService {
   private final VersionedEntityTable<Bid> bidOrderTable;
   private final LongKeyFactory<Bid> bidOrderDbKeyFactory;
   private final AccountService accountService;
-  private final TradeService tradeService;
+  private final TradeServiceImpl tradeService;
 
-  public OrderServiceImpl(OrderStore orderStore, AccountService accountService, TradeService tradeService) {
+  public OrderServiceImpl(OrderStore orderStore, AccountService accountService, TradeServiceImpl tradeService) {
     this.orderStore = orderStore;
     this.askOrderTable = orderStore.getAskOrderTable();
     this.askOrderDbKeyFactory = orderStore.getAskOrderDbKeyFactory();
@@ -39,77 +37,62 @@ public class OrderServiceImpl implements OrderService {
     this.tradeService = tradeService;
   }
 
-  @Override
   public Ask getAskOrder(long orderId) {
     return askOrderTable.get(askOrderDbKeyFactory.newKey(orderId));
   }
 
-  @Override
   public Bid getBidOrder(long orderId) {
     return bidOrderTable.get(bidOrderDbKeyFactory.newKey(orderId));
   }
 
-  @Override
   public BurstIterator<Ask> getAllAskOrders(int from, int to) {
     return askOrderTable.getAll(from, to);
   }
 
-  @Override
   public BurstIterator<Bid> getAllBidOrders(int from, int to) {
     return bidOrderTable.getAll(from, to);
   }
 
-  @Override
   public BurstIterator<Bid> getSortedBidOrders(long assetId, int from, int to) {
     return orderStore.getSortedBids(assetId, from, to);
   }
 
-  @Override
   public BurstIterator<Ask> getAskOrdersByAccount(long accountId, int from, int to) {
     return orderStore.getAskOrdersByAccount(accountId, from, to);
   }
 
-  @Override
   public BurstIterator<Ask> getAskOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
     return orderStore.getAskOrdersByAccountAsset(accountId, assetId, from, to);
   }
 
-  @Override
   public BurstIterator<Ask> getSortedAskOrders(long assetId, int from, int to) {
     return orderStore.getSortedAsks(assetId, from, to);
   }
 
-  @Override
   public int getBidCount() {
     return bidOrderTable.getCount();
   }
 
-  @Override
   public int getAskCount() {
     return askOrderTable.getCount();
   }
 
-  @Override
   public BurstIterator<Bid> getBidOrdersByAccount(long accountId, int from, int to) {
     return orderStore.getBidOrdersByAccount(accountId, from, to);
   }
 
-  @Override
   public BurstIterator<Bid> getBidOrdersByAccountAsset(final long accountId, final long assetId, int from, int to) {
     return orderStore.getBidOrdersByAccountAsset(accountId, assetId, from, to);
   }
 
-  @Override
   public void removeBidOrder(long orderId) {
     bidOrderTable.delete(getBidOrder(orderId));
   }
 
-  @Override
   public void removeAskOrder(long orderId) {
     askOrderTable.delete(getAskOrder(orderId));
   }
 
-  @Override
   public void addAskOrder(Transaction transaction, Attachment.ColoredCoinsAskOrderPlacement attachment) {
     BurstKey dbKey = askOrderDbKeyFactory.newKey(transaction.getId());
     Ask order = new Ask(dbKey, transaction, attachment);
@@ -117,7 +100,6 @@ public class OrderServiceImpl implements OrderService {
     matchOrders(attachment.getAssetId());
   }
 
-  @Override
   public void addBidOrder(Transaction transaction, Attachment.ColoredCoinsBidOrderPlacement attachment) {
     BurstKey dbKey = bidOrderDbKeyFactory.newKey(transaction.getId());
     Bid order = new Bid(dbKey, transaction, attachment);

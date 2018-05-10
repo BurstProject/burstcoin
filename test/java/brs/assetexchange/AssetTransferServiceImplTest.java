@@ -1,4 +1,4 @@
-package brs.services.impl;
+package brs.assetexchange;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.AssetTransfer;
+import brs.assetexchange.AssetTransferServiceImpl;
 import brs.db.BurstIterator;
 import brs.db.sql.EntitySqlTable;
 import brs.db.store.AssetTransferStore;

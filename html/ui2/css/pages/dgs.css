@@ -63,3 +63,16 @@ table.purchase {margin-bottom: 5px;}
 .dgs_page_contents .price, .dgs_page_contents .showmore {margin-bottom: 5px;}
  
 .dgs_page_contents hr {border-top: 1px solid #ddd;}
+
+.dgs_search{
+	width:280px;
+	margin:0;
+	display:inline-block;
+	vertical-align:middle;
+}
+#dgs_search_top{
+	position:absolute;
+	top:9px;
+	right:9px;
+	display:none;
+}
