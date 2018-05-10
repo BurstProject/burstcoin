@@ -90,6 +90,52 @@ var BRS = (function(BRS, $, undefined) {
         multi_out_recipients--;
     });
 
+    // just to be safe
+    var current_fee = parseFloat($("#multi-out-fee").val(), 10);
+    var fee = isNaN(current_fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+    $("#multi-out-fee").val(fee)
+
+    var total_multi_out = fee;
+    $(document).on("input remove", ".multi-out-amount", function(e) {
+        // get amount for each recipient
+        total_multi_out = 0
+        $(".multi-out-amount").each(function() {
+            var current_amount = parseFloat($(this).val(), 10);
+            var amount = isNaN(current_amount) ? 0 : current_amount;
+            $(this).val(amount)
+            total_multi_out += amount;
+        });
+
+        var current_fee = parseFloat($("#multi-out-fee").val(), 10);
+        var fee = isNaN(fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+        $("#multi-out-fee").val(fee)
+        total_multi_out += current_fee;
+
+        $(this).closest(".modal").find(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
+    });
+
+    $("#multi-out-same-amount").on("input", function(e) { //on add input button click
+        total_multi_out = 0;
+        var current_amount = parseFloat($(this).val(), 10);
+        var current_fee = parseFloat($("#multi-out-fee").val(), 10);
+
+        var amount = isNaN(current_amount) ? 0 : current_amount;
+        var fee = isNaN(current_fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+
+        $("#multi-out-same-amount").val(amount);
+        $("#multi-out-fee").val(fee);
+
+        var amount_total = 0
+        $(".multi-out-same-recipients").children(function() {
+            amount_total += amount
+        });
+
+        total_multi_out = amount_total + fee;
+
+        $(this).closest(".modal").find(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
+    });
+
+
     $(".same_out_checkbox").on("change", function(e) {
         if ($(".multi-out-same-recipients").children().length > multi_out_recipients) {
 
