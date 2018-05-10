@@ -8,8 +8,7 @@ html.lockscreen, html.lockscreen body {
   overflow-x:auto;
 }
 .lockscreen {
-  background-color: #9DC7A9;
-  background: url(../../img/blur-background.jpg) repeat center center fixed;
+  background-color: #282C2F;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;

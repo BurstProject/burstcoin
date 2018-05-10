@@ -7,7 +7,7 @@
       <div class="col-lg-3 col-xs-6">
         <div class="small-box bg-aqua">
           <div class="inner inner-smaller">
-            <h3><span id="peers_uploaded_volume" class="loading_dots"><span>.</span><span>.</span><span>.</span></span></h3>
+            <h3><span id="peers_uploaded_volume" id="loading_dots"><span>.</span><span>.</span><span>.</span></span></h3>
             <p data-i18n="uploaded_volume">Uploaded Volume</p>
           </div>
           <div class="icon"><i class="fas fa-upload"></i></div>
@@ -17,7 +17,7 @@
       <div class="col-lg-3 col-xs-6">
         <div class="small-box bg-green">
           <div class="inner inner-smaller">
-            <h3><span id="peers_downloaded_volume" class="loading_dots"><span>.</span><span>.</span><span>.</span></span></h3>
+            <h3><span id="peers_downloaded_volume" id="loading_dots"><span>.</span><span>.</span><span>.</span></span></h3>
             <p data-i18n="downloaded_volume">Downloaded Volume</p>
           </div>
           <div class="icon" style="bottom:-12px"><i class="fas fa-download"></i></div>
@@ -27,7 +27,7 @@
       <div class="col-lg-3 col-xs-6">
         <div class="small-box bg-yellow">
           <div class="inner inner-smaller">
-            <h3><span id="peers_connected" class="loading_dots"><span>.</span><span>.</span><span>.</span></span></h3>
+            <h3><span id="peers_connected" id="loading_dots"><span>.</span><span>.</span><span>.</span></span></h3>
             <p data-i18n="connected_peers">Connected Peers</p>
           </div>
           <div class="icon" style="bottom:-12px"><i class="fab fa-connectdevelop"></i></div>
@@ -37,7 +37,7 @@
       <div class="col-lg-3 col-xs-6">
         <div class="small-box bg-red">
           <div class="inner inner-smaller">
-            <h3><span id="peers_up_to_date" class="loading_dots"><span>.</span><span>.</span><span>.</span></span></h3>
+            <h3><span id="peers_up_to_date" id="loading_dots"><span>.</span><span>.</span><span>.</span></span></h3>
             <p data-i18n="up_to_date_peers">Up-to-date Peers</p>
           </div>
           <div class="icon"><i class="fas fa-chart-pie"></i></div>
@@ -60,7 +60,7 @@
         <tbody>
         </tbody>
       </table>
-      <div class="data-loading-container"><img src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
+      <div class="data-loading-container"><i class="fas fa-circle-notch fa-spin fa-3x" style="display: block;"></i></div>
       <div class="data-empty-container">
         <p data-i18n="no_peers_found">No peers found.</p>
       </div>

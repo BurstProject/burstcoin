@@ -133,3 +133,15 @@
 	 }
  
 		.chat .to.tentative p:last-child::before {border-left: 1.5em solid #c0c0c0 !important;}
+#message_text {
+	height: 65%;
+	outline: none;
+	resize: none;
+ }
+.brs_message {
+	background: #DFF0D9;
+	border: 1px solid #D6E8C7;
+	color: #48874A;
+	display: none;
+	padding: 5px;
+ }

@@ -24,7 +24,7 @@
                 <tbody>
                 </tbody>
               </table>
-              <div class="data-loading-container"><img src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
+              <div class="data-loading-container"><i class="fas fa-circle-notch fa-spin fa-3x" style="display: block;"></i></div>
               <div class="data-empty-container">
                 <p data-i18n="no_open_sell_orders">No open sell orders.</p>
               </div>
@@ -52,7 +52,7 @@
                 <tbody>
                 </tbody>
               </table>
-              <div class="data-loading-container"><img src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
+              <div class="data-loading-container"><i class="fas fa-circle-notch fa-spin fa-3x" style="display: block;"></i></div>
               <div class="data-empty-container">
                 <p data-i18n="no_open_buy_orders">No open buy orders.</p>
               </div>
@@ -85,7 +85,7 @@
         <tbody>
         </tbody>
       </table>
-      <div class="data-loading-container"><img src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
+      <div class="data-loading-container"><i class="fas fa-circle-notch fa-spin fa-3x" style="display: block;"></i></div>
       <div class="data-empty-container">
         <p data-i18n="no_assets_yet">No assets yet, go buy some on the exchange!</p>
       </div>
@@ -112,13 +112,13 @@
                   <div class="input-group">
                     <input type="text" name="q" class="form-control" placeholder="Search Assets..." data-i18n="[placeholder]search_assets">
                     <span class="input-group-btn">
-                    <button type="submit" name="seach" class="btn btn-flat" style="padding-left:3px"><i class="fas fa-search"></i></button>
+                    <button type="submit" name="search" class="btn btn-flat" style="padding-left:3px"><i class="fas fa-search"></i></button>
                     </span>
                   </div>
                 </form>
               </div>
               <div id="asset_exchange_sidebar_content">
-                <div style="text-align:center;padding-top:10px;"><span data-i18n="loading_please_wait">Loading, please wait</span><span class="loading_dots"><span>.</span><span>.</span><span>.</span></span></div>
+                <div style="text-align:center;padding-top:10px;"><span data-i18n="loading_please_wait">Loading, please wait</span><span id="loading_dots"><span>.</span><span>.</span><span>.</span></span></div>
               </div>
             </div>
           </div>
@@ -128,7 +128,7 @@
             <div id="no_assets_available" style="padding-top: 150px;text-align:center;display:none;" data-i18n="no_assets_available">You don't have any assets in your bookmark list yet. Click on "Add Asset" in the top right corner to add one.</div>
             <div id="no_asset_search_results" style="padding-top: 150px;text-align:center;display:none;" data-i18n="no_asset_search_results">No assets found that match search query.</div>
             <div id="no_asset_selected" style="padding-top: 150px;text-align:center;" data-i18n="no_asset_selected">Please select an asset in the left sidebar.</div>
-            <div id="loading_asset_data" style="padding-top: 150px;text-align:center;display: none;"><span data-i18n="asset_data_loading">Asset data loading, please wait...</span><br /><br /><img class="loading" src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
+            <div id="loading_asset_data" style="padding-top: 150px;text-align:center;display: none;"><span data-i18n="asset_data_loading">Asset data loading, please wait...</span><br /><br /><i class="fas fa-circle-notch fa-spin fa-3x" style="display: block;"></i></div>
             <div id="asset_details" style="display:none;">
               <div class="alert alert-danger alert-no-icon" id="asset_exchange_duplicates_warning" style="display:none" data-i18n="[html]asset_exchange_duplicates_warning"></div>
               <div style="float:right;color: #999999;background:white;padding:5px;border:1px solid #ccc;border-radius:3px">
@@ -225,7 +225,7 @@
                           <tbody>
                           </tbody>
                         </table>
-                        <div class="data-loading-container"><img class="loading" src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
+                        <div class="data-loading-container"><i class="fas fa-circle-notch fa-spin fa-3x" style="display: block;"></i></div>
                         <div class="data-empty-container">
                           <p data-i18n="no_sell_orders_for_asset">No sell orders for this asset.</p>
                         </div>
@@ -309,7 +309,7 @@
                           <tbody>
                           </tbody>
                         </table>
-                        <div class="data-loading-container"><img class="loading" src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
+                        <div class="data-loading-container"><i class="fas fa-circle-notch fa-spin fa-3x" style="display: block;"></i></div>
                         <div class="data-empty-container">
                           <p data-i18n="no_buy_orders_for_asset">No buy orders for this asset.</p>
                         </div>
@@ -339,7 +339,7 @@
                       <tbody>
                       </tbody>
                     </table>
-                    <div class="data-loading-container"><img class="loading" src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
+                    <div class="data-loading-container"><i class="fas fa-circle-notch fa-spin fa-3x" style="display: block;"></i></div>
                     <div class="data-empty-container">
                       <p data-i18n="no_trade_history">No trade history available.</p>
                     </div>
@@ -381,7 +381,7 @@
         <tbody>
         </tbody>
       </table>
-      <div class="data-loading-container"><img src="img/loading_indicator.gif" alt="Loading..." width="32" height="32" /></div>
+      <div class="data-loading-container"><i class="fas fa-circle-notch fa-spin fa-3x" style="display: block;"></i></div>
       <div class="data-empty-container">
         <p data-i18n="no_asset_transfer_history">No asset transfer history available.</p>
       </div>
