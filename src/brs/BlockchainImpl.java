@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.StampedLock;
 
-public final class BlockchainImpl implements Blockchain {
+public class BlockchainImpl implements Blockchain {
 
   private final TransactionDb transactionDb;
   private final BlockDb blockDb;
