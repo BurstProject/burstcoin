@@ -48,6 +48,8 @@ var BRS = (function(BRS, $, undefined) {
     $(".hide").hide();
     $(".multi-out-recipients").append($("#additional_multi_out_recipient").html());
     $(".multi-out-same-recipients").append($("#additional_multi_out_same_recipient").html());
+    $(".multi-out-recipients").find(".remove_recipient").remove() // remove remove button for first entry
+    $(".multi-out-same-recipients").find(".remove_recipient").remove() // remove remove button for first entry
 
     $(".ordinary-nav a").on("click", function(e) {
         $(".multi-out").hide();
