@@ -56,6 +56,7 @@ var BRS = (function(BRS, $, undefined) {
     var fee = isNaN(current_fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
     $("#multi-out-fee").val(fee)
     var total_multi_out = fee;
+    var amount_total = 0;
 
     $(".ordinary-nav a").on("click", function(e) {
         $(".multi-out").hide();
@@ -101,18 +102,19 @@ var BRS = (function(BRS, $, undefined) {
             $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(parseFloat($("#multi-out-fee").val(), 10))) + " BURST");
         } else {
             // get amount for each recipient
-            total_multi_out = 0
+            total_multi_out = 0;
+            amount_total = 0;
             $(".multi-out-amount").each(function() {
                 var current_amount = parseFloat($(this).val(), 10);
                 var amount = isNaN(current_amount) ? 0 : current_amount;
                 $(this).val(amount)
-                total_multi_out += amount;
+                amount_total += amount;
             });
 
             var current_fee = parseFloat($("#multi-out-fee").val(), 10);
             var fee = isNaN(fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
             $("#multi-out-fee").val(fee)
-            total_multi_out += current_fee;
+            total_multi_out = amount_total + fee;
 
             $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
         }
@@ -121,23 +123,25 @@ var BRS = (function(BRS, $, undefined) {
     $(document).on("input remove", ".multi-out-amount", function(e) {
         // get amount for each recipient
         total_multi_out = 0
+        amount_total = 0;
         $(".multi-out-amount").each(function() {
             var current_amount = parseFloat($(this).val(), 10);
             var amount = isNaN(current_amount) ? 0 : current_amount;
             $(this).val(amount)
-            total_multi_out += amount;
+            amount_total += amount;
         });
 
         var current_fee = parseFloat($("#multi-out-fee").val(), 10);
-        var fee = isNaN(fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+        var fee = isNaN(current_fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
         $("#multi-out-fee").val(fee)
-        total_multi_out += current_fee;
+        total_multi_out = amount_total + fee;
 
         $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
     });
 
     $("#multi-out-same-amount").on("input", function(e) { //on add input button click
         total_multi_out = 0;
+        amount_total = 0;
         var current_amount = parseFloat($(this).val(), 10);
         var current_fee = parseFloat($("#multi-out-fee").val(), 10);
 
@@ -147,7 +151,6 @@ var BRS = (function(BRS, $, undefined) {
         $("#multi-out-same-amount").val(amount);
         $("#multi-out-fee").val(fee);
 
-        var amount_total = 0
         $(".multi-out-same-recipients .multi-out-recipient").each(function() {
             amount_total += amount
         });
@@ -158,6 +161,7 @@ var BRS = (function(BRS, $, undefined) {
     });
 
     $(".same_out_checkbox").on("change", function(e) {
+        $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(parseFloat($("#multi-out-fee").val(), 10))) + " BURST");
         if ($(this).is(":checked")) {
             $(".multi-out-same").fadeIn();
             $(".multi-out-ordinary").hide();
@@ -165,6 +169,12 @@ var BRS = (function(BRS, $, undefined) {
             $(".multi-out-same").hide();
             $(".multi-out-ordinary").fadeIn();
         }
+    });
+
+    $("#multi-out-fee").on("input", function(e) { //on add input button click
+        var current_fee = parseFloat($(this).val(), 10);
+        var fee = isNaN(current_fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+        $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(amount_total + fee)) + " BURST");
     });
 
     $(".add_message").on("change", function(e) {
