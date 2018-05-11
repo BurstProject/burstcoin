@@ -51,6 +51,12 @@ var BRS = (function(BRS, $, undefined) {
     $(".multi-out-recipients").find(".remove_recipient").remove() // remove remove button for first entry
     $(".multi-out-same-recipients").find(".remove_recipient").remove() // remove remove button for first entry
 
+    // just to be safe set total display
+    var current_fee = parseFloat($("#multi-out-fee").val(), 10);
+    var fee = isNaN(current_fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+    $("#multi-out-fee").val(fee)
+    var total_multi_out = fee;
+
     $(".ordinary-nav a").on("click", function(e) {
         $(".multi-out").hide();
         $(".ordinary").fadeIn();
@@ -74,6 +80,8 @@ var BRS = (function(BRS, $, undefined) {
             if (multi_out_same_recipients < 128) { //max input box allowed
                 multi_out_same_recipients++;
                 $(".multi-out-same-recipients").append($("#additional_multi_out_same_recipient").html()); //add input box
+                $("#multi-out-same-amount").val(0);
+                $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(parseFloat($("#multi-out-fee").val(), 10))) + " BURST");
             }
         } else {
             if (multi_out_recipients < 64) { //max input box allowed
@@ -81,21 +89,35 @@ var BRS = (function(BRS, $, undefined) {
                 $(".multi-out-recipients").append($("#additional_multi_out_recipient").html()); //add input box
             }
         }
-
     });
 
     $(document).on("click", ".remove_recipient .remove_recipient_button", function(e) { //user click on remove text
         e.preventDefault();
         $(this).parent().parent('div').remove();
         multi_out_recipients--;
+
+        if ($(".same_out_checkbox").is(":checked")) {
+            $("#multi-out-same-amount").val(0);
+            $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(parseFloat($("#multi-out-fee").val(), 10))) + " BURST");
+        } else {
+            // get amount for each recipient
+            total_multi_out = 0
+            $(".multi-out-amount").each(function() {
+                var current_amount = parseFloat($(this).val(), 10);
+                var amount = isNaN(current_amount) ? 0 : current_amount;
+                $(this).val(amount)
+                total_multi_out += amount;
+            });
+
+            var current_fee = parseFloat($("#multi-out-fee").val(), 10);
+            var fee = isNaN(fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+            $("#multi-out-fee").val(fee)
+            total_multi_out += current_fee;
+
+            $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
+        }
     });
 
-    // just to be safe
-    var current_fee = parseFloat($("#multi-out-fee").val(), 10);
-    var fee = isNaN(current_fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
-    $("#multi-out-fee").val(fee)
-
-    var total_multi_out = fee;
     $(document).on("input remove", ".multi-out-amount", function(e) {
         // get amount for each recipient
         total_multi_out = 0
@@ -111,7 +133,7 @@ var BRS = (function(BRS, $, undefined) {
         $("#multi-out-fee").val(fee)
         total_multi_out += current_fee;
 
-        $(this).closest(".modal").find(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
+        $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
     });
 
     $("#multi-out-same-amount").on("input", function(e) { //on add input button click
@@ -126,23 +148,16 @@ var BRS = (function(BRS, $, undefined) {
         $("#multi-out-fee").val(fee);
 
         var amount_total = 0
-        $(".multi-out-same-recipients").children(function() {
+        $(".multi-out-same-recipients .multi-out-recipient").each(function() {
             amount_total += amount
         });
 
         total_multi_out = amount_total + fee;
 
-        $(this).closest(".modal").find(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
+        $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
     });
 
-
     $(".same_out_checkbox").on("change", function(e) {
-        if ($(".multi-out-same-recipients").children().length > multi_out_recipients) {
-
-        }
-        if ($(".multi-out-recipients").children().length > multi_out_recipients) {
-
-        }
         if ($(this).is(":checked")) {
             $(".multi-out-same").fadeIn();
             $(".multi-out-ordinary").hide();
