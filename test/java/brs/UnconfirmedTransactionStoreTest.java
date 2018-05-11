@@ -49,7 +49,7 @@ public class UnconfirmedTransactionStoreTest {
 
     TransactionType.init(mockBlockChain, mockFluxCapacitor, null, null, null, null, null, null);
 
-    t = new UnconfirmedTransactionStore();
+    t = new UnconfirmedTransactionStore(timeService);
   }
 
   @DisplayName("The amount of unconfirmed transactions exceeds 8192, when adding another the cache size stays the same")
@@ -66,6 +66,7 @@ public class UnconfirmedTransactionStoreTest {
     }
 
     assertEquals(8192, t.getAll().size());
+    assertNotNull(t.get(1L));
 
     final Transaction oneTransactionTooMany =
         new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 9999, 735000, timeService.getEpochTime() + 50000, (short) 500, ORDINARY_PAYMENT)
@@ -74,6 +75,7 @@ public class UnconfirmedTransactionStoreTest {
     t.put(oneTransactionTooMany);
 
     assertEquals(8192, t.getAll().size());
+    assertNull(t.get(1L));
   }
 
   @DisplayName("Old transactions get removed from the cache when they are expired")
@@ -89,8 +91,9 @@ public class UnconfirmedTransactionStoreTest {
 
     assertNotNull(t.get(1L));
 
-    Thread.sleep(2000);
+    Thread.sleep(3000);
 
     assertNull(t.get(1L));
   }
+
 }
