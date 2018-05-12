@@ -1148,7 +1148,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
           Long slotFee = Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? blockSize * FEE_QUANT : ONE_BURST;
           if (transaction.getFeeNQT() >= slotFee) {
-            if ( transactionService.applyUnconfirmed(transaction)) {
+            if ( transactionService.applyUnconfirmed(transaction) ) {
               if (hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0)) {
                 try {
                   transactionService.validate(transaction);
@@ -1163,8 +1163,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   // skip
                 } catch (BurstException.ValidationException e) {
                   unconfirmedTransactionStore.remove(transaction);
-                  // unapply ??
-                  // skip
+                  transactionService.undoUnconfirmed(transaction);
                 }
               }
             }
