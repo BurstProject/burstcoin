@@ -1119,6 +1119,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     final Block previousBlock = blockchain.getLastBlock();
     final int blockTimestamp = timeService.getEpochTime();
 
+    // this is just an validation. which collects all valid transactions, which fit into the block
+    // finally all stuff is reverted so nothing is written to the db
+    // the block itself with all transactions we found is pushed using pushBlock which calls
+    // accept (so it's going the same way like a received/synced block)
     try {
       stores.beginTransaction();
 
@@ -1132,7 +1136,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     ! Burst.getFluxCapacitor().isActive(FeatureToggle.AUTOMATED_TRANSACTION_BLOCK)
                         || economicClustering.verifyFork(transaction)
                 )
-                && ! transaction.isDuplicate(duplicates)
       ).collect(Collectors.toList());
       unconfirmedTransactionsOrderedByFee.sort((o2, o1) -> ((Long) o1.getFeeNQT()).compareTo(o2.getFeeNQT()));
 
@@ -1148,8 +1151,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
           Long slotFee = Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? blockSize * FEE_QUANT : ONE_BURST;
           if (transaction.getFeeNQT() >= slotFee) {
-            if ( transactionService.applyUnconfirmed(transaction) ) {
-              if (hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0)) {
+            // transaction can only be handled if all referenced ones exist
+            if (hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0)) {
+              // handle non- duplicates and transactions which can be applied
+              if ( ! transaction.isDuplicate(duplicates) && transactionService.applyUnconfirmed(transaction)) {
                 try {
                   transactionService.validate(transaction);
                   payloadSize -= transaction.getSize();
@@ -1160,16 +1165,18 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
                   orderedBlockTransactions.add(transaction);
                 } catch (BurstException.NotCurrentlyValidException e) {
-                  // skip
+                  transactionService.undoUnconfirmed(transaction);
                 } catch (BurstException.ValidationException e) {
                   unconfirmedTransactionStore.remove(transaction);
                   transactionService.undoUnconfirmed(transaction);
                 }
               }
+              else {
+                // drop duplicates and those transactions which can not be applied
+                unconfirmedTransactionStore.remove(transaction);
+              }
             }
-            else {
-              unconfirmedTransactionStore.remove(transaction);
-            }
+            // handled by a real handling or by discarding the transaction
             transactionHasBeenHandled = true;
           }
           else {
@@ -1177,27 +1184,19 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
           }
         }
       }
-      accountService.flushAccountTable();
-      stores.commitTransaction();
+
+      if (subscriptionService.isEnabled()) {
+        subscriptionService.clearRemovals();
+        totalFeeNQT += subscriptionService.calculateFees(blockTimestamp);
+      }
     }
     catch (Exception e) {
       stores.rollbackTransaction();
       throw e;
     }
     finally {
+      stores.rollbackTransaction();
       stores.endTransaction();
-    }
-
-    if (subscriptionService.isEnabled()) {
-      subscriptionService.clearRemovals();
-      try {
-        stores.beginTransaction();
-        totalFeeNQT += subscriptionService.calculateFees(blockTimestamp);
-      }
-      finally {
-        stores.rollbackTransaction();
-        stores.endTransaction();
-      }
     }
 
     // final byte[] publicKey = Crypto.getPublicKey(secretPhrase);
