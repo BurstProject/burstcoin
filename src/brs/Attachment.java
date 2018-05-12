@@ -249,7 +249,7 @@ public interface Attachment extends Appendix {
         .map(recipient -> {
           final JSONArray recipientJSON = new JSONArray();
           recipientJSON.add(Convert.toUnsignedLong(recipient.get(0)));
-          recipientJSON.add(recipient.get(1));
+          recipientJSON.add(recipient.get(1).toString());
           return recipientJSON;
         }).forEach(recipientsJSON::add);
 
