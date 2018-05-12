@@ -172,9 +172,6 @@ public interface Attachment extends Appendix {
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
 
-        if (amountNQT <= 0)
-          throw new BurstException.NotValidException("Insufficient amountNQT on multi out transaction");
-
         recipientOf.put(recipientId, true);
         this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
       }
@@ -198,9 +195,6 @@ public interface Attachment extends Appendix {
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
 
-        if (amountNQT <= 0)
-          throw new BurstException.NotValidException("Insufficient amountNQT on multi out transaction");
-
         recipientOf.put(recipientId, true);
         this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
       }
@@ -220,8 +214,8 @@ public interface Attachment extends Appendix {
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
 
-        if (amountNQT <= 0)
-          throw new BurstException.NotValidException("Insufficient amountNQT on multi out transaction");
+        if (amountNQT < 0)
+          throw new BurstException.NotValidException("Negative amountNQT on multi out transaction");
 
         recipientOf.put(recipientId, true);
         this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
