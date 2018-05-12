@@ -284,7 +284,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       stores.beginTransaction();
       unconfirmedTransactionStore.forEach(
           transaction -> {
-            transactionService.undoUnconfirmed(transaction);
             removed.add(transaction);
           }
       );
