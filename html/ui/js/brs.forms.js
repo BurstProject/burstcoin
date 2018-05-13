@@ -18,7 +18,10 @@ var BRS = (function(BRS, $, undefined) {
     });
 
     $(".modal button.btn-primary:not([data-dismiss=modal]):not([data-ignore=true])").click(function() {
-        BRS.submitForm($(this).closest(".modal"), $(this));
+        // ugly hack - this whole ui is hack, got a big urge to vomit
+        if (!$(this).hasClass("multi-out")) {
+            BRS.submitForm($(this).closest(".modal"), $(this));
+        }
     });
 
     function getSuccessMessage(requestType) {
@@ -578,10 +581,11 @@ var BRS = (function(BRS, $, undefined) {
         for (var i = 0; i < recipients.length; i++) {
             multiOutString += recipients[i] + ":" + BRS.convertToNQT(amounts[i]) + ";"
         }
+        multiOutString = multiOutString.substring(0, multiOutString.length - 1);
 
         var data = {
-            secretPhase: passphrase,
-            recipients: recipients,
+            secretPhrase: passphrase,
+            recipients: multiOutString,
             feeNQT: BRS.convertToNQT(fee),
             deadline: "1440",
         }
@@ -597,10 +601,11 @@ var BRS = (function(BRS, $, undefined) {
         for (var i = 0; i < recipients.length; i++) {
             multiOutString += recipients[i] + ";"
         }
+        multiOutString = multiOutString.substring(0, multiOutString.length - 1);
 
         var data = {
-            secretPhase: passphrase,
-            recipients: recipients,
+            secretPhrase: passphrase,
+            recipients: multiOutString,
             amountNQT: BRS.convertToNQT(amount),
             feeNQT: BRS.convertToNQT(fee),
             deadline: "1440",
