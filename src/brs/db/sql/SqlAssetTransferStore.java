@@ -8,6 +8,7 @@ import brs.db.store.DerivedTableManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.jooq.DSLContext;
+import org.jooq.SelectQuery;
 
 import static brs.schema.Tables.ASSET_TRANSFER;
 
@@ -69,9 +70,7 @@ public class SqlAssetTransferStore implements AssetTransferStore {
   public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, int from, int to) {
     DSLContext ctx = Db.getDSLContext();
 
-    return getAssetTransferTable().getManyBy(
-    ctx,
-    ctx
+    SelectQuery selectQuery = ctx
       .selectFrom(ASSET_TRANSFER).where(
         ASSET_TRANSFER.SENDER_ID.eq(accountId)
       )
@@ -80,31 +79,32 @@ public class SqlAssetTransferStore implements AssetTransferStore {
           ASSET_TRANSFER.RECIPIENT_ID.eq(accountId).and(ASSET_TRANSFER.SENDER_ID.ne(accountId))
         )
       )
-      .orderBy(ASSET_TRANSFER.HEIGHT.desc()).limit(from, to)
-      .getQuery(),
-    false
-    );
+      .orderBy(ASSET_TRANSFER.HEIGHT.desc())
+      .getQuery();
+    DbUtils.applyLimits(selectQuery, from, to);
+
+    return getAssetTransferTable().getManyBy(ctx, selectQuery, false);
   }
 
   @Override
   public BurstIterator<AssetTransfer> getAccountAssetTransfers(long accountId, long assetId, int from, int to) {
     DSLContext ctx = Db.getDSLContext();
-    return getAssetTransferTable().getManyBy(
-    ctx,
-    ctx
+
+    SelectQuery selectQuery = ctx
       .selectFrom(ASSET_TRANSFER).where(
         ASSET_TRANSFER.SENDER_ID.eq(accountId).and(ASSET_TRANSFER.ASSET_ID.eq(assetId))
       )
       .unionAll(
         ctx.selectFrom(ASSET_TRANSFER).where(
           ASSET_TRANSFER.RECIPIENT_ID.eq(accountId)).and(
-            ASSET_TRANSFER.SENDER_ID.ne(accountId)
-          ).and(ASSET_TRANSFER.ASSET_ID.eq(assetId))
+          ASSET_TRANSFER.SENDER_ID.ne(accountId)
+        ).and(ASSET_TRANSFER.ASSET_ID.eq(assetId))
       )
-      .orderBy(ASSET_TRANSFER.HEIGHT.desc()).limit(from, to)
-      .getQuery(),
-    false
-    );
+      .orderBy(ASSET_TRANSFER.HEIGHT.desc())
+      .getQuery();
+    DbUtils.applyLimits(selectQuery, from, to);
+
+    return getAssetTransferTable().getManyBy(ctx, selectQuery, false);
   }
 
   @Override

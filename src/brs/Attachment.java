@@ -172,6 +172,9 @@ public interface Attachment extends Appendix {
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
 
+        if (amountNQT <= 0)
+          throw new BurstException.NotValidException("Insufficient amountNQT on multi out transaction");
+
         recipientOf.put(recipientId, true);
         this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
       }
@@ -191,9 +194,12 @@ public interface Attachment extends Appendix {
         JSONArray recipient = (JSONArray) recipients.get(i);
 
         long recipientId = new BigInteger((String) recipient.get(0)).longValue();
-        long amountNQT   = (Long) recipient.get(1);
+        long amountNQT   = Convert.parseLong(recipient.get(1));
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
+
+        if (amountNQT <= 0)
+          throw new BurstException.NotValidException("Insufficient amountNQT on multi out transaction");
 
         recipientOf.put(recipientId, true);
         this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
@@ -214,8 +220,8 @@ public interface Attachment extends Appendix {
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
 
-        if (amountNQT < 0)
-          throw new BurstException.NotValidException("Negative amountNQT on multi out transaction");
+        if (amountNQT <= 0)
+          throw new BurstException.NotValidException("Insufficient amountNQT on multi out transaction");
 
         recipientOf.put(recipientId, true);
         this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
@@ -249,7 +255,7 @@ public interface Attachment extends Appendix {
         .map(recipient -> {
           final JSONArray recipientJSON = new JSONArray();
           recipientJSON.add(Convert.toUnsignedLong(recipient.get(0)));
-          recipientJSON.add(recipient.get(1));
+          recipientJSON.add(recipient.get(1).toString());
           return recipientJSON;
         }).forEach(recipientsJSON::add);
 
