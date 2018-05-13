@@ -231,7 +231,6 @@ var BRS = (function(BRS, $, undefined) {
                         }).capitalize();
                     } else {
                         var min = $(this).attr("min");
-
                         if (value < min) {
                             error = $.t("error_min_value", {
                                 "field": BRS.getTranslatedFieldName(name).toLowerCase(),

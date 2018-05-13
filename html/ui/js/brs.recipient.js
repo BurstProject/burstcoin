@@ -46,7 +46,7 @@ var BRS = (function(BRS, $, undefined) {
     $("#send_money_amount").on("input", function(e) {
         var current_amount = parseFloat($(this).val(), 10);
         var current_fee = parseFloat($("#send_money_fee").val(), 10);
-        var fee = isNaN(current_fee) ? 0.00735 : current_fee;
+        var fee = isNaN(current_fee) ? 0.1 : current_fee;
         var amount = isNaN(current_amount) ? 0 : current_amount;
 
         $("#send_money_amount").val(amount);
@@ -55,7 +55,7 @@ var BRS = (function(BRS, $, undefined) {
         $(this).closest(".modal").find(".total_amount_ordinary").html(BRS.formatAmount(BRS.convertToNQT(amount + fee)) + " BURST");
     });
 
-    $("#send_money_fee").on("input", function(e) {
+    $("#send_money_fee").on("change", function(e) {
         var current_amount = parseFloat($("#send_money_amount").val(), 10);
         var current_fee = parseFloat($(this).val(), 10);
         var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
