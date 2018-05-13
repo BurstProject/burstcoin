@@ -284,7 +284,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       stores.beginTransaction();
       unconfirmedTransactionStore.forEach(
           transaction -> {
-            transactionService.undoUnconfirmed(transaction);
             removed.add(transaction);
           }
       );
@@ -308,7 +307,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       List<Transaction> removed = new ArrayList<>();
       unconfirmedTransactionStore.forEach(
           transaction -> {
-            transactionService.undoUnconfirmed(transaction);
             removed.add(transaction);
             lostTransactions.add(transaction);
           }

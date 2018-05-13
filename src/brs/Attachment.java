@@ -194,7 +194,7 @@ public interface Attachment extends Appendix {
         JSONArray recipient = (JSONArray) recipients.get(i);
 
         long recipientId = new BigInteger((String) recipient.get(0)).longValue();
-        long amountNQT   = (Long) recipient.get(1);
+        long amountNQT   = Convert.parseLong(recipient.get(1));
         if (recipientOf.containsKey(recipientId))
           throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
 
@@ -255,7 +255,7 @@ public interface Attachment extends Appendix {
         .map(recipient -> {
           final JSONArray recipientJSON = new JSONArray();
           recipientJSON.add(Convert.toUnsignedLong(recipient.get(0)));
-          recipientJSON.add(recipient.get(1));
+          recipientJSON.add(recipient.get(1).toString());
           return recipientJSON;
         }).forEach(recipientsJSON::add);
 

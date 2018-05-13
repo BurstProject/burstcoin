@@ -31,7 +31,7 @@ public class Stores {
     this.orderStore                  = new SqlOrderStore(derivedTableManager);
     this.tradeStore                  = new SqlTradeStore(derivedTableManager);
     this.subscriptionStore           = new SqlSubscriptionStore(derivedTableManager);
-    this.unconfirmedTransactionStore = new UnconfirmedTransactionStore();
+    this.unconfirmedTransactionStore = new UnconfirmedTransactionStore(timeService);
   }
 
   public AccountStore getAccountStore() {

@@ -381,30 +381,9 @@ public abstract class TransactionType {
       }
 
       @Override
-      final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-        logger.trace("TransactionType MULTI_OUT_PAYMENT;");
-        Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
-        Long totalAmountNQT = attachment.getAmountNQT();
-        if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT) {
-          return false;
-        }
-        accountService.addToUnconfirmedBalanceNQT(senderAccount, -totalAmountNQT);
-        return true;
-      }
-
-      @Override
       final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
         Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
-        Long totalAmountNQT = attachment.getAmountNQT();
-        accountService.addToBalanceNQT(senderAccount, -totalAmountNQT);
-        attachment.getRecipients().forEach(a -> { accountService.addToBalanceNQT(accountService.getOrAddAccount(a.get(0)), a.get(1)); });
-      }
-
-      @Override
-      final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-        Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
-        Long totalAmountNQT = attachment.getAmountNQT();
-        accountService.addToUnconfirmedBalanceNQT(senderAccount, totalAmountNQT);
+        attachment.getRecipients().forEach(a -> { accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getOrAddAccount(a.get(0)), a.get(1)); });
       }
 
       @Override
@@ -437,26 +416,10 @@ public abstract class TransactionType {
       }
 
       @Override
-      final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-        logger.trace("TransactionType MULTI_SAME_OUT_PAYMENT;");
-        if (senderAccount.getUnconfirmedBalanceNQT() < transaction.getAmountNQT()) {
-          return false;
-        }
-        accountService.addToUnconfirmedBalanceNQT(senderAccount, -transaction.getAmountNQT());
-        return true;
-      }
-
-      @Override
       final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
         Attachment.PaymentMultiSameOutCreation attachment = (Attachment.PaymentMultiSameOutCreation) transaction.getAttachment();
-        Long amountNQT = transaction.getAmountNQT() / attachment.getRecipients().size();
-        accountService.addToBalanceNQT(senderAccount, -transaction.getAmountNQT());
-        attachment.getRecipients().forEach(a -> { accountService.addToBalanceNQT(accountService.getOrAddAccount(a), amountNQT); });
-      }
-
-      @Override
-      final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-        accountService.addToUnconfirmedBalanceNQT(senderAccount, transaction.getAmountNQT());
+        final long amountNQT = transaction.getAmountNQT() / attachment.getRecipients().size();
+        attachment.getRecipients().forEach(a -> { accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getOrAddAccount(a), amountNQT); });
       }
 
       @Override
