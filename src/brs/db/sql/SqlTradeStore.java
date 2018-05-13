@@ -8,6 +8,7 @@ import brs.db.store.TradeStore;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.jooq.DSLContext;
+import org.jooq.SelectQuery;
 
 import static brs.schema.Tables.TRADE;
 
@@ -52,44 +53,44 @@ public class SqlTradeStore implements TradeStore {
   @Override
   public BurstIterator<Trade> getAccountTrades(long accountId, int from, int to) {
     DSLContext ctx = Db.getDSLContext();
-    return tradeTable.getManyBy(
-        ctx,
-        ctx
-          .selectFrom(TRADE).where(
-            TRADE.SELLER_ID.eq(accountId)
+
+    SelectQuery selectQuery = ctx
+      .selectFrom(TRADE).where(
+        TRADE.SELLER_ID.eq(accountId)
+      )
+      .unionAll(
+        ctx.selectFrom(TRADE).where(
+          TRADE.BUYER_ID.eq(accountId).and(
+            TRADE.SELLER_ID.ne(accountId)
           )
-          .unionAll(
-            ctx.selectFrom(TRADE).where(
-              TRADE.BUYER_ID.eq(accountId).and(
-                TRADE.SELLER_ID.ne(accountId)
-              )
-            )
-          )
-          .orderBy(TRADE.HEIGHT.desc()).limit(from, to)
-          .getQuery(),
-        false
-        );
+        )
+      )
+      .orderBy(TRADE.HEIGHT.desc())
+      .getQuery();
+    DbUtils.applyLimits(selectQuery, from, to);
+
+    return tradeTable.getManyBy(ctx, selectQuery, false);
   }
 
   @Override
   public BurstIterator<Trade> getAccountAssetTrades(long accountId, long assetId, int from, int to) {
     DSLContext ctx = Db.getDSLContext();
-    return tradeTable.getManyBy(
-    ctx,
-    ctx
+
+    SelectQuery selectQuery = ctx
       .selectFrom(TRADE).where(
         TRADE.SELLER_ID.eq(accountId).and(TRADE.ASSET_ID.eq(assetId))
       )
       .unionAll(
         ctx.selectFrom(TRADE).where(
           TRADE.BUYER_ID.eq(accountId)).and(
-            TRADE.SELLER_ID.ne(accountId)
-          ).and(TRADE.ASSET_ID.eq(assetId))
+          TRADE.SELLER_ID.ne(accountId)
+        ).and(TRADE.ASSET_ID.eq(assetId))
       )
-      .orderBy(TRADE.HEIGHT.desc()).limit(from, to)
-      .getQuery(),
-    false
-    );
+      .orderBy(TRADE.HEIGHT.desc())
+      .getQuery();
+    DbUtils.applyLimits(selectQuery, from, to);
+
+    return tradeTable.getManyBy(ctx, selectQuery, false);
   }
 
   @Override
