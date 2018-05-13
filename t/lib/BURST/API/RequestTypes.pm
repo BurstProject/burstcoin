@@ -119,7 +119,22 @@ our $reqtypes = [ # we want to define a sequence of tests
     # dgsPurchase
     # dgsQuantityChange
     # dgsRefund
-    # encryptTo
+    # {{{ encryptTo
+    {
+        name => 'encryptTo',
+        required => {
+            data => '//str',
+            requestProcessingTime => '//int',
+            nonce                 => '//str',
+        },
+        args => {
+            recipient              => '15001172709804754727',
+            messageToEncrypt       => 'Hi Gays',
+            messageToEncryptIsText => 'true',
+            secretPhrase           => 'Wallet API Test Account',
+        },
+    },
+    # }}}
     # escrowSign
     # generateToken
     # getAT
