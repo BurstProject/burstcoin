@@ -41,11 +41,15 @@
                                 <div class="form-group">
                                     <label for="send_money_fee" data-i18n="fee">FEE</label>
                                     <div class="input-group">
-                                        <input type="number" name="feeNXT" id="send_money_fee" class="form-control" step="0.001" min="0.00735" placeholder="Fee" data-i18n="[placeholder]fee" data-default="0.00735" value="0.00735" tabindex="4">
+                                        <input type="number" name="feeNXT" id="send_money_fee" class="form-control" step="0.1" min="0.00735" placeholder="Fee" data-i18n="[placeholder]fee" data-default="0.1" value="0.1" tabindex="4">
                                         <span class="input-group-addon">BURST</span>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="form-group secret_phrase">
+                            <label for="send_money_password" data-i18n="passphrase">PASSPHRASE</label>
+                            <input type="password" name="secretPhrase" id="send_money_password" class="form-control" placeholder="" tabindex="8" autocomplete="">
                         </div>
                         <div class="form-group">
                             <input type="checkbox" name="add_message" id="send_money_add_message_1" class="add_message" tabindex="6" /> <label for="send_money_add_message_1" style="font-weight:normal;margin-bottom:0;"> <span data-i18n="add_message_q">Add a Message?</span></label>
@@ -56,10 +60,6 @@
                             <div style="margin-top:3px">
                                 <label for="send_money_encrypt_message" style="font-weight:normal;color:#666"><input type="checkbox" name="encrypt_message" id="send_money_encrypt_message" value="1" data-default="checked" checked="checked" /> <span data-i18n="encrypt_message">Encrypt Message</span></label>
                             </div>
-                        </div>
-                        <div class="form-group secret_phrase">
-                            <label for="send_money_password" data-i18n="passphrase">PASSPHRASE</label>
-                            <input type="password" name="secretPhrase" id="send_money_password" class="form-control" placeholder="" tabindex="8" autocomplete="">
                         </div>
                         <div class="row">
                             <div class="col-xs-3 col-sm-3 col-md-3 advanced">
@@ -94,56 +94,62 @@
                     </form>
                 </div>
                 <div class="multi-out">
-                    <form role="form" autocomplete="off">
-                        <div class="callout callout-danger error_message" style="display:none"></div>
-                        <div class="form-group" style="margin-bottom:5px">
-                            <input type="checkbox" class="same_out_checkbox" name="same_out_checkbox" id="send_money_same_out" value="1" /> <label for="send_money_same_out" style="font-weight:normal;" tabindex="10" data-i18n="do_not_broadcast">Same Out</label>
+                    <div class="callout callout-danger error_message" style="display:none"></div>
+                    <div class="form-group" style="margin-bottom:5px">
+                        <input type="checkbox" class="same_out_checkbox" name="same_out_checkbox" id="send_money_same_out" value="1" /> <label for="send_money_same_out" style="font-weight:normal;" tabindex="10" data-i18n="do_not_broadcast">Same Out</label>
+                    </div>
+                    <div class="multi-out-recipients multi-out-ordinary">
+                        <!-- added dynamically -->
+                    </div>
+                    <div class="multi-out-same-recipients multi-out-same">
+                        <!-- added dynamically -->
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12">
+                            <button type="button" class="btn btn-default add_recipients" style="width: 100%; margin-bottom: 10px">Add Recipient</button>
                         </div>
-                        <div class="multi-out-recipients multi-out-ordinary">
-                            <!-- added dynamically -->
-                        </div>
-                        <div class="multi-out-same-recipients multi-out-same">
-                            <!-- added dynamically -->
-                        </div>
-                        <div class="row">
-                            <div class="col-xs-12 col-sm-12 col-md-12">
-                                <button type="button" class="btn btn-default add_recipients" style="width: 100%; margin-bottom: 10px">Add Recipient</button>
-                            </div>
-                        </div>
-                        <div class="row multi-out-same">
-                            <div class="col-xs-12 col-sm-12 col-md-12">
-                                <div class="form-group">
-                                    <label for="send_money_amount" data-i18n="amount">AMOUNT</label>
-                                    <div class="input-group">
-                                        <input type="text" name="amountNXT" step="any" min="0" class="form-control" id="multi-out-same-amount" placeholder="Amount" data-i18n="[placeholder]amount" tabindex="3">
-                                        <span class="input-group-addon">BURST</span>
-                                    </div>
+                    </div>
+                    <div class="row multi-out-same">
+                        <div class="col-xs-12 col-sm-12 col-md-12">
+                            <div class="form-group">
+                                <label for="send_money_amount" data-i18n="amount">AMOUNT</label>
+                                <div class="input-group">
+                                    <input type="text" name="amountNXT" step="any" min="0" class="form-control" id="multi-out-same-amount" placeholder="Amount" data-i18n="[placeholder]amount" tabindex="3">
+                                    <span class="input-group-addon">BURST</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-xs-12 col-sm-12 col-md-12">
-                                <div class="form-group">
-                                    <label for="send_money_fee" data-i18n="fee">FEE</label>
-                                    <div class="input-group">
-                                        <input type="number" name="feeNXT" class="form-control" id="multi-out-fee" step="0.001" min="0.00735" placeholder="Fee" data-i18n="[placeholder]fee" data-default="0.00735" value="0.00735" tabindex="4">
-                                        <span class="input-group-addon">BURST</span>
-                                    </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12">
+                            <div class="form-group">
+                                <label for="send_money_fee" data-i18n="fee">FEE</label>
+                                <div class="input-group">
+                                    <input type="number" name="feeNXT" class="form-control" id="multi-out-fee" step="0.1" min="0.00735" placeholder="Fee" data-i18n="[placeholder]fee" data-default="0.1" value="0.1" tabindex="4">
+                                    <span class="input-group-addon">BURST</span>
                                 </div>
                             </div>
                         </div>
-                    </form>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-md-12">
+                            <div class="form-group">
+                                <label for="send_money_password" data-i18n="passphrase">PASSPHRASE</label>
+                                <input type="password" name="secretPhrase" id="multi-out-passphrase" class="form-control" placeholder="" tabindex="8" autocomplete="">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer ordinary" style="margin-top:0;">
-                <div class="advanced_info"><strong data-i18n="total">Total</strong>: <span class="total_amount_ordinary">0.00735 BURST</span> - <a href="#" data-i18n="advanced">advanced</a></div>
+                <div class="advanced_info"><strong data-i18n="total">Total</strong>: <span class="total_amount_ordinary">0.1 BURST</span> - <a href="#" data-i18n="advanced">advanced</a></div>
                 <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
                 <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="send_burst;[data-loading-text]submitting">Send BURST</button>
             </div>
             <div class="modal-footer multi-out" style="margin-top:0;">
-                <div class="advanced_info"><strong data-i18n="total">Total</strong>: <span class="total_amount_multi_out">0.00735 BURST</span> </div>
+                <div class="advanced_info"><strong data-i18n="total">Total</strong>: <span class="total_amount_multi_out">0.1 BURST</span> </div>
                 <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
-                <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="send_burst;[data-loading-text]submitting">Send BURST</button>
+                <button type="button" class="btn btn-primary" id="multi-out-submit" data-loading-text="Submitting..." data-i18n="send_burst;[data-loading-text]submitting">Send BURST</button>
             </div>
             <!-- Multi Out additional recipient -->
             <div class="hide" id="additional_multi_out_recipient">

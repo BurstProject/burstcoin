@@ -142,6 +142,7 @@ var BRS = (function(BRS, $, undefined) {
         return data;
     }
 
+
     BRS.submitForm = function($modal, $btn) {
         if (!$btn) {
             $btn = $modal.find("button.btn-primary:not([data-dismiss=modal])");
@@ -571,6 +572,45 @@ var BRS = (function(BRS, $, undefined) {
         if (hide) {
             $modal.modal("hide");
         }
+    }
+
+    BRS.sendMultiOut = function(recipients, amounts, fee, passphrase) {
+        var multiOutString = "";
+        for (var i = 0; i < recipients.length; i++) {
+            multiOutString += recipients[i] + ":" + BRS.convertToNQT(amounts[i]) + ";"
+        }
+
+        var data = {
+            secretPhase: passphrase,
+            recipients: recipients,
+            feeNQT: BRS.convertToNQT(fee),
+            deadline: "1440",
+        }
+        console.log(data)
+
+        BRS.sendRequest("sendMoneyMulti", data, function(response) {
+            console.log(response)
+        });
+    }
+
+    BRS.sendMultiOutSame = function(recipients, amount, fee,  passphrase) {
+        var multiOutString = "";
+        for (var i = 0; i < recipients.length; i++) {
+            multiOutString += recipients[i] + ";"
+        }
+
+        var data = {
+            secretPhase: passphrase,
+            recipients: recipients,
+            amountNQT: BRS.convertToNQT(amount),
+            feeNQT: BRS.convertToNQT(fee),
+            deadline: "1440",
+        }
+        console.log(data)
+
+        BRS.sendRequest("sendMoneyMultiSame", data, function(response) {
+            console.log(response)
+        });
     }
 
     return BRS;

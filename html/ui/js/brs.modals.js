@@ -53,7 +53,7 @@ var BRS = (function(BRS, $, undefined) {
 
     // just to be safe set total display
     var current_fee = parseFloat($("#multi-out-fee").val(), 10);
-    var fee = isNaN(current_fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+    var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
     $("#multi-out-fee").val(fee)
     var total_multi_out = fee;
     var amount_total = 0;
@@ -132,7 +132,7 @@ var BRS = (function(BRS, $, undefined) {
         });
 
         var current_fee = parseFloat($("#multi-out-fee").val(), 10);
-        var fee = isNaN(current_fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+        var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
         $("#multi-out-fee").val(fee)
         total_multi_out = amount_total + fee;
 
@@ -146,7 +146,7 @@ var BRS = (function(BRS, $, undefined) {
         var current_fee = parseFloat($("#multi-out-fee").val(), 10);
 
         var amount = isNaN(current_amount) ? 0 : current_amount;
-        var fee = isNaN(current_fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+        var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
 
         $("#multi-out-same-amount").val(amount);
         $("#multi-out-fee").val(fee);
@@ -173,8 +173,86 @@ var BRS = (function(BRS, $, undefined) {
 
     $("#multi-out-fee").on("input", function(e) { //on add input button click
         var current_fee = parseFloat($(this).val(), 10);
-        var fee = isNaN(current_fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+        var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
         $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(amount_total + fee)) + " BURST");
+    });
+
+
+    $("#multi-out-submit").on("click", function(e) { //on add input button click
+        var recipients = [];
+        var passphrase = $("#multi-out-passphrase").val();
+        if (passphrase = "") {
+            // TODO error message
+            return
+        }
+        console.log(passphrase)
+        var fee = parseFloat($("#multi-out-fee").val(), 10);
+        if (isNaN(fee)) {
+            // TODO error message
+            return
+        }
+
+        if ($(".same_out_checkbox").is(":checked")) {
+            var amount = $("#multi-out-same-amount").val();
+            if (isNaN(amount)) {
+                // TODO error message
+                return
+            }
+
+            $(".multi-out-same-recipients .multi-out-recipient").each(function() {
+                recipients.push($(this).val());
+            });
+
+            // verify recipients
+            var ids = []
+            for (var i = 0; i < recipients.length; i++) {
+                var address = new NxtAddress();
+                address.set(recipients[i]);
+                if (!address.ok()) {
+                    // TODO error message
+                    return
+                }
+                var id = address.account_id();
+                ids.push(id)
+            }
+
+            BRS.sendMultiOutSame(ids, amount, fee, passphrase);
+        } else {
+            var amounts = [];
+
+            $(".multi-out-recipients .multi-out-amount").each(function() {
+                var amount = $(this).val();
+                if (isNaN(amount)) {
+                    // TODO error message
+                    return
+                }
+                amounts.push(amount);
+            });
+
+            $(".multi-out-recipients .multi-out-recipient").each(function() {
+                recipients.push($(this).val());
+            });
+
+            if (recipients.length != amounts.length) {
+                // TODO error message
+                return
+            }
+
+            // verify recipients
+            var ids = [];
+            for (var i = 0; i < recipients.length; i++) {
+                var address = new NxtAddress();
+                address.set(recipients[i]);
+                if (!address.ok()) {
+                    // TODO error message
+                    return
+                }
+                var id = address.account_id();
+                ids.push(id)
+            }
+
+            BRS.sendMultiOut(ids, amounts, fee, passphrase);
+        }
     });
 
     $(".add_message").on("change", function(e) {

@@ -58,7 +58,7 @@ var BRS = (function(BRS, $, undefined) {
     $("#send_money_fee").on("input", function(e) {
         var current_amount = parseFloat($("#send_money_amount").val(), 10);
         var current_fee = parseFloat($(this).val(), 10);
-        var fee = isNaN(current_fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+        var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
         var amount = isNaN(current_amount) ? 0 : current_amount;
 
         $("#send_money_amount").val(amount);
