@@ -30,7 +30,7 @@ public class UnconfirmedTransactionStore {
   }
 
   public void put(Collection<Transaction> transactionsToAdd) {
-    int currentTime = timeService.getEpochTime();
+    final int currentTime = timeService.getEpochTime();
 
     transactionsToAdd = transactionsToAdd.stream().filter(transaction -> !transactionIsExpired(transaction, currentTime)).collect(Collectors.toList());
 
@@ -39,7 +39,7 @@ public class UnconfirmedTransactionStore {
     }
 
     synchronized (idQueue) {
-      int amountOfTransactionsToRemove = maxSize - transactionsToAdd.size();
+      int amountOfTransactionsToRemove = idQueue.size() + transactionsToAdd.size() - maxSize;
 
       for (int i = 0; i < amountOfTransactionsToRemove; i++) {
         final Long transactionToRemoveId = idQueue.pop();
