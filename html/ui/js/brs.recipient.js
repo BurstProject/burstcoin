@@ -84,7 +84,13 @@ var BRS = (function(BRS, $, undefined) {
         }
     });
 
-    $(document).on("click", "span.recipient_selector button", function(e) {
+    $("span.recipient_selector").on("click", "ul li a", function(e) {
+        e.preventDefault();
+        $(this).closest("form").find("input[name=converted_account_id]").val("");
+        $(this).closest("form").find("input[name=recipient],input[name=account_id]").not("[type=hidden]").trigger("unmask").val($(this).data("contact")).trigger("blur");
+    });
+
+    $(document).on("click", ".recipient_selector_multi_out button", function(e) {
         if (!Object.keys(BRS.contacts).length) {
             e.preventDefault();
             e.stopPropagation();
@@ -96,14 +102,14 @@ var BRS = (function(BRS, $, undefined) {
         $list.empty();
 
         for (var accountId in BRS.contacts) {
-            $list.append("<li><a href='#' data-contact='" + String(BRS.contacts[accountId].name).escapeHTML() + "'>" + String(BRS.contacts[accountId].name).escapeHTML() + "</a></li>");
+            $list.append("<li><a href='#' data-contact='" + String(accountId).escapeHTML() + "'>" + String(BRS.contacts[accountId].name).escapeHTML() + "</a></li>");
         }
     });
 
-    $("span.recipient_selector").on("click", "ul li a", function(e) {
+    $(document).on("click", ".recipient_selector_multi_out ul li a", function(e) {
         e.preventDefault();
-        $(this).closest("form").find("input[name=converted_account_id]").val("");
-        $(this).closest("form").find("input[name=recipient],input[name=account_id]").not("[type=hidden]").trigger("unmask").val($(this).data("contact")).trigger("blur");
+        // fucking ugly hack serious jquery cancer - angular 6 please
+        $(this).parent().parent().parent().parent().parent().find(".multi-out-recipient").val($(this).data("contact"));
     });
 
     BRS.forms.sendMoneyComplete = function(response, data) {

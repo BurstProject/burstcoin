@@ -223,20 +223,20 @@ var BRS = (function(BRS, $, undefined) {
         var recipients = [];
         var passphrase = $("#multi-out-passphrase").val();
         if (passphrase == "") {
-            // TODO error message
+            $(".multi-out").find(".error_message").html("Passphrase is empty!").show();
             return
         }
 
         var fee = parseFloat($("#multi-out-fee").val(), 10);
         if (isNaN(fee)) {
-            // TODO error message
+            $(".multi-out").find(".error_message").html("Fee is not specified!").show();
             return
         }
 
         if ($(".same_out_checkbox").is(":checked")) {
             var amount = $("#multi-out-same-amount").val();
             if (isNaN(amount) || amount <= 0) {
-                // TODO error message
+                $(".multi-out").find(".error_message").html("Wrong amount!").show();
                 return
             }
             $(".multi-out-same-recipients .multi-out-recipient").each(function() {
@@ -248,7 +248,7 @@ var BRS = (function(BRS, $, undefined) {
                 var address = new NxtAddress();
                 address.set(recipients[i]);
                 if (!address.ok()) {
-                    // TODO error message
+                    $(".multi-out").find(".error_message").html("Wrong addresses. Please verify!").show();
                     return
                 }
                 var id = address.account_id();
@@ -256,7 +256,7 @@ var BRS = (function(BRS, $, undefined) {
             }
             // duplicate ids?
             if ((new Set(ids)).size !== ids.length) {
-                // TODO error message
+                $(".multi-out").find(".error_message").html("Duplicate recipients not allowed!").show();
                 return
             }
             BRS.sendMultiOutSame(ids, amount, fee, passphrase);
@@ -265,7 +265,7 @@ var BRS = (function(BRS, $, undefined) {
             $(".multi-out-recipients .multi-out-amount").each(function() {
                 var amount = $(this).val();
                 if (isNaN(amount) || amount <= 0) {
-                    // TODO error message
+                    $(".multi-out").find(".error_message").html("Wrong amount!").show();
                     return
                 }
                 amounts.push(amount);
@@ -275,7 +275,7 @@ var BRS = (function(BRS, $, undefined) {
             });
 
             if (recipients.length != amounts.length) {
-                // TODO error message
+                $(".multi-out").find(".error_message").html("Amount count does not match recipient count").show();
                 return
             }
             // verify recipients
@@ -284,7 +284,7 @@ var BRS = (function(BRS, $, undefined) {
                 var address = new NxtAddress();
                 address.set(recipients[i]);
                 if (!address.ok()) {
-                    // TODO error message
+                    $(".multi-out").find(".error_message").html("Wrong addresses. Please verify!").show();
                     return
                 }
                 var id = address.account_id();
@@ -292,7 +292,7 @@ var BRS = (function(BRS, $, undefined) {
             }
             // duplicate ids?
             if ((new Set(ids)).size !== ids.length) {
-                // TODO error message
+                $(".multi-out").find(".error_message").html("Duplicate recipients not allowed!").show();
                 return
             }
             BRS.sendMultiOut(ids, amounts, fee, passphrase);
