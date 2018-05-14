@@ -47,9 +47,12 @@ var BRS = (function(BRS, $, undefined) {
     $(".multi-out-same").hide();
     $(".hide").hide();
     $(".multi-out-recipients").append($("#additional_multi_out_recipient").html());
+    $(".multi-out-recipients").append($("#additional_multi_out_recipient").html());
     $(".multi-out-same-recipients").append($("#additional_multi_out_same_recipient").html());
-    $(".multi-out-recipients").find(".remove_recipient").remove() // remove remove button for first entry
-    $(".multi-out-same-recipients").find(".remove_recipient").remove() // remove remove button for first entry
+    $(".multi-out-same-recipients").append($("#additional_multi_out_same_recipient").html());
+    $(".remove_recipient").each(function() {
+        $(this).remove();
+    });
 
     // just to be safe set total display
     var current_fee = parseFloat($("#multi-out-fee").val(), 10);
@@ -98,7 +101,7 @@ var BRS = (function(BRS, $, undefined) {
         multi_out_recipients--;
 
         if ($(".same_out_checkbox").is(":checked")) {
-            $("#multi-out-same-amount").val(0);
+            $("#multi-out-same-amount").val(0.00000001);
             $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(parseFloat($("#multi-out-fee").val(), 10))) + " BURST");
         } else {
             // get amount for each recipient
@@ -106,53 +109,53 @@ var BRS = (function(BRS, $, undefined) {
             amount_total = 0;
             $(".multi-out-amount").each(function() {
                 var current_amount = parseFloat($(this).val(), 10);
-                var amount = isNaN(current_amount) ? 0 : current_amount;
-                $(this).val(amount)
+                var amount = isNaN(current_amount) ? 0.00000001 : (current_amount < 0.00000001 ? 0.00000001 : current_amount);
+                $(this).val(amount.toFixed(8))
                 amount_total += amount;
             });
 
             var current_fee = parseFloat($("#multi-out-fee").val(), 10);
             var fee = isNaN(fee) ? 0.00735 : (current_fee < 0.00735 ? 0.00735 : current_fee);
-            $("#multi-out-fee").val(fee)
+            $("#multi-out-fee").val(fee.toFixed(8))
             total_multi_out = amount_total + fee;
 
             $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
         }
     });
 
-    $(document).on("input remove", ".multi-out-amount", function(e) {
+    $(document).on("change remove", ".multi-out-amount", function(e) {
         // get amount for each recipient
         total_multi_out = 0
         amount_total = 0;
         $(".multi-out-amount").each(function() {
             var current_amount = parseFloat($(this).val(), 10);
-            var amount = isNaN(current_amount) ? 0 : current_amount;
-            $(this).val(amount)
+            var amount = isNaN(current_amount) ? 0.00000001 : (current_amount < 0.00000001 ? 0.00000001 : current_amount);
+            $(this).val(amount.toFixed(8));
             amount_total += amount;
         });
 
         var current_fee = parseFloat($("#multi-out-fee").val(), 10);
         var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
-        $("#multi-out-fee").val(fee)
+        $("#multi-out-fee").val(fee.toFixed(8))
         total_multi_out = amount_total + fee;
 
         $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
     });
 
-    $("#multi-out-same-amount").on("input", function(e) { //on add input button click
+    $("#multi-out-same-amount").on("change", function(e) { //on add input button click
         total_multi_out = 0;
         amount_total = 0;
         var current_amount = parseFloat($(this).val(), 10);
         var current_fee = parseFloat($("#multi-out-fee").val(), 10);
 
-        var amount = isNaN(current_amount) ? 0 : current_amount;
+        var amount = isNaN(current_amount) ? 0.00000001 : (current_amount < 0.00000001 ? 0.00000001 : current_amount);
         var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
 
-        $("#multi-out-same-amount").val(amount);
-        $("#multi-out-fee").val(fee);
+        $("#multi-out-same-amount").val(amount.toFixed(8));
+        $("#multi-out-fee").val(fee.toFixed(8));
 
         $(".multi-out-same-recipients .multi-out-recipient").each(function() {
-            amount_total += amount
+            amount_total += amount;
         });
 
         total_multi_out = amount_total + fee;
@@ -171,12 +174,14 @@ var BRS = (function(BRS, $, undefined) {
         }
     });
 
-    $("#multi-out-fee").on("input", function(e) { //on add input button click
+    $("#multi-out-fee").on("change", function(e) { //on add input button click
         var current_fee = parseFloat($(this).val(), 10);
         var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+
+        $("#multi-out-fee").val(fee.toFixed(8));
+
         $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(amount_total + fee)) + " BURST");
     });
-
 
     $("#multi-out-submit").on("click", function(e) { //on add input button click
         var recipients = [];
@@ -186,7 +191,7 @@ var BRS = (function(BRS, $, undefined) {
             // TODO error message
             return
         }
-        console.log(passphrase)
+
         var fee = parseFloat($("#multi-out-fee").val(), 10);
         if (isNaN(fee)) {
             // TODO error message
@@ -195,7 +200,7 @@ var BRS = (function(BRS, $, undefined) {
 
         if ($(".same_out_checkbox").is(":checked")) {
             var amount = $("#multi-out-same-amount").val();
-            if (isNaN(amount)) {
+            if (isNaN(amount) || amount <= 0) {
                 // TODO error message
                 return
             }
@@ -217,13 +222,19 @@ var BRS = (function(BRS, $, undefined) {
                 ids.push(id)
             }
 
+            // duplicate ids?
+            if ((new Set(ids)).size !== ids.length) {
+                // TODO error message
+                return
+            }
+
             BRS.sendMultiOutSame(ids, amount, fee, passphrase);
         } else {
             var amounts = [];
 
             $(".multi-out-recipients .multi-out-amount").each(function() {
                 var amount = $(this).val();
-                if (isNaN(amount)) {
+                if (isNaN(amount) || amount <= 0) {
                     // TODO error message
                     return
                 }
@@ -250,6 +261,12 @@ var BRS = (function(BRS, $, undefined) {
                 }
                 var id = address.account_id();
                 ids.push(id)
+            }
+
+            // duplicate ids?
+            if ((new Set(ids)).size !== ids.length) {
+                // TODO error message
+                return
             }
 
             BRS.sendMultiOut(ids, amounts, fee, passphrase);
