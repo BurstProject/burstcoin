@@ -84,6 +84,22 @@ var BRS = (function(BRS, $, undefined) {
         }
     });
 
+    $(document).on("click", "span.recipient_selector button", function(e) {
+        if (!Object.keys(BRS.contacts).length) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+
+        var $list = $(this).parent().find("ul");
+
+        $list.empty();
+
+        for (var accountId in BRS.contacts) {
+            $list.append("<li><a href='#' data-contact='" + String(BRS.contacts[accountId].name).escapeHTML() + "'>" + String(BRS.contacts[accountId].name).escapeHTML() + "</a></li>");
+        }
+    });
+
     $("span.recipient_selector").on("click", "ul li a", function(e) {
         e.preventDefault();
         $(this).closest("form").find("input[name=converted_account_id]").val("");
