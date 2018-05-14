@@ -222,7 +222,6 @@ var BRS = (function(BRS, $, undefined) {
     $("#multi-out-submit").on("click", function(e) {
         var recipients = [];
         var passphrase = $("#multi-out-passphrase").val();
-        passphrase = "attention pack taken often wolf blossom point bathroom blood seek disguise army"; // lazy - test net acc
         if (passphrase == "") {
             // TODO error message
             return
