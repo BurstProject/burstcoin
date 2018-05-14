@@ -76,12 +76,12 @@ var BRS = (function(BRS, $, undefined) {
     });
 
     // multi-out inputs
-    var multi_out_recipients = 1; //initlal text box count
-    var multi_out_same_recipients = 1;
-    $(".add_recipients").on("click", function(e) { //on add input button click
+    var multi_out_recipients = 2;
+    var multi_out_same_recipients = 2;
+    $(".add_recipients").on("click", function(e) {
         e.preventDefault();
         if ($(".same_out_checkbox").is(":checked")) {
-            if (multi_out_same_recipients < 128) { //max input box allowed
+            if (multi_out_same_recipients < 128) {
                 multi_out_same_recipients++;
                 $(".multi-out-same-recipients").append($("#additional_multi_out_same_recipient").html()); //add input box
 
@@ -105,14 +105,14 @@ var BRS = (function(BRS, $, undefined) {
                 $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
             }
         } else {
-            if (multi_out_recipients < 64) { //max input box allowed
+            if (multi_out_recipients < 64) {
                 multi_out_recipients++;
                 $(".multi-out-recipients").append($("#additional_multi_out_recipient").html()); //add input box
             }
         }
     });
 
-    $(document).on("click", ".remove_recipient .remove_recipient_button", function(e) { //user click on remove text
+    $(document).on("click", ".remove_recipient .remove_recipient_button", function(e) {
         e.preventDefault();
         $(this).parent().parent('div').remove();
         multi_out_recipients--;
@@ -178,7 +178,7 @@ var BRS = (function(BRS, $, undefined) {
         $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
     });
 
-    $("#multi-out-same-amount").on("change", function(e) { //on add input button click
+    $("#multi-out-same-amount").on("change", function(e) {
         total_multi_out = 0;
         amount_total = 0;
         var current_amount = parseFloat($(this).val(), 10);
@@ -210,7 +210,7 @@ var BRS = (function(BRS, $, undefined) {
         }
     });
 
-    $("#multi-out-fee").on("change", function(e) { //on add input button click
+    $("#multi-out-fee").on("change", function(e) {
         var current_fee = parseFloat($(this).val(), 10);
         var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
 
@@ -219,7 +219,7 @@ var BRS = (function(BRS, $, undefined) {
         $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(amount_total + fee)) + " BURST");
     });
 
-    $("#multi-out-submit").on("click", function(e) { //on add input button click
+    $("#multi-out-submit").on("click", function(e) {
         var recipients = [];
         var passphrase = $("#multi-out-passphrase").val();
         passphrase = "attention pack taken often wolf blossom point bathroom blood seek disguise army"; // lazy - test net acc
@@ -240,11 +240,9 @@ var BRS = (function(BRS, $, undefined) {
                 // TODO error message
                 return
             }
-
             $(".multi-out-same-recipients .multi-out-recipient").each(function() {
                 recipients.push($(this).val());
             });
-
             // verify recipients
             var ids = []
             for (var i = 0; i < recipients.length; i++) {
@@ -257,17 +255,14 @@ var BRS = (function(BRS, $, undefined) {
                 var id = address.account_id();
                 ids.push(id)
             }
-
             // duplicate ids?
             if ((new Set(ids)).size !== ids.length) {
                 // TODO error message
                 return
             }
-
             BRS.sendMultiOutSame(ids, amount, fee, passphrase);
         } else {
             var amounts = [];
-
             $(".multi-out-recipients .multi-out-amount").each(function() {
                 var amount = $(this).val();
                 if (isNaN(amount) || amount <= 0) {
@@ -276,7 +271,6 @@ var BRS = (function(BRS, $, undefined) {
                 }
                 amounts.push(amount);
             });
-
             $(".multi-out-recipients .multi-out-recipient").each(function() {
                 recipients.push($(this).val());
             });
@@ -285,7 +279,6 @@ var BRS = (function(BRS, $, undefined) {
                 // TODO error message
                 return
             }
-
             // verify recipients
             var ids = [];
             for (var i = 0; i < recipients.length; i++) {
@@ -298,13 +291,11 @@ var BRS = (function(BRS, $, undefined) {
                 var id = address.account_id();
                 ids.push(id)
             }
-
             // duplicate ids?
             if ((new Set(ids)).size !== ids.length) {
                 // TODO error message
                 return
             }
-
             BRS.sendMultiOut(ids, amounts, fee, passphrase);
         }
     });

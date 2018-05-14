@@ -589,10 +589,14 @@ var BRS = (function(BRS, $, undefined) {
             feeNQT: BRS.convertToNQT(fee),
             deadline: "1440",
         }
-        console.log(data)
 
         BRS.sendRequest("sendMoneyMulti", data, function(response) {
             console.log(response)
+            if (response.errorCode) {
+                $(".multi-out").find(".error_message").html(response.errorDescription.escapeHTML()).show();
+            } else {
+                $(".modal").modal("hide");
+            }
         });
     }
 
@@ -610,10 +614,14 @@ var BRS = (function(BRS, $, undefined) {
             feeNQT: BRS.convertToNQT(fee),
             deadline: "1440",
         }
-        console.log(data)
 
         BRS.sendRequest("sendMoneyMultiSame", data, function(response) {
             console.log(response)
+            if (response.errorCode) {
+                $(".multi-out").find(".error_message").html(response.errorDescription.escapeHTML()).show();
+            } else {
+                $(".modal").modal("hide");
+            }
         });
     }
 

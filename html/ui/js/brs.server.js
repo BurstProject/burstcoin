@@ -173,7 +173,7 @@ var BRS = (function(BRS, $, undefined) {
         if (currentPage && BRS.currentSubPage) {
             currentSubPage = BRS.currentSubPage;
         }
-        console.log(data)
+
         var type = (("secretPhrase" in data) || (data.broadcast == "false") ? "POST" : "GET");
         var url = BRS.server + "/burst?requestType=" + requestType;
 
