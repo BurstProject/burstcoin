@@ -109,7 +109,7 @@ var BRS = (function(BRS, $, undefined) {
     $(document).on("click", ".recipient_selector_multi_out ul li a", function(e) {
         e.preventDefault();
         // fucking ugly hack serious jquery cancer - angular 6 please
-        $(this).parent().parent().parent().parent().parent().find(".multi-out-recipient").val($(this).data("contact"));
+        $(this).parent().parent().parent().parent().find(".multi-out-recipient").val($(this).data("contact"));
     });
 
     BRS.forms.sendMoneyComplete = function(response, data) {
