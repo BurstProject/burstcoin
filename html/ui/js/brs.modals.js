@@ -43,9 +43,9 @@ var BRS = (function(BRS, $, undefined) {
     })
 
     // hide multi-out
+    $(".hide").hide();
     $(".multi-out").hide();
     $(".multi-out-same").hide();
-    $(".hide").hide();
     $(".multi-out-recipients").append($("#additional_multi_out_recipient").html());
     $(".multi-out-recipients").append($("#additional_multi_out_recipient").html());
     $(".multi-out-same-recipients").append($("#additional_multi_out_same_recipient").html());
@@ -64,15 +64,23 @@ var BRS = (function(BRS, $, undefined) {
     $(".ordinary-nav a").on("click", function(e) {
         $(".multi-out").hide();
         $(".ordinary").fadeIn();
-        $(".ordinary-nav").toggleClass("active");
-        $(".multi-out-nav").toggleClass("active");
+        if (!$(".ordinary-nav").hasClass("active")) {
+            $(".ordinary-nav").addClass("active");
+        }
+        if ($(".multi-out-nav").toggleClass("active")) {
+            $(".multi-out-nav").removeClass("active");
+        }
     });
 
     $(".multi-out-nav a").on("click", function(e) {
         $(".ordinary").hide();
         $(".multi-out").fadeIn();
-        $(".ordinary-nav").toggleClass("active");
-        $(".multi-out-nav").toggleClass("active");
+        if ($(".ordinary-nav").hasClass("active")) {
+            $(".ordinary-nav").removeClass("active");
+        }
+        if (!$(".multi-out-nav").hasClass("active")) {
+            $(".multi-out-nav").addClass("active");
+        }
     });
 
     // multi-out inputs
@@ -200,7 +208,7 @@ var BRS = (function(BRS, $, undefined) {
     });
 
     $(".same_out_checkbox").on("change", function(e) {
-        $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(parseFloat($("#multi-out-fee").val(), 10))) + " BURST");
+        $(".total_amount_multi_out").html("- BURST");
         if ($(this).is(":checked")) {
             $(".multi-out-same").fadeIn();
             $(".multi-out-ordinary").hide();
@@ -222,6 +230,7 @@ var BRS = (function(BRS, $, undefined) {
     $("#multi-out-submit").on("click", function(e) {
         var recipients = [];
         var passphrase = $("#multi-out-passphrase").val();
+        console.log(passphrase)
         if (passphrase == "") {
             $(".multi-out").find(".error_message").html("Passphrase is empty!").show();
             return
@@ -353,6 +362,37 @@ var BRS = (function(BRS, $, undefined) {
 
     //Reset form to initial state when modal is closed
     $(".modal").on("hidden.bs.modal", function(e) {
+        // multi-out reset
+        multi_out_recipients = 2;
+        multi_out_same_recipients = 2;
+        // remove recipients
+        $(".multi-out-recipients").empty()
+        $(".multi-out-same-recipients").empty()
+        // add default recipients
+        $(".multi-out").hide();
+        $(".multi-out-same").hide();
+        $(".multi-out-ordinary").fadeIn();
+        $(".multi-out-recipients").append($("#additional_multi_out_recipient").html());
+        $(".multi-out-recipients").append($("#additional_multi_out_recipient").html());
+        $(".multi-out-same-recipients").append($("#additional_multi_out_same_recipient").html());
+        $(".multi-out-same-recipients").append($("#additional_multi_out_same_recipient").html());
+        $(".multi-out .remove_recipient").each(function() {
+            $(this).remove();
+        });
+        // uncheck same out
+        $(".same_out_checkbox").prop('checked', false);
+        // reset fee and amount
+        $("#multi-out-fee").val((0.1).toFixed(8));
+        $("#multi-out-same-amount").val('');
+        // show ordinary
+        $(".ordinary").fadeIn();
+        if (!$(".ordinary-nav").hasClass("active")) {
+            $(".ordinary-nav").addClass("active");
+        }
+        if ($(".multi-out-nav").toggleClass("active")) {
+            $(".multi-out-nav").removeClass("active");
+        }
+
         $(this).find("input[name=recipient], input[name=account_id]").not("[type=hidden]").trigger("unmask");
 
         $(this).find(":input:not(button)").each(function(index) {
@@ -411,7 +451,7 @@ var BRS = (function(BRS, $, undefined) {
         if ($feeInput.length) {
             var defaultFee = $feeInput.data("default");
             if (!defaultFee) {
-                defaultFee = 1;
+                defaultFee = 0.1;
             }
 
             $(this).find(".advanced_fee").html(BRS.formatAmount(BRS.convertToNQT(defaultFee)) + " BURST");

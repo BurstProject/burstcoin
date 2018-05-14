@@ -591,7 +591,6 @@ var BRS = (function(BRS, $, undefined) {
         }
 
         BRS.sendRequest("sendMoneyMulti", data, function(response) {
-            console.log(response)
             if (response.errorCode) {
                 $(".multi-out").find(".error_message").html(response.errorDescription.escapeHTML()).show();
             } else {
@@ -616,7 +615,6 @@ var BRS = (function(BRS, $, undefined) {
         }
 
         BRS.sendRequest("sendMoneyMultiSame", data, function(response) {
-            console.log(response)
             if (response.errorCode) {
                 $(".multi-out").find(".error_message").html(response.errorDescription.escapeHTML()).show();
             } else {
