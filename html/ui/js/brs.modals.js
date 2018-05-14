@@ -230,7 +230,6 @@ var BRS = (function(BRS, $, undefined) {
     $("#multi-out-submit").on("click", function(e) {
         var recipients = [];
         var passphrase = $("#multi-out-passphrase").val();
-        console.log(passphrase)
         if (passphrase == "") {
             $(".multi-out").find(".error_message").html("Passphrase is empty!").show();
             return
