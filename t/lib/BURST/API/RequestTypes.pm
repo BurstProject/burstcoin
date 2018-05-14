@@ -91,11 +91,25 @@ $rx->learn_type(
 our $reqtypes = [ # we want to define a sequence of tests
     # broadcastTransaction
     # buyAlias
-    # calculateFullHash
+    # {{{ calculateFullHash
+    {
+        name => 'calculateFullHash',
+        required => {
+            fullHash => {
+                type  => '//str',
+                value => 'f151ded1194ce627ff44bd67ab25cdddb9a35ff2006653c0f9d25a2de5ad463e',
+            },
+            requestProcessingTime => '//int',
+        },
+        args => {
+            unsignedTransactionBytes => '010203',
+            signatureHash            => '010101',
+        },
+    },
+    # }}}
     # cancelAskOrder
     # cancelBidOrder
     # createATProgram
-    # decodeToken
     # decryptFrom
     # dgsDelisting
     # dgsDelivery
@@ -105,7 +119,22 @@ our $reqtypes = [ # we want to define a sequence of tests
     # dgsPurchase
     # dgsQuantityChange
     # dgsRefund
-    # encryptTo
+    # {{{ encryptTo
+    {
+        name => 'encryptTo',
+        required => {
+            data => '//str',
+            requestProcessingTime => '//int',
+            nonce                 => '//str',
+        },
+        args => {
+            recipient              => '15001172709804754727',
+            messageToEncrypt       => 'Hi Gays',
+            messageToEncryptIsText => 'true',
+            secretPhrase           => 'Wallet API Test Account',
+        },
+    },
+    # }}}
     # escrowSign
     # generateToken
     # getAT
@@ -123,8 +152,6 @@ our $reqtypes = [ # we want to define a sequence of tests
 
     },
     # }}}
-    # getATLong
-
     # {{{ getAccount
      {
          name => 'getAccount',
@@ -161,13 +188,6 @@ our $reqtypes = [ # we want to define a sequence of tests
          },
      },
     # }}}
-
-  # http://localhost:8125/burst?requestType=getAccount&account=BURST-DPQM-9X88-LEU3-CNSST
-  #       {"unconfirmedBalanceNQT":"598340384595",
-  #    "guaranteedBalanceNQT":"598340384595",
-  #    "unconfirmedAssetBalances":[{"unconfirmedBalanceQNT":"100","asset":"10071080214837377826"}],
-  #    "accountRS":"BURST-DPQM-9X88-LEU3-CNSST",
-  #    "name":"🔥☠mAcman🔥☠","forgedBalanceNQT":"0","balanceNQT":"598340384595","publicKey":"7689ef8e4959fc7b6755eb2823e9f96c7d716a0ed71acb6f267163946336d939","requestProcessingTime":1,"assetBalances":[{"balanceQNT":"100","asset":"10071080214837377826"}],"effectiveBalanceBURST":"598340384595","account":"12457823256334161619"}
 
     # getAccountATs
     # getAccountBlockIds

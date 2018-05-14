@@ -16,6 +16,8 @@ import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.PropertyService;
 import brs.services.TimeService;
 import brs.services.impl.TimeServiceImpl;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -76,6 +78,45 @@ public class UnconfirmedTransactionStoreTest {
 
     assertEquals(8192, t.getAll().size());
     assertNull(t.get(1L));
+  }
+
+  @DisplayName("The amount of unconfirmed transactions exceeds 8192, when adding a group of others the cache size stays the same")
+  @Test
+  public void numberOfUnconfirmedTransactionsExceeds8192AddAGroupOfOthersThenCacheSizeStays8192() throws NotValidException {
+
+    when(mockBlockChain.getHeight()).thenReturn(20);
+
+    for (int i = 1; i <= 8192; i++) {
+      Transaction transaction = new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, i, 735000, timeService.getEpochTime() + 50000, (short) 500, ORDINARY_PAYMENT)
+          .id(i).build();
+      transaction.sign(TestConstants.TEST_SECRET_PHRASE);
+      t.put(transaction);
+    }
+
+    assertEquals(8192, t.getAll().size());
+    assertNotNull(t.get(1L));
+    assertNotNull(t.get(2L));
+    assertNotNull(t.get(3L));
+
+    final List<Transaction> groupOfExtras = new ArrayList<>();
+    for(int i = 0; i < 3; i++) {
+      final Transaction extraTransaction =
+          new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 9999, 735000, timeService.getEpochTime() + 50000, (short) 500, ORDINARY_PAYMENT)
+              .id(8193 + i).build();
+      extraTransaction.sign(TestConstants.TEST_SECRET_PHRASE);
+      groupOfExtras.add(extraTransaction);
+    }
+
+    t.put(groupOfExtras);
+
+    assertEquals(8192, t.getAll().size());
+    assertNull(t.get(1L));
+    assertNull(t.get(2L));
+    assertNull(t.get(3L));
+
+    assertNotNull(t.get(8123L));
+    assertNotNull(t.get(8124L));
+    assertNotNull(t.get(8125L));
   }
 
   @DisplayName("Old transactions get removed from the cache when they are expired")
