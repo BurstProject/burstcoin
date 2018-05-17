@@ -15,7 +15,6 @@ usage: $0 [command] [arguments]
 WALLET OPERATIONS:
   start                         Starts the BRS wallet as a background process
   stop                          Stops any running instance of the BRS Wallet
-  restart                       Restarts the BRS wallet
 
 INSTALLATION & UPGRADING:
   h2shell                       Opens a H2 shell for DB manipulation
