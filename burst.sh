@@ -272,5 +272,9 @@ if [[ $# -gt 0 ]] ; then
             ;;
     esac
 else
+    ARCH=`uname -m`
+    if [[ $ARCH = "armv7l" ]]; then
+        export LD_LIBRARY_PATH=./lib/armv7l
+    fi
     java $BRS_DEVSTART -cp burst.jar:conf brs.Burst
 fi
