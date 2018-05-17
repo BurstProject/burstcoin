@@ -16,6 +16,8 @@ public class PropertyServiceImpl implements PropertyService {
 
   private final Properties properties;
 
+  private final List<String> alreadyLoggedProperties = new ArrayList<>();
+
   public PropertyServiceImpl(Properties properties) {
     this.properties = properties;
   }
@@ -26,17 +28,17 @@ public class PropertyServiceImpl implements PropertyService {
 
     if (value != null) {
       if (value.matches("(?i)^1|active|true|yes|on$")) {
-        logger.debug("{} = 'true'", name);
+        logOnce(name, true, "{} = 'true'", name);
         return true;
       }
 
       if (value.matches("(?i)^0|false|no|off$")) {
-        logger.debug("{} = 'false'", name);
+        logOnce(name, true, "{} = 'false'", name);
         return false;
       }
     }
 
-    logger.info(LOG_UNDEF_NAME_DEFAULT, name, assume);
+    logOnce(name, false, LOG_UNDEF_NAME_DEFAULT, name, assume);
     return assume;
   }
 
@@ -60,10 +62,10 @@ public class PropertyServiceImpl implements PropertyService {
       }
 
       int result = Integer.parseInt(value, radix);
-      logger.debug("{} = '{}'", name, result);
+      logOnce(name, true, "{} = '{}'", name, result);
       return result;
     } catch (NumberFormatException e) {
-      logger.info(LOG_UNDEF_NAME_DEFAULT, name, defaultValue);
+      logOnce(name, false, LOG_UNDEF_NAME_DEFAULT, name, defaultValue);
       return defaultValue;
     }
   }
@@ -77,11 +79,11 @@ public class PropertyServiceImpl implements PropertyService {
   public String getString(String name, String defaultValue) {
     String value = properties.getProperty(name);
     if (value != null && !"".equals(value)) {
-      logger.debug(name + " = \"" + value + "\"");
+      logOnce(name, true, name + " = \"" + value + "\"");
       return value;
     }
 
-    logger.info(LOG_UNDEF_NAME_DEFAULT, name, defaultValue);
+    logOnce(name, false, LOG_UNDEF_NAME_DEFAULT, name, defaultValue);
 
     return defaultValue;
   }
@@ -105,6 +107,17 @@ public class PropertyServiceImpl implements PropertyService {
       }
     }
     return result;
+  }
+
+  private void logOnce(String propertyName, boolean debugLevel, String logText, Object... arguments) {
+    if(! this.alreadyLoggedProperties.contains(propertyName)) {
+      if(debugLevel) {
+        this.logger.debug(logText, arguments);
+      } else {
+        this.logger.info(logText, arguments);
+      }
+      this.alreadyLoggedProperties.add(propertyName);
+    }
   }
 
 }

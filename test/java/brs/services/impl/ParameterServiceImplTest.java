@@ -24,8 +24,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -40,6 +39,7 @@ import brs.BurstException.ValidationException;
 import brs.DigitalGoodsStore;
 import brs.Transaction;
 import brs.TransactionProcessor;
+import brs.assetexchange.AssetExchange;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.crypto.Crypto;
@@ -48,7 +48,6 @@ import brs.http.ParameterException;
 import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.AliasService;
-import brs.services.AssetService;
 import brs.services.DGSGoodsStoreService;
 import brs.util.Convert;
 import java.util.List;
@@ -63,7 +62,7 @@ public class ParameterServiceImplTest {
 
   private AccountService accountServiceMock;
   private AliasService aliasServiceMock;
-  private AssetService assetServiceMock;
+  private AssetExchange assetExchangeMock;
   private DGSGoodsStoreService dgsGoodsStoreServiceMock;
   private Blockchain blockchainMock;
   private BlockchainProcessor blockchainProcessorMock;
@@ -74,14 +73,14 @@ public class ParameterServiceImplTest {
   public void setUp() {
     accountServiceMock = mock(AccountService.class);
     aliasServiceMock = mock(AliasService.class);
-    assetServiceMock = mock(AssetService.class);
+    assetExchangeMock = mock(AssetExchange.class);
     dgsGoodsStoreServiceMock = mock(DGSGoodsStoreService.class);
     blockchainMock = mock(Blockchain.class);
     blockchainProcessorMock = mock(BlockchainProcessor.class);
     transactionProcessorMock = mock(TransactionProcessor.class);
     atServiceMock = mock(ATService.class);
 
-    t = new ParameterServiceImpl(accountServiceMock, aliasServiceMock, assetServiceMock, dgsGoodsStoreServiceMock, blockchainMock, blockchainProcessorMock, transactionProcessorMock, atServiceMock);
+    t = new ParameterServiceImpl(accountServiceMock, aliasServiceMock, assetExchangeMock, dgsGoodsStoreServiceMock, blockchainMock, blockchainProcessorMock, transactionProcessorMock, atServiceMock);
   }
 
   @Test
@@ -316,7 +315,7 @@ public class ParameterServiceImplTest {
 
     final Asset mockAsset = mock(Asset.class);
 
-    when(assetServiceMock.getAsset(eq(123L))).thenReturn(mockAsset);
+    when(assetExchangeMock.getAsset(eq(123L))).thenReturn(mockAsset);
 
     assertEquals(mockAsset, t.getAsset(req));
   }
@@ -333,7 +332,7 @@ public class ParameterServiceImplTest {
 
   @Test(expected = ParameterException.class)
   public void getAsset_assetNotFoundIsUnknownAsset() throws ParameterException {
-    when(assetServiceMock.getAsset(eq(123L))).thenReturn(null);
+    when(assetExchangeMock.getAsset(eq(123L))).thenReturn(null);
 
     t.getAsset(QuickMocker.httpServletRequest(new MockParam(ASSET_PARAMETER, "123")));
   }

@@ -6,8 +6,6 @@ import java.util.TimeZone;
 
 public final class Constants {
 
-  public static final int POC2_START_BLOCK = Integer.MAX_VALUE; //change to enable PoC2 blocks
-
   public static final int BURST_DIFF_ADJUST_CHANGE_BLOCK = 2700;
 
   public static final long BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK = 6500;
@@ -20,10 +18,12 @@ public final class Constants {
   public static final int BURST_SUBSCRIPTION_MAX_FREQ = 31536000;
 
   public static final int BLOCK_HEADER_LENGTH = 232;
-  public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
-  public static final int MAX_PAYLOAD_LENGTH = MAX_NUMBER_OF_TRANSACTIONS * 176;
+
   public static final long MAX_BALANCE_BURST = 2158812800L;
+  
+  public static final long FEE_QUANT =    735000;
   public static final long ONE_BURST = 100000000;
+
   public static final long MAX_BALANCE_NQT = MAX_BALANCE_BURST * ONE_BURST;
   public static final long INITIAL_BASE_TARGET = 18325193796L;
   public static final long MAX_BASE_TARGET = 18325193796L;
@@ -34,6 +34,9 @@ public final class Constants {
 
   public static final int MAX_ARBITRARY_MESSAGE_LENGTH = 1000;
   public static final int MAX_ENCRYPTED_MESSAGE_LENGTH = 1000;
+
+  public static final int MAX_MULTI_OUT_RECIPIENTS = 64;
+  public static final int MAX_MULTI_SAME_OUT_RECIPIENTS = 128;
 
   public static final int MAX_ACCOUNT_NAME_LENGTH = 100;
   public static final int MAX_ACCOUNT_DESCRIPTION_LENGTH = 1000;
@@ -56,31 +59,17 @@ public final class Constants {
   public static final int MAX_DGS_LISTING_TAGS_LENGTH = 100;
   public static final int MAX_DGS_GOODS_LENGTH = 10240;
 
-  public static final boolean isTestnet = Burst.getPropertyService().getBoolean(Props.DEV_TESTNET);
-  public static final boolean isOffline = Burst.getPropertyService().getBoolean(Props.DEV_OFFLINE);
-
-  public static final int ALIAS_SYSTEM_BLOCK = 0;
-  public static final int ARBITRARY_MESSAGES_BLOCK = 0;
   public static final int NQT_BLOCK = 0;
-  public static final int FRACTIONAL_BLOCK = 0;
-  public static final int ASSET_EXCHANGE_BLOCK = 0;
   public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = 0;
   public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
-  public static final int VOTING_SYSTEM_BLOCK = isTestnet ? 0 : Integer.MAX_VALUE;
-  public static final int DIGITAL_GOODS_STORE_BLOCK = 11800;
   public static final int PUBLIC_KEY_ANNOUNCEMENT_BLOCK = Integer.MAX_VALUE;
 
   public static final int MAX_AUTOMATED_TRANSACTION_NAME_LENGTH = 30;
   public static final int MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH = 1000;
-  protected static final int AUTOMATED_TRANSACTION_BLOCK = isTestnet ? 15000 : 49200;
-  public static final int AT_BLOCK_PAYLOAD = MAX_PAYLOAD_LENGTH / 2;
-  public static final int AT_FIX_BLOCK_2 = isTestnet ? 15001 : 67000;
-  public static final int AT_FIX_BLOCK_3 = isTestnet ? 15002 : 92000;
-  public static final int AT_FIX_BLOCK_4 = isTestnet ? 15003 : 255000;
 
   public static final String MIN_VERSION = "1.3";
 
-  static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (isTestnet ? 50 : 100) * ONE_BURST;
+  static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? 50 : 100) * ONE_BURST;
 
   public static final long EPOCH_BEGINNING;
 

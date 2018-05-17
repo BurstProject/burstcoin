@@ -1,8 +1,10 @@
 package brs.http;
 
+import brs.Burst;
 import brs.Constants;
 import brs.Genesis;
 import brs.TransactionType;
+import brs.fluxcapacitor.FluxInt;
 import brs.util.Convert;
 import brs.util.JSON;
 import org.json.simple.JSONArray;
@@ -22,7 +24,7 @@ public final class GetConstants extends APIServlet.APIRequestHandler {
     JSONObject response = new JSONObject();
     response.put("genesisBlockId", Convert.toUnsignedLong(Genesis.GENESIS_BLOCK_ID));
     response.put("genesisAccountId", Convert.toUnsignedLong(Genesis.CREATOR_ID));
-    response.put("maxBlockPayloadLength", Constants.MAX_PAYLOAD_LENGTH);
+    response.put("maxBlockPayloadLength", (Burst.getFluxCapacitor().getInt(FluxInt.MAX_PAYLOAD_LENGTH)));
     response.put("maxArbitraryMessageLength", Constants.MAX_ARBITRARY_MESSAGE_LENGTH);
 
     JSONArray transactionTypes = new JSONArray();

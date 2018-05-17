@@ -2,7 +2,7 @@ package brs.http;
 
 import brs.BurstException;
 import brs.Order;
-import brs.services.OrderService;
+import brs.assetexchange.AssetExchange;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,17 +12,17 @@ import static brs.http.common.Parameters.ORDER_PARAMETER;
 
 public final class GetBidOrder extends APIServlet.APIRequestHandler {
 
-  private final OrderService orderService;
+  private final AssetExchange assetExchange;
 
-  GetBidOrder(OrderService orderService) {
+  GetBidOrder(AssetExchange assetExchange) {
     super(new APITag[] {APITag.AE}, ORDER_PARAMETER);
-    this.orderService = orderService;
+    this.assetExchange = assetExchange;
   }
 
   @Override
   JSONStreamAware processRequest(HttpServletRequest req) throws BurstException {
     long orderId = ParameterParser.getOrderId(req);
-    Order.Bid bidOrder = orderService.getBidOrder(orderId);
+    Order.Bid bidOrder = assetExchange.getBidOrder(orderId);
 
     if (bidOrder == null) {
       return UNKNOWN_ORDER;

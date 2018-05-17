@@ -3,9 +3,8 @@ package brs.http;
 import brs.Asset;
 import brs.BurstException;
 import brs.Trade;
+import brs.assetexchange.AssetExchange;
 import brs.http.common.Parameters;
-import brs.services.AssetService;
-import brs.services.TradeService;
 import brs.util.FilteringIterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -18,13 +17,11 @@ import static brs.http.common.ResultFields.TRADES_RESPONSE;
 
 public final class GetAllTrades extends APIServlet.APIRequestHandler {
 
-  private final TradeService tradeService;
-  private final AssetService assetService;
+  private final AssetExchange assetExchange;
 
-  GetAllTrades(TradeService tradeService, AssetService assetService) {
+  GetAllTrades(AssetExchange assetExchange) {
     super(new APITag[] {APITag.AE}, TIMESTAMP_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER, INCLUDE_ASSET_INFO_PARAMETER);
-    this.tradeService = tradeService;
-    this.assetService = assetService;
+    this.assetExchange = assetExchange;
   }
     
   @Override
@@ -38,11 +35,11 @@ public final class GetAllTrades extends APIServlet.APIRequestHandler {
     final JSONArray trades = new JSONArray();
 
     try (FilteringIterator<Trade> tradeIterator = new FilteringIterator<>(
-      tradeService.getAllTrades(0, -1),
+      assetExchange.getAllTrades(0, -1),
       trade -> trade.getTimestamp() >= timestamp, firstIndex, lastIndex)) {
       while (tradeIterator.hasNext()) {
         final Trade trade = tradeIterator.next();
-        final Asset asset = includeAssetInfo ? assetService.getAsset(trade.getAssetId()) : null;
+        final Asset asset = includeAssetInfo ? assetExchange.getAsset(trade.getAssetId()) : null;
 
         trades.add(JSONData.trade(trade, asset));
       }

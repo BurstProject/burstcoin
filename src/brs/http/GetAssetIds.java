@@ -5,8 +5,8 @@ import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import static brs.http.common.ResultFields.ASSET_IDS_RESPONSE;
 
 import brs.Asset;
+import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
-import brs.services.AssetService;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -16,11 +16,11 @@ import javax.servlet.http.HttpServletRequest;
 
 public final class GetAssetIds extends APIServlet.APIRequestHandler {
 
-  private final AssetService assetService;
+  private final AssetExchange assetExchange;
 
-  public GetAssetIds(AssetService assetService) {
+  public GetAssetIds(AssetExchange assetExchange) {
     super(new APITag[] {APITag.AE}, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
-    this.assetService = assetService;
+    this.assetExchange = assetExchange;
   }
 
   @Override
@@ -30,7 +30,7 @@ public final class GetAssetIds extends APIServlet.APIRequestHandler {
     int lastIndex = ParameterParser.getLastIndex(req);
 
     JSONArray assetIds = new JSONArray();
-    try (BurstIterator<Asset> assets = assetService.getAllAssets(firstIndex, lastIndex)) {
+    try (BurstIterator<Asset> assets = assetExchange.getAllAssets(firstIndex, lastIndex)) {
       while (assets.hasNext()) {
         assetIds.add(Convert.toUnsignedLong(assets.next().getId()));
       }

@@ -10,6 +10,8 @@ use feature ':5.12';
 
 use Data::Dumper;
 use Data::Rx;
+use Data::Rx::Type::PCRE;
+
 use JSON                           qw(-support_by_pp);           # need JSON to support bignum
 use LWP::UserAgent;
 use LWP::Protocol::https;
@@ -23,26 +25,192 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(loop_reqtypes
             );
 
-my $rx = Data::Rx->new;
 my $ua      = LWP::UserAgent->new(
 #    ssl_opts => { verify_hostname => 1 },
 );
 
-my $URLBASE = 'http://localhost:8125/burst?requestType=';
 
 my %config = (
-    server_url     => $URLBASE,
+    protocol    => ($ENV{BRS_APITEST_PROTO}  // 'http'),
+    server      => ($ENV{BRS_APITEST_SERVER} // 'localhost'),
+    port        => ($ENV{BRS_APITEST_PORT}   // 8125),
     max_retries => 3,
+);
+
+my $API_URL = $config{protocol}
+            . '://'
+            . $config{server}
+            . ':'
+            . $config{port}
+            . '/burst'
+            ;
+
+# }}}
+# {{{ Data::Rx definitions
+
+
+my $CGPX = 'tag:burst.cryptoguru.org,2018:rx'; # own CG prefix
+
+my $rx = Data::Rx->new({
+    type_plugins => [ 'Data::Rx::Type::PCRE' ]
+});
+
+my $ph_number = $rx->make_schema({
+    type  => 'tag:rjbs.manxome.org,2008-10-04:rx/pcre/str',
+    regex => q/\A867-[5309]{4}\z/,
+});
+
+$rx->add_prefix(
+    brs => "$CGPX/"
+);
+
+$rx->learn_type(
+    "$CGPX/balanceBURST" => {
+        type  => '//int',
+        range => {
+            min => 0,
+            max => 2_158_812_800,
+        },
+    }
+);
+
+$rx->learn_type(
+    "$CGPX/balancePLANCK" => {
+        type  => '//int',
+        range => {
+            min => 0,
+            max => 215_881_280_000_000_000,
+        },
+    }
 );
 
 
 # skip: default 0 (if to skip that test)
-# type: default GET
+# meth: http method (default GET)
 # args: default none/undef
 our $reqtypes = [ # we want to define a sequence of tests
+    # broadcastTransaction
+    # buyAlias
+    # {{{ calculateFullHash
+    {
+        name => 'calculateFullHash',
+        required => {
+            fullHash => {
+                type  => '//str',
+                value => 'f151ded1194ce627ff44bd67ab25cdddb9a35ff2006653c0f9d25a2de5ad463e',
+            },
+            requestProcessingTime => '//int',
+        },
+        args => {
+            unsignedTransactionBytes => '010203',
+            signatureHash            => '010101',
+        },
+    },
+    # }}}
+    # cancelAskOrder
+    # cancelBidOrder
+    # createATProgram
+    # decryptFrom
+    # dgsDelisting
+    # dgsDelivery
+    # dgsFeedback
+    # dgsListing
+    # dgsPriceChange
+    # dgsPurchase
+    # dgsQuantityChange
+    # dgsRefund
+    # {{{ encryptTo
+    {
+        name => 'encryptTo',
+        required => {
+            data => '//str',
+            requestProcessingTime => '//int',
+            nonce                 => '//str',
+        },
+        args => {
+            recipient              => '15001172709804754727',
+            messageToEncrypt       => 'Hi Gays',
+            messageToEncryptIsText => 'true',
+            secretPhrase           => 'Wallet API Test Account',
+        },
+    },
+    # }}}
+    # escrowSign
+    # generateToken
+    # getAT
+    # getATDetails
+    # {{{ getATIds
+    {
+        name => 'getATIds',
+        required => {
+            atIds => {
+                type => '//arr',
+                contents => '//int'
+            },
+            requestProcessingTime => '//int',
+        },
+
+    },
+    # }}}
+    # {{{ getAccount
+     {
+         name => 'getAccount',
+         txt  => 'get account with UTF-8 user name',
+         required => {
+             accountRS => {
+                 type => '//str',
+                 value => 'BURST-DPQM-9X88-LEU3-CNSST',
+             },
+             account => {
+                 type => '//int',
+                 value => 12457823256334161619,
+             },
+             assetBalances => {
+                 type => '//arr',
+                 contents => '//any',
+             },
+             unconfirmedAssetBalances => {
+                 type => '//arr',
+                 contents => '//any',
+             },
+             balanceNQT            => '/brs/balancePLANCK',
+             effectiveBalanceNXT   => '/brs/balancePLANCK',
+             forgedBalanceNQT      => '/brs/balancePLANCK',
+             guaranteedBalanceNQT  => '/brs/balancePLANCK',
+             unconfirmedBalanceNQT => '/brs/balancePLANCK',
+             name => '//str',
+             publicKey => '//str',
+
+             requestProcessingTime => '//int',
+         },
+         args => {
+             account => 'BURST-DPQM-9X88-LEU3-CNSST'
+         },
+     },
+    # }}}
+
+    # getAccountATs
+    # getAccountBlockIds
+    # getAccountBlocks
+    # getAccountCurrentAskOrderIds
+    # getAccountCurrentAskOrders
+    # getAccountCurrentBidOrderIds
+    # getAccountCurrentBidOrders
+    # getAccountEscrowTransactions
+    # getAccountId
+    # getAccountLessors
+    # getAccountPublicKey
+    # getAccountSubscriptions
+    # getAccountTransactionIds
+    # getAccountTransactions
+    # getAccountsWithRewardRecipient
+    # getAlias
+    # getAliases
+
     # {{{ getAllAssets
     {
         name => 'getAllAssets',
+        meth => 'POST',
         required => {
             assets => {
                 type => '//arr',
@@ -76,6 +244,14 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+
+    # getAllTrades
+    # getAskOrder
+    # getAskOrderIds
+    # getAskOrders
+    # getAsset
+    # getAssetAccounts
+
     # {{{ getAssetIds
     {
         name => 'getAssetIds',
@@ -88,19 +264,14 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
-    # {{{ getATIds
-    {
-        name => 'getATIds',
-        required => {
-            atIds => {
-                type => '//arr',
-                contents => '//int'
-            },
-            requestProcessingTime => '//int',
-        },
 
-    },
-    # }}}
+    # getAssetTransfers
+    # getAssets
+    # getAssetsByIssuer
+    # getBalance
+    # getBidOrder
+    # getBidOrderIds
+    # getBidOrders
     # {{{ getBlock
     {
         name => 'getBlock',
@@ -133,6 +304,8 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+    # getBlockId
+
     # {{{ getBlockchainStatus
     {
         name => 'getBlockchainStatus',
@@ -198,6 +371,8 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+    # getDGSPendingPurchases
+    # getDGSPurchase
     # {{{ getDGSPurchases
     {
         name => 'getDGSPurchases',
@@ -221,6 +396,8 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+    # getEscrowTransaction
+    # getGuaranteedBalance
     # {{{ getMiningInfo
     {
         name => 'getMiningInfo',
@@ -254,6 +431,7 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+    # getRewardRecipient
     # {{{ getState
 
     {
@@ -270,7 +448,7 @@ our $reqtypes = [ # we want to define a sequence of tests
             numberOfAssets => '//int',
             freeMemory => '//int',
             availableProcessors => '//int',
-            totalEffectiveBalanceNXT => '//int',
+            totalEffectiveBalanceNXT => '/brs/balanceBURST',
             numberOfAccounts => '//int',
             numberOfBlocks => '//int',
             version => '//str',
@@ -289,6 +467,8 @@ our $reqtypes = [ # we want to define a sequence of tests
     },
 
     # }}}
+    # getSubscription
+    # getSubscriptionsToAccount
     # {{{ getTime
     {
         name => 'getTime',
@@ -299,6 +479,9 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+    # getTrades
+    # getTransaction
+    # getTransactionBytes
     # {{{ getUnconfirmedTransactionIds
     {
         name => 'getUnconfirmedTransactionIds',
@@ -324,6 +507,7 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+    # issueAsset
     # {{{ longConvert
     {
         name => 'longConvert',
@@ -343,6 +527,10 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+    # parseTransaction
+    # placeAskOrder
+    # placeBidOrder
+    # readMessage
     # {{{ rsConvert
     {
         name => 'rsConvert',
@@ -363,6 +551,21 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+
+    # sellAlias
+    # sendMessage
+    # sendMoney
+    # sendMoneyEscrow
+    # sendMoneyMulti
+    # sendMoneyMultiSame
+    # sendMoneySubscription
+    # setAccountInfo
+    # setAlias
+    # setRewardRecipient
+    # signTransaction
+    # submitNonce
+    # subscriptionCancel
+
 ];
 
 # }}}
@@ -373,28 +576,42 @@ sub loop_reqtypes {
     my $tests = 0;
 
   LOOP_REQS:
-    for my $rtype (@{$reqtypes}) {
-        next LOOP_REQS if ($rtype->{skip});
+    for my $rtype (@{$reqtypes}) {                          # iterate all tests
+        my $rt_name = $rtype->{name};                       # get reqestType names (defines also name of test)
 
-        my $rt_name   = $rtype->{name};
-        my $rt_schema = build_schema($rtype);
-        my $rt_args   = $rtype->{args};
-        my $reply     = talk2wallet($rt_name, $rt_args);
+        if ($rtype->{skip}) {                               # Skip handling
+            say "$rt_name skipped by user request.";
+            next LOOP_REQS;
+        }
 
-        print Dumper($reply) if $rtype->{debug};
+        my $rt_args   = {                                   # build hashref with arguments for a given requestType
+            requestType => $rt_name,                        # the requestType itself is a key => value argument
+            %{$rtype->{args} // {}}                               # add the argument payload
+        };
 
-        my $valid   = $rt_schema->check($reply);
-        my $testtxt = $rt_name                             # build test text
-                    . ($rtype->{txt} ? " - $$rtype{txt}"   # with more than just req name
-                                     : '')                 # if available
-                                     ;
-        ok($valid, $testtxt);
+        my $rt_meth = $rtype->{meth} // 'GET';              # use HTTP method (default: GET)
+        my $reply   = talk2wallet($rt_meth, $rt_args);      # make the API request
+
+        print Dumper($reply) if $rtype->{debug};            # debug what's going on
+
+        my $rt_schema = build_schema($rtype);               # build the Data::Rx schema for the validation
+        my $valid     = $rt_schema->check($reply);          # perform the Data::Rx schema check
+        my $testtxt   = $rt_name                            # build test text
+                      . ($rtype->{txt} ? " - $$rtype{txt}"  # with more than just req name
+                                       : '')                # if available
+                                       ;
+        ok($valid, $testtxt);                               # judge the actual test (valid/not valid) and inform user
         $tests++;
 
-        if (!$valid) {
-            print Dumper($reply);
-            my $rx_failure = $rt_schema->assert_valid($reply);
-            print Dumper($rx_failure);
+        if (!$valid) {                                      # if test result wasn't valid/no success
+            eval {                                          # catch exceptions
+                say Dumper($reply);
+                my $rx_failure  = $rt_schema->assert_valid($reply);
+                my @rx_failures = $rx_failure->failures;
+            };
+            if ($@) {
+                say $@;
+            }
         }
     }
 
@@ -421,39 +638,22 @@ sub build_schema {
 # {{{ talk2wallet                  talk to the wallet
 
 sub talk2wallet {
-    my $path    = shift;                # relative URL on server
-    my $send    = shift;                # data to send to server
+    my $method  = shift;                # use GET/POST/...
+    my $data    = shift;                # data to send to server
     my $verbose = shift // 1;           # do we want status reports (default: yes)
 
-    my $json    = JSON->new->utf8->allow_blessed->allow_bignum;       # create JSON object with features
-    my $request;
+    my $URI = $API_URL . '?' . hash2get($data);
 
-    if (defined $send) {
-#    print "$config{server_url}$path\n";
+    #say "$method -> $URI";
 
-    #     my $content = $json->encode($send);                               # convert Perl structure to JSON
-    #     my $header  = HTTP::Headers->new(                                 # construct HTTP header
-    #         Content_Length => length($content),
-    #         Content_Type   => 'application/json;charset=utf-8'
-    #     );
-    #     $request = HTTP::Request->new('POST',
-    #                                   "$config{server_url}$path",
-    #                                   $header,
-    #                                   $content);
-    # }
-    # else {
-        $path .= ('&' . hash2get($send));
-    }
+    my $request = HTTP::Request->new($method,
+                                     $URI);
 
+    my $retries  = $config{max_retries};                              # number of retries in case the server does not answer
+    my $response = _get_srv_response($request, $verbose);             # hold the response from the server.
+    my $json     = JSON->new->utf8->allow_blessed->allow_bignum;      # create JSON object with features (for wallet answer)
 
-
-    $request = HTTP::Request->new('GET',
-                                  "$config{server_url}$path");
-
-    my $retries  = $config{max_retries};                    # number of retries in case the server does not answer
-    my $response = _get_srv_response($request, $verbose);   # hold the response from the server.
-
-    return $json->decode($response);                        # decode answer to Perl structure
+    return $json->decode($response);                                  # decode JSON answer to Perl structure
 }
 
 # }}}
@@ -470,7 +670,7 @@ sub _get_srv_response {
     while ($retries--) {                                         # prepare to have to retry connecting to server
         $response = $ua->request($request);                      # get answer
 
-        last SRVCON_LOOP if ($response->is_success);        # end connect loop if all ok
+        last SRVCON_LOOP if ($response->is_success);             # end connect loop if all ok
 
         # HERE: Problems connecting to server. So retry.
         my $status = $response->status_line;                     # get status line message

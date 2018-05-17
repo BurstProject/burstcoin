@@ -1,5 +1,6 @@
 package brs;
 
+import brs.fluxcapacitor.FluxInt;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -57,7 +58,7 @@ public class Block {
       byte[] blockSignature, byte[] previousBlockHash, List<Transaction> transactions,
       long nonce, byte[] blockATs) throws BurstException.ValidationException {
 
-    if (payloadLength > Constants.MAX_PAYLOAD_LENGTH || payloadLength < 0) {
+    if (payloadLength > Burst.getFluxCapacitor().getInt(FluxInt.MAX_PAYLOAD_LENGTH) || payloadLength < 0) {
       throw new BurstException.NotValidException(
           "attempted to create a block with payloadLength " + payloadLength);
     }
@@ -76,7 +77,7 @@ public class Block {
     this.previousBlockHash = previousBlockHash;
     if (transactions != null) {
       this.blockTransactions = Collections.unmodifiableList(transactions);
-      if (blockTransactions.size() > Constants.MAX_NUMBER_OF_TRANSACTIONS) {
+      if (blockTransactions.size() > (Burst.getFluxCapacitor().getInt(FluxInt.MAX_NUMBER_TRANSACTIONS))) {
         throw new BurstException.NotValidException(
             "attempted to create a block with " + blockTransactions.size() + " transactions");
       }

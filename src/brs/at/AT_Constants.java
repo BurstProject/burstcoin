@@ -1,7 +1,9 @@
 package brs.at;
 
+import brs.Burst;
 import brs.Constants;
 
+import brs.fluxcapacitor.FluxInt;
 import java.util.HashMap;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -61,7 +63,7 @@ public class AT_Constants {
     MAX_MACHINE_CALL_STACK_PAGES.put( (short) 1, 10L );
 		
     BLOCKS_FOR_RANDOM.put( (short) 1, 15L ); //for testing 2 -> normally 1440
-    MAX_PAYLOAD_FOR_BLOCK.put( (short) 1, Constants.MAX_PAYLOAD_LENGTH / 2L  ); //use at max half size of the block.
+    MAX_PAYLOAD_FOR_BLOCK.put( (short) 1, (Burst.getFluxCapacitor().getInt(FluxInt.MAX_PAYLOAD_LENGTH)) / 2L  ); //use at max half size of the block.
     AVERAGE_BLOCK_MINUTES.put( (short) 1, 4L );
     // end of AT version 1		
   }

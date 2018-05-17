@@ -17,13 +17,12 @@ import brs.Account;
 import brs.Asset;
 import brs.BurstException;
 import brs.Trade;
+import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
-import brs.services.AssetService;
 import brs.services.ParameterService;
-import brs.services.TradeService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -35,16 +34,14 @@ public class GetTradesTest extends AbstractUnitTest {
   private GetTrades t;
 
   private ParameterService mockParameterService;
-  private AssetService mockAssetService;
-  private TradeService mockTradeService;
+  private AssetExchange mockAssetExchange;
 
   @Before
   public void setUp() {
     mockParameterService = mock(ParameterService.class);
-    mockAssetService = mock(AssetService.class);
-    mockTradeService = mock(TradeService.class);
+    mockAssetExchange = mock(AssetExchange.class);
 
-    t = new GetTrades(mockParameterService, mockAssetService, mockTradeService);
+    t = new GetTrades(mockParameterService, mockAssetExchange);
   }
 
   @Test
@@ -68,7 +65,7 @@ public class GetTradesTest extends AbstractUnitTest {
     final BurstIterator<Trade> mockTradesIterator = mockBurstIterator(mockTrade);
 
     when(mockParameterService.getAsset(eq(req))).thenReturn(mockAsset);
-    when(mockAssetService.getTrades(eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockTradesIterator);
+    when(mockAssetExchange.getTrades(eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockTradesIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
     assertNotNull(result);
@@ -102,7 +99,7 @@ public class GetTradesTest extends AbstractUnitTest {
     final BurstIterator<Trade> mockTradesIterator = mockBurstIterator(mockTrade);
 
     when(mockParameterService.getAccount(eq(req))).thenReturn(mockAccount);
-    when(mockTradeService.getAccountTrades(eq(accountId), eq(firstIndex), eq(lastIndex))).thenReturn(mockTradesIterator);
+    when(mockAssetExchange.getAccountTrades(eq(accountId), eq(firstIndex), eq(lastIndex))).thenReturn(mockTradesIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
     assertNotNull(result);
@@ -142,7 +139,7 @@ public class GetTradesTest extends AbstractUnitTest {
 
     when(mockParameterService.getAsset(eq(req))).thenReturn(mockAsset);
     when(mockParameterService.getAccount(eq(req))).thenReturn(mockAccount);
-    when(mockTradeService.getAccountAssetTrades(eq(accountId), eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockTradesIterator);
+    when(mockAssetExchange.getAccountAssetTrades(eq(accountId), eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockTradesIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
     assertNotNull(result);

@@ -8,8 +8,8 @@ import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 import brs.Account;
 import brs.Asset;
 import brs.BurstException;
+import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
-import brs.services.AssetService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
@@ -19,12 +19,12 @@ import org.json.simple.JSONStreamAware;
 public final class GetAssetAccounts extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
-  private final AssetService assetService;
+  private final AssetExchange assetExchange;
 
-  GetAssetAccounts(ParameterService parameterService, AssetService assetService) {
+  GetAssetAccounts(ParameterService parameterService, AssetExchange assetExchange) {
     super(new APITag[]{APITag.AE}, ASSET_PARAMETER, HEIGHT_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
     this.parameterService = parameterService;
-    this.assetService = assetService;
+    this.assetExchange = assetExchange;
   }
 
   @Override
@@ -36,7 +36,7 @@ public final class GetAssetAccounts extends APIServlet.APIRequestHandler {
     int height = parameterService.getHeight(req);
 
     JSONArray accountAssets = new JSONArray();
-    try (BurstIterator<Account.AccountAsset> iterator = assetService.getAccounts(asset.getId(), height, firstIndex, lastIndex)) {
+    try (BurstIterator<Account.AccountAsset> iterator = assetExchange.getAccountAssetsOverview(asset.getId(), height, firstIndex, lastIndex)) {
       while (iterator.hasNext()) {
         Account.AccountAsset accountAsset = iterator.next();
         accountAssets.add(JSONData.accountAsset(accountAsset));

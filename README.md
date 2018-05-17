@@ -60,9 +60,17 @@ DB.Password=YOUR_PASSWORD
 The MariaDB installation will also install HeidiSQL, a gui tool to administer MariaDb.
 Use it to connect to the newly created mariaDb server and create a new DB called 'burstwallet'. 
 
-#### Unix-like systems
+#### MacOS
 
-Please install Java 8 (JRE 1.8) manually and run it by using burst.sh
+Plase use beatsbears' comfortable script <https://github.com/beatsbears/macos_burst/>
+to install and maintain the Burst wallet on your Mac.
+An older howto at ecomineearth
+<https://ecomine.earth/macoswalletinstallguide/> basically describes
+the manual steps the script above does for you.
+
+#### Other Unix-like systems
+
+Please install Java 8 (JRE 1.8) manually and run the wallet by using `burst.sh`
 You can get further information calling `burst.sh help`
 
 A good HowTo for running the wallet on a mac can be found here

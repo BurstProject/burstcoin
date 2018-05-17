@@ -17,13 +17,12 @@ import brs.Account;
 import brs.Asset;
 import brs.AssetTransfer;
 import brs.BurstException;
+import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
 import brs.services.AccountService;
-import brs.services.AssetService;
-import brs.services.AssetTransferService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
@@ -37,17 +36,15 @@ public class GetAssetTransfersTest extends AbstractUnitTest {
 
   private ParameterService mockParameterService;
   private AccountService mockAccountService;
-  private AssetService mockAssetService;
-  private AssetTransferService mockAssetTransferService;
+  private AssetExchange mockAssetExchange;
 
   @Before
   public void setUp() {
     mockParameterService = mock(ParameterService.class);
     mockAccountService = mock(AccountService.class);
-    mockAssetService = mock(AssetService.class);
-    mockAssetTransferService = mock(AssetTransferService.class);
+    mockAssetExchange= mock(AssetExchange.class);
 
-    t = new GetAssetTransfers(mockParameterService, mockAccountService, mockAssetService, mockAssetTransferService);
+    t = new GetAssetTransfers(mockParameterService, mockAccountService, mockAssetExchange);
   }
 
   @Test
@@ -72,7 +69,7 @@ public class GetAssetTransfersTest extends AbstractUnitTest {
 
     when(mockParameterService.getAsset(eq(req))).thenReturn(mockAsset);
 
-    when(mockAssetService.getAssetTransfers(eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockAssetTransferIterator);
+    when(mockAssetExchange.getAssetTransfers(eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockAssetTransferIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
     assertNotNull(result);
@@ -136,9 +133,9 @@ public class GetAssetTransfersTest extends AbstractUnitTest {
     when(mockParameterService.getAsset(eq(req))).thenReturn(mockAsset);
     when(mockParameterService.getAccount(eq(req))).thenReturn(mockAccount);
 
-    when(mockAssetService.getAsset(eq(mockAssetTransfer.getAssetId()))).thenReturn(mockAsset);
+    when(mockAssetExchange.getAsset(eq(mockAssetTransfer.getAssetId()))).thenReturn(mockAsset);
 
-    when(mockAssetTransferService.getAccountAssetTransfers(eq(accountId), eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockAssetTransferIterator);
+    when(mockAssetExchange.getAccountAssetTransfers(eq(accountId), eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockAssetTransferIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
     assertNotNull(result);

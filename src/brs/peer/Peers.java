@@ -50,6 +50,8 @@ public final class Peers {
   static final int LOGGING_MASK_200_RESPONSES = 4;
   static int communicationLoggingMask;
 
+  private static final Random r = new Random();
+
   static Set<String> wellKnownPeers;
   static Set<String> knownBlacklistedPeers;
 
@@ -71,9 +73,6 @@ public final class Peers {
   private static boolean useUpnp;
   private static boolean shareMyAddress;
   private static int maxNumberOfConnectedPublicPeers;
-  private static boolean enableHallmarkProtection;
-  private static int pushThreshold;
-  private static int pullThreshold;
   private static int sendToPeersLimit;
   private static boolean usePeersDb;
   private static boolean savePeers;
@@ -117,33 +116,15 @@ public final class Peers {
       myAddress = propertyService.getString("P2P.myAddress");
     }
 
-    if (myAddress != null && myAddress.endsWith(":" + TESTNET_PEER_PORT) && !Constants.isTestnet) {
+    if (myAddress != null && myAddress.endsWith(":" + TESTNET_PEER_PORT) && !Burst.getPropertyService().getBoolean(Props.DEV_TESTNET)) {
       throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
     }
     myPeerServerPort = propertyService.getInt(Props.P2P_PORT);
-    if (myPeerServerPort == TESTNET_PEER_PORT && !Constants.isTestnet) {
+    if (myPeerServerPort == TESTNET_PEER_PORT && !Burst.getPropertyService().getBoolean(Props.DEV_TESTNET)) {
       throw new RuntimeException("Port " + TESTNET_PEER_PORT + " should only be used for testnet!!!");
     }
     useUpnp = propertyService.getBoolean(Props.P2P_UPNP);
-    shareMyAddress = propertyService.getBoolean(Props.P2P_SHARE_MY_ADDRESS) && ! Constants.isOffline;
-    final String myHallmark = propertyService.getString(Props.P2P_MY_HALLMARK);
-    if (myHallmark != null && ! myHallmark.isEmpty()) {
-      try {
-        Hallmark hallmark = Hallmark.parseHallmark(myHallmark);
-        if (!hallmark.isValid() || myAddress == null) {
-          throw new RuntimeException();
-        }
-        URI uri = new URI("http://" + myAddress.trim());
-        String host = uri.getHost();
-        if (!hallmark.getHost().equals(host)) {
-          throw new RuntimeException();
-        }
-      }
-      catch (RuntimeException | URISyntaxException e) {
-        logger.info("Your hallmark is invalid: " + myHallmark + " for your address: " + myAddress);
-        throw new RuntimeException(e.toString(), e);
-      }
-    }
+    shareMyAddress = propertyService.getBoolean(Props.P2P_SHARE_MY_ADDRESS) && ! Burst.getPropertyService().getBoolean(Props.DEV_OFFLINE);
 
     JSONObject json = new JSONObject();
     if (myAddress != null && ! myAddress.isEmpty()) {
@@ -151,7 +132,7 @@ public final class Peers {
         URI uri = new URI("http://" + myAddress.trim());
         String host = uri.getHost();
         int port = uri.getPort();
-        if (!Constants.isTestnet) {
+        if (!Burst.getPropertyService().getBoolean(Props.DEV_TESTNET)) {
           if (port >= 0) {
             json.put("announcedAddress", myAddress);
           }
@@ -169,10 +150,6 @@ public final class Peers {
       }
     }
 
-    if (myHallmark != null && ! myHallmark.isEmpty()) {
-      json.put("hallmark", myHallmark);
-    }
-
     json.put("application",  Burst.APPLICATION);
     json.put("version",      Burst.VERSION);
     json.put("platform",     Peers.myPlatform);
@@ -182,16 +159,16 @@ public final class Peers {
     json.put("requestType", "getInfo");
     myPeerInfoRequest = JSON.prepareRequest(json);
 
-    rebroadcastPeers = Collections.unmodifiableSet(new HashSet<>(propertyService.getStringList(Props.P2P_REBROADCAST_TO)));
+    rebroadcastPeers = Collections.unmodifiableSet(new HashSet<>(propertyService.getStringList(Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? Props.DEV_P2P_REBROADCAST_TO : Props.P2P_REBROADCAST_TO)));
 
-    List<String> wellKnownPeersList = propertyService.getStringList(Constants.isTestnet ? Props.TEST_PEERS : Props.P2P_BOOTSTRAP_PEERS);
+    List<String> wellKnownPeersList = propertyService.getStringList(Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? Props.DEV_P2P_BOOTSTRAP_PEERS : Props.P2P_BOOTSTRAP_PEERS);
 
     for(String rePeer : rebroadcastPeers) {
       if(!wellKnownPeersList.contains(rePeer)) {
         wellKnownPeersList.add(rePeer);
       }
     }
-    if (wellKnownPeersList.isEmpty() || Constants.isOffline) {
+    if (wellKnownPeersList.isEmpty() || Burst.getPropertyService().getBoolean(Props.DEV_OFFLINE)) {
       wellKnownPeers = Collections.emptySet();
     } else {
       wellKnownPeers = Collections.unmodifiableSet(new HashSet<>(wellKnownPeersList));
@@ -211,14 +188,11 @@ public final class Peers {
     maxNumberOfConnectedPublicPeers = propertyService.getInt(Props.P2P_MAX_CONNECTIONS);
     connectTimeout = propertyService.getInt(Props.P2P_TIMEOUT_CONNECT_MS);
     readTimeout = propertyService.getInt(Props.P2P_TIMEOUT_READ_MS);
-    enableHallmarkProtection = propertyService.getBoolean(Props.P2P_HALLMARK_PROTECTION);
-    pushThreshold = propertyService.getInt(Props.P2P_HALLMARK_PUSH);
-    pullThreshold = propertyService.getInt(Props.P2P_HALLMARK_PULL);
 
     blacklistingPeriod = propertyService.getInt(Props.P2P_BLACKLISTING_TIME_MS);
     communicationLoggingMask = propertyService.getInt(Props.BRS_COMMUNICATION_LOGGING_MASK);
-    sendToPeersLimit = propertyService.getInt(Props.BRS_SEND_TO_PEERS_LIMIT);
-    usePeersDb       = propertyService.getBoolean(Props.P2P_USE_PEERS_DB) && ! Constants.isOffline;
+    sendToPeersLimit = propertyService.getInt(Props.P2P_SEND_TO_LIMIT);
+    usePeersDb       = propertyService.getBoolean(Props.P2P_USE_PEERS_DB) && ! Burst.getPropertyService().getBoolean(Props.DEV_OFFLINE);
     savePeers        = usePeersDb && propertyService.getBoolean(Props.P2P_SAVE_PEERS);
     getMorePeers     = propertyService.getBoolean(Props.P2P_GET_MORE_PEERS);
     getMorePeersThreshold = propertyService.getInt(Props.P2P_GET_MORE_PEERS_THRESHOLD);
@@ -270,7 +244,7 @@ public final class Peers {
 
     Init.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService, threadPool);
 
-    if (! Constants.isOffline) {
+    if (! Burst.getPropertyService().getBoolean(Props.DEV_OFFLINE)) {
       threadPool.scheduleThread("PeerConnecting", Peers.peerConnectingThread, 5);
       threadPool.scheduleThread("PeerUnBlacklisting", Peers.peerUnBlacklistingThread, 1);
       if (Peers.getMorePeers) {
@@ -278,13 +252,6 @@ public final class Peers {
       }
     }
 
-    accountService.addListener(account -> {
-      for (PeerImpl peer : Peers.peers.values()) {
-        if (peer.getHallmark() != null && peer.getHallmark().getAccountId() == account.getId()) {
-          Peers.listeners.notify(peer, Event.WEIGHT);
-        }
-      }
-    }, Account.Event.BALANCE);
   }
 
   private static class Init {
@@ -335,7 +302,7 @@ public final class Peers {
 
         peerServer = new Server();
         ServerConnector connector = new ServerConnector(peerServer);
-        port = Constants.isTestnet ? TESTNET_PEER_PORT : Peers.myPeerServerPort;
+        port = Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? TESTNET_PEER_PORT : Peers.myPeerServerPort;
         connector.setPort(port);
         final String host = propertyService.getString(Props.P2P_LISTEN);
         connector.setHost(host);
@@ -438,7 +405,7 @@ public final class Peers {
          * if peers size is equal or below connected value we have nothing to connect to
          */
         while (numConnectedPeers < maxNumberOfConnectedPublicPeers && peers.size() > numConnectedPeers) {
-          PeerImpl peer = (PeerImpl)getAnyPeer(ThreadLocalRandom.current().nextInt(2) == 0 ? Peer.State.NON_CONNECTED : Peer.State.DISCONNECTED, false);
+          PeerImpl peer = (PeerImpl)getAnyPeer(ThreadLocalRandom.current().nextInt(2) == 0 ? Peer.State.NON_CONNECTED : Peer.State.DISCONNECTED);
           if (peer != null) {
             peer.connect(timeService.getEpochTime());
             /*
@@ -456,6 +423,12 @@ public final class Peers {
             }
           }
 
+          try {
+            Thread.sleep(1000);
+          }
+          catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+          }
           //Executor shutdown?
           if (Thread.currentThread().isInterrupted()) {
             return;
@@ -542,7 +515,7 @@ public final class Peers {
               return;
             }
 
-            Peer peer = getAnyPeer(Peer.State.CONNECTED, true);
+            Peer peer = getAnyPeer(Peer.State.CONNECTED);
             if (peer == null) {
               return;
             }
@@ -722,7 +695,7 @@ public final class Peers {
     }
 
     peer = new PeerImpl(peerAddress, announcedPeerAddress);
-    if (Constants.isTestnet && peer.getPort() > 0 && peer.getPort() != TESTNET_PEER_PORT) {
+    if (Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) && peer.getPort() > 0 && peer.getPort() != TESTNET_PEER_PORT) {
       logger.debug("Peer " + peerAddress + " on testnet is not using port " + TESTNET_PEER_PORT + ", ignoring");
       return null;
     }
@@ -778,10 +751,6 @@ public final class Peers {
       int successful = 0;
       List<Future<JSONObject>> expectedResponses = new ArrayList<>();
       for (final Peer peer : peers.values()) {
-
-        if (Peers.enableHallmarkProtection && peer.getWeight() < Peers.pushThreshold) {
-          continue;
-        }
 
         if (!peer.getVersion().startsWith(Burst.LEGACY_VER)
             && !peer.isBlacklisted()
@@ -850,7 +819,7 @@ public final class Peers {
   }
 
 
-  public static Peer getAnyPeer(Peer.State state, boolean applyPullThreshold) {
+  public static Peer getAnyPeer(Peer.State state) {
 
     if(!connectWellKnownFinished) {
       int wellKnownConnected = 0;
@@ -869,36 +838,13 @@ public final class Peers {
     List<Peer> selectedPeers = new ArrayList<>();
     for (Peer peer : peers.values()) {
       if (! peer.isBlacklisted() && peer.getState() == state && peer.shareAddress()
-          && (!applyPullThreshold || ! Peers.enableHallmarkProtection || peer.getWeight() >= Peers.pullThreshold)
           && (connectWellKnownFinished || peer.getState() == Peer.State.CONNECTED || peer.isWellKnown())) {
         selectedPeers.add(peer);
       }
     }
 
-    if (selectedPeers.size() > 0) {
-      if (! Peers.enableHallmarkProtection) {
-        return selectedPeers.get(ThreadLocalRandom.current().nextInt(selectedPeers.size()));
-      }
-
-      long totalWeight = 0;
-      for (Peer peer : selectedPeers) {
-        long weight = peer.getWeight();
-        if (weight == 0) {
-          weight = 1;
-        }
-        totalWeight += weight;
-      }
-
-      long hit = ThreadLocalRandom.current().nextLong(totalWeight);
-      for (Peer peer : selectedPeers) {
-        long weight = peer.getWeight();
-        if (weight == 0) {
-          weight = 1;
-        }
-        if ((hit -= weight) < 0) {
-          return peer;
-        }
-      }
+    if (! selectedPeers.isEmpty()) {
+      return selectedPeers.get(r.nextInt(selectedPeers.size()));
     }
     return null;
   }

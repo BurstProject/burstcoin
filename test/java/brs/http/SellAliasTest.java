@@ -3,6 +3,7 @@ package brs.http;
 import static brs.Constants.MAX_BALANCE_NQT;
 import static brs.TransactionType.Messaging.ALIAS_BUY;
 import static brs.TransactionType.Messaging.ALIAS_SELL;
+import static brs.fluxcapacitor.FeatureToggle.DIGITAL_GOODS_STORE;
 import static brs.http.JSONResponses.INCORRECT_ALIAS_OWNER;
 import static brs.http.JSONResponses.INCORRECT_PRICE;
 import static brs.http.JSONResponses.INCORRECT_RECIPIENT;
@@ -13,19 +14,27 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import brs.Account;
 import brs.Alias;
 import brs.Attachment;
 import brs.Blockchain;
+import brs.Burst;
 import brs.BurstException;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
+import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(Burst.class)
 public class SellAliasTest extends AbstractTransactionTest {
 
   private SellAlias t;
@@ -62,6 +71,10 @@ public class SellAliasTest extends AbstractTransactionTest {
 
     when(parameterServiceMock.getSenderAccount(req)).thenReturn(mockSender);
     when(parameterServiceMock.getAlias(req)).thenReturn(mockAlias);
+
+    mockStatic(Burst.class);
+    final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(DIGITAL_GOODS_STORE);
+    when(Burst.getFluxCapacitor()).thenReturn(fluxCapacitor);
 
     final Attachment.MessagingAliasSell attachment = (Attachment.MessagingAliasSell) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);

@@ -2,7 +2,9 @@ package brs.at;
 
 import brs.AT;
 import brs.Account;
+import brs.Burst;
 import brs.Constants;
+import brs.fluxcapacitor.FeatureToggle;
 import brs.util.Convert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -271,7 +273,7 @@ public abstract class AT_Controller {
           at.setP_balance( at.getG_balance() );
 
           long amount = makeTransactions( at );
-          if (blockHeight < Constants.AT_FIX_BLOCK_4) {
+          if (! Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_4, blockHeight)) {
             totalAmount = amount;
           }
           else {
@@ -357,7 +359,7 @@ public abstract class AT_Controller {
         }
         at.setP_balance( at.getG_balance() );
 
-        if (blockHeight < Constants.AT_FIX_BLOCK_4) {
+        if (! Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_4, blockHeight)) {
           totalAmount = makeTransactions( at );
         }
         else {
@@ -447,7 +449,7 @@ public abstract class AT_Controller {
   //platform based
   private static long makeTransactions( AT at ) throws AT_Exception {
     long totalAmount = 0;
-    if ( at.getHeight() < Constants.AT_FIX_BLOCK_4 ) {
+    if (! Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_4, at.getHeight())) {
       for (AT_Transaction tx : at.getTransactions()) {
         if (AT.findPendingTransaction(tx.getRecipientId())) {
           throw new AT_Exception("Conflicting transaction found");

@@ -6,6 +6,9 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
+import static brs.Constants.FEE_QUANT;
+import static brs.Constants.ONE_BURST;
+import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
 import static brs.http.common.Parameters.BROADCAST_PARAMETER;
 import static brs.http.common.Parameters.DEADLINE_PARAMETER;
 import static brs.http.common.Parameters.ENCRYPTED_MESSAGE_DATA_PARAMETER;
@@ -42,6 +45,11 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
     return result;
   }
 
+  CreateTransaction(APITag[] apiTags, APITransactionManager apiTransactionManager, boolean replaceParameters, String... parameters) {
+    super(apiTags, replaceParameters ? parameters : addCommonParameters(parameters));
+    this.apiTransactionManager = apiTransactionManager;
+  }
+
   CreateTransaction(APITag[] apiTags, APITransactionManager apiTransactionManager, String... parameters) {
     super(apiTags, addCommonParameters(parameters));
     this.apiTransactionManager = apiTransactionManager;
@@ -67,7 +75,7 @@ abstract class CreateTransaction extends APIServlet.APIRequestHandler {
   }
 
   long minimumFeeNQT() {
-    return Constants.ONE_BURST;
+    return Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST;
   }
 
 }

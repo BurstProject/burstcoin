@@ -13,12 +13,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Asset;
+import brs.assetexchange.AssetExchange;
 import brs.common.QuickMocker;
-import brs.common.QuickMocker.MockParam;
-import brs.services.AssetAccountService;
-import brs.services.AssetService;
-import brs.services.AssetTransferService;
-import brs.services.TradeService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -29,19 +25,13 @@ public class GetAssetsTest {
 
   private GetAssets t;
 
-  private AssetService mockAssetService;
-  private AssetAccountService mockAssetAccountService;
-  private AssetTransferService mockAssetTransferService;
-  private TradeService mockTradeService;
+  private AssetExchange mockAssetExchange;
 
   @Before
   public void setUp() {
-    mockAssetService = mock(AssetService.class);
-    mockAssetAccountService = mock(AssetAccountService.class);
-    mockAssetTransferService = mock(AssetTransferService.class);
-    mockTradeService = mock(TradeService.class);
+    mockAssetExchange = mock(AssetExchange.class);
 
-    t = new GetAssets(mockAssetService, mockAssetAccountService, mockAssetTransferService, mockTradeService);
+    t = new GetAssets(mockAssetExchange);
   }
 
   @Test
@@ -58,11 +48,11 @@ public class GetAssetsTest {
     final Asset mockAsset = mock(Asset.class);
     when(mockAsset.getId()).thenReturn(assetId);
 
-    when(mockAssetService.getAsset(eq(assetId))).thenReturn(mockAsset);
+    when(mockAssetExchange.getAsset(eq(assetId))).thenReturn(mockAsset);
 
-    when(mockTradeService.getTradeCount(eq(assetId))).thenReturn(mockTradeCount);
-    when(mockAssetTransferService.getTransferCount(eq(assetId))).thenReturn(mockTransferCount);
-    when(mockAssetAccountService.getAssetAccountsCount(eq(assetId))).thenReturn(mockAccountsCount);
+    when(mockAssetExchange.getTradeCount(eq(assetId))).thenReturn(mockTradeCount);
+    when(mockAssetExchange.getTransferCount(eq(assetId))).thenReturn(mockTransferCount);
+    when(mockAssetExchange.getAssetAccountsCount(eq(assetId))).thenReturn(mockAccountsCount);
 
     final JSONObject response = (JSONObject) t.processRequest(req);
     assertNotNull(response);
@@ -85,7 +75,7 @@ public class GetAssetsTest {
     final HttpServletRequest req = QuickMocker.httpServletRequest();
     when(req.getParameterValues(eq(ASSETS_PARAMETER))).thenReturn(new String[]{"" + assetId});
 
-    when(mockAssetService.getAsset(eq(assetId))).thenReturn(null);
+    when(mockAssetExchange.getAsset(eq(assetId))).thenReturn(null);
 
     assertEquals(UNKNOWN_ASSET, t.processRequest(req));
   }

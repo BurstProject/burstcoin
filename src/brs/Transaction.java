@@ -1,8 +1,10 @@
 package brs;
 
 import brs.Appendix.AbstractAppendix;
+import brs.TransactionType.Payment;
 import brs.crypto.Crypto;
 import brs.db.BurstKey;
+import brs.fluxcapacitor.FeatureToggle;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -257,14 +259,14 @@ public class Transaction implements Comparable<Transaction> {
       throw new BurstException.NotValidException("Invalid attachment " + attachment + " for transaction of type " + type);
     }
 
-    if (! type.hasRecipient()) {
+    if (! type.hasRecipient() && attachment.getTransactionType() != Payment.MULTI_OUT && attachment.getTransactionType() != Payment.MULTI_SAME_OUT) {
       if (recipientId != 0 || getAmountNQT() != 0) {
         throw new BurstException.NotValidException("Transactions of this type must have recipient == Genesis, amount == 0");
       }
     }
 
     for (Appendix.AbstractAppendix appendage : appendages) {
-      if (! appendage.verifyVersion(this.version) && (!Constants.isTestnet || Burst.getBlockchain().getHeight() > 11795)) {
+      if (! appendage.verifyVersion(this.version)) {
         throw new BurstException.NotValidException("Invalid attachment version " + appendage.getVersion()
                                                  + " for transaction version " + this.version);
       }
@@ -402,13 +404,6 @@ public class Transaction implements Comparable<Transaction> {
     return senderId;
   }
 
-  public BurstKey getDbKey() {
-    if (dbKey == null) {
-      dbKey = Burst.getStores().getTransactionProcessorStore().getUnconfirmedTransactionDbKeyFactory().newKey(getId());
-    }
-    return dbKey;
-  }
-
   public Appendix.Message getMessage() {
     return message;
   }
@@ -433,7 +428,7 @@ public class Transaction implements Comparable<Transaction> {
       buffer.put((byte) ((version << 4) | ( type.getSubtype() & 0xff ) ));
       buffer.putInt(timestamp);
       buffer.putShort(deadline);
-      if(type.isSigned() || Burst.getBlockchain().getHeight() < Constants.AT_FIX_BLOCK_4) {
+      if(type.isSigned() || ! Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_4)) {
         buffer.put(senderPublicKey);
       }
       else {

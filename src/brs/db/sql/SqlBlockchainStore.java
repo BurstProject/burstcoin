@@ -12,6 +12,7 @@ import org.jooq.Cursor;
 import org.jooq.DSLContext;
 import org.jooq.Condition;
 import org.jooq.SelectConditionStep;
+import org.jooq.SelectQuery;
 
 import static brs.schema.Tables.BLOCK;
 import static brs.schema.Tables.TRANSACTION;
@@ -29,7 +30,7 @@ public class SqlBlockchainStore implements BlockchainStore {
         getBlocks(
           ctx,
           ctx.selectFrom(BLOCK).where(
-            BLOCK.HEIGHT.between(blockchainHeight - Math.max(from, 0)).and(to > 0 ? blockchainHeight - to : 0)
+            BLOCK.HEIGHT.between(to > 0 ? blockchainHeight - to : 0).and(blockchainHeight - Math.max(from, 0))
           ).orderBy(BLOCK.HEIGHT.desc()).fetchResultSet()
         );
     }
@@ -138,21 +139,21 @@ public class SqlBlockchainStore implements BlockchainStore {
     if (height < Integer.MAX_VALUE) {
       conditions.add(TRANSACTION.HEIGHT.le(height));
     }
-    return getTransactions(
-      ctx,
-      ctx.selectFrom(TRANSACTION).where(conditions).and(
+    SelectQuery selectQuery = ctx.selectFrom(TRANSACTION).where(conditions).and(
         TRANSACTION.RECIPIENT_ID.eq(account.getId()).and(
           TRANSACTION.SENDER_ID.ne(account.getId())
         )
-      )
-      .unionAll(
+      ).unionAll(
         ctx.selectFrom(TRANSACTION).where(conditions).and(
           TRANSACTION.SENDER_ID.eq(account.getId())
         )
       )
-      .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc())
-      .limit(from, to - from + 1)
-      .fetchResultSet()
+      .orderBy(TRANSACTION.BLOCK_TIMESTAMP.desc(), TRANSACTION.ID.desc()).getQuery();
+    DbUtils.applyLimits(selectQuery, from, to);
+
+    return getTransactions(
+      ctx,
+      selectQuery.fetchResultSet()
     );
   }
 

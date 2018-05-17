@@ -23,6 +23,15 @@ INSTALLATION & UPGRADING:
   upgrade                       Upgrade the config files to BRS format
   import [mariadb|h2]           DELETE current DB, then gets a new mariadb or H2
   macos                         Handles dependency installation for macos
+  switch <instance>             Switch config file to instance (MainNet,TestNet...)
+
+"switch" option is for developers who need to quickly switch between various
+configurations files. If you have
+  conf/brs.properties.MainNet
+  conf/brs.properties.TestNet
+  conf/brs.properties.LocalDev
+you can activate your MainNet config with "burst.sh switch MainNet" 
+
 EOF
 }
 
@@ -52,7 +61,6 @@ function upgrade_conf () {
         BRS="${BRS//nxt\.readTimeout/P2P.TimeoutRead_ms}"
         BRS="${BRS//nxt\.peerServerIdleTimeout/P2P.TimeoutIdle_ms}"
         BRS="${BRS//nxt\.blacklistingPeriod/P2P.BlacklistingTime_ms}"
-        BRS="${BRS//nxt\.sendToPeersLimit/P2P.TxResendThreshold}"
         BRS="${BRS//nxt\.usePeersDb/P2P.usePeersDb}"
         BRS="${BRS//nxt\.savePeers/P2P.savePeers}"
         BRS="${BRS//nxt\.getMorePeers/P2P.getMorePeers}"
@@ -60,13 +68,6 @@ function upgrade_conf () {
         BRS="${BRS//burst\.rebroadcastAfter/P2P.rebroadcastTxAfter}"
         BRS="${BRS//burst\.rebroadcastEvery/P2P.rebroadcastTxEvery}"
         BRS="${BRS//nxt\.enablePeerServerGZIPFilter/JETTY.P2P.GZIPFilter}"
-
-        
-        ### P2P Hallmarks
-        BRS="${BRS//nxt\.enableHallmarkProtection/P2P.HallmarkProtection}"
-        BRS="${BRS//nxt\.myHallmark/P2P.myHallmark}"
-        BRS="${BRS//nxt\.pushThreshold/P2P.HallmarkPush}"
-        BRS="${BRS//nxt\.pullThreshold/P2P.HallmarkPull}"
 
         ### JETTY pass-through params
         BRS="${BRS//nxt\.enablePeerServerDoSFilter/JETTY.P2P.DoSFilter}"
@@ -220,7 +221,7 @@ if [[ $# -gt 0 ]] ; then
 
             ## check if command exists
             if hash mvn 2>/dev/null; then
-                mvn package
+                mvn -DskipTests=true package
                 mvn javadoc:javadoc-no-fork
                 rm -rf html/ui/doc
                 mkdir -p html/ui/doc
@@ -247,9 +248,8 @@ if [[ $# -gt 0 ]] ; then
             fi
             exit 0
             ;;
-        "upgrade")
-            upgrade_conf nxt-default.properties
-            upgrade_conf nxt.properties
+        "h2shell")
+            java -cp burst.jar org.h2.tools.Shell
             ;;
         "import")
             if ! hash unzip 2>/dev/null; then
@@ -259,7 +259,7 @@ if [[ $# -gt 0 ]] ; then
             read -p "[?] Do you want to remove the current databases, download and import new one? " -n 1 -r
             echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
-                if [[ $2 == "mariadb" ]]; then
+                if [[ $MY_ARG == "mariadb" ]]; then
                     echo
                     echo "\nPlease enter your connection details"
                     read -rp  "Host     (localhost) : " P_HOST
@@ -289,7 +289,7 @@ if [[ $# -gt 0 ]] ; then
                     else
                         echo "[!] Getting mariadb archive failed"
                     fi
-                elif [[ $2 == "h2" ]]; then
+                elif [[ $MY_ARG == "h2" ]]; then
                     if exists_or_get brs.h2.zip ; then
                         mkdir -p "$MY_DIR/burst_db"
                         rm -f burst_db/burst.trace.db
@@ -310,8 +310,21 @@ if [[ $# -gt 0 ]] ; then
                 echo "[!] Cancelling DB import by user request"
             fi
             ;;
-        "h2shell")
-            java -cp burst.jar org.h2.tools.Shell
+        "switch")
+            CONF_BASE=conf/brs.properties         # our symlink
+            CONF_TGT=brs.properties.$MY_ARG       # target of our symlink
+
+            if [[ (-L "$CONF_BASE" || ! -f $CONF_BASE) &&  -f "conf/$CONF_TGT" ]]
+            then
+                rm -f $CONF_BASE
+                ln -s $CONF_TGT $CONF_BASE 
+            else
+                echo "$CONF_BASE exists and not a symlink or conf/$CONF_TGT nonexistant."
+            fi
+            ;;
+        "upgrade")
+            upgrade_conf nxt-default.properties
+            upgrade_conf nxt.properties
             ;;
         "macos")
             # Verify compatible macos version
@@ -377,5 +390,9 @@ if [[ $# -gt 0 ]] ; then
             ;;
     esac
 else
+    ARCH=`uname -m`
+    if [[ $ARCH = "armv7l" ]]; then
+        export LD_LIBRARY_PATH=./lib/armv7l
+    fi
     java $BRS_DEVSTART -cp burst.jar:conf brs.Burst
 fi

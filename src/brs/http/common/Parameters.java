@@ -29,6 +29,7 @@ public class Parameters {
   public static final String ACCOUNT_PARAMETER = "account";
   public static final String TIMESTAMP_PARAMETER = "timestamp";
   public static final String RECIPIENT_PARAMETER = "recipient";
+  public static final String RECIPIENTS_PARAMETER = "recipients";
   public static final String SELLER_PARAMETER = "seller";
   public static final String BUYER_PARAMETER = "buyer";
   public static final String FIRST_INDEX_PARAMETER = "firstIndex";
@@ -98,7 +99,6 @@ public class Parameters {
   public static final String UNSIGNED_TRANSACTION_JSON_PARAMETER = "unsignedTransactionJSON";
   public static final String AMOUNT_BURST_PARAMETER = "amountNXT";
   public static final String FEE_BURST_PARAMETER = "feeNXT";
-  public static final String HALLMARK_PARAMETER = "hallmark";
   public static final String IN_STOCK_ONLY_PARAMETER = "inStockOnly";
   public static final String COMPLETED_PARAMETER = "completed";
   public static final String PEER_PARAMETER = "peer";
@@ -119,6 +119,7 @@ public class Parameters {
   public static final String SUBSCRIPTIONS_RESPONSE = "subscriptions";
   public static final String ESCROWS_RESPONSE = "escrows";
   public static final String ACCOUNTS_RESPONSE = "accounts";
+  public static final String RECIPIENTS_RESPONSE = "recipients";
 
   public static boolean isFalse(String text) {
     return "false".equalsIgnoreCase(text);

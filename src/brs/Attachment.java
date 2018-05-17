@@ -26,6 +26,8 @@ import static brs.http.common.Parameters.PRICE_NQT_PARAMETER;
 import static brs.http.common.Parameters.PURCHASE_PARAMETER;
 import static brs.http.common.Parameters.QUANTITY_PARAMETER;
 import static brs.http.common.Parameters.QUANTITY_QNT_PARAMETER;
+import static brs.http.common.Parameters.RECIPIENTS_PARAMETER;
+import static brs.http.common.Parameters.RECIPIENTS_RESPONSE;
 import static brs.http.common.Parameters.REFUND_NQT_PARAMETER;
 import static brs.http.common.Parameters.REQUIRED_SIGNERS_PARAMETER;
 import static brs.http.common.Parameters.SIGNERS_PARAMETER;
@@ -64,8 +66,14 @@ import static brs.http.common.ResultFields.SUBSCRIPTION_ID_RESPONSE;
 import static brs.http.common.ResultFields.TAGS_RESPONSE;
 import static brs.http.common.ResultFields.URI_RESPONSE;
 
+import brs.TransactionType.Payment;
 import brs.crypto.EncryptedData;
 import brs.util.Convert;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map.Entry;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -148,6 +156,223 @@ public interface Attachment extends Appendix {
       }
 
     };
+
+  final class PaymentMultiOutCreation extends AbstractAttachment {
+
+    private final ArrayList<ArrayList<Long>> recipients = new ArrayList<>();
+
+    PaymentMultiOutCreation(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+      super(buffer, transactionVersion);
+
+      HashMap<Long,Boolean> recipientOf = new HashMap<>();
+      while (buffer.hasRemaining()) {
+        long recipientId = buffer.getLong();
+        long amountNQT = buffer.getLong();
+
+        if (recipientOf.containsKey(recipientId))
+          throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
+
+        if (amountNQT <= 0)
+          throw new BurstException.NotValidException("Insufficient amountNQT on multi out transaction");
+
+        recipientOf.put(recipientId, true);
+        this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
+      }
+      if (recipients.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipients.size() <= 1) {
+        throw new BurstException.NotValidException(
+            "Invalid number of recipients listed on multi out transaction");
+      }
+    }
+
+    PaymentMultiOutCreation(JSONObject attachmentData) throws BurstException.NotValidException {
+      super(attachmentData);
+
+      JSONArray recipients = (JSONArray)attachmentData.get(RECIPIENTS_PARAMETER);
+      HashMap<Long,Boolean> recipientOf = new HashMap<>();
+
+      for (int i = 0; i < recipients.size(); i++) {
+        JSONArray recipient = (JSONArray) recipients.get(i);
+
+        long recipientId = new BigInteger((String) recipient.get(0)).longValue();
+        long amountNQT   = Convert.parseLong(recipient.get(1));
+        if (recipientOf.containsKey(recipientId))
+          throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
+
+        if (amountNQT <= 0)
+          throw new BurstException.NotValidException("Insufficient amountNQT on multi out transaction");
+
+        recipientOf.put(recipientId, true);
+        this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
+      }
+      if (recipients.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipients.size() <= 1) {
+        throw new BurstException.NotValidException(
+            "Invalid number of recipients listed on multi out transaction");
+      }
+    }
+
+    public PaymentMultiOutCreation(Collection<Entry<String, Long>> recipients, int blockchainHeight) throws BurstException.NotValidException {
+      super(blockchainHeight);
+
+      HashMap<Long,Boolean> recipientOf = new HashMap<>();
+      for(Entry<String, Long> recipient : recipients ) {
+        long recipientId = (new BigInteger(recipient.getKey())).longValue();
+        long amountNQT   = recipient.getValue();
+        if (recipientOf.containsKey(recipientId))
+          throw new BurstException.NotValidException("Duplicate recipient on multi out transaction");
+
+        if (amountNQT <= 0)
+          throw new BurstException.NotValidException("Insufficient amountNQT on multi out transaction");
+
+        recipientOf.put(recipientId, true);
+        this.recipients.add(new ArrayList<>(Arrays.asList(recipientId, amountNQT)));
+      }
+      if (recipients.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipients.size() <= 1) {
+        throw new BurstException.NotValidException(
+            "Invalid number of recipients listed on multi out transaction");
+      }
+    }
+
+    @Override
+    String getAppendixName() {
+      return "MultiOutCreation";
+    }
+
+    @Override
+    int getMySize() {
+      return recipients.size() * 16;
+    }
+
+    @Override
+    void putMyBytes(ByteBuffer buffer) {
+      this.recipients.forEach((a) -> { buffer.putLong(a.get(0)); buffer.putLong(a.get(1)); });
+    }
+
+    @Override
+    void putMyJSON(JSONObject attachment) {
+      final JSONArray recipientsJSON = new JSONArray();
+
+      this.recipients.stream()
+        .map(recipient -> {
+          final JSONArray recipientJSON = new JSONArray();
+          recipientJSON.add(Convert.toUnsignedLong(recipient.get(0)));
+          recipientJSON.add(recipient.get(1).toString());
+          return recipientJSON;
+        }).forEach(recipientsJSON::add);
+
+      attachment.put(RECIPIENTS_RESPONSE, recipientsJSON);
+    }
+
+    @Override
+    public TransactionType getTransactionType() {
+      return Payment.MULTI_OUT;
+    }
+
+    public Long getAmountNQT() {
+      long amountNQT = 0;
+      for ( ArrayList<Long> recipient : recipients ) {
+        amountNQT += recipient.get(1);
+      }
+      return amountNQT;
+    }
+
+    public Collection<ArrayList<Long>> getRecipients() {
+      return Collections.unmodifiableCollection(recipients);
+    }
+  }
+
+  final class PaymentMultiSameOutCreation extends AbstractAttachment {
+
+    private final ArrayList<Long> recipients = new ArrayList<>();
+
+    PaymentMultiSameOutCreation(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
+      super(buffer, transactionVersion);
+
+      HashMap<Long,Boolean> recipientOf = new HashMap<>();
+      while (buffer.hasRemaining()) {
+        long recipientId = buffer.getLong();
+
+        if (recipientOf.containsKey(recipientId))
+          throw new BurstException.NotValidException("Duplicate recipient on multi same out transaction");
+
+        recipientOf.put(recipientId, true);
+        this.recipients.add(recipientId);
+      }
+      if (recipients.size() > Constants.MAX_MULTI_SAME_OUT_RECIPIENTS || recipients.size() <= 1) {
+        throw new BurstException.NotValidException(
+            "Invalid number of recipients listed on multi same out transaction");
+      }
+    }
+
+    PaymentMultiSameOutCreation(JSONObject attachmentData) throws BurstException.NotValidException {
+      super(attachmentData);
+
+      JSONArray recipients = (JSONArray)attachmentData.get(RECIPIENTS_PARAMETER);
+      HashMap<Long,Boolean> recipientOf = new HashMap<>();
+
+      for (int i = 0; i < recipients.size(); i++) {
+        long recipientId = new BigInteger((String) recipients.get(i)).longValue();
+        if (recipientOf.containsKey(recipientId))
+          throw new BurstException.NotValidException("Duplicate recipient on multi same out transaction");
+
+        recipientOf.put(recipientId, true);
+        this.recipients.add(recipientId);
+      }
+      if (recipients.size() > Constants.MAX_MULTI_SAME_OUT_RECIPIENTS || recipients.size() <= 1) {
+        throw new BurstException.NotValidException(
+            "Invalid number of recipients listed on multi same out transaction");
+      }
+    }
+
+    public PaymentMultiSameOutCreation(Collection<Long> recipients, int blockchainHeight) throws BurstException.NotValidException {
+      super(blockchainHeight);
+
+      HashMap<Long,Boolean> recipientOf = new HashMap<>();
+      for(Long recipientId : recipients ) {
+        if (recipientOf.containsKey(recipientId))
+          throw new BurstException.NotValidException("Duplicate recipient on multi same out transaction");
+
+        recipientOf.put(recipientId, true);
+        this.recipients.add(recipientId);
+      }
+      if (recipients.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipients.size() <= 1) {
+        throw new BurstException.NotValidException(
+            "Invalid number of recipients listed on multi same out transaction");
+      }
+    }
+
+    @Override
+    String getAppendixName() {
+      return "MultiSameOutCreation";
+    }
+
+    @Override
+    int getMySize() {
+      return recipients.size() * 8;
+    }
+
+    @Override
+    void putMyBytes(ByteBuffer buffer) {
+      this.recipients.forEach((a) -> { buffer.putLong(a); });
+    }
+
+    @Override
+    void putMyJSON(JSONObject attachment) {
+      JSONArray recipients = new JSONArray();
+      this.recipients.forEach(a -> {
+        recipients.add(Convert.toUnsignedLong(a));
+      });
+      attachment.put(RECIPIENTS_RESPONSE, recipients);
+    }
+
+    @Override
+    public TransactionType getTransactionType() {
+      return Payment.MULTI_SAME_OUT;
+    }
+
+    public Collection<Long> getRecipients() {
+      return Collections.unmodifiableCollection(recipients);
+    }
+  }
 
   // the message payload is in the Appendix
   EmptyAttachment ARBITRARY_MESSAGE = new EmptyAttachment() {
