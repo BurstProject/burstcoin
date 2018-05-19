@@ -418,7 +418,7 @@ public abstract class TransactionType {
       @Override
       final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
         Attachment.PaymentMultiSameOutCreation attachment = (Attachment.PaymentMultiSameOutCreation) transaction.getAttachment();
-        final long amountNQT = transaction.getAmountNQT() / attachment.getRecipients().size();
+        final long amountNQT = Convert.safeDivide(transaction.getAmountNQT(), attachment.getRecipients().size());
         attachment.getRecipients().forEach(a -> { accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getOrAddAccount(a), amountNQT); });
       }
 
