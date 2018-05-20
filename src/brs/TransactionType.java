@@ -1717,10 +1717,19 @@ public abstract class TransactionType {
             throw new BurstException.NotValidException("Reward recipient must have public key saved in blockchain: "
                                                        + transaction.getJSONObject());
           }
-          if (transaction.getAmountNQT() != 0 || transaction.getFeeNQT() < (fluxCapacitor.isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST)) {
-            throw new BurstException.NotValidException("Reward recipient assignment transaction must have 0 send amount and at least minimum fee: "
-                                                       + transaction.getJSONObject());
+
+          if (fluxCapacitor.isActive(PRE_DYMAXION)) {
+            if (transaction.getAmountNQT() != 0 || transaction.getFeeNQT() < FEE_QUANT) {
+              throw new BurstException.NotValidException("Reward recipient assignment transaction must have 0 send amount and at least minimum fee: "
+                      + transaction.getJSONObject());
+            }
+          } else {
+            if (transaction.getAmountNQT() != 0 || transaction.getFeeNQT() != Constants.ONE_BURST) {
+              throw new BurstException.NotValidException("Reward recipient assignment transaction must have 0 send amount and 1 fee: "
+                      + transaction.getJSONObject());
+            }
           }
+
           if (height < Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK) {
             throw new BurstException.NotCurrentlyValidException("Reward recipient assignment not allowed before block "
                                                                 + Constants.BURST_REWARD_RECIPIENT_ASSIGNMENT_START_BLOCK);
