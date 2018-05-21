@@ -575,7 +575,7 @@ public class Transaction implements Comparable<Transaction> {
     return json;
   }
 
-  static Transaction parseTransaction(JSONObject transactionData) throws BurstException.NotValidException {
+  static Transaction parseTransaction(JSONObject transactionData, int height) throws BurstException.NotValidException {
     try {
       byte type = ((Long) transactionData.get("type")).byteValue();
       byte subtype = ((Long) transactionData.get("subtype")).byteValue();
@@ -597,11 +597,12 @@ public class Transaction implements Comparable<Transaction> {
       if (transactionType == null) {
         throw new BurstException.NotValidException("Invalid transaction type: " + type + ", " + subtype);
       }
-      Transaction.Builder builder = new Transaction.Builder(version, senderPublicKey,
+      Transaction.Builder builder = new Builder(version, senderPublicKey,
                                                                             amountNQT, feeNQT, timestamp, deadline,
                                                                             transactionType.parseAttachment(attachmentData))
           .referencedTransactionFullHash(referencedTransactionFullHash)
-          .signature(signature);
+          .signature(signature)
+          .height(height);
       if (transactionType.hasRecipient()) {
         long recipientId = Convert.parseUnsignedLong((String) transactionData.get("recipient"));
         builder.recipientId(recipientId);

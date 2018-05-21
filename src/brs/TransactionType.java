@@ -745,7 +745,7 @@ public abstract class TransactionType {
         }
 
         @Override
-        public Fee getBaselineFee() {
+        public Fee getBaselineFee(int height) {
           return BASELINE_ASSET_ISSUANCE_FEE;
         }
 
@@ -2328,12 +2328,12 @@ public abstract class TransactionType {
     if (height < BASELINE_FEE_HEIGHT) {
       return 0; // No need to validate fees before baseline block
     }
-    Fee fee = getBaselineFee();
+    Fee fee = getBaselineFee(height);
     return Convert.safeAdd(fee.getConstantFee(), Convert.safeMultiply(appendagesSize, fee.getAppendagesFee()));
   }
 
-  protected Fee getBaselineFee() {
-    return new Fee((fluxCapacitor.isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST), 0);
+  protected Fee getBaselineFee(int height) {
+    return new Fee((fluxCapacitor.isActive(PRE_DYMAXION, height) ? FEE_QUANT : ONE_BURST), 0);
   }
 
   public static final class Fee {

@@ -11,7 +11,6 @@ import brs.db.store.DerivedTableManager;
 import brs.db.store.Stores;
 import brs.fluxcapacitor.FeatureToggle;
 import brs.fluxcapacitor.FluxInt;
-import brs.schema.tables.UnconfirmedTransaction;
 import brs.services.BlockService;
 import brs.services.EscrowService;
 import brs.services.PropertyService;
@@ -39,7 +38,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
-import org.ehcache.Cache;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -442,9 +441,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             List<Block> blocks = new ArrayList<>();
               
             for (Object o : nextBlocks) {
+              int height = lastBlock.getHeight() + 1;
               blockData = (JSONObject) o;
               try {
-                block = Block.parseBlock(blockData);
+                block = Block.parseBlock(blockData, height);
                 if (block == null) {
                   logger.debug("Unable to process downloaded blocks.");
                   return;
@@ -458,7 +458,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   return;
                 }
                 // set height and cumulative difficulty to block
-                block.setHeight(lastBlock.getHeight() + 1);
+                block.setHeight(height);
                 block.setPeer(peer);
                 block.setByteLength(blockData.toString().length());
                 blockService.calculateBaseTarget(block, lastBlock);
@@ -752,7 +752,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   @Override
   public void processPeerBlock(JSONObject request) throws BurstException {
-    Block newBlock = Block.parseBlock(request);
+    Block newBlock = Block.parseBlock(request, blockchain.getHeight());
     if (newBlock == null) {
       logger.debug("Peer has announced an unprocessable block.");
       return;

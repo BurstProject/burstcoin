@@ -272,7 +272,7 @@ public class Block {
     return json;
   }
 
-  static Block parseBlock(JSONObject blockData) throws BurstException.ValidationException {
+  static Block parseBlock(JSONObject blockData, int height) throws BurstException.ValidationException {
     try {
       int version = ((Long) blockData.get("version")).intValue();
       int timestamp = ((Long) blockData.get("timestamp")).intValue();
@@ -295,7 +295,7 @@ public class Block {
     
       for (Object transactionData : transactionsData) {
         Transaction transaction =
-                    Transaction.parseTransaction((JSONObject) transactionData);
+                    Transaction.parseTransaction((JSONObject) transactionData, height);
           if (transaction.getSignature() != null) {
             if (blockTransactions.put(transaction.getId(), transaction) != null) {
               throw new BurstException.NotValidException(
