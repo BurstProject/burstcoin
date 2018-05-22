@@ -4,6 +4,8 @@ import static brs.Attachment.ORDINARY_PAYMENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -40,23 +42,25 @@ public class UnconfirmedTransactionStoreTest {
     mockStatic(Burst.class);
 
     final PropertyService mockPropertyService = mock(PropertyService.class);
-    when(mockPropertyService.getInt(Props.DB_MAX_ROLLBACK)).thenReturn(1440);
+    when(mockPropertyService.getInt(eq(Props.DB_MAX_ROLLBACK))).thenReturn(1440);
     when(Burst.getPropertyService()).thenReturn(mockPropertyService);
+    when(mockPropertyService.getInt(eq(Props.P2P_MAX_UNCONFIRMED_TRANSACTIONS), eq(8192))).thenReturn(8192);
 
     mockBlockChain = mock(BlockchainImpl.class);
     when(Burst.getBlockchain()).thenReturn(mockBlockChain);
 
     FluxCapacitor mockFluxCapacitor = mock(FluxCapacitor.class);
-    when(mockFluxCapacitor.isActive(FeatureToggle.PRE_DYMAXION)).thenReturn(true);
+    when(mockFluxCapacitor.isActive(eq(FeatureToggle.PRE_DYMAXION))).thenReturn(true);
+    when(mockFluxCapacitor.isActive(eq(FeatureToggle.PRE_DYMAXION), anyInt())).thenReturn(true);
 
     TransactionType.init(mockBlockChain, mockFluxCapacitor, null, null, null, null, null, null);
 
-    t = new UnconfirmedTransactionStore(timeService);
+    t = new UnconfirmedTransactionStore(timeService, mockPropertyService);
   }
 
-  @DisplayName("The amount of unconfirmed transactions exceeds 8192, when adding another the cache size stays the same")
+  @DisplayName("The amount of unconfirmed transactions exceeds max size, when adding another the cache size stays the same")
   @Test
-  public void numberOfUnconfirmedTransactionsExceeds8192AddAnotherThenCacheSizeStays8192() throws NotValidException {
+  public void numberOfUnconfirmedTransactionsExceedsMaxSizeAddAnotherThenCacheSizeStaysMaxSize() throws NotValidException {
 
     when(mockBlockChain.getHeight()).thenReturn(20);
 
@@ -80,9 +84,9 @@ public class UnconfirmedTransactionStoreTest {
     assertNull(t.get(1L));
   }
 
-  @DisplayName("The amount of unconfirmed transactions exceeds 8192, when adding a group of others the cache size stays the same")
+  @DisplayName("The amount of unconfirmed transactions exceeds max size, when adding a group of others the cache size stays the same")
   @Test
-  public void numberOfUnconfirmedTransactionsExceeds8192AddAGroupOfOthersThenCacheSizeStays8192() throws NotValidException {
+  public void numberOfUnconfirmedTransactionsExceedsMaxSizeAddAGroupOfOthersThenCacheSizeStaysMaxSize() throws NotValidException {
 
     when(mockBlockChain.getHeight()).thenReturn(20);
 
