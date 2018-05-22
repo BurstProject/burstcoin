@@ -270,7 +270,7 @@ public interface Attachment extends Appendix {
     public Long getAmountNQT() {
       long amountNQT = 0;
       for ( ArrayList<Long> recipient : recipients ) {
-        Convert.safeAdd(amountNQT, recipient.get(1));
+        amountNQT = Convert.safeAdd(amountNQT, recipient.get(1));
       }
       return amountNQT;
     }
