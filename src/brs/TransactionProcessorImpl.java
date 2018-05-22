@@ -273,7 +273,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 
   @Override
   public Transaction parseTransaction(JSONObject transactionData) throws BurstException.NotValidException {
-    return Transaction.parseTransaction(transactionData, blockchain.getHeight());
+    return Transaction.parseTransaction(transactionData, blockchain.getHeight() + 1);
   }
     
   @Override

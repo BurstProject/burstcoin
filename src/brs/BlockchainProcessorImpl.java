@@ -752,7 +752,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   @Override
   public void processPeerBlock(JSONObject request) throws BurstException {
-    Block newBlock = Block.parseBlock(request, blockchain.getHeight());
+    Block newBlock = Block.parseBlock(request, blockchain.getHeight() + 1);
     if (newBlock == null) {
       logger.debug("Peer has announced an unprocessable block.");
       return;
