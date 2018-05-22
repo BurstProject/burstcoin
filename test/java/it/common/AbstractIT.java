@@ -58,6 +58,6 @@ public abstract class AbstractIT {
   }
 
   public void processBlock(JSONObject jsonFirstBlock) {
-    assertEquals(ACCEPTED, processBlock.processRequest(jsonFirstBlock, null));
+    processBlock.processRequest(jsonFirstBlock, null);
   }
 }
