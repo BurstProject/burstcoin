@@ -3,6 +3,7 @@ package brs.http;
 import static brs.http.JSONResponses.ERROR_INCORRECT_REQUEST;
 import static brs.http.JSONResponses.ERROR_NOT_ALLOWED;
 import static brs.http.JSONResponses.POST_REQUIRED;
+import static brs.http.JSONResponses.UNKNOWN_PARAMETER;
 
 import brs.Blockchain;
 import brs.BlockchainProcessor;
@@ -203,6 +204,14 @@ public final class APIServlet extends HttpServlet {
 
     abstract JSONStreamAware processRequest(HttpServletRequest request) throws BurstException;
 
+    final void validateRequest(HttpServletRequest req) throws ParameterException {
+      for ( String parameter : req.getParameterMap().keySet() ) {
+        // _ is a parameter used in eg. jquery to avoid caching queries
+        if ( ! this.parameters.contains(parameter) && ! parameter.equals("_") )
+          throw new ParameterException(UNKNOWN_PARAMETER);
+      }
+    }
+
     boolean requirePost() {
       return false;
     }
@@ -275,6 +284,7 @@ public final class APIServlet extends HttpServlet {
         if (apiRequestHandler.startDbTransaction()) {
           Burst.getStores().beginTransaction();
         }
+        apiRequestHandler.validateRequest(req);
         response = apiRequestHandler.processRequest(req);
       } catch (ParameterException e) {
         response = e.getErrorResponse();

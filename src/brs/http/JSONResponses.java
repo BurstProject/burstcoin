@@ -102,6 +102,7 @@ public final class JSONResponses {
   public static final JSONStreamAware INCORRECT_HEIGHT = incorrect(HEIGHT_PARAMETER);
   public static final JSONStreamAware MISSING_HEIGHT = missing(HEIGHT_PARAMETER);
   public static final JSONStreamAware INCORRECT_PLAIN_MESSAGE = incorrect(MESSAGE_TO_ENCRYPT_PARAMETER);
+  public static final JSONStreamAware UNKNOWN_PARAMETER = incorrect("unknown parameter");
 
   public static final JSONStreamAware INCORRECT_AUTOMATED_TRANSACTION_NAME_LENGTH = incorrect(DESCRIPTION_PARAMETER, "(length must not exceed " + Constants.MAX_AUTOMATED_TRANSACTION_NAME_LENGTH+ " characters)");
   public static final JSONStreamAware INCORRECT_AUTOMATED_TRANSACTION_NAME = incorrect(NAME_PARAMETER, "(must contain only digits and latin letters)");
