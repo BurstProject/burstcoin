@@ -3,7 +3,6 @@ package brs.http;
 import static brs.http.JSONResponses.ERROR_INCORRECT_REQUEST;
 import static brs.http.JSONResponses.ERROR_NOT_ALLOWED;
 import static brs.http.JSONResponses.POST_REQUIRED;
-import static brs.http.JSONResponses.UNKNOWN_PARAMETER;
 
 import brs.Blockchain;
 import brs.BlockchainProcessor;
@@ -208,7 +207,7 @@ public final class APIServlet extends HttpServlet {
       for ( String parameter : req.getParameterMap().keySet() ) {
         // _ is a parameter used in eg. jquery to avoid caching queries
         if ( ! this.parameters.contains(parameter) && ! parameter.equals("_") && ! parameter.equals("requestType") )
-          throw new ParameterException(UNKNOWN_PARAMETER);
+          throw new ParameterException(JSONResponses.incorrectUnkown(parameter));
       }
     }
 
