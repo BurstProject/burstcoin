@@ -272,6 +272,32 @@ public abstract class TransactionType {
 
   abstract void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount);
 
+  public void parseAppendices(Transaction.Builder builder, JSONObject attachmentData) throws BurstException.NotValidException {
+    builder.message(Appendix.Message.parse(attachmentData));
+    builder.encryptedMessage(Appendix.EncryptedMessage.parse(attachmentData));
+    builder.publicKeyAnnouncement((Appendix.PublicKeyAnnouncement.parse(attachmentData)));
+    builder.encryptToSelfMessage(Appendix.EncryptToSelfMessage.parse(attachmentData));
+  }
+
+  public void parseAppendices(Transaction.Builder builder, int flags, byte version, ByteBuffer buffer) throws BurstException.ValidationException {
+    int position = 1;
+    if ((flags & position) != 0) {
+      builder.message(new Appendix.Message(buffer, version));
+    }
+    position <<= 1;
+    if ((flags & position) != 0) {
+      builder.encryptedMessage(new Appendix.EncryptedMessage(buffer, version));
+    }
+    position <<= 1;
+    if ((flags & position) != 0) {
+      builder.publicKeyAnnouncement(new Appendix.PublicKeyAnnouncement(buffer, version));
+    }
+    position <<= 1;
+    if ((flags & position) != 0) {
+      builder.encryptToSelfMessage(new Appendix.EncryptToSelfMessage(buffer, version));
+    }
+  }
+
   public final void undoUnconfirmed(Transaction transaction, Account senderAccount) {
     undoAttachmentUnconfirmed(transaction, senderAccount);
     accountService.addToUnconfirmedBalanceNQT(senderAccount, Convert.safeAdd(transaction.getAmountNQT(), transaction.getFeeNQT()));
@@ -390,6 +416,12 @@ public abstract class TransactionType {
       public final boolean hasRecipient() {
         return false;
       }
+
+      @Override
+      public void parseAppendices(Transaction.Builder builder, JSONObject attachmentData) {}
+
+      @Override
+      public void parseAppendices(Transaction.Builder builder, int flags, byte version, ByteBuffer buffer) {}
     };
 
     public static final TransactionType MULTI_SAME_OUT = new Payment() {
@@ -426,6 +458,12 @@ public abstract class TransactionType {
       public final boolean hasRecipient() {
         return false;
       }
+
+      @Override
+      public void parseAppendices(Transaction.Builder builder, JSONObject attachmentData) {}
+
+      @Override
+      public void parseAppendices(Transaction.Builder builder, int flags, byte version, ByteBuffer buffer) {}
     };
 
   }
@@ -451,40 +489,60 @@ public abstract class TransactionType {
 
     public static final TransactionType ARBITRARY_MESSAGE = new Messaging() {
 
-        @Override
-        public final byte getSubtype() {
-          return TransactionType.SUBTYPE_MESSAGING_ARBITRARY_MESSAGE;
-        }
+      @Override
+      public final byte getSubtype() {
+        return TransactionType.SUBTYPE_MESSAGING_ARBITRARY_MESSAGE;
+      }
 
-        @Override
-        public Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
-          return Attachment.ARBITRARY_MESSAGE;
-        }
+      @Override
+      public Attachment.EmptyAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) {
+        return Attachment.ARBITRARY_MESSAGE;
+      }
 
-        @Override
-        Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) {
-          return Attachment.ARBITRARY_MESSAGE;
-        }
+      @Override
+      Attachment.EmptyAttachment parseAttachment(JSONObject attachmentData) {
+        return Attachment.ARBITRARY_MESSAGE;
+      }
 
-        @Override
-        void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
-        }
+      @Override
+      void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+      }
 
-        @Override
-        void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
-          Attachment attachment = transaction.getAttachment();
-          if (transaction.getAmountNQT() != 0) {
-            throw new BurstException.NotValidException("Invalid arbitrary message: " + attachment.getJSONObject());
-          }
-          if (! fluxCapacitor.isActive(FeatureToggle.DIGITAL_GOODS_STORE) && transaction.getMessage() == null) {
-            throw new BurstException.NotCurrentlyValidException("Missing message appendix not allowed before DGS block");
-          }
+      @Override
+      void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
+        Attachment attachment = transaction.getAttachment();
+        if (transaction.getAmountNQT() != 0) {
+          throw new BurstException.NotValidException("Invalid arbitrary message: " + attachment.getJSONObject());
         }
+        if (! fluxCapacitor.isActive(FeatureToggle.DIGITAL_GOODS_STORE) && transaction.getMessage() == null) {
+          throw new BurstException.NotCurrentlyValidException("Missing message appendix not allowed before DGS block");
+        }
+      }
 
-        @Override
-        public boolean hasRecipient() {
-          return true;
+      @Override
+      public boolean hasRecipient() {
+        return true;
+      }
+
+      @Override
+      public void parseAppendices(Transaction.Builder builder, int flags, byte version, ByteBuffer buffer) throws BurstException.ValidationException {
+        int position = 1;
+        if ((flags & position) != 0 || (version == 0)) {
+          builder.message(new Appendix.Message(buffer, version));
         }
+        position <<= 1;
+        if ((flags & position) != 0) {
+          builder.encryptedMessage(new Appendix.EncryptedMessage(buffer, version));
+        }
+        position <<= 1;
+        if ((flags & position) != 0) {
+          builder.publicKeyAnnouncement(new Appendix.PublicKeyAnnouncement(buffer, version));
+        }
+        position <<= 1;
+        if ((flags & position) != 0) {
+          builder.encryptToSelfMessage(new Appendix.EncryptToSelfMessage(buffer, version));
+        }
+      }
 
       };
 

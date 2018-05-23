@@ -509,22 +509,9 @@ public class Transaction implements Comparable<Transaction> {
       if (transactionType.hasRecipient()) {
         builder.recipientId(recipientId);
       }
-      int position = 1;
-      if ((flags & position) != 0 || (version == 0 && transactionType == TransactionType.Messaging.ARBITRARY_MESSAGE)) {
-        builder.message(new Appendix.Message(buffer, version));
-      }
-      position <<= 1;
-      if ((flags & position) != 0) {
-        builder.encryptedMessage(new Appendix.EncryptedMessage(buffer, version));
-      }
-      position <<= 1;
-      if ((flags & position) != 0) {
-        builder.publicKeyAnnouncement(new Appendix.PublicKeyAnnouncement(buffer, version));
-      }
-      position <<= 1;
-      if ((flags & position) != 0) {
-        builder.encryptToSelfMessage(new Appendix.EncryptToSelfMessage(buffer, version));
-      }
+
+      transactionType.parseAppendices(builder, flags, version, buffer);
+
       return builder.build();
     } catch (BurstException.NotValidException|RuntimeException e) {
       logger.debug("Failed to parse transaction bytes: " + Convert.toHexString(bytes));
@@ -608,10 +595,7 @@ public class Transaction implements Comparable<Transaction> {
         builder.recipientId(recipientId);
       }
 
-      builder.message(Appendix.Message.parse(attachmentData));
-      builder.encryptedMessage(Appendix.EncryptedMessage.parse(attachmentData));
-      builder.publicKeyAnnouncement((Appendix.PublicKeyAnnouncement.parse(attachmentData)));
-      builder.encryptToSelfMessage(Appendix.EncryptToSelfMessage.parse(attachmentData));
+      transactionType.parseAppendices(builder, attachmentData);
 
       if (version > 0) {
         builder.ecBlockHeight(((Long) transactionData.get("ecBlockHeight")).intValue());
