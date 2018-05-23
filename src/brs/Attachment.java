@@ -164,8 +164,10 @@ public interface Attachment extends Appendix {
     PaymentMultiOutCreation(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
 
-      HashMap<Long,Boolean> recipientOf = new HashMap<>();
-      while (buffer.hasRemaining()) {
+      int numberOfRecipients = Byte.toUnsignedInt(buffer.get());
+      HashMap<Long,Boolean> recipientOf = new HashMap<>(numberOfRecipients);
+
+      for (int i = 0; i < numberOfRecipients; ++i) {
         long recipientId = buffer.getLong();
         long amountNQT = buffer.getLong();
 
@@ -244,6 +246,7 @@ public interface Attachment extends Appendix {
 
     @Override
     void putMyBytes(ByteBuffer buffer) {
+      buffer.put((byte) this.recipients.size());
       this.recipients.forEach((a) -> { buffer.putLong(a.get(0)); buffer.putLong(a.get(1)); });
     }
 
@@ -287,8 +290,10 @@ public interface Attachment extends Appendix {
     PaymentMultiSameOutCreation(ByteBuffer buffer, byte transactionVersion) throws BurstException.NotValidException {
       super(buffer, transactionVersion);
 
-      HashMap<Long,Boolean> recipientOf = new HashMap<>();
-      while (buffer.hasRemaining()) {
+      int numberOfRecipients = Byte.toUnsignedInt(buffer.get());
+      HashMap<Long,Boolean> recipientOf = new HashMap<>(numberOfRecipients);
+
+      for (int i = 0; i < numberOfRecipients; ++i) {
         long recipientId = buffer.getLong();
 
         if (recipientOf.containsKey(recipientId))
@@ -352,7 +357,8 @@ public interface Attachment extends Appendix {
 
     @Override
     void putMyBytes(ByteBuffer buffer) {
-      this.recipients.forEach((a) -> { buffer.putLong(a); });
+      buffer.put((byte) this.recipients.size());
+      this.recipients.forEach(buffer::putLong);
     }
 
     @Override
