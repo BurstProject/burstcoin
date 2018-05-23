@@ -977,7 +977,7 @@ var BRS = (function(BRS, $, undefined) {
 
             if (match && match[1]) {
                 key = match[1];
-                type = match[2];
+                type = ( match[2] == 'NQT' ? 'Planck' : match[2] );
             }
 
             key = key.replace(/\s+/g, "").replace(/([A-Z])/g, function($1) {
@@ -1485,7 +1485,7 @@ var BRS = (function(BRS, $, undefined) {
     }
 
     BRS.getTranslatedFieldName = function(name) {
-        var nameKey = String(name).replace(/NQT|QNT|RS$/, "").replace(/\s+/g, "").replace(/([A-Z])/g, function($1) {
+        var nameKey = String(name).replace(/Planck|NQT|QNT|RS$/, "").replace(/\s+/g, "").replace(/([A-Z])/g, function($1) {
             return "_" + $1.toLowerCase();
         });
 
