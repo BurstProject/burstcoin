@@ -184,7 +184,7 @@ var BRS = (function(BRS, $, undefined) {
             //	data += "&random=" + Math.random();
             //    }
             //    else {
-            data.random = Math.random();
+            data["_"] = $.now();
             //    }
         }
 
