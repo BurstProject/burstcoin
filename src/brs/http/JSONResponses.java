@@ -234,7 +234,7 @@ public final class JSONResponses {
   private static JSONStreamAware incorrect(String paramName, String details) {
     JSONObject response = new JSONObject();
     response.put(ERROR_CODE_RESPONSE, 4);
-    response.put(ERROR_DESCRIPTION_RESPONSE, "Incorrect \"" + paramName + (details != null ? "\" " + details : "\""));
+    response.put(ERROR_DESCRIPTION_RESPONSE, "Incorrect \"" + paramName + "\"" + (details == null ? "" : details));
     return JSON.prepare(response);
   }
 
@@ -245,8 +245,8 @@ public final class JSONResponses {
     return JSON.prepare(response);
   }
 
-  public static JSONStreamAware incorrectUnkown(String details) {
-    return incorrect("unknown", details);
+  public static JSONStreamAware incorrectUnkown(String paramName) {
+    return incorrect(paramName, "param not known");
   }
 
   private JSONResponses() {} // never
