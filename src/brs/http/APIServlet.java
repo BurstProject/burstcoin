@@ -207,7 +207,7 @@ public final class APIServlet extends HttpServlet {
     final void validateRequest(HttpServletRequest req) throws ParameterException {
       for ( String parameter : req.getParameterMap().keySet() ) {
         // _ is a parameter used in eg. jquery to avoid caching queries
-        if ( ! this.parameters.contains(parameter) && ! parameter.equals("_") )
+        if ( ! this.parameters.contains(parameter) && ! parameter.equals("_") && ! parameter.equals("requestType") )
           throw new ParameterException(UNKNOWN_PARAMETER);
       }
     }
