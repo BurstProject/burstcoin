@@ -3,7 +3,7 @@
  */
 var BRS = (function(BRS, $, undefined) {
     BRS.automaticallyCheckRecipient = function() {
-        var $recipientFields = $("#send_money_recipient, #transfer_asset_recipient, #send_message_recipient, #add_contact_account_id, #update_contact_account_id, #lease_balance_recipient, #transfer_alias_recipient, #sell_alias_recipient");
+        var $recipientFields = $("#add_contact_account_id, #update_contact_account_id, #buy_alias_recipient, #escrow_create_recipient, #inline_message_recipient, #lease_balance_recipient, #reward_recipient, #sell_alias_recipient, #send_message_recipient, #send_money_recipient, #subscription_cancel_recipient, #subscription_create_recipient, #transfer_alias_recipient, #transfer_asset_recipient");
 
         $recipientFields.on("blur", function() {
             $(this).trigger("checkRecipient");
