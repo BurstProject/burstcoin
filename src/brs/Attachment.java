@@ -241,7 +241,7 @@ public interface Attachment extends Appendix {
 
     @Override
     int getMySize() {
-      return recipients.size() * 16;
+      return 1 + recipients.size() * 16;
     }
 
     @Override
@@ -339,7 +339,7 @@ public interface Attachment extends Appendix {
         recipientOf.put(recipientId, true);
         this.recipients.add(recipientId);
       }
-      if (recipients.size() > Constants.MAX_MULTI_OUT_RECIPIENTS || recipients.size() <= 1) {
+      if (recipients.size() > Constants.MAX_MULTI_SAME_OUT_RECIPIENTS || recipients.size() <= 1) {
         throw new BurstException.NotValidException(
             "Invalid number of recipients listed on multi same out transaction");
       }
@@ -352,7 +352,7 @@ public interface Attachment extends Appendix {
 
     @Override
     int getMySize() {
-      return recipients.size() * 8;
+      return 1 + recipients.size() * 8;
     }
 
     @Override
