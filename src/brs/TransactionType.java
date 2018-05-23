@@ -401,7 +401,10 @@ public abstract class TransactionType {
       @Override
       void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
         Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
-        if (attachment.getAmountNQT() <= 0 || attachment.getAmountNQT() >= Constants.MAX_BALANCE_NQT || attachment.getRecipients().size() < 2) {
+        if (attachment.getAmountNQT() <= 0
+         || attachment.getAmountNQT() >= Constants.MAX_BALANCE_NQT
+         || attachment.getAmountNQT() != transaction.getAmountNQT()
+         || attachment.getRecipients().size() < 2) {
           throw new BurstException.NotValidException("Invalid multi out payment");
         }
       }
