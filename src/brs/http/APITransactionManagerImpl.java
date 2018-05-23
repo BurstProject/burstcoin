@@ -111,7 +111,7 @@ public class APITransactionManagerImpl implements APITransactionManager {
       if (commentValue != null) {
         message = new Message(commentValue, blockchainHeight);
       }
-    } else if (attachment == Attachment.ARBITRARY_MESSAGE && Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE, blockchainHeight)) {
+    } else if (attachment == Attachment.ARBITRARY_MESSAGE && ! Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE, blockchainHeight)) {
       message = new Message(new byte[0], blockchainHeight);
     }
     PublicKeyAnnouncement publicKeyAnnouncement = null;
