@@ -1,24 +1,24 @@
 .data-loading-container {
-	height: 200px;
-	text-align: center;
+  height: 200px;
+  text-align: center;
 }
 
 .data-loading-container img {
-	margin-top: 84px;
+  margin-top: 84px;
 }
 
 .data-loading-container, .data-empty-container {
-	display: none;
+  display: none;
 }
 
 .data-container.data-loading .data-loading-container {
-	display: block;
+  display: block;
 }
 
 .data-container.data-empty .data-empty-container {
-	display: block;
+  display: block;
 }
 
 .data-container.data-empty table, .data-container.data-loading table {
-	display: none;
+  display: none;
 }
