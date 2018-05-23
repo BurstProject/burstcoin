@@ -3,6 +3,7 @@ package brs.db.store;
 import brs.UnconfirmedTransactionStore;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.sql.*;
+import brs.services.PropertyService;
 import brs.services.TimeService;
 
 public class Stores {
@@ -19,7 +20,7 @@ public class Stores {
   private final SubscriptionStore subscriptionStore;
   private final UnconfirmedTransactionStore unconfirmedTransactionStore;
 
-  public Stores(DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager, TimeService timeService) {
+  public Stores(DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager, TimeService timeService, PropertyService propertyService) {
     this.accountStore                = new SqlAccountStore(derivedTableManager, dbCacheManager);
     this.aliasStore                  = new SqlAliasStore(derivedTableManager);
     this.assetStore                  = new SqlAssetStore(derivedTableManager);
@@ -31,7 +32,7 @@ public class Stores {
     this.orderStore                  = new SqlOrderStore(derivedTableManager);
     this.tradeStore                  = new SqlTradeStore(derivedTableManager);
     this.subscriptionStore           = new SqlSubscriptionStore(derivedTableManager);
-    this.unconfirmedTransactionStore = new UnconfirmedTransactionStore(timeService);
+    this.unconfirmedTransactionStore = new UnconfirmedTransactionStore(timeService, propertyService);
   }
 
   public AccountStore getAccountStore() {
@@ -76,10 +77,6 @@ public class Stores {
 
   public void endTransaction() {
     Db.endTransaction();
-  }
-
-  public boolean isInTransaction() {
-    return Db.isInTransaction();
   }
 
   public EscrowStore getEscrowStore() {

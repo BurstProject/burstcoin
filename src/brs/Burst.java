@@ -7,9 +7,7 @@ import brs.assetexchange.AssetExchangeImpl;
 import brs.blockchainlistener.DevNullListener;
 import brs.common.Props;
 import brs.db.BlockDb;
-import brs.db.BurstKey;
 import brs.db.cache.DBCacheManagerImpl;
-import brs.db.EntityTable;
 import brs.db.sql.Db;
 
 import brs.db.store.BlockchainStore;
@@ -191,7 +189,7 @@ public final class Burst {
       Db.init(propertyService, dbCacheManager);
       dbs = Db.getDbsByDatabaseType();
 
-      stores = new Stores(derivedTableManager, dbCacheManager, timeService);
+      stores = new Stores(derivedTableManager, dbCacheManager, timeService, propertyService);
 
       final TransactionDb transactionDb = dbs.getTransactionDb();
       final BlockDb blockDb =  dbs.getBlockDb();

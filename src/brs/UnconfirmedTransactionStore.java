@@ -1,5 +1,7 @@
 package brs;
 
+import brs.common.Props;
+import brs.services.PropertyService;
 import brs.services.TimeService;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -7,7 +9,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 
 public class UnconfirmedTransactionStore {
 
@@ -17,10 +18,10 @@ public class UnconfirmedTransactionStore {
   private final HashMap<Long, Transaction> cache;
   private final int maxSize;
 
-  public UnconfirmedTransactionStore(TimeService timeService) {
+  public UnconfirmedTransactionStore(TimeService timeService, PropertyService propertyService) {
     this.timeService = timeService;
 
-    this.maxSize = 8192;
+    this.maxSize = propertyService.getInt(Props.P2P_MAX_UNCONFIRMED_TRANSACTIONS, 8192);
     idQueue = new ArrayDeque<>(maxSize);
     cache = new HashMap<>(maxSize);
   }

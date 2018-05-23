@@ -98,6 +98,8 @@ public class Props {
 
   public static final String P2P_SEND_TO_LIMIT = "P2P.sendToLimit";
 
+  public static final String P2P_MAX_UNCONFIRMED_TRANSACTIONS = "P2P.maxUnconfirmedTransactions";
+
   // API options
   public static final String API_DEBUG   = "API.Debug";
   public static final String API_SSL     = "API.SSL";
