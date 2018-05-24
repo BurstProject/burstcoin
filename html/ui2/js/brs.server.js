@@ -174,7 +174,7 @@ var BRS = (function(BRS, $, undefined) {
             currentSubPage = BRS.currentSubPage;
         }
 
-        var type = (("secretPhrase" in data) || (data.broadcast == "false") ? "POST" : "GET");
+        var type = (("secretPhrase" in data) || (data.broadcast == "false") ) ? "POST" : "GET";
         var url = BRS.server + "/burst?requestType=" + requestType;
 
         if (type == "GET") {
@@ -258,7 +258,7 @@ var BRS = (function(BRS, $, undefined) {
             type = "POST";
         }
         async = (async === undefined ? true : async);
-        if (async === false) {
+        if (async === false && type == "GET") {
             url += "&" + $.param(data);
             var client = new XMLHttpRequest();
             client.open("GET", url, false);
