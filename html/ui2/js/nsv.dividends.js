@@ -592,7 +592,7 @@ var NSV = (function(NSV, $, undefined) {
                                 var trade_amt = parseInt(trade_arr[i].quantityQNT,10);
                                 var sender, recip,sender_amt,recip_amt;
                                 BRS.sendOutsideRequest("/burst?requestType=" + "getTransaction", {
-                                    "transaction": tmp_tran_ask, "_extra":tmp_tran_bid
+                                    "transaction": tmp_tran_ask, "_":tmp_tran_bid
                                 }, function(response,input) {
                                     tmp2_tran_bid = input._extra;
                                     if (response.errorCode) {
@@ -979,7 +979,7 @@ var NSV = (function(NSV, $, undefined) {
                     for (var j=0; j<tran_len; j++) {
                         var tmp_tran = tran_arr[j];
                         NSV.sendOutsideRequest("/burst?requestType=" + "getTransaction", {
-                            "transaction": tmp_tran, "_extra":tmp2_acc
+                            "transaction": tmp_tran, "_":tmp2_acc
                         }, function(response, input) {
                             var cur_account = input._extra;
                             var cur_index = NSV.div_send_check_arr(cur_account);
