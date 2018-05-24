@@ -473,7 +473,7 @@ var BRS = (function(BRS, $, undefined) {
             }
         }
 
-        if (transaction.amountNQT !== data.amountNQT || transaction.feeNQT !== data.feeNQT) {
+        if ( transaction.feeNQT !== data.feeNQT || ( requestType !== "sendMoneyMulti" && requestType !== "sendMoneyMultiSame" && transaction.amountNQT !== data.amountNQT ) ) {
             return false;
         }
 
@@ -501,6 +501,63 @@ var BRS = (function(BRS, $, undefined) {
                 if (transaction.type !== 0 || transaction.subtype !== 0) {
                     return false;
                 }
+                break;
+            case "sendMoneyMulti":
+                if (transaction.type !== 0 || transaction.subtype !== 1) {
+                    return false;
+                }
+                var amountOf = {};
+                $(data.recipients.split(";")).each(function(index, mixedValue) {
+                    var values = mixedValue.split(":");
+                    amountOf["" + values[0]] = new BigInteger("" + values[1]);
+                });
+
+                var recipientsLength = parseInt(byteArray[pos], 10);
+                pos++;
+
+                if ( recipientsLength !== Object.keys(amountOf).length ) {
+                    return false;
+                }
+
+                for (var i = 0; i < recipientsLength; i++) {
+                    var recipient = converters.byteArrayToBigInteger(byteArray, pos);
+                    pos += 8;
+                    var amount = converters.byteArrayToBigInteger(byteArray, pos);
+                    pos += 8;
+                    if ( ! ( recipient.toString() in amountOf ) || amountOf[recipient].toString() !== amount.toString() ) {
+                        return false;
+                    }
+                }
+
+                break;
+            case "sendMoneyMultiSame":
+                if (transaction.type !== 0 || transaction.subtype !== 2) {
+                    return false;
+                }
+                var recipientOf = {};
+                $(data.recipients.split(";")).each(function(index, recipientId) {
+                    recipientOf["" + recipientId] = true;
+                });
+
+                var recipientsLength = parseInt(byteArray[pos], 10);
+                pos++;
+
+                if ( recipientsLength !== Object.keys(recipientOf).length ) {
+                    return false;
+                }
+
+                for (var i = 0; i < recipientsLength; i++) {
+                    var recipient = converters.byteArrayToBigInteger(byteArray, pos);
+                    pos += 8;
+                    if ( ! ( recipient.toString() in recipientOf ) ) {
+                        return false;
+                    }
+                }
+
+                if ( transaction.amountNQT !== "" + ( Object.keys(recipientOf).length * data.amountNQT ) ) {
+                    return false;
+                }
+
                 break;
             case "sendMessage":
                 if (transaction.type !== 1 || transaction.subtype !== 0) {
