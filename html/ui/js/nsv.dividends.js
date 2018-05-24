@@ -16,6 +16,14 @@ var NSV = (function(NSV, $, undefined) {
     var NSV_shareswap_unredeemed = [];
     var NSV_shareswap_repl_asset;
     var NSV_shareswap_repl_unquant_mult;
+
+    NSV.timestamp_to_time = function (timestamp) {
+        var nxt_gen = new Date("November 24, 2013, 12:00:00 UTC");
+        var timestamp_msec = timestamp*1000;
+                
+        var d = new Date(nxt_gen.getTime() + timestamp_msec);
+        return(d.toUTCString());
+    };
     
     NSV.div_ad_calc = function () {
 	
@@ -593,7 +601,7 @@ var NSV = (function(NSV, $, undefined) {
 				BRS.sendOutsideRequest("/burst?requestType=" + "getTransaction", {
 				    "transaction": tmp_tran_ask, "_":tmp_tran_bid
 				}, function(response,input) {
-				    tmp2_tran_bid = input._extra;
+				    tmp2_tran_bid = input._;
 				    if (response.errorCode) {
 					err_message = "Unknown bug. Problem accessing askOrder.";
 					return;
@@ -979,7 +987,7 @@ var NSV = (function(NSV, $, undefined) {
 			NSV.sendOutsideRequest("/burst?requestType=" + "getTransaction", {
 			    "transaction": tmp_tran, "_":tmp2_acc
 			}, function(response, input) {
-			    var cur_account = input._extra;
+			    var cur_account = input._;
 			    var cur_index = NSV.div_send_check_arr(cur_account);							
 			    if (response.errorCode) {
 				err_message2 = "Unknown bug. Problem accessing getTransaction.";

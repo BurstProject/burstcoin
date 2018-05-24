@@ -25,7 +25,7 @@ public final class GetAccountTransactionIds extends APIServlet.APIRequestHandler
   private final Blockchain blockchain;
 
   GetAccountTransactionIds(ParameterService parameterService, Blockchain blockchain) {
-    super(new APITag[]{APITag.ACCOUNTS}, ACCOUNT_PARAMETER, TIMESTAMP_PARAMETER, TYPE_PARAMETER, ACCOUNT_PARAMETER, TIMESTAMP_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER,
+    super(new APITag[]{APITag.ACCOUNTS}, ACCOUNT_PARAMETER, TIMESTAMP_PARAMETER, TYPE_PARAMETER, SUBTYPE_PARAMETER, ACCOUNT_PARAMETER, TIMESTAMP_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER,
         NUMBER_OF_CONFIRMATIONS_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
