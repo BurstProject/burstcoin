@@ -400,6 +400,10 @@ public abstract class TransactionType {
 
       @Override
       void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
+        if (! fluxCapacitor.isActive(FeatureToggle.PRE_DYMAXION) ) {
+          throw new BurstException.NotCurrentlyValidException("Multi Out Payments are not allowed before the Pre Dymaxion block");
+        }
+
         Attachment.PaymentMultiOutCreation attachment = (Attachment.PaymentMultiOutCreation) transaction.getAttachment();
         if (attachment.getAmountNQT() <= 0
          || attachment.getAmountNQT() >= Constants.MAX_BALANCE_NQT
@@ -444,6 +448,10 @@ public abstract class TransactionType {
 
       @Override
       void validateAttachment(Transaction transaction) throws BurstException.ValidationException {
+        if (! fluxCapacitor.isActive(FeatureToggle.PRE_DYMAXION) ) {
+          throw new BurstException.NotCurrentlyValidException("Multi Same Out Payments are not allowed before the Pre Dymaxion block");
+        }
+
         Attachment.PaymentMultiSameOutCreation attachment = (Attachment.PaymentMultiSameOutCreation) transaction.getAttachment();
         if ( attachment.getRecipients().size() < 2 && ( transaction.getAmountNQT() % attachment.getRecipients().size() == 0 ) ) {
           throw new BurstException.NotValidException("Invalid multi out payment");
