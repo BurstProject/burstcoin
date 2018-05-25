@@ -422,7 +422,7 @@ var BRS = (function(BRS, $, undefined) {
 	    }
 	}
         else {
-	    data["_extra"] = {
+	    data._extra = {
 		"message": data.message
 	    };
 	}
@@ -440,15 +440,15 @@ var BRS = (function(BRS, $, undefined) {
 
 		$("#inline_message_text").val("");
 
-		if (data["_extra"].message && data.encryptedMessageData) {
+		if (data._extra.message && data.encryptedMessageData) {
 		    BRS.addDecryptedTransaction(response.transaction, {
-			"encryptedMessage": String(data["_extra"].message)
+			"encryptedMessage": String(data._extra.message)
 		    });
 		}
 
 		BRS.addUnconfirmedTransaction(response.transaction, function(alreadyProcessed) {
 		    if (!alreadyProcessed) {
-			$("#message_details dl.chat").append("<dd class='to tentative" + (data.encryptedMessageData ? " decrypted" : "") + "'><p>" + (data.encryptedMessageData ? "<i class='fas fa-lock'></i> " : "") + (!data["_extra"].message ? $.t("message_empty") : String(data["_extra"].message).escapeHTML()) + "</p></dd>");
+			$("#message_details dl.chat").append("<dd class='to tentative" + (data.encryptedMessageData ? " decrypted" : "") + "'><p>" + (data.encryptedMessageData ? "<i class='fas fa-lock'></i> " : "") + (!data._extra.message ? $.t("message_empty") : String(data._extra.message).escapeHTML()) + "</p></dd>");
 			$('#messages_page .content-splitter-right-inner').scrollTop($('#messages_page .content-splitter-right-inner')[0].scrollHeight);					
 		    }
 		});
@@ -468,7 +468,7 @@ var BRS = (function(BRS, $, undefined) {
     BRS.forms.sendMessageComplete = function(response, data) {
 	data.message = data._extra.message;
 
-	if (!(data["_extra"] && data["_extra"].convertedAccount)) {
+	if (!(data._extra && data._extra.convertedAccount)) {
 	    $.notify($.t("success_message_sent") + " <a href='#' data-account='" + BRS.getAccountFormatted(data, "recipient") + "' data-toggle='modal' data-target='#add_contact_modal' style='text-decoration:underline'>" + $.t("add_recipient_to_contacts_q") + "</a>", {
 		"type": "success"
 	    });
@@ -481,7 +481,7 @@ var BRS = (function(BRS, $, undefined) {
 
 	if (data.message && data.encryptedMessageData) {
 	    BRS.addDecryptedTransaction(response.transaction, {
-		"encryptedMessage": String(data["_extra"].message)
+		"encryptedMessage": String(data._extra.message)
 	    });
 	}
 

@@ -104,11 +104,12 @@ var BRS = (function(BRS, $, undefined) {
             var accountId = BRS.getAccountId(data.secretPhrase);
 
             var nxtAddress = new NxtAddress();
+            var accountRS;
 
             if (nxtAddress.set(accountId)) {
-                var accountRS = nxtAddress.toString();
+                accountRS = nxtAddress.toString();
             } else {
-                var accountRS = "";
+                accountRS = "";
             }
 
             if (callback) {
@@ -122,7 +123,7 @@ var BRS = (function(BRS, $, undefined) {
 
         //check to see if secretPhrase supplied matches logged in account, if not - show error.
         if ("secretPhrase" in data) {
-            var accountId = BRS.getAccountId(BRS.rememberPassword ? _password : data.secretPhrase);
+            accountId = BRS.getAccountId(BRS.rememberPassword ? _password : data.secretPhrase);
             if (accountId != BRS.account) {
                 if (callback) {
                     callback({
@@ -138,18 +139,18 @@ var BRS = (function(BRS, $, undefined) {
         } else {
             BRS.processAjaxRequest(requestType, data, callback, async);
         }
-    }
+    };
 
     BRS.processAjaxRequest = function(requestType, data, callback, async) {
         if (!BRS.multiQueue) {
             BRS.multiQueue = $.ajaxMultiQueue(8);
         }
-
-        if (data["_extra"]) {
-            var extra = data["_extra"];
-            delete data["_extra"];
+        var extra;
+        if (data._extra) {
+            extra = data._extra;
+            delete data._extra;
         } else {
-            var extra = null;
+            extra = null;
         }
 
         var currentPage = null;
@@ -184,7 +185,7 @@ var BRS = (function(BRS, $, undefined) {
             //	data += "&random=" + Math.random();
             //    }
             //    else {
-            data["_"] = $.now();
+            data._ = $.now();
             //    }
         }
 
@@ -285,16 +286,14 @@ var BRS = (function(BRS, $, undefined) {
                 }
 
                 if (typeof data == "object" && "recipient" in data) {
+                  var address = new NxtAddress();
                     if (/^BURST\-/i.test(data.recipient)) {
                         data.recipientRS = data.recipient;
-
-                        var address = new NxtAddress();
 
                         if (address.set(data.recipient)) {
                             data.recipient = address.account_id();
                         }
                     } else {
-                        var address = new NxtAddress();
 
                         if (address.set(data.recipient)) {
                             data.recipientRS = address.toString();
@@ -340,7 +339,7 @@ var BRS = (function(BRS, $, undefined) {
                             } else {
                                 if (callback) {
                                     if (extra) {
-                                        data["_extra"] = extra;
+                                        data._extra = extra;
                                     }
 
                                     BRS.broadcastTransactionBytes(payload, callback, response, data);
@@ -376,7 +375,7 @@ var BRS = (function(BRS, $, undefined) {
                     } else {
                         if (callback) {
                             if (extra) {
-                                data["_extra"] = extra;
+                                data._extra = extra;
                             }
                             callback(response, data);
                         }
@@ -392,7 +391,7 @@ var BRS = (function(BRS, $, undefined) {
                     BRS.addToConsole(this.url, this.type, this.data, error, true);
                 }
 
-                if ((error == "error" || textStatus == "error") && (xhr.status == 404 || xhr.status == 0)) {
+                if ((error == "error" || textStatus == "error") && (xhr.status == 404 || xhr.status === 0)) {
                     if (type == "POST") {
                         $.notify($.t("error_server_connect"), {
                             "type": "danger",
@@ -417,7 +416,7 @@ var BRS = (function(BRS, $, undefined) {
     };
     BRS.verifyAndSignTransactionBytes = function(transactionBytes, signature, requestType, data) {
         var transaction = {};
-
+        var pos;
         var byteArray = converters.hexStringToByteArray(transactionBytes);
 
         transaction.type = byteArray[0];
@@ -488,12 +487,12 @@ var BRS = (function(BRS, $, undefined) {
         if (transaction.version > 0) {
             //has empty attachment, so no attachmentVersion byte...
             if (requestType == "sendMoney" || requestType == "sendMessage") {
-                var pos = 176;
+                pos = 176;
             } else {
-                var pos = 177;
+                pos = 177;
             }
         } else {
-            var pos = 160;
+            pos = 160;
         }
 
         switch (requestType) {
@@ -682,7 +681,6 @@ var BRS = (function(BRS, $, undefined) {
 
                 return false;
 
-                break;
             case "hubAnnouncement":
                 if (transaction.type !== 1 || transaction.subtype != 4) {
                     return false;
@@ -712,7 +710,6 @@ var BRS = (function(BRS, $, undefined) {
 
                 return false;
 
-                break;
             case "setAccountInfo":
                 if (transaction.type !== 1 || transaction.subtype != 5) {
                     return false;
@@ -1091,7 +1088,7 @@ var BRS = (function(BRS, $, undefined) {
         var position = 1;
 
         //non-encrypted message
-        if ((transaction.flags & position) != 0 || (requestType == "sendMessage" && data.message)) {
+        if ((transaction.flags & position) !== 0 || (requestType == "sendMessage" && data.message)) {
             var attachmentVersion = byteArray[pos];
 
             pos++;
@@ -1223,7 +1220,7 @@ var BRS = (function(BRS, $, undefined) {
         }
 
         return transactionBytes.substr(0, 192) + signature + transactionBytes.substr(320);
-    }
+    };
 
     BRS.broadcastTransactionBytes = function(transactionData, callback, originalResponse, originalData) {
         $.ajax({
@@ -1281,7 +1278,7 @@ var BRS = (function(BRS, $, undefined) {
                 }, {});
             }
         });
-    }
+    };
 
     return BRS;
 }(BRS || {}, jQuery));

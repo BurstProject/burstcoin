@@ -767,11 +767,11 @@ var BRS = (function(BRS, $, undefined) {
                     if (asset.errorCode) {
                         return;
                     }
-                    asset.difference = input["_extra"].difference;
-                    asset.asset = input["_extra"].asset;
-
+                    asset.difference = input._extra.difference;
+                    asset.asset = input._extra.asset;
+                    var quantity;
                     if (asset.difference.charAt(0) != "-") {
-                        var quantity = BRS.formatQuantity(asset.difference, asset.decimals);
+                        quantity = BRS.formatQuantity(asset.difference, asset.decimals);
 
                         if (quantity != "0") {
                             $.notify($.t("you_received_assets", {
@@ -786,7 +786,7 @@ var BRS = (function(BRS, $, undefined) {
                     else {
                         asset.difference = asset.difference.substring(1);
 
-                        var quantity = BRS.formatQuantity(asset.difference, asset.decimals);
+                        quantity = BRS.formatQuantity(asset.difference, asset.decimals);
 
                         if (quantity !== "0") {
                             $.notify($.t("you_sold_assets", {
@@ -811,20 +811,20 @@ var BRS = (function(BRS, $, undefined) {
     BRS.checkLocationHash = function(password) {
         if (window.location.hash) {
             var hash = window.location.hash.replace("#", "").split(":");
-
+            var $modal;
             if (hash.length === 2) {
                 if (hash[0] === "message") {
-                    var $modal = $("#send_message_modal");
+                    $modal = $("#send_message_modal");
                 }
                 else if (hash[0] === "send") {
-                    var $modal = $("#send_money_modal");
+                    $modal = $("#send_money_modal");
                 }
                 else if (hash[0] === "asset") {
                     BRS.goToAsset(hash[1]);
                     return;
                 }
                 else {
-                    var $modal = "";
+                    $modal = "";
                 }
 
                 if ($modal) {
@@ -846,11 +846,12 @@ var BRS = (function(BRS, $, undefined) {
     };
 
     BRS.updateBlockchainDownloadProgress = function() {
+      var percentage;
         if (BRS.state.lastBlockchainFeederHeight && BRS.state.numberOfBlocks < BRS.state.lastBlockchainFeederHeight) {
-            var percentage = parseInt(Math.round((BRS.state.numberOfBlocks / BRS.state.lastBlockchainFeederHeight) * 100), 10);
+            percentage = parseInt(Math.round((BRS.state.numberOfBlocks / BRS.state.lastBlockchainFeederHeight) * 100), 10);
         }
         else {
-            var percentage = 100;
+            percentage = 100;
         }
 
         if (percentage === 100) {

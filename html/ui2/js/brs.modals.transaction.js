@@ -2,6 +2,8 @@
  * @depends {brs.js}
  * @depends {brs.modals.js}
  */
+var message = "";
+var fieldsToDecrypt = {};
 var BRS = (function(BRS, $, undefined) {
     $("#transactions_table, #dashboard_transactions_table, #transfer_history_table").on("click", "a[data-transaction]", function(e) {
 	e.preventDefault();
@@ -38,7 +40,7 @@ var BRS = (function(BRS, $, undefined) {
 
     BRS.processTransactionModalData = function(transaction) {
 	var async = false;
-
+  var data;
 	var transactionDetails = $.extend({}, transaction);
 	delete transactionDetails.attachment;
 	if (transactionDetails.referencedTransaction == "0") {
@@ -54,17 +56,18 @@ var BRS = (function(BRS, $, undefined) {
 	$("#transaction_info_table tbody").empty();
 
 	var incorrect = false;
-
+  var accountButton;
+ 
 	if (transaction.senderRS == BRS.accountRS) {
 	    $("#transaction_info_actions").hide();
 	}
         else {
 	    if (transaction.senderRS in BRS.contacts) {
-		var accountButton = BRS.contacts[transaction.senderRS].name.escapeHTML();
+		accountButton = BRS.contacts[transaction.senderRS].name.escapeHTML();
 		$("#transaction_info_modal_add_as_contact").hide();
 	    }
             else {
-		var accountButton = transaction.senderRS;
+		accountButton = transaction.senderRS;
 		$("#transaction_info_modal_add_as_contact").show();
 	    }
 
@@ -75,7 +78,7 @@ var BRS = (function(BRS, $, undefined) {
 	if (transaction.type == 0) {
 	    switch (transaction.subtype) {
 	    case 0:
-		var data = {
+		data = {
 		    "type": $.t("ordinary_payment"),
 		    "amount": transaction.amountNQT,
 		    "fee": transaction.feeNQT,
@@ -95,10 +98,11 @@ var BRS = (function(BRS, $, undefined) {
         else if (transaction.type == 1) {
 	    switch (transaction.subtype) {
 	    case 0:
-		var message;
+
 
 		var $output = $("#transaction_info_output_top");
-
+    var type;
+          
 		if (transaction.attachment) {
 		    if (transaction.attachment.message) {
 			if (!transaction.attachment["version.Message"]) {
@@ -124,7 +128,6 @@ var BRS = (function(BRS, $, undefined) {
 			$output.append("<div id='transaction_info_decryption_form'></div><div id='transaction_info_decryption_output' style='display:none;padding-bottom:10px;'></div>");
 
 			if (BRS.account == transaction.recipient || BRS.account == transaction.sender) {
-			    var fieldsToDecrypt = {};
 
 			    if (transaction.attachment.encryptedMessage) {
 				fieldsToDecrypt.encryptedMessage = $.t("encrypted_message");
@@ -152,7 +155,7 @@ var BRS = (function(BRS, $, undefined) {
 
 		break;
 	    case 1:
-		var data = {
+		data = {
 		    "type": $.t("alias_assignment"),
 		    "alias": transaction.attachment.alias,
 		    "data_formatted_html": transaction.attachment.uri.autoLink()
@@ -167,7 +170,7 @@ var BRS = (function(BRS, $, undefined) {
 
 		break;
 	    case 2:
-		var data = {
+		data = {
 		    "type": $.t("poll_creation"),
 		    "name": transaction.attachment.name,
 		    "description": transaction.attachment.description
@@ -182,7 +185,7 @@ var BRS = (function(BRS, $, undefined) {
 
 		break;
 	    case 3:
-		var data = {
+		data = {
 		    "type": $.t("vote_casting")
 		};
 
@@ -195,7 +198,7 @@ var BRS = (function(BRS, $, undefined) {
 
 		break;
 	    case 4:
-		var data = {
+		data = {
 		    "type": $.t("hub_announcement")
 		};
 
@@ -204,7 +207,7 @@ var BRS = (function(BRS, $, undefined) {
 
 		break;
 	    case 5:
-		var data = {
+		data = {
 		    "type": $.t("account_info"),
 		    "name": transaction.attachment.name,
 		    "description": transaction.attachment.description
@@ -217,17 +220,17 @@ var BRS = (function(BRS, $, undefined) {
 	    case 6:
 		if (transaction.attachment.priceNQT == "0") {
 		    if (transaction.sender == transaction.recipient) {
-			var type = $.t("alias_sale_cancellation");
+			type = $.t("alias_sale_cancellation");
 		    }
                     else {
-			var type = $.t("alias_transfer");
+			type = $.t("alias_transfer");
 		    }
 		}
                 else {
-		    var type = $.t("alias_sale");
+		    type = $.t("alias_sale");
 		}
 
-		var data = {
+		data = {
 		    "type": type,
 		    "alias_name": transaction.attachment.alias
 		};
@@ -243,7 +246,6 @@ var BRS = (function(BRS, $, undefined) {
 		data.sender = BRS.getAccountTitle(transaction, "sender");
 
 		if (type == $.t("alias_sale")) {
-		    var message = "";
 		    var messageStyle = "info";
 
 		    BRS.sendRequest("getAlias", {
@@ -287,7 +289,7 @@ var BRS = (function(BRS, $, undefined) {
 
 		break;
 	    case 7:
-		var data = {
+		data = {
 		    "type": $.t("alias_buy"),
 		    "alias_name": transaction.attachment.alias,
 		    "price": transaction.amountNQT,
@@ -307,7 +309,7 @@ var BRS = (function(BRS, $, undefined) {
         else if (transaction.type == 2) {
 	    switch (transaction.subtype) {
 	    case 0:
-		var data = {
+		data = {
 		    "type": $.t("asset_issuance"),
 		    "name": transaction.attachment.name,
 		    "quantity": [transaction.attachment.quantityQNT, transaction.attachment.decimals],
@@ -478,7 +480,7 @@ var BRS = (function(BRS, $, undefined) {
         else if (transaction.type == 3) {
 	    switch (transaction.subtype) {
 	    case 0:
-		var data = {
+		data = {
 		    "type": $.t("marketplace_listing"),
 		    "name": transaction.attachment.name,
 		    "description": transaction.attachment.description,
@@ -497,7 +499,7 @@ var BRS = (function(BRS, $, undefined) {
 		BRS.sendRequest("getDGSGood", {
 		    "goods": transaction.attachment.goods
 		}, function(goods) {
-		    var data = {
+		    data = {
 			"type": $.t("marketplace_removal"),
 			"item_name": goods.name,
 			"seller": BRS.getAccountFormatted(goods, "seller")
@@ -517,7 +519,7 @@ var BRS = (function(BRS, $, undefined) {
 		BRS.sendRequest("getDGSGood", {
 		    "goods": transaction.attachment.goods
 		}, function(goods) {
-		    var data = {
+		    data = {
 			"type": $.t("marketplace_item_price_change"),
 			"item_name": goods.name,
 			"new_price_formatted_html": BRS.formatAmount(transaction.attachment.priceNQT) + " BURST",
@@ -538,7 +540,7 @@ var BRS = (function(BRS, $, undefined) {
 		BRS.sendRequest("getDGSGood", {
 		    "goods": transaction.attachment.goods
 		}, function(goods) {
-		    var data = {
+		    data = {
 			"type": $.t("marketplace_item_quantity_change"),
 			"item_name": goods.name,
 			"delta_quantity": transaction.attachment.deltaQuantity,
@@ -750,7 +752,7 @@ var BRS = (function(BRS, $, undefined) {
 		    BRS.sendRequest("getDGSGood", {
 			"goods": purchase.goods
 		    }, function(goods) {
-			var data = {
+			data = {
 			    "type": $.t("marketplace_refund"),
 			    "item_name": goods.name
 			};
@@ -781,7 +783,7 @@ var BRS = (function(BRS, $, undefined) {
         else if (transaction.type == 4) {
 	    switch (transaction.subtype) {
 	    case 0:
-		var data = {
+		data = {
 		    "type": $.t("balance_leasing"),
 		    "period": transaction.attachment.period
 		};
@@ -826,7 +828,6 @@ var BRS = (function(BRS, $, undefined) {
 		    }
 
 		    if (BRS.account == transaction.sender || BRS.account == transaction.recipient) {
-			var fieldsToDecrypt = {};
 
 			if (transaction.attachment.encryptedMessage) {
 			    fieldsToDecrypt.encryptedMessage = $.t("encrypted_message");
