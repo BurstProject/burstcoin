@@ -117,11 +117,7 @@ html.lockscreen, html.lockscreen body {
   color: rgba(0,0,0,0.0);
 }
 
-.lockscreen header, .lockscreen #page {
-  display: none !important;
-}
-
-.lockscreen #downloading_blockchain {
+.lockscreen header, .lockscreen #page, .lockscreen #downloading_blockchain {
   display: none !important;
 }
 

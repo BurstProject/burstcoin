@@ -688,6 +688,7 @@ var BRS = (function(BRS, $, undefined) {
                     }
                     else {
                         var output = "<table>";
+                        var orderTotal;
                         output += "<tr><th style='width:85px;'><strong>" + $.t("product") + "</strong>:</th><td>" + String(good.name).escapeHTML() + "</td></tr>";
                         output += "<tr><th><strong>" + $.t("price") + "</strong>:</th><td>" + BRS.formatAmount(response.priceNQT) + " BURST</td></tr>";
                         output += "<tr><th><strong>" + $.t("quantity") + "</strong>:</th><td>" + BRS.format(response.quantity) + "</td></tr>";
@@ -703,7 +704,7 @@ var BRS = (function(BRS, $, undefined) {
                                 $modal.find("input[name=recipient]").val(response.sellerRS);
                             }
                             if (response.quantity != "1") {
-                                var orderTotal = BRS.formatAmount(new BigInteger(String(response.quantity)).multiply(new BigInteger(String(response.priceNQT))));
+                                orderTotal = BRS.formatAmount(new BigInteger(String(response.quantity)).multiply(new BigInteger(String(response.priceNQT))));
                                 output += "<tr><th><strong>" + $.t("total") + "</strong>:</th><td>" + orderTotal + " BURST</td></tr>";
                             }
                             if (response.discountNQT && (type == "dgs_refund_modal" || type == "dgs_feedback_modal")) {
@@ -746,7 +747,7 @@ var BRS = (function(BRS, $, undefined) {
                         }
 
                         if (type == "dgs_refund_modal") {
-                            var orderTotal = new BigInteger(String(response.quantity)).multiply(new BigInteger(String(response.priceNQT)));
+                            orderTotal = new BigInteger(String(response.quantity)).multiply(new BigInteger(String(response.priceNQT)));
                             var refund = orderTotal.subtract(new BigInteger(String(response.discountNQT)));
 
                             $("#dgs_refund_purchase").val(response.purchase);
@@ -780,11 +781,11 @@ var BRS = (function(BRS, $, undefined) {
                             };
 
                             if (response.feedbackNote) {
-                                fieldsToDecrypt["feedbackNote"] = $.t("feedback_given");
+                                fieldsToDecrypt.feedbackNote = $.t("feedback_given");
                             }
 
                             if (response.refundNote) {
-                                fieldsToDecrypt["refundNote"] = $.t("refund_note");
+                                fieldsToDecrypt.refundNote = $.t("refund_note");
                             }
 
                             BRS.tryToDecrypt(response, fieldsToDecrypt, (response.buyer == BRS.account ? response.seller : response.buyer), {
@@ -854,15 +855,15 @@ var BRS = (function(BRS, $, undefined) {
     $("#dgs_product_modal, #dgs_delisting_modal, #dgs_quantity_change_modal, #dgs_price_change_modal, #dgs_purchase_modal").on("show.bs.modal", function(e) {
         var $modal = $(this);
         var $invoker = $(e.relatedTarget);
-
+        var goods;
         var type = $modal.attr("id");
 
         if (!$invoker.length) {
-            var goods = _goodsToShow;
+            goods = _goodsToShow;
             _goodsToShow = 0;
         }
         else {
-            var goods = $invoker.data("goods");
+            goods = $invoker.data("goods");
         }
 
         $modal.find("input[name=goods]").val(goods);

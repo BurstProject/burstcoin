@@ -122,7 +122,7 @@ var BRS = (function(BRS, $, undefined) {
 	}, function(response) {
 	    if (response.transactions && response.transactions.length) {
 		var rows = "";
-
+    var receiving;
 		for (var i = 0; i < response.transactions.length; i++) {
 		    var transaction = response.transactions[i];
 
@@ -267,10 +267,10 @@ var BRS = (function(BRS, $, undefined) {
 		    }
 
 		    if (/^BURST\-/i.test(BRS.userInfoModal.user)) {
-			var receiving = (transaction.recipientRS == BRS.userInfoModal.user);
+			receiving = (transaction.recipientRS == BRS.userInfoModal.user);
 		    }
                     else {
-			var receiving = (transaction.recipient == BRS.userInfoModal.user);
+			receiving = (transaction.recipient == BRS.userInfoModal.user);
 		    }
 
 		    if (transaction.amountNQT) {
@@ -279,7 +279,6 @@ var BRS = (function(BRS, $, undefined) {
 		    }
 
 		    var account = (receiving ? "sender" : "recipient");
-
 		    rows += "<tr><td>" + BRS.formatTimestamp(transaction.timestamp) + "</td><td>" + transactionType + "</td><td style='width:5px;padding-right:0;'>" + (transaction.type == 0 ? (receiving ? "<i class='fas fa-plus-circle' style='color:#65C62E'></i>" : "<i class='fas fa-minus-circle' style='color:#E04434'></i>") : "") + "</td><td " + (transaction.type == 0 && receiving ? " style='color:#006400;'" : (!receiving && transaction.amount > 0 ? " style='color:red'" : "")) + ">" + BRS.formatAmount(transaction.amount) + "</td><td " + (!receiving ? " style='color:red'" : "") + ">" + BRS.formatAmount(transaction.fee) + "</td><td>" + BRS.getAccountTitle(transaction, account) + "</td></tr>";
 		}
 
@@ -390,7 +389,7 @@ var BRS = (function(BRS, $, undefined) {
 			}
 		    }, function(asset, input) {
 			asset.asset = input.asset;
-			asset.balanceQNT = input["_extra"].balanceQNT;
+			asset.balanceQNT = input._extra.balanceQNT;
 
 			assets[asset.asset] = asset;
 			nrAssets++;

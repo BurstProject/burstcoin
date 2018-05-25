@@ -33,7 +33,7 @@ var BRS = (function(BRS, $, undefined) {
         $("#send_money_fee").val(fee.toFixed(8));
 
         $(element).closest(".modal").find(".total_amount_ordinary").html(BRS.formatAmount(BRS.convertToNQT(amount + fee)) + " BURST");
-    }
+    };
 
     $("#send_message_modal, #send_money_modal, #add_contact_modal").on("show.bs.modal", function(e) {
         var $invoker = $(e.relatedTarget);
@@ -100,7 +100,7 @@ var BRS = (function(BRS, $, undefined) {
     });
 
     BRS.forms.sendMoneyComplete = function(response, data) {
-        if (!(data["_extra"] && data["_extra"].convertedAccount) && !(data.recipient in BRS.contacts)) {
+        if (!(data._extra && data._extra.convertedAccount) && !(data.recipient in BRS.contacts)) {
             $.notify($.t("success_send_money") + " <a href='#' data-account='" + BRS.getAccountFormatted(data, "recipient") + "' data-toggle='modal' data-target='#add_contact_modal' style='text-decoration:underline'>" + $.t("add_recipient_to_contacts_q") + "</a>", {
                 "type": "success"
             });

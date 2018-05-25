@@ -228,7 +228,7 @@ var BRS = (function(BRS, $, undefined) {
         }
         // always call incoming for messages to enable message notifications
         if (!oldBlock || BRS.unconfirmedTransactionsChange) {
-            BRS.incoming['messages'](transactions);
+            BRS.incoming.messages(transactions);
         }
     };
 
@@ -347,7 +347,7 @@ var BRS = (function(BRS, $, undefined) {
         }
 
         var rows = "";
-
+        var unconfirmedTransactions;
         var params = {
             "account": BRS.account,
             "firstIndex": 0,
@@ -357,10 +357,10 @@ var BRS = (function(BRS, $, undefined) {
         if (BRS.transactionsPageType) {
             params.type = BRS.transactionsPageType.type;
             params.subtype = BRS.transactionsPageType.subtype;
-            var unconfirmedTransactions = BRS.getUnconfirmedTransactionsFromCache(params.type, params.subtype);
+            unconfirmedTransactions = BRS.getUnconfirmedTransactionsFromCache(params.type, params.subtype);
         }
         else {
-            var unconfirmedTransactions = BRS.unconfirmedTransactions;
+            unconfirmedTransactions = BRS.unconfirmedTransactions;
         }
 
         if (unconfirmedTransactions) {
@@ -545,7 +545,7 @@ var BRS = (function(BRS, $, undefined) {
             }
         }
         return transactionType;
-    }
+    };
 
     BRS.getTransactionRowHTML = function(transaction) {
         var transactionType = BRS.getTransactionNameFromType(transaction);
