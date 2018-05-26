@@ -7,6 +7,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -93,17 +94,22 @@ public class UnconfirmedTransactionStore {
   public void forEach(Consumer<Transaction> consumer) {
     synchronized (idQueue) {
       final int currentTime = timeService.getEpochTime();
-      cache.values().stream()
-          .filter(possiblyExpired -> fetchUnexpiredTransactionOrCleanup(possiblyExpired.getId(), currentTime) != null)
-          .forEach(consumer);
+
+      for (Iterator<Transaction> it = cache.values().iterator(); it.hasNext();) {
+        Transaction t = it.next();
+        if(transactionIsExpired(t, currentTime)) {
+          remove(t);
+        }
+      }
+
+      cache.values().stream().forEach(consumer);
     }
   }
 
   public void remove(Transaction transaction) {
     synchronized (idQueue) {
       if (exists(transaction.getId())) {
-        idQueue.removeFirstOccurrence(transaction.getId());
-        cache.remove(transaction.getId());
+        removeTransaction(transaction.getId());
       }
     }
   }
@@ -122,12 +128,16 @@ public class UnconfirmedTransactionStore {
       if (!transactionIsExpired(possibleTransaction, currentTime)) {
         return possibleTransaction;
       } else {
-        idQueue.removeFirstOccurrence(transactionId);
-        cache.remove(transactionId);
+        removeTransaction(transactionId);
       }
     }
 
     return null;
+  }
+
+  private void removeTransaction(Long transactionId) {
+    idQueue.removeFirstOccurrence(transactionId);
+    cache.remove(transactionId);
   }
 
   private boolean transactionIsExpired(Transaction transaction, int currentTime) {
