@@ -1,6 +1,7 @@
 package brs;
 
 import static brs.Attachment.ORDINARY_PAYMENT;
+import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -86,7 +87,7 @@ public class UnconfirmedTransactionStoreTest {
 
   @DisplayName("The amount of unconfirmed transactions exceeds max size, when adding a group of others the cache size stays the same")
   @Test
-  public void numberOfUnconfirmedTransactionsExceedsMaxSizeAddAGroupOfOthersThenCacheSizeStaysMaxSize() throws NotValidException {
+  public void numberOfUnconfirmedTransactionsExceedsMaxSizeAddAGroupOfOthersThenCacheSizeStaysMaxSize() throws NotValidException, InterruptedException {
 
     when(mockBlockChain.getHeight()).thenReturn(20);
 
@@ -101,6 +102,8 @@ public class UnconfirmedTransactionStoreTest {
     assertNotNull(t.get(1L));
     assertNotNull(t.get(2L));
     assertNotNull(t.get(3L));
+
+    Thread.sleep(10000000);
 
     final List<Transaction> groupOfExtras = new ArrayList<>();
     for(int i = 0; i < 3; i++) {
@@ -141,4 +144,21 @@ public class UnconfirmedTransactionStoreTest {
     assertNull(t.get(1L));
   }
 
+  @DisplayName("Old transactions get removed from the cache when they are expired when using the foreach method on them")
+  @Test
+  public void transactionGetsRemovedWhenExpiredWhenRunningForeach() throws NotValidException, InterruptedException {
+    final int deadlineWithin2Seconds = timeService.getEpochTime() - 29998;
+    final Transaction transaction = new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 500, 735000, deadlineWithin2Seconds, (short) 500, ORDINARY_PAYMENT)
+        .id(1).build();
+
+    transaction.sign(TestConstants.TEST_SECRET_PHRASE);
+
+    t.put(transaction);
+
+    assertNotNull(t.get(1L));
+
+    Thread.sleep(3000);
+
+    t.forEach(t -> fail("No transactions should be left to run the foreach on"));
+  }
 }
