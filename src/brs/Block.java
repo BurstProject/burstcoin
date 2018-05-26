@@ -56,11 +56,11 @@ public class Block {
   Block(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT,
       int payloadLength, byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature,
       byte[] blockSignature, byte[] previousBlockHash, List<Transaction> transactions,
-      long nonce, byte[] blockATs) throws BurstException.ValidationException {
+      long nonce, byte[] blockATs, int height) throws BurstException.ValidationException {
 
-    if (payloadLength > Burst.getFluxCapacitor().getInt(FluxInt.MAX_PAYLOAD_LENGTH) || payloadLength < 0) {
+    if (payloadLength > Burst.getFluxCapacitor().getInt(FluxInt.MAX_PAYLOAD_LENGTH, height) || payloadLength < 0) {
       throw new BurstException.NotValidException(
-          "attempted to create a block with payloadLength " + payloadLength);
+          "attempted to create a block with payloadLength " + payloadLength + " height " + height + "previd " + previousBlockId);
     }
 
     this.version = version;
@@ -77,7 +77,7 @@ public class Block {
     this.previousBlockHash = previousBlockHash;
     if (transactions != null) {
       this.blockTransactions = Collections.unmodifiableList(transactions);
-      if (blockTransactions.size() > (Burst.getFluxCapacitor().getInt(FluxInt.MAX_NUMBER_TRANSACTIONS))) {
+      if (blockTransactions.size() > (Burst.getFluxCapacitor().getInt(FluxInt.MAX_NUMBER_TRANSACTIONS, height))) {
         throw new BurstException.NotValidException(
             "attempted to create a block with " + blockTransactions.size() + " transactions");
       }
@@ -96,7 +96,7 @@ public class Block {
   public Block(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash, byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget,
       long nextBlockId, int height, Long id, long nonce, byte[] blockATs) throws BurstException.ValidationException {
 
-    this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature, previousBlockHash, null, nonce, blockATs);
+    this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature, previousBlockHash, null, nonce, blockATs, height);
 
     this.cumulativeDifficulty = cumulativeDifficulty == null ? BigInteger.ZERO : cumulativeDifficulty;
     this.baseTarget = baseTarget;
@@ -309,7 +309,7 @@ public class Block {
       byte[] blockATs = Convert.parseHexString((String) blockData.get("blockATs"));
       return new Block(version, timestamp, previousBlock, totalAmountNQT, totalFeeNQT,
           payloadLength, payloadHash, generatorPublicKey, generationSignature, blockSignature,
-          previousBlockHash, new ArrayList<>(blockTransactions.values()), nonce, blockATs);
+          previousBlockHash, new ArrayList<>(blockTransactions.values()), nonce, blockATs, height);
     } catch (BurstException.ValidationException | RuntimeException e) {
       logger.debug("Failed to parse block: " + blockData.toJSONString());
       throw e;
