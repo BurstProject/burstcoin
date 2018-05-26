@@ -31,7 +31,11 @@ var BRS = (function(BRS, $, undefined) {
 	}
         else {
 	    $.notify($.t("error_generate_token"), {
-		"type": "danger"
+		type: 'danger',
+        offset: {
+            x: 5,
+            y: 60
+            }
 	    });
 	    $("#generate_token_modal").modal("hide");
 	}

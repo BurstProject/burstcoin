@@ -129,7 +129,11 @@ var BRS = (function(BRS, $, undefined) {
 				"account": BRS.getAccountFormatted(trans, "sender"),
 				"name": BRS.getAccountTitle(trans, "sender")
 			    }), {
-				"type": "success"
+				type: 'success',
+                offset: {
+                    x: 5,
+                    y: 60
+                    }
 			    });
 			}
 		    }
@@ -384,7 +388,11 @@ var BRS = (function(BRS, $, undefined) {
 	if (!BRS.rememberPassword) {
 	    if ($("#inline_message_password").val() == "") {
 		$.notify($.t("error_passphrase_required"), {
-		    "type": "danger"
+		    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 		});
 		return;
 	    }
@@ -393,7 +401,11 @@ var BRS = (function(BRS, $, undefined) {
 
 	    if (accountId != BRS.account) {
 		$.notify($.t("error_passphrase_incorrect"), {
-		    "type": "danger"
+		    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 		});
 		return;
 	    }
@@ -416,7 +428,11 @@ var BRS = (function(BRS, $, undefined) {
 		data = BRS.addMessageData(data, "sendMessage");
 	    } catch (err) {
 		$.notify(String(err.message).escapeHTMl(), {
-		    "type": "danger"
+		    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 		});
 		return;
 	    }
@@ -430,12 +446,20 @@ var BRS = (function(BRS, $, undefined) {
 	BRS.sendRequest(requestType, data, function(response, input) {
 	    if (response.errorCode) {
 		$.notify(BRS.translateServerError(response).escapeHTML(), {
-		    type: "danger"
+		    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 		});
 	    }
             else if (response.fullHash) {
 		$.notify($.t("success_message_sent"), {
-		    type: "success"
+		    type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 		});
 
 		$("#inline_message_text").val("");
@@ -458,7 +482,11 @@ var BRS = (function(BRS, $, undefined) {
             else {
 		//TODO
 		$.notify($.t("error_send_message"), {
-		    type: "danger"
+		    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 		});
 	    }
 	    $btn.button("reset");
@@ -470,12 +498,20 @@ var BRS = (function(BRS, $, undefined) {
 
 	if (!(data._extra && data._extra.convertedAccount)) {
 	    $.notify($.t("success_message_sent") + " <a href='#' data-account='" + BRS.getAccountFormatted(data, "recipient") + "' data-toggle='modal' data-target='#add_contact_modal' style='text-decoration:underline'>" + $.t("add_recipient_to_contacts_q") + "</a>", {
-		"type": "success"
+		type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 	    });
 	}
         else {
 	    $.notify($.t("success_message_sent"), {
-		"type": "success"
+		type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 	    });
 	}
 
@@ -579,12 +615,20 @@ var BRS = (function(BRS, $, undefined) {
 
 	if (success) {
 	    $.notify($.t("success_messages_decrypt"), {
-		"type": "success"
+		type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 	    });
 	}
         else {
 	    $.notify($.t("error_messages_decrypt"), {
-		"type": "danger"
+		type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 	    });
 	}
 

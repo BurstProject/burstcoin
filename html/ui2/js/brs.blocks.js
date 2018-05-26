@@ -160,7 +160,11 @@ var BRS = (function(BRS, $, undefined) {
                         $("#show_console").show();
                     }
                     $.notify($.t("success_blockchain_up_to_date"), {
-                        "type": "success"
+                        type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                     });
                     BRS.checkAliasVersions();
                     BRS.checkIfOnAFork();

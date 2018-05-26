@@ -852,7 +852,11 @@ var BRS = (function(BRS, $, undefined) {
 
 	if (incorrect) {
 	    $.notify($.t("error_unknown_transaction_type"), {
-		"type": "danger"
+		type: 'danger',
+        offset: {
+            x: 5,
+            y: 60
+            }
 	    });
 
 	    BRS.fetchingModalData = false;

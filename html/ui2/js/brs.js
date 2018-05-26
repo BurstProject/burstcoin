@@ -611,7 +611,11 @@ var BRS = (function(BRS, $, undefined) {
             else {
                 if (BRS.accountRS && BRS.accountInfo.accountRS !== BRS.accountRS) {
                     $.notify("Generated Reed Solomon address different from the one in the blockchain!", {
-                        "type": "danger"
+                        type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                     });
                     BRS.accountRS = BRS.accountInfo.accountRS;
                 }
@@ -779,7 +783,11 @@ var BRS = (function(BRS, $, undefined) {
                                 "name": String(asset.name).escapeHTML(),
                                 "count": quantity
                             }), {
-                                "type": "success"
+                                type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                             });
                         }
                     }
@@ -794,7 +802,11 @@ var BRS = (function(BRS, $, undefined) {
                                 "name": String(asset.name).escapeHTML(),
                                 "count": quantity
                             }), {
-                                "type": "success"
+                                type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                             });
                         }
                     }
@@ -803,7 +815,11 @@ var BRS = (function(BRS, $, undefined) {
         }
         else {
             $.notify($.t("multiple_assets_differences"), {
-                "type": "success"
+                type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
             });
         }
     };
@@ -885,7 +901,11 @@ var BRS = (function(BRS, $, undefined) {
 
             if (onAFork) {
                 $.notify($.t("fork_warning"), {
-                    "type": "danger"
+                    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
             }
         }
@@ -906,7 +926,11 @@ var BRS = (function(BRS, $, undefined) {
                 }
                 else {
                     $.notify($.t("error_search_no_results"), {
-                        "type": "danger"
+                        type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                     });
                 }
             });
@@ -914,7 +938,11 @@ var BRS = (function(BRS, $, undefined) {
         else {
             if (!/^\d+$/.test(id)) {
                 $.notify($.t("error_search_invalid"), {
-                    "type": "danger"
+                    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
                 return;
             }
@@ -943,7 +971,11 @@ var BRS = (function(BRS, $, undefined) {
                                 }
                                 else {
                                     $.notify($.t("error_search_no_results"), {
-                                        "type": "danger"
+                                        type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                                     });
                                 }
                             });

@@ -200,7 +200,11 @@ var BRS = (function(BRS, $, undefined) {
             $.notify($.t("error_asset_already_bookmarked", {
                 "count": submittedAssets.length
             }), {
-                "type": "danger"
+                type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
             });
             $("#asset_exchange_sidebar a.active").removeClass("active");
             $("#asset_exchange_sidebar a[data-asset=" + submittedAssets[0].asset + "]").addClass("active").trigger("click");
@@ -217,7 +221,11 @@ var BRS = (function(BRS, $, undefined) {
             }
 
             $.notify(message, {
-                "type": "success"
+                type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
             });
 
             BRS.loadAssetExchangeSidebar(function(callback) {
@@ -620,7 +628,11 @@ var BRS = (function(BRS, $, undefined) {
                                 setTimeout(function() {
                                     BRS.loadPage("asset_exchange");
                                     $.notify("Invalid asset.", {
-                                        "type": "danger"
+                                        type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                                     });
                                 }, 50);
                             });
@@ -985,7 +997,11 @@ var BRS = (function(BRS, $, undefined) {
             //do not allow period
             if (charCode == 110 || charCode == 190 || charCode == 188) {
                 $.notify($.t("error_fractions"), {
-                    "type": "danger"
+                    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
                 e.preventDefault();
                 return false;
@@ -1014,7 +1030,11 @@ var BRS = (function(BRS, $, undefined) {
                 }
 
                 $.notify(errorMessage, {
-                    "type": "danger"
+                    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
 
                 e.preventDefault();
@@ -1029,7 +1049,11 @@ var BRS = (function(BRS, $, undefined) {
             //comma
             if (charCode == 188) {
                 $.notify($.t("error_comma_not_allowed"), {
-                    "type": "danger"
+                    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
             }
             e.preventDefault();
@@ -1079,14 +1103,22 @@ var BRS = (function(BRS, $, undefined) {
             totalNXT = BRS.formatAmount(BRS.calculateOrderTotalNQT(quantityQNT, priceNQT, BRS.currentAsset.decimals), false, true);
         } catch (err) {
             $.notify("Invalid input.", {
-                "type": "danger"
+                type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
             });
             return e.preventDefault();
         }
 
         if (priceNQT.toString() == "0" || quantityQNT.toString() == "0") {
             $.notify($.t("error_amount_price_required"), {
-                "type": "danger"
+                type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
             });
             return e.preventDefault();
         }
@@ -1262,7 +1294,11 @@ var BRS = (function(BRS, $, undefined) {
             setTimeout(function() {
                 BRS.loadPage("asset_exchange");
                 $.notify($.t("success_group_name_update"), {
-                    "type": "success"
+                    type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
             }, 50);
         });
@@ -1335,7 +1371,11 @@ var BRS = (function(BRS, $, undefined) {
                 setTimeout(function() {
                     BRS.loadPage("asset_exchange");
                     $.notify($.t("success_asset_group_removal"), {
-                        "type": "success"
+                        type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                     });
                 }, 50);
             });
@@ -1353,7 +1393,11 @@ var BRS = (function(BRS, $, undefined) {
 
             if (ownsAsset) {
                 $.notify($.t("error_owned_asset_no_removal"), {
-                    "type": "danger"
+                    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
             } else {
                 //todo save delteed asset ids from accountissuers
@@ -1363,7 +1407,11 @@ var BRS = (function(BRS, $, undefined) {
                     setTimeout(function() {
                         BRS.loadPage("asset_exchange");
                         $.notify($.t("success_asset_bookmark_removal"), {
-                            "type": "success"
+                            type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                         });
                     }, 50);
                 });
@@ -1400,11 +1448,19 @@ var BRS = (function(BRS, $, undefined) {
                 BRS.loadPage("asset_exchange");
                 if (!groupName) {
                     $.notify($.t("success_asset_group_removal"), {
-                        "type": "success"
+                        type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                     });
                 } else {
                     $.notify($.t("sucess_asset_group_add"), {
-                        "type": "success"
+                        type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                     });
                 }
             }, 50);
@@ -1799,7 +1855,11 @@ var BRS = (function(BRS, $, undefined) {
                             });
                         } else {
                             $.notify($.t("error_asset_not_found"), {
-                                "type": "danger"
+                                type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                             });
                         }
                     });
@@ -2050,11 +2110,19 @@ var BRS = (function(BRS, $, undefined) {
     BRS.forms.cancelOrderComplete = function(response, data) {
         if (data.requestType == "cancelAskOrder") {
             $.notify($.t("success_cancel_sell_order"), {
-                "type": "success"
+                type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
             });
         } else {
             $.notify($.t("success_cancel_buy_order"), {
-                "type": "success"
+                type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
             });
         }
 

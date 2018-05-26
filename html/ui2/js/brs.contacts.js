@@ -177,7 +177,11 @@ var BRS = (function(BRS, $, undefined) {
 			$modal.modal("unlock");
 			$modal.modal("hide");
 			$.notify($.t("success_contact_add"), {
-			    "type": "success"
+			    type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 			});
 
 			if (BRS.currentPage == "contacts") {
@@ -347,7 +351,11 @@ var BRS = (function(BRS, $, undefined) {
 			$modal.modal("unlock");
 			$modal.modal("hide");
 			$.notify($.t("success_contact_update"), {
-			    "type": "success"
+			    type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 			});
 
 			if (BRS.currentPage == "contacts") {
@@ -392,7 +400,11 @@ var BRS = (function(BRS, $, undefined) {
 
 	    setTimeout(function() {
 		$.notify($.t("success_contact_delete"), {
-		    "type": "success"
+		    type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 		});
 
 		if (BRS.currentPage == "contacts") {
@@ -437,12 +449,20 @@ var BRS = (function(BRS, $, undefined) {
 		if (contacts && contacts.length) {
 		    if (contacts[0].name == imported_contact.name) {
 			//$modal.find(".error_message").html($.t("error_contact_name_exists")).show();
-			$.notify($.t("error_contact_name_exists")).show();
+			$.notify($.t("error_contact_name_exists"), {
+                    offset: {
+                        x: 5,
+                        y: 60
+			}}).show();
 			console.log('Error, contact already exists with same name:'+imported_contact.name);
 		    }
                     else {
 			//$modal.find(".error_message").html($.t("error_contact_account_id_exists")).show();
-			$.notify($.t("error_contact_account_id_exists")).show();
+			$.notify($.t("error_contact_account_id_exists"), {
+                    offset: {
+                        x: 5,
+                        y: 60
+			}}).show();
 			console.log('Error, contact already exists with same account ID:'+imported_contact.account);
 		    }
 		    /*$btn.button("reset");
@@ -469,7 +489,11 @@ var BRS = (function(BRS, $, undefined) {
 			      $modal.modal("unlock");
 			      $modal.modal("hide");*/
 			    $.notify($.t("success_contact_add"), {
-				"type": "success"
+				type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 			    });
 
 			    if (BRS.currentPage == "contacts") {
