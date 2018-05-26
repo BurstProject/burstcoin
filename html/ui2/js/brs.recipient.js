@@ -102,11 +102,19 @@ var BRS = (function(BRS, $, undefined) {
     BRS.forms.sendMoneyComplete = function(response, data) {
         if (!(data._extra && data._extra.convertedAccount) && !(data.recipient in BRS.contacts)) {
             $.notify($.t("success_send_money") + " <a href='#' data-account='" + BRS.getAccountFormatted(data, "recipient") + "' data-toggle='modal' data-target='#add_contact_modal' style='text-decoration:underline'>" + $.t("add_recipient_to_contacts_q") + "</a>", {
-                "type": "success"
+                type: 'success',
+                offset: {
+                    x: 5,
+                    y: 60
+                    }
             });
         } else {
             $.notify($.t("success_send_money"), {
-                "type": "success"
+                type: 'success',
+                offset: {
+                    x: 5,
+                    y: 60
+                    }
             });
         }
     };

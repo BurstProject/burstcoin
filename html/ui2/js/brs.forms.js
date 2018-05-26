@@ -492,7 +492,11 @@ var BRS = (function(BRS, $, undefined) {
 
                 if (successMessage) {
                     $.notify(successMessage.escapeHTML(), {
-                        type: "success"
+                        type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                     });
                 }
 
@@ -557,7 +561,11 @@ var BRS = (function(BRS, $, undefined) {
                     BRS.unlockForm($modal, $btn, true);
 
                     $.notify(errorMessage.escapeHTML(), {
-                        type: 'danger'
+                        type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                     });
                 }
             }

@@ -200,7 +200,11 @@ var BRS = (function(BRS, $, undefined) {
                 }, data);
             } else {
                 $.notify($.t("error_new_account"), {
-                    "type": "danger"
+                    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
             }
             return;
@@ -215,7 +219,11 @@ var BRS = (function(BRS, $, undefined) {
                     }, data);
                 } else {
                     $.notify($.t("error_invalid_referenced_transaction_hash"), {
-                        "type": "danger"
+                        type: 'danger',
+                        offset: {
+                            x: 5,
+                            y: 60
+                            }
                     });
                 }
                 return;
@@ -313,7 +321,11 @@ var BRS = (function(BRS, $, undefined) {
                             }, data);
                         } else {
                             $.notify($.t("error_signature_verification_client"), {
-                                "type": "danger"
+                                type: 'danger',
+                                offset: {
+                                    x: 5,
+                                    y: 60
+                                    }
                             });
                         }
                         return;
@@ -328,7 +340,11 @@ var BRS = (function(BRS, $, undefined) {
                                 }, data);
                             } else {
                                 $.notify($.t("error_signature_verification_server"), {
-                                    "type": "danger"
+                                    type: 'danger',
+                                    offset: {
+                                        x: 5,
+                                        y: 60
+                                        }
                                 });
                             }
                             return;
@@ -381,7 +397,11 @@ var BRS = (function(BRS, $, undefined) {
                         }
                         if (data.referencedTransactionFullHash && !response.errorCode) {
                             $.notify($.t("info_referenced_transaction_hash"), {
-                                "type": "info"
+                                type: 'info',
+                                offset: {
+                                       x: 5,
+                                       y: 60
+                                        }
                             });
                         }
                     }
@@ -394,8 +414,8 @@ var BRS = (function(BRS, $, undefined) {
                 if ((error == "error" || textStatus == "error") && (xhr.status == 404 || xhr.status === 0)) {
                     if (type == "POST") {
                         $.notify($.t("error_server_connect"), {
-                            "type": "danger",
-                            "offset": 10
+                            type: 'danger',
+                            offset: 10
                         });
                     }
                 }
@@ -1258,7 +1278,11 @@ var BRS = (function(BRS, $, undefined) {
                     callback(originalResponse, originalData);
                     if (originalData.referencedTransactionFullHash) {
                         $.notify($.t("info_referenced_transaction_hash"), {
-                            "type": "info"
+                            type: 'info',
+                            offset: {
+                                   x: 5,
+                                   y: 60
+                                    }
                         });
                     }
                 }

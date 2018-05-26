@@ -673,7 +673,11 @@ var BRS = (function(BRS, $, undefined) {
             if (response.errorCode) {
                 e.preventDefault();
                 $.notify($.t("error_purchase"), {
-                    "type": "danger"
+                    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
             }
             else {
@@ -683,7 +687,11 @@ var BRS = (function(BRS, $, undefined) {
                     if (response.errorCode) {
                         e.preventDefault();
                         $.notify($.t("error_products"), {
-                            "type": "danger"
+                            type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                         });
                     }
                     else {
@@ -771,7 +779,11 @@ var BRS = (function(BRS, $, undefined) {
                             if (response.pending) {
                                 e.preventDefault();
                                 $.notify($.t("error_goods_not_yet_delivered"), {
-                                    "type": "warning"
+                                    type: 'warning',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                                 });
                                 return;
                             }
@@ -874,7 +886,11 @@ var BRS = (function(BRS, $, undefined) {
             if (response.errorCode) {
                 e.preventDefault();
                 $.notify($.t("error_goods"), {
-                    "type": "danger"
+                    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
             }
             else {
@@ -940,7 +956,11 @@ var BRS = (function(BRS, $, undefined) {
 
             if (!address.set(seller)) {
                 $.notify($.t("error_invalid_seller"), {
-                    "type": "danger"
+                    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
             }
             else {
@@ -949,7 +969,11 @@ var BRS = (function(BRS, $, undefined) {
         }
         else {
             $.notify($.t("error_invalid_seller"), {
-                "type": "danger"
+                type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
             });
         }
     });

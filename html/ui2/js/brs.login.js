@@ -127,8 +127,8 @@ var BRS = (function(BRS, $, undefined) {
     BRS.login = function(password, callback) {
         if (!password.length) {
             $.notify($.t("error_passphrase_required_login"), {
-                "type": "danger",
-                "offset": 10
+                type: 'danger',
+                offset: 10
             });
             return;
         }
@@ -157,8 +157,8 @@ var BRS = (function(BRS, $, undefined) {
         BRS.sendRequest("getBlockchainStatus", function(response) {
             if (response.errorCode) {
                 $.notify($.t("error_server_connect"), {
-                    "type": "danger",
-                    "offset": 10
+                    type: 'danger',
+                    offset: 10
                 });
 
                 return;
@@ -175,15 +175,15 @@ var BRS = (function(BRS, $, undefined) {
 
                 if (!BRS.account) {
                     $.notify($.t("error_find_account_id"), {
-                        "type": "danger",
-                        "offset": 10
+                        type: 'danger',
+                        offset: 10
                     });
                     return;
                 }
                 else if (!BRS.accountRS) {
                     $.notify($.t("error_generate_account_id"), {
-                        "type": "danger",
-                        "offset": 10
+                        type: 'danger',
+                        offset: 10
                     });
                     return;
                 }
@@ -195,8 +195,8 @@ var BRS = (function(BRS, $, undefined) {
                     if (response && response.publicKey && response.publicKey !== BRS.generatePublicKey(password)) {
                         if (watch_only !== true) {
                             $.notify($.t("error_account_taken"), {
-                                "type": "danger",
-                                "offset": 10
+                                type: 'danger',
+                                offset: 10
                             });
                             return;
                         }
@@ -228,7 +228,11 @@ var BRS = (function(BRS, $, undefined) {
 
                     if (passwordNotice) {
                         $.notify("<strong>" + $.t("warning") + "</strong>: " + passwordNotice, {
-                            "type": "danger"
+                            type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                         });
                     }
 
@@ -276,7 +280,11 @@ var BRS = (function(BRS, $, undefined) {
 
                     if (BRS.isOutdated) {
                         $.notify($.t("brs_update_available"), {
-                            "type": "danger"
+                            type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                         });
                     }
 
@@ -316,7 +324,11 @@ var BRS = (function(BRS, $, undefined) {
                         // Otherwise, show an error.  The address is in the right format perhaps, but
                         // an address does not exist on the blockchain so there's nothing to see.
                         $.notify("<strong>" + $.t("warning") + "</strong>: " + response.errorDescription, {
-                            "type": "danger"
+                            type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                         });
                     }
                 });

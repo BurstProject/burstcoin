@@ -830,7 +830,11 @@ var BRS = (function(BRS, $, undefined) {
                 }, "*");
 
                 $.notify($.t("success_clipboard_copy"), {
-                    "type": "success"
+                    type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
             });
         } else {
@@ -847,14 +851,24 @@ var BRS = (function(BRS, $, undefined) {
 
             clipboard.on('success', function(e) {
                 $.notify($.t("success_clipboard_copy"), {
-                    "type": "success"
+                    type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
             });
 
             clipboard.on('error', function(e) {
                 $("#account_id_dropdown .dropdown-menu, #asset_id_dropdown .dropdown-menu").remove();
                 $("#account_id_dropdown, #asset_id").data("toggle", "");
-                $.notify($.t("error_clipboard_copy"));
+                $.notify($.t("error_clipboard_copy"), {
+                    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
+                });
             });
         }
     };
@@ -931,32 +945,32 @@ var BRS = (function(BRS, $, undefined) {
         var rows = "";
 
         /*
-	  var keys = [];
+      var keys = [];
 
-	  if (Object.keys) {
-	  keys = Object.keys(data);
-	  }
+      if (Object.keys) {
+      keys = Object.keys(data);
+      }
           else {
-	  for (var key in data) {
-	  keys.push(key);
-	  }
-	  }
+      for (var key in data) {
+      keys.push(key);
+      }
+      }
 
-	  keys.sort(function(a, b) {
-	  if (a < b) {
-	  return -1;
-	  }
+      keys.sort(function(a, b) {
+      if (a < b) {
+      return -1;
+      }
           else if (a > b) {
-	  return 1
-	  }
+      return 1
+      }
           else {
-	  return 0
-	  }
-	  });
+      return 0
+      }
+      });
 
-	  for (var i = 0; i < keys.length; i++) {
-	  var key = keys[i];
-	*/
+      for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+    */
 
         for (var key in data) {
             var value = data[key];
