@@ -46,7 +46,7 @@ public class MiningPlot {
       data[i] = (byte) (gendata[i] ^ finalhash[i % HASH_SIZE]);
     }
     //PoC2 Rearrangement
-    if (fluxCapacitor.isActive(POC2)) {
+    if (fluxCapacitor.isActive(POC2, blockHeight)) {
       byte[] hashBuffer = new byte[HASH_SIZE];
       int revPos = PLOT_SIZE - HASH_SIZE; //Start at second hash in last scoop
       for (int pos = 32; pos < (PLOT_SIZE / 2); pos += 64) { //Start at second hash in first scoop

@@ -408,7 +408,7 @@ public final class DownloadCacheImpl {
 
   public int getPoCVersion(long blockId) {
     Block blockImpl = getBlock(blockId);
-    return (blockImpl == null || ! fluxCapacitor.isActive(POC2) ) ? 1 : 2;
+    return (blockImpl == null || ! fluxCapacitor.isActive(POC2, blockImpl.getHeight()) ) ? 1 : 2;
   }
   
   public long getLastBlockId() {
