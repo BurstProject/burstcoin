@@ -69,6 +69,11 @@ body {
 .layout-top-nav .main-footer {
   margin-left: 0;
 }
+@media (max-width: 1080px) {
+	  .box {
+	  font-size:11px;
+  }
+}
 
 @media (max-width: 767px) {
   .content-wrapper,
