@@ -103,8 +103,6 @@ public class UnconfirmedTransactionStoreTest {
     assertNotNull(t.get(2L));
     assertNotNull(t.get(3L));
 
-    Thread.sleep(10000000);
-
     final List<Transaction> groupOfExtras = new ArrayList<>();
     for(int i = 0; i < 3; i++) {
       final Transaction extraTransaction =

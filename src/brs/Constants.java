@@ -67,7 +67,7 @@ public final class Constants {
   public static final int MAX_AUTOMATED_TRANSACTION_NAME_LENGTH = 30;
   public static final int MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH = 1000;
 
-  public static final String MIN_VERSION = "1.3";
+  public static final String MIN_VERSION = "2.0.3";
 
   static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? 50 : 100) * ONE_BURST;
 
