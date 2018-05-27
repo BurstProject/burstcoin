@@ -106,6 +106,8 @@ public class Props {
   public static final String API_SERVER  = "API.Server";
   public static final String API_ALLOWED = "API.allowed";
 
+  public static final String API_ACCEPT_SURPLUS_PARAMS = "API.AcceptSurplusParams";
+  
   public static final String API_LISTEN  = "API.Listen";
   public static final String API_PORT    = "API.Port";
 

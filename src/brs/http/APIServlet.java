@@ -53,8 +53,10 @@ public final class APIServlet extends HttpServlet {
       EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService,
       SubscriptionService subscriptionService, ATService atService, TimeService timeService, EconomicClustering economicClustering, TransactionService transactionService,
       BlockService blockService, Generator generator, PropertyService propertyService, APITransactionManager apiTransactionManager) {
-    enforcePost = propertyService.getBoolean(Props.API_SERVER_ENFORCE_POST);
 
+    enforcePost = propertyService.getBoolean(Props.API_SERVER_ENFORCE_POST);
+    acceptSurplusParams = propertyService.getBoolean(Props.API_ACCEPT_SURPLUS_PARAMS);
+    
     final Map<String, APIRequestHandler> map = new HashMap<>();
 
     map.put("broadcastTransaction", new BroadcastTransaction(transactionProcessor, parameterService, transactionService));
@@ -183,6 +185,8 @@ public final class APIServlet extends HttpServlet {
     apiRequestHandlers = Collections.unmodifiableMap(map);
   }
 
+  private static boolean acceptSurplusParams;
+
   abstract static class APIRequestHandler {
 
     private final List<String> parameters;
@@ -204,6 +208,9 @@ public final class APIServlet extends HttpServlet {
     abstract JSONStreamAware processRequest(HttpServletRequest request) throws BurstException;
 
     final void validateRequest(HttpServletRequest req) throws ParameterException {
+      if (acceptSurplusParams) {
+        return;  // do not validate params if we're told to accept all that's comming our way
+      }
       for ( String parameter : req.getParameterMap().keySet() ) {
         // _ is a parameter used in eg. jquery to avoid caching queries
         if ( ! this.parameters.contains(parameter) && ! parameter.equals("_") && ! parameter.equals("requestType") )
