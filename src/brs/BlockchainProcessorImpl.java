@@ -846,17 +846,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       previousLastBlock = blockchain.getLastBlock();
 
       if (previousLastBlock.getId() != block.getPreviousBlockId()) {
-        throw new BlockOutOfOrderException("Previous block id doesn't match");
+        throw new BlockOutOfOrderException("Previous block id doesn't match for block " + block.getHeight());
       }
 
       if (block.getVersion() != getBlockVersion()) {
-        throw new BlockNotAcceptedException("Invalid version " + block.getVersion());
+        throw new BlockNotAcceptedException("Invalid version " + block.getVersion() + " for block " + block.getHeight());
       }
 
       if (block.getVersion() != 1
           && !Arrays.equals(Crypto.sha256().digest(previousLastBlock.getBytes()),
           block.getPreviousBlockHash())) {
-        throw new BlockNotAcceptedException("Previous block hash doesn't match");
+        throw new BlockNotAcceptedException("Previous block hash doesn't match for block " + block.getHeight());
       }
       if (block.getTimestamp() > curTime + MAX_TIMESTAMP_DIFFERENCE
           || block.getTimestamp() <= previousLastBlock.getTimestamp()) {
@@ -865,13 +865,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                          + ", previous block timestamp is " + previousLastBlock.getTimestamp());
       }
       if (block.getId() == 0L || blockDb.hasBlock(block.getId())) {
-        throw new BlockNotAcceptedException("Duplicate block or invalid id");
+        throw new BlockNotAcceptedException("Duplicate block or invalid id for block " + block.getHeight());
       }
       if (! blockService.verifyGenerationSignature(block)) {
-        throw new BlockNotAcceptedException("Generation signature verification failed");
+        throw new BlockNotAcceptedException("Generation signature verification failed for block " + block.getHeight());
       }
       if (! blockService.verifyBlockSignature(block)) {
-        throw new BlockNotAcceptedException("Block signature verification failed");
+        throw new BlockNotAcceptedException("Block signature verification failed for block " + block.getHeight());
       }
 
       Map<TransactionType, Set<String>> duplicates = new HashMap<>();
@@ -963,10 +963,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       
       if (calculatedTotalAmount > block.getTotalAmountNQT()
           || calculatedTotalFee > block.getTotalFeeNQT()) {
-        throw new BlockNotAcceptedException("Total amount or fee don't match transaction totals");
+        throw new BlockNotAcceptedException("Total amount or fee don't match transaction totals for block " + block.getHeight());
       }
       if (!Arrays.equals(digest.digest(), block.getPayloadHash())) {
-        throw new BlockNotAcceptedException("Payload hash doesn't match");
+        throw new BlockNotAcceptedException("Payload hash doesn't match for block " + block.getHeight());
       }
 
       long remainingAmount =
@@ -1018,10 +1018,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       atBlock = AT_Controller.validateATs(block.getBlockATs(), blockchain.getHeight());
     } catch (NoSuchAlgorithmException e) {
       // should never reach that point
-      throw new BlockNotAcceptedException("md5 does not exist");
+      throw new BlockNotAcceptedException("md5 does not exist for block " + block.getHeight());
     } catch (AT_Exception e) {
-      throw new BlockNotAcceptedException("ats are not matching at block height "
-          + blockchain.getHeight() + " (" + e + ")");
+      throw new BlockNotAcceptedException("ats are not matching at block height " + blockchain.getHeight() + " (" + e + ")");
     }
     calculatedRemainingAmount += atBlock.getTotalAmount();
     calculatedRemainingFee += atBlock.getTotalFees();
@@ -1030,10 +1029,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       calculatedRemainingFee += subscriptionService.applyUnconfirmed(block.getTimestamp());
     }
     if (remainingAmount != null && remainingAmount != calculatedRemainingAmount) {
-      throw new BlockNotAcceptedException("Calculated remaining amount doesn't add up");
+      throw new BlockNotAcceptedException("Calculated remaining amount doesn't add up for block " + block.getHeight());
     }
     if (remainingFee != null && remainingFee != calculatedRemainingFee) {
-      throw new BlockNotAcceptedException("Calculated remaining fee doesn't add up");
+      throw new BlockNotAcceptedException("Calculated remaining fee doesn't add up for block " + block.getHeight());
     }
     blockListeners.notify(block, Event.BEFORE_BLOCK_APPLY);
     blockService.apply(block);
