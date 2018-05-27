@@ -55,7 +55,7 @@ public final class APIServlet extends HttpServlet {
       BlockService blockService, Generator generator, PropertyService propertyService, APITransactionManager apiTransactionManager) {
 
     enforcePost = propertyService.getBoolean(Props.API_SERVER_ENFORCE_POST);
-    acceptSurplusParams = propertyService.getBoolean(Props.API_ACCEPT_SURPLUS_PARAMS);
+    acceptSurplusParams = propertyService.getBoolean(Props.API_ACCEPT_SURPLUS_PARAMS, false);
     
     final Map<String, APIRequestHandler> map = new HashMap<>();
 
