@@ -11,10 +11,12 @@ import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-import brs.BurstException.NotValidException;
+import brs.BurstException.NotCurrentlyValidException;
 import brs.BurstException.ValidationException;
+import brs.Transaction.Builder;
 import brs.common.Props;
 import brs.common.TestConstants;
+import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
 import brs.db.VersionedBatchEntityTable;
 import brs.db.store.AccountStore;
@@ -63,6 +65,12 @@ public class UnconfirmedTransactionStoreTest {
     when(accountStoreMock.getAccountTable()).thenReturn(accountTableMock);
     when(accountStoreMock.getAccountKeyFactory()).thenReturn(accountBurstKeyFactoryMock);
 
+    final Account mockAccount = mock(Account.class);
+    final BurstKey mockAccountKey = mock(BurstKey.class);
+    when(accountBurstKeyFactoryMock.newKey(eq(123L))).thenReturn(mockAccountKey);
+    when(accountTableMock.get(eq(mockAccountKey))).thenReturn(mockAccount);
+    when(mockAccount.getUnconfirmedBalanceNQT()).thenReturn(Constants.MAX_BALANCE_NQT);
+
     FluxCapacitor mockFluxCapacitor = mock(FluxCapacitor.class);
     when(mockFluxCapacitor.isActive(eq(FeatureToggle.PRE_DYMAXION))).thenReturn(true);
     when(mockFluxCapacitor.isActive(eq(FeatureToggle.PRE_DYMAXION), anyInt())).thenReturn(true);
@@ -80,7 +88,7 @@ public class UnconfirmedTransactionStoreTest {
 
     for (int i = 1; i <= 8192; i++) {
       Transaction transaction = new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, i, 735000, timeService.getEpochTime() + 50000, (short) 500, ORDINARY_PAYMENT)
-        .id(i).build();
+          .id(i).senderId(123L).build();
       transaction.sign(TestConstants.TEST_SECRET_PHRASE);
       t.put(transaction);
     }
@@ -90,7 +98,7 @@ public class UnconfirmedTransactionStoreTest {
 
     final Transaction oneTransactionTooMany =
         new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 9999, 735000, timeService.getEpochTime() + 50000, (short) 500, ORDINARY_PAYMENT)
-            .id(8193L).build();
+            .id(8193L).senderId(123L).build();
     oneTransactionTooMany.sign(TestConstants.TEST_SECRET_PHRASE);
     t.put(oneTransactionTooMany);
 
@@ -100,13 +108,12 @@ public class UnconfirmedTransactionStoreTest {
 
   @DisplayName("The amount of unconfirmed transactions exceeds max size, when adding a group of others the cache size stays the same")
   @Test
-  public void numberOfUnconfirmedTransactionsExceedsMaxSizeAddAGroupOfOthersThenCacheSizeStaysMaxSize() throws ValidationException, InterruptedException {
-
+  public void numberOfUnconfirmedTransactionsExceedsMaxSizeAddAGroupOfOthersThenCacheSizeStaysMaxSize() throws ValidationException {
     when(mockBlockChain.getHeight()).thenReturn(20);
 
     for (int i = 1; i <= 8192; i++) {
       Transaction transaction = new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, i, 735000, timeService.getEpochTime() + 50000, (short) 500, ORDINARY_PAYMENT)
-          .id(i).build();
+          .id(i).senderId(123L).build();
       transaction.sign(TestConstants.TEST_SECRET_PHRASE);
       t.put(transaction);
     }
@@ -117,10 +124,10 @@ public class UnconfirmedTransactionStoreTest {
     assertNotNull(t.get(3L));
 
     final List<Transaction> groupOfExtras = new ArrayList<>();
-    for(int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
       final Transaction extraTransaction =
           new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 9999, 735000, timeService.getEpochTime() + 50000, (short) 500, ORDINARY_PAYMENT)
-              .id(8193 + i).build();
+              .id(8193 + i).senderId(123L).build();
       extraTransaction.sign(TestConstants.TEST_SECRET_PHRASE);
       groupOfExtras.add(extraTransaction);
     }
@@ -142,7 +149,7 @@ public class UnconfirmedTransactionStoreTest {
   public void transactionGetsRemovedWhenExpired() throws ValidationException, InterruptedException {
     final int deadlineWithin2Seconds = timeService.getEpochTime() - 29998;
     final Transaction transaction = new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 500, 735000, deadlineWithin2Seconds, (short) 500, ORDINARY_PAYMENT)
-        .id(1).build();
+        .id(1).senderId(123L).build();
 
     transaction.sign(TestConstants.TEST_SECRET_PHRASE);
 
@@ -160,7 +167,7 @@ public class UnconfirmedTransactionStoreTest {
   public void transactionGetsRemovedWhenExpiredWhenRunningForeach() throws ValidationException, InterruptedException {
     final int deadlineWithin2Seconds = timeService.getEpochTime() - 29998;
     final Transaction transaction = new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 500, 735000, deadlineWithin2Seconds, (short) 500, ORDINARY_PAYMENT)
-        .id(1).build();
+        .id(1).senderId(123L).build();
 
     transaction.sign(TestConstants.TEST_SECRET_PHRASE);
 
@@ -171,5 +178,46 @@ public class UnconfirmedTransactionStoreTest {
     Thread.sleep(3000);
 
     t.forEach(t -> fail("No transactions should be left to run the foreach on"));
+  }
+
+  @DisplayName("The unconfirmed transaction gets denied in case the account is unknown")
+  @Test(expected = NotCurrentlyValidException.class)
+  public void unconfirmedTransactionGetsDeniedForUnknownAccount() throws ValidationException {
+    when(mockBlockChain.getHeight()).thenReturn(20);
+
+    Transaction transaction = new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 1, 735000, timeService.getEpochTime() + 50000, (short) 500, ORDINARY_PAYMENT)
+        .id(1).senderId(124L).build();
+    transaction.sign(TestConstants.TEST_SECRET_PHRASE);
+    t.put(transaction);
+  }
+
+  @DisplayName("The unconfirmed transaction gets denied in case the account does not have enough unconfirmed balance")
+  @Test(expected = NotCurrentlyValidException.class)
+  public void unconfirmedTransactionGetsDeniedForNotEnoughUnconfirmedBalance() throws ValidationException {
+    when(mockBlockChain.getHeight()).thenReturn(20);
+
+    Transaction transaction = new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 1, Constants.MAX_BALANCE_NQT, timeService.getEpochTime() + 50000, (short) 500, ORDINARY_PAYMENT)
+        .id(1).senderId(123L).build();
+    transaction.sign(TestConstants.TEST_SECRET_PHRASE);
+    t.put(transaction);
+  }
+
+  @DisplayName("When adding the same unconfirmed transaction, the first one gets refunded")
+  @Test
+  public void addingNewUnconfirmedTransactionWithSameIDRefundsTheFirstOne() throws ValidationException {
+    when(mockBlockChain.getHeight()).thenReturn(20);
+
+    Builder transactionBuilder = new Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 1, Constants.MAX_BALANCE_NQT - 100000, timeService.getEpochTime() + 50000,
+        (short) 500, ORDINARY_PAYMENT)
+        .id(1).senderId(123L);
+
+    Transaction transaction1 = transactionBuilder.build();
+    transaction1.sign(TestConstants.TEST_SECRET_PHRASE);
+    t.put(transaction1);
+
+    Transaction transaction2 = transactionBuilder.build();
+    transaction2.sign(TestConstants.TEST_SECRET_PHRASE);
+
+    t.put(transaction2);
   }
 }
