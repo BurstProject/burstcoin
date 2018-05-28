@@ -730,19 +730,15 @@ public final class Peers {
     }
   }
 
-  public static void sendToSomePeers(Block block, boolean sendSameBRSclass) {
+  public static void sendToSomePeers(Block block) {
     JSONObject request = block.getJSONObject();
     request.put("requestType", "processBlock");
-    sendToSomePeers(request, sendSameBRSclass);
+    sendToSomePeers(request, false);
   }
 
-  public static void sendToSomePeers(List<Transaction> transactions, boolean sendSameBRSclass) {
+  public static void sendToSomePeers(List<Transaction> transactions) {
     JSONObject request = new JSONObject();
     JSONArray transactionsData = new JSONArray();
-
-    if (sendSameBRSclass != true) {
-      logger.info("We want to send transactions to different BRS class.");      
-    }
 
     for (Transaction transaction : transactions) {
       transactionsData.add(transaction.getJSONObject());
