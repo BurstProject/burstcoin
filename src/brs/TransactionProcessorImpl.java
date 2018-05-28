@@ -363,7 +363,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 
   }
 
-  List<Transaction> processTransactions(Collection<Transaction> transactions, final boolean sendToPeers) {
+  List<Transaction> processTransactions(Collection<Transaction> transactions, final boolean sendToPeers) throws BurstException.ValidationException {
 	synchronized (unconfirmedTransactionsSyncObj) {
     if (transactions.isEmpty()) {
       return Collections.emptyList();
@@ -399,14 +399,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
             continue;
           }
 
-          try {
-            unconfirmedTransactionStore.put(transaction);
-          }
-          catch (BurstException.ValidationException e){
-            logger.debug("Transaction not valid", e);
-
-            continue;
-          }
+          unconfirmedTransactionStore.put(transaction);
           addedUnconfirmedTransactions.add(transaction);
 
           if (sendToPeers) {
