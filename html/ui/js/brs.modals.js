@@ -123,7 +123,6 @@ var BRS = (function(BRS, $, undefined) {
     $(document).on("click", ".remove_recipient .remove_recipient_button", function(e) {
         e.preventDefault();
         $(this).parent().parent('div').remove();
-        multi_out_recipients--;
 
         if ($(".same_out_checkbox").is(":checked")) {
             multi_out_same_recipients--;
