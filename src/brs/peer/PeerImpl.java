@@ -109,7 +109,7 @@ final class PeerImpl implements Peer {
 
   // semantic versioning for peer versions. here: ">=" negate it for "<"
   public boolean isHigherOrEqualVersionThan(String ComparisonVersion) {
-    Pattern pattern = Pattern.compile("^(\\d+)\\.(\\d+)\\.(\\d+)");
+    Pattern pattern = Pattern.compile("^(\\d+)\\.(\\d+)(?:\\.(\\d+))?");
     Matcher matchPeer = pattern.matcher(version);
     Matcher matchCompare = pattern.matcher(ComparisonVersion);
 
