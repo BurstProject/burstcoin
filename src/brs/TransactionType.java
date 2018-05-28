@@ -237,11 +237,7 @@ public abstract class TransactionType {
 
   // return false iff double spending
   public final boolean applyUnconfirmed(Transaction transaction, Account senderAccount) {
-    long totalAmountNQT = Convert.safeAdd(transaction.getAmountNQT(), transaction.getFeeNQT());
-    if (transaction.getReferencedTransactionFullHash() != null
-        && transaction.getTimestamp() > Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP) {
-      totalAmountNQT = Convert.safeAdd(totalAmountNQT, Constants.UNCONFIRMED_POOL_DEPOSIT_NQT);
-    }
+    long totalAmountNQT = calculateTransactionAmountNQT(transaction);
     logger.trace("applyUnconfirmed: " + senderAccount.getUnconfirmedBalanceNQT() + " < totalamount: " + totalAmountNQT + " = false");
     if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT) {
       return false;
@@ -254,6 +250,23 @@ public abstract class TransactionType {
     }
     return true;
   }
+
+  public Long calculateTotalAmountNQT(Transaction transaction) {
+    return Convert.safeAdd(calculateTransactionAmountNQT(transaction), calculateAttachmentTotalAmountNQT(transaction));
+  }
+
+  public Long calculateTransactionAmountNQT(Transaction transaction) {
+    long totalAmountNQT = Convert.safeAdd(transaction.getAmountNQT(), transaction.getFeeNQT());
+    if (transaction.getReferencedTransactionFullHash() != null
+        && transaction.getTimestamp() > Constants.REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP) {
+      totalAmountNQT = Convert.safeAdd(totalAmountNQT, Constants.UNCONFIRMED_POOL_DEPOSIT_NQT);
+    }
+    return totalAmountNQT;
+  }
+
+  public Long calculateAttachmentTotalAmountNQT(Transaction transaction) {
+    return 0L;
+  };
 
   abstract boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount);
 
@@ -1035,12 +1048,18 @@ public abstract class TransactionType {
         @Override
         boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
           logger.trace("TransactionType BID_ORDER_PLACEMENT");
-          Attachment.ColoredCoinsBidOrderPlacement attachment = (Attachment.ColoredCoinsBidOrderPlacement) transaction.getAttachment();
-          if (senderAccount.getUnconfirmedBalanceNQT() >= Convert.safeMultiply(attachment.getQuantityQNT(), attachment.getPriceNQT())) {
-            accountService.addToUnconfirmedBalanceNQT(senderAccount, -Convert.safeMultiply(attachment.getQuantityQNT(), attachment.getPriceNQT()));
+          Long totalAmountNQT = calculateAttachmentTotalAmountNQT(transaction);
+          if (senderAccount.getUnconfirmedBalanceNQT() >= totalAmountNQT ) {
+            accountService.addToUnconfirmedBalanceNQT(senderAccount, -totalAmountNQT);
             return true;
           }
           return false;
+        }
+
+        @Override
+        public Long calculateAttachmentTotalAmountNQT(Transaction transaction) {
+          Attachment.ColoredCoinsBidOrderPlacement attachment = (Attachment.ColoredCoinsBidOrderPlacement) transaction.getAttachment();
+          return Convert.safeMultiply(attachment.getQuantityQNT(), attachment.getPriceNQT());
         }
 
         @Override
@@ -1053,8 +1072,8 @@ public abstract class TransactionType {
 
         @Override
         void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-          Attachment.ColoredCoinsBidOrderPlacement attachment = (Attachment.ColoredCoinsBidOrderPlacement) transaction.getAttachment();
-          accountService.addToUnconfirmedBalanceNQT(senderAccount, Convert.safeMultiply(attachment.getQuantityQNT(), attachment.getPriceNQT()));
+          Long totalAmountNQT = calculateAttachmentTotalAmountNQT(transaction);
+          accountService.addToUnconfirmedBalanceNQT(senderAccount, totalAmountNQT);
         }
 
       };
@@ -1140,7 +1159,6 @@ public abstract class TransactionType {
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.ColoredCoinsBidOrderCancellation attachment = (Attachment.ColoredCoinsBidOrderCancellation) transaction.getAttachment();
           Order order = assetExchange.getBidOrder(attachment.getOrderId());
-          assetExchange.removeBidOrder(attachment.getOrderId());
           if (order != null) {
             accountService.addToUnconfirmedBalanceNQT(senderAccount, Convert.safeMultiply(order.getQuantityQNT(), order.getPriceNQT()));
           }
@@ -1410,18 +1428,23 @@ public abstract class TransactionType {
         @Override
         boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
           logger.trace("TransactionType PURCHASE");
-          Attachment.DigitalGoodsPurchase attachment = (Attachment.DigitalGoodsPurchase) transaction.getAttachment();
-          if (senderAccount.getUnconfirmedBalanceNQT() >= Convert.safeMultiply(attachment.getQuantity(), attachment.getPriceNQT())) {
-            accountService.addToUnconfirmedBalanceNQT(senderAccount, -Convert.safeMultiply(attachment.getQuantity(), attachment.getPriceNQT()));
+          Long totalAmountNQT = calculateAttachmentTotalAmountNQT(transaction);
+          if (senderAccount.getUnconfirmedBalanceNQT() >= totalAmountNQT) {
+            accountService.addToUnconfirmedBalanceNQT(senderAccount, -totalAmountNQT);
             return true;
           }
           return false;
         }
 
         @Override
-        void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public Long calculateAttachmentTotalAmountNQT(Transaction transaction) {
           Attachment.DigitalGoodsPurchase attachment = (Attachment.DigitalGoodsPurchase) transaction.getAttachment();
-          accountService.addToUnconfirmedBalanceNQT(senderAccount, Convert.safeMultiply(attachment.getQuantity(), attachment.getPriceNQT()));
+          return Convert.safeMultiply(attachment.getQuantity(), attachment.getPriceNQT());
+        }
+
+        @Override
+        void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+          accountService.addToUnconfirmedBalanceNQT(senderAccount, calculateAttachmentTotalAmountNQT(transaction));
         }
 
         @Override
@@ -1596,18 +1619,23 @@ public abstract class TransactionType {
         @Override
         boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
           logger.trace("TransactionType REFUND");
-          Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) transaction.getAttachment();
-          if (senderAccount.getUnconfirmedBalanceNQT() >= attachment.getRefundNQT()) {
-            accountService.addToUnconfirmedBalanceNQT(senderAccount, -attachment.getRefundNQT());
+          Long totalAmountNQT = calculateAttachmentTotalAmountNQT(transaction);
+          if (senderAccount.getUnconfirmedBalanceNQT() >= totalAmountNQT) {
+            accountService.addToUnconfirmedBalanceNQT(senderAccount, -totalAmountNQT);
             return true;
           }
           return false;
         }
 
         @Override
-        void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+        public Long calculateAttachmentTotalAmountNQT(Transaction transaction) {
           Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) transaction.getAttachment();
-          accountService.addToUnconfirmedBalanceNQT(senderAccount, attachment.getRefundNQT());
+          return attachment.getRefundNQT();
+        }
+
+        @Override
+        void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+          accountService.addToUnconfirmedBalanceNQT(senderAccount, calculateAttachmentTotalAmountNQT(transaction));
         }
 
         @Override
@@ -1841,8 +1869,7 @@ public abstract class TransactionType {
         @Override
         final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
           logger.trace("TransactionType ESCROW_CREATION");
-          Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
-          Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_BURST);
+          Long totalAmountNQT = calculateAttachmentTotalAmountNQT(transaction);
           if (senderAccount.getUnconfirmedBalanceNQT() < totalAmountNQT) {
             return false;
           }
@@ -1851,9 +1878,15 @@ public abstract class TransactionType {
         }
 
         @Override
+        public Long calculateAttachmentTotalAmountNQT(Transaction transaction) {
+          Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
+          return Convert.safeAdd(attachment.getAmountNQT(), Convert.safeMultiply(attachment.getTotalSigners(), Constants.ONE_BURST));
+        }
+
+        @Override
         final void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
-          Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_BURST);
+          Long totalAmountNQT = calculateAttachmentTotalAmountNQT(transaction);
           accountService.addToBalanceNQT(senderAccount, -totalAmountNQT);
           Collection<Long> signers = attachment.getSigners();
           signers.forEach(signer -> accountService.addToBalanceAndUnconfirmedBalanceNQT(accountService.getOrAddAccount(signer), Constants.ONE_BURST));
@@ -1869,9 +1902,7 @@ public abstract class TransactionType {
 
         @Override
         final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
-          Attachment.AdvancedPaymentEscrowCreation attachment = (Attachment.AdvancedPaymentEscrowCreation) transaction.getAttachment();
-          Long totalAmountNQT = Convert.safeAdd(attachment.getAmountNQT(), attachment.getTotalSigners() * Constants.ONE_BURST);
-          accountService.addToUnconfirmedBalanceNQT(senderAccount, totalAmountNQT);
+          accountService.addToUnconfirmedBalanceNQT(senderAccount, calculateAttachmentTotalAmountNQT(transaction));
         }
 
         @Override

@@ -13,8 +13,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UnconfirmedTransactionStore {
+
+  private static final Logger logger = LoggerFactory.getLogger(UnconfirmedTransactionStore.class);
 
   private final TimeService timeService;
   private final AccountStore accountStore;
@@ -47,17 +51,19 @@ public class UnconfirmedTransactionStore {
         );
     Long amountNQT = Convert.safeAdd(
         reservedBalanceCache.getOrDefault(transaction.getSenderId(), 0L),
-        Convert.safeAdd(transaction.getAmountNQT(), transaction.getFeeNQT())
+        transaction.getType().calculateTotalAmountNQT(transaction)
     );
     if ( senderAccount == null ) {
-      throw new BurstException.NotCurrentlyValidException(String.format("Account %d does not exist and has no balance. Require %d > %d Balance",
-          transaction.getSenderId(), amountNQT, 0
+      logger.debug(String.format("Account %d does not exist and has no balance. Required funds: %d",
+          transaction.getSenderId(), amountNQT
       ));
+      throw new BurstException.NotValidException("Account unknown");
     }
     else if ( amountNQT > senderAccount.getUnconfirmedBalanceNQT() ) {
-      throw new BurstException.NotCurrentlyValidException(String.format("Account %d balance to low. Require %d > %d Balance",
+      logger.debug(String.format("Account %d balance to low. You have  %d > %d Balance",
           transaction.getSenderId(), amountNQT, senderAccount.getUnconfirmedBalanceNQT()
       ));
+      throw new BurstException.NotValidException("Insufficient funds");
     }
     reservedBalanceCache.put(transaction.getSenderId(), amountNQT);
     cache.put(transaction.getId(), transaction);
@@ -66,7 +72,7 @@ public class UnconfirmedTransactionStore {
   private void refundBalance(Transaction transaction) {
     Long amountNQT = Convert.safeSubtract(
         reservedBalanceCache.getOrDefault(transaction.getSenderId(), 0L),
-        Convert.safeAdd(transaction.getAmountNQT(), transaction.getFeeNQT())
+        transaction.getType().calculateTotalAmountNQT(transaction)
     );
     if ( amountNQT > 0 ) {
       reservedBalanceCache.put(transaction.getSenderId(), amountNQT);
