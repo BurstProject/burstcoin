@@ -814,7 +814,7 @@ var BRS = (function(BRS, $, undefined) {
     };
 
     BRS.setupClipboardFunctionality = function() {
-        var elements = "#asset_id_dropdown .dropdown-menu a, #account_id_dropdown .dropdown-menu a";
+        var elements = "#asset_id_dropdown .dropdown-menu a, #account_id_dropdown .sbdropdown-menu a";
 
         if (BRS.isLocalHost) {
             $("#account_id_dropdown li.remote_only, #asset_info_dropdown li.remote_only").remove();
@@ -846,7 +846,7 @@ var BRS = (function(BRS, $, undefined) {
 
             if ($el.hasClass("dropdown-toggle")) {
                 $el.removeClass("dropdown-toggle").data("toggle", "");
-                $el.parent().remove(".dropdown-menu");
+                $el.parent().remove(".sbdropdown-menu");
             }
 
             clipboard.on('success', function(e) {
@@ -860,7 +860,7 @@ var BRS = (function(BRS, $, undefined) {
             });
 
             clipboard.on('error', function(e) {
-                $("#account_id_dropdown .dropdown-menu, #asset_id_dropdown .dropdown-menu").remove();
+                $("#account_id_dropdown .sbdropdown-menu, #asset_id_dropdown .dropdown-menu").remove();
                 $("#account_id_dropdown, #asset_id").data("toggle", "");
                 $.notify($.t("error_clipboard_copy"), {
                     type: 'danger',
