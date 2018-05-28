@@ -57,13 +57,13 @@ public class UnconfirmedTransactionStore {
       logger.debug(String.format("Account %d does not exist and has no balance. Required funds: %d",
           transaction.getSenderId(), amountNQT
       ));
-      throw new BurstException.NotValidException("Account unknown");
+      throw new BurstException.NotCurrentlyValidException("Account unknown");
     }
     else if ( amountNQT > senderAccount.getUnconfirmedBalanceNQT() ) {
       logger.debug(String.format("Account %d balance to low. You have  %d > %d Balance",
           transaction.getSenderId(), amountNQT, senderAccount.getUnconfirmedBalanceNQT()
       ));
-      throw new BurstException.NotValidException("Insufficient funds");
+      throw new BurstException.NotCurrentlyValidException("Insufficient funds");
     }
     reservedBalanceCache.put(transaction.getSenderId(), amountNQT);
     cache.put(transaction.getId(), transaction);
