@@ -12,17 +12,12 @@ function usage() {
     cat << EOF
 usage: $0 [command] [arguments]
 
-WALLET OPERATIONS:
-  start                         Starts the BRS wallet as a background process
-  stop                          Stops any running instance of the BRS Wallet
-
 INSTALLATION & UPGRADING:
   h2shell                       Opens a H2 shell for DB manipulation
   help                          Shows the help you just read
   compile                       Compile jar and create docs using maven
   upgrade                       Upgrade the config files to BRS format
   import [mariadb|h2]           DELETE current DB, then gets a new mariadb or H2
-  macos                         Handles dependency installation for macos
   switch <instance>             Switch config file to instance (MainNet,TestNet...)
 
 "switch" option is for developers who need to quickly switch between various
@@ -174,19 +169,73 @@ EOF
     echo "DB.Password=$P_PASS" >> ./conf/brs.properties
 }
 
-function start_wallet {
-    echo "[+] Starting BRS wallet..."
-    java $BRS_DEVSTART -cp burst.jar:conf brs.Burst >/dev/null 2>&1 &
-    sleep 10
-    echo "[+] Wallet started - Please open a browser and go to http://localhost:8125/index.html"
+function macos_dependency_install {
+    # Verify compatible macos version
+    VERSION_MINOR=$(sw_vers -productVersion | grep -E -o '1[0-9]' | tail -n1)
+    if [ "$VERSION_MINOR" -lt "10" ]; then
+        echo "[!] Unsupported version of macOS, Homebrew requires 10.10 or greater"
+        echo "[!] Please manually install MariaDB, and Java and run this command again."
+        return
+    fi
+    echo "[+] Installing BRS wallet dependencies for macOS"
+    
+    # Install or upgrade brew
+    which -s brew
+    if [[ $? != 0 ]] ; then
+        echo "[+] Installing Homebrew..."
+        echo "[+] Press ENTER when prompted then enter sudo password if asked."
+        ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    else
+        echo "[+] Homebrew found - Updating Homebrew... (might take a while)"
+        brew update
+    fi
+
+    # Install or upgrade mariaDB
+    echo "[+] Installing MariaDB using Homebrew..."
+    if brew ls --versions mariadb > /dev/null; then
+        MARIA_STATE=$(brew services list | grep mariadb | awk '{ print $2 }')
+        if [[ $MARIA_STATE == "started" ]]; then
+            echo "[+] MariaDB is already installed and running."
+        fi
+        brew upgrade mariadb
+        echo "[+] MariaDB upgrade complete."
+    else
+        brew install mariadb
+        echo "[+] MariaDB install complete."
+    fi
+
+    # mariaDB setup
+    echo "[+] Starting MariaDB..."
+    brew services start mariadb
+    sleep 5 
+    create_brs_db
+    sleep 2
+
+    # Check if java is installed
+    if [ -z `which java 2>/dev/null` ]; then
+        echo "[+] Java install not found. Installing Java 8 JDK using Homebrew..."
+        brew tap caskroom/versions
+        brew cask search java
+        brew cask install java8
+    else 
+        echo "[+] Java dependency already met."
+    fi
+
+    echo "[+] macOS Dependency setup completed successfully."
+    echo "[+] Wallet will start momentarily..."
 }
 
-function stop_wallet {
-    echo "[+] Stopping BRS wallet..."
-    kill $(ps aux | grep '/usr/bin/java -cp burst.jar:conf brs.Burst' | awk '{print $2}') >/dev/null 2>&1
-    kill $(ps aux | grep '/bin/bash ./burst.sh' | awk '{print $2}') >/dev/null 2>&1
-    sleep 10
-    echo "[+] Wallet stopped."
+function mariadb_installed {
+    if which mysql >/dev/null; then
+        MYSQL_VERSION=$(mysql --version)
+        if [[ "$MYSQL_VERSION" == *"MariaDB"* ]]; then
+            MARIADB_INSTALLED=0
+        else 
+            MARIADB_INSTALLED=1
+        fi
+    else
+        MARIADB_INSTALLED=1
+    fi
 }
 
 function exists_or_get {
@@ -208,12 +257,6 @@ fi
 
 if [[ $# -gt 0 ]] ; then
     case "$MY_CMD" in
-        "start")
-            start_wallet
-            ;;
-        "stop")
-            stop_wallet
-            ;;
         "compile")
             if [ -d "maven/apache-maven-${MY_MAVEN_VERSION}" ]; then
                 PATH=maven/apache-maven-${MY_MAVEN_VERSION}/bin:$PATH
@@ -326,65 +369,6 @@ if [[ $# -gt 0 ]] ; then
             upgrade_conf nxt-default.properties
             upgrade_conf nxt.properties
             ;;
-        "macos")
-            # Verify compatible macos version
-            if [[ "$OSTYPE" != "darwin"* ]]; then
-                echo "[!] Operating system was not recognized as a Darwin system"
-                exit 1
-            fi
-            VERSION_MINOR=$(sw_vers -productVersion | grep -E -o '1[0-9]' | tail -n1)
-            if [ "$VERSION_MINOR" -lt "10" ]; then
-                echo "[!] Unsupported version of macos, Homebrew requires 10.10 or greater"
-                exit 1
-            fi
-            echo "[+] Installing BRS wallet dependencies for macos"
-            
-            # Install or upgrade brew
-            which -s brew
-            if [[ $? != 0 ]] ; then
-                echo "[+] Installing Homebrew..."
-                echo "[+] Press ENTER when prompted then enter sudo password if asked."
-                ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-            else
-                echo "[+] Homebrew found - Updating Homebrew... (might take a while)"
-                brew update
-            fi
-
-            # Install or upgrade mariaDB
-            echo "[+] Installing MariaDB using Homebrew..."
-            if brew ls --versions mariadb > /dev/null; then
-                MARIA_STATE=$(brew services list | grep mariadb | awk '{ print $2 }')
-                if [[ $MARIA_STATE == "started" ]]; then
-                    echo "[+] MariaDB is already installed and running."
-                fi
-                brew upgrade mariadb
-                echo "[+] MariaDB upgrade complete."
-            else
-                brew install mariadb
-                echo "[+] MariaDB install complete."
-            fi
-
-            # mariaDB setup
-            echo "[+] Starting MariaDB..."
-            brew services start mariadb
-            sleep 5 
-            create_brs_db
-            sleep 2
-
-            # Check if java is installed
-            if [ -z `which java 2>/dev/null` ]; then
-                echo "[+] Java install not found. Installing Java 8 JDK using Homebrew..."
-                brew tap caskroom/versions
-                brew cask search java
-                brew cask install java8
-            else 
-                echo "[+] Java dependency already met."
-            fi
-
-            echo "[+] Macos Dependency setup completed successfully."
-            echo "[+] To start the BRS wallet run \`./burst.sh start\`"
-            exit 0
-            ;;
         *)
             usage
             ;;
@@ -393,6 +377,13 @@ else
     ARCH=`uname -m`
     if [[ $ARCH = "armv7l" ]]; then
         export LD_LIBRARY_PATH=./lib/armv7l
+    fi
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        mariadb_installed
+        echo "[+] Darwin OS Type detected, checking dependencies..."
+        if [[ $MARIADB_INSTALLED == 1 ]]; then
+            macos_dependency_install
+        fi
     fi
     java $BRS_DEVSTART -cp burst.jar:conf brs.Burst
 fi
