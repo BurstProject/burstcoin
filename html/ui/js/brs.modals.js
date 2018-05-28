@@ -56,7 +56,7 @@ var BRS = (function(BRS, $, undefined) {
 
     // just to be safe set total display
     var current_fee = parseFloat($("#multi-out-fee").val(), 10);
-    var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+    var fee = isNaN(current_fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
     $("#multi-out-fee").val(fee);
     var total_multi_out = fee;
     var amount_total = 0;
@@ -99,7 +99,7 @@ var BRS = (function(BRS, $, undefined) {
                 var current_fee = parseFloat($("#multi-out-fee").val(), 10);
 
                 var amount = isNaN(current_amount) ? 0.00000001 : (current_amount < 0.00000001 ? 0.00000001 : current_amount);
-                var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+                var fee = isNaN(current_fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
 
                 $("#multi-out-same-amount").val(amount.toFixed(8));
                 $("#multi-out-fee").val(fee.toFixed(8));
@@ -134,7 +134,7 @@ var BRS = (function(BRS, $, undefined) {
             var current_fee = parseFloat($("#multi-out-fee").val(), 10);
 
             var amount = isNaN(current_amount) ? 0.00000001 : (current_amount < 0.00000001 ? 0.00000001 : current_amount);
-            var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+            var fee = isNaN(current_fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
 
             $("#multi-out-same-amount").val(amount.toFixed(8));
             $("#multi-out-fee").val(fee.toFixed(8));
@@ -159,7 +159,7 @@ var BRS = (function(BRS, $, undefined) {
             });
 
             var current_fee = parseFloat($("#multi-out-fee").val(), 10);
-            var fee = isNaN(fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+            var fee = isNaN(fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
             $("#multi-out-fee").val(fee.toFixed(8));
             total_multi_out = amount_total + fee;
 
@@ -179,7 +179,7 @@ var BRS = (function(BRS, $, undefined) {
         });
 
         var current_fee = parseFloat($("#multi-out-fee").val(), 10);
-        var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+        var fee = isNaN(current_fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
         $("#multi-out-fee").val(fee.toFixed(8));
         total_multi_out = amount_total + fee;
 
@@ -193,7 +193,7 @@ var BRS = (function(BRS, $, undefined) {
         var current_fee = parseFloat($("#multi-out-fee").val(), 10);
 
         var amount = isNaN(current_amount) ? 0.00000001 : (current_amount < 0.00000001 ? 0.00000001 : current_amount);
-        var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+        var fee = isNaN(current_fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
 
         $("#multi-out-same-amount").val(amount.toFixed(8));
         $("#multi-out-fee").val(fee.toFixed(8));
@@ -220,7 +220,7 @@ var BRS = (function(BRS, $, undefined) {
 
     $("#multi-out-fee").on("change", function(e) {
         var current_fee = parseFloat($(this).val(), 10);
-        var fee = isNaN(current_fee) ? 0.1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+        var fee = isNaN(current_fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
 
         $("#multi-out-fee").val(fee.toFixed(8));
 
@@ -381,7 +381,7 @@ var BRS = (function(BRS, $, undefined) {
         // uncheck same out
         $(".same_out_checkbox").prop('checked', false);
         // reset fee and amount
-        $("#multi-out-fee").val((0.1).toFixed(8));
+        $("#multi-out-fee").val((1).toFixed(8));
         $("#multi-out-same-amount").val('');
         // show ordinary
         $(".ordinary").fadeIn();
@@ -450,7 +450,7 @@ var BRS = (function(BRS, $, undefined) {
         if ($feeInput.length) {
             var defaultFee = $feeInput.data("default");
             if (!defaultFee) {
-                defaultFee = 0.1;
+                defaultFee = 1;
             }
 
             $(this).find(".advanced_fee").html(BRS.formatAmount(BRS.convertToNQT(defaultFee)) + " BURST");
