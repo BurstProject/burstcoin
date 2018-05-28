@@ -13,7 +13,7 @@ var BRS = (function(BRS, $, undefined) {
 	BRS.sendRequest("getAccountTransactions+", {
 	    "account": BRS.account,
 	    "firstIndex": 0,
-	    "lastIndex": 75,
+	    "lastIndex": 74,
 	    "type": 1,
 	    "subtype": 0
 	}, function(response) {

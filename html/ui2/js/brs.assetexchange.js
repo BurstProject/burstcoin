@@ -688,7 +688,7 @@ var BRS = (function(BRS, $, undefined) {
             "asset": assetId,
             "account": ($("#ae_show_my_trades_only").is(":checked")) ? $("#account_id").text() : "",
             "firstIndex": 0,
-            "lastIndex": 50
+            "lastIndex": 49
         }, function(response, input) {
             if (response.trades && response.trades.length) {
                 var trades = response.trades;
@@ -724,8 +724,8 @@ var BRS = (function(BRS, $, undefined) {
 
         BRS.sendRequest("get" + type.capitalize() + "Orders+" + assetId, {
             "asset": assetId,
-            "timestamp": 0,
-            "limit": 50
+            "firstIndex": 0,
+            "lastIndex": 49
         }, function(response, input) {
             var orders = response[type + "Orders"];
             var i;
@@ -1480,7 +1480,7 @@ var BRS = (function(BRS, $, undefined) {
         BRS.sendRequest("getAssetTransfers+", {
             "account": BRS.accountRS,
             "firstIndex": BRS.pageNumber * BRS.itemsPerPage - BRS.itemsPerPage,
-            "lastIndex": BRS.pageNumber * BRS.itemsPerPage
+            "lastIndex": BRS.pageNumber * BRS.itemsPerPage - 1
         }, function(response, input) {
             if (response.transfers && response.transfers.length) {
                 if (response.transfers.length > BRS.itemsPerPage) {
@@ -1537,8 +1537,8 @@ var BRS = (function(BRS, $, undefined) {
 
                 BRS.sendRequest("getAskOrderIds+", {
                     "asset": BRS.accountInfo.assetBalances[i].asset,
-                    "limit": 1,
-                    "timestamp": 0
+                    "firstIndex": 0,
+                    "lastIndex": 0
                 }, function(response, input) {
                     if (BRS.currentPage != "my_assets") {
                         return;
@@ -1574,8 +1574,8 @@ var BRS = (function(BRS, $, undefined) {
 
                 BRS.sendRequest("getBidOrderIds+", {
                     "asset": BRS.accountInfo.assetBalances[i].asset,
-                    "limit": 1,
-                    "timestamp": 0
+                    "firstIndex": 0,
+                    "lastIndex": 0
                 }, function(response, input) {
                     if (BRS.currentPage != "my_assets") {
                         return;
@@ -1898,8 +1898,7 @@ var BRS = (function(BRS, $, undefined) {
         var orders = [];
 
         BRS.sendRequest(getCurrentOrderIds, {
-            "account": BRS.account,
-            "timestamp": 0
+            "account": BRS.account
         }, function(response) {
             if (response[orderIds] && response[orderIds].length) {
                 var nr_orders = 0;

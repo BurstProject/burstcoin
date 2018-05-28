@@ -351,7 +351,7 @@ var BRS = (function(BRS, $, undefined) {
         var params = {
             "account": BRS.account,
             "firstIndex": 0,
-            "lastIndex": 100
+            "lastIndex": 99
         };
 
         if (BRS.transactionsPageType) {

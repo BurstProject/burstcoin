@@ -98,7 +98,7 @@ var BRS = (function(BRS, $, undefined) {
             BRS.sendRequest("getDGSGoods+", {
                 "seller": seller,
                 "firstIndex": BRS.pageNumber * BRS.itemsPerPage - BRS.itemsPerPage,
-                "lastIndex": BRS.pageNumber * BRS.itemsPerPage
+                "lastIndex": BRS.pageNumber * BRS.itemsPerPage - 1
             }, function(response) {
                 $("#dgs_search_contents").empty();
 
@@ -132,7 +132,7 @@ var BRS = (function(BRS, $, undefined) {
             BRS.sendRequest("getDGSGoods+", {
                 "seller": 0,
                 "firstIndex": BRS.pageNumber * BRS.itemsPerPage - BRS.itemsPerPage,
-                "lastIndex": BRS.pageNumber * BRS.itemsPerPage
+                "lastIndex": BRS.pageNumber * BRS.itemsPerPage - 1
             }, function(response) {
                 $("#dgs_search_contents").empty();
                 
@@ -178,7 +178,7 @@ var BRS = (function(BRS, $, undefined) {
         BRS.sendRequest("getDGSPurchases+", {
             "buyer": BRS.account,
             "firstIndex": BRS.pageNumber * BRS.itemsPerPage - BRS.itemsPerPage,
-            "lastIndex": BRS.pageNumber * BRS.itemsPerPage
+            "lastIndex": BRS.pageNumber * BRS.itemsPerPage - 1
         }, function(response) {
             if (response.purchases && response.purchases.length) {
                 if (response.purchases.length > BRS.itemsPerPage) {
@@ -206,7 +206,7 @@ var BRS = (function(BRS, $, undefined) {
             "seller": BRS.account,
             "completed": true,
             "firstIndex": BRS.pageNumber * BRS.itemsPerPage - BRS.itemsPerPage,
-            "lastIndex": BRS.pageNumber * BRS.itemsPerPage
+            "lastIndex": BRS.pageNumber * BRS.itemsPerPage - 1
         }, function(response) {
             var content = "";
 
@@ -233,7 +233,7 @@ var BRS = (function(BRS, $, undefined) {
         BRS.sendRequest("getDGSPendingPurchases+", {
             "seller": BRS.account,
             "firstIndex": BRS.pageNumber * BRS.itemsPerPage - BRS.itemsPerPage,
-            "lastIndex": BRS.pageNumber * BRS.itemsPerPage
+            "lastIndex": BRS.pageNumber * BRS.itemsPerPage - 1
         }, function(response) {
             var content = "";
 
@@ -284,7 +284,7 @@ var BRS = (function(BRS, $, undefined) {
         BRS.sendRequest("getDGSGoods+", {
             "seller": BRS.account,
             "firstIndex": BRS.pageNumber * BRS.itemsPerPage - BRS.itemsPerPage,
-            "lastIndex": BRS.pageNumber * BRS.itemsPerPage,
+            "lastIndex": BRS.pageNumber * BRS.itemsPerPage - 1,
             "inStockOnly": "false"
         }, function(response) {
             if (response.goods && response.goods.length) {

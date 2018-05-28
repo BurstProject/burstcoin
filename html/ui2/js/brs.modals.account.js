@@ -118,7 +118,7 @@ var BRS = (function(BRS, $, undefined) {
 	BRS.sendRequest("getAccountTransactions", {
 	    "account": BRS.userInfoModal.user,
 	    "firstIndex": 0,
-	    "lastIndex": 100
+	    "lastIndex": 99
 	}, function(response) {
 	    if (response.transactions && response.transactions.length) {
 		var rows = "";
@@ -344,7 +344,7 @@ var BRS = (function(BRS, $, undefined) {
 	BRS.sendRequest("getDGSGoods", {
 	    "seller": BRS.userInfoModal.user,
 	    "firstIndex": 0,
-	    "lastIndex": 100
+	    "lastIndex": 99
 	}, function(response) {
 	    var rows = "";
 
