@@ -3,6 +3,7 @@ package brs.http;
 import static brs.http.JSONResponses.INCORRECT_ALIAS_NOTFORSALE;
 import static brs.http.common.Parameters.ALIAS_NAME_PARAMETER;
 import static brs.http.common.Parameters.ALIAS_PARAMETER;
+import static brs.http.common.Parameters.AMOUNT_NQT_PARAMETER;
 
 import brs.Account;
 import brs.Alias;
@@ -21,7 +22,7 @@ public final class BuyAlias extends CreateTransaction {
   private final Blockchain blockchain;
 
   public BuyAlias(ParameterService parameterService, Blockchain blockchain, AliasService aliasService, APITransactionManager apiTransactionManager) {
-    super(new APITag[]{APITag.ALIASES, APITag.CREATE_TRANSACTION}, apiTransactionManager, ALIAS_PARAMETER, ALIAS_NAME_PARAMETER);
+    super(new APITag[]{APITag.ALIASES, APITag.CREATE_TRANSACTION}, apiTransactionManager, ALIAS_PARAMETER, ALIAS_NAME_PARAMETER, AMOUNT_NQT_PARAMETER);
     this.parameterService = parameterService;
     this.blockchain = blockchain;
     this.aliasService = aliasService;
