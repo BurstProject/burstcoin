@@ -2,7 +2,6 @@ package brs;
 
 import brs.common.Props;
 import brs.db.store.AccountStore;
-import brs.services.AccountService;
 import brs.services.PropertyService;
 import brs.services.TimeService;
 import brs.util.Convert;
@@ -38,50 +37,6 @@ public class UnconfirmedTransactionStore {
     reservedBalanceCache = new HashMap<>();
   }
 
-  private void reserveBalanceAndPut(Transaction transaction) throws BurstException.ValidationException {
-    // I think in theory a put could be made with for the same transaction id with a different amount/fee
-    // so we refund the existing ones balance before we do a fresh reserve
-    if ( cache.containsKey(transaction.getId()) ) {
-      refundBalance(transaction);
-    }
-    Account senderAccount = transaction.getSenderId() == 0
-        ? null
-        : accountStore.getAccountTable().get(
-            accountStore.getAccountKeyFactory().newKey(transaction.getSenderId())
-        );
-    Long amountNQT = Convert.safeAdd(
-        reservedBalanceCache.getOrDefault(transaction.getSenderId(), 0L),
-        transaction.getType().calculateTotalAmountNQT(transaction)
-    );
-    if ( senderAccount == null ) {
-      logger.debug(String.format("Account %d does not exist and has no balance. Required funds: %d",
-          transaction.getSenderId(), amountNQT
-      ));
-      throw new BurstException.NotCurrentlyValidException("Account unknown");
-    }
-    else if ( amountNQT > senderAccount.getUnconfirmedBalanceNQT() ) {
-      logger.debug(String.format("Account %d balance to low. You have  %d > %d Balance",
-          transaction.getSenderId(), amountNQT, senderAccount.getUnconfirmedBalanceNQT()
-      ));
-      throw new BurstException.NotCurrentlyValidException("Insufficient funds");
-    }
-    reservedBalanceCache.put(transaction.getSenderId(), amountNQT);
-    cache.put(transaction.getId(), transaction);
-  }
-
-  private void refundBalance(Transaction transaction) {
-    Long amountNQT = Convert.safeSubtract(
-        reservedBalanceCache.getOrDefault(transaction.getSenderId(), 0L),
-        transaction.getType().calculateTotalAmountNQT(transaction)
-    );
-    if ( amountNQT > 0 ) {
-      reservedBalanceCache.put(transaction.getSenderId(), amountNQT);
-    }
-    else {
-      reservedBalanceCache.remove(transaction.getSenderId());
-    }
-  }
-
   public void close() {
     //NOOP
   }
@@ -104,6 +59,10 @@ public class UnconfirmedTransactionStore {
       }
 
       for (Transaction transactionToAdd : transactionsToAdd) {
+        if(exists(transactionToAdd.getId())) {
+          remove(transactionToAdd);
+        }
+
         idQueue.addLast(transactionToAdd.getId());
         reserveBalanceAndPut(transactionToAdd);
       }
@@ -117,6 +76,8 @@ public class UnconfirmedTransactionStore {
         if (idQueue.size() == maxSize) {
           final Long transactionToRemoveId = idQueue.pop();
           cache.remove(transactionToRemoveId);
+        } else if(exists(transaction.getId())) {
+          remove(transaction);
         }
 
         idQueue.addLast(transaction.getId());
@@ -194,9 +155,57 @@ public class UnconfirmedTransactionStore {
   private void removeTransaction(Transaction transaction) {
     idQueue.removeFirstOccurrence(transaction.getId());
     cache.remove(transaction.getId());
+    refundBalance(transaction);
   }
 
   private boolean transactionIsExpired(Transaction transaction, int currentTime) {
     return transaction.getExpiration() < currentTime;
   }
+
+  private void reserveBalanceAndPut(Transaction transaction) throws BurstException.ValidationException {
+    // I think in theory a put could be made with for the same transaction id with a different amount/fee
+    // so we refund the existing ones balance before we do a fresh reserve
+    if ( cache.containsKey(transaction.getId()) ) {
+      refundBalance(transaction);
+    }
+
+    Account senderAccount = null;
+    if(transaction.getSenderId() != 0) {
+      senderAccount = accountStore.getAccountTable().get(accountStore.getAccountKeyFactory().newKey(transaction.getSenderId()));
+    }
+
+    final Long amountNQT = Convert.safeAdd(
+        reservedBalanceCache.getOrDefault(transaction.getSenderId(), 0L),
+        transaction.getType().calculateTotalAmountNQT(transaction)
+    );
+
+    if (senderAccount == null) {
+      logger.debug(String.format("Account %d does not exist and has no balance. Required funds: %d",transaction.getSenderId(), amountNQT));
+
+      throw new BurstException.NotCurrentlyValidException("Account unknown");
+    } else if ( amountNQT > senderAccount.getUnconfirmedBalanceNQT() ) {
+      logger.debug(String.format("Account %d balance to low. You have  %d > %d Balance",
+          transaction.getSenderId(), amountNQT, senderAccount.getUnconfirmedBalanceNQT()
+      ));
+
+      throw new BurstException.NotCurrentlyValidException("Insufficient funds");
+    }
+
+    reservedBalanceCache.put(transaction.getSenderId(), amountNQT);
+    cache.put(transaction.getId(), transaction);
+  }
+
+  private void refundBalance(Transaction transaction) {
+    Long amountNQT = Convert.safeSubtract(
+        reservedBalanceCache.getOrDefault(transaction.getSenderId(), 0L),
+        transaction.getType().calculateTotalAmountNQT(transaction)
+    );
+
+    if (amountNQT > 0) {
+      reservedBalanceCache.put(transaction.getSenderId(), amountNQT);
+    } else {
+      reservedBalanceCache.remove(transaction.getSenderId());
+    }
+  }
+
 }
