@@ -730,24 +730,31 @@ public final class Peers {
     }
   }
 
-  public static void sendToSomePeers(Block block) {
+  public static void sendToSomePeers(Block block, boolean sendSameBRSclass) {
     JSONObject request = block.getJSONObject();
     request.put("requestType", "processBlock");
-    sendToSomePeers(request);
+    sendToSomePeers(request, sendSameBRSclass);
   }
 
-  public static void sendToSomePeers(List<Transaction> transactions) {
+  public static void sendToSomePeers(List<Transaction> transactions, boolean sendSameBRSclass) {
     JSONObject request = new JSONObject();
     JSONArray transactionsData = new JSONArray();
+
+    if (sendSameBRSclass != true) {
+      logger.info("We want to send transactions to different BRS class.");      
+    }
+
     for (Transaction transaction : transactions) {
       transactionsData.add(transaction.getJSONObject());
     }
+
     request.put("requestType", "processTransactions");
     request.put("transactions", transactionsData);
-    sendToSomePeers(request);
+    sendToSomePeers(request, true);
   }
 
-  private static void sendToSomePeers(final JSONObject request) {
+  private static void sendToSomePeers(final JSONObject request, boolean sendSameBRSclass) {
+    
 
     sendingService.submit(() -> {
       final JSONStreamAware jsonRequest = JSON.prepareRequest(request);
@@ -757,6 +764,7 @@ public final class Peers {
       for (final Peer peer : peers.values()) {
 
         if (peer.isHigherOrEqualVersionThan(Burst.LEGACY_VER)
+            && (sendSameBRSclass && peer.isAtLeastMyVersion())
             && !peer.isBlacklisted()
             && peer.getState() == Peer.State.CONNECTED
             && peer.getAnnouncedAddress() != null) {
@@ -819,7 +827,7 @@ public final class Peers {
       }
     });
 
-    sendToSomePeers(request); // send to some normal peers too
+    sendToSomePeers(request, true); // send to some normal peers too
   }
 
 

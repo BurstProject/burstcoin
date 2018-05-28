@@ -416,7 +416,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     }
 
     if (! sendToPeersTransactions.isEmpty()) {
-      Peers.sendToSomePeers(sendToPeersTransactions);
+      Peers.sendToSomePeers(sendToPeersTransactions, true);
     }
 
     if (! addedUnconfirmedTransactions.isEmpty()) {

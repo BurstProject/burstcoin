@@ -131,6 +131,10 @@ final class PeerImpl implements Peer {
     return false; // either version not sane
   }
 
+  public boolean isAtLeastMyVersion() {
+    return isHigherOrEqualVersionThan(Burst.VERSION);
+  }
+  
   void setVersion(String version) {
     this.version = version;
     isOldVersion = false;

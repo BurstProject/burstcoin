@@ -993,7 +993,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     statisticsManager.blockAdded();
     blockListeners.notify(block, Event.BLOCK_PUSHED);
     if (block.getTimestamp() >= timeService.getEpochTime() - MAX_TIMESTAMP_DIFFERENCE) {
-      Peers.sendToSomePeers(block);
+      Peers.sendToSomePeers(block, false);
     }
 	} //end synchronized
   }
