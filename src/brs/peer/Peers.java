@@ -414,8 +414,8 @@ public final class Peers {
              * if we loose Internet connection
              */
                   
-            if (peer.getVersion().startsWith(Burst.LEGACY_VER) ||
-                (peer.getState() != Peer.State.CONNECTED && !peer.isBlacklisted() && peers.size() > maxNumberOfConnectedPublicPeers)) {
+            if (!peer.isHigherOrEqualVersionThan(Burst.LEGACY_VER)
+             || (peer.getState() != Peer.State.CONNECTED && !peer.isBlacklisted() && peers.size() > maxNumberOfConnectedPublicPeers)) {
               removePeer(peer);
             }
             else {
@@ -439,7 +439,7 @@ public final class Peers {
         for (PeerImpl peer : peers.values()) {
           if (peer.getState() == Peer.State.CONNECTED && now - peer.getLastUpdated() > 3600) {
             peer.connect(timeService.getEpochTime());
-            if(peer.getVersion().startsWith(Burst.LEGACY_VER) ||
+            if (!peer.isHigherOrEqualVersionThan(Burst.LEGACY_VER) ||
                (peer.getState() != Peer.State.CONNECTED && !peer.isBlacklisted() && peers.size() > maxNumberOfConnectedPublicPeers)) {
               removePeer(peer);
             }
@@ -459,7 +459,10 @@ public final class Peers {
       Set<String> oldPeers = new HashSet<>(Burst.getDbs().getPeerDb().loadPeers());
       Set<String> currentPeers = new HashSet<>();
       for (Peer peer : Peers.peers.values()) {
-        if (peer.getAnnouncedAddress() != null && ! peer.isBlacklisted() && ! peer.isWellKnown() && ! peer.getVersion().startsWith(Burst.LEGACY_VER)) {
+        if (peer.getAnnouncedAddress() != null
+        && ! peer.isBlacklisted()
+        && ! peer.isWellKnown()
+        && peer.isHigherOrEqualVersionThan(Burst.LEGACY_VER)) {
           currentPeers.add(peer.getAnnouncedAddress());
         }
       }
@@ -542,7 +545,7 @@ public final class Peers {
                   && myPeer.getState() == Peer.State.CONNECTED && myPeer.shareAddress()
                   && ! addedAddresses.contains(myPeer.getAnnouncedAddress())
                   && ! myPeer.getAnnouncedAddress().equals(peer.getAnnouncedAddress())
-                  && ! myPeer.getVersion().startsWith(Burst.LEGACY_VER)
+                  && myPeer.isHigherOrEqualVersionThan(Burst.LEGACY_VER)
                   ) {
                 myPeers.add(myPeer.getAnnouncedAddress());
               }
@@ -592,7 +595,8 @@ public final class Peers {
       for (Map.Entry<String,String> entry : announcedAddresses.entrySet()) {
         Peer peer = peers.get(entry.getValue());
         if (peer != null && peer.getState() == Peer.State.CONNECTED && peer.shareAddress() && !peer.isBlacklisted()
-            && peer.getVersion() != null && peer.getVersion().startsWith(dumpPeersVersion)) {
+            && peer.getVersion() != null
+            && peer.getVersion().startsWith(dumpPeersVersion)) {
           buf.append("('").append(entry.getKey()).append("'), ");
         }
       }
@@ -752,7 +756,7 @@ public final class Peers {
       List<Future<JSONObject>> expectedResponses = new ArrayList<>();
       for (final Peer peer : peers.values()) {
 
-        if (!peer.getVersion().startsWith(Burst.LEGACY_VER)
+        if (peer.isHigherOrEqualVersionThan(Burst.LEGACY_VER)
             && !peer.isBlacklisted()
             && peer.getState() == Peer.State.CONNECTED
             && peer.getAnnouncedAddress() != null) {

@@ -17,6 +17,8 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 final class PeerImpl implements Peer {
@@ -103,6 +105,30 @@ final class PeerImpl implements Peer {
   @Override
   public String getVersion() {
     return version;
+  }
+
+  // semantic versioning for peer versions. here: ">=" negate it for "<"
+  public boolean isHigherOrEqualVersionThan(String ComparisonVersion) {
+    Pattern pattern = Pattern.compile("^(\\d+)\\.(\\d+)\\.(\\d+)");
+    Matcher matchPeer = pattern.matcher(version);
+    Matcher matchCompare = pattern.matcher(ComparisonVersion);
+
+    if (matchPeer.find() && matchCompare.find()) {  // if both peer version and our comparison version are sane
+      // we have simplified versions with 3 limbs: X.Y.Z
+
+      for (int limb = 1; limb <= 3; limb++) {
+        int peerLimb = Integer.parseInt(matchPeer.group(limb));
+        int comparisonLimb = Integer.parseInt(matchCompare.group(limb));
+        if (peerLimb > comparisonLimb) {
+          return true;
+        }
+        if (peerLimb < comparisonLimb) {
+          return false;
+        }
+      }
+      return true; // all limbs equal
+    }
+    return false; // either version not sane
   }
 
   void setVersion(String version) {

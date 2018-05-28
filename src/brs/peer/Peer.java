@@ -31,6 +31,8 @@ public interface Peer extends Comparable<Peer> {
 
   boolean isBlacklisted();
 
+  boolean isHigherOrEqualVersionThan(String version);
+
   void blacklist(Exception cause);
 
   void blacklist();
