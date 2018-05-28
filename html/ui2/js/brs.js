@@ -81,7 +81,7 @@ var BRS = (function(BRS, $, undefined) {
         if (!BRS.server) {
             var hostName = window.location.hostname.toLowerCase();
             BRS.isLocalHost = hostName === "localhost" || hostName === "127.0.0.1" || BRS.isPrivateIP(hostName);
-            BRS.isLocalHost = false;
+            BRS.isLocalHost = true;
         }
 
         if (!BRS.isLocalHost) {
