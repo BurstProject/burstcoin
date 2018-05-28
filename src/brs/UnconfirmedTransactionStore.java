@@ -1,8 +1,11 @@
 package brs;
 
 import brs.common.Props;
+import brs.db.store.AccountStore;
+import brs.services.AccountService;
 import brs.services.PropertyService;
 import brs.services.TimeService;
+import brs.util.Convert;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,24 +17,70 @@ import java.util.stream.Collectors;
 public class UnconfirmedTransactionStore {
 
   private final TimeService timeService;
+  private final AccountStore accountStore;
 
   private final ArrayDeque<Long> idQueue;
   private final HashMap<Long, Transaction> cache;
+  private final HashMap<Long, Long> reservedBalanceCache;
   private final int maxSize;
 
-  public UnconfirmedTransactionStore(TimeService timeService, PropertyService propertyService) {
+  public UnconfirmedTransactionStore(TimeService timeService, PropertyService propertyService, AccountStore accountStore) {
     this.timeService = timeService;
+    this.accountStore = accountStore;
 
     this.maxSize = propertyService.getInt(Props.P2P_MAX_UNCONFIRMED_TRANSACTIONS, 8192);
     idQueue = new ArrayDeque<>(maxSize);
     cache = new HashMap<>(maxSize);
+    reservedBalanceCache = new HashMap<>();
+  }
+
+  private void reserveBalanceAndPut(Transaction transaction) throws BurstException.ValidationException {
+    // I think in theory a put could be made with for the same transaction id with a different amount/fee
+    // so we refund the existing ones balance before we do a fresh reserve
+    if ( cache.containsKey(transaction.getId()) ) {
+      refundBalance(transaction);
+    }
+    Account senderAccount = transaction.getSenderId() == 0
+        ? null
+        : accountStore.getAccountTable().get(
+            accountStore.getAccountKeyFactory().newKey(transaction.getSenderId())
+        );
+    Long amountNQT = Convert.safeAdd(
+        reservedBalanceCache.getOrDefault(transaction.getSenderId(), 0L),
+        Convert.safeAdd(transaction.getAmountNQT(), transaction.getFeeNQT())
+    );
+    if ( senderAccount == null ) {
+      throw new BurstException.NotCurrentlyValidException(String.format("Account %d does not exist and has no balance. Require %d > %d Balance",
+          transaction.getSenderId(), amountNQT, 0
+      ));
+    }
+    else if ( amountNQT > senderAccount.getUnconfirmedBalanceNQT() ) {
+      throw new BurstException.NotCurrentlyValidException(String.format("Account %d balance to low. Require %d > %d Balance",
+          transaction.getSenderId(), amountNQT, senderAccount.getUnconfirmedBalanceNQT()
+      ));
+    }
+    reservedBalanceCache.put(transaction.getSenderId(), amountNQT);
+    cache.put(transaction.getId(), transaction);
+  }
+
+  private void refundBalance(Transaction transaction) {
+    Long amountNQT = Convert.safeSubtract(
+        reservedBalanceCache.getOrDefault(transaction.getSenderId(), 0L),
+        Convert.safeAdd(transaction.getAmountNQT(), transaction.getFeeNQT())
+    );
+    if ( amountNQT > 0 ) {
+      reservedBalanceCache.put(transaction.getSenderId(), amountNQT);
+    }
+    else {
+      reservedBalanceCache.remove(transaction.getSenderId());
+    }
   }
 
   public void close() {
     //NOOP
   }
 
-  public void put(Collection<Transaction> transactionsToAdd) {
+  public void put(Collection<Transaction> transactionsToAdd) throws BurstException.ValidationException  {
     final int currentTime = timeService.getEpochTime();
 
     transactionsToAdd = transactionsToAdd.stream().filter(transaction -> !transactionIsExpired(transaction, currentTime)).collect(Collectors.toList());
@@ -50,13 +99,13 @@ public class UnconfirmedTransactionStore {
 
       for (Transaction transactionToAdd : transactionsToAdd) {
         idQueue.addLast(transactionToAdd.getId());
-        cache.put(transactionToAdd.getId(), transactionToAdd);
+        reserveBalanceAndPut(transactionToAdd);
       }
     }
   }
 
 
-  public void put(Transaction transaction) {
+  public void put(Transaction transaction) throws BurstException.ValidationException  {
     synchronized (idQueue) {
       if (!transactionIsExpired(transaction, timeService.getEpochTime())) {
         if (idQueue.size() == maxSize) {
@@ -65,7 +114,7 @@ public class UnconfirmedTransactionStore {
         }
 
         idQueue.addLast(transaction.getId());
-        cache.put(transaction.getId(), transaction);
+        reserveBalanceAndPut(transaction);
       }
     }
   }
@@ -109,7 +158,7 @@ public class UnconfirmedTransactionStore {
   public void remove(Transaction transaction) {
     synchronized (idQueue) {
       if (exists(transaction.getId())) {
-        removeTransaction(transaction.getId());
+        removeTransaction(transaction);
       }
     }
   }
@@ -118,6 +167,7 @@ public class UnconfirmedTransactionStore {
     synchronized (idQueue) {
       idQueue.clear();
       cache.clear();
+      reservedBalanceCache.clear();
     }
   }
 
@@ -128,16 +178,16 @@ public class UnconfirmedTransactionStore {
       if (!transactionIsExpired(possibleTransaction, currentTime)) {
         return possibleTransaction;
       } else {
-        removeTransaction(transactionId);
+        removeTransaction(possibleTransaction);
       }
     }
 
     return null;
   }
 
-  private void removeTransaction(Long transactionId) {
-    idQueue.removeFirstOccurrence(transactionId);
-    cache.remove(transactionId);
+  private void removeTransaction(Transaction transaction) {
+    idQueue.removeFirstOccurrence(transaction.getId());
+    cache.remove(transaction.getId());
   }
 
   private boolean transactionIsExpired(Transaction transaction, int currentTime) {

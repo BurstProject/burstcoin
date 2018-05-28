@@ -1,5 +1,6 @@
 package brs;
 
+import brs.BurstException.ValidationException;
 import brs.common.Props;
 import brs.db.BurstKey;
 import brs.db.store.Dbs;
@@ -321,7 +322,14 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 
   // Watch: This is not really clean
   void processLater(Collection<Transaction> transactions) {
-    unconfirmedTransactionStore.put(transactions);
+    for ( Transaction transaction : transactions ) {
+      try {
+        unconfirmedTransactionStore.put(transaction);
+      }
+      catch ( BurstException.ValidationException e ) {
+        logger.debug("Discarding invalid transaction in for later processing: " + transaction.getJSONObject().toJSONString(), e);
+      }
+    }
   }
 
   private void processPeerTransactions(JSONArray transactionsData) throws BurstException.ValidationException {
@@ -391,6 +399,16 @@ public class TransactionProcessorImpl implements TransactionProcessor {
             continue;
           }
 
+          try {
+            unconfirmedTransactionStore.put(transaction);
+          }
+          catch (BurstException.ValidationException e){
+            logger.debug("Transaction not valid", e);
+
+            continue;
+          }
+          addedUnconfirmedTransactions.add(transaction);
+
           if (sendToPeers) {
             if (nonBroadcastedTransactions.contains(transaction)) {
               logger.debug("Received back transaction " + transaction.getStringId()
@@ -401,8 +419,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
               sendToPeersTransactions.add(transaction);
             }
           }
-          unconfirmedTransactionStore.put(transaction);
-          addedUnconfirmedTransactions.add(transaction);
+
           stores.commitTransaction();
         } catch (Exception e) {
           stores.rollbackTransaction();

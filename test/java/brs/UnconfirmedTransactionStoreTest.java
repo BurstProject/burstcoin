@@ -12,8 +12,12 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import brs.BurstException.NotValidException;
+import brs.BurstException.ValidationException;
 import brs.common.Props;
 import brs.common.TestConstants;
+import brs.db.BurstKey.LongKeyFactory;
+import brs.db.VersionedBatchEntityTable;
+import brs.db.store.AccountStore;
 import brs.fluxcapacitor.FeatureToggle;
 import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.PropertyService;
@@ -34,8 +38,11 @@ public class UnconfirmedTransactionStoreTest {
 
   private BlockchainImpl mockBlockChain;
 
-  private TimeService timeService = new TimeServiceImpl();
+  private AccountStore accountStoreMock;
+  private VersionedBatchEntityTable<Account> accountTableMock;
+  private LongKeyFactory<Account> accountBurstKeyFactoryMock;
 
+  private TimeService timeService = new TimeServiceImpl();
   private UnconfirmedTransactionStore t;
 
   @Before
@@ -50,18 +57,24 @@ public class UnconfirmedTransactionStoreTest {
     mockBlockChain = mock(BlockchainImpl.class);
     when(Burst.getBlockchain()).thenReturn(mockBlockChain);
 
+    accountStoreMock = mock(AccountStore.class);
+    accountTableMock = mock(VersionedBatchEntityTable.class);
+    accountBurstKeyFactoryMock = mock(LongKeyFactory.class);
+    when(accountStoreMock.getAccountTable()).thenReturn(accountTableMock);
+    when(accountStoreMock.getAccountKeyFactory()).thenReturn(accountBurstKeyFactoryMock);
+
     FluxCapacitor mockFluxCapacitor = mock(FluxCapacitor.class);
     when(mockFluxCapacitor.isActive(eq(FeatureToggle.PRE_DYMAXION))).thenReturn(true);
     when(mockFluxCapacitor.isActive(eq(FeatureToggle.PRE_DYMAXION), anyInt())).thenReturn(true);
 
     TransactionType.init(mockBlockChain, mockFluxCapacitor, null, null, null, null, null, null);
 
-    t = new UnconfirmedTransactionStore(timeService, mockPropertyService);
+    t = new UnconfirmedTransactionStore(timeService, mockPropertyService, accountStoreMock);
   }
 
   @DisplayName("The amount of unconfirmed transactions exceeds max size, when adding another the cache size stays the same")
   @Test
-  public void numberOfUnconfirmedTransactionsExceedsMaxSizeAddAnotherThenCacheSizeStaysMaxSize() throws NotValidException {
+  public void numberOfUnconfirmedTransactionsExceedsMaxSizeAddAnotherThenCacheSizeStaysMaxSize() throws ValidationException {
 
     when(mockBlockChain.getHeight()).thenReturn(20);
 
@@ -87,7 +100,7 @@ public class UnconfirmedTransactionStoreTest {
 
   @DisplayName("The amount of unconfirmed transactions exceeds max size, when adding a group of others the cache size stays the same")
   @Test
-  public void numberOfUnconfirmedTransactionsExceedsMaxSizeAddAGroupOfOthersThenCacheSizeStaysMaxSize() throws NotValidException, InterruptedException {
+  public void numberOfUnconfirmedTransactionsExceedsMaxSizeAddAGroupOfOthersThenCacheSizeStaysMaxSize() throws ValidationException, InterruptedException {
 
     when(mockBlockChain.getHeight()).thenReturn(20);
 
@@ -126,7 +139,7 @@ public class UnconfirmedTransactionStoreTest {
 
   @DisplayName("Old transactions get removed from the cache when they are expired")
   @Test
-  public void transactionGetsRemovedWhenExpired() throws NotValidException, InterruptedException {
+  public void transactionGetsRemovedWhenExpired() throws ValidationException, InterruptedException {
     final int deadlineWithin2Seconds = timeService.getEpochTime() - 29998;
     final Transaction transaction = new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 500, 735000, deadlineWithin2Seconds, (short) 500, ORDINARY_PAYMENT)
         .id(1).build();
@@ -144,7 +157,7 @@ public class UnconfirmedTransactionStoreTest {
 
   @DisplayName("Old transactions get removed from the cache when they are expired when using the foreach method on them")
   @Test
-  public void transactionGetsRemovedWhenExpiredWhenRunningForeach() throws NotValidException, InterruptedException {
+  public void transactionGetsRemovedWhenExpiredWhenRunningForeach() throws ValidationException, InterruptedException {
     final int deadlineWithin2Seconds = timeService.getEpochTime() - 29998;
     final Transaction transaction = new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 500, 735000, deadlineWithin2Seconds, (short) 500, ORDINARY_PAYMENT)
         .id(1).build();
