@@ -257,6 +257,12 @@ var BRS = (function(BRS, $, undefined) {
             var ajaxCall = $.ajax;
         }
 
+        // the recipient param is used to do some message encryption ... so I can not remove it as I thought first
+        requestTypeWithNonWalletCompatibleRecipientParam = ["dgsPurchase", "dgsRefund", "dgsDelivery", "dgsFeedback", "buyAlias"];
+        if ( requestTypeWithNonWalletCompatibleRecipientParam.indexOf(requestType) + 1 ) {
+            delete data.recipient;
+        }
+
         //workaround for 1 specific case.. ugly
         if (data.querystring) {
             data = data.querystring;
@@ -484,7 +490,8 @@ var BRS = (function(BRS, $, undefined) {
             return false;
         }
 
-        if (transaction.recipient !== data.recipient) {
+        requestTypeWithoutRecipientInData = ["buyAlias", "dgsPurchase", "dgsRefund", "dgsDelivery", "dgsFeedback"]
+        if ( ! ( requestTypeWithoutRecipientInData.indexOf(requestType) + 1) && transaction.recipient !== data.recipient) {
             if (data.recipient == "1739068987193023818" && transaction.recipient == "0") {
                 //ok
             } else {
@@ -492,7 +499,8 @@ var BRS = (function(BRS, $, undefined) {
             }
         }
 
-        if ( transaction.feeNQT !== data.feeNQT || ( requestType !== "sendMoneyMulti" && requestType !== "sendMoneyMultiSame" && transaction.amountNQT !== data.amountNQT ) ) {
+        requestTypeWithSeperatedAmountNQTCalculation = ["sendMoneyMulti", "sendMoneyMultiSame", "sendMoneyEscrow" ];
+        if ( transaction.feeNQT !== data.feeNQT || ( ! (requestTypeWithSeperatedAmountNQTCalculation.indexOf(requestType)+1) && transaction.amountNQT !== data.amountNQT ) ) {
             return false;
         }
 
@@ -515,594 +523,394 @@ var BRS = (function(BRS, $, undefined) {
             pos = 160;
         }
 
-        switch (requestType) {
-            case "sendMoney":
-                if (transaction.type !== 0 || transaction.subtype !== 0) {
-                    return false;
+        var requestTypeOf = {
+            "sendMoney": { "type": 0, "subtype": 0 },
+            "sendMoneyMulti": {
+                "type":    0,
+                "subtype": 1,
+                "parse":   function () { return [
+                    [ "Byte", "Long*$0", "Long*$0"],
+                    [
+                        data.recipients.split(";").length,
+                        data.recipients.split(";").splice(0, data.recipients.split(";").length / 2).join("").replace(":", ""),
+                        data.recipients.split(";").splice(data.recipients.split(";").length / 2).join("").replace(":", "")
+                    ]
+                ];}
+            },
+            "sendMoneyMultiSame": {
+                "type":    0,
+                "subtype": 2,
+                "parse":   function () { return [
+                    [ "Byte", "Long*$0"],
+                    [
+                        data.recipients.split(";").length,
+                        data.recipients.split(";").join("")
+                    ]
+                ];},
+                "postCheck": function(parsedValues) {
+                    return transaction.amountNQT === "" + ( parsedValues[0] * data.amountNQT );
                 }
-                break;
-            case "sendMoneyMulti":
-                if (transaction.type !== 0 || transaction.subtype !== 1) {
-                    return false;
+            },
+            "sendMessage": { "type": 1, "subtype": 0 },
+            "setAlias": {
+                "type":    1,
+                "subtype": 1,
+                "parse":   function () { return [
+                    [
+                        "Byte", "String*$0",
+                        "Short", "String*$2"
+                    ],
+                    [
+                        data.aliasName.length, data.aliasName,
+                        data.aliasURI.length, data.aliasURI
+                    ],
+                    [
+                        false, "aliasName",
+                        false, "aliasURI"
+                    ]
+                ];}
+            },
+            "setAccountInfo": {
+                "type":    1,
+                "subtype": 5,
+                "parse":   function () { return [
+                    [
+                        "Byte", "String*$0",
+                        "Short", "String*$2"
+                    ],
+                    [
+                        data.name.length, data.name,
+                        data.description.length, data.description
+                    ],
+                    [
+                        false, "name",
+                        false, "description"
+                    ]
+                ];}
+            },
+            "sellAlias": {
+                "type":    1,
+                "subtype": 6,
+                "parse":   function () { return [
+                    [ "Byte", "String*$0", "Long" ],
+                    [ data.aliasName.length, data.aliasName, data.priceNQT ],
+                    [ false, "alias", "priceNQT" ]
+                ];}
+            },
+            "buyAlias": {
+                "type":    1,
+                "subtype": 7,
+                "parse":   function () { return [
+                    [ "Byte", "String*$0" ],
+                    [ data.aliasName.length, data.aliasName ],
+                    [ false, "alias" ]
+                ];}
+            },
+
+            "issueAsset": {
+                "type":    2,
+                "subtype": 0,
+                "parse":   function () { return [
+                    [
+                        "Byte", "String*$0",
+                        "Short", "String*$2",
+                        "Long",
+                        "Byte"
+                    ],
+                    [
+                        data.name.length, data.name,
+                        data.description.length, data.description,
+                        data.quantityQNT,
+                        data.decimals
+                    ],
+                    [
+                        false, "name",
+                        false, "description",
+                        "quantityQNT",
+                        "decimals"
+                    ]
+                ];}
+            },
+            "transferAsset": {
+                "type":    2,
+                "subtype": 1,
+                "parse":   [
+                    [ "Long", "Long" ],
+                    [ data.asset, data.quantityQNT ],
+                    [ "asset", "quantityQNT" ]
+                ]
+            },
+            "placeAskOrder": {
+                "type":    2,
+                "subtype": 2,
+                "parse":   [
+                    [ "Long", "Long", "Long" ],
+                    [ data.asset, data.quantityQNT, data.priceNQT ],
+                    [ "asset", "quantityQNT", "priceNQT" ]
+                ]
+            },
+            "placeBidOrder": {
+                "type":    2,
+                "subtype": 3,
+                "parse":   [
+                    [ "Long", "Long", "Long" ],
+                    [ data.asset, data.quantityQNT, data.priceNQT ],
+                    [ "asset", "quantityQNT", "priceNQT" ]
+                ]
+            },
+            "cancelAskOrder": {
+                "type":    2,
+                "subtype": 4,
+                "parse":   [
+                    [ "Long" ],
+                    [ data.order ],
+                    [ "order" ]
+                ]
+            },
+            "cancelBidOrder": {
+                "type":    2,
+                "subtype": 5,
+                "parse":   [
+                    [ "Long" ],
+                    [ data.order ],
+                    [ "order" ]
+                ]
+            },
+
+            "dgsListing": {
+                "type":    3,
+                "subtype": 0,
+                "parse":   function () { return [
+                    [
+                        "Short", "String*$0",
+                        "Short", "String*$2",
+                        "Short", "String*$4",
+                        "Int",
+                        "Long"
+                    ],
+                    [
+                        data.name.length, data.name,
+                        data.description.length, data.description,
+                        data.tags.length, data.tags,
+                        data.quantity,
+                        data.priceNQT
+                    ],
+                    [
+                        false, "name",
+                        false, "description",
+                        false, "tags",
+                        "quantity",
+                        "priceNQT"
+                    ]
+                ];}
+            },
+            "dgsDelisting": {
+                "type":    3,
+                "subtype": 1,
+                "parse":   [
+                    [ "Long" ],
+                    [ data.goods ],
+                    [ "goods" ]
+                ]
+            },
+            "dgsPriceChange": {
+                "type":    3,
+                "subtype": 2,
+                "parse":   [
+                    [ "Long", "Long" ],
+                    [ data.goods, data.priceNQT ],
+                    [ "goods", "priceNQT" ]
+                ]
+            },
+            "dgsQuantityChange": {
+                "type":    3,
+                "subtype": 3,
+                "parse":   [
+                    [ "Long", "Int" ],
+                    [ data.goods, data.deltaQuantity ],
+                    [ "goods", "deltaQuantity" ]
+                ]
+            },
+            "dgsPurchase": {
+                "type":    3,
+                "subtype": 4,
+                "parse":   [
+                    [ "Long", "Int", "Long", "Int" ],
+                    [ data.goods, data.quantity, data.priceNQT, data.deliveryDeadlineTimestamp ],
+                    [ "goods", "quantity", "priceNQT", "deliveryDeadlineTimestamp" ]
+                ]
+            },
+           "dgsDelivery": {
+                "type":    3,
+                "subtype": 5,
+                "parse":   function () {
+                    // very ugly hack - I do not know, what horse was ridden during designing this transaction type
+                    var encryptedGoodsLength = converters.byteArrayToSignedShort(byteArray, pos + 8);
+                    var goodsLength          = converters.byteArrayToSignedInt32(byteArray, pos + 8);
+                    transaction.goodsIsText  = goodsLength < 0;
+
+                    return [
+                        [ "Long", "Int", "Hex*" + encryptedGoodsLength, "Hex*32", "Long" ],
+                        [
+
+                            data.purchase,
+                            ( transaction.goodsIsText ? ( data.goodsData.length / 2 ) | -2147483648 : data.goodsData.length / 2 ),
+                            data.goodsData,
+                            data.goodsNonce,
+                            data.discountNQT,
+
+                        ],
+                        [ "purchase", "goodsLength", "goodsData", "goodsNonce", "discountNQT" ]
+                    ];
+                },
+                "postCheck": function(parsedValues) {
+                    return ( transaction.goodsIsText ? "true" : "false" ) === data.goodsIsText;
                 }
-                var amountOf = {};
-                $(data.recipients.split(";")).each(function(index, mixedValue) {
-                    var values = mixedValue.split(":");
-                    amountOf["" + values[0]] = new BigInteger("" + values[1]);
-                });
+            },
+            "dgsFeedback": {
+                "type":    3,
+                "subtype": 6,
+                "parse":   [
+                    [ "Long" ],
+                    [ data.purchase ],
+                    [ "purchase" ]
+                ]
+            },
+            "dgsRefund": {
+                "type":    3,
+                "subtype": 7,
+                "parse":   [
+                    [ "Long", "Long" ],
+                    [ data.purchase, data.refundNQT ],
+                    [ "purchase", "refundNQT" ]
+                ]
+            },
+            "leaseBalance": {
+                "type":    4,
+                "subtype": 0,
+                "parse":   [
+                    [ "Short"],
+                    [ data.period ],
+                    [ "period" ]
+                ]
+            },
+            "setRewardRecipient": { "type": 20, "subtype": 0 },
+            "sendMoneyEscrow": {
+                "type":    21,
+                "subtype": 0,
+                "parse":   function () { return [
+                    [ "Long", "Int", "Byte", "Byte", "Byte", "Long*$3"],
+                    [
+                        data.amountNQT,
+                        data.escrowDeadline,
+                        ["undecided", "release", "refund", "split"].indexOf(data.deadlineAction),
+                        data.requiredSigners,
+                        data.signers.split(";").length,
+                        data.signers.split(";").join("")
+                    ]
+                ];}
+            },
+            "escrowSign": {
+                "type":    21,
+                "subtype": 1,
+                "parse":   function () { return [
+                    [ "Long", "Byte"],
+                    [
+                        data.escrow,
+                        ["undecided", "release", "refund", "split"].indexOf(data.decision)
+                    ]
+                ];}
+            },
+            "sendMoneySubscription": {
+                "type":    21,
+                "subtype": 3,
+                "parse":   [
+                    [ "Int" ],
+                    [ data.frequency ]
+                ]
+            },
+            "subscriptionCancel": {
+                "type":    21,
+                "subtype": 4,
+                "parse":   [
+                    [ "Long" ],
+                    [ data.subscription ]
+                ]
+            }
+        };
 
-                var recipientsLength = parseInt(byteArray[pos], 10);
-                pos++;
+        if ( requestTypeOf[requestType] ) {
+            var spec = requestTypeOf[requestType];
+            if (transaction.type !== spec.type || transaction.subtype !== spec.subtype ) {
+                return false;
+            }
+            var parsedValues = [];
+            if ( spec.parse ) {
+                var parse = Array.isArray(spec.parse) ? spec.parse : spec.parse();
+                for (var i = 0; i < parse[0].length; i++) {
+                    // typeSpec contains the type and a possible factor found by index
+                    var typeSpec = parse[0][i].split("*");
+                    typeSpec[1] = parseInt(
+                        typeSpec[1]
+                            ? (
+                                typeSpec[1].replace("$", "") == typeSpec[1]
+                                    ? typeSpec[1]                            // fixed length
+                                    : parsedValues[typeSpec[1].replace("$", "")] // variable length, depending on other element
+                            )
+                            : 1
+                    );
 
-                if ( recipientsLength !== Object.keys(amountOf).length ) {
-                    return false;
-                }
-
-                for (var i = 0; i < recipientsLength; i++) {
-                    var recipient = converters.byteArrayToBigInteger(byteArray, pos);
-                    pos += 8;
-                    var amount = converters.byteArrayToBigInteger(byteArray, pos);
-                    pos += 8;
-                    if ( ! ( recipient.toString() in amountOf ) || amountOf[recipient].toString() !== amount.toString() ) {
+                    var currentParsed = "";
+                    switch (typeSpec[0]) {
+                        case "String":
+                            currentParsed = converters.byteArrayToString(byteArray, pos, typeSpec[1]);
+                            pos += typeSpec[1];
+                            break;
+                        case "Hex":
+                            currentParsed = converters.byteArrayToHexString(byteArray.slice(pos, pos + typeSpec[1]));
+                            pos += typeSpec[1];
+                            break;
+                        default:
+                            for ( var amount = 0; amount < typeSpec[1]; amount++ ) {
+                                switch (typeSpec[0]) {
+                                    case "Long":
+                                        currentParsed += converters.byteArrayToBigInteger(byteArray, pos).toString();
+                                        pos += 8;
+                                        break;
+                                    case "Int":
+                                        currentParsed += String(converters.byteArrayToSignedInt32(byteArray, pos));
+                                        pos += 4;
+                                        break;
+                                    case "Short":
+                                        currentParsed += String(converters.byteArrayToSignedShort(byteArray, pos));
+                                        pos += 2;
+                                        break;
+                                    case "Byte":
+                                        currentParsed += String(parseInt(byteArray[pos++], 10));
+                                        break;
+                                    default:
+                                        return false;
+                                }
+                            }
+                    }
+                    if ( String(currentParsed) !== String(parse[1][i]) ) {
                         return false;
                     }
-                }
-
-                break;
-            case "sendMoneyMultiSame":
-                if (transaction.type !== 0 || transaction.subtype !== 2) {
-                    return false;
-                }
-                var recipientOf = {};
-                $(data.recipients.split(";")).each(function(index, recipientId) {
-                    recipientOf["" + recipientId] = true;
-                });
-
-                var recipientsLength = parseInt(byteArray[pos], 10);
-                pos++;
-
-                if ( recipientsLength !== Object.keys(recipientOf).length ) {
-                    return false;
-                }
-
-                for (var i = 0; i < recipientsLength; i++) {
-                    var recipient = converters.byteArrayToBigInteger(byteArray, pos);
-                    pos += 8;
-                    if ( ! ( recipient.toString() in recipientOf ) ) {
-                        return false;
+                    if ( parse[2] && parse[2][i] ) {
+                        transaction[parse[2][i]] = String(currentParsed);
                     }
+                    parsedValues.push(currentParsed);
                 }
-
-                if ( transaction.amountNQT !== "" + ( Object.keys(recipientOf).length * data.amountNQT ) ) {
+            }
+            if ( spec.postCheck ) {
+                if ( ! ( spec.postCheck(parsedValues) ) ) {
                     return false;
                 }
-
-                break;
-            case "sendMessage":
-                if (transaction.type !== 1 || transaction.subtype !== 0) {
-                    return false;
-                }
-
-                break;
-            case "setAlias":
-                if (transaction.type !== 1 || transaction.subtype !== 1) {
-                    return false;
-                }
-
-                var aliasLength = parseInt(byteArray[pos], 10);
-
-                pos++;
-
-                transaction.aliasName = converters.byteArrayToString(byteArray, pos, aliasLength);
-
-                pos += aliasLength;
-
-                var uriLength = converters.byteArrayToSignedShort(byteArray, pos);
-
-                pos += 2;
-
-                transaction.aliasURI = converters.byteArrayToString(byteArray, pos, uriLength);
-
-                pos += uriLength;
-
-                if (transaction.aliasName !== data.aliasName || transaction.aliasURI !== data.aliasURI) {
-                    return false;
-                }
-                break;
-
-            case "setRewardRecipient":
-                if (transaction.type !== 20 || transaction.subtype !== 0) {
-                    return false;
-                }
-                break;
-
-            case "createPoll":
-                if (transaction.type !== 1 || transaction.subtype !== 2) {
-                    return false;
-                }
-
-                var nameLength = converters.byteArrayToSignedShort(byteArray, pos);
-
-                pos += 2;
-
-                transaction.name = converters.byteArrayToString(byteArray, pos, nameLength);
-
-                pos += nameLength;
-
-                var descriptionLength = converters.byteArrayToSignedShort(byteArray, pos);
-
-                pos += 2;
-
-                transaction.description = converters.byteArrayToString(byteArray, pos, descriptionLength);
-
-                pos += descriptionLength;
-
-                var nr_options = byteArray[pos];
-
-                pos++;
-
-                for (var i = 0; i < nr_options; i++) {
-                    var optionLength = converters.byteArrayToSignedShort(byteArray, pos);
-
-                    pos += 2;
-
-                    transaction["option" + i] = converters.byteArrayToString(byteArray, pos, optionLength);
-
-                    pos += optionLength;
-                }
-
-                transaction.minNumberOfOptions = String(byteArray[pos]);
-
-                pos++;
-
-                transaction.maxNumberOfOptions = String(byteArray[pos]);
-
-                pos++;
-
-                transaction.optionsAreBinary = String(byteArray[pos]);
-
-                pos++;
-
-                if (transaction.name !== data.name || transaction.description !== data.description || transaction.minNumberOfOptions !== data.minNumberOfOptions || transaction.maxNumberOfOptions !== data.maxNumberOfOptions || transaction.optionsAreBinary !== data.optionsAreBinary) {
-                    return false;
-                }
-
-                for (var i = 0; i < nr_options; i++) {
-                    if (transaction["option" + i] !== data["option" + i]) {
-                        return false;
-                    }
-                }
-
-                if (("option" + i) in data) {
-                    return false;
-                }
-
-                break;
-            case "castVote":
-                if (transaction.type !== 1 || transaction.subtype !== 3) {
-                    return false;
-                }
-
-                transaction.poll = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                var voteLength = byteArray[pos];
-
-                pos++;
-
-                transaction.votes = [];
-
-                for (var i = 0; i < voteLength; i++) {
-                    transaction.votes.push(byteArray[pos]);
-
-                    pos++;
-                }
-
-                return false;
-
-            case "hubAnnouncement":
-                if (transaction.type !== 1 || transaction.subtype != 4) {
-                    return false;
-                }
-
-                var minFeePerByte = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                var numberOfUris = parseInt(byteArray[pos], 10);
-
-                pos++;
-
-                var uris = [];
-
-                for (var i = 0; i < numberOfUris; i++) {
-                    var uriLength = parseInt(byteArray[pos], 10);
-
-                    pos++;
-
-                    uris[i] = converters.byteArrayToString(byteArray, pos, uriLength);
-
-                    pos += uriLength;
-                }
-
-                //do validation
-
-                return false;
-
-            case "setAccountInfo":
-                if (transaction.type !== 1 || transaction.subtype != 5) {
-                    return false;
-                }
-
-                var nameLength = parseInt(byteArray[pos], 10);
-
-                pos++;
-
-                transaction.name = converters.byteArrayToString(byteArray, pos, nameLength);
-
-                pos += nameLength;
-
-                var descriptionLength = converters.byteArrayToSignedShort(byteArray, pos);
-
-                pos += 2;
-
-                transaction.description = converters.byteArrayToString(byteArray, pos, descriptionLength);
-
-                pos += descriptionLength;
-
-                if (transaction.name !== data.name || transaction.description !== data.description) {
-                    return false;
-                }
-
-                break;
-            case "sellAlias":
-                if (transaction.type !== 1 || transaction.subtype !== 6) {
-                    return false;
-                }
-
-                var aliasLength = parseInt(byteArray[pos], 10);
-
-                pos++;
-
-                transaction.alias = converters.byteArrayToString(byteArray, pos, aliasLength);
-
-                pos += aliasLength;
-
-                transaction.priceNQT = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                if (transaction.alias !== data.aliasName || transaction.priceNQT !== data.priceNQT) {
-                    return false;
-                }
-
-                break;
-            case "buyAlias":
-                if (transaction.type !== 1 && transaction.subtype !== 7) {
-                    return false;
-                }
-
-                var aliasLength = parseInt(byteArray[pos], 10);
-
-                pos++;
-
-                transaction.alias = converters.byteArrayToString(byteArray, pos, aliasLength);
-
-                pos += aliasLength;
-
-                if (transaction.alias !== data.aliasName) {
-                    return false;
-                }
-
-                break;
-            case "issueAsset":
-                if (transaction.type !== 2 || transaction.subtype !== 0) {
-                    return false;
-                }
-
-                var nameLength = byteArray[pos];
-
-                pos++;
-
-                transaction.name = converters.byteArrayToString(byteArray, pos, nameLength);
-
-                pos += nameLength;
-
-                var descriptionLength = converters.byteArrayToSignedShort(byteArray, pos);
-
-                pos += 2;
-
-                transaction.description = converters.byteArrayToString(byteArray, pos, descriptionLength);
-
-                pos += descriptionLength;
-
-                transaction.quantityQNT = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                transaction.decimals = String(byteArray[pos]);
-
-                pos++;
-
-                if (transaction.name !== data.name || transaction.description !== data.description || transaction.quantityQNT !== data.quantityQNT || transaction.decimals !== data.decimals) {
-                    return false;
-                }
-
-                break;
-            case "transferAsset":
-                if (transaction.type !== 2 || transaction.subtype !== 1) {
-                    return false;
-                }
-
-                transaction.asset = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                transaction.quantityQNT = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                if (transaction.asset !== data.asset || transaction.quantityQNT !== data.quantityQNT) {
-                    return false;
-                }
-                break;
-            case "placeAskOrder":
-            case "placeBidOrder":
-                if (transaction.type !== 2) {
-                    return false;
-                } else if (requestType == "placeAskOrder" && transaction.subtype !== 2) {
-                    return false;
-                } else if (requestType == "placeBidOrder" && transaction.subtype !== 3) {
-                    return false;
-                }
-
-                transaction.asset = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                transaction.quantityQNT = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                transaction.priceNQT = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                if (transaction.asset !== data.asset || transaction.quantityQNT !== data.quantityQNT || transaction.priceNQT !== data.priceNQT) {
-                    return false;
-                }
-                break;
-            case "cancelAskOrder":
-            case "cancelBidOrder":
-                if (transaction.type !== 2) {
-                    return false;
-                } else if (requestType == "cancelAskOrder" && transaction.subtype !== 4) {
-                    return false;
-                } else if (requestType == "cancelBidOrder" && transaction.subtype !== 5) {
-                    return false;
-                }
-
-                transaction.order = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                if (transaction.order !== data.order) {
-                    return false;
-                }
-
-                break;
-            case "dgsListing":
-                if (transaction.type !== 3 && transaction.subtype !== 0) {
-                    return false;
-                }
-
-                var nameLength = converters.byteArrayToSignedShort(byteArray, pos);
-
-                pos += 2;
-
-                transaction.name = converters.byteArrayToString(byteArray, pos, nameLength);
-
-                pos += nameLength;
-
-                var descriptionLength = converters.byteArrayToSignedShort(byteArray, pos);
-
-                pos += 2;
-
-                transaction.description = converters.byteArrayToString(byteArray, pos, descriptionLength);
-
-                pos += descriptionLength;
-
-                var tagsLength = converters.byteArrayToSignedShort(byteArray, pos);
-
-                pos += 2;
-
-                transaction.tags = converters.byteArrayToString(byteArray, pos, tagsLength);
-
-                pos += tagsLength;
-
-                transaction.quantity = String(converters.byteArrayToSignedInt32(byteArray, pos));
-
-                pos += 4;
-
-                transaction.priceNQT = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                if (transaction.name !== data.name || transaction.description !== data.description || transaction.tags !== data.tags || transaction.quantity !== data.quantity || transaction.priceNQT !== data.priceNQT) {
-                    return false;
-                }
-
-                break;
-            case "dgsDelisting":
-                if (transaction.type !== 3 && transaction.subtype !== 1) {
-                    return false;
-                }
-
-                transaction.goods = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                if (transaction.goods !== data.goods) {
-                    return false;
-                }
-
-                break;
-            case "dgsPriceChange":
-                if (transaction.type !== 3 && transaction.subtype !== 2) {
-                    return false;
-                }
-
-                transaction.goods = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                transaction.priceNQT = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                if (transaction.goods !== data.goods || transaction.priceNQT !== data.priceNQT) {
-                    return false;
-                }
-
-                break;
-            case "dgsQuantityChange":
-                if (transaction.type !== 3 && transaction.subtype !== 3) {
-                    return false;
-                }
-
-                transaction.goods = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                transaction.deltaQuantity = String(converters.byteArrayToSignedInt32(byteArray, pos));
-
-                pos += 4;
-
-                if (transaction.goods !== data.goods || transaction.deltaQuantity !== data.deltaQuantity) {
-                    return false;
-                }
-
-                break;
-            case "dgsPurchase":
-                if (transaction.type !== 3 && transaction.subtype !== 4) {
-                    return false;
-                }
-
-                transaction.goods = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                transaction.quantity = String(converters.byteArrayToSignedInt32(byteArray, pos));
-
-                pos += 4;
-
-                transaction.priceNQT = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                transaction.deliveryDeadlineTimestamp = String(converters.byteArrayToSignedInt32(byteArray, pos));
-
-                pos += 4;
-
-                if (transaction.goods !== data.goods || transaction.quantity !== data.quantity || transaction.priceNQT !== data.priceNQT || transaction.deliveryDeadlineTimestamp !== data.deliveryDeadlineTimestamp) {
-                    return false;
-                }
-
-                break;
-            case "dgsDelivery":
-                if (transaction.type !== 3 && transaction.subtype !== 5) {
-                    return false;
-                }
-
-                transaction.purchase = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                var encryptedGoodsLength = converters.byteArrayToSignedShort(byteArray, pos);
-
-                var goodsLength = converters.byteArrayToSignedInt32(byteArray, pos);
-
-                transaction.goodsIsText = goodsLength < 0; // ugly hack??
-
-                if (goodsLength < 0) {
-                    goodsLength &= 2147483647;
-                }
-
-                pos += 4;
-
-                transaction.goodsData = converters.byteArrayToHexString(byteArray.slice(pos, pos + encryptedGoodsLength));
-
-                pos += encryptedGoodsLength;
-
-                transaction.goodsNonce = converters.byteArrayToHexString(byteArray.slice(pos, pos + 32));
-
-                pos += 32;
-
-                transaction.discountNQT = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                var goodsIsText = (transaction.goodsIsText ? "true" : "false");
-
-                if (goodsIsText != data.goodsIsText) {
-                    return false;
-                }
-
-                if (transaction.purchase !== data.purchase || transaction.goodsData !== data.goodsData || transaction.goodsNonce !== data.goodsNonce || transaction.discountNQT !== data.discountNQT) {
-                    return false;
-                }
-
-                break;
-            case "dgsFeedback":
-                if (transaction.type !== 3 && transaction.subtype !== 6) {
-                    return false;
-                }
-
-                transaction.purchase = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                if (transaction.purchase !== data.purchase) {
-                    return false;
-                }
-
-                break;
-            case "dgsRefund":
-                if (transaction.type !== 3 && transaction.subtype !== 7) {
-                    return false;
-                }
-
-                transaction.purchase = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                transaction.refundNQT = String(converters.byteArrayToBigInteger(byteArray, pos));
-
-                pos += 8;
-
-                if (transaction.purchase !== data.purchase || transaction.refundNQT !== data.refundNQT) {
-                    return false;
-                }
-
-                break;
-            case "leaseBalance":
-                if (transaction.type !== 4 && transaction.subtype !== 0) {
-                    return false;
-                }
-
-                transaction.period = String(converters.byteArrayToSignedShort(byteArray, pos));
-
-                pos += 2;
-
-                if (transaction.period !== data.period) {
-                    return false;
-                }
-
-                break;
-            default:
-                //invalid requestType..
-                return false;
+            }
+        }
+        else {
+            //invalid requestType..
+            return false;
         }
 
         var position = 1;
