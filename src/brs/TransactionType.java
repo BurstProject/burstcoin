@@ -1159,6 +1159,7 @@ public abstract class TransactionType {
         void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
           Attachment.ColoredCoinsBidOrderCancellation attachment = (Attachment.ColoredCoinsBidOrderCancellation) transaction.getAttachment();
           Order order = assetExchange.getBidOrder(attachment.getOrderId());
+          assetExchange.removeBidOrder(attachment.getOrderId());
           if (order != null) {
             accountService.addToUnconfirmedBalanceNQT(senderAccount, Convert.safeMultiply(order.getQuantityQNT(), order.getPriceNQT()));
           }
