@@ -99,6 +99,28 @@ var BRS = (function(BRS, $, undefined) {
         $(this).closest("form").find("input[name=recipient],input[name=account_id]").not("[type=hidden]").trigger("unmask").val($(this).data("contact")).trigger("blur");
     });
 
+    $(document).on("click", ".recipient_selector_multi_out button", function(e) {
+        if (!Object.keys(BRS.contacts).length) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+
+        var $list = $(this).parent().find("ul");
+
+        $list.empty();
+
+        for (var accountId in BRS.contacts) {
+            $list.append("<li><a href='#' data-contact='" + String(accountId).escapeHTML() + "'>" + String(BRS.contacts[accountId].name).escapeHTML() + "</a></li>");
+        }
+    });
+
+    $(document).on("click", ".recipient_selector_multi_out ul li a", function(e) {
+        e.preventDefault();
+        // ugly hack - serious jquery cancer
+        $(this).parent().parent().parent().parent().find(".multi-out-recipient").val($(this).data("contact"));
+    });
+
     BRS.forms.sendMoneyComplete = function(response, data) {
         if (!(data._extra && data._extra.convertedAccount) && !(data.recipient in BRS.contacts)) {
             $.notify($.t("success_send_money") + " <a href='#' data-account='" + BRS.getAccountFormatted(data, "recipient") + "' data-toggle='modal' data-target='#add_contact_modal' style='text-decoration:underline'>" + $.t("add_recipient_to_contacts_q") + "</a>", {
@@ -106,7 +128,7 @@ var BRS = (function(BRS, $, undefined) {
                 offset: {
                     x: 5,
                     y: 60
-                    }
+                }
             });
         } else {
             $.notify($.t("success_send_money"), {
@@ -114,7 +136,7 @@ var BRS = (function(BRS, $, undefined) {
                 offset: {
                     x: 5,
                     y: 60
-                    }
+                }
             });
         }
     };
