@@ -16,9 +16,9 @@ public interface TransactionProcessor extends Observable<List<? extends Transact
   }
 
   ArrayList<? extends Transaction> getAllUnconfirmedTransactions();
-
+  
   Transaction getUnconfirmedTransaction(long transactionId);
-    
+
   void clearUnconfirmedTransactions();
 
   void broadcast(Transaction transaction) throws BurstException.ValidationException;

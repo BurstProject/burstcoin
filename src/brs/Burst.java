@@ -1,5 +1,7 @@
 package brs;
 
+import static brs.schema.Tables.UNCONFIRMED_TRANSACTION;
+
 import brs.AT.HandleATBlockTransactionsListener;
 import brs.GeneratorImpl.MockGeneratorImpl;
 import brs.assetexchange.AssetExchange;
@@ -50,7 +52,9 @@ import brs.util.Time;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.ResultSet;
 import java.util.Properties;
+import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -244,6 +248,29 @@ public final class Burst {
 
       DebugTrace.init(propertyService, blockchainProcessor, accountService, assetExchange, digitalGoodsStoreService);
 
+      // backward compatibility for those who have some unconfirmed transactions in their db
+      try {
+        stores.beginTransaction();
+        try (DSLContext ctx = Db.getDSLContext()) {
+          ResultSet rs = ctx.selectFrom(UNCONFIRMED_TRANSACTION).fetchResultSet();
+          while ( rs.next() ) {
+            byte[] transactionBytes = rs.getBytes("transaction_bytes");
+            Transaction transaction = Transaction.parseTransaction(transactionBytes);
+            transaction.setHeight(rs.getInt("transaction_height"));
+            transactionService.undoUnconfirmed(transaction);
+          }
+          ctx.truncate(UNCONFIRMED_TRANSACTION).execute();
+        }
+        accountService.flushAccountTable();
+        stores.commitTransaction();
+      } catch (Exception e) {
+        logger.error(e.toString(), e);
+        stores.rollbackTransaction();
+        throw e;
+      } finally {
+        stores.endTransaction();
+      }
+
       int timeMultiplier = (propertyService.getBoolean(Props.DEV_TESTNET) && propertyService.getBoolean(Props.DEV_OFFLINE)) ? Math.max(propertyService.getInt(Props.DEV_TIMEWARP), 1) : 1;
 
       threadPool.start(timeMultiplier);
@@ -263,6 +290,7 @@ public final class Burst {
       logger.error(e.getMessage(), e);
       System.exit(1);
     }
+
   }
 
   private static void addBlockchainListeners(BlockchainProcessor blockchainProcessor, AccountService accountService, DGSGoodsStoreService goodsService, Blockchain blockchain,
