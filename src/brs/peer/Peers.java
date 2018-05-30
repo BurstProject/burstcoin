@@ -760,7 +760,7 @@ public final class Peers {
       for (final Peer peer : peers.values()) {
 
         if (peer.isHigherOrEqualVersionThan(Burst.LEGACY_VER)
-            && (sendSameBRSclass && peer.isAtLeastMyVersion())
+            && ( ! sendSameBRSclass || peer.isAtLeastMyVersion())
             && !peer.isBlacklisted()
             && peer.getState() == Peer.State.CONNECTED
             && peer.getAnnouncedAddress() != null) {
