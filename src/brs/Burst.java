@@ -314,7 +314,7 @@ public final class Burst {
     Peers.shutdown(threadPool);
     threadPool.shutdown();
     dbCacheManager.close();
-    stores.getUnconfirmedTransactionStore().close();
+
     if(! ignoreDBShutdown) {
       Db.shutdown();
     }

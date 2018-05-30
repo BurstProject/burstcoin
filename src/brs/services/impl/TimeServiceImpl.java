@@ -14,6 +14,11 @@ public class TimeServiceImpl implements TimeService {
   }
 
   @Override
+  public long getEpochTimeMillis() {
+    return time.getTimeInMillis();
+  }
+
+  @Override
   public void setTime(FasterTime t) {
     time = t;
   }

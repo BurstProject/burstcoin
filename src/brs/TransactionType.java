@@ -97,7 +97,7 @@ public abstract class TransactionType {
   private static EscrowService escrowService;
 
   // Temporary...
-  static void init(Blockchain blockchain, FluxCapacitor fluxCapacitor,
+  public static void init(Blockchain blockchain, FluxCapacitor fluxCapacitor,
       AccountService accountService, DGSGoodsStoreService dgsGoodsStoreService,
       AliasService aliasService, AssetExchange assetExchange,
       SubscriptionService subscriptionService, EscrowService escrowService) {
