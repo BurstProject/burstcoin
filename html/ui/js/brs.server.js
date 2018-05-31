@@ -10,6 +10,10 @@ var BRS = (function(BRS, $, undefined) {
         _password = password;
     };
 
+    BRS.getServerPassword = function() {
+        return _password
+    }
+
     BRS.sendOutsideRequest = function(url, data, callback, async) {
         if ($.isFunction(data)) {
             async = callback;
