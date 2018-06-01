@@ -268,6 +268,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             Long lastId = blockchain.getLastBlock().getId();
             Block currentBlock = downloadCache.getNextBlock(lastId); /* this should fetch first block in cache */
             if (currentBlock == null) {
+              downloadCache.resetCache(); //resetting cache because we have blocks that cannot be processed.
               break;
             }
             try {
