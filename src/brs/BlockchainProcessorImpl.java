@@ -264,7 +264,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private final Runnable blockImporterThread = () -> {
     try {
       while (true) {
-        while (downloadCache.getBlockCacheSize() > 0) {
+        while (downloadCache.size() > 0) {
             Long lastId = blockchain.getLastBlock().getId();
             Block currentBlock = downloadCache.getNextBlock(lastId); /* this should fetch first block in cache */
             if (currentBlock == null) {
@@ -276,10 +276,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 blockService.preVerify(currentBlock);
                 logger.debug("block was not preverified");
               }
-              pushBlock(currentBlock);
               lastId = currentBlock.getId();
               downloadCache.removeBlock(currentBlock);
-            
+              pushBlock(currentBlock);
             } catch (BlockNotAcceptedException e) {
               logger.error("Block not accepted", e);
               blacklistClean(currentBlock, e);
