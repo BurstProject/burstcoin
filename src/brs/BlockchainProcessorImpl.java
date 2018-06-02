@@ -473,6 +473,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               } catch (BlockOutOfOrderException e) {
                 logger.info(e.toString() + " - autoflushing cache to get rid of it", e);
                 downloadCache.resetCache();
+                return;
               } catch (RuntimeException | BurstException.ValidationException e) {
                 logger.info("Failed to parse block: {}" + e.toString(), e);
                 logger.info("Failed to parse block trace: " + e.getStackTrace());
