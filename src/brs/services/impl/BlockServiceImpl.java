@@ -4,6 +4,7 @@ import brs.Account;
 import brs.Block;
 import brs.Blockchain;
 import brs.BlockchainProcessor;
+import brs.BlockchainProcessor.BlockOutOfOrderException;
 import brs.Constants;
 import brs.Generator;
 import brs.Genesis;
@@ -182,7 +183,11 @@ public class BlockServiceImpl implements BlockService {
       }
       block.setHeight(previousBlock.getHeight() + 1);
       if(block.getBaseTarget() == Constants.INITIAL_BASE_TARGET ) {
-        this.calculateBaseTarget(block, previousBlock);
+        try {
+          this.calculateBaseTarget(block, previousBlock);
+        } catch (BlockOutOfOrderException e) {
+          throw new IllegalStateException(e.toString(), e);
+        }
       }
     } else {
       block.setHeight(0);
@@ -191,7 +196,7 @@ public class BlockServiceImpl implements BlockService {
   }
 
   @Override
-  public void calculateBaseTarget(Block block, Block previousBlock) {
+  public void calculateBaseTarget(Block block, Block previousBlock) throws BlockOutOfOrderException {
     if (block.getId() == Genesis.GENESIS_BLOCK_ID && block.getPreviousBlockId() == 0) {
       block.setBaseTarget(Constants.INITIAL_BASE_TARGET);
       block.setCumulativeDifficulty(BigInteger.ZERO);
@@ -234,7 +239,11 @@ public class BlockServiceImpl implements BlockService {
       BigInteger avgBaseTarget = BigInteger.valueOf(itBlock.getBaseTarget());
       int blockCounter = 1;
       do {
+        int previousHeight = itBlock.getHeight();
         itBlock = downloadCache.getBlock(itBlock.getPreviousBlockId());
+        if (itBlock == null) {
+          throw new BlockOutOfOrderException("Previous block does no longer exist for block height " + previousHeight);
+        }
         blockCounter++;
         avgBaseTarget = (avgBaseTarget.multiply(BigInteger.valueOf(blockCounter))
             .add(BigInteger.valueOf(itBlock.getBaseTarget())))

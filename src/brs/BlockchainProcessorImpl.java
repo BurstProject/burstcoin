@@ -470,6 +470,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                   downloadCache.addForkBlock(block);
                 }
                 lastBlock = block;
+              } catch (BlockOutOfOrderException e) {
+                logger.info(e.toString() + " - autoflushing cache to get rid of it", e);
+                downloadCache.resetCache();
               } catch (RuntimeException | BurstException.ValidationException e) {
                 logger.info("Failed to parse block: {}" + e.toString(), e);
                 logger.info("Failed to parse block trace: " + e.getStackTrace());
@@ -848,7 +851,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       previousLastBlock = blockchain.getLastBlock();
 
       if (previousLastBlock.getId() != block.getPreviousBlockId()) {
-        throw new BlockOutOfOrderException("Previous block id doesn't match for block " + block.getHeight());
+        throw new BlockOutOfOrderException(
+            "Previous block id doesn't match for block " + block.getHeight()
+            + ((previousLastBlock.getHeight() + 1) == block.getHeight() ? "" : " invalid previous height " + previousLastBlock.getHeight() )
+        );
       }
 
       if (block.getVersion() != getBlockVersion()) {
