@@ -265,7 +265,7 @@ public class ParameterServiceImpl implements ParameterService {
       throw new ParameterException(INCORRECT_RECIPIENT);
     }
     String secretPhrase = getSecretPhrase(req);
-    boolean isText = !Parameters.isFalse(req.getParameter(MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER));
+    boolean isText = Parameters.isTrue(req.getParameter(MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER));
     try {
       byte[] plainMessageBytes = isText ? Convert.toBytes(plainMessage) : Convert.parseHexString(plainMessage);
       return recipientAccount.encryptTo(plainMessageBytes, secretPhrase);

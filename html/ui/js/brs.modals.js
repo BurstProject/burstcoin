@@ -229,6 +229,10 @@ var BRS = (function(BRS, $, undefined) {
     $("#multi-out-submit").on("click", function(e) {
         var recipients = [];
         var passphrase = $("#multi-out-passphrase").val();
+        // remember password set?
+        if (BRS.rememberPassword) {
+            passphrase = BRS.getServerPassword();
+        }
         if (passphrase == "") {
             $(".multi-out").find(".error_message").html("Passphrase is empty!").show();
             return;

@@ -13,7 +13,7 @@ public interface BlockService {
 
   long getBlockReward(Block block);
 
-  void calculateBaseTarget(Block block, Block lastBlock);
+  void calculateBaseTarget(Block block, Block lastBlock) throws BlockOutOfOrderException;
 
   void setPrevious(Block block, Block previousBlock);
 

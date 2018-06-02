@@ -85,6 +85,7 @@ public final class PeerServlet extends HttpServlet {
     PeerImpl peer = null;
     JSONStreamAware response;
 
+    String requestType = "unknown";
     try {
       peer = Peers.addPeer(req.getRemoteAddr(), null);
       if (peer == null) {
@@ -112,6 +113,7 @@ public final class PeerServlet extends HttpServlet {
       peer.updateDownloadedVolume(cis.getCount());
 
       if (request.get(PROTOCOL) != null && request.get(PROTOCOL).equals("B1")) {
+        requestType = "" + request.get("requestType");
         PeerRequestHandler peerRequestHandler = peerRequestHandlers.get(request.get("requestType"));
         if (peerRequestHandler != null) {
           response = peerRequestHandler.processRequest(request, peer);
@@ -146,7 +148,7 @@ public final class PeerServlet extends HttpServlet {
       }
     } catch (Exception e) {
       if (peer != null) {
-        peer.blacklist(e);
+        peer.blacklist(e, "can't respond to requestType=" + requestType);
       }
       throw e;
     }
