@@ -278,8 +278,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 logger.debug("block was not preverified");
               }
               lastId = currentBlock.getId();
-              downloadCache.removeBlock(currentBlock);
-              pushBlock(currentBlock);
+              pushBlock(currentBlock); //pushblock removes the block from cache.
             } catch (BlockNotAcceptedException e) {
               logger.error("Block not accepted", e);
               blacklistClean(currentBlock, e);
@@ -288,7 +287,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
 
         try {
-          Thread.sleep(100);
+          Thread.sleep(10);
         } catch (InterruptedException ex) {
           logger.debug("Blockimporter fires interupt.");
           Thread.currentThread().interrupt();
@@ -837,6 +836,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private void pushBlock(final Block block) throws BlockNotAcceptedException {
 	synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
+    
+    //We make sure downloadCache do not have this block anymore.
+	downloadCache.removeBlock(block);
 	stores.beginTransaction(); //top of try
     int curTime = timeService.getEpochTime();
     
