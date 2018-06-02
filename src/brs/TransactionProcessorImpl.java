@@ -174,7 +174,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
             try {
               processPeerTransactions(transactionsData);
             } catch (BurstException.ValidationException|RuntimeException e) {
-              peer.blacklist(e);
+              peer.blacklist(e, "pulled invalid data using getUnconfirmedTransactions");
             }
           }
           } catch (Exception e) {

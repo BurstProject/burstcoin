@@ -23,7 +23,7 @@ final class ProcessTransactions extends PeerServlet.PeerRequestHandler {
       return JSON.emptyJSON;
     } catch (RuntimeException | BurstException.ValidationException e) {
       //logger.debug("Failed to parse peer transactions: " + request.toJSONString());
-      peer.blacklist(e);
+      peer.blacklist(e, "received invalid data via requestType=processTransactions");
       JSONObject response = new JSONObject();
       response.put("error", e.toString());
       return response;

@@ -232,7 +232,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             downloadCache.removeUnverifiedBatch(blocks);
           } catch (OCLPoC.PreValidateFailException e) {
             logger.info(e.toString(), e);
-            blacklistClean(e.getBlock(), e);
+            blacklistClean(e.getBlock(), e, "found invalid pull/push data during processing the pocVerification");
           } catch (OCLPoC.OCLCheckerException e) {
             logger.info("Open CL error. slow verify will occur for the next "+oclUnverifiedQueue+" Blocks", e);
           } catch (Exception e) {
@@ -281,7 +281,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               pushBlock(currentBlock); //pushblock removes the block from cache.
             } catch (BlockNotAcceptedException e) {
               logger.error("Block not accepted", e);
-              blacklistClean(currentBlock, e);
+              blacklistClean(currentBlock, e, "found invalid pull/push data during importing the block");
               break;
             }
         }
@@ -303,14 +303,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
   };
 
-  private void blacklistClean(Block block, Exception e) {
+  private void blacklistClean(Block block, Exception e, String description) {
     logger.debug("Blacklisting peer and cleaning cache queue");
     if (block == null) {
       return;
     }
     Peer peer = block.getPeer();
     if (peer != null) {
-      peer.blacklist(e);
+      peer.blacklist(e, description);
     }
     downloadCache.resetCache();
     logger.debug("Blacklisted peer and cleaned queue");
@@ -477,7 +477,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               } catch (RuntimeException | BurstException.ValidationException e) {
                 logger.info("Failed to parse block: {}" + e.toString(), e);
                 logger.info("Failed to parse block trace: " + e.getStackTrace());
-                peer.blacklist(e);
+                peer.blacklist(e, "pulled invalid data using getCumulativeDifficulty");
                 return;
               } catch (Exception e) {
                 logger.warn("Unhandled exception {}" + e.toString(), e);
@@ -499,8 +499,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                * before we do a popOff and switch chain.
                */
               if(lastBlock.getCumulativeDifficulty().compareTo(curCumulativeDifficulty) < 0) {
-                logger.debug("Peer claimed to have bigger cumulative difficulty but in reality it did not. Blacklisting.");
-                peer.blacklist();
+                peer.blacklist("peer claimed to have bigger cumulative difficulty but in reality it did not.");
                 downloadCache.resetForkBlocks();
                 break;
               }
@@ -557,9 +556,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
         // prevent overloading with blockIds
         if (milestoneBlockIds.size() > 20) {
-          logger.debug("Obsolete or rogue peer " + peer.getPeerAddress()
-              + " sends too many milestoneBlockIds, blacklisting");
-          peer.blacklist();
+          peer.blacklist("obsolete or rogue peer sends too many milestoneBlockIds");
           return 0;
         }
         if (Boolean.TRUE.equals(response.get("last"))) {
@@ -597,9 +594,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
         // prevent overloading with blockIds
         if (nextBlockIds.size() > 1440) {
-          logger.debug("Obsolete or rogue peer " + peer.getPeerAddress()
-              + " sends too many nextBlockIds, blacklisting");
-          peer.blacklist();
+          peer.blacklist("obsolete or rogue peer sends too many nextBlocks");
           return 0;
         }
 
@@ -631,9 +626,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       }
       // prevent overloading with blocks
       if (nextBlocks.size() > 1440) {
-        logger.debug("Obsolete or rogue peer " + peer.getPeerAddress()
-            + " sends too many nextBlocks, blacklisting");
-        peer.blacklist();
+        peer.blacklist("obsolete or rogue peer sends too many nextBlocks");
         return null;
       }
       logger.debug("Got " + nextBlocks.size() + " Blocks after " + curBlockId + " from "
@@ -677,7 +670,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             pushBlock(block);
             pushedForkBlocks += 1;
           } catch (BlockNotAcceptedException e) {
-            peer.blacklist(e);
+            peer.blacklist(e, "during processing a fork");
             break;
           }
         }
@@ -691,7 +684,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (pushedForkBlocks > 0 && blockchain.getLastBlock().getCumulativeDifficulty()
         .compareTo(curCumulativeDifficulty) < 0) {
       logger.warn("Fork was bad and Pop off was caused by peer " + peer.getPeerAddress() + ", blacklisting");
-      peer.blacklist();
+      peer.blacklist("got a bad fork");
       List<Block> peerPoppedOffBlocks = popOffTo(forkBlock);
       pushedForkBlocks = 0;
       peerPoppedOffBlocks.forEach(block -> transactionProcessor.processLater(block.getTransactions()));

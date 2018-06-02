@@ -227,15 +227,30 @@ final class PeerImpl implements Peer {
   }
 
   @Override
-  public void blacklist(Exception cause) {
+  public void blacklist(Exception cause, String description) {
     if (cause instanceof BurstException.NotCurrentlyValidException || cause instanceof BlockchainProcessor.BlockOutOfOrderException
         || cause instanceof SQLException || cause.getCause() instanceof SQLException) {
       // don't blacklist peers just because a feature is not yet enabled, or because of database timeouts
       // prevents erroneous blacklisting during loading of blockchain from scratch
       return;
     }
-    if (! isBlacklisted() && ! (cause instanceof IOException)) {
-      logger.debug("Blacklisting " + peerAddress + " because of: " + cause.toString(), cause);
+    if ( (cause instanceof IOException) ) {
+      // don't trigger verbose logging, if we had an IO Exception (eg. network stuff)
+      blacklist();
+    }
+    else {
+      boolean alreadyBlacklisted = isBlacklisted();
+      blacklist(description); // refresh blacklist expiry
+      if ( ! alreadyBlacklisted ) {
+        logger.debug("... because of: " + cause.toString(), cause);
+      }
+    }
+  }
+
+  @Override
+  public void blacklist(String description) {
+    if (! isBlacklisted() ) {
+      logger.info("Blacklisting " + peerAddress + " (" + getVersion() + ") because of: " + description);
     }
     blacklist();
   }
