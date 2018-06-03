@@ -6,5 +6,7 @@ public interface TimeService {
 
   int getEpochTime();
 
+  long getEpochTimeMillis();
+
   void setTime(FasterTime fasterTime);
 }

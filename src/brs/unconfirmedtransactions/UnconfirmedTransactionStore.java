@@ -1,5 +1,8 @@
-package brs;
+package brs.unconfirmedtransactions;
 
+import brs.Account;
+import brs.BurstException;
+import brs.Transaction;
 import brs.common.Props;
 import brs.db.store.AccountStore;
 import brs.services.PropertyService;
@@ -10,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -22,7 +26,7 @@ public class UnconfirmedTransactionStore {
   private final TimeService timeService;
   private final AccountStore accountStore;
 
-  private final ArrayDeque<Long> idQueue;
+  private final ArrayDeque<UnconfirmedTransactionTiming> idQueue;
   private final HashMap<Long, Transaction> cache;
   private final HashMap<Long, Long> reservedBalanceCache;
   private final int maxSize;
@@ -35,10 +39,6 @@ public class UnconfirmedTransactionStore {
     idQueue = new ArrayDeque<>(maxSize);
     cache = new HashMap<>(maxSize);
     reservedBalanceCache = new HashMap<>();
-  }
-
-  public void close() {
-    //NOOP
   }
 
   public void put(Collection<Transaction> transactionsToAdd) throws BurstException.ValidationException  {
@@ -54,8 +54,8 @@ public class UnconfirmedTransactionStore {
       int amountOfTransactionsToRemove = idQueue.size() + transactionsToAdd.size() - maxSize;
 
       for (int i = 0; i < amountOfTransactionsToRemove; i++) {
-        final Long transactionToRemoveId = idQueue.pop();
-        cache.remove(transactionToRemoveId);
+        final UnconfirmedTransactionTiming transactionToRemoveId = idQueue.pop();
+        cache.remove(transactionToRemoveId.getId());
       }
 
       for (Transaction transactionToAdd : transactionsToAdd) {
@@ -63,24 +63,23 @@ public class UnconfirmedTransactionStore {
           remove(transactionToAdd);
         }
 
-        idQueue.addLast(transactionToAdd.getId());
+        idQueue.addLast(new UnconfirmedTransactionTiming(transactionToAdd.getId(), timeService.getEpochTimeMillis()));
         reserveBalanceAndPut(transactionToAdd);
       }
     }
   }
 
-
   public void put(Transaction transaction) throws BurstException.ValidationException  {
     synchronized (idQueue) {
       if (!transactionIsExpired(transaction, timeService.getEpochTime())) {
         if (idQueue.size() == maxSize) {
-          final Long transactionToRemoveId = idQueue.pop();
-          cache.remove(transactionToRemoveId);
+          final UnconfirmedTransactionTiming transactionToRemoveId = idQueue.pop();
+          cache.remove(transactionToRemoveId.getId());
         } else if(exists(transaction.getId())) {
           remove(transaction);
         }
 
-        idQueue.addLast(transaction.getId());
+        idQueue.addLast(new UnconfirmedTransactionTiming(transaction.getId(), timeService.getEpochTimeMillis()));
         reserveBalanceAndPut(transaction);
       }
     }
@@ -104,6 +103,32 @@ public class UnconfirmedTransactionStore {
       return new ArrayList<>(cache.values().stream()
           .filter(possiblyExpired -> fetchUnexpiredTransactionOrCleanup(possiblyExpired.getId(), currentTime) != null)
           .collect(Collectors.toList()));
+    }
+  }
+
+  public List<Transaction> getAllSince(long timestampInMillis) {
+    synchronized (idQueue) {
+      final int currentTime = timeService.getEpochTime();
+
+      final ArrayList<UnconfirmedTransactionTiming> idQueueArray = new ArrayList(idQueue);
+
+      int positionOfFirstTransactionSinceTimestamp = -1;
+      for(int i = 0; i < idQueueArray.size(); i++) {
+        if(idQueueArray.get(i).getTimestamp() > timestampInMillis) {
+          positionOfFirstTransactionSinceTimestamp = i;
+          break;
+        }
+      }
+
+      if(positionOfFirstTransactionSinceTimestamp > -1) {
+        return idQueueArray.stream()
+            .skip(positionOfFirstTransactionSinceTimestamp)
+            .map(utt -> cache.get(utt.getId()))
+            .filter(possiblyExpired -> fetchUnexpiredTransactionOrCleanup(possiblyExpired.getId(), currentTime) != null)
+            .collect(Collectors.toList());
+      }
+
+      return new ArrayList<>();
     }
   }
 

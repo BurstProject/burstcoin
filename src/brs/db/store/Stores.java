@@ -1,6 +1,6 @@
 package brs.db.store;
 
-import brs.UnconfirmedTransactionStore;
+import brs.unconfirmedtransactions.UnconfirmedTransactionStore;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.sql.*;
 import brs.services.PropertyService;

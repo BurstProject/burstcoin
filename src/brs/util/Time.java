@@ -2,11 +2,11 @@ package brs.util;
 
 import brs.Constants;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 public interface Time {
 
   int getTime();
+
+  long getTimeInMillis();
 
   final class EpochTime implements Time {
 
@@ -14,18 +14,8 @@ public interface Time {
       return (int)((System.currentTimeMillis() - Constants.EPOCH_BEGINNING + 500) / 1000);
     }
 
-  }
-
-  final class ConstantTime implements Time {
-
-    private final int time;
-
-    public ConstantTime(int time) {
-      this.time = time;
-    }
-
-    public int getTime() {
-      return time;
+    public long getTimeInMillis() {
+      return ((System.currentTimeMillis() - Constants.EPOCH_BEGINNING + 500));
     }
 
   }
@@ -49,18 +39,8 @@ public interface Time {
       return time + (int)((System.currentTimeMillis() - systemStartTime) / (1000 / multiplier));
     }
 
-  }
-
-  final class CounterTime implements Time {
-
-    private final AtomicInteger counter;
-
-    public CounterTime(int time) {
-      this.counter = new AtomicInteger(time);
-    }
-
-    public int getTime() {
-      return counter.incrementAndGet();
+    public long getTimeInMillis() {
+      return time + ((System.currentTimeMillis() - systemStartTime) / multiplier);
     }
 
   }
