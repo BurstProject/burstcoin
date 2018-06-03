@@ -139,7 +139,9 @@ public class UnconfirmedTransactionStore {
       for (Iterator<Transaction> it = cache.values().iterator(); it.hasNext();) {
         Transaction t = it.next();
         if(transactionIsExpired(t, currentTime)) {
-          remove(t);
+          it.remove();
+          idQueue.removeFirstOccurrence(t.getId());
+          refundBalance(t);
         }
       }
 

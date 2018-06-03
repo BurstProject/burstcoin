@@ -173,12 +173,15 @@ public class UnconfirmedTransactionStoreTest {
   @Test
   public void transactionGetsRemovedWhenExpiredWhenRunningForeach() throws ValidationException, InterruptedException {
     final int deadlineWithin2Seconds = timeService.getEpochTime() - 29998;
-    final Transaction transaction = new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 500, 735000, deadlineWithin2Seconds, (short) 500, ORDINARY_PAYMENT)
-        .id(1).senderId(123L).build();
 
-    transaction.sign(TestConstants.TEST_SECRET_PHRASE);
+    for (int i = 0; i < 10; i++) {
+      final Transaction transaction = new Transaction.Builder((byte) i, TestConstants.TEST_PUBLIC_KEY_BYTES, 500, 735000, deadlineWithin2Seconds, (short) 500, ORDINARY_PAYMENT)
+          .id(i).senderId(123L).build();
 
-    t.put(transaction);
+      transaction.sign(TestConstants.TEST_SECRET_PHRASE);
+
+      t.put(transaction);
+    }
 
     assertNotNull(t.get(1L));
 
