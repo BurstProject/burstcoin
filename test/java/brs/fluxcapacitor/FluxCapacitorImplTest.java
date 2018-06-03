@@ -1,6 +1,7 @@
 package brs.fluxcapacitor;
 
 import static brs.fluxcapacitor.FeatureToggle.POC2;
+import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -38,7 +39,7 @@ public class FluxCapacitorImplTest {
 
     t = new FluxCapacitorImpl(blockchainMock, propertyServiceMock);
 
-    assertTrue(t.isActive(POC2));
+    assertTrue(t.isActive(PRE_DYMAXION));
   }
 
   @DisplayName("Feature is not active on ProdNet")

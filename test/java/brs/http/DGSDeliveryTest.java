@@ -235,28 +235,4 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
     assertEquals(INCORRECT_DGS_GOODS, t.processRequest(req));
   }
 
-  @Test
-  public void processRequest_goodsToEncryptIsNotHexStringIncorrectDGSGoods() throws BurstException {
-    final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(DISCOUNT_NQT_PARAMETER, "9"),
-        new MockParam(GOODS_TO_ENCRYPT_PARAMETER, "ZZZ"),
-        new MockParam(SECRET_PHRASE_PARAMETER, TEST_SECRET_PHRASE)
-    );
-
-    final Account mockSellerAccount = mock(Account.class);
-    final Purchase mockPurchase = mock(Purchase.class);
-
-    when(mockSellerAccount.getId()).thenReturn(1l);
-    when(mockPurchase.getSellerId()).thenReturn(1l);
-    when(mockPurchase.getQuantity()).thenReturn(9);
-    when(mockPurchase.getPriceNQT()).thenReturn(1L);
-
-    when(mockPurchase.isPending()).thenReturn(true);
-
-    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
-    when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
-
-    assertEquals(INCORRECT_DGS_GOODS, t.processRequest(req));
-  }
-
 }
