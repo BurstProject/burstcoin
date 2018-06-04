@@ -1,6 +1,8 @@
 package brs;
 
 import brs.fluxcapacitor.FeatureToggle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Economic Clustering concept (EC) solves the most critical flaw of "classical" Proof-of-Stake - the problem called
@@ -17,6 +19,8 @@ import brs.fluxcapacitor.FeatureToggle;
  *                                                                              Come-from-Beyond (21.05.2014)
  */
 public final class EconomicClustering {
+
+  private static final Logger logger = LoggerFactory.getLogger(EconomicClustering.class);
 
   private final Blockchain blockchain;
 
@@ -38,19 +42,25 @@ public final class EconomicClustering {
   }
 
   public boolean verifyFork(Transaction transaction) {
-    if (! Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE)) {
-      return true;
-    }
-    if (transaction.getReferencedTransactionFullHash() != null) {
-      return true;
-    }
-    if (blockchain.getHeight() < Constants.EC_CHANGE_BLOCK_1 ) {
-      if (blockchain.getHeight() - transaction.getECBlockHeight() > Constants.EC_BLOCK_DISTANCE_LIMIT) {
-        return false;
+    try {
+      if (!Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE)) {
+        return true;
       }
+      if (transaction.getReferencedTransactionFullHash() != null) {
+        return true;
+      }
+      if (blockchain.getHeight() < Constants.EC_CHANGE_BLOCK_1) {
+        if (blockchain.getHeight() - transaction.getECBlockHeight() > Constants.EC_BLOCK_DISTANCE_LIMIT) {
+          return false;
+        }
+      }
+      Block ecBlock = blockchain.getBlock(transaction.getECBlockId());
+      return ecBlock != null && ecBlock.getHeight() == transaction.getECBlockHeight();
     }
-    Block ecBlock = blockchain.getBlock(transaction.getECBlockId());
-    return ecBlock != null && ecBlock.getHeight() == transaction.getECBlockHeight();
+    catch ( NullPointerException e ) {
+      logger.debug("caught null pointer exception during verifyFork with transaction:" + transaction.getJSONObject().toString());
+      throw e;
+    }
   }
 
 }
