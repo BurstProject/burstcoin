@@ -266,9 +266,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     try {
       while (true) {
         while (downloadCache.size() > 0) {
-            Long lastId = blockchain.getLastBlock().getId();
+            Block lastBlock = blockchain.getLastBlock();
+            Long lastId = lastBlock.getId();
             Block currentBlock = downloadCache.getNextBlock(lastId); /* this should fetch first block in cache */
-            if (currentBlock == null) {
+            if (currentBlock == null || currentBlock.getHeight() != (lastBlock.getHeight() + 1)) {
               logger.debug("cache is reset due to orphaned block(s). CacheSize: " + downloadCache.size());
               downloadCache.resetCache(); //resetting cache because we have blocks that cannot be processed.
               break;
