@@ -269,6 +269,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             Long lastId = blockchain.getLastBlock().getId();
             Block currentBlock = downloadCache.getNextBlock(lastId); /* this should fetch first block in cache */
             if (currentBlock == null) {
+              logger.debug("cache is reset due to orphaned block(s). CacheSize: " + downloadCache.size());
               downloadCache.resetCache(); //resetting cache because we have blocks that cannot be processed.
               break;
             }
@@ -463,10 +464,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 block.setByteLength(blockData.toString().length());
                 blockService.calculateBaseTarget(block, lastBlock);
                 if (saveInCache) {
-                  if(! downloadCache.addBlock(block)) {
-                	//we stop the loop since cahce has been locked
-                    return;
-                 }
+                  if (downloadCache.getLastBlockId() == block.getPreviousBlockId()) { //still maps back? we might have got announced/forged blocks
+                    if(! downloadCache.addBlock(block)) {
+                	  //we stop the loop since cahce has been locked
+                      return;
+                    }
+                  }
                 } else {
                   downloadCache.addForkBlock(block);
                 }
@@ -835,8 +838,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   private void pushBlock(final Block block) throws BlockNotAcceptedException {
 	synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
     
-    //We make sure downloadCache do not have this block anymore.
-	downloadCache.removeBlock(block);
 	stores.beginTransaction(); //top of try
     int curTime = timeService.getEpochTime();
     
@@ -981,6 +982,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       transactionProcessor.requeueAllUnconfirmedTransactions();
       accountService.flushAccountTable();
       addBlock(block);
+      downloadCache.removeBlock(block); //We make sure downloadCache do not have this block anymore.
       accept(block, remainingAmount, remainingFee);
       derivedTableManager.getDerivedTables().forEach(DerivedTable::finish);
       stores.commitTransaction();
