@@ -1,6 +1,7 @@
 package brs.db.sql;
 
 import brs.Block;
+import brs.Blockchain;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -30,7 +31,8 @@ public class SqlBlockDb implements BlockDb {
 
   public Block findBlock(long blockId) {
     try (DSLContext ctx = Db.getDSLContext()) {
-      return loadBlock(ctx.selectFrom(BLOCK).where(BLOCK.ID.eq(blockId)).fetchAny());
+      BlockRecord r = ctx.selectFrom(BLOCK).where(BLOCK.ID.eq(blockId)).fetchAny();
+      return r == null ? null : loadBlock(r);
     }
     catch (BurstException.ValidationException e) {
       throw new RuntimeException("Block already in database, id = " + blockId + ", does not pass validation!", e);
