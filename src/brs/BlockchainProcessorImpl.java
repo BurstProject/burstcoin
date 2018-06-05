@@ -838,9 +838,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   private void pushBlock(final Block block) throws BlockNotAcceptedException {
-	synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
-    
-	stores.beginTransaction(); //top of try
+	  stores.beginTransaction(); //top of try
     int curTime = timeService.getEpochTime();
     
     Block previousLastBlock = null;
@@ -1002,7 +1000,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     if (block.getTimestamp() >= timeService.getEpochTime() - MAX_TIMESTAMP_DIFFERENCE) {
       Peers.sendToSomePeers(block);
     }
-	} //end synchronized
   }
 
   private void accept(Block block, Long remainingAmount, Long remainingFee)
