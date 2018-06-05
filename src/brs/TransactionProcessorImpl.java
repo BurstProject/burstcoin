@@ -124,7 +124,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       public void run() {
         try {
           try {
-        	  synchronized (unconfirmedTransactionsSyncObj) {
               if(! lostTransactions.isEmpty()) {
                 List<Transaction> reAdded = processTransactions(lostTransactions, false);
 
@@ -170,7 +169,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
             } catch (BurstException.ValidationException|RuntimeException e) {
               peer.blacklist(e, "pulled invalid data using getUnconfirmedTransactions");
             }
-          }
           } catch (Exception e) {
             logger.debug("Error processing unconfirmed transactions", e);
           }
@@ -273,7 +271,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     
   @Override
   public void clearUnconfirmedTransactions() {
-	synchronized (unconfirmedTransactionsSyncObj) {
     List<Transaction> removed = new ArrayList<>();
     try {
       stores.beginTransaction();
@@ -294,21 +291,18 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     }
     lostTransactions.clear();
     transactionListeners.notify(removed, Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
-	}
   }
 
   void requeueAllUnconfirmedTransactions() {
-    synchronized (unconfirmedTransactionsSyncObj) {
-      List<Transaction> removed = new ArrayList<>();
-      unconfirmedTransactionStore.forEach(
-          transaction -> {
-            removed.add(transaction);
-            lostTransactions.add(transaction);
-          }
-      );
-      unconfirmedTransactionStore.clear();
-      transactionListeners.notify(removed, Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
-    }
+    List<Transaction> removed = new ArrayList<>();
+    unconfirmedTransactionStore.forEach(
+        transaction -> {
+          removed.add(transaction);
+          lostTransactions.add(transaction);
+        }
+    );
+    unconfirmedTransactionStore.clear();
+    transactionListeners.notify(removed, Event.REMOVED_UNCONFIRMED_TRANSACTIONS);
   }
   int getTransactionVersion(int previousBlockHeight) {
     return Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE, previousBlockHeight) ? 1 : 0;
@@ -358,7 +352,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   List<Transaction> processTransactions(Collection<Transaction> transactions, final boolean sendToPeers) throws BurstException.ValidationException {
-	synchronized (unconfirmedTransactionsSyncObj) {
     if (transactions.isEmpty()) {
       return Collections.emptyList();
     }
@@ -428,6 +421,5 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     }
 
     return addedUnconfirmedTransactions;
-  }
   }
 }
