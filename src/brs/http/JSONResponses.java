@@ -60,9 +60,7 @@ public final class JSONResponses {
   public static final JSONStreamAware INCORRECT_DECIMALS = incorrect(DECIMALS_PARAMETER);
   public static final JSONStreamAware MISSING_HOST = missing(HOST_PARAMETER);
   public static final JSONStreamAware MISSING_DATE = missing(DATE_PARAMETER);
-  public static final JSONStreamAware MISSING_WEIGHT = missing(WEIGHT_PARAMETER);
   public static final JSONStreamAware INCORRECT_HOST = incorrect(HOST_PARAMETER, "(the length exceeds 100 chars limit)");
-  public static final JSONStreamAware INCORRECT_WEIGHT = incorrect(WEIGHT_PARAMETER);
   public static final JSONStreamAware INCORRECT_DATE = incorrect(DATE_PARAMETER);
   public static final JSONStreamAware MISSING_PRICE = missing(PRICE_NQT_PARAMETER);
   public static final JSONStreamAware INCORRECT_PRICE = incorrect(PRICE_PARAMETER);

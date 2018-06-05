@@ -57,9 +57,6 @@ var BRS = (function(BRS, $, undefined) {
                                     + (peer.state === 1 ? "<i class='fas fa-check-circle' style='color:#5cb85c' title='Connected'></i>" : "<i class='fas fa-times-circle' style='color:#f0ad4e' title='Disconnected'></i>")
                                     + "&nbsp;&nbsp;"
                                     + (peer.announcedAddress ? String(peer.announcedAddress).escapeHTML() : "No name")
-                                    + "</td><td"
-                                    + (peer.weight > 0 ? " style='font-weight:bold'" : "")
-                                    + ">" + BRS.formatWeight(peer.weight)
                                     + "</td><td>"
                                     + BRS.formatVolume(peer.downloadedVolume)
                                     + "</td><td>"

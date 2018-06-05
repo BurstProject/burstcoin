@@ -113,7 +113,6 @@ public class Parameters {
   public static final String PRICE_PARAMETER = "price";
   public static final String HOST_PARAMETER = "host";
   public static final String DATE_PARAMETER = "date";
-  public static final String WEIGHT_PARAMETER = "weight";
   public static final String ESCROW_ID_PARAMETER = "escrowId";
   public static final String SUBSCRIPTION_ID_PARAMETER = "subscriptionId";
   public static final String BLOCK_HEIGHT_PARAMETER = "blockheight";
