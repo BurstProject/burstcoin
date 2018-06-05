@@ -34,8 +34,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   private final int rebroadcastAfter;
   private final int rebroadcastEvery;
 
-  private final Object unconfirmedTransactionsSyncObj = new Object();
-  
   private final Set<Transaction> nonBroadcastedTransactions = Collections.newSetFromMap(new ConcurrentHashMap<Transaction,Boolean>());
   private final Listeners<List<? extends Transaction>,Event> transactionListeners = new Listeners<>();
   private final Set<Transaction> lostTransactions = new HashSet<>();
@@ -81,9 +79,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       });
     }
   }
-  public Object getUnconfirmedTransactionsSyncObj() {
-	  return unconfirmedTransactionsSyncObj;
-  }
+
   private final Runnable rebroadcastTransactionsThread = () -> {
 
     try {

@@ -655,69 +655,67 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       }
     }
     synchronized (downloadCache) {
-      synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
-    logger.warn("Cache is now processed. Starting to process fork.");
-    Block forkBlock = blockchain.getBlock(forkBlockId);
+      logger.warn("Cache is now processed. Starting to process fork.");
+      Block forkBlock = blockchain.getBlock(forkBlockId);
 
-    // we read the current cumulative difficulty
-    BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
+      // we read the current cumulative difficulty
+      BigInteger curCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
 
-    // We remove blocks from chain back to where we start our fork
-    // and save it in a list if we need to restore
-    List<Block> myPoppedOffBlocks = popOffTo(forkBlock);
+      // We remove blocks from chain back to where we start our fork
+      // and save it in a list if we need to restore
+      List<Block> myPoppedOffBlocks = popOffTo(forkBlock);
 
-    // now we check that our chain is popped off.
-    // If all seems ok is we try to push fork.
-    int pushedForkBlocks = 0;
-    if (blockchain.getLastBlock().getId() == forkBlockId) {
-      for (Block block : forkBlocks) {
-        if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
-          try {
-            blockService.preVerify(block);
-            pushBlock(block);
-            pushedForkBlocks += 1;
-          } catch (BlockNotAcceptedException e) {
-            peer.blacklist(e, "during processing a fork");
-            break;
+      // now we check that our chain is popped off.
+      // If all seems ok is we try to push fork.
+      int pushedForkBlocks = 0;
+      if (blockchain.getLastBlock().getId() == forkBlockId) {
+        for (Block block : forkBlocks) {
+          if (blockchain.getLastBlock().getId() == block.getPreviousBlockId()) {
+            try {
+              blockService.preVerify(block);
+              pushBlock(block);
+              pushedForkBlocks += 1;
+            } catch (BlockNotAcceptedException e) {
+              peer.blacklist(e, "during processing a fork");
+              break;
+            }
           }
         }
       }
-    }
 
-    /*
-     * we check if we succeeded to push any block. if we did we check against cumulative
-     * difficulty If it is lower we blacklist peer and set chain to be processed later.
-     */
-    if (pushedForkBlocks > 0 && blockchain.getLastBlock().getCumulativeDifficulty()
-        .compareTo(curCumulativeDifficulty) < 0) {
-      logger.warn("Fork was bad and Pop off was caused by peer " + peer.getPeerAddress() + ", blacklisting");
-      peer.blacklist("got a bad fork");
-      List<Block> peerPoppedOffBlocks = popOffTo(forkBlock);
-      pushedForkBlocks = 0;
-      peerPoppedOffBlocks.forEach(block -> transactionProcessor.processLater(block.getTransactions()));
-    }
-
-    // if we did not push any blocks we try to restore chain.
-    if (pushedForkBlocks == 0) {
-      for (int i = myPoppedOffBlocks.size() - 1; i >= 0; i--) {
-        Block block = myPoppedOffBlocks.remove(i);
-        try {
-          blockService.preVerify(block);
-          pushBlock(block);
-        } catch (BlockNotAcceptedException e) {
-          logger.warn("Popped off block no longer acceptable: " + block.getJSONObject().toJSONString(), e);
-          break;
-        }
+      /*
+       * we check if we succeeded to push any block. if we did we check against cumulative
+       * difficulty If it is lower we blacklist peer and set chain to be processed later.
+       */
+      if (pushedForkBlocks > 0 && blockchain.getLastBlock().getCumulativeDifficulty()
+          .compareTo(curCumulativeDifficulty) < 0) {
+        logger.warn("Fork was bad and Pop off was caused by peer " + peer.getPeerAddress() + ", blacklisting");
+        peer.blacklist("got a bad fork");
+        List<Block> peerPoppedOffBlocks = popOffTo(forkBlock);
+        pushedForkBlocks = 0;
+        peerPoppedOffBlocks.forEach(block -> transactionProcessor.processLater(block.getTransactions()));
       }
-    } else {
-      myPoppedOffBlocks.forEach(block -> transactionProcessor.processLater(block.getTransactions()));
-      logger.warn("Successfully switched to better chain.");
+
+      // if we did not push any blocks we try to restore chain.
+      if (pushedForkBlocks == 0) {
+        for (int i = myPoppedOffBlocks.size() - 1; i >= 0; i--) {
+          Block block = myPoppedOffBlocks.remove(i);
+          try {
+            blockService.preVerify(block);
+            pushBlock(block);
+          } catch (BlockNotAcceptedException e) {
+            logger.warn("Popped off block no longer acceptable: " + block.getJSONObject().toJSONString(), e);
+            break;
+          }
+        }
+      } else {
+        myPoppedOffBlocks.forEach(block -> transactionProcessor.processLater(block.getTransactions()));
+        logger.warn("Successfully switched to better chain.");
+      }
+      logger.warn("Forkprocessing complete.");
+      downloadCache.resetForkBlocks();
+      downloadCache.resetCache(); // Reset and set cached vars to chaindata.
     }
-    logger.warn("Forkprocessing complete.");
-    downloadCache.resetForkBlocks();
-    downloadCache.resetCache(); // Reset and set cached vars to chaindata.
-  }
-  }
   }
 };
 
@@ -1068,27 +1066,25 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     List<Block> poppedOffBlocks = new ArrayList<>();
     synchronized (downloadCache) {
-      synchronized (transactionProcessor.getUnconfirmedTransactionsSyncObj()) {
     	//Burst.getTransactionProcessor().clearUnconfirmedTransactions();
-        try {
-          stores.beginTransaction();
-          Block block = blockchain.getLastBlock();
-          logger.debug("Rollback from " + block.getHeight() + " to " + commonBlock.getHeight());
-          while (block.getId() != commonBlock.getId() && block.getId() != Genesis.GENESIS_BLOCK_ID) {
-            poppedOffBlocks.add(block);
-            block = popLastBlock();
-          }
-          derivedTableManager.getDerivedTables().forEach(table -> table.rollback(commonBlock.getHeight()));
-          dbCacheManager.flushCache();
-          stores.commitTransaction();
-          downloadCache.resetCache();
-        } catch (RuntimeException e) {
-          stores.rollbackTransaction();
-          logger.debug("Error popping off to " + commonBlock.getHeight(), e);
-          throw e;
-        } finally {
-          stores.endTransaction();
+      try {
+        stores.beginTransaction();
+        Block block = blockchain.getLastBlock();
+        logger.debug("Rollback from " + block.getHeight() + " to " + commonBlock.getHeight());
+        while (block.getId() != commonBlock.getId() && block.getId() != Genesis.GENESIS_BLOCK_ID) {
+          poppedOffBlocks.add(block);
+          block = popLastBlock();
         }
+        derivedTableManager.getDerivedTables().forEach(table -> table.rollback(commonBlock.getHeight()));
+        dbCacheManager.flushCache();
+        stores.commitTransaction();
+        downloadCache.resetCache();
+      } catch (RuntimeException e) {
+        stores.rollbackTransaction();
+        logger.debug("Error popping off to " + commonBlock.getHeight(), e);
+        throw e;
+      } finally {
+        stores.endTransaction();
       }
     }
     return poppedOffBlocks;
