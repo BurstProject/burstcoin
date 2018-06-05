@@ -470,6 +470,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 	  //we stop the loop since cahce has been locked
                       return;
                     }
+                    logger.debug("Added from download: Id: " +block.getId()+" Height: "+block.getHeight());
                   }
                 } else {
                   downloadCache.addForkBlock(block);
@@ -642,6 +643,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private void processFork(Peer peer, final List<Block> forkBlocks, long forkBlockId) {
     logger.warn("A fork is detected. Waiting for cache to be processed.");
+    downloadCache.lockCache(); //dont let anything add to cache!
     while (true) {
       if (downloadCache.size() == 0) {
         break;
@@ -768,6 +770,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       newBlock.setByteLength(newBlock.toString().length());
       blockService.calculateBaseTarget(newBlock, chainblock);
       downloadCache.addBlock(newBlock);
+      logger.debug("Added from Anounce: Id: " +newBlock.getId()+" Height: "+newBlock.getHeight());
     } else {
       logger.debug("Peer sent us block: " + newBlock.getPreviousBlockId()
                  + " that does not match our chain.");
