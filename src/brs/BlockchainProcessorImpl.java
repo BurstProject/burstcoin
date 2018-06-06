@@ -1105,157 +1105,156 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   @Override
-  public void generateBlock(String secretPhrase, byte[] publicKey, Long nonce)
-      throws BlockNotAcceptedException {
-	synchronized (downloadCache) {
-		downloadCache.lockCache(); //stop all incoming blocks.
-    UnconfirmedTransactionStore unconfirmedTransactionStore = stores.getUnconfirmedTransactionStore();
-    SortedSet<Transaction> orderedBlockTransactions = new TreeSet<>();
+  public void generateBlock(String secretPhrase, byte[] publicKey, Long nonce) throws BlockNotAcceptedException {
+	  synchronized (downloadCache) {
+      downloadCache.lockCache(); //stop all incoming blocks.
+      UnconfirmedTransactionStore unconfirmedTransactionStore = stores.getUnconfirmedTransactionStore();
+      SortedSet<Transaction> orderedBlockTransactions = new TreeSet<>();
 
-    int blockSize   = Burst.getFluxCapacitor().getInt(FluxInt.MAX_NUMBER_TRANSACTIONS);
-    int payloadSize = Burst.getFluxCapacitor().getInt(FluxInt.MAX_PAYLOAD_LENGTH);
+      int blockSize   = Burst.getFluxCapacitor().getInt(FluxInt.MAX_NUMBER_TRANSACTIONS);
+      int payloadSize = Burst.getFluxCapacitor().getInt(FluxInt.MAX_PAYLOAD_LENGTH);
 
-    long totalAmountNQT = 0;
-    long totalFeeNQT = 0;
+      long totalAmountNQT = 0;
+      long totalFeeNQT = 0;
 
-    final Block previousBlock = blockchain.getLastBlock();
-    final int blockTimestamp = timeService.getEpochTime();
+      final Block previousBlock = blockchain.getLastBlock();
+      final int blockTimestamp = timeService.getEpochTime();
 
-    // this is just an validation. which collects all valid transactions, which fit into the block
-    // finally all stuff is reverted so nothing is written to the db
-    // the block itself with all transactions we found is pushed using pushBlock which calls
-    // accept (so it's going the same way like a received/synced block)
-    try {
-      stores.beginTransaction();
+      // this is just an validation. which collects all valid transactions, which fit into the block
+      // finally all stuff is reverted so nothing is written to the db
+      // the block itself with all transactions we found is pushed using pushBlock which calls
+      // accept (so it's going the same way like a received/synced block)
+      try {
+        stores.beginTransaction();
 
-      Map<TransactionType, Set<String>> duplicates = new HashMap<>();
-      List<Transaction> unconfirmedTransactionsOrderedByFee = unconfirmedTransactionStore.getAll().stream().filter(
-          transaction ->
-            transaction.getVersion() == transactionProcessor.getTransactionVersion(previousBlock.getHeight())
-                && transaction.getExpiration() >= blockTimestamp
-                && transaction.getTimestamp()  <= blockTimestamp + MAX_TIMESTAMP_DIFFERENCE
-                && (
-                    ! Burst.getFluxCapacitor().isActive(FeatureToggle.AUTOMATED_TRANSACTION_BLOCK)
-                        || economicClustering.verifyFork(transaction)
-                )
-      ).collect(Collectors.toList());
-      unconfirmedTransactionsOrderedByFee.sort((o2, o1) -> ((Long) o1.getFeeNQT()).compareTo(o2.getFeeNQT()));
+        Map<TransactionType, Set<String>> duplicates = new HashMap<>();
+        List<Transaction> unconfirmedTransactionsOrderedByFee = unconfirmedTransactionStore.getAll().stream().filter(
+            transaction ->
+              transaction.getVersion() == transactionProcessor.getTransactionVersion(previousBlock.getHeight())
+                  && transaction.getExpiration() >= blockTimestamp
+                  && transaction.getTimestamp()  <= blockTimestamp + MAX_TIMESTAMP_DIFFERENCE
+                  && (
+                      ! Burst.getFluxCapacitor().isActive(FeatureToggle.AUTOMATED_TRANSACTION_BLOCK)
+                          || economicClustering.verifyFork(transaction)
+                  )
+        ).collect(Collectors.toList());
+        unconfirmedTransactionsOrderedByFee.sort((o2, o1) -> ((Long) o1.getFeeNQT()).compareTo(o2.getFeeNQT()));
 
-      COLLECT_TRANSACTIONS: for (Transaction transaction : unconfirmedTransactionsOrderedByFee) {
-        boolean transactionHasBeenHandled = false;
-        while ( ! transactionHasBeenHandled ) {
-          if ( blockSize <= 0 || payloadSize <= 0 ) {
-            break COLLECT_TRANSACTIONS;
-          }
-          else if ( transaction.getSize() > payloadSize ) {
-            continue COLLECT_TRANSACTIONS;
-          }
+        COLLECT_TRANSACTIONS: for (Transaction transaction : unconfirmedTransactionsOrderedByFee) {
+          boolean transactionHasBeenHandled = false;
+          while ( ! transactionHasBeenHandled ) {
+            if ( blockSize <= 0 || payloadSize <= 0 ) {
+              break COLLECT_TRANSACTIONS;
+            }
+            else if ( transaction.getSize() > payloadSize ) {
+              continue COLLECT_TRANSACTIONS;
+            }
 
-          Long slotFee = Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? blockSize * FEE_QUANT : ONE_BURST;
-          if (transaction.getFeeNQT() >= slotFee) {
-            // transaction can only be handled if all referenced ones exist
-            if (hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0)) {
-              // handle non- duplicates and transactions which can be applied
-              if ( ! transaction.isDuplicate(duplicates) && transactionService.applyUnconfirmed(transaction)) {
-                try {
-                  transactionService.validate(transaction);
-                  payloadSize -= transaction.getSize();
-                  blockSize--;
+            Long slotFee = Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? blockSize * FEE_QUANT : ONE_BURST;
+            if (transaction.getFeeNQT() >= slotFee) {
+              // transaction can only be handled if all referenced ones exist
+              if (hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0)) {
+                // handle non- duplicates and transactions which can be applied
+                if ( ! transaction.isDuplicate(duplicates) && transactionService.applyUnconfirmed(transaction)) {
+                  try {
+                    transactionService.validate(transaction);
+                    payloadSize -= transaction.getSize();
+                    blockSize--;
 
-                  totalAmountNQT += transaction.getAmountNQT();
-                  totalFeeNQT += transaction.getFeeNQT();
+                    totalAmountNQT += transaction.getAmountNQT();
+                    totalFeeNQT += transaction.getFeeNQT();
 
-                  orderedBlockTransactions.add(transaction);
-                } catch (BurstException.NotCurrentlyValidException e) {
-                  transactionService.undoUnconfirmed(transaction);
-                } catch (BurstException.ValidationException e) {
+                    orderedBlockTransactions.add(transaction);
+                  } catch (BurstException.NotCurrentlyValidException e) {
+                    transactionService.undoUnconfirmed(transaction);
+                  } catch (BurstException.ValidationException e) {
+                    unconfirmedTransactionStore.remove(transaction);
+                    transactionService.undoUnconfirmed(transaction);
+                  }
+                }
+                else {
+                  // drop duplicates and those transactions which can not be applied
                   unconfirmedTransactionStore.remove(transaction);
-                  transactionService.undoUnconfirmed(transaction);
                 }
               }
-              else {
-                // drop duplicates and those transactions which can not be applied
-                unconfirmedTransactionStore.remove(transaction);
-              }
+              // handled by a real handling or by discarding the transaction
+              transactionHasBeenHandled = true;
             }
-            // handled by a real handling or by discarding the transaction
-            transactionHasBeenHandled = true;
-          }
-          else {
-            blockSize--;
+            else {
+              blockSize--;
+            }
           }
         }
+
+        if (subscriptionService.isEnabled()) {
+          subscriptionService.clearRemovals();
+          totalFeeNQT += subscriptionService.calculateFees(blockTimestamp);
+        }
+      }
+      catch (Exception e) {
+        stores.rollbackTransaction();
+        throw e;
+      }
+      finally {
+        stores.rollbackTransaction();
+        stores.endTransaction();
       }
 
-      if (subscriptionService.isEnabled()) {
-        subscriptionService.clearRemovals();
-        totalFeeNQT += subscriptionService.calculateFees(blockTimestamp);
+      // final byte[] publicKey = Crypto.getPublicKey(secretPhrase);
+
+      // ATs for block
+      AT.clearPendingFees();
+      AT.clearPendingTransactions();
+      AT_Block atBlock = AT_Controller.getCurrentBlockATs(payloadSize, previousBlock.getHeight() + 1);
+      byte[] byteATs = atBlock.getBytesForBlock();
+
+      // digesting AT Bytes
+      if (byteATs != null) {
+        payloadSize    -= byteATs.length;
+        totalFeeNQT    += atBlock.getTotalFees();
+        totalAmountNQT += atBlock.getTotalAmount();
       }
-    }
-    catch (Exception e) {
-      stores.rollbackTransaction();
-      throw e;
-    }
-    finally {
-      stores.rollbackTransaction();
-      stores.endTransaction();
-    }
 
-    // final byte[] publicKey = Crypto.getPublicKey(secretPhrase);
+      // ATs for block
 
-    // ATs for block
-    AT.clearPendingFees();
-    AT.clearPendingTransactions();
-    AT_Block atBlock = AT_Controller.getCurrentBlockATs(payloadSize, previousBlock.getHeight() + 1);
-    byte[] byteATs = atBlock.getBytesForBlock();
+      MessageDigest digest = Crypto.sha256();
+      orderedBlockTransactions.forEach(transaction -> digest.update(transaction.getBytes()));
+      byte[] payloadHash = digest.digest();
+      byte[] generationSignature = generator.calculateGenerationSignature(
+          previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
+      Block block;
+      byte[] previousBlockHash = Crypto.sha256().digest(previousBlock.getBytes());
+      try {
+        block = new Block(getBlockVersion(), blockTimestamp,
+            previousBlock.getId(), totalAmountNQT, totalFeeNQT, Burst.getFluxCapacitor().getInt(FluxInt.MAX_PAYLOAD_LENGTH) - payloadSize, payloadHash, publicKey,
+            generationSignature, null, previousBlockHash, new ArrayList<>(orderedBlockTransactions), nonce,
+            byteATs, previousBlock.getHeight());
 
-    // digesting AT Bytes
-    if (byteATs != null) {
-      payloadSize    -= byteATs.length;
-      totalFeeNQT    += atBlock.getTotalFees();
-      totalAmountNQT += atBlock.getTotalAmount();
-    }
-
-    // ATs for block
-
-    MessageDigest digest = Crypto.sha256();
-    orderedBlockTransactions.forEach(transaction -> digest.update(transaction.getBytes()));
-    byte[] payloadHash = digest.digest();
-    byte[] generationSignature = generator.calculateGenerationSignature(
-        previousBlock.getGenerationSignature(), previousBlock.getGeneratorId());
-    Block block;
-    byte[] previousBlockHash = Crypto.sha256().digest(previousBlock.getBytes());
-    try {
-      block = new Block(getBlockVersion(), blockTimestamp,
-          previousBlock.getId(), totalAmountNQT, totalFeeNQT, Burst.getFluxCapacitor().getInt(FluxInt.MAX_PAYLOAD_LENGTH) - payloadSize, payloadHash, publicKey,
-          generationSignature, null, previousBlockHash, new ArrayList<>(orderedBlockTransactions), nonce,
-          byteATs, previousBlock.getHeight());
-
-    } catch (BurstException.ValidationException e) {
-      // shouldn't happen because all transactions are already validated
-      logger.info("Error generating block", e);
-      return;
-    }
-    block.sign(secretPhrase);
-    blockService.setPrevious(block, previousBlock);
-    try {
-      blockService.preVerify(block);
-      pushBlock(block);
-      blockListeners.notify(block, Event.BLOCK_GENERATED);
-      logger.debug("Account " + Convert.toUnsignedLong(block.getGeneratorId()) + " generated block "
-          + block.getStringId() + " at height " + block.getHeight());
-      downloadCache.resetCache();
-    } catch (TransactionNotAcceptedException e) {
-      logger.debug("Generate block failed: " + e.getMessage());
-      Transaction transaction = e.getTransaction();
-      logger.debug("Removing invalid transaction: " + transaction.getStringId());
-      unconfirmedTransactionStore.remove(transaction);
-      throw e;
-    } catch (BlockNotAcceptedException e) {
-      logger.debug("Generate block failed: " + e.getMessage());
-      throw e;
-    }
-	} //end synchronized cache
+      } catch (BurstException.ValidationException e) {
+        // shouldn't happen because all transactions are already validated
+        logger.info("Error generating block", e);
+        return;
+      }
+      block.sign(secretPhrase);
+      blockService.setPrevious(block, previousBlock);
+      try {
+        blockService.preVerify(block);
+        pushBlock(block);
+        blockListeners.notify(block, Event.BLOCK_GENERATED);
+        logger.debug("Account " + Convert.toUnsignedLong(block.getGeneratorId()) + " generated block "
+            + block.getStringId() + " at height " + block.getHeight());
+        downloadCache.resetCache();
+      } catch (TransactionNotAcceptedException e) {
+        logger.debug("Generate block failed: " + e.getMessage());
+        Transaction transaction = e.getTransaction();
+        logger.debug("Removing invalid transaction: " + transaction.getStringId());
+        unconfirmedTransactionStore.remove(transaction);
+        throw e;
+      } catch (BlockNotAcceptedException e) {
+        logger.debug("Generate block failed: " + e.getMessage());
+        throw e;
+      }
+	  } //end synchronized cache
   }
 
   private boolean hasAllReferencedTransactions(Transaction transaction, int timestamp, int count) {
