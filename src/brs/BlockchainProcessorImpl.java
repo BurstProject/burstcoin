@@ -1107,7 +1107,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   @Override
   public void generateBlock(String secretPhrase, byte[] publicKey, Long nonce)
       throws BlockNotAcceptedException {
-
+	synchronized (downloadCache) {
+		downloadCache.lockCache(); //stop all incoming blocks.
     UnconfirmedTransactionStore unconfirmedTransactionStore = stores.getUnconfirmedTransactionStore();
     SortedSet<Transaction> orderedBlockTransactions = new TreeSet<>();
 
@@ -1254,6 +1255,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       logger.debug("Generate block failed: " + e.getMessage());
       throw e;
     }
+	} //end synchronized cache
   }
 
   private boolean hasAllReferencedTransactions(Transaction transaction, int timestamp, int count) {
