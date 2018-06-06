@@ -342,7 +342,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             //This must be done before we query where to add blocks.
             //We sync the cache in event of popoff
             synchronized (downloadCache){
-           	  downloadCache.unlockCache();
+              downloadCache.unlockCache();
             }
             
             
@@ -467,7 +467,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 if (saveInCache) {
                   if (downloadCache.getLastBlockId() == block.getPreviousBlockId()) { //still maps back? we might have got announced/forged blocks
                     if(! downloadCache.addBlock(block)) {
-                	  //we stop the loop since cahce has been locked
+                      //we stop the loop since cahce has been locked
                       return;
                     }
                     logger.debug("Added from download: Id: " +block.getId()+" Height: "+block.getHeight());
@@ -838,7 +838,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
   }
 
   private void pushBlock(final Block block) throws BlockNotAcceptedException {
-	  stores.beginTransaction(); //top of try
+    stores.beginTransaction();
     int curTime = timeService.getEpochTime();
     
     Block previousLastBlock = null;
@@ -1053,7 +1053,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   private List<Block> popOffTo(Block commonBlock) {
   
-	  if (commonBlock.getHeight() < getMinRollbackHeight()) {
+    if (commonBlock.getHeight() < getMinRollbackHeight()) {
         throw new IllegalArgumentException("Rollback to height " + commonBlock.getHeight()
             + " not suppported, " + "current height " + blockchain.getHeight());
     }
@@ -1063,7 +1063,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
     List<Block> poppedOffBlocks = new ArrayList<>();
     synchronized (downloadCache) {
-    	//Burst.getTransactionProcessor().clearUnconfirmedTransactions();
+      //Burst.getTransactionProcessor().clearUnconfirmedTransactions();
       try {
         stores.beginTransaction();
         Block block = blockchain.getLastBlock();
@@ -1106,7 +1106,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
   @Override
   public void generateBlock(String secretPhrase, byte[] publicKey, Long nonce) throws BlockNotAcceptedException {
-	  synchronized (downloadCache) {
+    synchronized (downloadCache) {
       downloadCache.lockCache(); //stop all incoming blocks.
       UnconfirmedTransactionStore unconfirmedTransactionStore = stores.getUnconfirmedTransactionStore();
       SortedSet<Transaction> orderedBlockTransactions = new TreeSet<>();
@@ -1254,7 +1254,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         logger.debug("Generate block failed: " + e.getMessage());
         throw e;
       }
-	  } //end synchronized cache
+    } //end synchronized cache
   }
 
   private boolean hasAllReferencedTransactions(Transaction transaction, int timestamp, int count) {
