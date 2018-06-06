@@ -1,11 +1,10 @@
 package it.common;
 
-import static brs.peer.ProcessBlock.ACCEPTED;
 import static org.junit.Assert.assertEquals;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import brs.Burst;
-import brs.common.Props;
+import brs.props.Props;
 import brs.common.TestInfrastructure;
 import brs.peer.Peers;
 import brs.peer.ProcessBlock;
@@ -43,16 +42,16 @@ public abstract class AbstractIT {
   private Properties testProperties() {
     final Properties props = new Properties();
 
-    props.setProperty(Props.DEV_OFFLINE, "true");
-    props.setProperty(Props.DB_URL, TestInfrastructure.IN_MEMORY_DB_URL);
-    props.setProperty(Props.DB_MAX_ROLLBACK, "1440");
-    props.setProperty(Props.DB_CONNECTIONS, "1");
+    props.setProperty(Props.DEV_OFFLINE.getName(), "true");
+    props.setProperty(Props.DB_URL.getName(), TestInfrastructure.IN_MEMORY_DB_URL);
+    props.setProperty(Props.DB_MAX_ROLLBACK.getName(), "1440");
+    props.setProperty(Props.DB_CONNECTIONS.getName(), "1");
 
-    props.setProperty(Props.API_SERVER, "on");
-    props.setProperty(Props.API_LISTEN, "127.0.0.1");
-    props.setProperty(Props.API_PORT,   "" + TestInfrastructure.TEST_API_PORT);
-    props.setProperty(Props.API_ALLOWED,   "*");
-    props.setProperty(Props.API_UI_DIR, "html/ui");
+    props.setProperty(Props.API_SERVER.getName(), "on");
+    props.setProperty(Props.API_LISTEN.getName(), "127.0.0.1");
+    props.setProperty(Props.API_PORT.getName(),   "" + TestInfrastructure.TEST_API_PORT);
+    props.setProperty(Props.API_ALLOWED.getName(),   "*");
+    props.setProperty(Props.API_UI_DIR.getName(), "html/ui");
 
     return props;
   }

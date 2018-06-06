@@ -12,7 +12,7 @@ import brs.EconomicClustering;
 import brs.Generator;
 import brs.TransactionProcessor;
 import brs.assetexchange.AssetExchange;
-import brs.common.Props;
+import brs.props.Props;
 import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.AliasService;
@@ -20,7 +20,7 @@ import brs.services.BlockService;
 import brs.services.DGSGoodsStoreService;
 import brs.services.EscrowService;
 import brs.services.ParameterService;
-import brs.services.PropertyService;
+import brs.props.PropertyService;
 import brs.services.SubscriptionService;
 import brs.services.TimeService;
 import brs.services.TransactionService;
@@ -55,7 +55,7 @@ public final class APIServlet extends HttpServlet {
       BlockService blockService, Generator generator, PropertyService propertyService, APITransactionManager apiTransactionManager) {
 
     enforcePost = propertyService.getBoolean(Props.API_SERVER_ENFORCE_POST);
-    acceptSurplusParams = propertyService.getBoolean(Props.API_ACCEPT_SURPLUS_PARAMS, false);
+    acceptSurplusParams = propertyService.getBoolean(Props.API_ACCEPT_SURPLUS_PARAMS);
     
     final Map<String, APIRequestHandler> map = new HashMap<>();
 

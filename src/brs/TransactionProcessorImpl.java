@@ -1,13 +1,13 @@
 package brs;
 
-import brs.common.Props;
+import brs.props.Props;
 import brs.db.store.Dbs;
 import brs.db.store.Stores;
 import brs.fluxcapacitor.FeatureToggle;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.services.AccountService;
-import brs.services.PropertyService;
+import brs.props.PropertyService;
 import brs.services.TimeService;
 import brs.services.TransactionService;
 import brs.unconfirmedtransactions.UnconfirmedTransactionStore;
@@ -65,8 +65,8 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     this.enableTransactionRebroadcasting = propertyService.getBoolean(Props.P2P_ENABLE_TX_REBROADCAST);
     this.testUnconfirmedTransactions = propertyService.getBoolean(Props.BRS_TEST_UNCONFIRMED_TRANSACTIONS);
 
-    this.rebroadcastAfter = propertyService.getInt(Props.P2P_REBROADCAST_AFTER, 4);
-    this.rebroadcastEvery = propertyService.getInt(Props.P2P_REBROADCAST_EVERY, 2);
+    this.rebroadcastAfter = propertyService.getInt(Props.P2P_REBROADCAST_AFTER);
+    this.rebroadcastEvery = propertyService.getInt(Props.P2P_REBROADCAST_EVERY);
 
     this.unconfirmedTransactionStore = stores.getUnconfirmedTransactionStore();
     threadPool.scheduleThread("ProcessTransactions", processTransactionsThread, 5);

@@ -1,10 +1,10 @@
 package brs;
 
 import brs.assetexchange.AssetExchange;
-import brs.common.Props;
+import brs.props.Props;
 import brs.services.AccountService;
 import brs.services.DGSGoodsStoreService;
-import brs.services.PropertyService;
+import brs.props.PropertyService;
 import brs.util.Convert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +28,8 @@ public final class DebugTrace {
                    AccountService accountService, AssetExchange assetExchange,
                    DGSGoodsStoreService dgsGoodsStoreService) {
 
-    QUOTE           = propertyService.getString(Props.BRS_DEBUG_TRACE_QUOTE, "\"");
-    SEPARATOR       = propertyService.getString(Props.BRS_DEBUG_TRACE_SEPARATOR, "\t");
+    QUOTE           = propertyService.getString(Props.BRS_DEBUG_TRACE_QUOTE);
+    SEPARATOR       = propertyService.getString(Props.BRS_DEBUG_TRACE_SEPARATOR);
     LOG_UNCONFIRMED = propertyService.getBoolean(Props.BRS_DEBUG_LOG_CONFIRMED);
 
     DebugTrace.assetExchange = assetExchange;

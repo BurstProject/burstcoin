@@ -21,7 +21,6 @@ import brs.Constants;
 import brs.Transaction;
 import brs.Transaction.Builder;
 import brs.TransactionType;
-import brs.common.Props;
 import brs.common.TestConstants;
 import brs.db.BurstKey;
 import brs.db.BurstKey.LongKeyFactory;
@@ -29,7 +28,8 @@ import brs.db.VersionedBatchEntityTable;
 import brs.db.store.AccountStore;
 import brs.fluxcapacitor.FeatureToggle;
 import brs.fluxcapacitor.FluxCapacitor;
-import brs.services.PropertyService;
+import brs.props.PropertyService;
+import brs.props.Props;
 import brs.services.TimeService;
 import brs.services.impl.TimeServiceImpl;
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public class UnconfirmedTransactionStoreTest {
     final PropertyService mockPropertyService = mock(PropertyService.class);
     when(mockPropertyService.getInt(eq(Props.DB_MAX_ROLLBACK))).thenReturn(1440);
     when(Burst.getPropertyService()).thenReturn(mockPropertyService);
-    when(mockPropertyService.getInt(eq(Props.P2P_MAX_UNCONFIRMED_TRANSACTIONS), eq(8192))).thenReturn(8192);
+    when(mockPropertyService.getInt(eq(Props.P2P_MAX_UNCONFIRMED_TRANSACTIONS))).thenReturn(8192);
 
     mockBlockChain = mock(BlockchainImpl.class);
     when(Burst.getBlockchain()).thenReturn(mockBlockChain);

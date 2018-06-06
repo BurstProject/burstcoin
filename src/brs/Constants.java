@@ -1,6 +1,6 @@
 package brs;
 
-import brs.common.Props;
+import brs.props.Props;
 import java.util.Calendar;
 import java.util.TimeZone;
 

@@ -1,7 +1,7 @@
 package brs.peer;
 
 import brs.*;
-import brs.common.Props;
+import brs.props.Props;
 import brs.util.Convert;
 import brs.util.CountingInputStream;
 import brs.util.CountingOutputStream;
@@ -15,8 +15,6 @@ import java.io.*;
 import java.net.*;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;

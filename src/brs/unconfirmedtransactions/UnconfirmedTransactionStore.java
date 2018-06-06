@@ -3,9 +3,9 @@ package brs.unconfirmedtransactions;
 import brs.Account;
 import brs.BurstException;
 import brs.Transaction;
-import brs.common.Props;
 import brs.db.store.AccountStore;
-import brs.services.PropertyService;
+import brs.props.PropertyService;
+import brs.props.Props;
 import brs.services.TimeService;
 import brs.util.Convert;
 import java.util.ArrayDeque;
@@ -35,7 +35,7 @@ public class UnconfirmedTransactionStore {
     this.timeService = timeService;
     this.accountStore = accountStore;
 
-    this.maxSize = propertyService.getInt(Props.P2P_MAX_UNCONFIRMED_TRANSACTIONS, 8192);
+    this.maxSize = propertyService.getInt(Props.P2P_MAX_UNCONFIRMED_TRANSACTIONS);
     idQueue = new ArrayDeque<>(maxSize);
     cache = new HashMap<>(maxSize);
     reservedBalanceCache = new HashMap<>();

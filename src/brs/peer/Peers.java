@@ -1,10 +1,9 @@
 package brs.peer;
 
 import brs.*;
-import brs.common.Props;
-import brs.peer.Peer.State;
+import brs.props.Props;
 import brs.services.AccountService;
-import brs.services.PropertyService;
+import brs.props.PropertyService;
 import brs.services.TimeService;
 import brs.util.*;
 import org.eclipse.jetty.server.Server;
@@ -41,7 +40,7 @@ public final class Peers {
 
   public enum Event {
     BLACKLIST, UNBLACKLIST, DEACTIVATE, REMOVE,
-    DOWNLOADED_VOLUME, UPLOADED_VOLUME,
+    DOWNLOADED_VOLUME, UPLOADED_VOLUME, WEIGHT,
     ADDED_ACTIVE_PEER, CHANGED_ACTIVE_PEER,
     NEW_PEER
   }
@@ -114,7 +113,7 @@ public final class Peers {
       myAddress = externalIPAddress;
     }
     else {
-      myAddress = propertyService.getString("P2P.myAddress");
+      myAddress = propertyService.getString(Props.P2P_MY_ADDRESS);
     }
 
     if (myAddress != null && myAddress.endsWith(":" + TESTNET_PEER_PORT) && !Burst.getPropertyService().getBoolean(Props.DEV_TESTNET)) {
@@ -286,18 +285,19 @@ public final class Peers {
                   logger.info("Port was already mapped. Aborting test.");
                 } else {
                   if (gateway.addPortMapping(port, port, localAddress.getHostAddress(), "TCP", "burstcoin")) {
-                    logger.info("UPnP Mapping successful");
+                    logger.info("UPNP Mapping successful");
                   }
                 }
               } catch (IOException | SAXException e) {
-                logger.error("Can't start UPnP", e);
+                logger.error("Can't start UPNP", e);
               }
             }
-            else {
-              logger.warn("Tried to establish UPnP, but it was denied by the network.");
-            }
           };
-          new Thread(GwDiscover).start();
+          if (gateway != null) {
+            new Thread(GwDiscover).start();
+          } else {
+            logger.warn("Tried to establish UPnP, but it was denied by the network.");
+          }
         }
 
         peerServer = new Server();
@@ -318,7 +318,7 @@ public final class Peers {
         ServletHandler peerHandler = new ServletHandler();
         peerHandler.addServletWithMapping(peerServletHolder, "/*");
 
-        if (propertyService.getBoolean("JETTY.P2P.DoSFilter")) {
+        if (propertyService.getBoolean(Props.JETTY_P2P_DOS_FILTER)) {
           FilterHolder dosFilterHolder = peerHandler.addFilterWithMapping(DoSFilter.class, "/*", FilterMapping.DEFAULT);
           dosFilterHolder.setInitParameter("maxRequestsPerSec", propertyService.getString(Props.JETTY_P2P_DOS_FILTER_MAX_REQUESTS_PER_SEC));
           dosFilterHolder.setInitParameter("throttledRequests", propertyService.getString(Props.JETTY_P2P_DOS_FILTER_THROTTLED_REQUESTS));
@@ -398,13 +398,12 @@ public final class Peers {
     @Override
     public void run() {
       try {
-        long numConnectedPeers = getNumberOfConnectedPublicPeers();
+        int numConnectedPeers = getNumberOfConnectedPublicPeers();
         /*
          * aggressive connection with while loop.
          * if we have connected to our target amount we can exit loop.
          * if peers size is equal or below connected value we have nothing to connect to
          */
-
         while (numConnectedPeers < maxNumberOfConnectedPublicPeers && peers.size() > numConnectedPeers) {
           PeerImpl peer = (PeerImpl)getAnyPeer(ThreadLocalRandom.current().nextInt(2) == 0 ? Peer.State.NON_CONNECTED : Peer.State.DISCONNECTED);
           if (peer != null) {
@@ -414,7 +413,7 @@ public final class Peers {
              * Peers should never be removed if total peers are below our target to prevent total erase of peers
              * if we loose Internet connection
              */
-
+                  
             if (!peer.isHigherOrEqualVersionThan(Burst.LEGACY_VER)
              || (peer.getState() != Peer.State.CONNECTED && !peer.isBlacklisted() && peers.size() > maxNumberOfConnectedPublicPeers)) {
               removePeer(peer);
@@ -570,6 +569,7 @@ public final class Peers {
           logger.info("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
           System.exit(1);
         }
+
       }
 
     };
@@ -587,7 +587,7 @@ public final class Peers {
         Init.gateway.deletePortMapping(Init.port, "TCP");
       }
       catch ( Exception e) {
-        logger.info("Failed to remove UPnP rule from gateway", e);
+        logger.info("Failed to remove UPNP rule from gateway", e);
       }
     }
     if (dumpPeersVersion != null) {

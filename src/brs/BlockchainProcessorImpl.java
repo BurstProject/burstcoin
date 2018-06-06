@@ -4,7 +4,7 @@ import static brs.Constants.FEE_QUANT;
 import static brs.Constants.ONE_BURST;
 import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
 
-import brs.common.Props;
+import brs.props.Props;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.store.BlockchainStore;
 import brs.db.store.DerivedTableManager;
@@ -13,7 +13,7 @@ import brs.fluxcapacitor.FeatureToggle;
 import brs.fluxcapacitor.FluxInt;
 import brs.services.BlockService;
 import brs.services.EscrowService;
-import brs.services.PropertyService;
+import brs.props.PropertyService;
 import brs.services.SubscriptionService;
 import brs.services.TimeService;
 import brs.services.TransactionService;
@@ -141,7 +141,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     this.accountService = accountService;
 
     oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
-    oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE, 1000);
+    oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE);
 
     trimDerivedTables = propertyService.getBoolean(Props.DB_TRIM_DERIVED_TABLES);
 
