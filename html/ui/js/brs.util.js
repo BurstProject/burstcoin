@@ -243,23 +243,6 @@ var BRS = (function(BRS, $, undefined) {
         return formattedVolume + " " + size;
     };
 
-    BRS.formatWeight = function(weight) {
-        var digits = [],
-            formattedWeight = "",
-            i;
-        do {
-            digits[digits.length] = weight % 10;
-            weight = Math.floor(weight / 10);
-        } while (weight > 0);
-        for (i = 0; i < digits.length; i++) {
-            if (i > 0 && i % 3 === 0) {
-                formattedWeight = "'" + formattedWeight;
-            }
-            formattedWeight = digits[i] + formattedWeight;
-        }
-        return formattedWeight.escapeHTML();
-    };
-
     BRS.formatOrderPricePerWholeQNT = function(price, decimals) {
         price = BRS.calculateOrderPricePerWholeQNT(price, decimals, true);
 
