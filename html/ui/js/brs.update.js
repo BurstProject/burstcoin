@@ -123,10 +123,10 @@ var BRS = (function(BRS, $, undefined) {
     };
 
     BRS.versionCompare = function(v1, v2) {
-        if (v2 === undefined) {
+        if (v2 === undefined || v2 === null) {
             return -1;
         }
-        else if (v1 === undefined) {
+        else if (v1 === undefined || v1 === null) {
             return -1;
         }
 
