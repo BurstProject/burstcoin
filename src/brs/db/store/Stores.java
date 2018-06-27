@@ -5,6 +5,7 @@ import brs.db.cache.DBCacheManagerImpl;
 import brs.db.sql.*;
 import brs.props.PropertyService;
 import brs.services.TimeService;
+import brs.unconfirmedtransactions.UnconfirmedTransactionStoreImpl;
 
 public class Stores {
   private final AccountStore accountStore;
@@ -32,7 +33,7 @@ public class Stores {
     this.orderStore                  = new SqlOrderStore(derivedTableManager);
     this.tradeStore                  = new SqlTradeStore(derivedTableManager);
     this.subscriptionStore           = new SqlSubscriptionStore(derivedTableManager);
-    this.unconfirmedTransactionStore = new UnconfirmedTransactionStore(timeService, propertyService, accountStore);
+    this.unconfirmedTransactionStore = new UnconfirmedTransactionStoreImpl(timeService, propertyService, accountStore);
   }
 
   public AccountStore getAccountStore() {
