@@ -18,11 +18,7 @@ public final class Constants {
   public static final int BURST_SUBSCRIPTION_MAX_FREQ = 31536000;
 
   public static final int BLOCK_HEADER_LENGTH = 232;
-  public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
-  public static final int MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION = 1020;
 
-  public static final int MAX_PAYLOAD_LENGTH = MAX_NUMBER_OF_TRANSACTIONS * 176;
-  public static final int MAX_PAYLOAD_LENGTH_PRE_DYMAXION = MAX_NUMBER_OF_TRANSACTIONS_PRE_DYMAXION * 176;
   public static final long MAX_BALANCE_BURST = 2158812800L;
   
   public static final long FEE_QUANT =    735000;
@@ -66,18 +62,12 @@ public final class Constants {
   public static final int NQT_BLOCK = 0;
   public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = 0;
   public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
-  public static final int DIGITAL_GOODS_STORE_BLOCK = Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? 1440 : 11800;
   public static final int PUBLIC_KEY_ANNOUNCEMENT_BLOCK = Integer.MAX_VALUE;
 
   public static final int MAX_AUTOMATED_TRANSACTION_NAME_LENGTH = 30;
   public static final int MAX_AUTOMATED_TRANSACTION_DESCRIPTION_LENGTH = 1000;
-  protected static final int AUTOMATED_TRANSACTION_BLOCK = Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? 1440 : 49200;
-  public static final int AT_BLOCK_PAYLOAD = MAX_PAYLOAD_LENGTH / 2;
-  public static final int AT_FIX_BLOCK_2 = Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? 2880 : 67000;
-  public static final int AT_FIX_BLOCK_3 = Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? 4320 : 92000;
-  public static final int AT_FIX_BLOCK_4 = Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? 5760 : 255000;
 
-  public static final String MIN_VERSION = "1.3";
+  public static final String MIN_VERSION = "2.0.3";
 
   static final long UNCONFIRMED_POOL_DEPOSIT_NQT = (Burst.getPropertyService().getBoolean(Props.DEV_TESTNET) ? 50 : 100) * ONE_BURST;
 

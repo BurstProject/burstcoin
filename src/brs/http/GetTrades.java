@@ -11,12 +11,11 @@ import brs.Account;
 import brs.Asset;
 import brs.BurstException;
 import brs.Trade;
+import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
 import brs.db.sql.DbUtils;
 import brs.http.common.Parameters;
-import brs.services.AssetService;
 import brs.services.ParameterService;
-import brs.services.TradeService;
 import brs.util.Convert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -27,14 +26,12 @@ import javax.servlet.http.HttpServletRequest;
 public final class GetTrades extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
-  private final AssetService assetService;
-  private final TradeService tradeService;
+  private final AssetExchange assetExchange;
 
-  GetTrades(ParameterService parameterService, AssetService assetService, TradeService tradeService) {
+  GetTrades(ParameterService parameterService, AssetExchange assetExchange) {
     super(new APITag[] {APITag.AE}, ASSET_PARAMETER, ACCOUNT_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER, INCLUDE_ASSET_INFO_PARAMETER);
     this.parameterService = parameterService;
-    this.assetService = assetService;
-    this.tradeService = tradeService;
+    this.assetExchange = assetExchange;
   }
 
   @Override
@@ -53,18 +50,18 @@ public final class GetTrades extends APIServlet.APIRequestHandler {
     try {
       if (accountId == null) {
         Asset asset = parameterService.getAsset(req);
-        trades = assetService.getTrades(asset.getId(), firstIndex, lastIndex);
+        trades = assetExchange.getTrades(asset.getId(), firstIndex, lastIndex);
       } else if (assetId == null) {
         Account account = parameterService.getAccount(req);
-        trades = tradeService.getAccountTrades(account.getId(), firstIndex, lastIndex);
+        trades = assetExchange.getAccountTrades(account.getId(), firstIndex, lastIndex);
       } else {
         Asset asset = parameterService.getAsset(req);
         Account account = parameterService.getAccount(req);
-        trades = tradeService.getAccountAssetTrades(account.getId(), asset.getId(), firstIndex, lastIndex);
+        trades = assetExchange.getAccountAssetTrades(account.getId(), asset.getId(), firstIndex, lastIndex);
       }
       while (trades.hasNext()) {
         final Trade trade = trades.next();
-        final Asset asset = includeAssetInfo ? assetService.getAsset(trade.getAssetId()) : null;
+        final Asset asset = includeAssetInfo ? assetExchange.getAsset(trade.getAssetId()) : null;
 
         tradesData.add(JSONData.trade(trade, asset));
       }

@@ -80,7 +80,7 @@ public final class SendMoneyMulti extends CreateTransaction {
     try {
       for(String transactionString : transactionArray) {
         String recipientArray[] = transactionString.split(":", 2);
-        Long recipientId = Convert.parseAccountId(recipientArray[0]);
+        Long recipientId = Convert.parseUnsignedLong(recipientArray[0]);
         Long amountNQT   = Convert.parseUnsignedLong(recipientArray[1]);
         recipients.add( new SimpleEntry<String,Long>("" + recipientId, amountNQT) );
         totalAmountNQT += amountNQT;

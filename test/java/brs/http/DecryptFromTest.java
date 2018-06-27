@@ -59,7 +59,7 @@ public class DecryptFromTest {
 
     when(mockParameterService.getAccount(req)).thenReturn(mockAccount);
 
-    assertEquals("01", ((JSONObject) t.processRequest(req)).get(DECRYPTED_MESSAGE_RESPONSE));
+    assertEquals("", ((JSONObject) t.processRequest(req)).get(DECRYPTED_MESSAGE_RESPONSE));
   }
 
   @Test
@@ -69,23 +69,6 @@ public class DecryptFromTest {
     when(mockParameterService.getAccount(req)).thenReturn(mock(Account.class));
 
     assertEquals(INCORRECT_ACCOUNT, t.processRequest(req));
-  }
-
-  @Test
-  public void processRequest_decryptionFailed() throws BurstException {
-    final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(SECRET_PHRASE_PARAMETER, TEST_SECRET_PHRASE),
-        new MockParam(DECRYPTED_MESSAGE_IS_TEXT_PARAMETER, "false"),
-        new MockParam(DATA_PARAMETER, "abc")
-    );
-
-    final Account mockAccount = mock(Account.class);
-
-    when(mockAccount.getPublicKey()).thenReturn(TEST_PUBLIC_KEY_BYTES);
-
-    when(mockParameterService.getAccount(req)).thenReturn(mockAccount);
-
-    assertEquals(DECRYPTION_FAILED, t.processRequest(req));
   }
 
 }

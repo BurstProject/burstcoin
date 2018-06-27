@@ -1,6 +1,7 @@
 package brs.http;
 
 import static brs.TransactionType.Messaging.ALIAS_ASSIGNMENT;
+import static brs.fluxcapacitor.FeatureToggle.DIGITAL_GOODS_STORE;
 import static brs.http.JSONResponses.INCORRECT_ALIAS_LENGTH;
 import static brs.http.JSONResponses.INCORRECT_ALIAS_NAME;
 import static brs.http.JSONResponses.INCORRECT_URI_LENGTH;
@@ -10,18 +11,27 @@ import static brs.http.common.Parameters.ALIAS_URI_PARAMETER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import brs.Attachment;
 import brs.Blockchain;
+import brs.Burst;
 import brs.BurstException;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
+import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.AliasService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(Burst.class)
 public class SetAliasTest extends AbstractTransactionTest {
 
   private SetAlias t;
@@ -50,6 +60,10 @@ public class SetAliasTest extends AbstractTransactionTest {
         new MockParam(ALIAS_NAME_PARAMETER, aliasNameParameter),
         new MockParam(ALIAS_URI_PARAMETER, aliasUrl)
     );
+
+    mockStatic(Burst.class);
+    final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(DIGITAL_GOODS_STORE);
+    when(Burst.getFluxCapacitor()).thenReturn(fluxCapacitor);
 
     final Attachment.MessagingAliasAssignment attachment = (Attachment.MessagingAliasAssignment) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);

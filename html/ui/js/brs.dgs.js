@@ -13,7 +13,7 @@ var BRS = (function(BRS, $, undefined) {
             "<td><a href='#' data-user='" + BRS.getAccountFormatted(good, "seller") + "' class='user_info'>" + BRS.getAccountTitle(good, "seller") + "</a></td>" + 
             "<td><a href='#'' data-toggle='modal' data-target='#dgs_product_modal' data-goods='" + String(good.goods).escapeHTML() + "'>" + String(good.goods).escapeHTML() + "</a></td>" +
             "</tr>";
-    }
+    };
 
     BRS.getMarketplacePurchaseHTML = function(purchase, showBuyer) {
         var status, statusHTML, modal;
@@ -57,7 +57,7 @@ var BRS = (function(BRS, $, undefined) {
             (purchase.seller == BRS.account && purchase.feedbackNote ? "<tr><td><strong>" + $.t("feedback") + "</strong>:</td><td>" + $.t("includes_feedback") + "</td></tr>" : "") +
             "</table></div>" +
             "<hr />";
-    }
+    };
 
     BRS.getMarketplacePendingOrderHTML = function(purchase) {
         var delivered = BRS.getUnconfirmedTransactionsFromCache(3, [5, 7], {
@@ -77,7 +77,7 @@ var BRS = (function(BRS, $, undefined) {
             "</table>" +
             "<span class='delivery'>" + (!delivered ? "<button type='button' class='btn btn-default btn-deliver' data-toggle='modal' data-target='#dgs_delivery_modal' data-purchase='" + String(purchase.purchase).escapeHTML() + "'>" + $.t("deliver_goods") + "</button>" : $.t("delivered")) + "</span>" +
             "</div><hr />";
-    }
+    };
 
     BRS.pages.dgs_search = function(callback) {
 
@@ -98,7 +98,7 @@ var BRS = (function(BRS, $, undefined) {
             BRS.sendRequest("getDGSGoods+", {
                 "seller": seller,
                 "firstIndex": BRS.pageNumber * BRS.itemsPerPage - BRS.itemsPerPage,
-                "lastIndex": BRS.pageNumber * BRS.itemsPerPage
+                "lastIndex": BRS.pageNumber * BRS.itemsPerPage - 1
             }, function(response) {
                 $("#dgs_search_contents").empty();
 
@@ -132,7 +132,7 @@ var BRS = (function(BRS, $, undefined) {
             BRS.sendRequest("getDGSGoods+", {
                 "seller": 0,
                 "firstIndex": BRS.pageNumber * BRS.itemsPerPage - BRS.itemsPerPage,
-                "lastIndex": BRS.pageNumber * BRS.itemsPerPage
+                "lastIndex": BRS.pageNumber * BRS.itemsPerPage - 1
             }, function(response) {
                 $("#dgs_search_contents").empty();
                 
@@ -156,7 +156,7 @@ var BRS = (function(BRS, $, undefined) {
                 }
             });
         }
-    }
+    };
 
     BRS.pages.purchased_dgs = function() {
         var content = "";
@@ -178,7 +178,7 @@ var BRS = (function(BRS, $, undefined) {
         BRS.sendRequest("getDGSPurchases+", {
             "buyer": BRS.account,
             "firstIndex": BRS.pageNumber * BRS.itemsPerPage - BRS.itemsPerPage,
-            "lastIndex": BRS.pageNumber * BRS.itemsPerPage
+            "lastIndex": BRS.pageNumber * BRS.itemsPerPage - 1
         }, function(response) {
             if (response.purchases && response.purchases.length) {
                 if (response.purchases.length > BRS.itemsPerPage) {
@@ -193,20 +193,20 @@ var BRS = (function(BRS, $, undefined) {
 
             BRS.dataLoaded(content);
         });
-    }
+    };
 
     BRS.incoming.purchased_dgs = function(transactions) {
         if (BRS.hasTransactionUpdates(transactions)) {
             BRS.loadPage("purchased_dgs");
         }
-    }
+    };
 
     BRS.pages.completed_orders_dgs = function() {
         BRS.sendRequest("getDGSPurchases+", {
             "seller": BRS.account,
             "completed": true,
             "firstIndex": BRS.pageNumber * BRS.itemsPerPage - BRS.itemsPerPage,
-            "lastIndex": BRS.pageNumber * BRS.itemsPerPage
+            "lastIndex": BRS.pageNumber * BRS.itemsPerPage - 1
         }, function(response) {
             var content = "";
 
@@ -223,17 +223,17 @@ var BRS = (function(BRS, $, undefined) {
 
             BRS.dataLoaded(content);
         });
-    }
+    };
 
     BRS.incoming.completed_orders_dgs = function() {
         BRS.loadPage("completed_orders_dgs");
-    }
+    };
 
     BRS.pages.pending_orders_dgs = function() {
         BRS.sendRequest("getDGSPendingPurchases+", {
             "seller": BRS.account,
             "firstIndex": BRS.pageNumber * BRS.itemsPerPage - BRS.itemsPerPage,
-            "lastIndex": BRS.pageNumber * BRS.itemsPerPage
+            "lastIndex": BRS.pageNumber * BRS.itemsPerPage - 1
         }, function(response) {
             var content = "";
 
@@ -250,11 +250,11 @@ var BRS = (function(BRS, $, undefined) {
 
             BRS.dataLoaded(content);
         });
-    }
+    };
 
     BRS.incoming.pending_orders_dgs = function() {
         BRS.loadPage("pending_orders_dgs");
-    }
+    };
 
     BRS.pages.my_dgs_listings = function() {
         var rows = "";
@@ -284,7 +284,7 @@ var BRS = (function(BRS, $, undefined) {
         BRS.sendRequest("getDGSGoods+", {
             "seller": BRS.account,
             "firstIndex": BRS.pageNumber * BRS.itemsPerPage - BRS.itemsPerPage,
-            "lastIndex": BRS.pageNumber * BRS.itemsPerPage,
+            "lastIndex": BRS.pageNumber * BRS.itemsPerPage - 1,
             "inStockOnly": "false"
         }, function(response) {
             if (response.goods && response.goods.length) {
@@ -334,11 +334,11 @@ var BRS = (function(BRS, $, undefined) {
 
             BRS.dataLoaded(rows);
         });
-    }
+    };
 
     BRS.incoming.my_dgs_listings = function(transactions) {
         BRS.loadPage("my_dgs_listings");
-    }
+    };
 
     BRS.forms.dgsListing = function($modal) {
         var data = BRS.getFormData($modal.find("form:first"));
@@ -394,14 +394,14 @@ var BRS = (function(BRS, $, undefined) {
                     }
                 }
 
-                data.tags = clean_tags.join(",")
+                data.tags = clean_tags.join(",");
             }
         }
 
         return {
             "data": data
         };
-    }
+    };
 
     BRS.forms.dgsListingComplete = function(response, data) {
         if (response.alreadyProcessed) {
@@ -419,7 +419,7 @@ var BRS = (function(BRS, $, undefined) {
                 $("#my_dgs_listings_table").parent().removeClass("data-empty");
             }
         }
-    }
+    };
 
     BRS.forms.dgsDelistingComplete = function(response, data) {
         if (response.alreadyProcessed) {
@@ -427,7 +427,7 @@ var BRS = (function(BRS, $, undefined) {
         }
 
         $("#my_dgs_listings_table tr[data-goods=" + String(data.goods).escapeHTML() + "]").addClass("tentative tentative-crossed");
-    }
+    };
 
     BRS.forms.dgsFeedback = function($modal) {
         var data = BRS.getFormData($modal.find("form:first"));
@@ -460,7 +460,7 @@ var BRS = (function(BRS, $, undefined) {
         return {
             "data": data
         };
-    }
+    };
 
     BRS.forms.dgsPurchase = function($modal) {
         var data = BRS.getFormData($modal.find("form:first"));
@@ -485,7 +485,7 @@ var BRS = (function(BRS, $, undefined) {
         return {
             "data": data
         };
-    }
+    };
 
     BRS.forms.dgsRefund = function($modal) {
         var data = BRS.getFormData($modal.find("form:first"));
@@ -517,7 +517,7 @@ var BRS = (function(BRS, $, undefined) {
         return {
             "data": data
         };
-    }
+    };
 
     BRS.forms.dgsDelivery = function($modal) {
         var data = BRS.getFormData($modal.find("form:first"));
@@ -567,7 +567,7 @@ var BRS = (function(BRS, $, undefined) {
         return {
             "data": data
         };
-    }
+    };
 
     BRS.forms.dgsQuantityChange = function($modal) {
         var data = BRS.getFormData($modal.find("form:first"));
@@ -613,7 +613,7 @@ var BRS = (function(BRS, $, undefined) {
         return {
             "data": data
         };
-    }
+    };
 
     BRS.forms.dgsQuantityChangeComplete = function(response, data) {
         if (response.alreadyProcessed) {
@@ -623,7 +623,7 @@ var BRS = (function(BRS, $, undefined) {
         var quantityField = $("#my_dgs_listings_table tr[data-goods=" + String(data.goods).escapeHTML() + "]").addClass("tentative").find(".quantity");
 
         quantityField.html(quantityField.html() + (String(data.deltaQuantity).charAt(0) != "-" ? "+" : "") + BRS.format(data.deltaQuantity));
-    }
+    };
 
     BRS.forms.dgsPriceChangeComplete = function(response, data) {
         if (response.alreadyProcessed) {
@@ -631,7 +631,7 @@ var BRS = (function(BRS, $, undefined) {
         }
 
         $("#my_dgs_listings_table tr[data-goods=" + String(data.goods).escapeHTML() + "]").addClass("tentative").find(".price").html(BRS.formatAmount(data.priceNQT) + " BURST");
-    }
+    };
 
     BRS.forms.dgsRefundComplete = function(response, data) {
         if (response.alreadyProcessed) {
@@ -645,7 +645,7 @@ var BRS = (function(BRS, $, undefined) {
                 $row.find("span.order_status").html($.t("refunded"));
             }
         }
-    }
+    };
 
     BRS.forms.dgsDeliveryComplete = function(response, data) {
         if (response.alreadyProcessed) {
@@ -655,7 +655,7 @@ var BRS = (function(BRS, $, undefined) {
         if (BRS.currentPage == "pending_orders_dgs") {
             $("#pending_orders_dgs_contents div[data-purchase=" + String(data.purchase).escapeHTML() + "]").addClass("tentative").find("span.delivery").html($.t("delivered"));
         }
-    }
+    };
 
     $("#dgs_refund_modal, #dgs_delivery_modal, #dgs_feedback_modal, #dgs_view_purchase_modal, #dgs_view_delivery_modal, #dgs_view_refund_modal").on("show.bs.modal", function(e) {
         var $modal = $(this);
@@ -673,7 +673,11 @@ var BRS = (function(BRS, $, undefined) {
             if (response.errorCode) {
                 e.preventDefault();
                 $.notify($.t("error_purchase"), {
-                    "type": "danger"
+                    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
             }
             else {
@@ -683,11 +687,16 @@ var BRS = (function(BRS, $, undefined) {
                     if (response.errorCode) {
                         e.preventDefault();
                         $.notify($.t("error_products"), {
-                            "type": "danger"
+                            type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                         });
                     }
                     else {
                         var output = "<table>";
+                        var orderTotal;
                         output += "<tr><th style='width:85px;'><strong>" + $.t("product") + "</strong>:</th><td>" + String(good.name).escapeHTML() + "</td></tr>";
                         output += "<tr><th><strong>" + $.t("price") + "</strong>:</th><td>" + BRS.formatAmount(response.priceNQT) + " BURST</td></tr>";
                         output += "<tr><th><strong>" + $.t("quantity") + "</strong>:</th><td>" + BRS.format(response.quantity) + "</td></tr>";
@@ -703,7 +712,7 @@ var BRS = (function(BRS, $, undefined) {
                                 $modal.find("input[name=recipient]").val(response.sellerRS);
                             }
                             if (response.quantity != "1") {
-                                var orderTotal = BRS.formatAmount(new BigInteger(String(response.quantity)).multiply(new BigInteger(String(response.priceNQT))));
+                                orderTotal = BRS.formatAmount(new BigInteger(String(response.quantity)).multiply(new BigInteger(String(response.priceNQT))));
                                 output += "<tr><th><strong>" + $.t("total") + "</strong>:</th><td>" + orderTotal + " BURST</td></tr>";
                             }
                             if (response.discountNQT && (type == "dgs_refund_modal" || type == "dgs_feedback_modal")) {
@@ -746,7 +755,7 @@ var BRS = (function(BRS, $, undefined) {
                         }
 
                         if (type == "dgs_refund_modal") {
-                            var orderTotal = new BigInteger(String(response.quantity)).multiply(new BigInteger(String(response.priceNQT)));
+                            orderTotal = new BigInteger(String(response.quantity)).multiply(new BigInteger(String(response.priceNQT)));
                             var refund = orderTotal.subtract(new BigInteger(String(response.discountNQT)));
 
                             $("#dgs_refund_purchase").val(response.purchase);
@@ -770,7 +779,11 @@ var BRS = (function(BRS, $, undefined) {
                             if (response.pending) {
                                 e.preventDefault();
                                 $.notify($.t("error_goods_not_yet_delivered"), {
-                                    "type": "warning"
+                                    type: 'warning',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                                 });
                                 return;
                             }
@@ -780,11 +793,11 @@ var BRS = (function(BRS, $, undefined) {
                             };
 
                             if (response.feedbackNote) {
-                                fieldsToDecrypt["feedbackNote"] = $.t("feedback_given");
+                                fieldsToDecrypt.feedbackNote = $.t("feedback_given");
                             }
 
                             if (response.refundNote) {
-                                fieldsToDecrypt["refundNote"] = $.t("refund_note");
+                                fieldsToDecrypt.refundNote = $.t("refund_note");
                             }
 
                             BRS.tryToDecrypt(response, fieldsToDecrypt, (response.buyer == BRS.account ? response.seller : response.buyer), {
@@ -854,15 +867,15 @@ var BRS = (function(BRS, $, undefined) {
     $("#dgs_product_modal, #dgs_delisting_modal, #dgs_quantity_change_modal, #dgs_price_change_modal, #dgs_purchase_modal").on("show.bs.modal", function(e) {
         var $modal = $(this);
         var $invoker = $(e.relatedTarget);
-
+        var goods;
         var type = $modal.attr("id");
 
         if (!$invoker.length) {
-            var goods = _goodsToShow;
+            goods = _goodsToShow;
             _goodsToShow = 0;
         }
         else {
-            var goods = $invoker.data("goods");
+            goods = $invoker.data("goods");
         }
 
         $modal.find("input[name=goods]").val(goods);
@@ -873,7 +886,11 @@ var BRS = (function(BRS, $, undefined) {
             if (response.errorCode) {
                 e.preventDefault();
                 $.notify($.t("error_goods"), {
-                    "type": "danger"
+                    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
             }
             else {
@@ -931,7 +948,7 @@ var BRS = (function(BRS, $, undefined) {
 
         $(".dgs_search input[name=q]").val(seller);
 
-        if (seller == "") {
+        if (seller === "") {
             BRS.pages.dgs_search();
         }
         else if (/^(BURST\-)/i.test(seller)) {
@@ -939,7 +956,11 @@ var BRS = (function(BRS, $, undefined) {
 
             if (!address.set(seller)) {
                 $.notify($.t("error_invalid_seller"), {
-                    "type": "danger"
+                    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
                 });
             }
             else {
@@ -948,7 +969,11 @@ var BRS = (function(BRS, $, undefined) {
         }
         else {
             $.notify($.t("error_invalid_seller"), {
-                "type": "danger"
+                type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
             });
         }
     });
@@ -982,7 +1007,7 @@ var BRS = (function(BRS, $, undefined) {
             _goodsToShow = goods;
             $("#dgs_purchase_modal").modal("show");
         });
-    }
+    };
 
     return BRS;
 }(BRS || {}, jQuery));

@@ -67,7 +67,7 @@ public final class DGSDelivery extends CreateTransaction {
     }
 
     Account buyerAccount = accountService.getAccount(purchase.getBuyerId());
-    boolean goodsIsText = Parameters.isFalse(req.getParameter(GOODS_IS_TEXT_PARAMETER));
+    boolean goodsIsText = !Parameters.isFalse(req.getParameter(GOODS_IS_TEXT_PARAMETER));
     EncryptedData encryptedGoods = ParameterParser.getEncryptedGoods(req);
 
     if (encryptedGoods == null) {

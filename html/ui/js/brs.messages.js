@@ -13,7 +13,7 @@ var BRS = (function(BRS, $, undefined) {
 	BRS.sendRequest("getAccountTransactions+", {
 	    "account": BRS.account,
 	    "firstIndex": 0,
-	    "lastIndex": 75,
+	    "lastIndex": 74,
 	    "type": 1,
 	    "subtype": 0
 	}, function(response) {
@@ -37,7 +37,7 @@ var BRS = (function(BRS, $, undefined) {
 		BRS.pageLoaded(callback);
 	    }
 	});
-    }
+    };
 
     function displayMessageSidebar(callback) {
 	var activeAccount = false;
@@ -129,7 +129,11 @@ var BRS = (function(BRS, $, undefined) {
 				"account": BRS.getAccountFormatted(trans, "sender"),
 				"name": BRS.getAccountTitle(trans, "sender")
 			    }), {
-				"type": "success"
+				type: 'success',
+                offset: {
+                    x: 5,
+                    y: 60
+                    }
 			    });
 			}
 		    }
@@ -211,18 +215,18 @@ var BRS = (function(BRS, $, undefined) {
 		    decoded = String(decoded).escapeHTML().nl2br();
 
 		    if (extra == "to_decrypt") {
-			decoded = "<i class='fa fa-warning'></i> " + decoded;
+			decoded = "<i class='fas fa-exclamation-triangle'></i> " + decoded;
 		    }
                     else if (extra == "decrypted") {
 			if (type == "payment") {
 			    decoded = "<strong>+" + BRS.formatAmount(messages[i].amountNQT) + " BURST</strong><br />" + decoded;
 			}
 
-			decoded = "<i class='fa fa-lock'></i> " + decoded;
+			decoded = "<i class='fas fa-lock'></i> " + decoded;
 		    }
 		}
                 else {
-		    decoded = "<i class='fa fa-warning'></i> " + $.t("error_could_not_decrypt_message");
+		    decoded = "<i class='fas fa-exclamation-triangle'></i> " + $.t("error_could_not_decrypt_message");
 		    extra = "decryption_failed";
 		}
 
@@ -291,14 +295,14 @@ var BRS = (function(BRS, $, undefined) {
 	    }
 
 	    if (decoded === false) {
-		decoded = "<i class='fa fa-warning'></i> " + $.t("error_could_not_decrypt_message");
+		decoded = "<i class='fas fa-exclamation-triangle'></i> " + $.t("error_could_not_decrypt_message");
 		extra = "decryption_failed";
 	    }
             else if (!decoded) {
 		decoded = $.t("message_empty");
 	    }
 
-	    output += "<dd class='to tentative" + (extra ? " " + extra : "") + "'><p>" + (extra == "to_decrypt" ? "<i class='fa fa-warning'></i> " : (extra == "decrypted" ? "<i class='fa fa-lock'></i> " : "")) + String(decoded).escapeHTML().nl2br() + "</p></dd>";
+	    output += "<dd class='to tentative" + (extra ? " " + extra : "") + "'><p>" + (extra == "to_decrypt" ? "<i class='fas fa-exclamation-triangle'></i> " : (extra == "decrypted" ? "<i class='fas fa-lock'></i> " : "")) + String(decoded).escapeHTML().nl2br() + "</p></dd>";
 	}
 
 	output += "</dl>";
@@ -369,7 +373,7 @@ var BRS = (function(BRS, $, undefined) {
 	return {
 	    "data": data
 	};
-    }
+    };
 
     $("#inline_message_form").submit(function(e) {
 	e.preventDefault();
@@ -384,7 +388,11 @@ var BRS = (function(BRS, $, undefined) {
 	if (!BRS.rememberPassword) {
 	    if ($("#inline_message_password").val() == "") {
 		$.notify($.t("error_passphrase_required"), {
-		    "type": "danger"
+		    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 		});
 		return;
 	    }
@@ -393,7 +401,11 @@ var BRS = (function(BRS, $, undefined) {
 
 	    if (accountId != BRS.account) {
 		$.notify($.t("error_passphrase_incorrect"), {
-		    "type": "danger"
+		    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 		});
 		return;
 	    }
@@ -416,13 +428,17 @@ var BRS = (function(BRS, $, undefined) {
 		data = BRS.addMessageData(data, "sendMessage");
 	    } catch (err) {
 		$.notify(String(err.message).escapeHTMl(), {
-		    "type": "danger"
+		    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 		});
 		return;
 	    }
 	}
         else {
-	    data["_extra"] = {
+	    data._extra = {
 		"message": data.message
 	    };
 	}
@@ -430,25 +446,33 @@ var BRS = (function(BRS, $, undefined) {
 	BRS.sendRequest(requestType, data, function(response, input) {
 	    if (response.errorCode) {
 		$.notify(BRS.translateServerError(response).escapeHTML(), {
-		    type: "danger"
+		    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 		});
 	    }
             else if (response.fullHash) {
 		$.notify($.t("success_message_sent"), {
-		    type: "success"
+		    type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 		});
 
 		$("#inline_message_text").val("");
 
-		if (data["_extra"].message && data.encryptedMessageData) {
+		if (data._extra.message && data.encryptedMessageData) {
 		    BRS.addDecryptedTransaction(response.transaction, {
-			"encryptedMessage": String(data["_extra"].message)
+			"encryptedMessage": String(data._extra.message)
 		    });
 		}
 
 		BRS.addUnconfirmedTransaction(response.transaction, function(alreadyProcessed) {
 		    if (!alreadyProcessed) {
-			$("#message_details dl.chat").append("<dd class='to tentative" + (data.encryptedMessageData ? " decrypted" : "") + "'><p>" + (data.encryptedMessageData ? "<i class='fa fa-lock'></i> " : "") + (!data["_extra"].message ? $.t("message_empty") : String(data["_extra"].message).escapeHTML()) + "</p></dd>");
+			$("#message_details dl.chat").append("<dd class='to tentative" + (data.encryptedMessageData ? " decrypted" : "") + "'><p>" + (data.encryptedMessageData ? "<i class='fas fa-lock'></i> " : "") + (!data._extra.message ? $.t("message_empty") : String(data._extra.message).escapeHTML()) + "</p></dd>");
 			$('#messages_page .content-splitter-right-inner').scrollTop($('#messages_page .content-splitter-right-inner')[0].scrollHeight);					
 		    }
 		});
@@ -458,7 +482,11 @@ var BRS = (function(BRS, $, undefined) {
             else {
 		//TODO
 		$.notify($.t("error_send_message"), {
-		    type: "danger"
+		    type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 		});
 	    }
 	    $btn.button("reset");
@@ -468,20 +496,28 @@ var BRS = (function(BRS, $, undefined) {
     BRS.forms.sendMessageComplete = function(response, data) {
 	data.message = data._extra.message;
 
-	if (!(data["_extra"] && data["_extra"].convertedAccount)) {
+	if (!(data._extra && data._extra.convertedAccount)) {
 	    $.notify($.t("success_message_sent") + " <a href='#' data-account='" + BRS.getAccountFormatted(data, "recipient") + "' data-toggle='modal' data-target='#add_contact_modal' style='text-decoration:underline'>" + $.t("add_recipient_to_contacts_q") + "</a>", {
-		"type": "success"
+		type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 	    });
 	}
         else {
 	    $.notify($.t("success_message_sent"), {
-		"type": "success"
+		type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 	    });
 	}
 
 	if (data.message && data.encryptedMessageData) {
 	    BRS.addDecryptedTransaction(response.transaction, {
-		"encryptedMessage": String(data["_extra"].message)
+		"encryptedMessage": String(data._extra.message)
 	    });
 	}
 
@@ -504,7 +540,7 @@ var BRS = (function(BRS, $, undefined) {
 		var isEncrypted = (data.encryptedMessageData ? true : false);
 
 		if ($existing.hasClass("active")) {
-		    $("#message_details dl.chat").append("<dd class='to tentative" + (isEncrypted ? " decrypted" : "") + "'><p>" + (isEncrypted ? "<i class='fa fa-lock'></i> " : "") + (data.message ? data.message.escapeHTML() : $.t("message_empty")) + "</p></dd>");
+		    $("#message_details dl.chat").append("<dd class='to tentative" + (isEncrypted ? " decrypted" : "") + "'><p>" + (isEncrypted ? "<i class='fas fa-lock'></i> " : "") + (data.message ? data.message.escapeHTML() : $.t("message_empty")) + "</p></dd>");
 		}
 	    }
             else {
@@ -521,7 +557,7 @@ var BRS = (function(BRS, $, undefined) {
 	    }
 	    $('#messages_page .content-splitter-right-inner').scrollTop($('#messages_page .content-splitter-right-inner')[0].scrollHeight);
 	}
-    }
+    };
 
     $("#message_details").on("click", "dd.to_decrypt", function(e) {
 	$("#messages_decrypt_modal").modal("show");
@@ -579,19 +615,27 @@ var BRS = (function(BRS, $, undefined) {
 
 	if (success) {
 	    $.notify($.t("success_messages_decrypt"), {
-		"type": "success"
+		type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 	    });
 	}
         else {
 	    $.notify($.t("error_messages_decrypt"), {
-		"type": "danger"
+		type: 'danger',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 	    });
 	}
 
 	return {
 	    "stop": true
 	};
-    }
+    };
 
     return BRS;
 }(BRS || {}, jQuery));

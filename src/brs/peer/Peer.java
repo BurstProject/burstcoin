@@ -23,10 +23,6 @@ public interface Peer extends Comparable<Peer> {
 
   String getSoftware();
 
-  Hallmark getHallmark();
-
-  int getWeight();
-
   boolean shareAddress();
 
   boolean isWellKnown();
@@ -35,7 +31,12 @@ public interface Peer extends Comparable<Peer> {
 
   boolean isBlacklisted();
 
-  void blacklist(Exception cause);
+  boolean isAtLeastMyVersion();
+  boolean isHigherOrEqualVersionThan(String version);
+
+  void blacklist(Exception cause, String description);
+
+  void blacklist(String description);
 
   void blacklist();
 

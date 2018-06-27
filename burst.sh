@@ -56,7 +56,6 @@ function upgrade_conf () {
         BRS="${BRS//nxt\.readTimeout/P2P.TimeoutRead_ms}"
         BRS="${BRS//nxt\.peerServerIdleTimeout/P2P.TimeoutIdle_ms}"
         BRS="${BRS//nxt\.blacklistingPeriod/P2P.BlacklistingTime_ms}"
-        BRS="${BRS//nxt\.sendToPeersLimit/P2P.TxResendThreshold}"
         BRS="${BRS//nxt\.usePeersDb/P2P.usePeersDb}"
         BRS="${BRS//nxt\.savePeers/P2P.savePeers}"
         BRS="${BRS//nxt\.getMorePeers/P2P.getMorePeers}"
@@ -64,13 +63,6 @@ function upgrade_conf () {
         BRS="${BRS//burst\.rebroadcastAfter/P2P.rebroadcastTxAfter}"
         BRS="${BRS//burst\.rebroadcastEvery/P2P.rebroadcastTxEvery}"
         BRS="${BRS//nxt\.enablePeerServerGZIPFilter/JETTY.P2P.GZIPFilter}"
-
-        
-        ### P2P Hallmarks
-        BRS="${BRS//nxt\.enableHallmarkProtection/P2P.HallmarkProtection}"
-        BRS="${BRS//nxt\.myHallmark/P2P.myHallmark}"
-        BRS="${BRS//nxt\.pushThreshold/P2P.HallmarkPush}"
-        BRS="${BRS//nxt\.pullThreshold/P2P.HallmarkPull}"
 
         ### JETTY pass-through params
         BRS="${BRS//nxt\.enablePeerServerDoSFilter/JETTY.P2P.DoSFilter}"
@@ -280,5 +272,9 @@ if [[ $# -gt 0 ]] ; then
             ;;
     esac
 else
+    ARCH=`uname -m`
+    if [[ $ARCH = "armv7l" ]]; then
+        export LD_LIBRARY_PATH=./lib/armv7l
+    fi
     java $BRS_DEVSTART -cp burst.jar:conf brs.Burst
 fi

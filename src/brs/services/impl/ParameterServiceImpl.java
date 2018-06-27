@@ -59,6 +59,7 @@ import brs.BurstException;
 import brs.DigitalGoodsStore;
 import brs.Transaction;
 import brs.TransactionProcessor;
+import brs.assetexchange.AssetExchange;
 import brs.crypto.Crypto;
 import brs.crypto.EncryptedData;
 import brs.http.ParameterException;
@@ -66,7 +67,6 @@ import brs.http.common.Parameters;
 import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.AliasService;
-import brs.services.AssetService;
 import brs.services.DGSGoodsStoreService;
 import brs.services.ParameterService;
 import brs.util.Convert;
@@ -85,19 +85,19 @@ public class ParameterServiceImpl implements ParameterService {
 
   private final AccountService accountService;
   private final AliasService aliasService;
-  private final AssetService assetService;
+  private final AssetExchange assetExchange;
   private final DGSGoodsStoreService dgsGoodsStoreService;
   private final Blockchain blockchain;
   private final BlockchainProcessor blockchainProcessor;
   private final TransactionProcessor transactionProcessor;
   private final ATService atService;
 
-  public ParameterServiceImpl(AccountService accountService, AliasService aliasService, AssetService assetService, DGSGoodsStoreService dgsGoodsStoreService, Blockchain blockchain,
+  public ParameterServiceImpl(AccountService accountService, AliasService aliasService, AssetExchange assetExchange, DGSGoodsStoreService dgsGoodsStoreService, Blockchain blockchain,
       BlockchainProcessor blockchainProcessor,
       TransactionProcessor transactionProcessor, ATService atService) {
     this.accountService = accountService;
     this.aliasService = aliasService;
-    this.assetService = assetService;
+    this.assetExchange = assetExchange;
     this.dgsGoodsStoreService = dgsGoodsStoreService;
     this.blockchain = blockchain;
     this.blockchainProcessor = blockchainProcessor;
@@ -200,7 +200,7 @@ public class ParameterServiceImpl implements ParameterService {
     Asset asset;
     try {
       long assetId = Convert.parseUnsignedLong(assetValue);
-      asset = assetService.getAsset(assetId);
+      asset = assetExchange.getAsset(assetId);
     } catch (RuntimeException e) {
       throw new ParameterException(INCORRECT_ASSET);
     }
@@ -265,7 +265,7 @@ public class ParameterServiceImpl implements ParameterService {
       throw new ParameterException(INCORRECT_RECIPIENT);
     }
     String secretPhrase = getSecretPhrase(req);
-    boolean isText = !Parameters.isFalse(req.getParameter(MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER));
+    boolean isText = Parameters.isTrue(req.getParameter(MESSAGE_TO_ENCRYPT_IS_TEXT_PARAMETER));
     try {
       byte[] plainMessageBytes = isText ? Convert.toBytes(plainMessage) : Convert.parseHexString(plainMessage);
       return recipientAccount.encryptTo(plainMessageBytes, secretPhrase);

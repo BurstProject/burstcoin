@@ -4,6 +4,7 @@ import brs.Appendix.AbstractAppendix;
 import brs.TransactionType.Payment;
 import brs.crypto.Crypto;
 import brs.db.BurstKey;
+import brs.fluxcapacitor.FeatureToggle;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -403,13 +404,6 @@ public class Transaction implements Comparable<Transaction> {
     return senderId;
   }
 
-  public BurstKey getDbKey() {
-    if (dbKey == null) {
-      dbKey = Burst.getStores().getTransactionProcessorStore().getUnconfirmedTransactionDbKeyFactory().newKey(getId());
-    }
-    return dbKey;
-  }
-
   public Appendix.Message getMessage() {
     return message;
   }
@@ -434,7 +428,7 @@ public class Transaction implements Comparable<Transaction> {
       buffer.put((byte) ((version << 4) | ( type.getSubtype() & 0xff ) ));
       buffer.putInt(timestamp);
       buffer.putShort(deadline);
-      if(type.isSigned() || Burst.getBlockchain().getHeight() < Constants.AT_FIX_BLOCK_4) {
+      if(type.isSigned() || ! Burst.getFluxCapacitor().isActive(FeatureToggle.AT_FIX_BLOCK_4)) {
         buffer.put(senderPublicKey);
       }
       else {
@@ -515,22 +509,9 @@ public class Transaction implements Comparable<Transaction> {
       if (transactionType.hasRecipient()) {
         builder.recipientId(recipientId);
       }
-      int position = 1;
-      if ((flags & position) != 0 || (version == 0 && transactionType == TransactionType.Messaging.ARBITRARY_MESSAGE)) {
-        builder.message(new Appendix.Message(buffer, version));
-      }
-      position <<= 1;
-      if ((flags & position) != 0) {
-        builder.encryptedMessage(new Appendix.EncryptedMessage(buffer, version));
-      }
-      position <<= 1;
-      if ((flags & position) != 0) {
-        builder.publicKeyAnnouncement(new Appendix.PublicKeyAnnouncement(buffer, version));
-      }
-      position <<= 1;
-      if ((flags & position) != 0) {
-        builder.encryptToSelfMessage(new Appendix.EncryptToSelfMessage(buffer, version));
-      }
+
+      transactionType.parseAppendices(builder, flags, version, buffer);
+
       return builder.build();
     } catch (BurstException.NotValidException|RuntimeException e) {
       logger.debug("Failed to parse transaction bytes: " + Convert.toHexString(bytes));
@@ -581,7 +562,7 @@ public class Transaction implements Comparable<Transaction> {
     return json;
   }
 
-  static Transaction parseTransaction(JSONObject transactionData) throws BurstException.NotValidException {
+  static Transaction parseTransaction(JSONObject transactionData, int height) throws BurstException.NotValidException {
     try {
       byte type = ((Long) transactionData.get("type")).byteValue();
       byte subtype = ((Long) transactionData.get("subtype")).byteValue();
@@ -603,20 +584,18 @@ public class Transaction implements Comparable<Transaction> {
       if (transactionType == null) {
         throw new BurstException.NotValidException("Invalid transaction type: " + type + ", " + subtype);
       }
-      Transaction.Builder builder = new Transaction.Builder(version, senderPublicKey,
+      Transaction.Builder builder = new Builder(version, senderPublicKey,
                                                                             amountNQT, feeNQT, timestamp, deadline,
                                                                             transactionType.parseAttachment(attachmentData))
           .referencedTransactionFullHash(referencedTransactionFullHash)
-          .signature(signature);
+          .signature(signature)
+          .height(height);
       if (transactionType.hasRecipient()) {
         long recipientId = Convert.parseUnsignedLong((String) transactionData.get("recipient"));
         builder.recipientId(recipientId);
       }
 
-      builder.message(Appendix.Message.parse(attachmentData));
-      builder.encryptedMessage(Appendix.EncryptedMessage.parse(attachmentData));
-      builder.publicKeyAnnouncement((Appendix.PublicKeyAnnouncement.parse(attachmentData)));
-      builder.encryptToSelfMessage(Appendix.EncryptToSelfMessage.parse(attachmentData));
+      transactionType.parseAppendices(builder, attachmentData);
 
       if (version > 0) {
         builder.ecBlockHeight(((Long) transactionData.get("ecBlockHeight")).intValue());

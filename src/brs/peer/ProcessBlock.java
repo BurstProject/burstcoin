@@ -46,7 +46,7 @@ public final class ProcessBlock extends PeerServlet.PeerRequestHandler {
 
     } catch (BurstException|RuntimeException e) {
       if (peer != null) {
-        peer.blacklist(e);
+        peer.blacklist(e, "received invalid data via requestType=processBlock");
       }
       return NOT_ACCEPTED;
     }

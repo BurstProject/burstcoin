@@ -6,8 +6,8 @@ import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
 
 import brs.BurstException;
 import brs.Order;
+import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
-import brs.services.OrderService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
@@ -18,12 +18,12 @@ import org.json.simple.JSONStreamAware;
 public final class GetBidOrderIds extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
-  private final OrderService orderService;
+  private final AssetExchange assetExchange;
 
-  GetBidOrderIds(ParameterService parameterService, OrderService orderService) {
+  GetBidOrderIds(ParameterService parameterService, AssetExchange assetExchange) {
     super(new APITag[]{APITag.AE}, ASSET_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
     this.parameterService = parameterService;
-    this.orderService = orderService;
+    this.assetExchange = assetExchange;
   }
 
   @Override
@@ -33,7 +33,7 @@ public final class GetBidOrderIds extends APIServlet.APIRequestHandler {
     int lastIndex = ParameterParser.getLastIndex(req);
 
     JSONArray orderIds = new JSONArray();
-    try (BurstIterator<Order.Bid> bidOrders = orderService.getSortedBidOrders(assetId, firstIndex, lastIndex)) {
+    try (BurstIterator<Order.Bid> bidOrders = assetExchange.getSortedBidOrders(assetId, firstIndex, lastIndex)) {
       while (bidOrders.hasNext()) {
         orderIds.add(Convert.toUnsignedLong(bidOrders.next().getId()));
       }

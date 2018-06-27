@@ -1,6 +1,7 @@
 package brs;
 
 import brs.crypto.EncryptedData;
+import brs.fluxcapacitor.FeatureToggle;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 
@@ -32,7 +33,7 @@ public interface Appendix {
     }
 
     AbstractAppendix(int blockchainHeight) {
-      this.version = (byte)(blockchainHeight < Constants.DIGITAL_GOODS_STORE_BLOCK ? 0 : 1);
+      this.version = (byte)(Burst.getFluxCapacitor().isActive(FeatureToggle.DIGITAL_GOODS_STORE, blockchainHeight) ? 1 : 0);
     }
 
     abstract String getAppendixName();

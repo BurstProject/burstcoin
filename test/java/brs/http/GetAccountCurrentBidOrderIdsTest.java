@@ -4,9 +4,7 @@ import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.ASSET_PARAMETER;
 import static brs.http.common.Parameters.FIRST_INDEX_PARAMETER;
 import static brs.http.common.Parameters.LAST_INDEX_PARAMETER;
-import static brs.http.common.ResultFields.BID_ORDERS_RESPONSE;
 import static brs.http.common.ResultFields.BID_ORDER_IDS_RESPONSE;
-import static brs.http.common.ResultFields.ORDER_RESPONSE;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -15,14 +13,13 @@ import static org.mockito.Mockito.when;
 import brs.Account;
 import brs.BurstException;
 import brs.Order.Bid;
+import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
-import brs.services.OrderService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
-import org.bouncycastle.pqc.asn1.ParSet;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -33,14 +30,14 @@ public class GetAccountCurrentBidOrderIdsTest extends AbstractUnitTest {
   private GetAccountCurrentBidOrderIds t;
 
   private ParameterService mockParameterService;
-  private OrderService mockOrderService;
+  private AssetExchange mockAssetExchange;
 
   @Before
   public void setUp() {
     mockParameterService = mock(ParameterService.class);
-    mockOrderService = mock(OrderService.class);
+    mockAssetExchange = mock(AssetExchange.class);
 
-    t = new GetAccountCurrentBidOrderIds(mockParameterService, mockOrderService);
+    t = new GetAccountCurrentBidOrderIds(mockParameterService, mockAssetExchange);
   }
 
   @Test
@@ -65,7 +62,7 @@ public class GetAccountCurrentBidOrderIdsTest extends AbstractUnitTest {
     final BurstIterator<Bid> mockBidIterator = mockBurstIterator(bid);
 
     when(mockParameterService.getAccount(eq(req))).thenReturn(mockAccount);
-    when(mockOrderService.getBidOrdersByAccount(eq(accountId), eq(firstIndex), eq(lastIndex))).thenReturn(mockBidIterator);
+    when(mockAssetExchange.getBidOrdersByAccount(eq(accountId), eq(firstIndex), eq(lastIndex))).thenReturn(mockBidIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
     assertNotNull(result);
@@ -100,7 +97,7 @@ public class GetAccountCurrentBidOrderIdsTest extends AbstractUnitTest {
     final BurstIterator<Bid> mockBidIterator = mockBurstIterator(bid);
 
     when(mockParameterService.getAccount(eq(req))).thenReturn(mockAccount);
-    when(mockOrderService.getBidOrdersByAccountAsset(eq(accountId), eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockBidIterator);
+    when(mockAssetExchange.getBidOrdersByAccountAsset(eq(accountId), eq(assetId), eq(firstIndex), eq(lastIndex))).thenReturn(mockBidIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(req);
     assertNotNull(result);

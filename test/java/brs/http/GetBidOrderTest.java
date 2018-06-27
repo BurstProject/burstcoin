@@ -10,9 +10,9 @@ import static org.mockito.Mockito.when;
 
 import brs.BurstException;
 import brs.Order.Bid;
+import brs.assetexchange.AssetExchange;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
-import brs.services.OrderService;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -22,13 +22,13 @@ public class GetBidOrderTest {
 
   private GetBidOrder t;
 
-  private OrderService mockOrderService;
+  private AssetExchange mockAssetExchange;
 
   @Before
   public void setUp() {
-    mockOrderService = mock(OrderService.class);
+    mockAssetExchange = mock(AssetExchange.class);
 
-    t = new GetBidOrder(mockOrderService);
+    t = new GetBidOrder(mockAssetExchange);
   }
 
   @Test
@@ -37,7 +37,7 @@ public class GetBidOrderTest {
     Bid mockBid = mock(Bid.class);
     when(mockBid.getId()).thenReturn(bidOrderId);
 
-    when(mockOrderService.getBidOrder(eq(bidOrderId))).thenReturn(mockBid);
+    when(mockAssetExchange.getBidOrder(eq(bidOrderId))).thenReturn(mockBid);
 
     HttpServletRequest req = QuickMocker.httpServletRequest(new MockParam(ORDER_PARAMETER, bidOrderId));
 

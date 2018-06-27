@@ -12,7 +12,7 @@ var BRS = (function(BRS, $, undefined) {
 		});
 	    }
 	});
-    }
+    };
 
     BRS.pages.contacts = function() {
 	if (!BRS.databaseSupport) {
@@ -58,7 +58,7 @@ var BRS = (function(BRS, $, undefined) {
 
 	    BRS.dataLoaded(rows);
 	});
-    }
+    };
 
     BRS.forms.addContact = function($modal) {
 	var data = BRS.getFormData($modal.find("form:first"));
@@ -177,7 +177,11 @@ var BRS = (function(BRS, $, undefined) {
 			$modal.modal("unlock");
 			$modal.modal("hide");
 			$.notify($.t("success_contact_add"), {
-			    "type": "success"
+			    type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 			});
 
 			if (BRS.currentPage == "contacts") {
@@ -194,7 +198,7 @@ var BRS = (function(BRS, $, undefined) {
 		});
 	    }
 	});
-    }
+    };
 
     $("#update_contact_modal").on("show.bs.modal", function(e) {
 	var $invoker = $(e.relatedTarget);
@@ -347,7 +351,11 @@ var BRS = (function(BRS, $, undefined) {
 			$modal.modal("unlock");
 			$modal.modal("hide");
 			$.notify($.t("success_contact_update"), {
-			    "type": "success"
+			    type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 			});
 
 			if (BRS.currentPage == "contacts") {
@@ -363,7 +371,7 @@ var BRS = (function(BRS, $, undefined) {
 		});
 	    }
 	});
-    }
+    };
 
     $("#delete_contact_modal").on("show.bs.modal", function(e) {
 	var $invoker = $(e.relatedTarget);
@@ -392,7 +400,11 @@ var BRS = (function(BRS, $, undefined) {
 
 	    setTimeout(function() {
 		$.notify($.t("success_contact_delete"), {
-		    "type": "success"
+		    type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 		});
 
 		if (BRS.currentPage == "contacts") {
@@ -404,7 +416,7 @@ var BRS = (function(BRS, $, undefined) {
 	return {
 	    "stop": true
 	};
-    }
+    };
     BRS.exportContacts = function() {
 	if (BRS.contacts && (Object.keys(BRS.contacts).length > 0)) {
 	    var contacts_download = document.createElement('a');
@@ -418,7 +430,7 @@ var BRS = (function(BRS, $, undefined) {
         else {
 	    console.log('No contacts found in database to backup');
 	}
-    }
+    };
     $("#export_contacts_button").on("click", function() {
 	BRS.exportContacts();
     });
@@ -437,12 +449,20 @@ var BRS = (function(BRS, $, undefined) {
 		if (contacts && contacts.length) {
 		    if (contacts[0].name == imported_contact.name) {
 			//$modal.find(".error_message").html($.t("error_contact_name_exists")).show();
-			$.notify($.t("error_contact_name_exists")).show();
+			$.notify($.t("error_contact_name_exists"), {
+                    offset: {
+                        x: 5,
+                        y: 60
+			}}).show();
 			console.log('Error, contact already exists with same name:'+imported_contact.name);
 		    }
                     else {
 			//$modal.find(".error_message").html($.t("error_contact_account_id_exists")).show();
-			$.notify($.t("error_contact_account_id_exists")).show();
+			$.notify($.t("error_contact_account_id_exists"), {
+                    offset: {
+                        x: 5,
+                        y: 60
+			}}).show();
 			console.log('Error, contact already exists with same account ID:'+imported_contact.account);
 		    }
 		    /*$btn.button("reset");
@@ -469,7 +489,11 @@ var BRS = (function(BRS, $, undefined) {
 			      $modal.modal("unlock");
 			      $modal.modal("hide");*/
 			    $.notify($.t("success_contact_add"), {
-				"type": "success"
+				type: 'success',
+                    offset: {
+                        x: 5,
+                        y: 60
+                        }
 			    });
 
 			    if (BRS.currentPage == "contacts") {
@@ -487,7 +511,7 @@ var BRS = (function(BRS, $, undefined) {
 		}
 	    });
 	});
-    }
+    };
     $("#import_contacts_button_field").css({'display':'none'});
     $("#import_contacts_button_field").on("change", function(button_event) {
 	button_event.preventDefault();

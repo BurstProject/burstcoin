@@ -3,6 +3,7 @@ package brs.http;
 import static brs.Constants.MAX_BALANCE_NQT;
 import static brs.TransactionType.DigitalGoods.DELIVERY;
 import static brs.common.TestConstants.TEST_SECRET_PHRASE;
+import static brs.fluxcapacitor.FeatureToggle.DIGITAL_GOODS_STORE;
 import static brs.http.JSONResponses.ALREADY_DELIVERED;
 import static brs.http.JSONResponses.INCORRECT_DGS_DISCOUNT;
 import static brs.http.JSONResponses.INCORRECT_DGS_GOODS;
@@ -15,20 +16,28 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import brs.Account;
 import brs.Attachment;
 import brs.Blockchain;
+import brs.Burst;
 import brs.BurstException;
 import brs.DigitalGoodsStore.Purchase;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
+import brs.fluxcapacitor.FluxCapacitor;
 import brs.services.AccountService;
 import brs.services.ParameterService;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(Burst.class)
 public class DGSDeliveryTest extends AbstractTransactionTest {
 
   private DGSDelivery t;
@@ -74,6 +83,10 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
     when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
     when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
     when(accountServiceMock.getAccount(eq(mockPurchase.getBuyerId()))).thenReturn(mockBuyerAccount);
+
+    mockStatic(Burst.class);
+    final FluxCapacitor fluxCapacitor = QuickMocker.fluxCapacitorEnabledFunctionalities(DIGITAL_GOODS_STORE);
+    when(Burst.getFluxCapacitor()).thenReturn(fluxCapacitor);
 
     final Attachment.DigitalGoodsDelivery attachment = (Attachment.DigitalGoodsDelivery) attachmentCreatedTransaction(() -> t.processRequest(req), apiTransactionManagerMock);
     assertNotNull(attachment);
@@ -203,30 +216,6 @@ public class DGSDeliveryTest extends AbstractTransactionTest {
     final HttpServletRequest req = QuickMocker.httpServletRequest(
         new MockParam(DISCOUNT_NQT_PARAMETER, "9"),
         new MockParam(GOODS_TO_ENCRYPT_PARAMETER, ""),
-        new MockParam(SECRET_PHRASE_PARAMETER, TEST_SECRET_PHRASE)
-    );
-
-    final Account mockSellerAccount = mock(Account.class);
-    final Purchase mockPurchase = mock(Purchase.class);
-
-    when(mockSellerAccount.getId()).thenReturn(1l);
-    when(mockPurchase.getSellerId()).thenReturn(1l);
-    when(mockPurchase.getQuantity()).thenReturn(9);
-    when(mockPurchase.getPriceNQT()).thenReturn(1L);
-
-    when(mockPurchase.isPending()).thenReturn(true);
-
-    when(parameterServiceMock.getSenderAccount(eq(req))).thenReturn(mockSellerAccount);
-    when(parameterServiceMock.getPurchase(eq(req))).thenReturn(mockPurchase);
-
-    assertEquals(INCORRECT_DGS_GOODS, t.processRequest(req));
-  }
-
-  @Test
-  public void processRequest_goodsToEncryptIsNotHexStringIncorrectDGSGoods() throws BurstException {
-    final HttpServletRequest req = QuickMocker.httpServletRequest(
-        new MockParam(DISCOUNT_NQT_PARAMETER, "9"),
-        new MockParam(GOODS_TO_ENCRYPT_PARAMETER, "ZZZ"),
         new MockParam(SECRET_PHRASE_PARAMETER, TEST_SECRET_PHRASE)
     );
 

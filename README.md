@@ -24,14 +24,17 @@ Other DB backends are supported by the Burstcoin DB manager:
 
 #### Linux (Debian, Ubuntu)
 
-Please take a look at <http://package.cryptoguru.org/> where you can
-find the burstcoincg package. This will take care of the MariaDB
-installation for you.
+- fetch the newest release ZIP file
 
-Burstcoin can be built from source using maven or - preferably - via
-the provided `burst.sh compile` script within this repository.
+If running for the first time,
 
-##### Upgrading your wallet config from 1.3.6cg
+- install Java
+- install MariaDB
+- run ```burst.sh help```
+- probably you want to do ```burst.sh import mariadb```
+
+
+if upgrading your wallet config from 1.3.6cg
 
 ```
 burst.sh upgrade

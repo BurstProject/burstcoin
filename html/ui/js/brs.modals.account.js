@@ -56,7 +56,7 @@ var BRS = (function(BRS, $, undefined) {
 	$("#user_info_modal_transactions").show();
 
 	BRS.userInfoModal.transactions();
-    }
+    };
 
     BRS.processAccountModalData = function(account) {
 	if (account.unconfirmedBalanceNQT == "0") {
@@ -83,7 +83,7 @@ var BRS = (function(BRS, $, undefined) {
 	}
 
 	$("#user_info_modal").modal("show");
-    }
+    };
 
     $("#user_info_modal").on("hidden.bs.modal", function(e) {
 	$(this).find(".user_info_modal_content").hide();
@@ -118,11 +118,11 @@ var BRS = (function(BRS, $, undefined) {
 	BRS.sendRequest("getAccountTransactions", {
 	    "account": BRS.userInfoModal.user,
 	    "firstIndex": 0,
-	    "lastIndex": 100
+	    "lastIndex": 99
 	}, function(response) {
 	    if (response.transactions && response.transactions.length) {
 		var rows = "";
-
+    var receiving;
 		for (var i = 0; i < response.transactions.length; i++) {
 		    var transaction = response.transactions[i];
 
@@ -267,10 +267,10 @@ var BRS = (function(BRS, $, undefined) {
 		    }
 
 		    if (/^BURST\-/i.test(BRS.userInfoModal.user)) {
-			var receiving = (transaction.recipientRS == BRS.userInfoModal.user);
+			receiving = (transaction.recipientRS == BRS.userInfoModal.user);
 		    }
                     else {
-			var receiving = (transaction.recipient == BRS.userInfoModal.user);
+			receiving = (transaction.recipient == BRS.userInfoModal.user);
 		    }
 
 		    if (transaction.amountNQT) {
@@ -279,8 +279,7 @@ var BRS = (function(BRS, $, undefined) {
 		    }
 
 		    var account = (receiving ? "sender" : "recipient");
-
-		    rows += "<tr><td>" + BRS.formatTimestamp(transaction.timestamp) + "</td><td>" + transactionType + "</td><td style='width:5px;padding-right:0;'>" + (transaction.type == 0 ? (receiving ? "<i class='fa fa-plus-circle' style='color:#65C62E'></i>" : "<i class='fa fa-minus-circle' style='color:#E04434'></i>") : "") + "</td><td " + (transaction.type == 0 && receiving ? " style='color:#006400;'" : (!receiving && transaction.amount > 0 ? " style='color:red'" : "")) + ">" + BRS.formatAmount(transaction.amount) + "</td><td " + (!receiving ? " style='color:red'" : "") + ">" + BRS.formatAmount(transaction.fee) + "</td><td>" + BRS.getAccountTitle(transaction, account) + "</td></tr>";
+		    rows += "<tr><td>" + BRS.formatTimestamp(transaction.timestamp) + "</td><td>" + transactionType + "</td><td style='width:5px;padding-right:0;'>" + (transaction.type == 0 ? (receiving ? "<i class='fas fa-plus-circle' style='color:#65C62E'></i>" : "<i class='fas fa-minus-circle' style='color:#E04434'></i>") : "") + "</td><td " + (transaction.type == 0 && receiving ? " style='color:#006400;'" : (!receiving && transaction.amount > 0 ? " style='color:red'" : "")) + ">" + BRS.formatAmount(transaction.amount) + "</td><td " + (!receiving ? " style='color:red'" : "") + ">" + BRS.formatAmount(transaction.fee) + "</td><td>" + BRS.getAccountTitle(transaction, account) + "</td></tr>";
 		}
 
 		$("#user_info_modal_transactions_table tbody").empty().append(rows);
@@ -291,7 +290,7 @@ var BRS = (function(BRS, $, undefined) {
 		BRS.dataLoadFinished($("#user_info_modal_transactions_table"));
 	    }
 	});
-    }
+    };
 
     BRS.userInfoModal.aliases = function() {
 	BRS.sendRequest("getAliases", {
@@ -339,13 +338,13 @@ var BRS = (function(BRS, $, undefined) {
 	    $("#user_info_modal_aliases_table tbody").empty().append(rows);
 	    BRS.dataLoadFinished($("#user_info_modal_aliases_table"));
 	});
-    }
+    };
 
     BRS.userInfoModal.marketplace = function() {
 	BRS.sendRequest("getDGSGoods", {
 	    "seller": BRS.userInfoModal.user,
 	    "firstIndex": 0,
-	    "lastIndex": 100
+	    "lastIndex": 99
 	}, function(response) {
 	    var rows = "";
 
@@ -362,7 +361,7 @@ var BRS = (function(BRS, $, undefined) {
 	    $("#user_info_modal_marketplace_table tbody").empty().append(rows);
 	    BRS.dataLoadFinished($("#user_info_modal_marketplace_table"));
 	});
-    }
+    };
 
     BRS.userInfoModal.assets = function() {
 	BRS.sendRequest("getAccount", {
@@ -390,7 +389,7 @@ var BRS = (function(BRS, $, undefined) {
 			}
 		    }, function(asset, input) {
 			asset.asset = input.asset;
-			asset.balanceQNT = input["_extra"].balanceQNT;
+			asset.balanceQNT = input._extra.balanceQNT;
 
 			assets[asset.asset] = asset;
 			nrAssets++;
@@ -405,7 +404,7 @@ var BRS = (function(BRS, $, undefined) {
 		BRS.userInfoModal.addIssuedAssets({});
 	    }
 	});
-    }
+    };
 
     BRS.userInfoModal.addIssuedAssets = function(assets) {
 	BRS.sendRequest("getAssetsByIssuer", {
@@ -433,7 +432,7 @@ var BRS = (function(BRS, $, undefined) {
 		BRS.dataLoadFinished($("#user_info_modal_assets_table"));
 	    }
 	});
-    }
+    };
 
     BRS.userInfoModal.assetsLoaded = function(assets) {
 	var assetArray = [];
@@ -485,7 +484,7 @@ var BRS = (function(BRS, $, undefined) {
 	$("#user_info_modal_assets_table tbody").empty().append(rows);
 
 	BRS.dataLoadFinished($("#user_info_modal_assets_table"));
-    }
+    };
 
     return BRS;
 }(BRS || {}, jQuery));

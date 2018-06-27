@@ -408,7 +408,7 @@ public final class DownloadCacheImpl {
 
   public int getPoCVersion(long blockId) {
     Block blockImpl = getBlock(blockId);
-    return (blockImpl == null || ! fluxCapacitor.isActive(POC2) ) ? 1 : 2;
+    return (blockImpl == null || ! fluxCapacitor.isActive(POC2, blockImpl.getHeight()) ) ? 1 : 2;
   }
   
   public long getLastBlockId() {
@@ -435,7 +435,7 @@ public final class DownloadCacheImpl {
     
   public Block getLastBlock() {
     Long iLd = getLastCacheId();
-    if (iLd != null) {
+    if (iLd != null && blockCache.containsKey(iLd)) {
       long stamp = dcsl.tryOptimisticRead();
       Block retBlock = blockCache.get(iLd);
       if (!dcsl.validate(stamp)) {
@@ -483,6 +483,11 @@ public final class DownloadCacheImpl {
     logger.info("Verified size:" + (blockCache.size() - unverified.size()));
     
   }
+  private void PrintLastVars() {
+	logger.debug("Cache LastId:"+lastBlockId);
+	logger.debug("Cache lastHeight:"+lastHeight);
+  }
+    
 
   private void setLastVars() {
     long stamp = dcsl.writeLock();
@@ -491,10 +496,14 @@ public final class DownloadCacheImpl {
         lastBlockId = blockCache.get(blockCache.keySet().toArray()[blockCache.keySet().size() - 1]).getId();
         lastHeight = blockCache.get(lastBlockId).getHeight();
         highestCumulativeDifficulty = blockCache.get(lastBlockId).getCumulativeDifficulty();
+        logger.debug("Cache set to CacheData");
+        PrintLastVars();
       } else {
         lastBlockId = blockchain.getLastBlock().getId();
         lastHeight = blockchain.getHeight();
         highestCumulativeDifficulty = blockchain.getLastBlock().getCumulativeDifficulty();
+        logger.debug("Cache set to ChainData");
+        PrintLastVars();
       }
     } finally {
       dcsl.unlockWrite(stamp);

@@ -1,11 +1,11 @@
 package brs.http;
 
 import brs.Order.Ask;
+import brs.assetexchange.AssetExchange;
 import brs.common.AbstractUnitTest;
 import brs.common.QuickMocker;
 import brs.common.QuickMocker.MockParam;
 import brs.db.BurstIterator;
-import brs.services.OrderService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -24,13 +24,13 @@ public class GetAllOpenAskOrdersTest extends AbstractUnitTest {
 
   private GetAllOpenAskOrders t;
 
-  private OrderService mockOrderService;
+  private AssetExchange mockAssetExchange;
 
   @Before
   public void setUp() {
-    mockOrderService = mock(OrderService.class);
+    mockAssetExchange = mock(AssetExchange.class);
 
-    t = new GetAllOpenAskOrders(mockOrderService);
+    t = new GetAllOpenAskOrders(mockAssetExchange);
   }
 
   @Test
@@ -46,7 +46,7 @@ public class GetAllOpenAskOrdersTest extends AbstractUnitTest {
     final int lastIndex = 2;
 
     final BurstIterator<Ask> mockIterator = mockBurstIterator(mockAskOrder);
-    when(mockOrderService.getAllAskOrders(eq(firstIndex), eq(lastIndex)))
+    when(mockAssetExchange.getAllAskOrders(eq(firstIndex), eq(lastIndex)))
         .thenReturn(mockIterator);
 
     final JSONObject result = (JSONObject) t.processRequest(QuickMocker.httpServletRequest(

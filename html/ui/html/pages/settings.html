@@ -19,7 +19,7 @@
               <option value="bg">Български</option><!-- bulgarian -->
               <option value="ca">Català</option><!-- catalan -->
               <option value="cs">Čeština</option><!-- czech -->
-              <option value="de">Deutsch</option><!-- german -->
+              <option value="de-de">Deutsch</option><!-- german -->
               <option value="el">Ελληνικά</option><!-- greek -->
               <option value="es-es">Español</option><!-- spanish -->
               <option value="fi">Suomi</option><!-- finnish -->
@@ -61,11 +61,11 @@
             </select>
             <p class="help-block" data-i18n="submit_forms_on_enter_help">Be careful when choosing to submit forms via the enter key, submitting can't be undone.</p>
           </div>
-          <div class="form-group">
+         <div class="form-group">
             <label for="settings_remember_passphrase" data-i18n="remember_passphrase_by_default">Remember Passphrase By Default</label>
             <select name="remember_passphrase" id="settings_remember_passphrase" class="form-control" style="width:200px">
-              <option value="1" data-i18n="yes">Yes</option>
               <option value="0" data-i18n="no">No</option>
+              <option value="1" data-i18n="yes">Yes</option>
             </select>
             <p class="help-block" data-i18n="remember_passphrase_by_default_help">On the login screen.</p>
           </div>
@@ -131,40 +131,7 @@
       </div>
       <form role="form" autocomplete="off">
         <div class="box-body">
-          <div class="form-group">
-            <label class="control-label" data-i18n="header">Header</label>
-            <div class="input-group">
-              <div class="btn-group colors">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" style="width:200px;text-align:left;">
-                <span class="text" data-i18n="select_color_scheme">Select Color Scheme</span> <span class="caret"></span>
-                </button>
-                <ul id="header_color_scheme" class="dropdown-menu color_scheme_editor" role="menu" data-scheme="header" data-container="body"> 
-                </ul>
-              </div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="control-label" data-i18n="sidebar">Sidebar</label>
-            <div class="input-group">
-              <div class="btn-group colors">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" style="width:200px;text-align:left;">
-                <span class="text" data-i18n="select_color_scheme">Select Color Scheme</span> <span class="caret"></span>
-                </button>
-                <ul id="sidebar_color_scheme" class="dropdown-menu color_scheme_editor" role="menu" data-scheme="sidebar" data-container="body"> 
-                </ul>
-              </div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="control-label">Boxes</label>
-            <div class="input-group">
-              <div class="btn-group colors">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" style="width:200px;text-align:left;">
-                <span class="text" data-i18n="select_color_scheme">Select Color Scheme</span> <span class="caret"></span>
-                </button>
-                <ul id="boxes_color_scheme" class="dropdown-menu color_scheme_editor" role="menu" data-scheme="boxes" data-container="body"> 
-                </ul>
-              </div>
+		<div class="theme-settings" id="themebox"></div></div>
             </div>
           </div>
         </div>

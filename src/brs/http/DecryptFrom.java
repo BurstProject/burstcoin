@@ -42,7 +42,7 @@ public final class DecryptFrom extends APIServlet.APIRequestHandler {
     byte[] data = Convert.parseHexString(Convert.nullToEmpty(req.getParameter(DATA_PARAMETER)));
     byte[] nonce = Convert.parseHexString(Convert.nullToEmpty(req.getParameter(NONCE_PARAMETER)));
     EncryptedData encryptedData = new EncryptedData(data, nonce);
-    boolean isText = Parameters.isFalse(req.getParameter(DECRYPTED_MESSAGE_IS_TEXT_PARAMETER));
+    boolean isText = !Parameters.isFalse(req.getParameter(DECRYPTED_MESSAGE_IS_TEXT_PARAMETER));
     try {
       byte[] decrypted = account.decryptFrom(encryptedData, secretPhrase);
       JSONObject response = new JSONObject();

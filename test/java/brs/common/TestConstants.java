@@ -23,7 +23,7 @@ public class TestConstants {
 
   public static final String DEADLINE = "400";
 
-  public static final String FEE = "" + ( Burst.getFluxCapacitor().isActive(PRE_DYMAXION) ? FEE_QUANT : ONE_BURST );
+  public static final String FEE = "" + ONE_BURST;
 
   public static final long TEN_BURST = ONE_BURST * 10;
 }

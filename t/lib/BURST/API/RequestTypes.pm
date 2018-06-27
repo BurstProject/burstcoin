@@ -10,6 +10,8 @@ use feature ':5.12';
 
 use Data::Dumper;
 use Data::Rx;
+use Data::Rx::Type::PCRE;
+
 use JSON                           qw(-support_by_pp);           # need JSON to support bignum
 use LWP::UserAgent;
 use LWP::Protocol::https;
@@ -23,10 +25,10 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(loop_reqtypes
             );
 
-my $rx = Data::Rx->new;
 my $ua      = LWP::UserAgent->new(
 #    ssl_opts => { verify_hostname => 1 },
 );
+
 
 my %config = (
     protocol    => ($ENV{BRS_APITEST_PROTO}  // 'http'),
@@ -43,10 +45,168 @@ my $API_URL = $config{protocol}
             . '/burst'
             ;
 
+# }}}
+# {{{ Data::Rx definitions
+
+
+my $CGPX = 'tag:burst.cryptoguru.org,2018:rx'; # own CG prefix
+
+my $rx = Data::Rx->new({
+    type_plugins => [ 'Data::Rx::Type::PCRE' ]
+});
+
+my $ph_number = $rx->make_schema({
+    type  => 'tag:rjbs.manxome.org,2008-10-04:rx/pcre/str',
+    regex => q/\A867-[5309]{4}\z/,
+});
+
+$rx->add_prefix(
+    brs => "$CGPX/"
+);
+
+$rx->learn_type(
+    "$CGPX/balanceBURST" => {
+        type  => '//int',
+        range => {
+            min => 0,
+            max => 2_158_812_800,
+        },
+    }
+);
+
+$rx->learn_type(
+    "$CGPX/balancePLANCK" => {
+        type  => '//int',
+        range => {
+            min => 0,
+            max => 215_881_280_000_000_000,
+        },
+    }
+);
+
+
 # skip: default 0 (if to skip that test)
 # meth: http method (default GET)
 # args: default none/undef
 our $reqtypes = [ # we want to define a sequence of tests
+    # broadcastTransaction
+    # buyAlias
+    # {{{ calculateFullHash
+    {
+        name => 'calculateFullHash',
+        required => {
+            fullHash => {
+                type  => '//str',
+                value => 'f151ded1194ce627ff44bd67ab25cdddb9a35ff2006653c0f9d25a2de5ad463e',
+            },
+            requestProcessingTime => '//int',
+        },
+        args => {
+            unsignedTransactionBytes => '010203',
+            signatureHash            => '010101',
+        },
+    },
+    # }}}
+    # cancelAskOrder
+    # cancelBidOrder
+    # createATProgram
+    # decryptFrom
+    # dgsDelisting
+    # dgsDelivery
+    # dgsFeedback
+    # dgsListing
+    # dgsPriceChange
+    # dgsPurchase
+    # dgsQuantityChange
+    # dgsRefund
+    # {{{ encryptTo
+    {
+        name => 'encryptTo',
+        required => {
+            data => '//str',
+            requestProcessingTime => '//int',
+            nonce                 => '//str',
+        },
+        args => {
+            recipient              => '15001172709804754727',
+            messageToEncrypt       => 'Hi Gays',
+            messageToEncryptIsText => 'true',
+            secretPhrase           => 'Wallet API Test Account',
+        },
+    },
+    # }}}
+    # escrowSign
+    # generateToken
+    # getAT
+    # getATDetails
+    # {{{ getATIds
+    {
+        name => 'getATIds',
+        required => {
+            atIds => {
+                type => '//arr',
+                contents => '//int'
+            },
+            requestProcessingTime => '//int',
+        },
+
+    },
+    # }}}
+    # {{{ getAccount
+     {
+         name => 'getAccount',
+         txt  => 'get account with UTF-8 user name',
+         required => {
+             accountRS => {
+                 type => '//str',
+                 value => 'BURST-DPQM-9X88-LEU3-CNSST',
+             },
+             account => {
+                 type => '//int',
+                 value => 12457823256334161619,
+             },
+             assetBalances => {
+                 type => '//arr',
+                 contents => '//any',
+             },
+             unconfirmedAssetBalances => {
+                 type => '//arr',
+                 contents => '//any',
+             },
+             balanceNQT            => '/brs/balancePLANCK',
+             effectiveBalanceNXT   => '/brs/balancePLANCK',
+             forgedBalanceNQT      => '/brs/balancePLANCK',
+             guaranteedBalanceNQT  => '/brs/balancePLANCK',
+             unconfirmedBalanceNQT => '/brs/balancePLANCK',
+             name => '//str',
+             publicKey => '//str',
+
+             requestProcessingTime => '//int',
+         },
+         args => {
+             account => 'BURST-DPQM-9X88-LEU3-CNSST'
+         },
+     },
+    # }}}
+
+    # getAccountATs
+    # getAccountBlockIds
+    # getAccountBlocks
+    # getAccountCurrentAskOrderIds
+    # getAccountCurrentAskOrders
+    # getAccountCurrentBidOrderIds
+    # getAccountCurrentBidOrders
+    # getAccountEscrowTransactions
+    # getAccountId
+    # getAccountLessors
+    # getAccountPublicKey
+    # getAccountSubscriptions
+    # getAccountTransactionIds
+    # getAccountTransactions
+    # getAccountsWithRewardRecipient
+    # getAlias
+    # getAliases
+
     # {{{ getAllAssets
     {
         name => 'getAllAssets',
@@ -84,6 +244,14 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+
+    # getAllTrades
+    # getAskOrder
+    # getAskOrderIds
+    # getAskOrders
+    # getAsset
+    # getAssetAccounts
+
     # {{{ getAssetIds
     {
         name => 'getAssetIds',
@@ -96,19 +264,14 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
-    # {{{ getATIds
-    {
-        name => 'getATIds',
-        required => {
-            atIds => {
-                type => '//arr',
-                contents => '//int'
-            },
-            requestProcessingTime => '//int',
-        },
 
-    },
-    # }}}
+    # getAssetTransfers
+    # getAssets
+    # getAssetsByIssuer
+    # getBalance
+    # getBidOrder
+    # getBidOrderIds
+    # getBidOrders
     # {{{ getBlock
     {
         name => 'getBlock',
@@ -141,6 +304,8 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+    # getBlockId
+
     # {{{ getBlockchainStatus
     {
         name => 'getBlockchainStatus',
@@ -206,6 +371,8 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+    # getDGSPendingPurchases
+    # getDGSPurchase
     # {{{ getDGSPurchases
     {
         name => 'getDGSPurchases',
@@ -229,6 +396,8 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+    # getEscrowTransaction
+    # getGuaranteedBalance
     # {{{ getMiningInfo
     {
         name => 'getMiningInfo',
@@ -262,6 +431,7 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+    # getRewardRecipient
     # {{{ getState
 
     {
@@ -278,7 +448,7 @@ our $reqtypes = [ # we want to define a sequence of tests
             numberOfAssets => '//int',
             freeMemory => '//int',
             availableProcessors => '//int',
-            totalEffectiveBalanceNXT => '//int',
+            totalEffectiveBalanceNXT => '/brs/balanceBURST',
             numberOfAccounts => '//int',
             numberOfBlocks => '//int',
             version => '//str',
@@ -297,6 +467,8 @@ our $reqtypes = [ # we want to define a sequence of tests
     },
 
     # }}}
+    # getSubscription
+    # getSubscriptionsToAccount
     # {{{ getTime
     {
         name => 'getTime',
@@ -307,6 +479,9 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+    # getTrades
+    # getTransaction
+    # getTransactionBytes
     # {{{ getUnconfirmedTransactionIds
     {
         name => 'getUnconfirmedTransactionIds',
@@ -332,6 +507,7 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+    # issueAsset
     # {{{ longConvert
     {
         name => 'longConvert',
@@ -351,6 +527,10 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+    # parseTransaction
+    # placeAskOrder
+    # placeBidOrder
+    # readMessage
     # {{{ rsConvert
     {
         name => 'rsConvert',
@@ -371,6 +551,21 @@ our $reqtypes = [ # we want to define a sequence of tests
         },
     },
     # }}}
+
+    # sellAlias
+    # sendMessage
+    # sendMoney
+    # sendMoneyEscrow
+    # sendMoneyMulti
+    # sendMoneyMultiSame
+    # sendMoneySubscription
+    # setAccountInfo
+    # setAlias
+    # setRewardRecipient
+    # signTransaction
+    # submitNonce
+    # subscriptionCancel
+
 ];
 
 # }}}
@@ -415,7 +610,7 @@ sub loop_reqtypes {
                 my @rx_failures = $rx_failure->failures;
             };
             if ($@) {
-                say "CATCH";
+                say $@;
             }
         }
     }

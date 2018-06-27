@@ -1,7 +1,9 @@
 package brs.db.store;
 
+import brs.unconfirmedtransactions.UnconfirmedTransactionStore;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.sql.*;
+import brs.services.PropertyService;
 import brs.services.TimeService;
 
 public class Stores {
@@ -15,22 +17,22 @@ public class Stores {
   private final EscrowStore escrowStore;
   private final OrderStore orderStore;
   private final TradeStore tradeStore;
-  private final TransactionProcessorStore transactionProcessorStore;
   private final SubscriptionStore subscriptionStore;
+  private final UnconfirmedTransactionStore unconfirmedTransactionStore;
 
-  public Stores(DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager, TimeService timeService) {
-    this.accountStore              = new SqlAccountStore(derivedTableManager, dbCacheManager);
-    this.aliasStore                = new SqlAliasStore(derivedTableManager);
-    this.assetStore                = new SqlAssetStore(derivedTableManager);
-    this.assetTransferStore        = new SqlAssetTransferStore(derivedTableManager);
-    this.atStore                   = new SqlATStore(derivedTableManager);
-    this.blockchainStore           = new SqlBlockchainStore();
-    this.digitalGoodsStoreStore    = new SqlDigitalGoodsStoreStore(derivedTableManager);
-    this.escrowStore               = new SqlEscrowStore(derivedTableManager);
-    this.orderStore                = new SqlOrderStore(derivedTableManager);
-    this.tradeStore                = new SqlTradeStore(derivedTableManager);
-    this.transactionProcessorStore = new SqlTransactionProcessorStore(derivedTableManager, timeService);
-    this.subscriptionStore         = new SqlSubscriptionStore(derivedTableManager);
+  public Stores(DerivedTableManager derivedTableManager, DBCacheManagerImpl dbCacheManager, TimeService timeService, PropertyService propertyService) {
+    this.accountStore                = new SqlAccountStore(derivedTableManager, dbCacheManager);
+    this.aliasStore                  = new SqlAliasStore(derivedTableManager);
+    this.assetStore                  = new SqlAssetStore(derivedTableManager);
+    this.assetTransferStore          = new SqlAssetTransferStore(derivedTableManager);
+    this.atStore                     = new SqlATStore(derivedTableManager);
+    this.blockchainStore             = new SqlBlockchainStore();
+    this.digitalGoodsStoreStore      = new SqlDigitalGoodsStoreStore(derivedTableManager);
+    this.escrowStore                 = new SqlEscrowStore(derivedTableManager);
+    this.orderStore                  = new SqlOrderStore(derivedTableManager);
+    this.tradeStore                  = new SqlTradeStore(derivedTableManager);
+    this.subscriptionStore           = new SqlSubscriptionStore(derivedTableManager);
+    this.unconfirmedTransactionStore = new UnconfirmedTransactionStore(timeService, propertyService, accountStore);
   }
 
   public AccountStore getAccountStore() {
@@ -77,10 +79,6 @@ public class Stores {
     Db.endTransaction();
   }
 
-  public boolean isInTransaction() {
-    return Db.isInTransaction();
-  }
-
   public EscrowStore getEscrowStore() {
     return escrowStore;
   }
@@ -93,8 +91,8 @@ public class Stores {
     return tradeStore;
   }
 
-  public TransactionProcessorStore getTransactionProcessorStore() {
-    return transactionProcessorStore;
+  public UnconfirmedTransactionStore getUnconfirmedTransactionStore() {
+    return unconfirmedTransactionStore;
   }
 
   public SubscriptionStore getSubscriptionStore() {

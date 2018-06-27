@@ -1,13 +1,15 @@
 package brs;
 
+import static brs.schema.Tables.UNCONFIRMED_TRANSACTION;
+
 import brs.AT.HandleATBlockTransactionsListener;
 import brs.GeneratorImpl.MockGeneratorImpl;
+import brs.assetexchange.AssetExchange;
+import brs.assetexchange.AssetExchangeImpl;
 import brs.blockchainlistener.DevNullListener;
 import brs.common.Props;
 import brs.db.BlockDb;
-import brs.db.BurstKey;
 import brs.db.cache.DBCacheManagerImpl;
-import brs.db.EntityTable;
 import brs.db.sql.Db;
 
 import brs.db.store.BlockchainStore;
@@ -23,34 +25,24 @@ import brs.peer.Peers;
 import brs.services.ATService;
 import brs.services.AccountService;
 import brs.services.AliasService;
-import brs.services.AssetAccountService;
-import brs.services.AssetService;
-import brs.services.AssetTransferService;
 import brs.services.BlockService;
 import brs.services.DGSGoodsStoreService;
 import brs.services.EscrowService;
-import brs.services.OrderService;
 import brs.services.ParameterService;
 import brs.services.PropertyService;
 import brs.services.SubscriptionService;
 import brs.services.TimeService;
-import brs.services.TradeService;
 import brs.services.TransactionService;
 import brs.services.impl.ATServiceImpl;
 import brs.services.impl.AccountServiceImpl;
 import brs.services.impl.AliasServiceImpl;
-import brs.services.impl.AssetAccountServiceImpl;
-import brs.services.impl.AssetServiceImpl;
-import brs.services.impl.AssetTransferServiceImpl;
 import brs.services.impl.BlockServiceImpl;
 import brs.services.impl.DGSGoodsStoreServiceImpl;
 import brs.services.impl.EscrowServiceImpl;
-import brs.services.impl.OrderServiceImpl;
 import brs.services.impl.ParameterServiceImpl;
 import brs.services.impl.PropertyServiceImpl;
 import brs.services.impl.SubscriptionServiceImpl;
 import brs.services.impl.TimeServiceImpl;
-import brs.services.impl.TradeServiceImpl;
 import brs.services.impl.TransactionServiceImpl;
 import brs.statistics.StatisticsManagerImpl;
 import brs.util.DownloadCacheImpl;
@@ -60,16 +52,18 @@ import brs.util.Time;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.ResultSet;
 import java.util.Properties;
+import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class Burst {
 
-  public static final String VERSION     = "2.1.0";
+  public static final String VERSION     = "2.3.0";
   public static final String APPLICATION = "BRS";
   public static final String LEGACY_APP  = "NRS";
-  public static final String LEGACY_VER  = "1.2";
+  public static final String LEGACY_VER  = "1.2.9";
   
   private static final String DEFAULT_PROPERTIES_NAME = "brs-default.properties";
 
@@ -199,7 +193,7 @@ public final class Burst {
       Db.init(propertyService, dbCacheManager);
       dbs = Db.getDbsByDatabaseType();
 
-      stores = new Stores(derivedTableManager, dbCacheManager, timeService);
+      stores = new Stores(derivedTableManager, dbCacheManager, timeService, propertyService);
 
       final TransactionDb transactionDb = dbs.getTransactionDb();
       final BlockDb blockDb =  dbs.getBlockDb();
@@ -211,32 +205,21 @@ public final class Burst {
 
       economicClustering = new EconomicClustering(blockchain);
 
-      final BurstKey.LongKeyFactory<Transaction> unconfirmedTransactionDbKeyFactory =
-          stores.getTransactionProcessorStore().getUnconfirmedTransactionDbKeyFactory();
-
-
-      final EntityTable<Transaction> unconfirmedTransactionTable =
-          stores.getTransactionProcessorStore().getUnconfirmedTransactionTable();
-
-
       final Generator generator = propertyService.getBoolean(Props.DEV_MOCK_MINING) ? new MockGeneratorImpl() : new GeneratorImpl(blockchain, timeService, fluxCapacitor);
 
       final AccountService accountService = new AccountServiceImpl(stores.getAccountStore(), stores.getAssetTransferStore());
 
       final TransactionService transactionService = new TransactionServiceImpl(accountService, blockchain);
 
-      transactionProcessor = new TransactionProcessorImpl(unconfirmedTransactionDbKeyFactory, unconfirmedTransactionTable, propertyService, economicClustering, blockchain, stores, timeService, dbs,
-          accountService, transactionService, threadPool, dbCacheManager);
+      transactionProcessor = new TransactionProcessorImpl(propertyService, economicClustering, blockchain, stores, timeService, dbs,
+          accountService, transactionService, threadPool);
 
       final ATService atService = new ATServiceImpl(stores.getAtStore());
       final SubscriptionService subscriptionService = new SubscriptionServiceImpl(stores.getSubscriptionStore(), transactionDb, blockchain, aliasService, accountService);
       final DGSGoodsStoreService digitalGoodsStoreService = new DGSGoodsStoreServiceImpl(blockchain, stores.getDigitalGoodsStoreStore(), accountService);
       final EscrowService escrowService = new EscrowServiceImpl(stores.getEscrowStore(), blockchain, aliasService, accountService);
-      final TradeService tradeService = new TradeServiceImpl(stores.getTradeStore());
-      final AssetAccountService assetAccountService = new AssetAccountServiceImpl(stores.getAccountStore());
-      final AssetTransferService assetTransferService = new AssetTransferServiceImpl(stores.getAssetTransferStore());
-      final AssetService assetService = new AssetServiceImpl(assetAccountService, tradeService, stores.getAssetStore(), assetTransferService);
-      final OrderService orderService = new OrderServiceImpl(stores.getOrderStore(), accountService, tradeService);
+
+      final AssetExchange assetExchange = new AssetExchangeImpl(accountService, stores.getTradeStore(), stores.getAccountStore(), stores.getAssetTransferStore(), stores.getAssetStore(), stores.getOrderStore());
 
       final DownloadCacheImpl downloadCache = new DownloadCacheImpl(propertyService, fluxCapacitor, blockchain);
 
@@ -248,7 +231,7 @@ public final class Burst {
 
       generator.generateForBlockchainProcessor(threadPool, blockchainProcessor);
 
-      final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetService,
+      final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetExchange,
           digitalGoodsStoreService, blockchain, blockchainProcessor, transactionProcessor, atService);
 
       addBlockchainListeners(blockchainProcessor, accountService, digitalGoodsStoreService, blockchain, dbs.getTransactionDb());
@@ -257,16 +240,36 @@ public final class Burst {
 
       Peers.init(timeService, accountService, blockchain, transactionProcessor, blockchainProcessor, propertyService, threadPool);
 
-      // TODO this really should be better...
-      TransactionType.init(blockchain, accountService, digitalGoodsStoreService, aliasService, assetService, orderService, assetTransferService, subscriptionService, escrowService);
-
+      TransactionType.init(blockchain, fluxCapacitor, accountService, digitalGoodsStoreService, aliasService, assetExchange, subscriptionService, escrowService);
 
       api = new API(transactionProcessor, blockchain, blockchainProcessor, parameterService,
-          accountService, aliasService, orderService, assetService, assetTransferService,
-          tradeService, escrowService, digitalGoodsStoreService, assetAccountService,
+          accountService, aliasService, assetExchange, escrowService, digitalGoodsStoreService,
           subscriptionService, atService, timeService, economicClustering, propertyService, threadPool, transactionService, blockService, generator, apiTransactionManager);
 
-      DebugTrace.init(propertyService, blockchainProcessor, accountService, tradeService, orderService, digitalGoodsStoreService);
+      DebugTrace.init(propertyService, blockchainProcessor, accountService, assetExchange, digitalGoodsStoreService);
+
+      // backward compatibility for those who have some unconfirmed transactions in their db
+      try {
+        stores.beginTransaction();
+        try (DSLContext ctx = Db.getDSLContext()) {
+          ResultSet rs = ctx.selectFrom(UNCONFIRMED_TRANSACTION).fetchResultSet();
+          while ( rs.next() ) {
+            byte[] transactionBytes = rs.getBytes("transaction_bytes");
+            Transaction transaction = Transaction.parseTransaction(transactionBytes);
+            transaction.setHeight(rs.getInt("transaction_height"));
+            transactionService.undoUnconfirmed(transaction);
+          }
+          ctx.truncate(UNCONFIRMED_TRANSACTION).execute();
+        }
+        accountService.flushAccountTable();
+        stores.commitTransaction();
+      } catch (Exception e) {
+        logger.error(e.toString(), e);
+        stores.rollbackTransaction();
+        throw e;
+      } finally {
+        stores.endTransaction();
+      }
 
       int timeMultiplier = (propertyService.getBoolean(Props.DEV_TESTNET) && propertyService.getBoolean(Props.DEV_OFFLINE)) ? Math.max(propertyService.getInt(Props.DEV_TIMEWARP), 1) : 1;
 
@@ -287,6 +290,7 @@ public final class Burst {
       logger.error(e.getMessage(), e);
       System.exit(1);
     }
+
   }
 
   private static void addBlockchainListeners(BlockchainProcessor blockchainProcessor, AccountService accountService, DGSGoodsStoreService goodsService, Blockchain blockchain,
@@ -310,6 +314,7 @@ public final class Burst {
     Peers.shutdown(threadPool);
     threadPool.shutdown();
     dbCacheManager.close();
+
     if(! ignoreDBShutdown) {
       Db.shutdown();
     }

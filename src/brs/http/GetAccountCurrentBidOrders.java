@@ -8,8 +8,8 @@ import static brs.http.common.ResultFields.BID_ORDERS_RESPONSE;
 
 import brs.BurstException;
 import brs.Order;
+import brs.assetexchange.AssetExchange;
 import brs.db.BurstIterator;
-import brs.services.OrderService;
 import brs.services.ParameterService;
 import brs.util.Convert;
 import javax.servlet.http.HttpServletRequest;
@@ -20,12 +20,12 @@ import org.json.simple.JSONStreamAware;
 public final class GetAccountCurrentBidOrders extends APIServlet.APIRequestHandler {
 
   private final ParameterService parameterService;
-  private final OrderService orderService;
+  private final AssetExchange assetExchange;
 
-  GetAccountCurrentBidOrders(ParameterService parameterService, OrderService orderService) {
+  GetAccountCurrentBidOrders(ParameterService parameterService, AssetExchange assetExchange) {
     super(new APITag[]{APITag.ACCOUNTS, APITag.AE}, ACCOUNT_PARAMETER, ASSET_PARAMETER, FIRST_INDEX_PARAMETER, LAST_INDEX_PARAMETER);
     this.parameterService = parameterService;
-    this.orderService = orderService;
+    this.assetExchange = assetExchange;
   }
 
   @Override
@@ -43,9 +43,9 @@ public final class GetAccountCurrentBidOrders extends APIServlet.APIRequestHandl
 
     BurstIterator<Order.Bid> bidOrders;
     if (assetId == 0) {
-      bidOrders = orderService.getBidOrdersByAccount(accountId, firstIndex, lastIndex);
+      bidOrders = assetExchange.getBidOrdersByAccount(accountId, firstIndex, lastIndex);
     } else {
-      bidOrders = orderService.getBidOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex);
+      bidOrders = assetExchange.getBidOrdersByAccountAsset(accountId, assetId, firstIndex, lastIndex);
     }
     JSONArray orders = new JSONArray();
     try {
