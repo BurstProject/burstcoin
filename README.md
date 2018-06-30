@@ -48,12 +48,12 @@ new option naming system.
 
 ###### MariaDb
 
-In the conf directory, copy brs-default.properties into a new file named brs.properties.
+In the conf directory, copy `brs-default.properties` into a new file named `brs.properties`.
 
 Download and install MariaDB <https://mariadb.com/downloads/mariadb-tx>
 
 The MariaDb installation will ask to setup a password for the root user. 
-Add this password to the brs.properties file created above in the following section:
+Add this password to the `brs.properties` file created above in the following section:
 ```
 DB.Url=jdbc:mariadb://localhost:3306/brs_master
 DB.Username=root
@@ -61,7 +61,7 @@ DB.Password=YOUR_PASSWORD
 ```
 
 The MariaDB installation will also install HeidiSQL, a gui tool to administer MariaDb.
-Use it to connect to the newly created mariaDb server and create a new DB called 'burstwallet'. 
+Use it to connect to the newly created mariaDb server and create a new DB called `burstwallet`. 
 
 #### MacOS
 
@@ -95,7 +95,7 @@ mysql -uroot < init-mysql.sql
 
 ##### Configure your Wallet
 
-Now you need to add the following stuff to your conf/brs.properties:
+Now you need to add the following stuff to your `conf/brs.properties`:
 
 ```
 DB.Url=jdbc:mariadb://localhost:3306/brs_master
