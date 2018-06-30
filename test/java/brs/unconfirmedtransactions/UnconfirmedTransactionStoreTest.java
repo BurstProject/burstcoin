@@ -98,7 +98,7 @@ public class UnconfirmedTransactionStoreTest {
       t.put(transaction);
     }
 
-    assertEquals(8192, t.getAll().size());
+    assertEquals(8192, t.getAll().getTransactions().size());
     assertNotNull(t.get(1L));
 
     final Transaction oneTransactionTooMany =
@@ -107,7 +107,7 @@ public class UnconfirmedTransactionStoreTest {
     oneTransactionTooMany.sign(TestConstants.TEST_SECRET_PHRASE);
     t.put(oneTransactionTooMany);
 
-    assertEquals(8192, t.getAll().size());
+    assertEquals(8192, t.getAll().getTransactions().size());
     assertNull(t.get(1L));
   }
 
@@ -124,8 +124,8 @@ public class UnconfirmedTransactionStoreTest {
       t.put(transaction);
     }
 
-    assertEquals(8192, t.getAll().size());
-    assertEquals(8192, t.getAll().stream().filter(t -> t.getFeeNQT() == FEE_QUANT * 100).count());
+    assertEquals(8192, t.getAll().getTransactions().size());
+    assertEquals(8192, t.getAll().getTransactions().stream().filter(t -> t.getFeeNQT() == FEE_QUANT * 100).count());
     assertNotNull(t.get(1L));
 
     final Transaction oneTransactionTooMany =
@@ -134,9 +134,9 @@ public class UnconfirmedTransactionStoreTest {
     oneTransactionTooMany.sign(TestConstants.TEST_SECRET_PHRASE);
     t.put(oneTransactionTooMany);
 
-    assertEquals(8192, t.getAll().size());
-    assertEquals(8192 - 1, t.getAll().stream().filter(t -> t.getFeeNQT() == FEE_QUANT * 100).count());
-    assertEquals(1, t.getAll().stream().filter(t -> t.getFeeNQT() == FEE_QUANT * 200).count());
+    assertEquals(8192, t.getAll().getTransactions().size());
+    assertEquals(8192 - 1, t.getAll().getTransactions().stream().filter(t -> t.getFeeNQT() == FEE_QUANT * 100).count());
+    assertEquals(1, t.getAll().getTransactions().stream().filter(t -> t.getFeeNQT() == FEE_QUANT * 200).count());
   }
 
   @DisplayName("The unconfirmed transaction gets denied in case the account is unknown")
@@ -179,7 +179,7 @@ public class UnconfirmedTransactionStoreTest {
 
     t.put(transaction2);
 
-    assertEquals(1, t.getAll().size());
+    assertEquals(1, t.getAll().getTransactions().size());
   }
 
   @DisplayName("When the maximum number of transactions with full hash reference is reached, following ones are ignored")
@@ -195,7 +195,7 @@ public class UnconfirmedTransactionStoreTest {
       t.put(transaction);
     }
 
-    assertEquals(409, t.getAll().size());
+    assertEquals(409, t.getAll().getTransactions().size());
   }
 
   @DisplayName("When the maximum number of transactions for a slot size is reached, following ones are ignored")
@@ -211,7 +211,7 @@ public class UnconfirmedTransactionStoreTest {
       t.put(transaction);
     }
 
-    assertEquals(360, t.getAll().size());
+    assertEquals(360, t.getAll().getTransactions().size());
 
     for (int i = 1; i <= 800; i++) {
       Transaction transaction = new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, i, FEE_QUANT * 2, timeService.getEpochTime() + 50000, (short) 500, ORDINARY_PAYMENT)
@@ -220,7 +220,7 @@ public class UnconfirmedTransactionStoreTest {
       t.put(transaction);
     }
 
-    assertEquals(1080, t.getAll().size());
+    assertEquals(1080, t.getAll().getTransactions().size());
   }
 
 }

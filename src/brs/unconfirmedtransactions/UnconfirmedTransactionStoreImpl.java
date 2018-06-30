@@ -68,7 +68,7 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
     @Override
     public void run() {
       synchronized (internalStore) {
-        final List<Transaction> expiredTransactions = getAll().stream().filter(t -> timeService.getEpochTime() > t.getExpiration()).collect(Collectors.toList());
+        final List<Transaction> expiredTransactions = getAll().getTransactions().stream().filter(t -> timeService.getEpochTime() > t.getExpiration()).collect(Collectors.toList());
 
         expiredTransactions.stream().forEach(t -> removeTransaction(t));
       }
@@ -149,7 +149,7 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
   }
 
   @Override
-  public ArrayList<Transaction> getAll() {
+  public TimedUnconfirmedTransactionOverview getAll() {
     synchronized (internalStore) {
       final ArrayList<Transaction> result = new ArrayList<>();
 
@@ -157,22 +157,20 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
         result.addAll(amountSlot.stream().map(UnconfirmedTransactionTiming::getTransaction).collect(Collectors.toList()));
       }
 
-      return result;
+      return new TimedUnconfirmedTransactionOverview(timeService.getEpochTimeMillis(), result);
     }
   }
 
   @Override
   public TimedUnconfirmedTransactionOverview getAllSince(long timestampInMillis) {
     synchronized (internalStore) {
-      final int currentTime = timeService.getEpochTime();
-
       final ArrayList<Transaction> result = new ArrayList<>();
 
       for (List<UnconfirmedTransactionTiming> amountSlot : internalStore.values()) {
         result.addAll(amountSlot.stream().filter(t -> t.getTimestamp() > timestampInMillis).map(UnconfirmedTransactionTiming::getTransaction).collect(Collectors.toList()));
       }
 
-      return new TimedUnconfirmedTransactionOverview(currentTime, result);
+      return new TimedUnconfirmedTransactionOverview(timeService.getEpochTimeMillis(), result);
     }
   }
 

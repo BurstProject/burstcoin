@@ -10,6 +10,7 @@ import brs.services.AccountService;
 import brs.props.PropertyService;
 import brs.services.TimeService;
 import brs.services.TransactionService;
+import brs.unconfirmedtransactions.TimedUnconfirmedTransactionOverview;
 import brs.unconfirmedtransactions.UnconfirmedTransactionStore;
 import brs.util.JSON;
 import brs.util.Listener;
@@ -197,7 +198,10 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   @Override
-  public ArrayList<Transaction> getAllUnconfirmedTransactions() {
+  public TimedUnconfirmedTransactionOverview getAllUnconfirmedTransactions(Long lastUnconfirmedTransactionTimestamp) {
+    if(lastUnconfirmedTransactionTimestamp != null) {
+      return unconfirmedTransactionStore.getAllSince(lastUnconfirmedTransactionTimestamp);
+    }
     return unconfirmedTransactionStore.getAll();
   }
 

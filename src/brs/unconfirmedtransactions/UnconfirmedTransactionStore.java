@@ -2,7 +2,6 @@ package brs.unconfirmedtransactions;
 
 import brs.BurstException;
 import brs.Transaction;
-import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public interface UnconfirmedTransactionStore {
@@ -13,7 +12,7 @@ public interface UnconfirmedTransactionStore {
 
   boolean exists(Long transactionId);
 
-  ArrayList<Transaction> getAll();
+  TimedUnconfirmedTransactionOverview getAll();
 
   TimedUnconfirmedTransactionOverview getAllSince(long timestampInMillis);
 
