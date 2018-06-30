@@ -52,6 +52,10 @@ public interface Peer extends Comparable<Peer> {
 
   int getLastUpdated();
 
+  Long getLastUnconfirmedTransactionTimestamp();
+
+  void setLastUnconfirmedTransactionTimestamp(Long lastUnconfirmedTransactionTimestamp);
+
   JSONObject send(JSONStreamAware request);
 
   /** 

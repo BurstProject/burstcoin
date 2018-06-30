@@ -36,6 +36,7 @@ final class PeerImpl implements Peer {
   private volatile long downloadedVolume;
   private volatile long uploadedVolume;
   private volatile int lastUpdated;
+  private volatile Long lastUnconfirmedTransactionTimestamp = null;
 
   PeerImpl(String peerAddress, String announcedAddress) {
     this.peerAddress = peerAddress;
@@ -288,6 +289,16 @@ final class PeerImpl implements Peer {
   @Override
   public int getLastUpdated() {
     return lastUpdated;
+  }
+
+  @Override
+  public Long getLastUnconfirmedTransactionTimestamp() {
+    return this.lastUnconfirmedTransactionTimestamp;
+  }
+
+  @Override
+  public void setLastUnconfirmedTransactionTimestamp(Long lastUnconfirmedTransactionTimestamp) {
+    this.lastUnconfirmedTransactionTimestamp = lastUnconfirmedTransactionTimestamp;
   }
 
   void setLastUpdated(int lastUpdated) {

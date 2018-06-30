@@ -1,5 +1,9 @@
 package brs;
 
+import static brs.http.common.Parameters.LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_PARAMETER;
+import static brs.http.common.ResultFields.LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_RESPONSE;
+import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_RESPONSE;
+
 import brs.props.Props;
 import brs.db.store.Dbs;
 import brs.db.store.Stores;
@@ -121,6 +125,15 @@ public class TransactionProcessorImpl implements TransactionProcessor {
         getUnconfirmedTransactionsRequest = JSON.prepareRequest(request);
       }
 
+      private JSONStreamAware unconfirmedTransactionRequest(Long lastUnconfirmedTransactionTimestamp) {
+        JSONObject request = new JSONObject();
+        request.put("requestType", "getUnconfirmedTransactions");
+        if(lastUnconfirmedTransactionTimestamp != null) {
+          request.put(LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_PARAMETER, lastUnconfirmedTransactionTimestamp.toString());
+        }
+        return JSON.prepareRequest(request);
+      }
+
       @Override
       public void run() {
         try {
@@ -144,7 +157,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 
                   for(Transaction lost : rebroadcastLost) {
                     if(!nonBroadcastedTransactions.contains(lost)) {
-                      nonBroadcastedTransactions.add((Transaction)lost);
+                      nonBroadcastedTransactions.add(lost);
                     }
                   }
 
@@ -157,11 +170,19 @@ public class TransactionProcessorImpl implements TransactionProcessor {
             if (peer == null) {
               return;
             }
-            JSONObject response = peer.send(getUnconfirmedTransactionsRequest);
+
+            JSONObject response = peer.send(peer.getLastUnconfirmedTransactionTimestamp() == null ? getUnconfirmedTransactionsRequest : unconfirmedTransactionRequest(peer.getLastUnconfirmedTransactionTimestamp()));
             if (response == null) {
               return;
             }
-            JSONArray transactionsData = (JSONArray)response.get("unconfirmedTransactions");
+
+            JSONArray transactionsData = (JSONArray) response.get(UNCONFIRMED_TRANSACTIONS_RESPONSE);
+            Object lastUnconfirmedTransactionTimeStampResponse = response.get(LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_RESPONSE);
+
+            if(lastUnconfirmedTransactionTimeStampResponse != null) {
+              peer.setLastUnconfirmedTransactionTimestamp(Long.parseLong((String) lastUnconfirmedTransactionTimeStampResponse));
+            }
+
             if (transactionsData == null || transactionsData.isEmpty()) {
               return;
             }
@@ -181,7 +202,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       }
 
     };
-
 
   @Override
   public boolean addListener(Listener<List<? extends Transaction>> listener, Event eventType) {
