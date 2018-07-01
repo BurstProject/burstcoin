@@ -1,6 +1,7 @@
 package brs;
 
 import static brs.http.common.Parameters.LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_PARAMETER;
+import static brs.http.common.Parameters.LIMIT_UNCONFIRMED_TRANSACTIONS_RETRIEVED_PARAMETER;
 import static brs.http.common.ResultFields.LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_RESPONSE;
 import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_RESPONSE;
 
@@ -39,12 +40,15 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   private final int rebroadcastAfter;
   private final int rebroadcastEvery;
 
+  private int limitUnconfirmedTransactionsToRetrieve;
+
   private final Set<Transaction> nonBroadcastedTransactions = Collections.newSetFromMap(new ConcurrentHashMap<Transaction,Boolean>());
   private final Listeners<List<? extends Transaction>,Event> transactionListeners = new Listeners<>();
   private final Set<Transaction> lostTransactions = new HashSet<>();
   private final Map<Long, Integer> lostTransactionHeights = new HashMap<>();
 
   private final EconomicClustering economicClustering;
+
   private Stores stores;
   private TimeService timeService;
   private TransactionService transactionService;
@@ -72,6 +76,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 
     this.rebroadcastAfter = propertyService.getInt(Props.P2P_REBROADCAST_AFTER);
     this.rebroadcastEvery = propertyService.getInt(Props.P2P_REBROADCAST_EVERY);
+    this.limitUnconfirmedTransactionsToRetrieve = propertyService.getInt(Props.P2P_LIMIT_UNCONFIRMED_TRANSACTIONS_TO_RETRIEVE);
 
     this.unconfirmedTransactionStore = stores.getUnconfirmedTransactionStore();
     threadPool.scheduleThread("ProcessTransactions", processTransactionsThread, 5);
@@ -122,6 +127,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       {
         JSONObject request = new JSONObject();
         request.put("requestType", "getUnconfirmedTransactions");
+        request.put(LIMIT_UNCONFIRMED_TRANSACTIONS_RETRIEVED_PARAMETER, limitUnconfirmedTransactionsToRetrieve);
         getUnconfirmedTransactionsRequest = JSON.prepareRequest(request);
       }
 
@@ -130,6 +136,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
         request.put("requestType", "getUnconfirmedTransactions");
         if(lastUnconfirmedTransactionTimestamp != null) {
           request.put(LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_PARAMETER, lastUnconfirmedTransactionTimestamp.toString());
+          request.put(LIMIT_UNCONFIRMED_TRANSACTIONS_RETRIEVED_PARAMETER, limitUnconfirmedTransactionsToRetrieve);
         }
         return JSON.prepareRequest(request);
       }
@@ -218,11 +225,11 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   @Override
-  public TimedUnconfirmedTransactionOverview getAllUnconfirmedTransactions(Long lastUnconfirmedTransactionTimestamp) {
+  public TimedUnconfirmedTransactionOverview getAllUnconfirmedTransactions(Long lastUnconfirmedTransactionTimestamp, int limit) {
     if(lastUnconfirmedTransactionTimestamp != null) {
-      return unconfirmedTransactionStore.getAllSince(lastUnconfirmedTransactionTimestamp, Integer.MAX_VALUE);
+      return unconfirmedTransactionStore.getAllSince(lastUnconfirmedTransactionTimestamp, limit);
     }
-    return unconfirmedTransactionStore.getAll(Integer.MAX_VALUE);
+    return unconfirmedTransactionStore.getAll(limit);
   }
 
   @Override

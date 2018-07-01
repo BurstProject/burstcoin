@@ -3,6 +3,7 @@ package brs.http;
 import static brs.http.JSONResponses.INCORRECT_ACCOUNT;
 import static brs.http.common.Parameters.ACCOUNT_PARAMETER;
 import static brs.http.common.Parameters.LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_PARAMETER;
+import static brs.http.common.Parameters.LIMIT_UNCONFIRMED_TRANSACTIONS_RETRIEVED_PARAMETER;
 import static brs.http.common.ResultFields.LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_RESPONSE;
 import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_RESPONSE;
 
@@ -20,7 +21,7 @@ public final class GetUnconfirmedTransactions extends APIServlet.APIRequestHandl
   private final TransactionProcessor transactionProcessor;
 
   GetUnconfirmedTransactions(TransactionProcessor transactionProcessor) {
-    super(new APITag[]{APITag.TRANSACTIONS, APITag.ACCOUNTS}, ACCOUNT_PARAMETER, LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_PARAMETER);
+    super(new APITag[]{APITag.TRANSACTIONS, APITag.ACCOUNTS}, ACCOUNT_PARAMETER, LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_PARAMETER, LIMIT_UNCONFIRMED_TRANSACTIONS_RETRIEVED_PARAMETER);
     this.transactionProcessor = transactionProcessor;
   }
 
@@ -28,8 +29,10 @@ public final class GetUnconfirmedTransactions extends APIServlet.APIRequestHandl
   JSONStreamAware processRequest(HttpServletRequest req) {
     final String accountIdString = Convert.emptyToNull(req.getParameter(ACCOUNT_PARAMETER));
     final String lastUnconfirmedTransactionTimestampParameter = Convert.emptyToNull(req.getParameter(LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_PARAMETER));
+    final String limitUnconfirmedTransactionsRetrievedParameter = Convert.emptyToNull(req.getParameter(LIMIT_UNCONFIRMED_TRANSACTIONS_RETRIEVED_PARAMETER));
 
     final Long lastUnconfirmedTransactionTimestamp = lastUnconfirmedTransactionTimestampParameter != null ? Long.parseLong(lastUnconfirmedTransactionTimestampParameter) : null;
+    final Integer limitUnconfirmedTransactionsRetrieved = limitUnconfirmedTransactionsRetrievedParameter != null ? Integer.parseInt(limitUnconfirmedTransactionsRetrievedParameter) : Integer.MAX_VALUE;
 
     long accountId = 0;
 
@@ -41,7 +44,7 @@ public final class GetUnconfirmedTransactions extends APIServlet.APIRequestHandl
       }
     }
 
-    final TimedUnconfirmedTransactionOverview unconfirmedTransactionsOverview = transactionProcessor.getAllUnconfirmedTransactions(lastUnconfirmedTransactionTimestamp);
+    final TimedUnconfirmedTransactionOverview unconfirmedTransactionsOverview = transactionProcessor.getAllUnconfirmedTransactions(lastUnconfirmedTransactionTimestamp, limitUnconfirmedTransactionsRetrieved);
 
     final JSONArray transactions = new JSONArray();
 

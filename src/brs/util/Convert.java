@@ -80,6 +80,18 @@ public final class Convert {
     }
   }
 
+  public static int parseInteger(Object o) {
+    if (o == null) {
+      return 0;
+    } else if (o instanceof Integer) {
+      return ((Integer)o);
+    } else if (o instanceof String) {
+      return Integer.parseInt((String)o);
+    } else {
+      throw new IllegalArgumentException("Not a long: " + o);
+    }
+  }
+
   public static long parseAccountId(String account) {
     if (account == null) {
       return 0;

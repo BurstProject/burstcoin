@@ -15,7 +15,7 @@ public interface TransactionProcessor extends Observable<List<? extends Transact
     ADDED_DOUBLESPENDING_TRANSACTIONS
   }
 
-  TimedUnconfirmedTransactionOverview getAllUnconfirmedTransactions(Long lastUnconfirmedTransactionTimestamp);
+  TimedUnconfirmedTransactionOverview getAllUnconfirmedTransactions(Long lastUnconfirmedTransactionTimestamp, int limit);
   
   Transaction getUnconfirmedTransaction(long transactionId);
 

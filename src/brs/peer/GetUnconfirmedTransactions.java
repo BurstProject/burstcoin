@@ -1,6 +1,7 @@
 package brs.peer;
 
 import static brs.http.common.Parameters.LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_PARAMETER;
+import static brs.http.common.Parameters.LIMIT_UNCONFIRMED_TRANSACTIONS_RETRIEVED_PARAMETER;
 import static brs.http.common.ResultFields.LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_RESPONSE;
 import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_RESPONSE;
 
@@ -23,15 +24,18 @@ final class GetUnconfirmedTransactions extends PeerServlet.PeerRequestHandler {
 
   @Override
   JSONStreamAware processRequest(JSONObject request, Peer peer) {
-    Object lastUnconfirmed = request.get(LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_PARAMETER);
-    final Long lastUnconfirmedTransactionTimestamp = lastUnconfirmed != null ? Convert.parseLong(lastUnconfirmed) : null;
+    Object lastUnconfirmedTransactionTimestampParameter = request.get(LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_PARAMETER);
+    Object limitAmountUnconfirmedTransactionsParameter = request.get(LIMIT_UNCONFIRMED_TRANSACTIONS_RETRIEVED_PARAMETER);
+
+    final Long lastUnconfirmedTransactionTimestamp = lastUnconfirmedTransactionTimestampParameter != null ? Convert.parseLong(lastUnconfirmedTransactionTimestampParameter) : null;
+    final Integer limitAmountUnconfirmedTransactions = limitAmountUnconfirmedTransactionsParameter != null ? Convert.parseInteger(limitAmountUnconfirmedTransactionsParameter) : Integer.MAX_VALUE;
 
     JSONObject response = new JSONObject();
 
-    final TimedUnconfirmedTransactionOverview unconfirmedTransactionsOverview = transactionProcessor.getAllUnconfirmedTransactions(lastUnconfirmedTransactionTimestamp);
+    final TimedUnconfirmedTransactionOverview unconfirmedTransactionsOverview = transactionProcessor.getAllUnconfirmedTransactions(lastUnconfirmedTransactionTimestamp, limitAmountUnconfirmedTransactions);
 
     JSONArray transactionsData = new JSONArray();
-    for ( Transaction transaction :  unconfirmedTransactionsOverview.getTransactions()) {
+    for (Transaction transaction : unconfirmedTransactionsOverview.getTransactions()) {
       transactionsData.add(transaction.getJSONObject());
     }
 

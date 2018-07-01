@@ -121,6 +121,7 @@ public class Parameters {
   public static final String ACCOUNTS_RESPONSE = "accounts";
   public static final String RECIPIENTS_RESPONSE = "recipients";
   public static final String LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_PARAMETER = "lastUnconfirmedTransactionTimestamp";
+  public static final String LIMIT_UNCONFIRMED_TRANSACTIONS_RETRIEVED_PARAMETER = "limitUnconfirmedTransactionsRetrieved";
 
   public static boolean isFalse(String text) {
     return "false".equalsIgnoreCase(text);
