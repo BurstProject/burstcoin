@@ -275,12 +275,6 @@ final class PeerImpl implements Peer {
   }
 
   @Override
-  public void deactivate() {
-    setState(State.NON_CONNECTED);
-    Peers.notifyListeners(this, Peers.Event.DEACTIVATE);
-  }
-
-  @Override
   public void remove() {
     Peers.removePeer(this);
     Peers.notifyListeners(this, Peers.Event.REMOVE);
@@ -414,101 +408,6 @@ final class PeerImpl implements Peer {
 
     return response;
 
-  }
-
-  @Override
-  public JSONObject sendGetRequest(String pathAndQuery) {
-    JSONObject response;
-
-    String log = null;
-    boolean showLog = false;
-    HttpURLConnection connection = null;
-
-    try {
-
-      String address = announcedAddress != null ? announcedAddress : peerAddress;
-      StringBuilder buf = new StringBuilder("http://");
-      buf.append(address);
-      if (port <= 0) {
-        buf.append(':');
-        buf.append("8125");
-      }
-      buf.append(pathAndQuery);
-      URL url = new URL(buf.toString());
-
-      connection = (HttpURLConnection)url.openConnection();
-      connection.setRequestMethod("GET");
-      connection.setDoOutput(false);
-      connection.setConnectTimeout(Peers.connectTimeout);
-      connection.setReadTimeout(Peers.readTimeout);
-      connection.setRequestProperty("Accept-Encoding", "gzip");
-      connection.setRequestProperty("Connection", "close");
-
-      if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-        CountingInputStream cis = new CountingInputStream(connection.getInputStream());
-        InputStream responseStream = cis;
-        if ("gzip".equals(connection.getHeaderField("Content-Encoding"))) {
-          responseStream = new GZIPInputStream(cis);
-        }
-        if ((Peers.communicationLoggingMask & Peers.LOGGING_MASK_200_RESPONSES) != 0) {
-          ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-          byte[] buffer = new byte[1024];
-          int numberOfBytes;
-          try (InputStream inputStream = responseStream) {
-            while ((numberOfBytes = inputStream.read(buffer, 0, buffer.length)) > 0) {
-              byteArrayOutputStream.write(buffer, 0, numberOfBytes);
-            }
-          }
-          String responseValue = byteArrayOutputStream.toString("UTF-8");
-          if (! responseValue.isEmpty() && responseStream instanceof GZIPInputStream) {
-            log += String.format("[length: %d, compression ratio: %.2f]", cis.getCount(), (double)cis.getCount() / (double)responseValue.length());
-          }
-          log += " >>> " + responseValue;
-          showLog = true;
-          response = (JSONObject) JSONValue.parse(responseValue);
-        } else {
-          try (Reader reader = new BufferedReader(new InputStreamReader(responseStream, "UTF-8"))) {
-            response = (JSONObject)JSONValue.parse(reader);
-          }
-        }
-        updateDownloadedVolume(cis.getCount());
-      } else {
-
-        if ((Peers.communicationLoggingMask & Peers.LOGGING_MASK_NON200_RESPONSES) != 0) {
-          log += " >>> Peer responded with HTTP " + connection.getResponseCode() + " code!";
-          showLog = true;
-        }
-        if (state == State.CONNECTED) {
-          setState(State.DISCONNECTED);
-        } else {
-          setState(State.NON_CONNECTED);
-        }
-        response = null;
-      }
-
-    } catch (RuntimeException|IOException e) {
-      if (! (e instanceof UnknownHostException || e instanceof SocketTimeoutException || e instanceof SocketException)) {
-        logger.debug("Error sending JSON request", e);
-      }
-      if ((Peers.communicationLoggingMask & Peers.LOGGING_MASK_EXCEPTIONS) != 0) {
-        log += " >>> " + e.toString();
-        showLog = true;
-      }
-      if (state == State.CONNECTED) {
-        setState(State.DISCONNECTED);
-      }
-      response = null;
-    }
-
-    if (showLog) {
-      logger.info(log + "\n");
-    }
-
-    if (connection != null) {
-      connection.disconnect();
-    }
-
-    return response;
   }
 
   @Override
