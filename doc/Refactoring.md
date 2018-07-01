@@ -1,6 +1,6 @@
 #Brabantian refactoring
 
-This describes the currently ongoing effort of moving to a
+This describes the applied efforts of moving to a
 dependency-injection style architecture of managing dependencies
 between different parts of the system.
 
@@ -27,8 +27,7 @@ needs to be changed to a different one.  Dependency injection is one
 form of the broader technique of inversion of control. Rather than low
 level code calling up to high level code, high level code can receive
 lower level code that it can call down to. This inverts the typical
-control pattern seen in procedural programming._
-
+control pattern seen in procedural programming.
 
 Using dependency injection, we can move the responsibility to locate,
 or create dependencies out of the different parts of our system.  This
@@ -40,9 +39,9 @@ there were an amount of cyclical dependencies as well, all hidden by
 the fact that static methods to Burst.class were used to pick these
 up.
 
-To enable this, I am doing
+To enable this, I have applied:
 
-## Ongoing Refactorings
+## Done Refactorings
 
 ### Moving static methods out of Domain objects, to service classes
 
@@ -55,23 +54,25 @@ these kind of methods, that were actually beyond the scope of the
 Domain class (dependency on the DB layer, etc), service classes are
 made, which can hold the logic in non-static methods.
 
+### Moving service classes out of a service layer into a more modular approach
+
+Certain parts of the application, such as the assetexchange could be split off from the rest.
+This offers a more clean and modular approach, helping limit the number of services that had to be
+taken in consideration in the rest of the application.
+
 ### Creating Service classes and other dependencies in Burst.class and injecting them where necessary
 
 A service should always be made only once in Burst.class, and passed
 its required dependencies, like a DB layer abstraction or potentially
 other services (prevent cyclical dependencies between services!).
 These services can then be passed in for example the HTTP and Peer
-layer, where they can be called from the "usecases" these tend to
+layer, or the correct processors where they can be called from the "usecases" these tend to
 form.
- 
-## Major TODOs
 
 ### Testing
 
-- Currently the happy paths of the AbstractTransactionTests are
+the happy paths of the AbstractTransactionTests were
 limited to making sure no nullpointer exceptions, etc occur.  "Errors"
-are still returned, however, because of other issues like missing
-parameter, etc.  More scaffolding should be made to extend the happy
-path of these tests easier.  Though currently the focus of @Brabantian
-is on the business logic validations done in the CreateTransaction
-HTTP classes.
+were still returned, however, because of other issues like missing
+parameter, etc.
+ 
