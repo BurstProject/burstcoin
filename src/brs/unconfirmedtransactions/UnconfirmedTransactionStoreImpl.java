@@ -22,31 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Unconfirmed Store / Handling:
- * * "Weighted FiFo": cheap transactions should be evicted first, second criteria should be the tiemstamp <- DONE
- * * max n- percent (configuration, default 5%) of the unconfirmed pool size should be allowed to have a referenced transaction full hash
- * * discard transactions, which will expire, before they come into a block, eg. if there are more than 360 lowes fee transactions in the pool we should not accept any further
- * * diff transfers
- * - each node in the net should store it's current timestamp  when it receives a unconfirmed transaction
- * - providing unconfirmed transactions (eg. getUnconfirmedTransactions get's an additional field: rxTimestamp
- * - if a node receives fetches this data from one which has the rxTimestamp it needs to store this per peer
- * - on the next request to such a peer, which has provided us with a rxTimestamp we hand over this item as a parameter, which needs to ensure, that we only get something, which is newer than the stuff we already got
- * - this design is backwards compatible, cause we only send a new field if a node provided us with the data
- *
- * Test Cases:
- * - we need to verify the memory usage (Java heap is the most important) for 8192 transactions in the memcache which have a max payload (eg. some text)
- *
- * Bugs
- * - it looks like the count for a message length is different; example:
- * On Block 50200 burst was forked to PoC2. Regarding this you need to get all of your miners PoC2 supported, the pool is no longer supporting PoC1. Update your miners to the latest version to support PoC2. And then optimize or replot your plot file to PoC2.\n\nNeed some help? Contact us on our discord server: https://discord.gg/2fnMMW4/n/nPoC2 plots are detected by not having 'staggersize' in filename.\nA PoC2 file name will look something like this: 00000000000_0_000000\n\nHeres a PoC2 plotter: https://blackpawn.com/tp//nBottom of the page is the TurboSwizzler, to optimize your plots to PoC2.\n\nLinux plotter PoC2: https://github.com/PoC-Consortium/engraver/n/nQbundle: https://github.com/PoC-Consortium/Qbundle/releases/nVersion: v2.1.0 and up\n\nBlago Miner: https://github.com/JohnnyFFM/miner-burst/releases/nVersion: v.1.170900 and up\n\ncreepMiner: https://github.com/Creepsky/creepMiner/releases/nVersion: 1.8.1 and up\n\nJminer: https://github.com/de-luxe/burstcoin-jminer/releases/nVersion: 5.2 and up"(bearbeitet)
- *
- *
- * was accepted and stored in the unconfirmed store and dropped directly during processing
- * + fee estimatior
- * + fix http api for low fees on localhost
- */
-
 public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionStore {
 
   private static final Logger logger = LoggerFactory.getLogger(UnconfirmedTransactionStoreImpl.class);
@@ -68,7 +43,7 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
     @Override
     public void run() {
       synchronized (internalStore) {
-        final List<Transaction> expiredTransactions = getAll().getTransactions().stream().filter(t -> timeService.getEpochTime() > t.getExpiration()).collect(Collectors.toList());
+        final List<Transaction> expiredTransactions = getAll(Integer.MAX_VALUE).getTransactions().stream().filter(t -> timeService.getEpochTime() > t.getExpiration()).collect(Collectors.toList());
 
         expiredTransactions.stream().forEach(t -> removeTransaction(t));
       }
@@ -149,28 +124,46 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
   }
 
   @Override
-  public TimedUnconfirmedTransactionOverview getAll() {
+  public TimedUnconfirmedTransactionOverview getAll(int limit) {
     synchronized (internalStore) {
-      final ArrayList<Transaction> result = new ArrayList<>();
+      final ArrayList<UnconfirmedTransactionTiming> flatTransactionList = new ArrayList<>();
 
       for (List<UnconfirmedTransactionTiming> amountSlot : internalStore.values()) {
-        result.addAll(amountSlot.stream().map(UnconfirmedTransactionTiming::getTransaction).collect(Collectors.toList()));
+        flatTransactionList.addAll(amountSlot);
       }
 
-      return new TimedUnconfirmedTransactionOverview(timeService.getEpochTimeMillis(), result);
+      final List<UnconfirmedTransactionTiming> result = flatTransactionList.stream()
+          .sorted(Comparator.comparingLong(UnconfirmedTransactionTiming::getTimestamp))
+          .limit(limit)
+          .collect(Collectors.toList());
+
+      if(! result.isEmpty()) {
+        return new TimedUnconfirmedTransactionOverview(result.get(result.size() - 1).getTimestamp(), result.stream().map(UnconfirmedTransactionTiming::getTransaction).collect(Collectors.toList()));
+      } else {
+        return new TimedUnconfirmedTransactionOverview(timeService.getEpochTimeMillis(), new ArrayList<>());
+      }
     }
   }
 
   @Override
-  public TimedUnconfirmedTransactionOverview getAllSince(long timestampInMillis) {
+  public TimedUnconfirmedTransactionOverview getAllSince(long timestampInMillis, int limit) {
     synchronized (internalStore) {
-      final ArrayList<Transaction> result = new ArrayList<>();
+      final ArrayList<UnconfirmedTransactionTiming> flatTransactionList = new ArrayList<>();
 
       for (List<UnconfirmedTransactionTiming> amountSlot : internalStore.values()) {
-        result.addAll(amountSlot.stream().filter(t -> t.getTimestamp() > timestampInMillis).map(UnconfirmedTransactionTiming::getTransaction).collect(Collectors.toList()));
+        flatTransactionList.addAll(amountSlot.stream().filter(t -> t.getTimestamp() > timestampInMillis).collect(Collectors.toList()));
       }
 
-      return new TimedUnconfirmedTransactionOverview(timeService.getEpochTimeMillis(), result);
+      final List<UnconfirmedTransactionTiming> result = flatTransactionList.stream()
+          .sorted(Comparator.comparingLong(UnconfirmedTransactionTiming::getTimestamp))
+          .limit(limit)
+          .collect(Collectors.toList());
+
+      if(! result.isEmpty()) {
+        return new TimedUnconfirmedTransactionOverview(result.get(result.size() - 1).getTimestamp(), result.stream().map(UnconfirmedTransactionTiming::getTransaction).collect(Collectors.toList()));
+      } else {
+        return new TimedUnconfirmedTransactionOverview(timeService.getEpochTimeMillis(), new ArrayList<>());
+      }
     }
   }
 

@@ -12,9 +12,9 @@ public interface UnconfirmedTransactionStore {
 
   boolean exists(Long transactionId);
 
-  TimedUnconfirmedTransactionOverview getAll();
+  TimedUnconfirmedTransactionOverview getAll(int maxAmount);
 
-  TimedUnconfirmedTransactionOverview getAllSince(long timestampInMillis);
+  TimedUnconfirmedTransactionOverview getAllSince(long timestampInMillis, int maxAmount);
 
   void forEach(Consumer<Transaction> consumer);
 

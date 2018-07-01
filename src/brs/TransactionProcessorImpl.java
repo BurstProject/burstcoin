@@ -220,9 +220,9 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   @Override
   public TimedUnconfirmedTransactionOverview getAllUnconfirmedTransactions(Long lastUnconfirmedTransactionTimestamp) {
     if(lastUnconfirmedTransactionTimestamp != null) {
-      return unconfirmedTransactionStore.getAllSince(lastUnconfirmedTransactionTimestamp);
+      return unconfirmedTransactionStore.getAllSince(lastUnconfirmedTransactionTimestamp, Integer.MAX_VALUE);
     }
-    return unconfirmedTransactionStore.getAll();
+    return unconfirmedTransactionStore.getAll(Integer.MAX_VALUE);
   }
 
   @Override
@@ -257,7 +257,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     }
     if (unconfirmedTransactionStore.exists(transaction.getId())) {
       if (enableTransactionRebroadcasting) {
-        nonBroadcastedTransactions.add((Transaction) transaction);
+        nonBroadcastedTransactions.add(transaction);
         logger.info("Transaction " + transaction.getStringId() + " already in unconfirmed pool, will re-broadcast");
       } else {
         logger.info("Transaction " + transaction.getStringId() + " already in unconfirmed pool, will not broadcast again");

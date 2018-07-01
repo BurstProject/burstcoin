@@ -1128,7 +1128,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         stores.beginTransaction();
 
         Map<TransactionType, Set<String>> duplicates = new HashMap<>();
-        List<Transaction> unconfirmedTransactionsOrderedByFee = unconfirmedTransactionStore.getAll().getTransactions().stream().filter(
+        List<Transaction> unconfirmedTransactionsOrderedByFee = unconfirmedTransactionStore.getAll(Integer.MAX_VALUE).getTransactions().stream().filter(
             transaction ->
               transaction.getVersion() == transactionProcessor.getTransactionVersion(previousBlock.getHeight())
                   && transaction.getExpiration() >= blockTimestamp
