@@ -5,6 +5,7 @@ import brs.TransactionType.Payment;
 import brs.crypto.Crypto;
 import brs.db.BurstKey;
 import brs.fluxcapacitor.FeatureToggle;
+import brs.transactionduplicates.TransactionDuplicationKey;
 import brs.util.Convert;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -690,8 +691,8 @@ public class Transaction implements Comparable<Transaction> {
     return flags;
   }
 
-  boolean isDuplicate(Map<TransactionType, Set<String>> duplicates) {
-    return type.isDuplicate(this, duplicates);
+  public TransactionDuplicationKey getDuplicationKey() {
+    return type.getDuplicationKey(this);
   }
 
 }

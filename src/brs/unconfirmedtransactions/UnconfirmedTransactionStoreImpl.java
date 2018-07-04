@@ -7,6 +7,8 @@ import brs.db.store.AccountStore;
 import brs.props.PropertyService;
 import brs.props.Props;
 import brs.services.TimeService;
+import brs.transactionduplicates.TransactionDuplicatesCheckerImpl;
+import brs.transactionduplicates.TransactionDuplicationResult;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -28,6 +30,7 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
 
   private final TimeService timeService;
   private final ReservedBalanceCache reservedBalanceCache;
+  private final TransactionDuplicatesCheckerImpl transactionDuplicatesChecker = new TransactionDuplicatesCheckerImpl();
 
   private final SortedMap<Long, List<UnconfirmedTransactionTiming>> internalStore;
 
@@ -70,6 +73,12 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
   public void put(Transaction transaction) throws ValidationException {
     synchronized (internalStore) {
       if (transactionCanBeAddedToCache(transaction)) {
+        final TransactionDuplicationResult duplicationInformation = transactionDuplicatesChecker.removeCheaperDuplicate(transaction);
+
+        if(duplicationInformation.isDuplicate() && duplicationInformation.getTransaction() != transaction) {
+          removeTransaction(duplicationInformation.getTransaction());
+        }
+
         addTransaction(transaction, timeService.getEpochTimeMillis());
 
         if (totalSize > maxSize) {
@@ -191,6 +200,7 @@ public class UnconfirmedTransactionStoreImpl implements UnconfirmedTransactionSt
       totalSize = 0;
       internalStore.clear();
       reservedBalanceCache.clear();
+      transactionDuplicatesChecker.clear();
     }
   }
 

@@ -12,6 +12,7 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import brs.Account;
+import brs.Attachment.MessagingAliasSell;
 import brs.BlockchainImpl;
 import brs.Burst;
 import brs.BurstException.NotCurrentlyValidException;
@@ -79,6 +80,9 @@ public class UnconfirmedTransactionStoreTest {
     FluxCapacitor mockFluxCapacitor = mock(FluxCapacitor.class);
     when(mockFluxCapacitor.isActive(eq(FeatureToggle.PRE_DYMAXION))).thenReturn(true);
     when(mockFluxCapacitor.isActive(eq(FeatureToggle.PRE_DYMAXION), anyInt())).thenReturn(true);
+    when(mockFluxCapacitor.isActive(eq(FeatureToggle.DIGITAL_GOODS_STORE), anyInt())).thenReturn(true);
+
+    when(Burst.getFluxCapacitor()).thenReturn(mockFluxCapacitor);
 
     TransactionType.init(mockBlockChain, mockFluxCapacitor, null, null, null, null, null, null);
 
@@ -273,6 +277,28 @@ public class UnconfirmedTransactionStoreTest {
     }
 
     assertEquals(1080, t.getAll(Integer.MAX_VALUE).getTransactions().size());
+  }
+
+  @Test
+  public void cheaperDuplicateTransactionGetsRemoved() throws ValidationException {
+    Transaction cheap = new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 1, FEE_QUANT, timeService.getEpochTime() + 50000, (short) 500,
+        new MessagingAliasSell("aliasName", 123, 5))
+        .id(1).senderId(123L).build();
+
+    Transaction expensive = new Transaction.Builder((byte) 1, TestConstants.TEST_PUBLIC_KEY_BYTES, 1, FEE_QUANT * 2, timeService.getEpochTime() + 50000, (short) 500,
+        new MessagingAliasSell("aliasName", 123, 5))
+        .id(2).senderId(123L).build();
+
+    t.put(cheap);
+
+    assertEquals(1, t.getAll(100).getTransactions().size());
+    assertNotNull(t.get(cheap.getId()));
+
+    t.put(expensive);
+
+    assertEquals(1, t.getAll(100).getTransactions().size());
+    assertNull(t.get(cheap.getId()));
+    assertNotNull(t.get(expensive.getId()));
   }
 
 }
