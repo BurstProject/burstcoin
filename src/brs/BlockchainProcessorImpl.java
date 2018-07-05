@@ -163,6 +163,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       }
     }, Event.BLOCK_PUSHED);
 
+    blockListeners.addListener(block -> {
+      transactionProcessor.revalidateUnconfirmedTransactions();
+    }, Event.BLOCK_PUSHED);
+
     if (trimDerivedTables) {
       blockListeners.addListener(block -> {
         if (block.getHeight() % 1440 == 0) {

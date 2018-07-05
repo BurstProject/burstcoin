@@ -5,6 +5,7 @@ import static brs.http.common.Parameters.LIMIT_UNCONFIRMED_TRANSACTIONS_RETRIEVE
 import static brs.http.common.ResultFields.LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_RESPONSE;
 import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_RESPONSE;
 
+import brs.BurstException.ValidationException;
 import brs.props.Props;
 import brs.db.store.Dbs;
 import brs.db.store.Stores;
@@ -452,5 +453,21 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     }
 
     return addedUnconfirmedTransactions;
+  }
+
+  public void revalidateUnconfirmedTransactions() {
+    final List<Transaction> invalidTransactions = new ArrayList<>();
+
+    for(Transaction t: unconfirmedTransactionStore.getAll(Integer.MAX_VALUE).getTransactions()) {
+      try {
+        this.transactionService.validate(t);
+      } catch (ValidationException e) {
+        invalidTransactions.add(t);
+      }
+    }
+
+    for(Transaction t:invalidTransactions) {
+      unconfirmedTransactionStore.remove(t);
+    }
   }
 }
