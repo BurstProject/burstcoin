@@ -12,13 +12,13 @@ function usage() {
     cat << EOF
 usage: $0 [command] [arguments]
 
-  help                          shows the help you just read
-  compile                       compile jar and create docs using maven
-  h2shell                       open a H2 shell for DB manipulation
+INSTALLATION & UPGRADING:
+  h2shell                       Opens a H2 shell for DB manipulation
+  help                          Shows the help you just read
+  compile                       Compile jar and create docs using maven
+  upgrade                       Upgrade the config files to BRS format
   import [mariadb|h2]           DELETE current DB, then gets a new mariadb or H2
-  switch <instance>             switch config file to instance (MainNet,TestNet...)
-  upgrade                       upgrade the config files to BRS format
-
+  switch <instance>             Switch config file to instance (MainNet,TestNet...)
 
 "switch" option is for developers who need to quickly switch between various
 configurations files. If you have
@@ -38,7 +38,7 @@ function upgrade_conf () {
         BRS_CFG_NAME="${NXT_CFG_NAME//nxt/brs}"
         BRS_CFG_NAME="${BRS_CFG_NAME}.converted"
 
-        echo "converting $NXT_CFG_NAME -> $BRS_CFG_NAME"
+        echo "[+] Converting $NXT_CFG_NAME -> $BRS_CFG_NAME"
 
         BRS=$(<$NXT_CFG_NAME)    # read in the config file content
         ### P2P-related params
@@ -132,17 +132,118 @@ function upgrade_conf () {
         
         echo "$BRS" > $BRS_CFG_NAME
     else
-        echo "$NXT_CFG_NAME not present or not readable."
+        echo "[!] $NXT_CFG_NAME not present or not readable."
         exit 1
+    fi
+}
+
+function create_brs_db {
+    echo "\n[+] Please enter your MariaDB connection details"
+    read -rp  "     Host     (localhost) : " P_HOST
+    read -rp  "     Database (brs_master): " P_DATA
+    read -rp  "     Username (brs_user)  : " P_USER
+    read -rsp "     Password empty       : " P_PASS
+    [ -z $P_HOST ] && P_HOST="localhost"
+    [ -z $P_USER ] && P_USER="brs_user"
+    [ -z $P_DATA ] && P_DATA="brs_master"
+    [ -z $P_PASS ] || P_PASS="$P_PASS"
+    echo
+
+    echo "[+] Creating burst wallet db ($P_DATA)..."
+    mysql -uroot -h$P_HOST << EOF
+CREATE DATABASE $P_DATA CHARACTER SET = 'utf8mb4' COLLATE = 'utf8mb4_unicode_ci';
+CREATE USER '$P_USER'@'$P_HOST' IDENTIFIED BY '$P_PASS'; 
+GRANT ALL PRIVILEGES ON $P_DATA.* TO '$P_USER'@'$P_HOST';
+EOF
+
+    # Verify mariadb setup
+    if mysql -u$P_USER -p$P_PASS -h$P_HOST -e "\q" ; then
+        echo "[+] $P_DATA Database created successfully."
+    else
+        echo "[!] Database creation failed. Exiting..."
+        exit 1
+    fi
+
+    echo "DB.Url=jdbc:mariadb://$P_HOST:3306/$P_DATA" >> ./conf/brs.properties
+    echo "DB.Username=$P_USER" >> ./conf/brs.properties
+    echo "DB.Password=$P_PASS" >> ./conf/brs.properties
+}
+
+function macos_dependency_install {
+    # Verify compatible macos version
+    VERSION_MINOR=$(sw_vers -productVersion | grep -E -o '1[0-9]' | tail -n1)
+    if [ "$VERSION_MINOR" -lt "10" ]; then
+        echo "[!] Unsupported version of macOS, Homebrew requires 10.10 or greater"
+        echo "[!] Please manually install MariaDB, and Java and run this command again."
+        return
+    fi
+    echo "[+] Installing BRS wallet dependencies for macOS"
+    
+    # Install or upgrade brew
+    which -s brew
+    if [[ $? != 0 ]] ; then
+        echo "[+] Installing Homebrew..."
+        echo "[+] Press ENTER when prompted then enter sudo password if asked."
+        ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    else
+        echo "[+] Homebrew found - Updating Homebrew... (might take a while)"
+        brew update
+    fi
+
+    # Install or upgrade mariaDB
+    echo "[+] Installing MariaDB using Homebrew..."
+    if brew ls --versions mariadb > /dev/null; then
+        MARIA_STATE=$(brew services list | grep mariadb | awk '{ print $2 }')
+        if [[ $MARIA_STATE == "started" ]]; then
+            echo "[+] MariaDB is already installed and running."
+        fi
+        brew upgrade mariadb
+        echo "[+] MariaDB upgrade complete."
+    else
+        brew install mariadb
+        echo "[+] MariaDB install complete."
+    fi
+
+    # mariaDB setup
+    echo "[+] Starting MariaDB..."
+    brew services start mariadb
+    sleep 5 
+    create_brs_db
+    sleep 2
+
+    # Check if java is installed
+    if [ -z `which java 2>/dev/null` ]; then
+        echo "[+] Java install not found. Installing Java 8 JDK using Homebrew..."
+        brew tap caskroom/versions
+        brew cask search java
+        brew cask install java8
+    else 
+        echo "[+] Java dependency already met."
+    fi
+
+    echo "[+] macOS Dependency setup completed successfully."
+    echo "[+] Wallet will start momentarily..."
+}
+
+function mariadb_installed {
+    if which mysql >/dev/null; then
+        MYSQL_VERSION=$(mysql --version)
+        if [[ "$MYSQL_VERSION" == *"MariaDB"* ]]; then
+            MARIADB_INSTALLED=0
+        else 
+            MARIADB_INSTALLED=1
+        fi
+    else
+        MARIADB_INSTALLED=1
     fi
 }
 
 function exists_or_get {
     if [ -f $1 ]; then
-        echo "$1 already present - won't download"
+        echo "[+] $1 already present - won't download"
     else
         if ! hash wget 2>/dev/null; then
-            echo "please install wget"
+            echo "[!] Please install wget"
             exit 99
         fi
         wget https://download.cryptoguru.org/burst/wallet/$1
@@ -150,7 +251,7 @@ function exists_or_get {
 }
 
 if [ -z `which java 2>/dev/null` ]; then
-    echo "please install java from eg. https://java.com/download/"
+    echo "[!] Please install java from eg. https://java.com/download/"
     exit 1
 fi
 
@@ -175,7 +276,7 @@ if [[ $# -gt 0 ]] ; then
                 echo This build method is no longer supported. Please install maven.
                 echo https://maven.apache.org/install.html
                 if hash wget 2>/dev/null; then
-                    read -p "Do you want me to install a local copy of maven in this directory? " -n 1 -r
+                    read -p "[?] Do you want me to install a local copy of maven in this directory? " -n 1 -r
                     echo
                     if [[ $REPLY =~ ^[Yy]$ ]]; then
                         mkdir -p maven
@@ -188,21 +289,22 @@ if [[ $# -gt 0 ]] ; then
                     fi
                 fi
             fi
+            exit 0
             ;;
         "h2shell")
             java -cp burst.jar org.h2.tools.Shell
             ;;
         "import")
             if ! hash unzip 2>/dev/null; then
-                echo "please install unzip"
+                echo "[!] Please install unzip"
                 exit 99
             fi
-            read -p "Do you want to remove the current databases, download and import new one? " -n 1 -r
+            read -p "[?] Do you want to remove the current databases, download and import new one? " -n 1 -r
             echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
                 if [[ $MY_ARG == "mariadb" ]]; then
                     echo
-                    echo "Please enter your connection details"
+                    echo "\nPlease enter your connection details"
                     read -rp  "Host     (localhost) : " P_HOST
                     read -rp  "Database (brs_master): " P_DATA
                     read -rp  "Username (brs_user)  : " P_USER
@@ -218,17 +320,17 @@ if [[ $# -gt 0 ]] ; then
                             if mysql -u$P_USER $P_PASS -h$P_HOST -e "DROP DATABASE if EXISTS $P_DATA; CREATE DATABASE $P_DATA CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"; then
                                 if mysql -u$P_USER $P_PASS -h$P_HOST -D $P_DATA < "$MY_DIR/init-mysql.sql"; then
                                     if mysql -u$P_USER $P_PASS -h$P_HOST -D $P_DATA < brs.mariadb.sql ; then
-                                        echo "import successful - please remove brs.mariadb.zip"
+                                        echo "[+] Import successful - please remove brs.mariadb.zip"
                                         rm brs.mariadb.sql
                                         exit
                                     fi
                                 fi
                             fi
                         else
-                            echo "unpacking mariadb archive failed"
+                            echo "[!] Unpacking mariadb archive failed"
                         fi
                     else
-                        echo "getting mariadb archive failed"
+                        echo "[!] Getting mariadb archive failed"
                     fi
                 elif [[ $MY_ARG == "h2" ]]; then
                     if exists_or_get brs.h2.zip ; then
@@ -236,19 +338,19 @@ if [[ $# -gt 0 ]] ; then
                         rm -f burst_db/burst.trace.db
                         if unzip brs.h2.zip ; then
                             if mv burst.mv.db "$MY_DIR/burst_db"; then
-                                echo "import successful - please remove brs.h2.zip"
+                                echo "[+] Import successful - please remove brs.h2.zip"
                                 exit
                             fi
                         else
-                            echo "unpacking H2 archive failed"
+                            echo "[!] Unpacking H2 archive failed"
                         fi
                     else
-                        echo "getting H2 archive failed"
+                        echo "[!] Getting H2 archive failed"
                     fi
                 fi
-                echo "DB import did not succeed"
+                echo "[!] DB import did not succeed"
             else
-                echo "cancelling DB import by user request"
+                echo "[!] Cancelling DB import by user request"
             fi
             ;;
         "switch")
@@ -275,6 +377,13 @@ else
     ARCH=`uname -m`
     if [[ $ARCH = "armv7l" ]]; then
         export LD_LIBRARY_PATH=./lib/armv7l
+    fi
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        mariadb_installed
+        echo "[+] Darwin OS Type detected, checking dependencies..."
+        if [[ $MARIADB_INSTALLED == 1 ]]; then
+            macos_dependency_install
+        fi
     fi
     java $BRS_DEVSTART -cp burst.jar:conf brs.Burst
 fi
