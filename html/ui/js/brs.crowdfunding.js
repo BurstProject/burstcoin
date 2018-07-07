@@ -59,6 +59,7 @@ var BRS = (function(BRS, $, undefined) {
                 sendMoney(response);
             }
         });
+		$('#buyTicket').modal('toggle');
     });
     $('#deploy-at-btn').on('click', function(e) {
         $(".alert-area").html(' ');
@@ -138,18 +139,22 @@ var BRS = (function(BRS, $, undefined) {
 
     function sendMoney(response) {
         if (("errorCode" in response)) {
-            $('.alert-area').show();
-            $('.alert-area').fadeIn('slow');
-            $(".alert-area").html('<div class="alert alert-danger" role="alert"> Error sending transaction. </div>');
-            $('.alert-area').hide();
-            $('.alert-area').fadeIn('slow');
+            $.notify($.t("error_send_money"), {
+                type: 'danger',
+                offset: {
+                    x: 5,
+                    y: 60
+                }
+            });
         }
         else {
-            $('.alert-area').show();
-            $('.alert-area').fadeIn('slow');
-            $(".alert-area").html('<div class="alert alert-success" role="alert"> Transaction has been processed successfully. </div>');
-            $('.alert-area').hide();
-            $('.alert-area').fadeIn('slow');
+            $.notify($.t("success_send_money"), {
+                type: 'success',
+                offset: {
+                    x: 5,
+                    y: 60
+                }
+            });
         }
     }
     $('#buyTicket').on('show.bs.modal', function(e) {
