@@ -1,6 +1,7 @@
 package brs.fluxcapacitor;
 
-import brs.common.Props;
+import brs.props.Prop;
+import brs.props.Props;
 
 enum HistoricalMoments {
 
@@ -15,9 +16,9 @@ enum HistoricalMoments {
 
   final int momentProductionNet;
   final int momentTestNet;
-  final String overridingProperty;
+  final Prop overridingProperty;
 
-  HistoricalMoments(int momentProductionNet, int momentTestNet, String overridingProperty) {
+  HistoricalMoments(int momentProductionNet, int momentTestNet, Prop overridingProperty) {
     this.momentProductionNet = momentProductionNet;
     this.momentTestNet = momentTestNet;
     this.overridingProperty = overridingProperty;

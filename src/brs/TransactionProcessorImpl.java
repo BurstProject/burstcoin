@@ -1,15 +1,22 @@
 package brs;
 
-import brs.common.Props;
+import static brs.http.common.Parameters.LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_PARAMETER;
+import static brs.http.common.Parameters.LIMIT_UNCONFIRMED_TRANSACTIONS_RETRIEVED_PARAMETER;
+import static brs.http.common.ResultFields.LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_RESPONSE;
+import static brs.http.common.ResultFields.UNCONFIRMED_TRANSACTIONS_RESPONSE;
+
+import brs.BurstException.ValidationException;
+import brs.props.Props;
 import brs.db.store.Dbs;
 import brs.db.store.Stores;
 import brs.fluxcapacitor.FeatureToggle;
 import brs.peer.Peer;
 import brs.peer.Peers;
 import brs.services.AccountService;
-import brs.services.PropertyService;
+import brs.props.PropertyService;
 import brs.services.TimeService;
 import brs.services.TransactionService;
+import brs.unconfirmedtransactions.TimedUnconfirmedTransactionOverview;
 import brs.unconfirmedtransactions.UnconfirmedTransactionStore;
 import brs.util.JSON;
 import brs.util.Listener;
@@ -34,12 +41,15 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   private final int rebroadcastAfter;
   private final int rebroadcastEvery;
 
+  private int limitUnconfirmedTransactionsToRetrieve;
+
   private final Set<Transaction> nonBroadcastedTransactions = Collections.newSetFromMap(new ConcurrentHashMap<Transaction,Boolean>());
   private final Listeners<List<? extends Transaction>,Event> transactionListeners = new Listeners<>();
   private final Set<Transaction> lostTransactions = new HashSet<>();
   private final Map<Long, Integer> lostTransactionHeights = new HashMap<>();
 
   private final EconomicClustering economicClustering;
+
   private Stores stores;
   private TimeService timeService;
   private TransactionService transactionService;
@@ -65,8 +75,9 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     this.enableTransactionRebroadcasting = propertyService.getBoolean(Props.P2P_ENABLE_TX_REBROADCAST);
     this.testUnconfirmedTransactions = propertyService.getBoolean(Props.BRS_TEST_UNCONFIRMED_TRANSACTIONS);
 
-    this.rebroadcastAfter = propertyService.getInt(Props.P2P_REBROADCAST_AFTER, 4);
-    this.rebroadcastEvery = propertyService.getInt(Props.P2P_REBROADCAST_EVERY, 2);
+    this.rebroadcastAfter = propertyService.getInt(Props.P2P_REBROADCAST_AFTER);
+    this.rebroadcastEvery = propertyService.getInt(Props.P2P_REBROADCAST_EVERY);
+    this.limitUnconfirmedTransactionsToRetrieve = propertyService.getInt(Props.P2P_LIMIT_UNCONFIRMED_TRANSACTIONS_TO_RETRIEVE);
 
     this.unconfirmedTransactionStore = stores.getUnconfirmedTransactionStore();
     threadPool.scheduleThread("ProcessTransactions", processTransactionsThread, 5);
@@ -117,7 +128,18 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       {
         JSONObject request = new JSONObject();
         request.put("requestType", "getUnconfirmedTransactions");
+        request.put(LIMIT_UNCONFIRMED_TRANSACTIONS_RETRIEVED_PARAMETER, limitUnconfirmedTransactionsToRetrieve);
         getUnconfirmedTransactionsRequest = JSON.prepareRequest(request);
+      }
+
+      private JSONStreamAware unconfirmedTransactionRequest(Long lastUnconfirmedTransactionTimestamp) {
+        JSONObject request = new JSONObject();
+        request.put("requestType", "getUnconfirmedTransactions");
+        if(lastUnconfirmedTransactionTimestamp != null) {
+          request.put(LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_PARAMETER, lastUnconfirmedTransactionTimestamp.toString());
+          request.put(LIMIT_UNCONFIRMED_TRANSACTIONS_RETRIEVED_PARAMETER, limitUnconfirmedTransactionsToRetrieve);
+        }
+        return JSON.prepareRequest(request);
       }
 
       @Override
@@ -143,7 +165,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 
                   for(Transaction lost : rebroadcastLost) {
                     if(!nonBroadcastedTransactions.contains(lost)) {
-                      nonBroadcastedTransactions.add((Transaction)lost);
+                      nonBroadcastedTransactions.add(lost);
                     }
                   }
 
@@ -156,11 +178,19 @@ public class TransactionProcessorImpl implements TransactionProcessor {
             if (peer == null) {
               return;
             }
-            JSONObject response = peer.send(getUnconfirmedTransactionsRequest);
+
+            JSONObject response = peer.send(peer.getLastUnconfirmedTransactionTimestamp() == null ? getUnconfirmedTransactionsRequest : unconfirmedTransactionRequest(peer.getLastUnconfirmedTransactionTimestamp()));
             if (response == null) {
               return;
             }
-            JSONArray transactionsData = (JSONArray)response.get("unconfirmedTransactions");
+
+            JSONArray transactionsData = (JSONArray) response.get(UNCONFIRMED_TRANSACTIONS_RESPONSE);
+            Object lastUnconfirmedTransactionTimeStampResponse = response.get(LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_RESPONSE);
+
+            if(lastUnconfirmedTransactionTimeStampResponse != null) {
+              peer.setLastUnconfirmedTransactionTimestamp(Long.parseLong((String) lastUnconfirmedTransactionTimeStampResponse));
+            }
+
             if (transactionsData == null || transactionsData.isEmpty()) {
               return;
             }
@@ -181,7 +211,6 @@ public class TransactionProcessorImpl implements TransactionProcessor {
 
     };
 
-
   @Override
   public boolean addListener(Listener<List<? extends Transaction>> listener, Event eventType) {
     return transactionListeners.addListener(listener, eventType);
@@ -197,8 +226,11 @@ public class TransactionProcessorImpl implements TransactionProcessor {
   }
 
   @Override
-  public ArrayList<Transaction> getAllUnconfirmedTransactions() {
-    return unconfirmedTransactionStore.getAll();
+  public TimedUnconfirmedTransactionOverview getAllUnconfirmedTransactions(Long lastUnconfirmedTransactionTimestamp, int limit) {
+    if(lastUnconfirmedTransactionTimestamp != null) {
+      return unconfirmedTransactionStore.getAllSince(lastUnconfirmedTransactionTimestamp, limit);
+    }
+    return unconfirmedTransactionStore.getAll(limit);
   }
 
   @Override
@@ -233,7 +265,7 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     }
     if (unconfirmedTransactionStore.exists(transaction.getId())) {
       if (enableTransactionRebroadcasting) {
-        nonBroadcastedTransactions.add((Transaction) transaction);
+        nonBroadcastedTransactions.add(transaction);
         logger.info("Transaction " + transaction.getStringId() + " already in unconfirmed pool, will re-broadcast");
       } else {
         logger.info("Transaction " + transaction.getStringId() + " already in unconfirmed pool, will not broadcast again");
@@ -421,5 +453,21 @@ public class TransactionProcessorImpl implements TransactionProcessor {
     }
 
     return addedUnconfirmedTransactions;
+  }
+
+  public void revalidateUnconfirmedTransactions() {
+    final List<Transaction> invalidTransactions = new ArrayList<>();
+
+    for(Transaction t: unconfirmedTransactionStore.getAll(Integer.MAX_VALUE).getTransactions()) {
+      try {
+        this.transactionService.validate(t);
+      } catch (ValidationException e) {
+        invalidTransactions.add(t);
+      }
+    }
+
+    for(Transaction t:invalidTransactions) {
+      unconfirmedTransactionStore.remove(t);
+    }
   }
 }

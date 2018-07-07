@@ -32,6 +32,7 @@ public interface Peer extends Comparable<Peer> {
   boolean isBlacklisted();
 
   boolean isAtLeastMyVersion();
+
   boolean isHigherOrEqualVersionThan(String version);
 
   void blacklist(Exception cause, String description);
@@ -42,8 +43,6 @@ public interface Peer extends Comparable<Peer> {
 
   void unBlacklist();
 
-  void deactivate();
-
   void remove();
 
   long getDownloadedVolume();
@@ -52,14 +51,10 @@ public interface Peer extends Comparable<Peer> {
 
   int getLastUpdated();
 
+  Long getLastUnconfirmedTransactionTimestamp();
+
+  void setLastUnconfirmedTransactionTimestamp(Long lastUnconfirmedTransactionTimestamp);
+
   JSONObject send(JSONStreamAware request);
-
-  /** 
-   * Sends a simple GET-Request to the peer and returns the JSON-Object of the response
-   * @param  pathAndQuery  URL path for GET request
-   * @return JSONObject of the response
-   */
-  JSONObject sendGetRequest(String pathAndQuery);
-
 
 }

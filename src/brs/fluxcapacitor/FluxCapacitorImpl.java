@@ -1,7 +1,7 @@
 package brs.fluxcapacitor;
 
 import brs.Blockchain;
-import brs.services.PropertyService;
+import brs.props.PropertyService;
 
 public class FluxCapacitorImpl implements FluxCapacitor {
 

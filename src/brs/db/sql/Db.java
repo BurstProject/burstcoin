@@ -1,9 +1,9 @@
 package brs.db.sql;
 
 import brs.Burst;
-import brs.common.Props;
+import brs.props.Props;
 import brs.db.cache.DBCacheManagerImpl;
-import brs.services.PropertyService;
+import brs.props.PropertyService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import brs.db.h2.H2Dbs;

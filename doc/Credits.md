@@ -20,6 +20,8 @@ base are not mentioned, however. In alphabetical order:
 @Brabantian
 * introduction of JUnit and Code Coverage reporting
 * lots of unit tests and refactoring work to make the code testable
+* added intradimensional truths to deal with different realities of time
+* dealing better with unconfirmed transactions in a solid configurable store
 
 @BraindeadOne
 * providing a DB abstraction layer to allow for multiple DB backends

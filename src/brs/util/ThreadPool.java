@@ -1,7 +1,7 @@
 package brs.util;
 
-import brs.common.Props;
-import brs.services.PropertyService;
+import brs.props.Props;
+import brs.props.PropertyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +54,7 @@ public final class ThreadPool {
     if (scheduledThreadPool != null) {
       throw new IllegalStateException("Executor service already started, no new jobs accepted");
     }
-    if (! propertyService.getBoolean("brs.disable" + name + "Thread")) {
+    if (! propertyService.getBoolean("brs.disable" + name + "Thread", false)) {
       backgroundJobs.put(runnable, timeUnit.toMillis(delay));
     } else {
       logger.info("Will not run " + name + " thread");
@@ -81,7 +81,7 @@ public final class ThreadPool {
     runAll(lastBeforeStartJobs);
     lastBeforeStartJobs.clear();
 
-    int cores = propertyService.getInt(Props.CPU_NUM_CORES, Runtime.getRuntime().availableProcessors());
+    int cores = propertyService.getInt(Props.CPU_NUM_CORES);
     if (cores <= 0) {
         logger.warn("Cannot use 0 cores - defaulting to all available");
         cores = Runtime.getRuntime().availableProcessors();

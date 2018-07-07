@@ -4,9 +4,9 @@ import static brs.fluxcapacitor.FeatureToggle.POC2;
 
 import brs.Block;
 import brs.Blockchain;
-import brs.common.Props;
+import brs.props.Props;
 import brs.fluxcapacitor.FluxCapacitor;
-import brs.services.PropertyService;
+import brs.props.PropertyService;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,7 +44,7 @@ public final class DownloadCacheImpl {
   
   
   public DownloadCacheImpl(PropertyService propertyService, FluxCapacitor fluxCapacitor, Blockchain blockchain) {
-    this.blockCacheMB = propertyService.getInt(Props.BRS_BLOCK_CACHE_MB, 40);
+    this.blockCacheMB = propertyService.getInt(Props.BRS_BLOCK_CACHE_MB);
     this.fluxCapacitor = fluxCapacitor;
     this.blockchain = blockchain;
   }

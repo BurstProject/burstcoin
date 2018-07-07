@@ -6,7 +6,8 @@ import brs.EconomicClustering;
 import brs.Generator;
 import brs.TransactionProcessor;
 import brs.assetexchange.AssetExchange;
-import brs.common.Props;
+import brs.props.PropertyService;
+import brs.props.Props;
 import brs.services.*;
 import brs.util.Subnet;
 import brs.util.ThreadPool;
@@ -123,7 +124,7 @@ public final class API {
                                                                          subscriptionService, atService, timeService, economicClustering, transactionService, blockService, generator, propertyService, apiTransactionManager));
       apiHandler.addServlet(peerServletHolder, "/burst");
 
-      if (propertyService.getBoolean("JETTY.API.GzipFilter")) {
+      if (propertyService.getBoolean(Props.JETTY_API_GZIP_FILTER)) {
         FilterHolder gzipFilterHolder = apiHandler.addFilter(GzipFilter.class, "/burst", null);
         gzipFilterHolder.setInitParameter("methods",     propertyService.getString(Props.JETTY_API_GZIP_FILTER_METHODS));
         gzipFilterHolder.setInitParameter("bufferSize",  propertyService.getString(Props.JETTY_API_GZIP_FILTER_BUFFER_SIZE));
@@ -131,7 +132,7 @@ public final class API {
         gzipFilterHolder.setAsyncSupported(true);
       }
       
-      if (propertyService.getBoolean("JETTY.API.DoSFilter")) {
+      if (propertyService.getBoolean(Props.JETTY_API_DOS_FILTER)) {
         FilterHolder dosFilterHolder = apiHandler.addFilter(DoSFilter.class, "/burst", null);
         dosFilterHolder.setInitParameter("maxRequestsPerSec", propertyService.getString(Props.JETTY_API_DOS_FILTER_MAX_REQUEST_PER_SEC));
         dosFilterHolder.setInitParameter("throttledRequests", propertyService.getString(Props.JETTY_API_DOS_FILTER_THROTTLED_REQUESTS));

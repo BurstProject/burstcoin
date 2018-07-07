@@ -1,7 +1,7 @@
 package brs.fluxcapacitor;
 
-import brs.common.Props;
-import brs.services.PropertyService;
+import brs.props.Props;
+import brs.props.PropertyService;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,7 +22,7 @@ public class HistorianImpl {
       if(! isTestNet) {
         startingHeightsOverview.put(hm, hm.momentProductionNet);
       } else {
-        int overrideSettingValue = propertyService.getInt(hm.overridingProperty, -1);
+        int overrideSettingValue = propertyService.getInt(hm.overridingProperty);
 
         if(overrideSettingValue > -1) {
           startingHeightsOverview.put(hm, overrideSettingValue);

@@ -1,17 +1,19 @@
 package brs.unconfirmedtransactions;
 
+import brs.Transaction;
+
 class UnconfirmedTransactionTiming {
 
-  private long id;
-  private long timestamp;
+  private final Transaction transaction;
+  private final long timestamp;
 
-  public UnconfirmedTransactionTiming(long id, long timestamp) {
-    this.id = id;
+  public UnconfirmedTransactionTiming(Transaction transaction, long timestamp) {
+    this.transaction = transaction;
     this.timestamp = timestamp;
   }
 
-  public long getId() {
-    return id;
+  public Transaction getTransaction() {
+    return transaction;
   }
 
   public long getTimestamp() {

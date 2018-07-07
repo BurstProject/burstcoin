@@ -5,6 +5,7 @@ import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -12,8 +13,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import brs.Blockchain;
-import brs.common.Props;
-import brs.services.PropertyService;
+import brs.props.Props;
+import brs.props.PropertyService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,7 @@ public class FluxCapacitorImplTest {
   public void featureIsActiveTestNet() {
     when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(true);
     when(blockchainMock.getHeight()).thenReturn(88999);
-    when(propertyServiceMock.getInt(anyString(), anyInt())).thenReturn(-1);
+    when(propertyServiceMock.getInt(any())).thenReturn(-1);
 
     t = new FluxCapacitorImpl(blockchainMock, propertyServiceMock);
 
@@ -95,7 +96,7 @@ public class FluxCapacitorImplTest {
   @Test
   public void fluxIntTestNetDefaultValue() {
     when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(true);
-    when(propertyServiceMock.getInt(anyString(), anyInt())).thenReturn(-1);
+    when(propertyServiceMock.getInt(any())).thenReturn(-1);
 
     t = new FluxCapacitorImpl(blockchainMock, propertyServiceMock);
 
@@ -120,7 +121,7 @@ public class FluxCapacitorImplTest {
   @Test
   public void fluxIntTestNetHistoricalMomentChangedThroughProperty() {
     when(propertyServiceMock.getBoolean(eq(Props.DEV_TESTNET))).thenReturn(true);
-    when(propertyServiceMock.getInt(eq(Props.DEV_PRE_DYMAXION_BLOCK_HEIGHT), anyInt())).thenReturn(12345);
+    when(propertyServiceMock.getInt(eq(Props.DEV_PRE_DYMAXION_BLOCK_HEIGHT))).thenReturn(12345);
 
     t = new FluxCapacitorImpl(blockchainMock, propertyServiceMock);
 

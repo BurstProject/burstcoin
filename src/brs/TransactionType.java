@@ -19,13 +19,11 @@ import brs.services.AliasService;
 import brs.services.DGSGoodsStoreService;
 import brs.services.EscrowService;
 import brs.services.SubscriptionService;
+import brs.transactionduplicates.TransactionDuplicationKey;
 import brs.util.Convert;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -322,13 +320,8 @@ public abstract class TransactionType {
 
   abstract void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount);
 
-  boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
-    return false;
-  }
-
-  static boolean isDuplicate(TransactionType uniqueType, String key, Map<TransactionType, Set<String>> duplicates) {
-      Set<String> typeDuplicates = duplicates.computeIfAbsent(uniqueType, k -> new HashSet<>());
-      return ! typeDuplicates.add(key);
+  public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
+    return TransactionDuplicationKey.IS_NEVER_DUPLICATE;
   }
 
   public abstract boolean hasRecipient();
@@ -394,7 +387,7 @@ public abstract class TransactionType {
           return true;
        }
 
-      };
+    };
 
     public static final TransactionType MULTI_OUT = new Payment() {
 
@@ -594,9 +587,9 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           Attachment.MessagingAliasAssignment attachment = (Attachment.MessagingAliasAssignment) transaction.getAttachment();
-          return isDuplicate(Messaging.ALIAS_ASSIGNMENT, attachment.getAliasName().toLowerCase(), duplicates);
+          return new TransactionDuplicationKey(Messaging.ALIAS_ASSIGNMENT, attachment.getAliasName().toLowerCase());
         }
 
         @Override
@@ -651,10 +644,10 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           Attachment.MessagingAliasSell attachment = (Attachment.MessagingAliasSell) transaction.getAttachment();
           // not a bug, uniqueness is based on Messaging.ALIAS_ASSIGNMENT
-          return isDuplicate(Messaging.ALIAS_ASSIGNMENT, attachment.getAliasName().toLowerCase(), duplicates);
+          return new TransactionDuplicationKey(Messaging.ALIAS_ASSIGNMENT, attachment.getAliasName().toLowerCase());
         }
 
         @Override
@@ -724,10 +717,10 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           Attachment.MessagingAliasBuy attachment = (Attachment.MessagingAliasBuy) transaction.getAttachment();
           // not a bug, uniqueness is based on Messaging.ALIAS_ASSIGNMENT
-          return isDuplicate(Messaging.ALIAS_ASSIGNMENT, attachment.getAliasName().toLowerCase(), duplicates);
+          return new TransactionDuplicationKey(Messaging.ALIAS_ASSIGNMENT, attachment.getAliasName().toLowerCase());
         }
 
         @Override
@@ -1294,9 +1287,9 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           Attachment.DigitalGoodsDelisting attachment = (Attachment.DigitalGoodsDelisting) transaction.getAttachment();
-          return isDuplicate(DigitalGoods.DELISTING, Convert.toUnsignedLong(attachment.getGoodsId()), duplicates);
+          return new TransactionDuplicationKey(DigitalGoods.DELISTING, Convert.toUnsignedLong(attachment.getGoodsId()));
         }
 
         @Override
@@ -1344,10 +1337,10 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           Attachment.DigitalGoodsPriceChange attachment = (Attachment.DigitalGoodsPriceChange) transaction.getAttachment();
           // not a bug, uniqueness is based on DigitalGoods.DELISTING
-          return isDuplicate(DigitalGoods.DELISTING, Convert.toUnsignedLong(attachment.getGoodsId()), duplicates);
+          return new TransactionDuplicationKey(DigitalGoods.DELISTING, Convert.toUnsignedLong(attachment.getGoodsId()));
         }
 
         @Override
@@ -1396,10 +1389,10 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           Attachment.DigitalGoodsQuantityChange attachment = (Attachment.DigitalGoodsQuantityChange) transaction.getAttachment();
           // not a bug, uniqueness is based on DigitalGoods.DELISTING
-          return isDuplicate(DigitalGoods.DELISTING, Convert.toUnsignedLong(attachment.getGoodsId()), duplicates);
+          return new TransactionDuplicationKey(DigitalGoods.DELISTING, Convert.toUnsignedLong(attachment.getGoodsId()));
         }
 
         @Override
@@ -1529,9 +1522,9 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           Attachment.DigitalGoodsDelivery attachment = (Attachment.DigitalGoodsDelivery) transaction.getAttachment();
-          return isDuplicate(DigitalGoods.DELIVERY, Convert.toUnsignedLong(attachment.getPurchaseId()), duplicates);
+          return new TransactionDuplicationKey(DigitalGoods.DELIVERY, Convert.toUnsignedLong(attachment.getPurchaseId()));
         }
 
         @Override
@@ -1588,9 +1581,9 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           Attachment.DigitalGoodsFeedback attachment = (Attachment.DigitalGoodsFeedback) transaction.getAttachment();
-          return isDuplicate(DigitalGoods.FEEDBACK, Convert.toUnsignedLong(attachment.getPurchaseId()), duplicates);
+          return new TransactionDuplicationKey(DigitalGoods.FEEDBACK, Convert.toUnsignedLong(attachment.getPurchaseId()));
         }
 
         @Override
@@ -1665,9 +1658,9 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           Attachment.DigitalGoodsRefund attachment = (Attachment.DigitalGoodsRefund) transaction.getAttachment();
-          return isDuplicate(DigitalGoods.REFUND, Convert.toUnsignedLong(attachment.getPurchaseId()), duplicates);
+          return new TransactionDuplicationKey(DigitalGoods.REFUND, Convert.toUnsignedLong(attachment.getPurchaseId()));
         }
 
         @Override
@@ -1789,11 +1782,12 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           if (! fluxCapacitor.isActive(FeatureToggle.DIGITAL_GOODS_STORE)) {
-            return false; // sync fails after 7007 without this
+            return TransactionDuplicationKey.IS_NEVER_DUPLICATE; // sync fails after 7007 without this
           }
-          return isDuplicate(BurstMining.REWARD_RECIPIENT_ASSIGNMENT, Convert.toUnsignedLong(transaction.getSenderId()), duplicates);
+
+          return new TransactionDuplicationKey(BurstMining.REWARD_RECIPIENT_ASSIGNMENT, Convert.toUnsignedLong(transaction.getSenderId()));
         }
 
         @Override
@@ -1907,8 +1901,8 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
-          return false;
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
+          return TransactionDuplicationKey.IS_NEVER_DUPLICATE;
         }
 
         @Override
@@ -1994,11 +1988,11 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           Attachment.AdvancedPaymentEscrowSign attachment = (Attachment.AdvancedPaymentEscrowSign) transaction.getAttachment();
           String uniqueString = Convert.toUnsignedLong(attachment.getEscrowId()) + ":" +
               Convert.toUnsignedLong(transaction.getSenderId());
-          return isDuplicate(AdvancedPayment.ESCROW_SIGN, uniqueString, duplicates);
+          return new TransactionDuplicationKey(AdvancedPayment.ESCROW_SIGN, uniqueString);
         }
 
         @Override
@@ -2067,8 +2061,8 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
-          return true;
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
+          return TransactionDuplicationKey.IS_ALWAYS_DUPLICATE;
         }
 
         @Override
@@ -2120,8 +2114,8 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
-          return false;
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
+          return TransactionDuplicationKey.IS_NEVER_DUPLICATE;
         }
 
         @Override
@@ -2185,9 +2179,9 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
           Attachment.AdvancedPaymentSubscriptionCancel attachment = (Attachment.AdvancedPaymentSubscriptionCancel) transaction.getAttachment();
-          return isDuplicate(AdvancedPayment.SUBSCRIPTION_CANCEL, Convert.toUnsignedLong(attachment.getSubscriptionId()), duplicates);
+          return new TransactionDuplicationKey(AdvancedPayment.SUBSCRIPTION_CANCEL, Convert.toUnsignedLong(attachment.getSubscriptionId()));
         }
 
         @Override
@@ -2249,8 +2243,8 @@ public abstract class TransactionType {
         }
 
         @Override
-        boolean isDuplicate(Transaction transaction, Map<TransactionType, Set<String>> duplicates) {
-          return true;
+        public TransactionDuplicationKey getDuplicationKey(Transaction transaction) {
+          return TransactionDuplicationKey.IS_ALWAYS_DUPLICATE;
         }
 
         @Override

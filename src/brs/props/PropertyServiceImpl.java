@@ -1,7 +1,6 @@
-package brs.services.impl;
+package brs.props;
 
 import brs.Burst;
-import brs.services.PropertyService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,14 +42,14 @@ public class PropertyServiceImpl implements PropertyService {
   }
 
   @Override
-  public Boolean getBoolean(String name) {
-    return getBoolean(name, false);
+  public Boolean getBoolean(Prop<Boolean> prop) {
+    return getBoolean(prop.name, prop.defaultValue);
   }
 
   @Override
-  public int getInt(String name, int defaultValue) {
+  public int getInt(Prop<Integer> prop) {
     try {
-      String value = properties.getProperty(name);
+      String value = properties.getProperty(prop.name);
       int radix = 10;
 
       if (value != null && value.matches("(?i)^0x.+$")) {
@@ -62,39 +61,29 @@ public class PropertyServiceImpl implements PropertyService {
       }
 
       int result = Integer.parseInt(value, radix);
-      logOnce(name, true, "{} = '{}'", name, result);
+      logOnce(prop.name, true, "{} = '{}'", prop.name, result);
       return result;
     } catch (NumberFormatException e) {
-      logOnce(name, false, LOG_UNDEF_NAME_DEFAULT, name, defaultValue);
-      return defaultValue;
+      logOnce(prop.name, false, LOG_UNDEF_NAME_DEFAULT, prop.name, prop.defaultValue);
+      return prop.defaultValue;
     }
   }
 
   @Override
-  public int getInt(String name) {
-    return getInt(name, 0);
-  }
-
-  @Override
-  public String getString(String name, String defaultValue) {
-    String value = properties.getProperty(name);
-    if (value != null && !"".equals(value)) {
-      logOnce(name, true, name + " = \"" + value + "\"");
+  public String getString(Prop<String> prop) {
+    String value = properties.getProperty(prop.name);
+    if (value != null && ! value.isEmpty()) {
+      logOnce(prop.name, true, prop.name + " = \"" + value + "\"");
       return value;
     }
 
-    logOnce(name, false, LOG_UNDEF_NAME_DEFAULT, name, defaultValue);
+    logOnce(prop.name, false, LOG_UNDEF_NAME_DEFAULT, prop.name, prop.defaultValue);
 
-    return defaultValue;
+    return prop.defaultValue;
   }
 
   @Override
-  public String getString(String name) {
-    return getString(name, null);
-  }
-
-  @Override
-  public List<String> getStringList(String name) {
+  public List<String> getStringList(Prop<String> name) {
     String value = getString(name);
     if (value == null || value.isEmpty()) {
       return Collections.emptyList();
@@ -102,7 +91,7 @@ public class PropertyServiceImpl implements PropertyService {
     List<String> result = new ArrayList<>();
     for (String s : value.split(";")) {
       s = s.trim();
-      if (! s.isEmpty()) {
+      if (!s.isEmpty()) {
         result.add(s);
       }
     }
@@ -110,8 +99,8 @@ public class PropertyServiceImpl implements PropertyService {
   }
 
   private void logOnce(String propertyName, boolean debugLevel, String logText, Object... arguments) {
-    if(! this.alreadyLoggedProperties.contains(propertyName)) {
-      if(debugLevel) {
+    if (!this.alreadyLoggedProperties.contains(propertyName)) {
+      if (debugLevel) {
         this.logger.debug(logText, arguments);
       } else {
         this.logger.info(logText, arguments);

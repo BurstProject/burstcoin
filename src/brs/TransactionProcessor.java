@@ -1,7 +1,7 @@
 package brs;
 
+import brs.unconfirmedtransactions.TimedUnconfirmedTransactionOverview;
 import brs.util.Observable;
-import java.util.ArrayList;
 import org.json.simple.JSONObject;
 
 import java.util.List;
@@ -15,7 +15,7 @@ public interface TransactionProcessor extends Observable<List<? extends Transact
     ADDED_DOUBLESPENDING_TRANSACTIONS
   }
 
-  ArrayList<? extends Transaction> getAllUnconfirmedTransactions();
+  TimedUnconfirmedTransactionOverview getAllUnconfirmedTransactions(Long lastUnconfirmedTransactionTimestamp, int limit);
   
   Transaction getUnconfirmedTransaction(long transactionId);
 

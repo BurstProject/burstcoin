@@ -4,7 +4,7 @@ import static brs.Constants.FEE_QUANT;
 import static brs.Constants.ONE_BURST;
 import static brs.fluxcapacitor.FeatureToggle.PRE_DYMAXION;
 
-import brs.common.Props;
+import brs.props.Props;
 import brs.db.cache.DBCacheManagerImpl;
 import brs.db.store.BlockchainStore;
 import brs.db.store.DerivedTableManager;
@@ -13,12 +13,14 @@ import brs.fluxcapacitor.FeatureToggle;
 import brs.fluxcapacitor.FluxInt;
 import brs.services.BlockService;
 import brs.services.EscrowService;
-import brs.services.PropertyService;
+import brs.props.PropertyService;
 import brs.services.SubscriptionService;
 import brs.services.TimeService;
 import brs.services.TransactionService;
 import brs.statistics.StatisticsManagerImpl;
 import brs.services.AccountService;
+import brs.transactionduplicates.TransactionDuplicatesCheckerImpl;
+import brs.transactionduplicates.TransactionDuplicationResult;
 import brs.unconfirmedtransactions.UnconfirmedTransactionStore;
 import brs.util.ThreadPool;
 
@@ -141,7 +143,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     this.accountService = accountService;
 
     oclVerify = propertyService.getBoolean(Props.GPU_ACCELERATION); // use GPU acceleration ?
-    oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE, 1000);
+    oclUnverifiedQueue = propertyService.getInt(Props.GPU_UNVERIFIED_QUEUE);
 
     trimDerivedTables = propertyService.getBoolean(Props.DB_TRIM_DERIVED_TABLES);
 
@@ -159,6 +161,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         logger.info("processed block " + block.getHeight());
         // Db.analyzeTables(); no-op
       }
+    }, Event.BLOCK_PUSHED);
+
+    blockListeners.addListener(block -> {
+      transactionProcessor.revalidateUnconfirmedTransactions();
     }, Event.BLOCK_PUSHED);
 
     if (trimDerivedTables) {
@@ -878,7 +884,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         throw new BlockNotAcceptedException("Block signature verification failed for block " + block.getHeight());
       }
 
-      Map<TransactionType, Set<String>> duplicates = new HashMap<>();
+      final TransactionDuplicatesCheckerImpl transactionDuplicatesChecker = new TransactionDuplicatesCheckerImpl();
       long calculatedTotalAmount = 0;
       long calculatedTotalFee = 0;
       MessageDigest digest = Crypto.sha256();
@@ -950,10 +956,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (transaction.getId() == 0L) {
           throw new TransactionNotAcceptedException("Invalid transaction id", transaction);
         }
-        if (transaction.isDuplicate(duplicates)) {
-          throw new TransactionNotAcceptedException(
-              "Transaction is a duplicate: " + transaction.getStringId(), transaction);
+
+        if (transactionDuplicatesChecker.hasAnyDuplicate(transaction)) {
+          throw new TransactionNotAcceptedException("Transaction is a duplicate: " + transaction.getStringId(), transaction);
         }
+
         try {
           transactionService.validate(transaction);
         } catch (BurstException.ValidationException e) {
@@ -1127,8 +1134,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
       try {
         stores.beginTransaction();
 
-        Map<TransactionType, Set<String>> duplicates = new HashMap<>();
-        List<Transaction> unconfirmedTransactionsOrderedByFee = unconfirmedTransactionStore.getAll().stream().filter(
+        final TransactionDuplicatesCheckerImpl transactionDuplicatesChecker = new TransactionDuplicatesCheckerImpl();
+
+        List<Transaction> unconfirmedTransactionsOrderedByFee = unconfirmedTransactionStore.getAll(Integer.MAX_VALUE).getTransactions().stream().filter(
             transaction ->
               transaction.getVersion() == transactionProcessor.getTransactionVersion(previousBlock.getHeight())
                   && transaction.getExpiration() >= blockTimestamp
@@ -1155,7 +1163,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
               // transaction can only be handled if all referenced ones exist
               if (hasAllReferencedTransactions(transaction, transaction.getTimestamp(), 0)) {
                 // handle non- duplicates and transactions which can be applied
-                if ( ! transaction.isDuplicate(duplicates) && transactionService.applyUnconfirmed(transaction)) {
+                if (! transactionDuplicatesChecker.hasAnyDuplicate(transaction) && transactionService.applyUnconfirmed(transaction)) {
                   try {
                     transactionService.validate(transaction);
                     payloadSize -= transaction.getSize();

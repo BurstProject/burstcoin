@@ -34,7 +34,7 @@ import static org.jocl.CL.clReleaseProgram;
 import static org.jocl.CL.clSetKernelArg;
 import static org.jocl.CL.setExceptionsEnabled;
 
-import brs.common.Props;
+import brs.props.Props;
 import brs.services.BlockService;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -45,7 +45,7 @@ import java.util.Collection;
 import org.jocl.CLException;
 import org.jocl.Pointer;
 import org.jocl.Sizeof;
-import brs.services.PropertyService;
+import brs.props.PropertyService;
 import org.jocl.cl_command_queue;
 import org.jocl.cl_context;
 import org.jocl.cl_context_properties;
@@ -61,8 +61,6 @@ import brs.util.MiningPlot;
 final class OCLPoC {
 
   private static final Logger logger = LoggerFactory.getLogger(OCLPoC.class);
-
-  private static final int DEFAULT_MEM_PERCENT = 50;
 
   private static final int hashesPerEnqueue;
   private static final int MEM_PERCENT;
@@ -89,11 +87,11 @@ final class OCLPoC {
   static void init() {}
   static {
     PropertyService propertyService = Burst.getPropertyService();
-    hashesPerEnqueue = propertyService.getInt(Props.GPU_HASHES_PER_BATCH, 1000);
-    MEM_PERCENT = propertyService.getInt(Props.GPU_MEM_PERCENT, DEFAULT_MEM_PERCENT);
+    hashesPerEnqueue = propertyService.getInt(Props.GPU_HASHES_PER_BATCH);
+    MEM_PERCENT = propertyService.getInt(Props.GPU_MEM_PERCENT);
     
     try {
-      boolean autoChoose = propertyService.getBoolean(Props.GPU_AUTODETECT, true);
+      boolean autoChoose = propertyService.getBoolean(Props.GPU_AUTODETECT);
       setExceptionsEnabled(true);
 
       int platformIndex;
