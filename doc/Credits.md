@@ -18,10 +18,11 @@ base are not mentioned, however. In alphabetical order:
 * JOOQ migration and many more things
 
 @Brabantian
-* introduction of JUnit and Code Coverage reporting
-* lots of unit tests and refactoring work to make the code testable
-* added intradimensional truths to deal with different realities of time
+* lots of automated Testing and Code Coverage reporting
+* FluxCapacitor - a sound management of hard forks (feature upgrades)
 * dealing better with unconfirmed transactions in a solid configurable store
+* unconfirmed transaction handling and other improvements
+* for Brabantians mah Familia: BURST-BRAB-95SM-SH2Y-7JLGR
 
 @BraindeadOne
 * providing a DB abstraction layer to allow for multiple DB backends
@@ -45,6 +46,10 @@ base are not mentioned, however. In alphabetical order:
 
 @LithMage provided fixes and enhancements to the UI
 
+@InjectedPie
+* modularised the whole UI and updated it to AdminLTE 2
+* many UI-related fixes and updates
+
 @Quibus
 * DownloadCache
 * PoC2 implementation
@@ -61,6 +66,5 @@ base are not mentioned, however. In alphabetical order:
 Other contributors
 
 Accepted pull requests improving the wallet quality in several areas
-were made by @ChrisMaroglou, @DarkS0il, @Doncode, @HeosSacer,
-@InjectedPie, @jake-b, @llybin, @naiduv, @umbrellacorp03,
-@velmyshanovnyi
+were made by @ChrisMaroglou, @DarkS0il, @Doncode, @HeosSacer, @jake-b,
+@llybin, @naiduv, @umbrellacorp03, @velmyshanovnyi

@@ -20,7 +20,7 @@ var BRS = (function(BRS, $, undefined) {
 
         //Get latest version nr+hash of normal version
         BRS.sendRequest("getAlias", {
-            "aliasName": "nrscgversioninfo"
+            "aliasName": "brsversioninfo"
         }, function(response) {
             if (response.aliasURI && (response = response.aliasURI.split(" "))) {
                 BRS.normalVersion.versionNr = response[0];
@@ -34,7 +34,7 @@ var BRS = (function(BRS, $, undefined) {
 
         //Get latest version nr+hash of beta version
         BRS.sendRequest("getAlias", {
-            "aliasName": "nrscgbetaversion"
+            "aliasName": "brsbetaversioninfo"
         }, function(response) {
             if (response.aliasURI && (response = response.aliasURI.split(" "))) {
                 BRS.betaVersion.versionNr = response[0];

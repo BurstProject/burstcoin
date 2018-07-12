@@ -257,6 +257,11 @@ fi
 
 if [[ $# -gt 0 ]] ; then
     case "$MY_CMD" in
+        "clean")
+            rm -rf dist html/ui/doc
+            mkdir -p html/ui/doc
+            mvn clean
+            ;;
         "compile")
             if [ -d "maven/apache-maven-${MY_MAVEN_VERSION}" ]; then
                 PATH=maven/apache-maven-${MY_MAVEN_VERSION}/bin:$PATH
@@ -264,10 +269,9 @@ if [[ $# -gt 0 ]] ; then
 
             ## check if command exists
             if hash mvn 2>/dev/null; then
+                ./burst.sh clean
                 mvn -DskipTests=true package
                 mvn javadoc:javadoc-no-fork
-                rm -rf html/ui/doc
-                mkdir -p html/ui/doc
                 cp -r target/site/apidocs/* html/ui/doc
                 cp dist/tmp/burst.jar .
                 echo a .zip file has been built for distribution in dist/, its contents are in dist/tmp
