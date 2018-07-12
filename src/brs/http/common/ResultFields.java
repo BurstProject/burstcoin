@@ -141,5 +141,7 @@ public class ResultFields {
   public static final String LAST_UNCONFIRMED_TRANSACTION_TIMESTAMP_RESPONSE = "lastUnconfirmedTransactionTimestamp";
   public static final String UNCONFIRMED_TRANSACTIONS_RESPONSE = "unconfirmedTransactions";
   public static final String UNCONFIRMED_TRANSACTIONS_IDS_RESPONSE = "unconfirmedTransactionIds";
-
+  public static final String CHEAP_FEE_RESPONSE = "cheap";
+  public static final String OPTIMUM_FEE_RESPONSE = "optimum";
+  public static final String PRIORITY_FEE_RESPONSE = "priority";
 }

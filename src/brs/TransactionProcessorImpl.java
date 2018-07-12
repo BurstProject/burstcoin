@@ -272,11 +272,11 @@ public class TransactionProcessorImpl implements TransactionProcessor {
       }
       return;
     }
-    processedTransactions = processTransactions(Collections.singleton((Transaction) transaction), true);
+    processedTransactions = processTransactions(Collections.singleton(transaction), true);
 
     if (processedTransactions.contains(transaction)) {
       if (enableTransactionRebroadcasting) {
-        nonBroadcastedTransactions.add((Transaction) transaction);
+        nonBroadcastedTransactions.add(transaction);
       }
       logger.debug("Accepted new transaction " + transaction.getStringId());
     } else {
