@@ -1,7 +1,7 @@
 package brs.http;
 
 import static brs.http.common.ResultFields.CHEAP_FEE_RESPONSE;
-import static brs.http.common.ResultFields.OPTIMUM_FEE_RESPONSE;
+import static brs.http.common.ResultFields.STANDARD_FEE_RESPONSE;
 import static brs.http.common.ResultFields.PRIORITY_FEE_RESPONSE;
 
 import brs.feesuggestions.FeeSuggestion;
@@ -26,7 +26,7 @@ public class SuggestFee extends APIServlet.APIRequestHandler {
     final JSONObject response = new JSONObject();
 
     response.put(CHEAP_FEE_RESPONSE, feeSuggestion.getCheapFee());
-    response.put(OPTIMUM_FEE_RESPONSE, feeSuggestion.getOptimumFee());
+    response.put(STANDARD_FEE_RESPONSE, feeSuggestion.getStandardFee());
     response.put(PRIORITY_FEE_RESPONSE, feeSuggestion.getPriorityFee());
 
     return response;

@@ -64,7 +64,7 @@ public class FeeSuggestionCalculatorTest extends AbstractUnitTest {
 
     FeeSuggestion feeSuggestionOne = t.giveFeeSuggestion();
     assertEquals(1 * FEE_QUANT, feeSuggestionOne.getCheapFee());
-    assertEquals(2 * FEE_QUANT, feeSuggestionOne.getOptimumFee());
+    assertEquals(2 * FEE_QUANT, feeSuggestionOne.getStandardFee());
     assertEquals(2 * FEE_QUANT, feeSuggestionOne.getPriorityFee());
 
     Block mockBlock6 = mock(Block.class);
@@ -77,19 +77,19 @@ public class FeeSuggestionCalculatorTest extends AbstractUnitTest {
     listenerArgumentCaptor.getValue().notify(mockBlock6);
     FeeSuggestion feeSuggestionTwo = t.giveFeeSuggestion();
     assertEquals(2 * FEE_QUANT, feeSuggestionTwo.getCheapFee());
-    assertEquals(2 * FEE_QUANT, feeSuggestionTwo.getOptimumFee());
+    assertEquals(2 * FEE_QUANT, feeSuggestionTwo.getStandardFee());
     assertEquals(5 * FEE_QUANT, feeSuggestionTwo.getPriorityFee());
 
     listenerArgumentCaptor.getValue().notify(mockBlock7);
     FeeSuggestion feeSuggestionThree = t.giveFeeSuggestion();
     assertEquals(2 * FEE_QUANT, feeSuggestionThree.getCheapFee());
-    assertEquals(2 * FEE_QUANT, feeSuggestionThree.getOptimumFee());
+    assertEquals(2 * FEE_QUANT, feeSuggestionThree.getStandardFee());
     assertEquals(5 * FEE_QUANT, feeSuggestionThree.getPriorityFee());
 
     listenerArgumentCaptor.getValue().notify(mockBlock8);
     FeeSuggestion feeSuggestionFour = t.giveFeeSuggestion();
     assertEquals(2 * FEE_QUANT, feeSuggestionFour.getCheapFee());
-    assertEquals(5 * FEE_QUANT, feeSuggestionFour.getOptimumFee());
+    assertEquals(5 * FEE_QUANT, feeSuggestionFour.getStandardFee());
     assertEquals(6 * FEE_QUANT, feeSuggestionFour.getPriorityFee());
   }
 }

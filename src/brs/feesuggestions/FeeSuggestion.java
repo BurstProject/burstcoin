@@ -3,12 +3,12 @@ package brs.feesuggestions;
 public class FeeSuggestion {
 
   private final long cheapFee;
-  private final long optimumFee;
+  private final long standardFee;
   private final long priorityFee;
 
-  public FeeSuggestion(long cheapFee, long optimumFee, long priorityFee) {
+  public FeeSuggestion(long cheapFee, long standardFee, long priorityFee) {
     this.cheapFee = cheapFee;
-    this.optimumFee = optimumFee;
+    this.standardFee = standardFee;
     this.priorityFee = priorityFee;
   }
 
@@ -16,8 +16,8 @@ public class FeeSuggestion {
     return cheapFee;
   }
 
-  public long getOptimumFee() {
-    return optimumFee;
+  public long getStandardFee() {
+    return standardFee;
   }
 
   public long getPriorityFee() {

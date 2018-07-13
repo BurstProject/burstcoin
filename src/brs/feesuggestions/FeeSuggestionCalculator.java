@@ -52,9 +52,9 @@ public class FeeSuggestionCalculator {
     int highestAmountTransactionsNearHistory = latestBlocks.stream().mapToInt(b -> ((Block) b).getTransactions().size()).max().orElse(1);
 
     long cheapFee = (1 + lowestAmountTransactionsNearHistory) * FEE_QUANT;
-    long optimumFee = (1 + medianAmountTransactionsNearHistory) * FEE_QUANT;
+    long standardFee = (1 + medianAmountTransactionsNearHistory) * FEE_QUANT;
     long priorityFee = (1 + highestAmountTransactionsNearHistory) * FEE_QUANT;
 
-    feeSuggestion = new FeeSuggestion(cheapFee, optimumFee, priorityFee);
+    feeSuggestion = new FeeSuggestion(cheapFee, standardFee, priorityFee);
   }
 }
