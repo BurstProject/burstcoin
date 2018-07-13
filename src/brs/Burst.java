@@ -7,6 +7,7 @@ import brs.GeneratorImpl.MockGeneratorImpl;
 import brs.assetexchange.AssetExchange;
 import brs.assetexchange.AssetExchangeImpl;
 import brs.blockchainlistener.DevNullListener;
+import brs.feesuggestions.FeeSuggestionCalculator;
 import brs.props.Props;
 import brs.db.BlockDb;
 import brs.db.cache.DBCacheManagerImpl;
@@ -229,6 +230,8 @@ public final class Burst {
           blockDb, transactionDb, economicClustering, blockchainStore, stores, escrowService, transactionService, downloadCache, generator, statisticsManager,
           dbCacheManager, accountService);
 
+      final FeeSuggestionCalculator feeSuggestionCalculator = new FeeSuggestionCalculator(blockchainProcessor, blockchainStore, 10);
+
       generator.generateForBlockchainProcessor(threadPool, blockchainProcessor);
 
       final ParameterService parameterService = new ParameterServiceImpl(accountService, aliasService, assetExchange,
@@ -244,7 +247,8 @@ public final class Burst {
 
       api = new API(transactionProcessor, blockchain, blockchainProcessor, parameterService,
           accountService, aliasService, assetExchange, escrowService, digitalGoodsStoreService,
-          subscriptionService, atService, timeService, economicClustering, propertyService, threadPool, transactionService, blockService, generator, apiTransactionManager);
+          subscriptionService, atService, timeService, economicClustering, propertyService, threadPool,
+          transactionService, blockService, generator, apiTransactionManager, feeSuggestionCalculator);
 
       DebugTrace.init(propertyService, blockchainProcessor, accountService, assetExchange, digitalGoodsStoreService);
 

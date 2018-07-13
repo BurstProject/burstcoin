@@ -6,6 +6,7 @@ import brs.EconomicClustering;
 import brs.Generator;
 import brs.TransactionProcessor;
 import brs.assetexchange.AssetExchange;
+import brs.feesuggestions.FeeSuggestionCalculator;
 import brs.props.PropertyService;
 import brs.props.Props;
 import brs.services.*;
@@ -34,13 +35,13 @@ public final class API {
   private static Server apiServer;
 
   public API(TransactionProcessor transactionProcessor,
-             Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
-             AccountService accountService, AliasService aliasService,
-             AssetExchange assetExchange, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService,
-             SubscriptionService subscriptionService, ATService atService,
-             TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService,
-             ThreadPool threadPool, TransactionService transactionService, BlockService blockService,
-             Generator generator, APITransactionManager apiTransactionManager) {
+      Blockchain blockchain, BlockchainProcessor blockchainProcessor, ParameterService parameterService,
+      AccountService accountService, AliasService aliasService,
+      AssetExchange assetExchange, EscrowService escrowService, DGSGoodsStoreService digitalGoodsStoreService,
+      SubscriptionService subscriptionService, ATService atService,
+      TimeService timeService, EconomicClustering economicClustering, PropertyService propertyService,
+      ThreadPool threadPool, TransactionService transactionService, BlockService blockService,
+      Generator generator, APITransactionManager apiTransactionManager, FeeSuggestionCalculator feeSuggestionCalculator) {
 
     enableDebugAPI = propertyService.getBoolean(Props.API_DEBUG);
     List<String> allowedBotHostsList = propertyService.getStringList(Props.API_ALLOWED);
@@ -121,7 +122,8 @@ public final class API {
 
       ServletHolder peerServletHolder = new ServletHolder(new APIServlet(transactionProcessor, blockchain, blockchainProcessor, parameterService,
                                                                          accountService, aliasService, assetExchange, escrowService, digitalGoodsStoreService,
-                                                                         subscriptionService, atService, timeService, economicClustering, transactionService, blockService, generator, propertyService, apiTransactionManager));
+                                                                         subscriptionService, atService, timeService, economicClustering, transactionService, blockService, generator, propertyService,
+                                                                         apiTransactionManager, feeSuggestionCalculator));
       apiHandler.addServlet(peerServletHolder, "/burst");
 
       if (propertyService.getBoolean(Props.JETTY_API_GZIP_FILTER)) {

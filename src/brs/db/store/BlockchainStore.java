@@ -39,4 +39,6 @@ public interface BlockchainStore {
   boolean addBlock(Block block);
 
   void scan(int height);
+
+  BurstIterator<Block> getLatestBlocks(int amountBlocks);
 }

@@ -169,7 +169,26 @@ public class SqlBlockchainStore implements BlockchainStore {
     return true;
   }
 
-  public void scan(int height)
-  {
+  public void scan(int height){
+  }
+
+  @Override
+  public BurstIterator<Block> getLatestBlocks(int amountBlocks) {
+    final int latestBlockHeight = blockDb.findLastBlock().getHeight();
+
+    final int firstLatestBlockHeight = Math.max(0, latestBlockHeight - amountBlocks);
+
+    try ( DSLContext ctx = Db.getDSLContext() ) {
+      return
+          getBlocks(
+              ctx,
+              ctx.selectFrom(BLOCK).where(
+                  BLOCK.HEIGHT.between(firstLatestBlockHeight).and(latestBlockHeight)
+              ).orderBy(BLOCK.HEIGHT.asc()).fetchResultSet()
+          );
+    }
+    catch ( Exception e ) {
+      throw new RuntimeException(e.toString(), e);
+    }
   }
 }
