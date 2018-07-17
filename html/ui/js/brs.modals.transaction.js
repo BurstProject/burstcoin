@@ -12,6 +12,25 @@ var BRS = (function(BRS, $, undefined) {
 
 	BRS.showTransactionModal(transactionId);
     });
+    $("#suggest_fee").on("click", function(e) {
+    	e.preventDefault();
+    	 BRS.sendRequest("suggestFee", {
+                        }, function(response) {
+                            if (!response.errorCode) {
+                               $("#suggested_fee").html("Standard: <a href='#' name='suggested_fee_response'>" +(response.standard/100000000).toFixed(8)+ "</a> Cheap: <a href='#' name='suggested_fee_response'>" + (response.cheap/100000000).toFixed(8)+ "</a> Priority: <a href='#' name='suggested_fee_response'>" +(response.priority/100000000).toFixed(8)+ "</a>");
+                                $("[name='suggested_fee_response']").on("click", function(e) {
+                                       	e.preventDefault();
+                                       	$("#send_money_fee").val($(this).text());
+
+                                   });
+                            }
+                            else {
+                             $("#suggested_fee").html(response.errorDescription);
+                             }
+                        });
+    });
+
+
 
     BRS.showTransactionModal = function(transaction) {
 	if (BRS.fetchingModalData) {
