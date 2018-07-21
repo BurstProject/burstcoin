@@ -3,7 +3,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" data-i18n="send_burst">Send BURST</h4> Available Balance: <span id="account_balance" </span>
+                <h4 class="modal-title" data-i18n="send_burst">Send BURST</h4> Available Balance: <span id="account_balance"></span>
             </div>
             <div class="modal-body">
                 <ul style="margin-bottom: 10px" class="nav nav-pills">
@@ -27,36 +27,38 @@
                             <label for="send_money_recipient_public_key" data-i18n="recipient_public_key">Recipient Public Key</label>
                             <input type="text" class="form-control" name="recipientPublicKey" id="send_money_recipient_public_key" placeholder="Public Key" data-i18n="[placeholder]public_key" tabindex="2" spellcheck="false" />
                         </div>
-                        <div class="row">
-                            <div class="col-xs-6 col-sm-6 col-md-6">
-                                <div class="form-group">
-                                    <label for="send_money_amount" data-i18n="amount">AMOUNT</label>
-                                    <div class="input-group">
-                                        <input type="text" name="amountNXT" id="send_money_amount" step="any" min="0.00000001" class="form-control" placeholder="Amount" data-i18n="[placeholder]amount"  tabindex="3">
-                                        <span class="input-group-addon">BURST</span>
-                                    </div>
-                                </div>
+                        <div class="form-group">
+                            <label for="send_money_amount" data-i18n="amount">AMOUNT</label>
+                            <div class="input-group">
+                                <input type="text" name="amountNXT" id="send_money_amount" step="any" min="0.00000001" class="form-control" placeholder="Amount" data-i18n="[placeholder]amount"  tabindex="3">
+                                <span class="input-group-addon">BURST</span>
                             </div>
-                            <div class="col-xs-6 col-sm-6 col-md-6">
-                                <div class="form-group">
-                                    <label for="send_money_fee" data-i18n="fee">FEE</label>
-                                    <div class="input-group">
-                                        <input type="number" name="feeNXT" id="send_money_fee" class="form-control" step="any" min="0.00735" placeholder="Fee" data-i18n="[placeholder]fee" data-default="0.1" value="0.1" tabindex="4">
-                                        <span class="input-group-addon">BURST</span>
-                                    </div>
-                                    <div>
-                                        <span><a href="#" id="suggest_fee">Suggest fee</a></span>
-                                        <span id="suggested_fee"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group secret_phrase">
-                            <label for="send_money_password" data-i18n="passphrase">PASSPHRASE</label>
-                            <input type="password" name="secretPhrase" id="send_money_password" class="form-control" placeholder="" tabindex="8" autocomplete="">
                         </div>
                         <div class="form-group">
-                            <input type="checkbox" name="add_message" id="send_money_add_message_1" class="add_message" tabindex="6" /> <label for="send_money_add_message_1" style="font-weight:normal;margin-bottom:0;"> <span data-i18n="add_message_q">Add a Message?</span></label>
+                            <label for="send_money_fee" data-i18n="fee">FEE</label>
+                            <div class="input-group">
+                                <input type="number" name="feeNXT" id="send_money_fee" class="form-control" step="any" min="0.00735" placeholder="Fee" data-i18n="[placeholder]fee" data-default="0.1" value="0.1" tabindex="4">
+                                <span class="input-group-addon">BURST</span>
+                            </div>
+                            <div class="padding-top-5 font-size-14">
+                                <span class="suggested_fee" data-i18n="[title]click_to_refresh"><a href="#" class="btn btn-primary btn-xs" id="suggested_fee_ordinary" data-i18n="suggested_fee">Suggested fee:</a></span>
+                                <span id="suggested_fee_response_ordinary" class="suggested_fee margin-left-5"></span>
+                                <span class="suggested_fee margin-left-10" data-toggle="tooltip" data-placement="top" data-html="true"  data-i18n="[title]suggested_fee_help"><i class="fa fa-info" aria-hidden="true"></i></span>
+                                <span class="suggested_fee margin-left-10 suggested_fee_spinner_display_none" name="suggested_fee_spinner"><i class="fa fa-spinner fa-spin fa-fw text-danger"></i></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group secret_phrase">
+                                <label for="send_money_password" data-i18n="passphrase">PASSPHRASE</label>
+                                <input type="password" name="secretPhrase" id="send_money_password" class="form-control" placeholder="" tabindex="8" autocomplete="">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-12 col-md-12">
+                                <div class="form-group padding-left-5">
+                                    <input type="checkbox" name="add_message" id="send_money_add_message_1" class="add_message" tabindex="6" /> <label for="send_money_add_message_1" style="font-weight:normal;margin-bottom:0;"> <span data-i18n="add_message_q">Add a Message?</span></label>
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group optional_message">
                             <label for="send_money_message" data-i18n="message">MESSAGE</label>
@@ -130,8 +132,14 @@
                             <div class="form-group">
                                 <label for="send_money_fee" data-i18n="fee">FEE</label>
                                 <div class="input-group">
-                                    <input type="number" name="feeNXT" class="form-control" id="multi-out-fee" step="any" min="0.00735" placeholder="Fee" data-i18n="[placeholder]fee" data-default="0.1" value="0.1">
+                                    <input type="number" name="feeNXT" class="form-control" id="multi_out_fee" step="any" min="0.00735" placeholder="Fee" data-i18n="[placeholder]fee" data-default="0.1" value="0.1">
                                     <span class="input-group-addon">BURST</span>
+                                </div>
+                                <div class="padding-top-5 font-size-14">
+                                    <span class="suggested_fee" data-i18n="[title]click_to_refresh"><a href="#" class="btn btn-primary btn-xs" id="suggested_fee_multi" data-i18n="suggested_fee">Suggested fee:</a></span>
+                                    <span id="suggested_fee_response_multi" class="suggested_fee margin-left-5"></span>
+                                    <span class="suggested_fee margin-left-10" data-toggle="tooltip" data-placement="top" data-html="true"  data-i18n="[title]suggested_fee_help"><i class="fa fa-info" aria-hidden="true"></i></span>
+                                    <span class="suggested_fee margin-left-10 suggested_fee_spinner_display_none" name="suggested_fee_spinner"><i class="fa fa-spinner fa-spin fa-fw text-danger"></i></span>
                                 </div>
                             </div>
                         </div>
@@ -148,12 +156,12 @@
                   </div>
             </div>
             <div class="modal-footer ordinary" style="margin-top:0;">
-                <div class="advanced_info"><strong data-i18n="total">Total</strong>: <span class="total_amount_ordinary">1 BURST</span> - <a href="#" data-i18n="advanced">advanced</a></div>
+                <div class="advanced_info"><strong data-i18n="total">Total</strong>: <span class="total_amount_ordinary" id="total_amount_ordinary"></span> - <a href="#" data-i18n="advanced">advanced</a></div>
                 <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
                 <button type="button" class="btn btn-primary" data-loading-text="Submitting..." data-i18n="send_burst;[data-loading-text]submitting">Send BURST</button>
             </div>
             <div class="modal-footer multi-out" style="margin-top:0;">
-                <div class="advanced_info"><strong data-i18n="total">Total</strong>: <span class="total_amount_multi_out">1 BURST</span> </div>
+                <div class="advanced_info"><strong data-i18n="total">Total</strong>: <span class="total_amount_multi_out" id="total_amount_multi_out">0.1 BURST</span> </div>
                 <button type="button" class="btn btn-default" data-dismiss="modal" data-i18n="cancel">Cancel</button>
                 <button type="button" class="btn btn-primary multi-out" id="multi-out-submit" data-loading-text="Submitting..." data-i18n="send_burst;[data-loading-text]submitting">Send BURST</button>
             </div>

@@ -371,8 +371,7 @@ var BRS = (function(BRS, $, undefined) {
         }
     };
     BRS.convertToNQT = function(currency) {
-        currency = String(currency);
-
+        currency = currency.toFixed(8);  ///  this fixes rounding issues (for the Total field on modals)
         var parts = currency.split(".");
 
         var amount = parts[0];

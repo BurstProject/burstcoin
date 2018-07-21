@@ -32,7 +32,8 @@ var BRS = (function(BRS, $, undefined) {
         $("#send_money_amount").val(amount.toFixed(8));
         $("#send_money_fee").val(fee.toFixed(8));
 
-        $(element).closest(".modal").find(".total_amount_ordinary").html(BRS.formatAmount(BRS.convertToNQT(amount + fee)) + " BURST");
+        var total = amount + fee;
+        $(element).closest(".modal").find(".total_amount_ordinary").html(BRS.formatAmount(BRS.convertToNQT(total)) + " BURST");
     };
 
     $("#send_message_modal, #send_money_modal, #add_contact_modal").on("show.bs.modal", function(e) {

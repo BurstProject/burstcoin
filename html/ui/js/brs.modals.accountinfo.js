@@ -6,8 +6,12 @@ var BRS = (function(BRS, $, undefined) {
     $("#account_info_modal").on("show.bs.modal", function(e) {
 	$("#account_info_name").val(BRS.accountInfo.name);
 	$("#account_info_description").val(BRS.accountInfo.description);
+	BRS.showFeeSuggestions(account_info_fee, suggested_fee_response_account, account_info_bottom_fee);
     });
-
+    $("#account_info_fee_suggested").on("click", function(e) {
+       e.preventDefault();
+       BRS.showFeeSuggestions(account_info_fee, suggested_fee_response_account, account_info_bottom_fee);
+    });
     BRS.forms.setAccountInfoComplete = function(response, data) {
 	var name = $.trim(String(data.name));
 	if (name) {

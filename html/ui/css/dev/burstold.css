@@ -318,6 +318,21 @@ animation-name:transformAnimationSmall;
 animation-timing-function:ease
 }
 
+.suggested_fee {
+a, a:active, a:hover, a:visited, a:focus {
+    text-decoration:none;
+};
+color:#737373;
+float:left;
+font-style:italic;
+line-height:34px
+}
+
+.suggested_fee_spinner_display_none {
+display: none !important;
+}
+
+
 .table-assets div.col-sm-8 {
 padding-left:0!important;
 padding-right:0!important;
@@ -329,12 +344,97 @@ border-top:none!important;
 padding:5px
 }
 
+.margin-left-5{
+    margin-left:5px;
+}
+.margin-left-10{
+    margin-left:10px;
+}
+.margin-right-5{
+    margin-right:5px;
+}
+.margin-bottom-5{
+    margin-bottom:5px;
+}
+.margin-bottom-10{
+    margin-bottom:10px;
+}
+.padding-top-5{
+    padding-top:5px;
+}
+.padding-bottom-5{
+    padding-bottom:5px;
+}
+.padding-left-5{
+    padding-left:5px;
+}
+.padding-left-10{
+    padding-left:10px;
+}
+.font-size-10{
+    font-size:10px;
+}
+.font-size-11{
+    font-size:11px;
+}
+.font-size-12{
+    font-size:12px;
+}
+.font-size-13{
+    font-size:13px;
+}
+.font-size-14{
+    font-size:14px;
+}
+.font-size-15{
+    font-size:15px;
+}
+
+.tooltip-inner {
+  background-color: #FFEFD5 !important;
+  /*!important is not necessary if you place custom.css at the end of your css calls. For the purpose of this demo, it seems to be required in SO snippet*/
+  color: #000 !important;
+  text-align:left !important;
+}
+
+.tooltip.top .tooltip-arrow {
+  border-top-color: #FFEFD5;
+}
+
+.tooltip.right .tooltip-arrow {
+  border-right-color: #FFEFD5;
+}
+
+.tooltip.bottom .tooltip-arrow {
+  border-bottom-color: #FFEFD5;
+}
+
+.tooltip.left .tooltip-arrow {
+  border-left-color: #FFEFD5;
+}
+
 .unselectable {
 -moz-user-select:none;
 -ms-user-select:none;
 -o-user-select:none;
 -webkit-user-select:none;
 user-select:none
+}
+
+a.btn-fee-response:link {
+    text-decoration:none;
+}
+
+a.btn-fee-response:visited {
+    text-decoration:none;
+}
+
+a.btn-fee-response:hover {
+    text-decoration:underline;
+}
+
+a.btn-fee-response:active {
+    text-decoration:none;
 }
 
 a.list-group-item h4 span {

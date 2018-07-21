@@ -55,9 +55,9 @@ var BRS = (function(BRS, $, undefined) {
     });
 
     // just to be safe set total display
-    var current_fee = parseFloat($("#multi-out-fee").val(), 10);
+    var current_fee = parseFloat($("#multi_out_fee").val(), 10);
     var fee = isNaN(current_fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
-    $("#multi-out-fee").val(fee);
+    $("#multi_out_fee").val(fee);
     var total_multi_out = fee;
     var amount_total = 0;
 
@@ -96,13 +96,13 @@ var BRS = (function(BRS, $, undefined) {
                 total_multi_out = 0;
                 amount_total = 0;
                 var current_amount = parseFloat($("#multi-out-same-amount").val(), 10);
-                var current_fee = parseFloat($("#multi-out-fee").val(), 10);
+                var current_fee = parseFloat($("#multi_out_fee").val(), 10);
 
                 var amount = isNaN(current_amount) ? 0.00000001 : (current_amount < 0.00000001 ? 0.00000001 : current_amount);
                 var fee = isNaN(current_fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
 
                 $("#multi-out-same-amount").val(amount.toFixed(8));
-                $("#multi-out-fee").val(fee.toFixed(8));
+                $("#multi_out_fee").val(fee.toFixed(8));
 
                 $(".multi-out-same-recipients .multi-out-recipient").each(function() {
                     amount_total += amount;
@@ -130,13 +130,13 @@ var BRS = (function(BRS, $, undefined) {
             total_multi_out = 0;
             amount_total = 0;
             var current_amount = parseFloat($("#multi-out-same-amount").val(), 10);
-            var current_fee = parseFloat($("#multi-out-fee").val(), 10);
+            var current_fee = parseFloat($("#multi_out_fee").val(), 10);
 
             var amount = isNaN(current_amount) ? 0.00000001 : (current_amount < 0.00000001 ? 0.00000001 : current_amount);
             var fee = isNaN(current_fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
 
             $("#multi-out-same-amount").val(amount.toFixed(8));
-            $("#multi-out-fee").val(fee.toFixed(8));
+            $("#multi_out_fee").val(fee.toFixed(8));
 
             $(".multi-out-same-recipients .multi-out-recipient").each(function() {
                 amount_total += amount;
@@ -157,9 +157,9 @@ var BRS = (function(BRS, $, undefined) {
                 amount_total += amount;
             });
 
-            var current_fee = parseFloat($("#multi-out-fee").val(), 10);
+            var current_fee = parseFloat($("#multi_out_fee").val(), 10);
             var fee = isNaN(fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
-            $("#multi-out-fee").val(fee.toFixed(8));
+            $("#multi_out_fee").val(fee.toFixed(8));
             total_multi_out = amount_total + fee;
 
             $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
@@ -177,9 +177,9 @@ var BRS = (function(BRS, $, undefined) {
             amount_total += amount;
         });
 
-        var current_fee = parseFloat($("#multi-out-fee").val(), 10);
+        var current_fee = parseFloat($("#multi_out_fee").val(), 10);
         var fee = isNaN(current_fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
-        $("#multi-out-fee").val(fee.toFixed(8));
+        $("#multi_out_fee").val(fee.toFixed(8));
         total_multi_out = amount_total + fee;
 
         $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
@@ -189,13 +189,13 @@ var BRS = (function(BRS, $, undefined) {
         total_multi_out = 0;
         amount_total = 0;
         var current_amount = parseFloat($(this).val(), 10);
-        var current_fee = parseFloat($("#multi-out-fee").val(), 10);
+        var current_fee = parseFloat($("#multi_out_fee").val(), 10);
 
         var amount = isNaN(current_amount) ? 0.00000001 : (current_amount < 0.00000001 ? 0.00000001 : current_amount);
         var fee = isNaN(current_fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
 
         $("#multi-out-same-amount").val(amount.toFixed(8));
-        $("#multi-out-fee").val(fee.toFixed(8));
+        $("#multi_out_fee").val(fee.toFixed(8));
 
         $(".multi-out-same-recipients .multi-out-recipient").each(function() {
             amount_total += amount;
@@ -207,21 +207,51 @@ var BRS = (function(BRS, $, undefined) {
     });
 
     $(".same_out_checkbox").on("change", function(e) {
-        $(".total_amount_multi_out").html("- BURST");
+        //amount_total = 0 ///fixing incorrect Total when switch from multi same to multi and fee is changed.
+        $(".total_amount_multi_out").html("0.1 BURST");
         if ($(this).is(":checked")) {
             $(".multi-out-same").fadeIn();
             $(".multi-out-ordinary").hide();
+            total_multi_out = 0;
+            amount_total = 0;
+            var current_amount = parseFloat($("#multi-out-same-amount").val(), 10);
+            if(!isNaN(current_amount))
+            {
+            $(".multi-out-same-recipients .multi-out-recipient").each(function() {
+                 amount_total += current_amount;
+            });
+            var current_fee = parseFloat($("#multi_out_fee").val(), 10);
+            var fee = isNaN(current_fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+            $("#multi_out_fee").val(fee.toFixed(8));
+            total_multi_out = amount_total + fee;
+            $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
+            }
+
         } else {
             $(".multi-out-same").hide();
             $(".multi-out-ordinary").fadeIn();
+            total_multi_out = 0;
+            amount_total = 0;
+            $(".multi-out .multi-out-amount").each(function() {
+                var current_amount = parseFloat($(this).val(), 10);
+                if(!isNaN(current_amount))
+                amount_total += current_amount;
+            });
+
+            var current_fee = parseFloat($("#multi_out_fee").val(), 10);
+            var fee = isNaN(current_fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
+            $("#multi_out_fee").val(fee.toFixed(8));
+            total_multi_out = amount_total + fee;
+
+            $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(total_multi_out)) + " BURST");
         }
     });
 
-    $("#multi-out-fee").on("change", function(e) {
+    $("#multi_out_fee").on("change", function(e) {
         var current_fee = parseFloat($(this).val(), 10);
         var fee = isNaN(current_fee) ? 1 : (current_fee < 0.00735 ? 0.00735 : current_fee);
 
-        $("#multi-out-fee").val(fee.toFixed(8));
+        $("#multi_out_fee").val(fee.toFixed(8));
 
         $(".total_amount_multi_out").html(BRS.formatAmount(BRS.convertToNQT(amount_total + fee)) + " BURST");
     });
@@ -238,7 +268,7 @@ var BRS = (function(BRS, $, undefined) {
             return;
         }
 
-        var fee = parseFloat($("#multi-out-fee").val(), 10);
+        var fee = parseFloat($("#multi_out_fee").val(), 10);
         if (isNaN(fee)) {
             $(".multi-out").find(".error_message").html("Fee is not specified!").show();
             return;
@@ -384,7 +414,7 @@ var BRS = (function(BRS, $, undefined) {
         // uncheck same out
         $(".same_out_checkbox").prop('checked', false);
         // reset fee and amount
-        $("#multi-out-fee").val((1).toFixed(8));
+        $("#multi_out_fee").val((1).toFixed(8));
         $("#multi-out-same-amount").val('');
         // show ordinary
         $(".ordinary").fadeIn();
@@ -527,6 +557,15 @@ var BRS = (function(BRS, $, undefined) {
             $(this).text($.t("advanced"));
         }
     });
+
+
+    $("#reward_assignment_modal").on("show.bs.modal", function(e) {
+    	BRS.showFeeSuggestions(reward_assignment_fee, suggested_fee_response_reward_assignment, reward_assignment_bottom_fee);
+        });
+        $("#reward_assignment_fee_suggested").on("click", function(e) {
+           e.preventDefault();
+           BRS.showFeeSuggestions(reward_assignment_fee, suggested_fee_response_reward_assignment, reward_assignment_bottom_fee);
+        });
 
     return BRS;
 }(BRS || {}, jQuery));
