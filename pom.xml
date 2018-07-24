@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>burstcoin</groupId>
+  <artifactId>burstcoin</artifactId>
+  <version>2.3.0</version>
+  <name>Burstcoin Reference Software</name>
+  <url>https://github.com/PoC-Consortium/burstcoin</url>
+
+  <scm>
+    <connection>scm:git:git@github.com:PoC-Consortium/burstcoin.git</connection>
+    <developerConnection>scm:git:git@github.com:PoC-Consortium/burstcoin.git</developerConnection>
+    <url>https://github.com/PoC-Consortium/burstcoin</url>
+  </scm>
+
+  <packaging>jar</packaging>
+
+  <properties>
+
+    <java.version>1.8</java.version>
+    <jocl.version>2.0.0</jocl.version>
+    <bcprov-jdk15on.version>1.59</bcprov-jdk15on.version>
+    <jetty.version>9.4.8.v20171121</jetty.version>
+    <json-simple.version>1.1.1</json-simple.version>
+    <javax.servlet-api.version>4.0.0</javax.servlet-api.version>
+    <slf4j.version>1.7.25</slf4j.version>
+    <mariadb.version>2.2.3</mariadb.version>
+    <hikaricp.version>2.7.8</hikaricp.version>
+    <h2.version>1.4.196</h2.version>
+    <jna.version>4.5.1</jna.version>
+    <reflections.version>0.9.11</reflections.version>
+    <kryo.version>4.0.1</kryo.version>
+    <commons-lang.version>2.6</commons-lang.version>
+    <hsqldb.version>2.4.0</hsqldb.version>
+    <jacoco.version>0.7.9</jacoco.version>
+    <jooq.version>3.10.5</jooq.version>
+    <jaxb.version>2.3.0</jaxb.version>
+    <weupnp.version>0.1.4</weupnp.version>
+    <ehcache.version>3.5.0</ehcache.version>
+    <apachehttpclient.version>4.5.2</apachehttpclient.version>
+
+    <junit-jupiter.version>5.2.0</junit-jupiter.version>
+    <junit-platform.version>1.2.0</junit-platform.version>
+    <junit-vintage.version>5.2.0</junit-vintage.version>
+    <mockito.version>2.15.0</mockito.version>
+    <powermock.version>2.0.0-beta.5</powermock.version>
+
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <sonar.sources>src</sonar.sources>
+
+    <skip.jooq.generation>true</skip.jooq.generation>
+    <sonar.tests>test/java</sonar.tests>
+
+    <!-- For Java -->
+    <sonar.junit.reportPath>${project.build.directory}/reports/java/surefire-reports</sonar.junit.reportPath>
+    <sonar.jacoco.reportsPath>${project.build.directory}/reports/java/jacoco.exec</sonar.jacoco.reportsPath>
+    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+    <sonar.language>java</sonar.language>
+
+    <!-- For JavaScript -->
+    <!--
+    <sonar.javascript.lcov.reportPath>reports/js/lcov.dat</sonar.javascript.lcov.reportPath>
+    -->
+
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+        <groupId>javax.annotation</groupId>
+        <artifactId>javax.annotation-api</artifactId>
+        <version>1.3.2</version>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>${javax.servlet-api.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jocl</groupId>
+      <artifactId>jocl</artifactId>
+      <version>${jocl.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+      <version>3.2.2</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>${bcprov-jdk15on.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>${json-simple.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlet</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlets</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client -->
+    <dependency>
+      <groupId>org.mariadb.jdbc</groupId>
+      <artifactId>mariadb-java-client</artifactId>
+      <version>${mariadb.version}</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <version>${hikaricp.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>${h2.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>${jna.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+      <version>${reflections.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.esotericsoftware</groupId>
+      <artifactId>kryo</artifactId>
+      <version>${kryo.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>${commons-lang.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-runner</artifactId>
+      <version>${junit-platform.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit-jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <version>${junit-vintage.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${junit-jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito2</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jacoco</groupId>
+      <artifactId>jacoco-maven-plugin</artifactId>
+      <version>${jacoco.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hsqldb</groupId>
+      <artifactId>hsqldb</artifactId>
+      <version>${hsqldb.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jooq</groupId>
+      <artifactId>jooq</artifactId>
+      <version>${jooq.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jooq</groupId>
+      <artifactId>jooq-meta</artifactId>
+      <version>${jooq.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jooq</groupId>
+      <artifactId>jooq-codegen</artifactId>
+      <version>${jooq.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>javax.persistence</artifactId>
+      <version>2.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>${jaxb.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-core</artifactId>
+      <version>${jaxb.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-impl</artifactId>
+      <version>${jaxb.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bitlet</groupId>
+      <artifactId>weupnp</artifactId>
+      <version>${weupnp.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
+      <version>${ehcache.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${apachehttpclient.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+    <testSourceDirectory>test/java</testSourceDirectory>
+    <testResources>
+      <testResource>
+        <directory>${project.basedir}/conf</directory>
+      </testResource>
+    </testResources>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.sonarsource.scanner.maven</groupId>
+          <artifactId>sonar-maven-plugin</artifactId>
+          <version>3.3.0.603</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.6</version>
+
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>brs.Burst</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>ant-clear</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <!-- clear dist dir -->
+                <delete dir="${project.basedir}/dist"/>
+                <mkdir dir="${project.basedir}/dist"/>
+                <mkdir dir="${project.basedir}/dist/tmp"/>
+                <mkdir dir="${project.basedir}/dist/tmp/burst_db"/>
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>ant-zip</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <!-- copy jar -->
+                <move file="${project.basedir}/target/${project.build.finalName}-jar-with-dependencies.jar"
+                  tofile="${project.basedir}/dist/tmp/burst.jar"/>
+
+                <!-- copy html dir -->
+                <copy todir="${project.basedir}/dist/tmp/html">
+                  <fileset dir="${project.basedir}/html">
+                  </fileset>
+                </copy>
+                <!-- copy properties from conf dir -->
+                <copy todir="${project.basedir}/dist/tmp/conf">
+                  <fileset dir="${project.basedir}/conf">
+                    <include name="logging-default.properties"/>
+                    <include name="brs-default.properties"/>
+                  </fileset>
+                </copy>
+                <!-- copy remaining files from root dir -->
+                <copy todir="${project.basedir}/dist/tmp">
+                  <fileset dir="${project.basedir}">
+                    <include name="Burst_Wallet.url"/>
+                    <include name="genscoop.cl"/>
+                    <include name="init-mysql.sql"/>
+                    <include name="LICENSE.txt"/>
+                    <include name="README.md"/>
+                    <include name="README_refactoring.md"/>
+                    <include name="burst.cmd"/>
+                    <include name="burst.sh"/>
+                  </fileset>
+                </copy>
+
+                <!-- workaround to keep org. burst.(sh|cmd) working, if build with compile scripts -->
+                <copy file="${project.basedir}/burst.sh"
+                  tofile="${project.basedir}/dist/tmp/burst.sh"/>
+                <copy file="${project.basedir}/burst.cmd"
+                  tofile="${project.basedir}/dist/tmp/burst.cmd"/>
+                <!-- create zip file -->
+                <zip destfile="${project.basedir}/dist/${project.build.finalName}.zip"
+                  basedir="${project.basedir}/dist/tmp"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.0.0-M1</version>
+        <configuration>
+          <additionalparam>-Xdoclint:none</additionalparam>
+          <show>private</show>
+          <nohelp>true</nohelp>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+        <executions>
+          <execution>
+            <id>pre-unit-test</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+            <configuration>
+              <destFile>${sonar.jacoco.reportsPath}</destFile>
+              <propertyName>surefireArgLine</propertyName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!--plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.20.1</version>
+      </plugin-->
+
+      <plugin>
+        <groupId>org.jooq</groupId>
+        <artifactId>jooq-codegen-maven</artifactId>
+        <version>${jooq.version}</version>
+
+        <executions>
+          <execution>
+            <id>jooq-codegen</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+
+        <configuration>
+          <jdbc>
+            <driver>org.mariadb.jdbc.Driver</driver>
+            <url>jdbc:mysql://localhost:3306/burstwallet</url>
+            <user>root</user>
+            <password></password>
+          </jdbc>
+          <generator>
+            <name>org.jooq.util.JavaGenerator</name>
+            <database>
+              <name>org.jooq.util.mariadb.MariaDBDatabase</name>
+              <inputSchema>burstwallet</inputSchema>
+              <outputSchema>DB</outputSchema>
+              <includes>.*</includes>
+              <excludes></excludes>
+              <forcedTypes>
+                <forcedType>
+                  <name>BOOLEAN</name>
+                  <expression>
+                    .*\.(.*\.LATEST|AT_STATE\.FREEZE_WHEN_SAME_BALANCE|GOODS\.DELISTED|TRANSACTION\.(HAS_MESSAGE|HAS_ENCRYPTED_MESSAGE|HAS_PUBLIC_KEY_ANNOUNCEMENT|HAS_ENCRYPTTOSELF_MESSAGE)|PURCHASE\.(PENDING|HAS_FEEDBACK_NOTES|HAS_PUBLIC_FEEDBACKS))
+                  </expression>
+                  <types>.*</types>
+                </forcedType>
+              </forcedTypes>
+            </database>
+            <target>
+              <packageName>brs.schema</packageName>
+              <directory>src</directory>
+            </target>
+          </generator>
+          <skip>${skip.jooq.generation}</skip>
+        </configuration>
+      </plugin>
+
+    </plugins>
+
+  </build>
+</project>
