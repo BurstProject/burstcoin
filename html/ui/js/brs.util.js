@@ -372,10 +372,13 @@ var BRS = (function(BRS, $, undefined) {
     };
     BRS.convertToNQT = function(currency) {
 
-        if(!isNaN(currency))
+        if(typeof currency == 'string'){
+        currency = parseFloat(currency, 10);
         currency = currency.toFixed(8);  ///  this fixes rounding issues (for the Total field on modals)
+        }
         else
-        currency = String(currency);
+        currency = currency.toFixed(8);  ///  this fixes rounding issues (for the Total field on modals)
+
         var parts = currency.split(".");
 
         var amount = parts[0];

@@ -118,22 +118,22 @@
             <input type="text" class="form-control" name="aliasURI" id="register_alias_uri" placeholder="URI" data-i18n="[placeholder]uri" tabindex="2" />
             <p class="help-block" id="register_alias_help"></p>
           </div>
-          <div class="row advanced">
-            <div class="col-xs-6 col-sm-6 col-md-6">
-              <div class="form-group">
-                <label for="register_alias_fee" data-i18n="fee">FEE</label>
-                <div class="input-group">
-                  <input type="number" name="feeNXT" id="register_alias_fee" class="form-control" step="any" min="0.00735" placeholder="Fee" data-i18n="[placeholder]fee" data-default="0.1" value="0.1" tabindex="3">
-                  <span class="input-group-addon">BURST</span>
-                </div>
-              </div>
+          <div class="form-group">
+            <label for="register_alias_fee" data-i18n="fee">FEE</label>
+            <div class="input-group">
+              <input type="number" name="feeNXT" id="register_alias_fee" class="form-control" step="any" min="0.00735" placeholder="Fee" data-i18n="[placeholder]fee" data-default="0.1" value="0.1" tabindex="3">
+              <span class="input-group-addon">BURST</span>
             </div>
-            <div class="col-xs-6 col-sm-6 col-md-6">
-              <div class="form-group">
-                <label for="register_alias_deadline" data-i18n="deadline_hours">DEADLINE (HOURS)</label>
-                <input type="number" name="deadline" id="register_alias_deadline" class="form-control" placeholder="Deadline" data-i18n="[placeholder]deadline" min="1" data-default="24" value="24" tabindex="4">
-              </div>
+            <div class="padding-top-5 padding-bottom-5 font-size-14">
+              <span class="suggested_fee" data-i18n="[title]click_to_refresh"><a href="#" class="btn btn-suggested-fee btn-xs" id="suggested_fee_alias_register" data-i18n="suggested_fee">Suggested fee:</a></span>
+              <span id="suggested_fee_response_alias_register" class="suggested_fee margin-left-5"></span>
+              <span class="suggested_fee margin-left-10" data-toggle="tooltip" data-placement="top" data-html="true"  data-i18n="[title]suggested_fee_help"><i class="fa fa-info" aria-hidden="true"></i></span>
+              <span class="suggested_fee margin-left-10 suggested_fee_spinner_display_none" name="suggested_fee_spinner"><i class="fa fa-spinner fa-spin fa-fw text-danger"></i></span>
             </div>
+          </div>
+          <div class="form-group advanced">
+            <label for="register_alias_deadline" data-i18n="deadline_hours">DEADLINE (HOURS)</label>
+            <input type="number" name="deadline" id="register_alias_deadline" class="form-control" placeholder="Deadline" data-i18n="[placeholder]deadline" min="1" data-default="24" value="24" tabindex="4">
           </div>
           <div class="form-group secret_phrase">
             <label for="register_alias_password" data-i18n="passphrase">PASSPHRASE</label>

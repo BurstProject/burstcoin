@@ -3,6 +3,13 @@
  */
 var BRS;
 BRS = (function (BRS, $, undefined) {
+        $('#register_alias_modal').on('show.bs.modal', function (e) {
+            BRS.showFeeSuggestions(register_alias_fee, suggested_fee_response_alias_register);
+        });
+        $("#suggested_fee_alias_register").on("click", function(e) {
+            e.preventDefault();
+        	BRS.showFeeSuggestions(register_alias_fee, suggested_fee_response_alias_register);
+        });
     BRS.pages.aliases = function () {
         BRS.sendRequest("getAliases+", {
             "account": BRS.account,
